@@ -1,0 +1,41 @@
+# VALID UNIT
+kV
+uF/cm2
+pF/mm2
+F/um2
+(F/um2)/cm
+F/(um2/cm)
+mm
+meter
+meter2
+m
+m2
+um2
+mS/cm2
+MA
+V2
+kA2
+V2 kA2
+volt2  A-5 megasiemen2
+volt2 / A-5 megasiemen2
+megaamp
+milliamp
+
+10pS/(um um)
+
+# INVALID UNIT
+k
+milli amp
+
+F/um/cm
+
+
+# VALID UNIT CONVERSION
+1 kV = 1000 V
+1 kA = 1000 A
+1 mS/cm2 = 10 pS/um2
+1 (mA/V)/cm2 = 10pS/um2
+1 (mA/V)/cm2 = 10pS/(um um)
+
+
+#1mS/5cm2 = 10pS/um2
