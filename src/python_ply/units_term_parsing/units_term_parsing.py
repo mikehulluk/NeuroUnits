@@ -154,7 +154,7 @@ def parse_term( text ):
             return u_def
 
     # Parse as per normal: 
-    parser = ply.yacc.yacc(tabmodule='unit_term_parser_parsetab', outputdir='/tmp/')
+    parser = ply.yacc.yacc(tabmodule='unit_term_parser_parsetab')#, outputdir='/tmp/', debug=0)
     return parser.parse(text, lexer=lexer)
 
 

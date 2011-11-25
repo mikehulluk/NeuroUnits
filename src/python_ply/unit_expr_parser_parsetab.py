@@ -5,9 +5,9 @@ _tabversion = '3.2'
 
 _lr_method = 'LALR'
 
-_lr_signature = '-v\x1c\xe7\xc6\xf5\x93\x0e\x9d4\xc05\xd4\x07\xc1\xd0'
+_lr_signature = '\x04\xb4\xe5\xa4\x17\xa8\xb4\x85lW\xe0@\xf0\xf5\x9a\x18'
     
-_lr_action_items = {'ALPHATOKEN':([0,4,6,8,10,15,19,21,22,27,29,],[5,5,5,5,5,5,5,5,5,5,5,]),'WHITESPACE':([0,2,3,4,5,6,8,9,10,13,14,15,16,17,19,20,21,22,25,26,27,28,29,30,31,32,33,35,36,],[4,-16,14,4,-22,4,19,21,4,-20,-15,27,14,21,19,21,-18,4,-21,14,27,21,19,-12,-17,14,21,21,-13,]),'FLOAT':([0,24,],[6,6,]),'LBRACKET':([0,4,6,10,15,22,27,],[8,8,8,8,8,8,8,]),'SLASH':([2,3,5,9,11,13,14,16,17,18,20,21,23,25,26,28,30,31,32,33,36,],[-16,15,-22,22,24,-20,-15,-14,-19,-5,29,-18,-6,-21,-9,-11,-12,-17,-10,-8,-13,]),'INTEGER':([0,5,13,24,],[10,-22,25,10,]),'RBRACKET':([2,5,13,17,20,21,25,31,35,],[-16,-22,-20,-19,30,-18,-21,-17,36,]),'$end':([1,2,5,7,9,11,12,13,14,16,17,18,21,23,25,26,28,30,31,32,33,34,36,],[-1,-16,-22,-2,-7,-3,0,-20,-15,-14,-19,-5,-18,-6,-21,-9,-11,-12,-17,-10,-8,-4,-13,]),}
+_lr_action_items = {'ALPHATOKEN':([0,6,8,10,15,18,19,24,25,27,33,39,],[4,4,4,4,4,4,4,4,4,4,4,4,]),'WHITESPACE':([2,3,4,6,9,10,13,14,21,24,25,28,29,30,34,37,38,40,42,43,44,],[-22,14,-27,18,24,27,-25,-21,24,-24,39,-26,14,24,-19,-23,14,24,24,24,-20,]),'FLOAT':([0,8,20,],[6,6,6,]),'LBRACKET':([0,6,8,10,15,16,18,20,25,27,],[8,19,20,19,19,20,19,20,19,19,]),'SLASH':([2,3,4,5,9,13,14,21,24,28,34,35,36,37,44,],[-22,15,-27,16,25,-25,-21,33,-24,-26,-19,-6,-7,-23,-20,]),'INTEGER':([0,4,8,13,20,],[10,-27,10,28,10,]),'RBRACKET':([2,3,4,9,13,14,17,21,22,23,24,26,28,29,30,32,34,35,36,37,38,40,41,42,43,44,],[-22,-17,-27,-12,-25,-21,-8,34,35,36,-24,-9,-26,-14,-16,-10,-19,-6,-7,-23,-15,-13,-11,44,-18,-20,]),'$end':([1,2,3,4,5,7,9,11,12,13,14,17,24,26,28,29,30,31,32,34,35,36,37,38,40,41,43,44,],[-1,-22,-17,-27,-4,-2,-12,-3,0,-25,-21,-8,-24,-9,-26,-14,-16,-5,-10,-19,-6,-7,-23,-15,-13,-11,-18,-20,]),}
 
 _lr_action = { }
 for _k, _v in _lr_action_items.items():
@@ -16,7 +16,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'unit_expr':([0,6,10,],[1,18,23,]),'unit_term':([0,4,6,8,10,15,19,21,22,27,29,],[2,2,2,2,2,2,2,31,2,2,2,]),'parameterised_unit_term':([0,4,6,10,15,22,27,],[3,16,3,3,26,32,16,]),'quantity_expr':([0,],[7,]),'unit_term_grp':([0,4,6,8,10,15,19,22,27,29,],[9,17,9,20,9,28,17,33,17,35,]),'quantity_term':([0,24,],[11,34,]),'unit_term_unpowered':([0,4,6,8,10,15,19,21,22,27,29,],[13,13,13,13,13,13,13,13,13,13,13,]),'gen_expr':([0,],[12,]),}
+_lr_goto_items = {'unit_expr':([0,6,10,18,27,],[1,17,26,32,41,]),'unit_term':([0,6,8,10,15,18,19,24,25,27,33,39,],[2,2,2,2,2,2,2,37,2,2,2,2,]),'parameterised_unit_term':([0,6,10,15,18,25,27,],[3,3,3,29,3,38,3,]),'quantity_term_parethesised':([0,8,16,20,],[5,23,31,23,]),'quantity_expr':([0,],[7,]),'unit_term_grp':([0,6,8,10,15,18,19,25,27,33,39,],[9,9,21,9,30,9,21,40,9,42,43,]),'quantity_term':([0,8,20,],[11,22,22,]),'unit_term_unpowered':([0,6,8,10,15,18,19,24,25,27,33,39,],[13,13,13,13,13,13,13,13,13,13,13,13,]),'gen_expr':([0,],[12,]),}
 
 _lr_goto = { }
 for _k, _v in _lr_goto_items.items():
@@ -26,26 +26,31 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 _lr_productions = [
   ("S' -> gen_expr","S'",1,None,None,None),
-  ('gen_expr -> unit_expr','gen_expr',1,'p_gen_expr','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',10),
-  ('gen_expr -> quantity_expr','gen_expr',1,'p_gen_expr','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',11),
-  ('quantity_expr -> quantity_term','quantity_expr',1,'p_quantity_expr_1','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',18),
-  ('quantity_expr -> quantity_term SLASH quantity_term','quantity_expr',3,'p_quantity_expr_2','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',22),
-  ('quantity_term -> FLOAT unit_expr','quantity_term',2,'p_quantity_term_1','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',28),
-  ('quantity_term -> INTEGER unit_expr','quantity_term',2,'p_quantity_term_1','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',29),
-  ('unit_expr -> unit_term_grp','unit_expr',1,'p_unit_expr_1','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',36),
-  ('unit_expr -> unit_term_grp SLASH unit_term_grp','unit_expr',3,'p_unit_expr_2','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',40),
-  ('unit_expr -> parameterised_unit_term SLASH parameterised_unit_term','unit_expr',3,'p_unit_expr_3','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',44),
-  ('unit_expr -> unit_term_grp SLASH parameterised_unit_term','unit_expr',3,'p_unit_expr_4','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',48),
-  ('unit_expr -> parameterised_unit_term SLASH unit_term_grp','unit_expr',3,'p_unit_expr_5','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',52),
-  ('parameterised_unit_term -> LBRACKET unit_term_grp RBRACKET','parameterised_unit_term',3,'p_paramterised_unit_term_1','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',60),
-  ('parameterised_unit_term -> LBRACKET unit_term_grp SLASH unit_term_grp RBRACKET','parameterised_unit_term',5,'p_paramterised_unit_term_2','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',64),
-  ('parameterised_unit_term -> WHITESPACE parameterised_unit_term','parameterised_unit_term',2,'p_paramterised_unit_term_3','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',69),
-  ('parameterised_unit_term -> parameterised_unit_term WHITESPACE','parameterised_unit_term',2,'p_paramterised_unit_term_4','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',74),
-  ('unit_term_grp -> unit_term','unit_term_grp',1,'p_unit_term_grp_1','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',82),
-  ('unit_term_grp -> unit_term_grp WHITESPACE unit_term','unit_term_grp',3,'p_unit_term_grp_2','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',86),
-  ('unit_term_grp -> unit_term_grp WHITESPACE','unit_term_grp',2,'p_unit_term_grp_3','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',91),
-  ('unit_term_grp -> WHITESPACE unit_term_grp','unit_term_grp',2,'p_unit_term_grp_4','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',95),
-  ('unit_term -> unit_term_unpowered','unit_term',1,'p_unit_term_1','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',103),
-  ('unit_term -> unit_term_unpowered INTEGER','unit_term',2,'p_unit_term_2','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',107),
-  ('unit_term_unpowered -> ALPHATOKEN','unit_term_unpowered',1,'p_unit_term_unpowered_token','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',115),
+  ('gen_expr -> unit_expr','gen_expr',1,'p_gen_expr','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',11),
+  ('gen_expr -> quantity_expr','gen_expr',1,'p_gen_expr','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',12),
+  ('quantity_expr -> quantity_term','quantity_expr',1,'p_quantity_expr_1','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',20),
+  ('quantity_expr -> quantity_term_parethesised','quantity_expr',1,'p_quantity_expr_1','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',21),
+  ('quantity_expr -> quantity_term_parethesised SLASH quantity_term_parethesised','quantity_expr',3,'p_quantity_expr_2','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',26),
+  ('quantity_term_parethesised -> LBRACKET quantity_term RBRACKET','quantity_term_parethesised',3,'p_quantity_term_parathesised','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',32),
+  ('quantity_term_parethesised -> LBRACKET quantity_term_parethesised RBRACKET','quantity_term_parethesised',3,'p_quantity_term_parathesised','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',33),
+  ('quantity_term -> FLOAT unit_expr','quantity_term',2,'p_quantity_term_1','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',42),
+  ('quantity_term -> INTEGER unit_expr','quantity_term',2,'p_quantity_term_1','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',43),
+  ('quantity_term -> FLOAT WHITESPACE unit_expr','quantity_term',3,'p_quantity_term_2','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',48),
+  ('quantity_term -> INTEGER WHITESPACE unit_expr','quantity_term',3,'p_quantity_term_2','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',49),
+  ('unit_expr -> unit_term_grp','unit_expr',1,'p_unit_expr_1','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',55),
+  ('unit_expr -> unit_term_grp SLASH unit_term_grp','unit_expr',3,'p_unit_expr_2','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',59),
+  ('unit_expr -> parameterised_unit_term SLASH parameterised_unit_term','unit_expr',3,'p_unit_expr_3','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',64),
+  ('unit_expr -> unit_term_grp SLASH parameterised_unit_term','unit_expr',3,'p_unit_expr_4','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',68),
+  ('unit_expr -> parameterised_unit_term SLASH unit_term_grp','unit_expr',3,'p_unit_expr_5','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',72),
+  ('unit_expr -> parameterised_unit_term','unit_expr',1,'p_unit_expr_6','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',76),
+  ('unit_expr -> unit_term_grp SLASH WHITESPACE unit_term_grp','unit_expr',4,'p_unit_expr_7','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',80),
+  ('parameterised_unit_term -> LBRACKET unit_term_grp RBRACKET','parameterised_unit_term',3,'p_paramterised_unit_term_1','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',88),
+  ('parameterised_unit_term -> LBRACKET unit_term_grp SLASH unit_term_grp RBRACKET','parameterised_unit_term',5,'p_paramterised_unit_term_2','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',92),
+  ('parameterised_unit_term -> parameterised_unit_term WHITESPACE','parameterised_unit_term',2,'p_paramterised_unit_term_4','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',98),
+  ('unit_term_grp -> unit_term','unit_term_grp',1,'p_unit_term_grp_1','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',106),
+  ('unit_term_grp -> unit_term_grp WHITESPACE unit_term','unit_term_grp',3,'p_unit_term_grp_2','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',110),
+  ('unit_term_grp -> unit_term_grp WHITESPACE','unit_term_grp',2,'p_unit_term_grp_3','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',115),
+  ('unit_term -> unit_term_unpowered','unit_term',1,'p_unit_term_1','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',124),
+  ('unit_term -> unit_term_unpowered INTEGER','unit_term',2,'p_unit_term_2','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',128),
+  ('unit_term_unpowered -> ALPHATOKEN','unit_term_unpowered',1,'p_unit_term_unpowered_token','/home/michael/hw/NeuroUnits/src/python_ply/units_expr_yacc.py',136),
 ]

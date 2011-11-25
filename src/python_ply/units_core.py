@@ -86,3 +86,9 @@ class Quantity(object):
                 (self.unit.mole  == rhs.unit.mole) and \
                 (self.unit.candela == rhs.unit.candela)
 
+    def __mul__(self, rhs):
+        return Quantity( self.magnitude*rhs.magnitude,  self.unit*rhs.unit) 
+    def __div__(self, rhs):
+        return Quantity( self.magnitude/rhs.magnitude,  self.unit/rhs.unit) 
+
+

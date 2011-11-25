@@ -38,4 +38,4 @@ F/um/cm
 1 (mA/V)/cm2 = 10pS/(um um)
 
 
-#1mS/5cm2 = 10pS/um2
+(1(mS))/(10.0cm2) = 1pS/um2
