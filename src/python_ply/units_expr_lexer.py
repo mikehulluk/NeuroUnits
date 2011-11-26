@@ -3,12 +3,13 @@ import ply.lex
 from units_core import UnitError
 
 tokens = [
+    "PI","E",
     "INTEGER", "FLOAT",
     "SLASH", "SLASHSLASH",
-    "WHITESPACE", "EOL",
+    "WHITESPACE",
     "LBRACKET","RBRACKET",
     "ALPHATOKEN",
-    "TIMES","PLUS","MINUS"
+    "TIMES","PLUS","MINUS",
         ] 
 
 def t_FLOAT(t):
@@ -21,11 +22,14 @@ def t_INTEGER(t):
     t.value = int(t.value)    
     return t
 
+t_PI = r"""pi"""
+t_E = r"""e"""
+
 t_ALPHATOKEN = r"""[a-zA-Z]+"""
 t_SLASHSLASH = r"""//"""
 t_SLASH = r"""/"""
 t_WHITESPACE = r"""[ \t]+"""
-t_EOL = r"""\n"""
+#t_EOL = r"""\n"""
 t_LBRACKET = r"""\("""
 t_RBRACKET = r"""\)"""
 

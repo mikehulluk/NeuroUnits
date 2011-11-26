@@ -6,60 +6,65 @@ import re
 
 
 def p_parse_line(p):
-    """parse_line : expr
+    """parse_line : quantity_expr
                   | unit_expr """
     p[0] = p[1]
 
-def p_expr_1(p): 
-    """expr : expr PLUS term"""
+
+
+def p_quantity_expr_1(p): 
+    """quantity_expr : quantity_expr PLUS quantity_term"""
     p[0] = p[1] + p[2]
 
-def p_expr_2(p): 
-    """expr : expr MINUS term"""
+def p_quantity_expr_2(p): 
+    """quantity_expr : quantity_expr MINUS quantity_term"""
     p[0] = p[1] - p[2]
-def p_expr_3(p): 
-    """expr : term"""
+def p_quantity_expr_3(p): 
+    """quantity_expr : quantity_term"""
     p[0] = p[1] 
 
-def p_term_1(p):
-    """term :  term TIMES factor"""
+def p_quantity_term_1(p):
+    """quantity_term :  quantity_term TIMES quantity_factor"""
     p[0] = p[1] * p[3]
 
-def p_term_2(p):
-    """term : term SLASH factor"""
+def p_quantity_term_2(p):
+    """quantity_term : quantity_term SLASH quantity_factor"""
     p[0] = p[1] / p[3]
 
-def p_term_3(p):
-    """term : factor"""
+def p_quantity_term_3(p):
+    """quantity_term : quantity_factor"""
     p[0] = p[1] 
 
-def p_factor_1(p):
-    """factor : quantity """
+def p_quantity_factor_1(p):
+    """quantity_factor : quantity """
     p[0] = p[1]
-def p_factor_2(p):
-    """factor : LBRACKET expr RBRACKET """
+def p_quantity_factor_2(p):
+    """quantity_factor : LBRACKET quantity_expr RBRACKET """
     p[0] = p[2]
 
 
 
 # QUANTITY TERMS:
 def p_quantity_0( p ):
-    """quantity : FLOAT 
-                     | INTEGER """
+    """quantity : magnitude"""
     p[0] = Quantity( p[1], Unit() )
 
 def p_quantity_1( p ):
-    """quantity : FLOAT unit_expr
-                     | INTEGER unit_expr"""
+    """quantity : magnitude unit_expr """
     p[0] = Quantity( p[1], p[2] )
 
 def p_quantity_2( p ):
-    """quantity : FLOAT WHITESPACE unit_expr
-                     | INTEGER WHITESPACE unit_expr"""
+    """quantity : magnitude WHITESPACE unit_expr"""
     p[0] = Quantity( p[1], p[3] )
 
+def p_quantity_magnitude(p):
+    """magnitude : FLOAT 
+                 | INTEGER"""
+    p[0] = p[1]
 
-
+def p_quantity_3(p):
+    """ quantity : PI 
+                 | E """
 
 
 # UNIT EXPRESSIONS:
@@ -172,17 +177,17 @@ def parse_expr(text):
     #print text
     #return
 
-    import logging
-    logging.basicConfig(
-        level = logging.DEBUG,
-        filename = "parselog.txt",
-        filemode = "w",
-        format = "%(filename)10s:%(lineno)4d:%(message)s"
-    )
-    log = logging.getLogger()
+    #import logging
+    #logging.basicConfig(
+    #    level = logging.DEBUG,
+    #    filename = "parselog.txt",
+    #    filemode = "w",
+    #    format = "%(filename)10s:%(lineno)4d:%(message)s"
+    #)
+    #log = logging.getLogger()
 
-    parser = yacc.yacc(tabmodule='unit_expr_parser_parsetab', debug=True  ) 
-    return parser.parse(text, lexer=units_expr_lexer.lexer, debug=True, )
+    #parser = yacc.yacc(tabmodule='unit_expr_parser_parsetab', debug=True  ) 
+    #return parser.parse(text, lexer=units_expr_lexer.lexer, debug=True, )
 
     parser = yacc.yacc(tabmodule='unit_expr_parser_parsetab', debug=True ) 
     return parser.parse(text, lexer=units_expr_lexer.lexer)

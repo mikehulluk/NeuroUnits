@@ -36,8 +36,8 @@ from units_core import UnitError
 
 
 l = " (1.0/(1.0mA/(ms/m2))/(1.5pA/mm2/3.1mA/cm2))*2.0cm*0.5*1.0mm*1.0/4.0*3um2/uF*2.0"
-l = " (1.0/(1.0mA/(ms/m2) )/ ( 1.5pA/ mm2/3.1mA/cm2))*2.0cm*0.5*1.0mm/4.0*2.0e1*3um2/uF*2.0"
-
+l = " (1.0/(1.0mA/(ms/m2) )/ ( 1.5pA/ mm2/3.1mA/cm2))*2.0cm*0.5*1.0mm/4.0*2.0e1*3um2/uF*2.0 * e * pi * 2.0"
+print l
 p = ParseUnitString(l)
 print p
 
