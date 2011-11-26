@@ -1,3 +1,7 @@
 *.pyc
 parser.out
+parselog.txt
 *parsetab*
+*.aux
+*.log
+*.pdf
