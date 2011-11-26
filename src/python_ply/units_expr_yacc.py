@@ -1,14 +1,14 @@
-#import re
 import ply.yacc as yacc
 import units_expr_lexer
 from units_expr_lexer import tokens
 from units_core import Unit, UnitError, Quantity
-#from units_core import UnitError, Quantity
-#from units_core import Unit
+import re
 
-def p_expr_0a(p): 
-    """expr : WHITESPACE expr"""
-    p[0] =p[2]
+
+def p_parse_line(p):
+    """parse_line : expr
+                  | unit_expr """
+    p[0] = p[1]
 
 def p_expr_1(p): 
     """expr : expr PLUS term"""
@@ -22,11 +22,11 @@ def p_expr_3(p):
     p[0] = p[1] 
 
 def p_term_1(p):
-    """term :  term times factor"""
+    """term :  term TIMES factor"""
     p[0] = p[1] * p[3]
 
 def p_term_2(p):
-    """term : term slash factor"""
+    """term : term SLASH factor"""
     p[0] = p[1] / p[3]
 
 def p_term_3(p):
@@ -34,39 +34,29 @@ def p_term_3(p):
     p[0] = p[1] 
 
 def p_factor_1(p):
-    """factor : quantity_term """
+    """factor : quantity """
     p[0] = p[1]
 def p_factor_2(p):
-    """factor : l_bracket expr r_bracket """
+    """factor : LBRACKET expr RBRACKET """
     p[0] = p[2]
 
 
 
 # QUANTITY TERMS:
-def p_quantity_term_0( p ):
-    """quantity_term : FLOAT 
+def p_quantity_0( p ):
+    """quantity : FLOAT 
                      | INTEGER """
     p[0] = Quantity( p[1], Unit() )
 
-def p_quantity_term_1( p ):
-    """quantity_term : FLOAT unit_expr
+def p_quantity_1( p ):
+    """quantity : FLOAT unit_expr
                      | INTEGER unit_expr"""
     p[0] = Quantity( p[1], p[2] )
 
-# QUANTITY TERMS:
-def p_quantity_term_2( p ):
-    """quantity_term : FLOAT WHITESPACE unit_expr
+def p_quantity_2( p ):
+    """quantity : FLOAT WHITESPACE unit_expr
                      | INTEGER WHITESPACE unit_expr"""
     p[0] = Quantity( p[1], p[3] )
-
-
-# USE TO CATCH A problem with parsing, we can't match terms like '3cm/2, 
-# since the resolution of '/' needs to look ahead:
-def p_quantity_term_3( p ):
-    """quantity_term :    FLOAT unit_term_grp slash quantity_term
-                        | INTEGER unit_term_grp slash quantity_term
-    """
-    p[0] = Quantity( p[1], p[2] ) / p[4]
 
 
 
@@ -78,19 +68,19 @@ def p_unit_expr_1( p ):
     p[0] = p[1]
 
 def p_unit_expr_2( p ):
-    """unit_expr : unit_term_grp slash unit_term_grp"""
+    """unit_expr : unit_term_grp SLASHSLASH unit_term_grp"""
     p[0] = p[1] / p[3]
 
 def p_unit_expr_3( p ):
-    """unit_expr : parameterised_unit_term slash parameterised_unit_term"""
+    """unit_expr : parameterised_unit_term SLASHSLASH parameterised_unit_term"""
     p[0] = p[1] / p[3]
 
 def p_unit_expr_4( p ):
-    """unit_expr : unit_term_grp slash parameterised_unit_term"""
+    """unit_expr : unit_term_grp SLASHSLASH parameterised_unit_term"""
     p[0] = p[1] / p[3]
 
 def p_unit_expr_5( p ):
-    """unit_expr : parameterised_unit_term slash unit_term_grp"""
+    """unit_expr : parameterised_unit_term SLASHSLASH unit_term_grp"""
     p[0] = p[1] / p[3]
 
 def p_unit_expr_6( p ):
@@ -103,11 +93,11 @@ def p_unit_expr_6( p ):
 #########################
 
 def p_paramterised_unit_term_1( p ):
-    """parameterised_unit_term : l_bracket unit_term_grp r_bracket"""
+    """parameterised_unit_term : LBRACKET unit_term_grp RBRACKET"""
     p[0] = p[2]
 
 def p_paramterised_unit_term_2( p ):
-    """parameterised_unit_term : l_bracket unit_term_grp slash unit_term_grp r_bracket"""
+    """parameterised_unit_term : LBRACKET unit_term_grp SLASHSLASH unit_term_grp RBRACKET"""
     p[0] = p[2] / p[4]
 
 
@@ -150,43 +140,38 @@ def p_unit_term_unpowered_token(p):
 
 
 
-def p_lbracket_clean(p):
-    """ l_bracket :    LBRACKET
-                     | LBRACKET WHITESPACE 
-                     """
-    pass
-
-def p_rbracket_clean(p):
-    """ r_bracket :    RBRACKET
-                     | RBRACKET WHITESPACE 
-    """
-    pass
-
-def p_times_clean(p):
-    """ times :    TIMES
-                 | TIMES WHITESPACE 
-    """
-    pass
-
-def p_slash_clean(p):
-    """ slash :    SLASH
-                 | SLASH WHITESPACE 
-    """
-    pass
-
 
 
 def p_error(p):
     raise UnitError( "Parsing Error %s" % (p) )
     
 precedence = (
+    ('left', 'SLASHSLASH'),
     ('left', 'TIMES', 'SLASH'),
     ('left', 'PLUS','MINUS'),
     ('left', 'WHITESPACE'),
 )
 
 
+import re
+
 def parse_expr(text):
+
+    # Some preprocessing:
+    #######################
+
+    # Strip all unnessesary whitespace:
+    s1 = re.compile(r'[ ]* ([()/*]) [ ]*',re.VERBOSE)
+    text = re.sub(s1,r'\1',text)
+    
+    # '/' plays 2 roles. To simplify the grammar, turn '/' used to 
+    # purely separte unit terms to '//'
+    s = re.compile('/(?=[(]*[a-zA-Z])')
+    text = re.sub(s,'//',text)
+
+    #print text
+    #return
+
     import logging
     logging.basicConfig(
         level = logging.DEBUG,
