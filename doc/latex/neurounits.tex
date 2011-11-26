@@ -1,0 +1,77 @@
+
+\documentclass{article}
+
+
+\usepackage{verbatim} 
+\usepackage{listings} 
+
+
+\title{A grammar for units in computational neuroscience}
+\begin{document}
+
+\maketitle
+
+\section*{Motivation}
+
+Computational neuroscience is a field with a large 
+array of tools aimed at specific tasks. Recently, 
+there has been a focus on tool interoperability. 
+Unfortunately, many different tools use different 
+notations for unit handling. 
+
+A simple, unambiguous, ascii-string based format for denoting quantities with units, and 
+simple expressions involving these quantities, which can be implemented with standard parsing tools. 
+
+
+\section*{Review  of unit definition in existing tools}
+
+\subsection*{Neuron}
+NEURON separates the simulation process into two parts; .hoc and .mod files. The units that a particular parameter will be specified in are specified in .mod files. NEURON comes with a database of units and constants, derived from the GNU units packages, found in 'nrnunits.lib'. New units and constants can also be defined in terms of old units. E.G.
+\subsection*{Genesis}
+\subsection*{SBML}
+\subsection*{BRIAN}
+
+
+
+\section*{Use Cases \& Constraints}
+Use-cases:
+
+\begin{itemize}
+\item[Simulator Configuation]   
+Since most programming languages support character string, we would like to be able to write
+\begin{lstlisting}
+\verb|create_leak_channel(reversal_potential="-70 mV", conductance="3 pS/cm2")|
+\end{lstlisting}
+, or, ideally, to make comparisons with physiology easier, \verb|create_leak_channel(reversal_potential="-70 mV", conductance=" (1/300 MOhm)/(500um2)")|, to specify the a leak channel for a biophysical neuron.
+
+\item[Loading \& Storing of Data \& Results]
+
+
+\end{itemize}
+
+
+Constraints:
+\begin{itemize}
+\item[Scope] Neuroscience specific 
+\item[Implementation] Neuroscience specific 
+\item[Implementation] Simple to implement
+\end{itemize}
+
+Example Formula
+\begin{itemize}
+\item NMDA? Cellular concentrations.
+\end{itemize}
+
+
+
+\section{Grammar}
+
+
+
+
+
+
+
+
+
+\end{document}
