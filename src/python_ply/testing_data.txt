@@ -17,13 +17,13 @@ V2
 kA2
 V2 kA2
 volt2  A-5 megasiemen2
-volt2 / A-5 megasiemen2
+volt2/A-5 megasiemen2
 megaamp
 milliamp
 
-10pS/(um um)
-
-1 mA/ms / 1 pA/mm2
+#10.0pS/(um um)
+#
+#1 mA/ms / 1 pA/mm2
 
 
 

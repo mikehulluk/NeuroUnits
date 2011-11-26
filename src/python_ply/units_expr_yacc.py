@@ -6,6 +6,10 @@ from units_core import Unit, UnitError, Quantity
 #from units_core import UnitError, Quantity
 #from units_core import Unit
 
+def p_expr_0a(p): 
+    """expr : WHITESPACE expr"""
+    p[0] =p[2]
+
 def p_expr_1(p): 
     """expr : expr PLUS term"""
     p[0] = p[1] + p[2]
@@ -56,6 +60,17 @@ def p_quantity_term_2( p ):
     p[0] = Quantity( p[1], p[3] )
 
 
+# USE TO CATCH A problem with parsing, we can't match terms like '3cm/2, since the resolution of '/' needs
+# to look ahead:
+def p_quantity_term_3( p ):
+    """quantity_term : FLOAT unit_term_grp slash quantity_term
+    """
+    p[0] = Quantity( p[1], p[2] ) / p[4]
+
+
+
+
+
 # UNIT EXPRESSIONS:
 def p_unit_expr_1( p ):
     """unit_expr : unit_term_grp"""
@@ -95,10 +110,6 @@ def p_paramterised_unit_term_2( p ):
     p[0] = p[2] / p[4]
 
 
-# [Allow additional trailing whitespace]:
-def p_paramterised_unit_term_4( p ):
-    """parameterised_unit_term : parameterised_unit_term"""
-    p[0] = p[1] 
 
 
 # Unit term Group
@@ -140,30 +151,26 @@ def p_unit_term_unpowered_token(p):
 
 def p_lbracket_clean(p):
     """ l_bracket :    LBRACKET
-                     | WHITESPACE LBRACKET
                      | LBRACKET WHITESPACE 
-                     | WHITESPACE LBRACKET WHITESPACE"""
+                     """
     pass
 
 def p_rbracket_clean(p):
     """ r_bracket :    RBRACKET
-                     | WHITESPACE RBRACKET
                      | RBRACKET WHITESPACE 
-                     | WHITESPACE RBRACKET WHITESPACE"""
+    """
     pass
 
 def p_times_clean(p):
     """ times :    TIMES
-                 | WHITESPACE TIMES
                  | TIMES WHITESPACE 
-                 | WHITESPACE TIMES WHITESPACE"""
+    """
     pass
 
 def p_slash_clean(p):
     """ slash :    SLASH
-                 | WHITESPACE SLASH
                  | SLASH WHITESPACE 
-                 | WHITESPACE SLASH WHITESPACE"""
+    """
     pass
 
 
@@ -174,7 +181,7 @@ def p_error(p):
 precedence = (
     ('left', 'TIMES', 'SLASH'),
     ('left', 'PLUS','MINUS'),
-    ('right', 'WHITESPACE'),
+    ('left', 'WHITESPACE'),
 )
 
 
