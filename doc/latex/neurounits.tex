@@ -4,11 +4,27 @@
 
 \usepackage{verbatim} 
 \usepackage{listings} 
+\usepackage[usenames,dvipsnames]{color}
+\usepackage[margin=2cm]{geometry}
 
+\usepackage{syntax}
 
 \title{A grammar for units in computational neuroscience}
-\begin{document}
 
+
+
+\lstset{% general command to set parameter(s)
+basicstyle=\footnotesize, % print whole listing small
+keywordstyle=\color{blue}, %\bfseries\underbar,
+identifierstyle=, % nothing happens
+commentstyle=\color{OliveGreen}, % white comments
+stringstyle=\ttfamily, % typewriter type for strings
+showstringspaces=false, % no special string spaces
+language=python,
+frame=lines,
+float=tbfh}
+
+\begin{document}
 \maketitle
 
 \section*{Motivation}
@@ -17,7 +33,7 @@ Computational neuroscience is a field with a large
 array of tools aimed at specific tasks. Recently, 
 there has been a focus on tool interoperability. 
 Unfortunately, many different tools use different 
-notations for unit handling. 
+notations for unit handling.
 
 A simple, unambiguous, ascii-string based format for denoting quantities with units, and 
 simple expressions involving these quantities, which can be implemented with standard parsing tools. 
@@ -26,51 +42,235 @@ simple expressions involving these quantities, which can be implemented with sta
 \section*{Review  of unit definition in existing tools}
 
 \subsection*{Neuron}
-NEURON separates the simulation process into two parts; .hoc and .mod files. The units that a particular parameter will be specified in are specified in .mod files. NEURON comes with a database of units and constants, derived from the GNU units packages, found in 'nrnunits.lib'. New units and constants can also be defined in terms of old units. E.G.
+NEURON separates the simulation process into two parts; .hoc and .mod files. The units that a particular parameter will be specified in are specified in .mod files. NEURON comes with a database of units and constants, derived from the GNU units packages, found in 'nrnunits.lib'. New units and constants can also be defined in terms of old units. E.G. The commandline tool 'modlunits' can be used to check for consistency in a mod-file.
+
 \subsection*{Genesis}
+TOCHECK: It appears to me that units in genesis are all specified using SI base units. But  I am not a genesis user - is this true??
+
+
 \subsection*{SBML}
+SBML is an XML format for Systems Biology. New unit definitions can built from builtin types (or existing definitions, I thinkk!?).
+For example
+
+\begin{lstlisting}
+
+<unitDefinition id="litre_per_mole_per_second">
+                <listOfUnits>
+                    <unit kind="mole"   exponent="-1"/>
+                    <unit kind="litre"  exponent="1"/>
+                    <unit kind="second" exponent="-1"/>
+                </listOfUnits>
+</unitDefinition>
+\end{lstlisting}
+
+
+
 \subsection*{BRIAN}
+BRIAN allows the specification of units in python code, by writing for example:
+
+\begin{lstlisting}
+from brian import *
+tau = 20 * msecond        # membrane time constant
+Vt = -50 * mvolt          # spike threshold
+Vr = -60 * mvolt          # reset value
+\end{lstlisting}
+
+and allows validation of expected unit types by writing:
+\begin{lstlisting}
+model='dV/dt = -(V-El)/tau : volt'
+\end{lstlisting}
+
+
+\subsection*{GNU units}
 
 
 
-\section*{Use Cases \& Constraints}
+
+\newpage
+\section*{Proposed requirements} 
+\subsection{Use cases}
 Use-cases:
 
-\begin{itemize}
-\item[Simulator Configuation]   
-Since most programming languages support character string, we would like to be able to write
+\begin{description}
+\item[Simulation configuation:]
+Most simulators either allow direct access to thier API through a programming language, or read simulation configurations in from files. The a flexible specification for units would be an inline ascii-string.  For example, to specify a leak channel, we would like to be able to write:
 \begin{lstlisting}
-\verb|create_leak_channel(reversal_potential="-70 mV", conductance="3 pS/cm2")|
+create_leak_channel(reversal_potential="-70 mV", conductance="3 pS/cm2")
 \end{lstlisting}
-, or, ideally, to make comparisons with physiology easier, \verb|create_leak_channel(reversal_potential="-70 mV", conductance=" (1/300 MOhm)/(500um2)")|, to specify the a leak channel for a biophysical neuron.
-
-\item[Loading \& Storing of Data \& Results]
-
-
-\end{itemize}
+or, to make comparisons with anatomy and physiology easier,
+\begin{lstlisting}
+create_leak_channel(reversal_potential="-70 mV", conductance="(1/300 MOhm)/(500um2)")
+\end{lstlisting}
 
 
-Constraints:
-\begin{itemize}
-\item[Scope] Neuroscience specific 
-\item[Implementation] Neuroscience specific 
-\item[Implementation] Simple to implement
-\end{itemize}
+\item[Loading \& storing of data \& results:] 
 
-Example Formula
-\begin{itemize}
+
+Often, data is stored in an intermediate format between tools, either in text files (eg. .csv files), or in binary files, (.mat) files. 
+
+\begin{verbatim}
+# My CSV FILE
+# COLUMN0: {'label':'t', 'unit':'ms' }
+# COLUMN1: {'label':'membrane_voltage', 'unit':'mV' }
+0.000, -75.000
+0.010, -75.000
+0.020, -75.000
+0.030, -75.000
+\end{verbatim}
+
+\end{description}
+
+
+
+\subsection{Constraints}
+\begin{description}
+\item[Scope] Neuroscience specific, we don't want to have to redefine 'V' each time, but we want to be able to express any unit.
+\item[Readability] Neuroscience specific 
+\item[Implementation] Easy to do for adoption. Needs to be simple to implement parsers: tricky cases: 'g'(gravity,gram), 'e', spellings of 'meter'
+\end{description}
+
+\subsection{Example Formula}
+\begin{description}
 \item NMDA? Cellular concentrations.
-\end{itemize}
+\end{description}
 
 
 
-\section{Grammar}
+\newpage
+\section*{Grammar}
+
+
+\subsection*{Note about Preceedence}
+Multiplication can be funny, and division.
+
+
+\subsection*{Constants}
+\begin{center}
+    \begin{tabular}{ | l | l |  l | p{5cm} |}
+    \hline
+    Symbol & Value & Units & Description  \\ \hline
+    pi & 3.141 & - & Radians in a circle \\ \hline
+    e & - & - & - \\ \hline
+    \end{tabular}
+\end{center}
+
+
+\subsection*{Multipliers}
+
+
+\begin{center}
+    \begin{tabular}{ | l | l |  l | p{5cm} |}
+    \hline
+    long-form & short-form & value  \\ \hline
+    giga & G & $10^9$ \\ \hline
+    mega & M & $10^6$ \\ \hline
+    kilo & k & $10^3$ \\ \hline
+    centi & c & $10^{-2}$ \\ \hline
+    milli & m & $10^{-3}$ \\ \hline
+    micro & u & $10^{-6}$ \\ \hline
+    nano & n & $10^{-9}$ \\ \hline
+    pico & p & $10^{-12}$ \\ \hline
+    \end{tabular}
+\end{center}
+
+
+\subsection*{Base units}
+
+\begin{center}
+    \begin{tabular}{ | l | l |  l | p{5cm} |}
+    \hline
+    long-form & short-form & value  \\ \hline
+    meter & m & - \\ \hline
+    gram & g & - \\ \hline
+    second & s & - \\ \hline
+    ampere & A & - \\ \hline
+    kelvin & K & - \\ \hline
+    mole & mol & - \\ \hline
+    candela & cd & - \\ \hline
+    \end{tabular}
+\end{center}
+
+\subsection{Builtin Derived Units}
+
+\begin{center}
+    \begin{tabular}{ | l | l |  l | p{5cm} |}
+    \hline
+    long-form & short-form & base-units  \\ \hline
+    volt & V & - \\ \hline
+    siemen & S & - \\ \hline
+    farad & F & - \\ \hline
+    coulomb & C & - \\ \hline
+    BLAH & BLAH & - \\ \hline
+    \end{tabular}
+\end{center}
+
+
+\newpage
+\subsection*{Grammar}
+
+Parsing units is not a trivial process. Unfortunately, whitespace plays an important role, and the overlap of the symbol 'm' in the multipliers and base units complicates the grammar. However, it is still quite simple using  2 stage parsing stages, one to handle epxressions, and the other to parse individual unit terms:
+
+
+\subsection*{Common Lexing}
+
+\begin{verbatim}
+INTEGER := "[+-]?[0-9]+"
+FLOAT := "[0-9]+\.[0-9]?\([eE][+-]?[0-9]+\)?"
+\end{verbatim}
+
+We define the grammar for units in BNF notation:
+
+\subsection*{Expression Syntax}
+\subsection*{Tokens}
+\begin{verbatim}
+ALPHATOKEN =: "[a-zA-Z]+"
+WHITESPACE =: "[ \t]+"
+TIMES = "\*"
+SLASH =: "/"
+PLUS = "\+"
+MINUS = "\*"
+LBRACKET = "\("
+RBRACKET = "\)"
+\end{verbatim}
+
+\setlength{\grammarparsep}{20pt plus 1pt minus 1pt} % increase separation between rules
+\setlength{\grammarindent}{12em} % increase separation between LHS/RHS 
+
+\subsubsection*{Grammar}
+
+\begin{grammar}
+
+<statement> ::= <ident> `=' <expr> 
+\alt `for' <ident> `=' <expr> `to' <expr> `do' <statement> 
+\alt `{' <stat-list> `}' 
+\alt <empty> 
+
+<stat-list> ::= <statement> `;' <stat-list> | <statement> 
+
+\end{grammar}
+
+%\paragraph{Increase the two lengths}
+%
+%\begin{grammar}
+%
+%<statement> ::= <ident> `=' <expr> 
+%\alt `for' <ident> `=' <expr> `to' <expr> `do' <statement> 
+%\alt `{' <stat-list> `}' 
+%\alt <empty> 
+%
+%<stat-list> ::= <statement> `;' <stat-list> | <statement> 
+%
+%\end{grammar}
 
 
 
 
+\newpage
+\section*{Examples}
+\subsection*{Valid Expressions}
 
 
+\subsection*{Invalid Expressions}
 
 
 

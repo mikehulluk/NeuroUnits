@@ -39,6 +39,9 @@ l = "(1.0/(1.0mA/(ms/m2))/(1.5pA/mm2/3.1mA/cm2))*2.0cm*0.5*1.0mm*1.0/4.0*3um2/uF
 l = "(1.0/(1.0mA/(ms/m2))/(1.5pA/mm2/3.1mA/cm2))*2.0cm*0.5*1.0mm/4.0*3um2/uF*2.0"
 #l = '4.0/2.0'
 
+#l = "1/3 Ohm"
+#l = '24 Ohm/cm2/cm2'
+
 p = ParseUnitString(l)
 print p
 
