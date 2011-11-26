@@ -1,4 +1,4 @@
-# VALID UNIT
+
 kV
 uF/cm2
 pF/mm2
@@ -38,4 +38,4 @@ F/um/cm
 1 (mA/V)/cm2 = 10pS/(um um)
 
 
-(1(mS))/(10.0cm2) = 1pS/um2
+(1mS)/(10.0um/cm2) = 1pS/um2

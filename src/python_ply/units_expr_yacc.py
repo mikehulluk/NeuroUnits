@@ -144,7 +144,10 @@ def p_unit_term_unpowered_token(p):
 def p_error(p):
     raise UnitError( "Parsing Error %s" % (p) )
     
-
+precedence = (
+    ('left', 'SLASH',),
+    ('left', 'WHITESPACE'),
+)
 
 
 def parse_expr(text):
