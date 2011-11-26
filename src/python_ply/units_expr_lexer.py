@@ -7,7 +7,8 @@ tokens = [
     "SLASH", 
     "WHITESPACE", "EOL",
     "LBRACKET","RBRACKET",
-    "ALPHATOKEN"
+    "ALPHATOKEN",
+    "TIMES","PLUS","MINUS"
         ] 
 
 def t_FLOAT(t):
@@ -26,6 +27,10 @@ t_WHITESPACE = r"""[ \t]+"""
 t_EOL = r"""\n"""
 t_LBRACKET = r"""\("""
 t_RBRACKET = r"""\)"""
+
+t_TIMES = r"""\*"""
+t_PLUS = r"""\+"""
+t_MINUS = r"""\*"""
 
 
 def t_error(t):

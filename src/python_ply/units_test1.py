@@ -33,6 +33,21 @@ for line in f:
 from units_wrapper import ParseUnitString
 from units_core import UnitError
 
+
+
+l = "(1.0/(1.0mA/(ms/m2))/(1.5pA/mm2/3.1mA/cm2))*2.0cm*0.5*1.0mm*1.0/4.0*3um2/uF*2.0"
+l = "(1.0/(1.0mA/(ms/m2))/(1.5pA/mm2/3.1mA/cm2))*2.0cm*0.5*1.0mm/4.0*3um2/uF*2.0"
+#l = '4.0/2.0'
+
+p = ParseUnitString(l)
+print p
+
+import sys
+sys.exit(0)
+
+
+
+
 # Check the VALID UNITS:
 for l in data_catagories['VALID UNIT']:
     print l,
