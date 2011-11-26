@@ -60,10 +60,11 @@ def p_quantity_term_2( p ):
     p[0] = Quantity( p[1], p[3] )
 
 
-# USE TO CATCH A problem with parsing, we can't match terms like '3cm/2, since the resolution of '/' needs
-# to look ahead:
+# USE TO CATCH A problem with parsing, we can't match terms like '3cm/2, 
+# since the resolution of '/' needs to look ahead:
 def p_quantity_term_3( p ):
-    """quantity_term : FLOAT unit_term_grp slash quantity_term
+    """quantity_term :    FLOAT unit_term_grp slash quantity_term
+                        | INTEGER unit_term_grp slash quantity_term
     """
     p[0] = Quantity( p[1], p[2] ) / p[4]
 
