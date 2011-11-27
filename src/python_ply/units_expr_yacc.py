@@ -4,6 +4,7 @@ from units_expr_lexer import tokens
 from units_core import Unit, UnitError, Quantity
 import re
 
+from units_data import constants
 
 def p_parse_line(p):
     """parse_line : quantity_expr
@@ -65,6 +66,8 @@ def p_quantity_magnitude(p):
 def p_quantity_3(p):
     """ quantity : PI 
                  | E """
+    
+    p[0] = constants[ p[1] ]
 
 
 # UNIT EXPRESSIONS:

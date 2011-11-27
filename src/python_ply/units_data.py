@@ -1,4 +1,4 @@
-from units_core import Unit
+from units_core import Unit, Quantity
 
 multipliers = (
        ( 'giga','G', 9) ,
@@ -25,7 +25,13 @@ units = (
        ( 'farad','F', Unit(meter=-2, kilogram=-1,second=4,ampere=2) ),
        ( 'ohm','Ohm', Unit(meter=2, kilogram=1,second=-3,ampere=-2) ),
        ( 'coulomb','C', Unit(second=1,ampere=1) ),
-       )
+       
+       ( 'watt','W', Unit() ),
+       ( 'joule','J', Unit() ),
+       ( 'newton','N', Unit() ),
+       ( 'liter','l', Unit() ),
+       
+)
 
 special_unit_abbrs = ( 
         ( 'm', Unit(meter=1)  ),
@@ -34,5 +40,17 @@ special_unit_abbrs = (
         ( 'um', Unit(meter=1, powerTen=-6)  ),
         ( 'nm', Unit(meter=1, powerTen=-9)  ),
         ( 'pm', Unit(meter=1, powerTen=-12)  ),
-
             )
+
+constants = {
+    'pi': Quantity(3.141, Unit() ),
+    'e_base':  Quantity(2.7,   Unit() ),
+    'e_charge': Quantity(),
+    
+    'Na_e': 'Avagadro', 
+    'Boltzmann',
+    'Faraday', 
+    'R':'Gas Constant',
+
+
+        }

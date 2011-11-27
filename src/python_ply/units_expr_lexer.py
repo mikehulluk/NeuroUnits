@@ -2,15 +2,19 @@
 import ply.lex
 from units_core import UnitError
 
+reserved = {
+        "pi":"PI",
+        "e":"E"
+        }
+
 tokens = [
-    "PI","E",
     "INTEGER", "FLOAT",
     "SLASH", "SLASHSLASH",
     "WHITESPACE",
     "LBRACKET","RBRACKET",
     "ALPHATOKEN",
     "TIMES","PLUS","MINUS",
-        ] 
+        ] + reserved.values()
 
 def t_FLOAT(t):
     r"""[0-9]+\.[0-9]?([eE][+-]?[0-9]+)?"""
@@ -22,14 +26,16 @@ def t_INTEGER(t):
     t.value = int(t.value)    
     return t
 
-t_PI = r"""pi"""
-t_E = r"""e"""
+def t_ALPHATOKEN(t):
+    r"""[a-zA-Z]+"""
+    t.type = reserved.get( t.value, 'ALPHATOKEN')
+    return t
 
-t_ALPHATOKEN = r"""[a-zA-Z]+"""
+
+
 t_SLASHSLASH = r"""//"""
 t_SLASH = r"""/"""
 t_WHITESPACE = r"""[ \t]+"""
-#t_EOL = r"""\n"""
 t_LBRACKET = r"""\("""
 t_RBRACKET = r"""\)"""
 
