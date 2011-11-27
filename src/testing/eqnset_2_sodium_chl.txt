@@ -1,0 +1,24 @@
+
+
+{
+    'states':
+    [
+    'm','h'
+    ],
+    'equations':
+    [ 
+        "ina(V) = {gna} * ( {eRev} - {@V} ) * m**3 * h : pA/cm2 ", 
+        "m'(V) =  :'
+    ],
+
+    'default-parameters':
+    {
+        "gna" : "1pS/cm2",
+        "eRev" : "-50mV",
+    }
+}
+
+
+
+
+
