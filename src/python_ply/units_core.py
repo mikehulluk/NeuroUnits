@@ -1,5 +1,15 @@
 
 
+def safe_dict_merge(*args):
+    out_dct = {}
+    for dct in args:
+        for k,v in dct.iteritems():
+            assert not k in out_dct
+            out_dct[k] = v
+    return out_dct
+
+
+
 class UnitError(ValueError):
     pass
 
@@ -28,7 +38,7 @@ class Unit(object):
             kelvin = self.kelvin + rhs.kelvin,
             mole = self.mole + rhs.mole,
             candela = self.candela + rhs.candela,
-            powerTen = self.powerTen +rhs.powerTen,
+            powerTen = self.powerTen + rhs.powerTen,
         )
 
     def __div__(self, rhs):
@@ -41,19 +51,19 @@ class Unit(object):
             kelvin = self.kelvin - rhs.kelvin,
             mole = self.mole - rhs.mole,
             candela = self.candela - rhs.candela,
-            powerTen = self.powerTen -rhs.powerTen,
+            powerTen = self.powerTen - rhs.powerTen,
         )
 
     def raise_to_power(self, p):
         return Unit(
-            meter = self.meter *p,
-            kilogram = self.kilogram *p ,
-            second = self.second *p,
-            ampere = self.ampere *p ,
-            kelvin = self.kelvin *p,
-            mole = self.mole *p ,
-            candela = self.candela *p ,
-            powerTen = self.powerTen *p,
+            meter = self.meter * p,
+            kilogram = self.kilogram * p ,
+            second = self.second * p,
+            ampere = self.ampere * p ,
+            kelvin = self.kelvin * p,
+            mole = self.mole * p ,
+            candela = self.candela * p ,
+            powerTen = self.powerTen * p,
         )
 
 

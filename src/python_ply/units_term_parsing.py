@@ -1,6 +1,13 @@
 
-from units_core import Unit, UnitError
+#from units_core import Unit, UnitError
+from units_core import UnitError
+from units_data import unit_short_LUT, unit_long_LUT
+from units_data import multiplier_short_LUT, multiplier_long_LUT
+#from units_data import unit_LUT, unit_short_LUT, unit_long_LUT
+#from units_data import multiplier_LUT, multiplier_short_LUT, multiplier_long_LUT
 import ply
+
+
 from units_data import multipliers, units, special_unit_abbrs
 
 multiplier_names_short = [ 'SHORT_%s'%m[0].upper() for m in multipliers]
@@ -11,8 +18,7 @@ unit_names_long =  [ 'LONG_%s'%m[0].upper() for m in units]
 
 tokens = multiplier_names_short + multiplier_names_long + unit_names_short + unit_names_long 
 
-unitDefs = dict( [(u[0],u[2]) for u in units] + [(u[1],u[2]) for u in units] )
-multiplierDefs = dict( [(u[0],u[2]) for u in multipliers] + [(u[1],u[2]) for u in multipliers] )
+
 
 # LEXING:
 #########
@@ -84,7 +90,7 @@ def p_long_basic_unit(p):
                         | LONG_MOLE
                         | LONG_CANDELA
                         """
-    p[0] = unitDefs[ p[1] ]
+    p[0] = unit_long_LUT[ p[1] ]
 
 def p_short_basic_unit(p):
     """short_basic_unit : SHORT_VOLT 
@@ -100,7 +106,7 @@ def p_short_basic_unit(p):
                         | SHORT_MOLE
                         | SHORT_CANDELA
                         """
-    p[0] = unitDefs[ p[1]  ]
+    p[0] = unit_short_LUT[ p[1] ]
 
 
 def p_long_basic_multiplier(p):
@@ -113,7 +119,7 @@ def p_long_basic_multiplier(p):
                               | LONG_NANO
                               | LONG_PICO
                               """
-    p[0] = multiplierDefs[ p[1] ]
+    p[0] = multiplier_long_LUT[ p[1] ]
             
 
 def p_short_basic_multiplier(p):
@@ -126,7 +132,7 @@ def p_short_basic_multiplier(p):
                                 | SHORT_NANO
                                 | SHORT_PICO
                               """
-    p[0] = multiplierDefs[ p[1] ]
+    p[0] = multiplier_short_LUT[ p[1] ]
 
 def p_error(p):
     raise UnitError( "Parsing Error " )

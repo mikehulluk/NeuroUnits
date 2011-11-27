@@ -36,7 +36,13 @@ from units_core import UnitError
 
 
 l = " (1.0/(1.0mA/(ms/m2))/(1.5pA/mm2/3.1mA/cm2))*2.0cm*0.5*1.0mm*1.0/4.0*3um2/uF*2.0"
-l = " (1.0/(1.0mA/(ms/m2) )/ ( 1.5pA/ mm2/3.1mA/cm2))*2.0cm*0.5*1.0mm/4.0*2.0e1*3um2/uF*2.0 * e * pi * 2.0"
+l = " (1.0/(1.0mA/(ms/m2) )/ ( 1.5pA/ mm2/3.1mA/cm2))*2.0cm*0.5*1.0mm/4.0*2.0e1*3um2/uF*2.0 * {e_charge} * {pi} * 2.0{~volt}/({~kelvin}/{~kelvin}) * !log(3.0) * {!myfunc(a=2,b=3)}"
+
+l= '( {R}*300.0K )/( 2.0*{F} )* 2.303 * log10( 200 mol/m3 / 100 mol/m3 )'
+l= 'F(T,int,ext) = ( {R}*300.0K )/( 2.0*{F} )* 2.303 * log10( {ext}/{int} )'
+
+
+
 print l
 p = ParseUnitString(l)
 print p
