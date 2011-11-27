@@ -1,14 +1,14 @@
 from units_core import Unit, Quantity
 
 multipliers = (
-       ( 'giga','G', 9) ,
-       ( 'mega','M', 6) ,
-       ( 'kilo','k', 3) ,
-       ( 'centi','c', -2) ,
-       ( 'milli','m', -3) ,
-       ( 'micro','u', -6) ,
-       ( 'nano','n', -9) ,
-       ( 'pico','p', -12) ,
+       ( 'giga','G',  Unit(powerTen=9)  ),
+       ( 'mega','M',  Unit(powerTen=6)  ),
+       ( 'kilo','k',  Unit(powerTen=3)  ),
+       ( 'centi','c', Unit(powerTen=-2) ) ,
+       ( 'milli','m', Unit(powerTen=-3) ) ,
+       ( 'micro','u', Unit(powerTen=-6) ) ,
+       ( 'nano','n',  Unit(powerTen=-9) ) ,
+       ( 'pico','p',  Unit(powerTen=-12)) ,
         )
 
 units = (
@@ -33,6 +33,13 @@ units = (
        
 )
 
+
+unit_long_LUT = dict([(u[0],u[2]) for u in units] ) 
+unit_short_LUT = dict([(u[1],u[2]) for u in units] ) 
+unit_LUT = safe_merge(unit_long_LUT, unit_short_LUT)
+
+
+
 special_unit_abbrs = ( 
         ( 'm', Unit(meter=1)  ),
         ( 'cm', Unit(meter=1, powerTen=-2)  ),
@@ -42,15 +49,17 @@ special_unit_abbrs = (
         ( 'pm', Unit(meter=1, powerTen=-12)  ),
             )
 
+
+
 constants = {
     'pi': Quantity(3.141, Unit() ),
     'e_base':  Quantity(2.7,   Unit() ),
-    'e_charge': Quantity(),
-    
-    'Na_e': 'Avagadro', 
-    'Boltzmann',
-    'Faraday', 
-    'R':'Gas Constant',
+    #'e_charge': Quantity(),
+    #
+    #'Na_e': 'Avagadro', 
+    #'Boltzmann',
+    #'Faraday', 
+    #'R':'Gas Constant',
 
 
         }

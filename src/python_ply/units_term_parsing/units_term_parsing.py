@@ -12,7 +12,7 @@ unit_names_long =  [ 'LONG_%s'%m[0].upper() for m in units]
 tokens = multiplier_names_short + multiplier_names_long + unit_names_short + unit_names_long 
 
 unitDefs = dict( [(u[0],u[2]) for u in units] + [(u[1],u[2]) for u in units] )
-multiplierDefs = dict( [(u[0],Unit(powerTen=u[2])) for u in multipliers] + [(u[1],Unit(powerTen=u[2])) for u in multipliers] )
+multiplierDefs = dict( [(u[0],u[2]) for u in multipliers] + [(u[1],u[2]) for u in multipliers] )
 
 # LEXING:
 #########
