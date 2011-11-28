@@ -8,10 +8,21 @@ from units_data import unit_long_LUT
 from units_data import constants
 
 def p_parse_line(p):
-    """parse_line : quantity_expr
-                  | unit_expr 
-                  | function_def """
+    """parse_line : unit_expr 
+                  | function_def 
+                  | quantity_def
+                  """
     p[0] = p[1]
+
+
+def p_quantity_def1(p):
+    """quantity_def : quantity_expr 
+                    | quantity_expr COLON unit_expr"""
+    if len(p) == 4:
+        p[1] = p[1].converted_to_unit( p[3] )
+    
+    p[0] = p[1]
+
 
 
 #LHS FUNCTION CALL DEFINITIONS
@@ -27,8 +38,7 @@ def p_function_def_params(p):
 
 # FUNCTION CALL DEFINITIONS INSIDE EXPRESSIONS:
 def p_quantity_func_call_1(p):
-    """quantity_factor :  LCURLYBRACKET EXCLAIMATION ALPHATOKEN LBRACKET func_call_params RBRACKET RCURLYBRACKET
-                        | EXCLAIMATION ALPHATOKEN LBRACKET func_call_params RBRACKET """ # HACK TO simplify pattern matching
+    """quantity_factor :  ALPHATOKEN LBRACKET func_call_params RBRACKET """ 
     p[0] = Quantity( 1.0, Unit() )
     pass
 
@@ -46,11 +56,12 @@ def p_quantity_func_params_term(p):
 
 def p_quantity_expr_1(p): 
     """quantity_expr : quantity_expr PLUS quantity_term"""
-    p[0] = p[1] + p[2]
+    #print p[1], p[2]
+    p[0] = p[1] + p[3]
 
 def p_quantity_expr_2(p): 
-    """quantity_expr : quantity_expr MINUS quantity_term"""
-    p[0] = p[1] - p[2]
+    """quantity_expr : quantity_expr MINUSMINUS quantity_term"""
+    p[0] = p[1] - p[3]
 def p_quantity_expr_3(p): 
     """quantity_expr : quantity_term"""
     p[0] = p[1] 
@@ -196,20 +207,22 @@ def p_error(p):
 precedence = (
     ('left', 'SLASHSLASH'),
     ('left', 'TIMES', 'SLASH'),
-    ('left', 'PLUS','MINUS'),
+    ('left', 'PLUS','MINUSMINUS'),
     ('left', 'WHITESPACE'),
 )
 
 
 import re
 
-def parse_expr(text):
+def parse_expr(text, start_symbol, debug=False):
 
     # Some preprocessing:
     #######################
+    
+    assert text.find('--') == -1
 
     # Strip all unnessesary whitespace:
-    s1 = re.compile(r'[ ]* ([()/*]) [ ]*',re.VERBOSE)
+    s1 = re.compile(r'[ ]* ([()/*:+]) [ ]*',re.VERBOSE)
     text = re.sub(s1,r'\1',text)
 
     # '/' plays 2 roles. To simplify the grammar, turn '/' used to 
@@ -220,30 +233,38 @@ def parse_expr(text):
     s = re.compile(r"""/(?= [(]* (?:{~) )""", re.VERBOSE)
     text = re.sub(s,'//',text)
 
+    # Likewise, '-' plays 2 roles, as negative exponent as
+    # as subtraction. Lets remap subtraction to '--', unless its followed
+    # by a digit, in which case its part of that digit
+    s = re.compile(r"""[ ]* [-](?=[^0-9]) [ ]*""", re.VERBOSE)
+    text = re.sub(s,'--',text)
+
+
     #Remap function calls:
     funcs = [
-        ( 'log10', '!log_ten' ),
+        ( 'log10', 'log_ten' ),
             ]
     for _to, _frm in funcs:
         text = text.replace(_to,_frm)
 
-    print text
-    #assert False
-    #return
+    #print 'TEXT:', text
 
-    import logging
-    logging.basicConfig(
-        level = logging.DEBUG,
-        filename = "parselog.txt",
-        filemode = "w",
-        format = "%(filename)10s:%(lineno)4d:%(message)s"
-    )
-    log = logging.getLogger()
+    
+    if debug:
 
-    parser = yacc.yacc(tabmodule='unit_expr_parser_parsetab', debug=True  ) 
-    return parser.parse(text, lexer=units_expr_lexer.lexer, debug=True, )
+        #import logging
+        #logging.basicConfig(
+        #    level = logging.DEBUG,
+        #    filename = "parselog.txt",
+        #    filemode = "w",
+        #    format = "%(filename)10s:%(lineno)4d:%(message)s"
+        #)
+        #log = logging.getLogger()
 
-    parser = yacc.yacc(tabmodule='unit_expr_parser_parsetab', debug=True ) 
-    return parser.parse(text, lexer=units_expr_lexer.lexer)
+        parser = yacc.yacc(tabmodule='unit_expr_parser_parsetab', debug=True,start=start_symbol   ) 
+        return parser.parse(text, lexer=units_expr_lexer.lexer, debug=True, )
+    else:
+        parser = yacc.yacc(tabmodule='unit_expr_parser_parsetab', debug=True, start=start_symbol  ) 
+        return parser.parse(text, lexer=units_expr_lexer.lexer,)
 
 

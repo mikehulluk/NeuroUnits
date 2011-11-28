@@ -54,6 +54,9 @@ class Unit(object):
             powerTen = self.powerTen - rhs.powerTen,
         )
 
+
+
+
     def raise_to_power(self, p):
         return Unit(
             meter = self.meter * p,
@@ -100,5 +103,31 @@ class Quantity(object):
         return Quantity( self.magnitude*rhs.magnitude,  self.unit*rhs.unit) 
     def __div__(self, rhs):
         return Quantity( self.magnitude/rhs.magnitude,  self.unit/rhs.unit) 
+
+
+    def __add__(self, rhs):
+        assert isinstance( rhs, Quantity)
+        rhs_conv = rhs.converted_to_unit(self.unit)
+        return Quantity( self.magnitude + rhs_conv.magnitude, self.unit)
+
+    def __sub__(self, rhs):
+        assert isinstance( rhs, Quantity)
+        rhs_conv = rhs.converted_to_unit(self.unit)
+        return Quantity( self.magnitude - rhs_conv.magnitude, self.unit)
+        
+
+    def check_compatible(self, u):
+        assert self.unit.meter == u.meter
+        assert self.unit.kilogram == u.kilogram
+        assert self.unit.second == u.second
+        assert self.unit.ampere == u.ampere
+        assert self.unit.kelvin == u.kelvin
+        assert self.unit.mole == u.mole
+        assert self.unit.candela == u.candela
+
+    def converted_to_unit( self, u ):
+        self.check_compatible(u)
+        mul_fac = u.powerTen - self.unit.powerTen
+        return Quantity( self.magnitude / 10**mul_fac,  u )
 
 

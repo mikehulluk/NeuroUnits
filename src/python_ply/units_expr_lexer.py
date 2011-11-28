@@ -9,20 +9,22 @@ tokens = [
     "LBRACKET","RBRACKET",
     "LCURLYBRACKET","RCURLYBRACKET",
     "ALPHATOKEN",
-    "TIMES","PLUS","MINUS",
+    "TIMES","PLUS","MINUSMINUS",
     "TILDE",
     "COMMA",
     "EQUALS",
-    "EXCLAIMATION"
+    "EXCLAIMATION",
+    "COLON",
     ] 
+t_MINUSMINUS = r"""--"""
 
 def t_FLOAT(t):
-    r"""[0-9]+\.[0-9]*([eE][+-]?[0-9]+)?"""
+    r"""[-]?[0-9]+\.[0-9]*([eE][+-]?[0-9]+)?"""
     t.value = float(t.value)    
     return t
 
 def t_INTEGER(t):
-    r"""[+-]?[0-9]+"""
+    r"""[-]?[0-9]+"""
     t.value = int(t.value)    
     return t
 
@@ -44,9 +46,9 @@ t_EXCLAIMATION = r"""!"""
 t_TILDE = r"""~"""
 t_TIMES = r"""\*"""
 t_PLUS = r"""\+"""
-t_MINUS = r"""\*"""
 
 t_COMMA = r""","""
+t_COLON = r""":"""
 t_EQUALS = r"""="""
 
 # {xyz}  Builtin Constant or Parameter
