@@ -29,6 +29,8 @@ class Unit(object):
 
 
     def __mul__(self, rhs):
+        
+        assert isinstance( rhs, Unit)
 
         return Unit(
             meter = self.meter + rhs.meter,
@@ -42,6 +44,7 @@ class Unit(object):
         )
 
     def __div__(self, rhs):
+        assert isinstance( rhs, Unit)
 
         return Unit(
             meter = self.meter - rhs.meter,
@@ -130,4 +133,8 @@ class Quantity(object):
         mul_fac = u.powerTen - self.unit.powerTen
         return Quantity( self.magnitude / 10**mul_fac,  u )
 
+    def dimensionless( self, ):
+        self.check_compatible( Unit() )
+        return self.magnitude * 10**self.unit.powerTen
 
+    

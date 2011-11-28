@@ -3,7 +3,8 @@ import units_expr_lexer
 from units_expr_lexer import tokens
 from units_core import Unit, UnitError, Quantity
 import re
-from units_data import unit_long_LUT
+from units_data import unit_long_LUT, std_func_LUT
+from units_data import std_funcs
 
 from units_data import constants
 
@@ -39,18 +40,29 @@ def p_function_def_params(p):
 # FUNCTION CALL DEFINITIONS INSIDE EXPRESSIONS:
 def p_quantity_func_call_1(p):
     """quantity_factor :  ALPHATOKEN LBRACKET func_call_params RBRACKET """ 
-    p[0] = Quantity( 1.0, Unit() )
-    pass
+    
+    # We can't handle, multiple arguments yet:
+    if not len(p[3])==1:
+        p[0] = Quantity( -1.0, Unit() )
+        return
+
+    # Single argument case:
+    functor = std_func_LUT[p[1]]
+    p[0] = functor( p[3][0] ) 
 
 def p_quantity_func_params1(p):
     """func_call_params : quantity_expr
                         | func_call_param 
                         | func_call_params COMMA func_call_param"""
-    pass
+    if len(p) == 2:
+        p[0] = [p[1],]
+    else:
+        p[0] = p[1] + [ p[3] ]
+        
 
 def p_quantity_func_params_term(p):
     """func_call_param : ALPHATOKEN EQUALS quantity_expr"""
-    pass
+    return p[3]
 
 
 
@@ -212,7 +224,6 @@ precedence = (
 )
 
 
-import re
 
 def parse_expr(text, start_symbol, debug=False):
 
@@ -241,13 +252,10 @@ def parse_expr(text, start_symbol, debug=False):
 
 
     #Remap function calls:
-    funcs = [
-        ( 'log10', 'log_ten' ),
-            ]
-    for _to, _frm in funcs:
-        text = text.replace(_to,_frm)
-
-    #print 'TEXT:', text
+    for fncName, fncAliases, functor in std_funcs:
+        for alias in fncAliases:
+            r = re.compile(r"""\b %s [ ]* (?=[(])"""%alias, re.VERBOSE)
+            text = re.sub(r, fncName, text)
 
     
     if debug:

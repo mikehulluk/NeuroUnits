@@ -54,25 +54,52 @@ special_unit_abbrs = (
             )
 
 
-
+u = unit_LUT
 constants = {
     'pi':       Quantity(3.141592653, Unit() ),
     'e_euler':   Quantity(2.718281828,   Unit() ),
     'e_charge': Quantity(1.602176565, unit_long_LUT['coulomb']   ),
 
-    'Na':       Quantity(6.02214129e23, Unit(mole=-1) ),                                                               # [Avagadro's Constant]
-    'k':        Quantity(1.380648e-23,  unit_long_LUT['joule']/unit_long_LUT["kelvin"] ),                              # [Boltzmanns Constant]
-    'F':        Quantity(96485.3365,    unit_long_LUT['coulomb']/unit_long_LUT["mole"] ),                              # [Faraday's  Constant]
-    'R':        Quantity(8.3144621,     unit_long_LUT['joule']/(unit_long_LUT["mole"]*unit_long_LUT['kelvin'] ) ),     # [Gas Constant]
+    # [Avagadro's Constant]
+    'Na':       Quantity(6.02214129e23, Unit(mole=-1) ),                                                               
+    # [Boltzmanns Constant]
+    'k':        Quantity(1.380648e-23,  u['joule']/u["kelvin"] ),                              
+    # [Faraday's  Constant]
+    'F':        Quantity(96485.3365,    u['coulomb']/u["mole"] ),                              
+    # [Gas Constant]
+    'R':        Quantity(8.3144621,     u['joule']/(u["mole"]*u['kelvin'] ) ),     
 
-    'int': Quantity(1, Unit()),
-    'ext': Quantity(1, Unit()),
+    #'int': Quantity(1, Unit()),
+    #'ext': Quantity(1, Unit()),
         }
+del u
 
+
+import math
+
+
+# Horrible way to wrap function calls :)
+def wrp( functor ):
+    return lambda s: Quantity( functor( s.dimensionless()), Unit() )
 
 std_funcs = (
-    'log2',
-    'exp',
-    'sin',
-    'cos'
+    ('log_two', ['log2',],        wrp( lambda s: math.log(s,2) )      ),
+    ('log_ten', ['log','logten'], wrp( lambda s: math.log(s,10))      ),
+    ('log_e',   ['ln'],           wrp( lambda s: math.log(s,math.e))  ),
+    ('exp',[],                    wrp( lambda s: math.exp(s))         ),
+    ('abs',[],                    wrp( lambda s: math.fabs(s))        ),
+    ('sqrt',[],                   wrp( lambda s: math.sqrt(s))        ),
+
+    ('sin',[],             wrp( lambda s: math.sin(s))  ),
+    ('cos',[],             wrp( lambda s: math.cos(s))  ),
+    ('tan',[],             wrp( lambda s: math.tan(s))  ),
+
+    ('sinh',[],            wrp( lambda s: math.sinh(s)) ),
+    ('cosh',[],            wrp( lambda s: math.cosh(s)) ),
+    ('tanh',[],            wrp( lambda s: math.tanh(s)) ),
     )
+
+
+
+std_func_LUT = dict( [(f[0],f[2]) for f in std_funcs])
+#std_func_LUT['log_ten'] ( Quantity(2, Unit()) )
