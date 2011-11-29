@@ -11,7 +11,7 @@
 \usepackage{amsmath}
 
 
-\title{Proposal for a  grammar for units and expression involving units in computational neuroscience}
+\title{Proposal for a  grammar for units and expressions involving units in computational neuroscience}
 \author{Michael Hull}
 
 
@@ -45,9 +45,10 @@ In general, the parsing of expressions involving units and constants is tricky. 
 
 We propose a simple, unambiguous, ascii-string based format for denoting quantities with units, and 
 simple expressions involving these quantities, which can be implemented with standard parsing tools. 
-Moreover, the syntax means that implementers do not need to implement the complete expression parsing grammar 
-and instead only implement the part they require. Particular emphasises are human readbility, extensibility and 
-inter-operability with existing conventions.
+Particular emphasises are human readbility, extensibility and inter-operability with existing conventions.  
+For adoption by the community, implementation should be as simple as possible, tools developers should only need 
+to implement features that they need.
+
 
 
 
@@ -102,21 +103,21 @@ model='dV/dt = -(V-El)/tau : volt'
 \newpage
 \section{Proposed requirements} 
 \subsection{Use cases}
-Use-cases:
 
 \begin{description}
-\item[Simulation configuation:]
+\item[Simulation configuation:] \hfill \\
 Most simulators either allow direct access to thier API through a programming language, or read simulation configurations in from files. The a flexible specification for units would be an inline ascii-string.  For example, to specify a leak channel, we would like to be able to write:
 \begin{lstlisting}
 create_leak_channel(reversal_potential="-70 mV", conductance="3 pS/cm2")
 \end{lstlisting}
-or, to make comparisons with anatomy and physiology easier,
+Often, data is integrated from biological data directly, it would be easier to
+check the values used in the simulation if we are able to write something like:
 \begin{lstlisting}
 create_leak_channel(reversal_potential="-70 mV", conductance="(1/300 MOhm)/(500um2)")
 \end{lstlisting}
 
 
-\item[Loading \& storing of data \& results:] 
+\item[Loading \& storing of data \& results:]  \hfill \\
 
 
 Often, data is stored in an intermediate format between tools, either in text files (eg. .csv files), or in binary files, (.mat) files. 
@@ -132,10 +133,10 @@ Often, data is stored in an intermediate format between tools, either in text fi
 \end{verbatim}
 
 
-\item[In specification of functions and formulae]
+\item[In specification of functions and formulae] \hfill \\
 Needing to divide by m or V to use activation curves.
 
-\item[In reuse of equations]
+\item[In reuse of equations] \hfill \\
 
 
 \end{description}
@@ -177,44 +178,6 @@ Multiplication can be funny, and division.
 \subsection{Proposed Builtins}
 
 
-\subsubsection{Mathematical Constants}
-\begin{center}
-    \begin{tabular}{ | l | l |  l | p{5cm} |}
-    \hline
-    Symbol & Value & Units & Description  \\ \hline
-    pi & 3.141 & - & Radians in a circle \\ \hline
-    e\_euler & - & - & - \\ \hline
-    \end{tabular}
-\end{center}
-
-\subsubsection{Mathematical Functions}
-\begin{center}
-    \begin{tabular}{ | l |  p{5cm} |}
-    \hline
-    Signature &  Description  \\ \hline
-    log2 & {...} \\ \hline
-    log10 & {...} \\ \hline
-    \end{tabular}
-\end{center}
-
-
-\subsubsection{Multipliers}
-
-
-\begin{center}
-    \begin{tabular}{ | l | l |  l | p{5cm} |}
-    \hline
-    long-form & short-form & value  \\ \hline
-    giga & G & $10^9$ \\ \hline
-    mega & M & $10^6$ \\ \hline
-    kilo & k & $10^3$ \\ \hline
-    centi & c & $10^{-2}$ \\ \hline
-    milli & m & $10^{-3}$ \\ \hline
-    micro & u & $10^{-6}$ \\ \hline
-    nano & n & $10^{-9}$ \\ \hline
-    pico & p & $10^{-12}$ \\ \hline
-    \end{tabular}
-\end{center}
 
 
 \subsubsection{Base units}
@@ -233,7 +196,38 @@ Multiplication can be funny, and division.
     \end{tabular}
 \end{center}
 
-\subsubsection{Builtin Derived Units}
+\subsubsection{Multipliers}
+
+\begin{center}
+    \begin{tabular}{ | l | l |  l | p{5cm} |}
+    \hline
+    long-form & short-form & value  \\ \hline
+    giga & G & $10^9$ \\ \hline
+    mega & M & $10^6$ \\ \hline
+    kilo & k & $10^3$ \\ \hline
+    centi & c & $10^{-2}$ \\ \hline
+    milli & m & $10^{-3}$ \\ \hline
+    micro & u & $10^{-6}$ \\ \hline
+    nano & n & $10^{-9}$ \\ \hline
+    pico & p & $10^{-12}$ \\ \hline
+    \end{tabular}
+\end{center}
+
+
+
+
+\subsubsection{Neuroscience Specific Constants}
+\begin{center}
+    \begin{tabular}{ | l | l |  l | p{5cm} |}
+    \hline
+    Symbol & Description & value  \\ \hline
+    Na & Avogadro's Constant & - \\ \hline
+    \end{tabular}
+\end{center}
+
+
+
+\subsubsection{Neuroscience Specific Units}
 
 \begin{center}
     \begin{tabular}{ | l | l |  l | p{5cm} |}
@@ -253,6 +247,26 @@ Multiplication can be funny, and division.
     \end{tabular}
 \end{center}
 
+
+\subsubsection{Mathematical Constants}
+\begin{center}
+    \begin{tabular}{ | l | l |  l | p{5cm} |}
+    \hline
+    Symbol & Value & Units & Description  \\ \hline
+    pi & 3.141 & - & Radians in a circle \\ \hline
+    e\_euler & - & - & - \\ \hline
+    \end{tabular}
+\end{center}
+
+\subsubsection{Mathematical Functions}
+\begin{center}
+    \begin{tabular}{ | l |  p{5cm} |}
+    \hline
+    Signature &  Description  \\ \hline
+    log2 & {...} \\ \hline
+    log10 & {...} \\ \hline
+    \end{tabular}
+\end{center}
 
 \newpage
 \subsection{Parsing Algorithm}
@@ -448,6 +462,7 @@ unit is 'm,cm,um,....', then the unit should be resolved as the relevant unit di
 
 \subsection{Future Extensibility}
 Function call defintoins
+Derivatives
 
 % {xyz}  Builtin Constant 
 % {$xyz} Parameter/State
