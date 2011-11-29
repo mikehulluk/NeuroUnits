@@ -27,9 +27,7 @@ class Unit(object):
         self.candela = candela
         self.powerTen = powerTen
 
-
     def __mul__(self, rhs):
-        
         assert isinstance( rhs, Unit)
 
         return Unit(
@@ -56,9 +54,6 @@ class Unit(object):
             candela = self.candela - rhs.candela,
             powerTen = self.powerTen - rhs.powerTen,
         )
-
-
-
 
     def raise_to_power(self, p):
         return Unit(

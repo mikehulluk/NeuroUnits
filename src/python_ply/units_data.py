@@ -102,4 +102,4 @@ std_funcs = (
 
 
 std_func_LUT = dict( [(f[0],f[2]) for f in std_funcs])
-#std_func_LUT['log_ten'] ( Quantity(2, Unit()) )
+

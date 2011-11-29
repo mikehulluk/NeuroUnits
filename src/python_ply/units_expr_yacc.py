@@ -12,6 +12,7 @@ def p_parse_line(p):
     """parse_line : unit_expr 
                   | function_def 
                   | quantity_def
+                  | time_derivative_def
                   """
     p[0] = p[1]
 
@@ -25,14 +26,22 @@ def p_quantity_def1(p):
     p[0] = p[1]
 
 
+def p_time_derivativestate_variable_def(p):
+    """ time_derivative_def : ALPHATOKEN SLASHSLASH ALPHATOKEN EQUALS quantity_expr
+                            | ALPHATOKEN SLASHSLASH ALPHATOKEN EQUALS quantity_expr COLON unit_expr
+    """
+    pass
+
+
 
 #LHS FUNCTION CALL DEFINITIONS
 def p_function_definition(p):
-    """function_def : ALPHATOKEN LBRACKET function_params RBRACKET EQUALS quantity_expr"""
+    """function_def : ALPHATOKEN LBRACKET function_def_params RBRACKET EQUALS quantity_expr"""
     pass
 def p_function_def_params(p):
-    """function_params : ALPHATOKEN
-                       | function_params COMMA ALPHATOKEN"""
+    """function_def_params : ALPHATOKEN
+                       | ALPHATOKEN COLON unit_expr
+                       | function_def_params COMMA ALPHATOKEN"""
     pass
 
 
@@ -98,6 +107,11 @@ def p_quantity_factor_2(p):
     p[0] = p[2]
 
 
+def p_quantity_nounits(p):
+    """ quantity : NO_UNIT LCURLYBRACKET quantity_expr RCURLYBRACKET """
+    p[0] = p[3]
+    print 'ERROR, not implemented yet'
+    pass
 
 # QUANTITY TERMS:
 def p_quantity_0( p ):
@@ -111,6 +125,7 @@ def p_quantity_1( p ):
 def p_quantity_2( p ):
     """quantity : magnitude WHITESPACE unit_expr"""
     p[0] = Quantity( p[1], p[3] )
+
 
 def p_quantity_magnitude(p):
     """magnitude : FLOAT 
@@ -233,7 +248,7 @@ def parse_expr(text, start_symbol, debug=False):
     assert text.find('--') == -1
 
     # Strip all unnessesary whitespace:
-    s1 = re.compile(r'[ ]* ([()/*:+]) [ ]*',re.VERBOSE)
+    s1 = re.compile(r'[ ]* ([()/*:+{}]) [ ]*',re.VERBOSE)
     text = re.sub(s1,r'\1',text)
 
     # '/' plays 2 roles. To simplify the grammar, turn '/' used to 

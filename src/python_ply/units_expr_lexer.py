@@ -15,8 +15,13 @@ tokens = [
     "EQUALS",
     "EXCLAIMATION",
     "COLON",
+    "NO_UNIT"
     ] 
 t_MINUSMINUS = r"""--"""
+
+def t_NO_UNIT(t):
+    r"""NO_UNIT"""
+    return t
 
 def t_FLOAT(t):
     r"""[-]?[0-9]+\.[0-9]*([eE][+-]?[0-9]+)?"""
@@ -31,7 +36,6 @@ def t_INTEGER(t):
 def t_ALPHATOKEN(t):
     r"""[a-zA-Z_]+"""
     return t
-
 
 
 t_SLASHSLASH = r"""//"""
@@ -51,10 +55,10 @@ t_COMMA = r""","""
 t_COLON = r""":"""
 t_EQUALS = r"""="""
 
-# {xyz}  Builtin Constant or Parameter
+# {xyz}  Builtin Constant 
+# {$xyz} Parameter/State
 # {@xyz} Parameter [for function call]
 # {~xyz} units
-# {!xyz} function_call
 
 def t_error(t):
     raise UnitError( "Illegal character '%s'" % t.value[0])

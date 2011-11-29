@@ -8,6 +8,7 @@
 (1.0/(1.0mA/(ms/m2) )/ ( 1.5pA/ mm2/3.1mA/cm2))*2.0cm*0.5*1.0mm/4.0*2.0e1*3um2/uF*2.0 * {e_charge} * {pi} * 2.0{~volt}/({~kelvin}/{~kelvin}) * logten(3.0) * myfunc(a=2cm/uF,b=3cm/2pS)/ 4.0
 
 
+NO_UNIT{ 1mV * 1pA }
 
 # Nernst Potential
 ({R}*300.0K )/( 2.0*{F} )* 2.303 * logten( 200 mol/m3 / 100 mol/m3 ) : mV
@@ -16,6 +17,8 @@
 10.0pS/cm2 * (-70.0 mV - (-1mV) ) : pA/um2
 
 10.0pS/cm2 * (-70.0 mV  - 20.0 mV ) : pA/um2
+
+10.0pS/cm2 * (-70.0 mV  - 20.0 mV - ln(1) * 1V ) : pA/um2
 
 
 

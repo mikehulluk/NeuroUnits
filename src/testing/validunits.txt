@@ -21,3 +21,4 @@ megaamp
 milliamp
 meter meter
 milliamp volt
+milliamp/(uF s)

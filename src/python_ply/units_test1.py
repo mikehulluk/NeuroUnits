@@ -16,7 +16,7 @@ def iterate_valid_lines(filename):
 
 def test_valid_units():
     print 'Testing Valid Units'
-    for line in iterate_valid_lines("../testing/valid_units.txt"):
+    for line in iterate_valid_lines("../testing/validunits.txt"):
         result = ParseUnitString(line)
         print line.ljust(30), '->', result
 
@@ -24,7 +24,7 @@ def test_valid_units():
 
 def test_valid_exprs():
     print 'Testing Valid Expressions'
-    for line in iterate_valid_lines("../testing/valid_expressions.txt"):
+    for line in iterate_valid_lines("../testing/validexpressions.txt"):
         #print "LINE:",line
         #print
         result = ParseExprString(line)

@@ -6,11 +6,13 @@
 \usepackage{listings} 
 \usepackage[usenames,dvipsnames]{color}
 \usepackage[margin=2cm]{geometry}
-
+%\usepackage{alltt}
 \usepackage{syntax}
+\usepackage{amsmath}
 
-\title{A grammar for units in computational neuroscience}
 
+\title{Proposal for a  grammar for units and expression involving units in computational neuroscience}
+\author{Michael Hull}
 
 
 \lstset{% general command to set parameter(s)
@@ -27,24 +29,30 @@ float=tbfh}
 \begin{document}
 \maketitle
 
-\section*{Motivation}
+\tableofcontents
+
+\section{Motivation}
 
 Computational neuroscience is a field with a large 
 array of tools aimed at specific tasks. Recently, 
 there has been a focus on tool interoperability. 
 Unfortunately, many different tools use different 
-notations for unit handling.
+notations for unit handling.\\
+
+
+In general, the parsing of expressions involving units and constants is tricky. For example the expression
+\verb| val = 1 K / F | could mean 'one-kelvin-per-Farad' or it could be 'one-kelvin-divided by the gas constant. \\
 
 We propose a simple, unambiguous, ascii-string based format for denoting quantities with units, and 
 simple expressions involving these quantities, which can be implemented with standard parsing tools. 
 Moreover, the syntax means that implementers do not need to implement the complete expression parsing grammar 
-and instead only implement the part they require.
-
-In general, the parsing of expressions involving units and constants is tricky. For example the expression
-\verb| val = 1 mol / F \| could mean 'one-more-per-Farad' or it could be 'one-mole-divided by the gas constant.
+and instead only implement the part they require. Particular emphasises are human readbility, extensibility and 
+inter-operability with existing conventions.
 
 
-\section*{Review  of unit definition in existing tools}
+
+\newpage
+\section{Review  of unit definition in existing tools}
 
 \subsection*{Neuron}
 NEURON separates the simulation process into two parts; .hoc and .mod files. The units that a particular parameter will be specified in are specified in .mod files. NEURON comes with a database of units and constants, derived from the GNU units packages, found in 'nrnunits.lib'. New units and constants can also be defined in terms of old units. E.G. The commandline tool 'modlunits' can be used to check for consistency in a mod-file.
@@ -92,7 +100,7 @@ model='dV/dt = -(V-El)/tau : volt'
 
 
 \newpage
-\section*{Proposed requirements} 
+\section{Proposed requirements} 
 \subsection{Use cases}
 Use-cases:
 
@@ -147,27 +155,39 @@ Amount of things an implementation has to implement.
 \item NMDA? Cellular concentrations.
 \end{description}
 
-
-
 \newpage
-\section*{Grammar}
+\section{Proposal}
 
+\subsection{Overview}
+Definitions of units, expressions, unitdefinitons
+Examples
+
+Use of colon
+
+
+\subsection{Syntax Limitations}
+Use of numbers in variable names
 
 \subsection*{Note about Preceedence}
 Multiplication can be funny, and division.
 
 
-\subsection*{Constants}
+
+\newpage
+\subsection{Proposed Builtins}
+
+
+\subsubsection{Mathematical Constants}
 \begin{center}
     \begin{tabular}{ | l | l |  l | p{5cm} |}
     \hline
     Symbol & Value & Units & Description  \\ \hline
     pi & 3.141 & - & Radians in a circle \\ \hline
-    e & - & - & - \\ \hline
+    e\_euler & - & - & - \\ \hline
     \end{tabular}
 \end{center}
 
-\subsection*{Functions}
+\subsubsection{Mathematical Functions}
 \begin{center}
     \begin{tabular}{ | l |  p{5cm} |}
     \hline
@@ -178,7 +198,7 @@ Multiplication can be funny, and division.
 \end{center}
 
 
-\subsection*{Multipliers}
+\subsubsection{Multipliers}
 
 
 \begin{center}
@@ -197,7 +217,7 @@ Multiplication can be funny, and division.
 \end{center}
 
 
-\subsection*{Base units}
+\subsubsection{Base units}
 
 \begin{center}
     \begin{tabular}{ | l | l |  l | p{5cm} |}
@@ -213,7 +233,7 @@ Multiplication can be funny, and division.
     \end{tabular}
 \end{center}
 
-\subsection{Builtin Derived Units}
+\subsubsection{Builtin Derived Units}
 
 \begin{center}
     \begin{tabular}{ | l | l |  l | p{5cm} |}
@@ -235,71 +255,222 @@ Multiplication can be funny, and division.
 
 
 \newpage
-\subsection*{Grammar}
+\subsection{Parsing Algorithm}
 
-Parsing units is not a trivial process. Unfortunately, whitespace plays an important role, and the overlap of the symbol 'm' in the multipliers and base units complicates the grammar. However, it is still quite simple using  2 stage parsing stages, one to handle epxressions, and the other to parse individual unit terms:
+Parsing units is not a trivial process. Unfortunately, whitespace plays an important role, and the overlap of the symbol 'm' in the multipliers and base units complicates the grammar. However, it is still quite simple using 2 stage parsing stages, one to handle epxressions, and the other to parse individual unit terms:
 
 
-\subsection*{Common Lexing}
+\subsubsection{Preprocessing}
 
-\begin{verbatim}
-INTEGER := "[+-]?[0-9]+"
-FLOAT := "[0-9]+\.[0-9]?([eE][+-]?[0-9]+)?"
-\end{verbatim}
+White space is very important in interpreting these equations. We apply the following regular expressions to simplify the parsing grammar.
 
-We define the grammar for units in BNF notation:
+\begin{description}
+\item[Strip unnessesary whitespace] \hfill \\
+Remove all the whitespace surrounding the symbols: \verb@ + ( ) / * :@  \\
+\verb@"[ \t]* ([()/*:+]) [ \t]*"@ $\rightarrow$ \verb@"\1"@
 
-\subsection*{Expression Syntax}
-\subsection*{Tokens}
-\begin{verbatim}
-ALPHATOKEN =: "[a-zA-Z]+"
-WHITESPACE =: "[ \t]+"
-TIMES = "\*"
-SLASH =: "/"
-PLUS = "\+"
-MINUS = "\*"
-LBRACKET = "\("
-RBRACKET = "\)"
-\end{verbatim}
+\item[Substitute Division Sign] \hfill \\
+Since \verb@/@ plays two roles, either division of unit-terms (eg mV/pS) or division of
+quantity terms (1mV/1pS), we remap the division of unit terms to '//' \\
+\verb@"/(?= [(]* (?:[a-zA-Z]) )"@ $\rightarrow$ \verb@"//"@ \\
+\verb@"/(?= [(]* (?:{~) )"@ $\rightarrow$ \verb@"//"@
+
+\item[Substitute Subtraction Signs] \hfill \\
+Similarly, \verb@-@ can play three roles, either in an unit term (eg kg-2 m), as a subtraction
+operator (1mV - 1V) or as a numerical modifier (1mV + -1mV) \\
+\verb@"[ ]* [-](?=[^0-9]) [ ]*"@ $\rightarrow$ \verb@"--"@
+
+\end{description}
+
+
+\subsubsection{Expression Lexing Tokens}
+
+{\scriptsize
+\begin{equation}
+\begin{aligned}
+\verb!NO_UNITS!       & \verb! := !       \verb!NO_UNIT! \\
+\verb!INTEGER!        & \verb! := !       \verb![+-]?[0-9]+! \\
+\verb!FLOAT!          & \verb! := !       \verb![-]?[0-9]+\.[0-9]*([eE][+-]?[0-9]+)?! \\
+\verb!ALPHATOKEN!     & \verb! := !       \verb![a-zA-Z_]+! \\
+\verb!SLASHSLASH!     & \verb! := !       \verb!//!\\
+\verb!SLASH!          & \verb! := !       \verb!/!\\
+\verb!WHITESPACE!     & \verb! := !       \verb![ \t]+"""!\\
+\verb!LBRACKET!       & \verb! := !       \verb!\(!\\
+\verb!RBRACKET!       & \verb! := !       \verb!\)!\\
+\verb!LCURLYBRACKET!  & \verb! := !       \verb!\{!\\
+\verb!RCURLYBRACKET!  & \verb! := !       \verb!\}!\\
+\verb!EXCLAIMATION!   & \verb! := !       \verb@!@\\
+\verb!TILDE!          & \verb! := !       \verb!~!\\
+\verb!TIMES!          & \verb! := !       \verb!\*!\\
+\verb!PLUS!           & \verb! := !       \verb!\+!\\
+\verb!COMMA!          & \verb! := !       \verb!,!\\
+\verb!COLON!          & \verb! := !       \verb!:!\\
+\verb!EQUALS!         & \verb! := !       \verb!=!
+\end{aligned}
+\end{equation}
+}
+
 
 \setlength{\grammarparsep}{20pt plus 1pt minus 1pt} % increase separation between rules
+\setlength{\grammarparsep}{15pt} % increase separation between rules
 \setlength{\grammarindent}{12em} % increase separation between LHS/RHS 
 
-\subsubsection*{Grammar}
+\newpage
+\subsubsection{Expression Grammar BNF}
 
+This is a high level grammar, which parses expressions. The term in "unit\_term\_unpowered" 
+need to be parsed onto the next parser, since the parsing of individual unit terms requires a 
+separate lookup term to resolve the ambiguity between 'm' in milli or meter.
+
+{\scriptsize
 \begin{grammar}
 
-<statement> ::= <ident> `=' <expr> 
-\alt `for' <ident> `=' <expr> `to' <expr> `do' <statement> 
-\alt `{' <stat-list> `}' 
-\alt <empty> 
+<unit\_term\_unpowered> ::= ALPHATOKEN
 
-<stat-list> ::= <statement> `;' <stat-list> | <statement> 
+<unit\_term> ::= <unit\_term\_unpowered>
+\alt <unit\_term\_unpowered> INTEGER
+\alt LCURLYBRACKET TILDE ALPHTOKEN RCURLYBRACKET
+
+<unit\_term\_grp> ::= <unit\_term>
+\alt <unit\_term\_grp> WHITESPACE <unit\_term>
+
+<parameterised\_unit\_term> ::= LBRACKET <unit\_term\_grp> RBRACKET
+\alt LBRACKET <unit\_term\_grp> SLASHSLASH <unit\_term\_grp> RBRACKET
+
+
+<unit\_expr> ::= <unit\_term\_grp>
+\alt <unit\_term\_grp> SLASHSLASH <unit\_term\_grp>
+\alt <parameterised\_unit\_term> SLASHSLASH <parameterised\_unit\_term>
+\alt <unit\_term\_grp> SLASHSLASH <parameterised\_unit\_term>
+\alt <parameterised\_unit\_term> SLASHSLASH <unit\_term\_grp>
+\alt <parameterised\_unit\_term>
+
+
+<quantity> ::= magnitude
+\alt <magnitude> <unit\_expr>
+\alt <magnitude> WHITESPACE <unit\_expr>
+\alt LCURLYBRACKET <constant> RCURLYBRACKET 
+\alt NO\_UNIT LCURLYBRACKET quantity\_expr RCURLYBRACKET 
+
+<constant> ::= ALPHATOKEN 
+
+<magnitude> ::= FLOAT 
+\alt INTEGER
+
+<quantity\_expr> : <quantity\_expr> PLUS <quantity\_term>
+\alt : <quantity\_expr> MINUSMINUS <quantity\_term>
+\alt : <quantity\_term>
+
+<quantity\_term> :  <quantity\_term> TIMES <quantity\_factor>
+\alt : <quantity\_term> SLASH <quantity\_factor>
+\alt : <quantity\_factor>
+
+<quantity\_factor> : <quantity> 
+\alt LBRACKET <quantity\_expr> RBRACKET 
+
+<func\_call\_param> : ALPHATOKEN EQUALS quantity\_expr>
+<func\_call\_params> : quantity\_expr>
+\alt <func\_call\_param> 
+\alt <func\_call\_params> COMMA <func\_call\_param>
+
+<function\_def> : ALPHATOKEN LBRACKET <function\_def\_params> RBRACKET EQUALS <quantity\_expr>
+
+<function\_def\_params> : ALPHATOKEN
+\alt ALPHATOKEN COLON <unit\_expr>
+\alt <function\_params> COMMA ALPHATOKEN
 
 \end{grammar}
+}
 
-%\paragraph{Increase the two lengths}
-%
-%\begin{grammar}
-%
-%<statement> ::= <ident> `=' <expr> 
-%\alt `for' <ident> `=' <expr> `to' <expr> `do' <statement> 
-%\alt `{' <stat-list> `}' 
-%\alt <empty> 
-%
-%<stat-list> ::= <statement> `;' <stat-list> | <statement> 
-%
-%\end{grammar}
+
+\newpage
+\subsubsection{Token-Parsing Grammar BNF}
+
+The "unit\_term\_unpowered" also requires an additional lookup step. If the 
+unit is 'm,cm,um,....', then the unit should be resolved as the relevant unit directly.
+
+{\scriptsize
+\begin{grammar}
+<unit\_term\_unpowered> ::=  <short\_basic\_unit> 
+\alt <long\_basic\_unit>
+\alt <SPECIAL-SEE TEXT>
+
+<unit\_term\_unpowered> ::=  <long\_basic\_multiplier> <long\_basic\_unit>
+\alt <short\_basic\_multiplier> <short\_basic\_unit> 
+
+<long\_basic\_unit> ::=  LONG\_VOLT 
+\alt LONG\_AMP 
+\alt LONG\_SIEMEN
+\alt LONG\_OHM
+\alt LONG\_COULOMB
+\alt LONG\_FARAD
+\alt LONG\_METER
+\alt LONG\_GRAM
+\alt LONG\_SECOND
+\alt LONG\_KELVIN
+\alt LONG\_MOLE
+\alt LONG\_CANDELA
+
+<short\_basic\_unit> ::= SHORT\_VOLT 
+\alt SHORT\_AMP 
+\alt SHORT\_SIEMEN
+\alt SHORT\_OHM
+\alt SHORT\_COULOMB
+\alt SHORT\_FARAD
+\alt SHORT\_METER
+\alt SHORT\_GRAM
+\alt SHORT\_SECOND
+\alt SHORT\_KELVIN
+\alt SHORT\_MOLE
+\alt SHORT\_CANDELA
+
+<long\_basic\_multiplier> ::=  LONG\_GIGA 
+\alt LONG\_MEGA 
+\alt LONG\_KILO
+\alt LONG\_CENTI
+\alt LONG\_MILLI
+\alt LONG\_MICRO
+\alt LONG\_NANO
+\alt LONG\_PICO
+
+<short\_basic\_multiplier> ::=   SHORT\_GIGA 
+\alt SHORT\_MEGA                           
+\alt SHORT\_KILO                           
+\alt SHORT\_CENTI                          
+\alt SHORT\_MILLI                          
+\alt SHORT\_MICRO                          
+\alt SHORT\_NANO                           
+\alt SHORT\_PICO                           
+                              
+\end{grammar}
+}
+
+
+\subsection{Future Extensibility}
+Function call defintoins
+
+% {xyz}  Builtin Constant 
+% {$xyz} Parameter/State
+% {@xyz} Parameter [for function call]
+% {~xyz} units
+
+
+
+
 
 
 
 
 \newpage
-\section*{Examples}
-\subsection*{Valid Expressions}
+\section{Examples}
+\subsection{Valid Units}
+\verbatiminput{../../src/testing/validunits.txt}
+
+\subsection{Valid Expressions}
+\verbatiminput{../../src/testing/validexpressions.txt}
 
 
-\subsection*{Invalid Expressions}
+\subsection{Invalid Expressions}
 
 
 
