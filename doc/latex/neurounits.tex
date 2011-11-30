@@ -41,14 +41,9 @@ notations for unit handling.\\
 
 
 In general, the parsing of expressions involving units and constants is tricky. For example the expression
-\verb| val = 1 K / F | could mean 'one-kelvin-per-Farad' or it could be 'one-kelvin-divided by the gas constant. \\
+\verb| val = 1 K / F | could mean \emph{'one-kelvin-per-Farad'} or it could be \emph{'one-kelvin-divided by the gas constant'}. \\
 
-We propose a simple, unambiguous, ascii-string based format for denoting quantities with units, and 
-simple expressions involving these quantities, which can be implemented with standard parsing tools. 
-Particular emphasises are human readbility, extensibility and inter-operability with existing conventions.  
-For adoption by the community, implementation should be as simple as possible, tools developers should only need 
-to implement features that they need.
-
+We propose a simple, unambiguous, ascii-string based format for denoting quantities with units, and simple expressions involving these quantities, which can be implemented with standard parsing tools. BNF grammars are provided.  Particular emphasises are human readbility, extensibility and inter-operability with existing conventions.  For adoption by the community, implementation should be as simple as possible, tools developers should only need to implement features that they need.  
 
 
 
@@ -56,14 +51,56 @@ to implement features that they need.
 \section{Review  of unit definition in existing tools}
 
 \subsection*{Neuron}
-NEURON separates the simulation process into two parts; .hoc and .mod files. The units that a particular parameter will be specified in are specified in .mod files. NEURON comes with a database of units and constants, derived from the GNU units packages, found in 'nrnunits.lib'. New units and constants can also be defined in terms of old units. E.G. The commandline tool 'modlunits' can be used to check for consistency in a mod-file.
+\verb|NEURON| separates the simulation process into two parts; \verb|.hoc| and \verb|.mod| files. The units that a particular parameter will be specified in are specified in \verb|.mod| files. NEURON comes with a database of units and constants, derived from the GNU units packages, found in \verb|nrnunits.lib|. New units and constants can also be defined in terms of existing expressions within the \verb|UNITS| block declaration. For example.
+
+\begin{verbatim}
+UNITS {
+    : Define units:
+   (uF)    =  (microfarad)
+   (Mohms) =  (megohms)
+   (V)     =  (volt)
+   (molar) =  (/liter)
+   (mM)    =  (millimolar)
+    
+    : Define constants:
+    F = (faraday) (coulomb)
+    PI = (pi) (1)
+    e  = (e) (coulomb)
+    R  = (k-mole) (joule/degC)
+    C = (c) (cm/sec)
+}
+\end{verbatim}
+
+
+
+Although units can be supplied, there is no automatic conversion between them; the specification of units allows the units to be validated with the commandline tool \verb|modlunits|. To allow this, \verb|NEURON| requires a special syntax when composing expressions, so that \verb|modlunits| can disambiguate between what is a value and what is a conversion factor. For example, it is invalid to write:
+\begin{verbatim}
+ASSIGNED{
+    i (milliamp)
+    v (volt) 
+    r (ohm)
+}
+EQUATION {
+    : INVALID - no automatic conversion between volts <--> milliamp * ohm (=millivolt)
+    v = i * r 
+    : INVALID - numerically it is correct, but modlunits can't detect the conversion factor
+    v = 0.001 * i * r
+
+    : VALID - conversion factor is in parathesis
+    v = (.001) * i * r
+}
+\end{verbatim}
+
+http://cns.iaf.cnrs-gif.fr/files/units.html
+
+
 
 \subsection*{Genesis}
 TOCHECK: It appears to me that units in genesis are all specified using SI base units. But  I am not a genesis user - is this true??
 
 
 \subsection*{SBML}
-SBML is an XML format for Systems Biology. New unit definitions can built from builtin types (or existing definitions, I thinkk!?).
+SBML is an XML format for specifying models in systems biology. New unit definitions can built from builtin types (or existing definitions, I think!?).
 For example
 
 \begin{lstlisting}
@@ -96,7 +133,16 @@ model='dV/dt = -(V-El)/tau : volt'
 
 
 \subsection*{GNU units}
-
+GNU units is an interactive commandline program that allows the user to convert from one unit to another.
+For example
+\begin{verbatim}
+You have: 20 mph
+You want: sec/mile
+    reciprocal conversion
+    1 / 20 mph = 180 sec/mile
+    1 / 20 mph = (1 / 0.0055555556) sec/mile
+\end{verbatim}
+GNU units has a large library of built in units, multipliers and constants.
 
 
 
@@ -120,23 +166,57 @@ create_leak_channel(reversal_potential="-70 mV", conductance="(1/300 MOhm)/(500u
 \item[Loading \& storing of data \& results:]  \hfill \\
 
 
-Often, data is stored in an intermediate format between tools, either in text files (eg. .csv files), or in binary files, (.mat) files. 
+Often, data is stored in an intermediate format between tools, either in text files (eg. .csv files), or in binary files, (.mat, .hdf) files. These formats generally allow the storage of associated metadata with arrays or data in the form of strings. To aid interoperability between tools, and not require the user to manually keep track of whether a current density measurement is stored in for example \verb|pA/um2| or \verb|mA/cm2|, a unit string would allow us to write, for example:
 
 \begin{verbatim}
 # My CSV FILE
 # COLUMN0: {'label':'t', 'unit':'ms' }
 # COLUMN1: {'label':'membrane_voltage', 'unit':'mV' }
-0.000, -75.000
-0.010, -75.000
-0.020, -75.000
-0.030, -75.000
+# COLUMN2: {'label':'membrane_current', 'unit':'pS/cm2' }
+0.000, -75.000  2.300
+0.010, -75.000  2.300
+0.020, -75.000  2.300
+0.030, -75.000  2.300
 \end{verbatim}
 
 
 \item[In specification of functions and formulae] \hfill \\
-Needing to divide by m or V to use activation curves.
+Specifying units directly in equations would make explicit certain conventions.
+For example, in hodgekin huxley formulation, we often see equations of the form:
+$$
+m_\alpha = \frac{A + BV}{C + exp( \frac{D+V}{E}) }
+$$
 
-\item[In reuse of equations] \hfill \\
+Since the dimensions of $m_\alpha$ are 'per second', so the dimensions for the parameters are:
+\begin{itemize}
+\item[A:]  'per second'
+\item[B:]  'per (volt second) 
+\item[C:]  (None)
+\item[D:]  'volt'
+\item[E:]  'volt'
+\end{itemize}
+
+Often, for clarity, when written, the units are dropped, and in \verb|NEURON|, the code is written as (surrounding code removed for clarity):
+
+\begin{lstlisting}
+ASSIGNED {
+    v (mV)
+    : code removed...
+}
+
+PROCEDURE rates(v(mV)) {  :Computes rate and other constants at current v.
+UNITSOFF
+    : code removed...
+    alpha = .07 * exp(-(v+65)/20)
+    : code removed...
+}
+\end{lstlisting}
+The code for units checking in this case becomes unwieldly and has been removed by the UNITSOFF directive. It would be good if our syntax did not encourage this.
+
+
+
+
+
 
 
 \end{description}
@@ -145,10 +225,9 @@ Needing to divide by m or V to use activation curves.
 
 \subsection{Constraints}
 \begin{description}
-\item[Scope] Neuroscience specific, we don't want to have to redefine 'V' each time, but we want to be able to express any unit.
-\item[Readability] Neuroscience specific. Human readable 
-\item[Implementation] Easy to do for adoption. Needs to be simple to implement parsers: tricky cases: 'g'(gravity,gram), 'e', spellings of 'meter', 'F' (farad/gas constants)
-Amount of things an implementation has to implement.
+\item[Scope] The aim is not to solve the general specification of units, but provide neuroscience specific units and commonly used constants. We don't want to have to redefine 'volt' or 'siemen' each time from base quanties, there should be a builtin set of standard units. We also want to be able to define our own dimensions and constants.
+\item[Readability] Its very important that the syntax is human readable. Excessive use of 'delimiting characters' should be avoided.
+\item[Implementation] Easy to do for adoption. Needs to be simple to implement parsers. Tricky cases arise because of ambiguous cases: 'g'(gravity, gram), 'e' (2.71, electric charge), spellings of 'meter', 'F' (farad/gas constants).
 \end{description}
 
 \subsection{Example Formula}
@@ -160,18 +239,64 @@ Amount of things an implementation has to implement.
 \section{Proposal}
 
 \subsection{Overview}
+\subsubsection*{Units}
+Units can be specified as for example:
+\begin{verbatim}
+m
+m/s 
+m/s2 
+kg m2 s-1
+milliamp/centimeter2
+m/(second volt) 
+pS/(m2 /s3)
+\end{verbatim}
+
+Brackets are valid, there is NO * operator; WHITESPACE is multiplication and has higher preceedence that division. For example
+\verb|kg s2 / F meter| is interpreted as \verb| (kg s2) / (F meter)|
+
+To maintain convention with left-right  application of '/' as in languages like C and python, the interpretation of  \verb|"kg / m / F / s"| would be the same as \verb|"kg / m  F  s"|. Having redundant '/' is confusing, so there can not be more than one division sign without intervening brackets.
+\verb| ((kg/mol)/m2)/(pS/(um/s))| is valid, but \verb|kg/s/s| is not and can be written \verb|m/(s s)|, or \verb|(m/s)/s| (or \verb|m/s2|).
+
+
+\subsubsection*{Unit Quantities}
+
+Unit quanties can be defined as an integer or a float followed by a unit, separated by an optional whitespace. 
+Units quantities can also be defined in terms of externally defined form, using the syntax
+\verb| 2.3 {~myspecialunit}|.  See the lexing section for details about floating point and externally defined string specification.
+
+
+
+There is the potential for ambiguity with multiplication and 
 Definitions of units, expressions, unitdefinitons
 Examples
 
-Use of colon
+\subsubsection*{Unit Expressions}
+Unit quantities can be added, subtracted, multiplied and divided, and used in expressions in brackets. The preceedence is the same as C.
+Constants can be used, and are enclosed in \verb|{}|.
+For example:
+\begin{verbatim}
+(1/500MOhm) / 590um2
+NERST EXAMPLE
+\end{verbatim}
+
+An expression can be suffixed with a colon, to confirm the resulting unit of the expression. (The multipliers need not be the same, but the expression must be convertable). For example:
+\begin{verbatim}
+mS/cm2 * mV : pS/um2 
+\end{verbatim}
+
+
+\subsection{Function Calls}
+
 
 
 \subsection{Syntax Limitations}
-Use of numbers in variable names
+Use of numbers in variable names.
 
 \subsection*{Note about Preceedence}
 Multiplication can be funny, and division.
 
+\subsection*{Funky examples with whitespace}
+Multiplication can be funny, and division.
 
 
 \newpage
