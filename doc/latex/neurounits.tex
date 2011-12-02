@@ -235,6 +235,82 @@ The code for units checking in this case becomes unwieldly and has been removed 
 \item NMDA? Cellular concentrations.
 \end{description}
 
+
+
+\begin{eqnarray}
+I_k &= \bar{g_{k}} * (V-E_k) * n^{4}                 \label{eqn:ex1} \\ 
+\alpha_n &= \dfrac{10-V}{100(exp((10-V)/10)-1)}       \label{eqn:ex2} \\
+\tau_n &= \dfrac{1}{\alpha_n + \beta_n}               \label{eqn:ex3} 
+\end{eqnarray}
+
+\begin{eqnarray}
+I_{Ca} &= P_{Ca} 2 v F \dfrac{\left[Ca^{2+}\right]_i - \left[Ca^{2+}\right]_o e^{-v} } { 1-e^{-v} }\label{eqn:ex4} \\ 
+v &= 2V_m F / (RT) \label{eqn:ex5} 
+\end{eqnarray}
+
+\begin{eqnarray}
+g_{syn}(t) &= g_{const} \cdot t e^{-t/t_{peak}} \label{eqn:ex6} \\
+g_{syn}(t) &= g_n \dfrac{ e^{-t/\tau_1} - e^{-t/\tau_2} }{1+n\left[Mg^{2+}\right]e^{-\gamma V_m} }  \label{eqn:ex7} 
+\end{eqnarray}
+
+\begin{eqnarray}
+E_{syn} = \dfrac{RT}{zF} ln \dfrac{ S_{external} }{S_{internal} }  \label{eqn:ex8}
+\end{eqnarray}
+
+
+\begin{eqnarray}
+\dot{V} = V - \frac{V^3}{3} -W +I \label{eqn:ex9} \\
+\dot{W} = \phi ( V +a-vW) \label{eqn:ex10} 
+\end{eqnarray}
+
+\begin{description}
+\item[Eqn. \ref{eqn:ex1}:] Potassium current equation (from Koch Pg.146)
+\item[Eqn. \ref{eqn:ex2}:] Potassium forward-rate constant (from Koch Pg.147)
+\item[Eqn. \ref{eqn:ex3}:] Potassium gating-variable time constant (from Koch Pg.146)
+\item[Eqns. \ref{eqn:ex4} \& \ref{eqn:ex5}:] Calcium current (GHK) (from Koch Pg.215)
+\item[Eqn. \ref{eqn:ex6}:] Synaptic conductance decay (from Koch Pg.100)
+\item[Eqn. \ref{eqn:ex7}:] NMDA Synaptic decay (from Koch Pg.101) [$\tau_1 = 80ms, \tau_2=0.67ms, n=0.33/mM,\gamma=0.2ns. \left[ Mg^{2+} \right]=1mM$]
+\item[Eqn: \ref{eqn:ex8}:]  Nernst Equation
+\item[Eqns. \ref{eqn:ex9} \& \ref{eqn:ex10}:] FitzHugh-Nagumo (from Koch Pg.174)
+\end{description}
+
+
+Example declarations:
+
+\begin{description}
+\item[Eqn. \ref{eqn:ex1}:]  \hfill \\
+\verb|ik = {gkbar} * ( {V} - {Ek} ) * n**4 | \\
+\verb|ik = 50nS/cm2 * ( {V} - 50mV ) * n**4 |
+
+\item[Eqn. \ref{eqn:ex2}:]   \hfill \\
+\verb|alpha_v = (10mV - {V}) / (100(mV s) * (exp((10mV- {V})/10mV ) -1) | \\
+\verb|alpha_v = UNITS_OFF{ (10 - {V:mV}) / (100 * (exp((10-{V:mV})/10 )-1) }|
+
+\item[Eqn. \ref{eqn:ex3}:]  \hfill \\
+\verb|tau_n = 1/(alpha + beta)|
+
+\item[Eqns. \ref{eqn:ex4} \& \ref{eqn:ex5}:]  \hfill \\
+\verb|ica = 2*{Pca}*{v}*{F} * ( {S_in} - {S_out}*exp(-{v}) ) / (1-exp(-{v})) | \\
+\verb|v = 2*{Vm}*{F}/({R}*{T}) | \\
+\verb|ica = 2* (1.2 cm/sec) *{v}*{F} * (3mol/cm3 - (100mol/cm3)*exp(-{v}) / (1-exp(-{v})) | \\
+
+\item[Eqn. \ref{eqn:ex6}:]  \hfill \\
+\verb|gsyn = {g_const} * {t} * exp( {t}/-20ms) | \\
+\verb|gsyn = 15nS * {t} * exp( -{t}/{tau1} ) |
+
+\item[Eqn. \ref{eqn:ex7}:]  \hfill \\
+\verb|a|
+
+\item[Eqn: \ref{eqn:ex8}:]  \hfill \\
+\verb|a|
+
+\item[Eqns. \ref{eqn:ex9} \& \ref{eqn:ex10}:]  \hfill \\
+\verb|a|
+
+\end{description}
+
+
+
 \newpage
 \section{Proposal}
 
@@ -276,7 +352,7 @@ Constants can be used, and are enclosed in \verb|{}|.
 For example:
 \begin{verbatim}
 (1/500MOhm) / 590um2
-NERST EXAMPLE
+
 \end{verbatim}
 
 An expression can be suffixed with a colon, to confirm the resulting unit of the expression. (The multipliers need not be the same, but the expression must be convertable). For example:
@@ -286,7 +362,12 @@ mS/cm2 * mV : pS/um2
 
 
 \subsection{Function Calls}
-
+(TODO)
+Allow us to calculate nernst potential inline; for example:
+\begin{verbatim}
+#NERST EXAMPLE
+({R}*300.0K )/( 2.0*{F} )* 2.303 * logten( 200 mol/m3 / 100 mol/m3 ) : mV
+\end{verbatim}
 
 
 \subsection{Syntax Limitations}
@@ -294,6 +375,7 @@ Use of numbers in variable names.
 
 \subsection*{Note about Preceedence}
 Multiplication can be funny, and division.
+GNU Units uses $|$ as the division operator!
 
 \subsection*{Funky examples with whitespace}
 Multiplication can be funny, and division.
