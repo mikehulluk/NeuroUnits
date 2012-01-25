@@ -1,5 +1,5 @@
 
-from units_core import UnitError
+from unit_errors import UnitError
 from units_data import unit_short_LUT, unit_long_LUT
 from units_data import multiplier_short_LUT, multiplier_long_LUT
 import ply

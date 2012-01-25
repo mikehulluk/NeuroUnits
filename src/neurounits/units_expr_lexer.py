@@ -1,6 +1,6 @@
 
 import ply.lex
-from units_core import UnitError
+from unit_errors import UnitError
 
 
 

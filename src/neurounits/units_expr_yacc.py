@@ -1,5 +1,5 @@
 import units_expr_lexer
-from units_core import UnitError
+from unit_errors import UnitError
 import re
 from units_data import unit_long_LUT, std_func_LUT
 from units_data import std_funcs
@@ -85,9 +85,6 @@ def p_quantity_func_params_term(p):
 
 def p_quantity_expr_1(p): 
     """quantity_expr : quantity_expr PLUS quantity_term"""
-    #print p[1], p[2]
-    #print p[1]
-    #print p[3]
     p[0] = p[1] + p[3]
 
 def p_quantity_expr_2(p): 
@@ -251,7 +248,7 @@ precedence = (
 
 
 def parse_expr(text, start_symbol, debug=False):
-    print 'Parsing:',text
+    #print 'Parsing:',text
 
     # Some preprocessing:
     #######################

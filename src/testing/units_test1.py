@@ -18,8 +18,9 @@ def iterate_valid_lines(filename):
 def test_valid_units():
     print 'Testing Valid Units'
     for line in iterate_valid_lines("../test_data/validunits.txt"):
+        print line.ljust(30), '->', 
         result = NeuroUnitParser.Unit(line)
-        print line.ljust(30), '->', result
+        print result
 
     print
 
