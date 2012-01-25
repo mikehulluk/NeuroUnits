@@ -1,19 +1,26 @@
 
 
-def safe_dict_merge(*args):
-    out_dct = {}
-    for dct in args:
-        for k,v in dct.iteritems():
-            assert not k in out_dct
-            out_dct[k] = v
-    return out_dct
+def unit_as_dimensionless(u1):
+    assert u1.dimensionless()
+    return float(u1.magnitude)
 
 
+def make_unit(meter=0,kilogram=0,second=0,ampere=0,kelvin=0,mole=0,candela=0, powerTen=0):
 
-class UnitError(ValueError):
-    pass
+    return MMUnit(meter=meter, 
+                kilogram=kilogram,
+                second=second,
+                ampere=ampere,
+                kelvin=kelvin,
+                mole=mole,
+                candela=candela,
+                powerTen=powerTen)
 
-class Unit(object):
+def make_quantity(magnitude, unit):
+    return MMQuantity(magnitude=magnitude, unit=unit)
+
+
+class MMUnit(object):
     Bases = """meter kilogram second ampere kelvin mole candela """.split()
     BasesShort = """m kg s A K mol cd""".split()
     
@@ -28,9 +35,9 @@ class Unit(object):
         self.powerTen = powerTen
 
     def __mul__(self, rhs):
-        assert isinstance( rhs, Unit)
+        assert isinstance( rhs, MMUnit)
 
-        return Unit(
+        return MMUnit(
             meter = self.meter + rhs.meter,
             kilogram = self.kilogram + rhs.kilogram,
             second = self.second + rhs.second,
@@ -42,9 +49,9 @@ class Unit(object):
         )
 
     def __div__(self, rhs):
-        assert isinstance( rhs, Unit)
+        assert isinstance( rhs, MMUnit)
 
-        return Unit(
+        return MMUnit(
             meter = self.meter - rhs.meter,
             kilogram = self.kilogram - rhs.kilogram,
             second = self.second - rhs.second,
@@ -55,8 +62,11 @@ class Unit(object):
             powerTen = self.powerTen - rhs.powerTen,
         )
 
-    def raise_to_power(self, p):
-        return Unit(
+    def __pow__(self, p):
+        return self._raise_to_power(p)
+
+    def _raise_to_power(self, p):
+        return MMUnit(
             meter = self.meter * p,
             kilogram = self.kilogram * p ,
             second = self.second * p,
@@ -71,13 +81,13 @@ class Unit(object):
     def __str__(self,):
         s1 = "(10e%d)" % self.powerTen
 
-        basis_short_LUT = dict ( zip( Unit.Bases, Unit.BasesShort) )
-        basisCounts = dict( [ (b, getattr(self, b)) for  b in Unit.Bases ] ) 
-        terms = [ "%s %d"%(basis_short_LUT[b], basisCounts[b]) for b in Unit.Bases if basisCounts[b] ] 
+        basis_short_LUT = dict ( zip( MMUnit.Bases, MMUnit.BasesShort) )
+        basisCounts = dict( [ (b, getattr(self, b)) for  b in MMUnit.Bases ] ) 
+        terms = [ "%s %d"%(basis_short_LUT[b], basisCounts[b]) for b in MMUnit.Bases if basisCounts[b] ] 
         s2 = ' '.join(terms)
-        return "<Unit: " + s1 + " " + s2 + ">"
+        return "<MMUnit: " + s1 + " " + s2 + ">"
 
-class Quantity(object):
+class MMQuantity(object):
     def __init__(self, magnitude, unit):
         self.magnitude = magnitude
         self.unit = unit
@@ -98,20 +108,28 @@ class Quantity(object):
                 (self.unit.candela == rhs.unit.candela)
 
     def __mul__(self, rhs):
-        return Quantity( self.magnitude*rhs.magnitude,  self.unit*rhs.unit) 
+        if isinstance(rhs, MMUnit):
+            rhs = MMQuantity(1.0,rhs)
+        return MMQuantity( self.magnitude*rhs.magnitude,  self.unit*rhs.unit) 
     def __div__(self, rhs):
-        return Quantity( self.magnitude/rhs.magnitude,  self.unit/rhs.unit) 
+        if isinstance(rhs, MMUnit):
+            rhs = MMQuantity(1.0,rhs)
+        return MMQuantity( self.magnitude/rhs.magnitude,  self.unit/rhs.unit) 
 
 
     def __add__(self, rhs):
-        assert isinstance( rhs, Quantity)
+        if isinstance(rhs, MMUnit):
+            rhs = MMQuantity(1.0,rhs)
+        assert isinstance( rhs, MMQuantity)
         rhs_conv = rhs.converted_to_unit(self.unit)
-        return Quantity( self.magnitude + rhs_conv.magnitude, self.unit)
+        return MMQuantity( self.magnitude + rhs_conv.magnitude, self.unit)
 
     def __sub__(self, rhs):
-        assert isinstance( rhs, Quantity)
+        if isinstance(rhs, MMUnit):
+            rhs = MMQuantity(1.0,rhs)
+        assert isinstance( rhs, MMQuantity)
         rhs_conv = rhs.converted_to_unit(self.unit)
-        return Quantity( self.magnitude - rhs_conv.magnitude, self.unit)
+        return MMQuantity( self.magnitude - rhs_conv.magnitude, self.unit)
         
 
     def check_compatible(self, u):
@@ -123,13 +141,16 @@ class Quantity(object):
         assert self.unit.mole == u.mole
         assert self.unit.candela == u.candela
 
+
+    def rescale(self, u):
+        return self.converted_to_unit(u)
     def converted_to_unit( self, u ):
         self.check_compatible(u)
         mul_fac = u.powerTen - self.unit.powerTen
-        return Quantity( self.magnitude / 10**mul_fac,  u )
+        return MMQuantity( self.magnitude / 10**mul_fac,  u )
 
     def dimensionless( self, ):
-        self.check_compatible( Unit() )
+        self.check_compatible( MMUnit() )
         return self.magnitude * 10**self.unit.powerTen
 
     

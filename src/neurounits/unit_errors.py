@@ -1,0 +1,3 @@
+
+class UnitError(ValueError):
+    pass

@@ -1,10 +1,7 @@
 
-#from units_core import Unit, UnitError
 from units_core import UnitError
 from units_data import unit_short_LUT, unit_long_LUT
 from units_data import multiplier_short_LUT, multiplier_long_LUT
-#from units_data import unit_LUT, unit_short_LUT, unit_long_LUT
-#from units_data import multiplier_LUT, multiplier_short_LUT, multiplier_long_LUT
 import ply
 
 
@@ -74,6 +71,7 @@ def p_unit_term_unpowered_with_multipler(p):
     """unit_term_unpowered :    long_basic_multiplier long_basic_unit
                               | short_basic_multiplier short_basic_unit 
                               """
+    #print 'Term with Multiplier:', 'Modifier', p[1], 'Unit', p[2]
     p[0] = p[1] * p[2]
 
 def p_long_basic_unit(p):
@@ -132,6 +130,10 @@ def p_short_basic_multiplier(p):
                                 | SHORT_NANO
                                 | SHORT_PICO
                               """
+    #print 'ShortBasicMultiplier', p[1], multiplier_short_LUT[ p[1]] 
+    #print 'LookUpDict:'
+    #for k,v in multiplier_short_LUT.iteritems():
+    #    print k,v
     p[0] = multiplier_short_LUT[ p[1] ]
 
 def p_error(p):
@@ -152,6 +154,8 @@ def p_error(p):
 
 
 def parse_term( text ):
+    #print 'Parsing Unit Term', text
+    
     text = text.strip()
 
     # CHECK FOR STANDARD DEFINITIONS:
@@ -160,7 +164,9 @@ def parse_term( text ):
             return u_def
 
     # Parse as per normal: 
-    parser = ply.yacc.yacc(tabmodule='unit_term_parser_parsetab')#, outputdir='/tmp/', debug=0)
-    return parser.parse(text, lexer=lexer)
+    parser = ply.yacc.yacc(tabmodule='unit_term_parser_parsetab', debug=0) #, outputdir='/tmp/'
+    res =  parser.parse(text, lexer=lexer)
+    #print 'Parsed %s -> %s'%(text,res)
+    return res
 
 

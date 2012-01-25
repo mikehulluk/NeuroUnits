@@ -1,12 +1,19 @@
-import ply.yacc as yacc
 import units_expr_lexer
-from units_expr_lexer import tokens
-from units_core import Unit, UnitError, Quantity
+from units_core import UnitError
 import re
 from units_data import unit_long_LUT, std_func_LUT
 from units_data import std_funcs
 
 from units_data import constants
+
+
+import ply.yacc as yacc
+
+
+from units_backends import default as backend
+
+from units_expr_lexer import UnitExprLexer
+tokens = UnitExprLexer.tokens
 
 def p_parse_line(p):
     """parse_line : unit_expr 
@@ -21,7 +28,8 @@ def p_quantity_def1(p):
     """quantity_def : quantity_expr 
                     | quantity_expr COLON unit_expr"""
     if len(p) == 4:
-        p[1] = p[1].converted_to_unit( p[3] )
+        t = (p[1])/(p[3])
+        backend.unit_as_dimensionless(t)
     
     p[0] = p[1]
 
@@ -52,7 +60,7 @@ def p_quantity_func_call_1(p):
     
     # We can't handle, multiple arguments yet:
     if not len(p[3])==1:
-        p[0] = Quantity( -1.0, Unit() )
+        p[0] = backend.make_quantity( -1.0, backend.make_unit() )
         return
 
     # Single argument case:
@@ -78,6 +86,8 @@ def p_quantity_func_params_term(p):
 def p_quantity_expr_1(p): 
     """quantity_expr : quantity_expr PLUS quantity_term"""
     #print p[1], p[2]
+    #print p[1]
+    #print p[3]
     p[0] = p[1] + p[3]
 
 def p_quantity_expr_2(p): 
@@ -116,21 +126,21 @@ def p_quantity_nounits(p):
 # QUANTITY TERMS:
 def p_quantity_0( p ):
     """quantity : magnitude"""
-    p[0] = Quantity( p[1], Unit() )
+    p[0] = backend.make_quantity( p[1], backend.make_unit() )
 
 def p_quantity_1( p ):
     """quantity : magnitude unit_expr """
-    p[0] = Quantity( p[1], p[2] )
+    p[0] = backend.make_quantity( p[1], p[2] )
 
 def p_quantity_2( p ):
     """quantity : magnitude WHITESPACE unit_expr"""
-    p[0] = Quantity( p[1], p[3] )
+    p[0] = backend.make_quantity( p[1], p[3] )
 
 
 def p_quantity_magnitude(p):
     """magnitude : FLOAT 
                  | INTEGER"""
-    p[0] = p[1]
+    p[0] = float(p[1])
 
 
 def p_quantity_constant(p):
@@ -206,7 +216,7 @@ def p_unit_term_1(p):
 
 def p_unit_term_2(p):
     """unit_term : unit_term_unpowered INTEGER"""
-    p[0] = p[1].raise_to_power( int(p[2]) )
+    p[0] = p[1] ** ( int(p[2]) )
 
 
 def p_unit_term_3(p):
@@ -241,6 +251,7 @@ precedence = (
 
 
 def parse_expr(text, start_symbol, debug=False):
+    print 'Parsing:',text
 
     # Some preprocessing:
     #######################
@@ -254,6 +265,7 @@ def parse_expr(text, start_symbol, debug=False):
     # '/' plays 2 roles. To simplify the grammar, turn '/' used to 
     # purely separate unit terms to '//'
     # Look for a '('* then either [a-zA-Z] or '~{' following the slash:
+    assert not "//" in text
     s = re.compile(r"""/(?= [(]* (?:[a-zA-Z]) )""", re.VERBOSE)
     text = re.sub(s,'//',text)
     s = re.compile(r"""/(?= [(]* (?:{~) )""", re.VERBOSE)
@@ -284,10 +296,10 @@ def parse_expr(text, start_symbol, debug=False):
         #)
         #log = logging.getLogger()
 
-        parser = yacc.yacc(tabmodule='unit_expr_parser_parsetab', debug=True,start=start_symbol   ) 
-        return parser.parse(text, lexer=units_expr_lexer.lexer, debug=True, )
+        parser = yacc.yacc(tabmodule='unit_expr_parser_parsetab',  debug=True,start=start_symbol,   ) 
+        return parser.parse(text, lexer=units_expr_lexer.UnitExprLexer(), debug=True, )
     else:
-        parser = yacc.yacc(tabmodule='unit_expr_parser_parsetab', debug=True, start=start_symbol  ) 
-        return parser.parse(text, lexer=units_expr_lexer.lexer,)
+        parser = yacc.yacc(tabmodule='unit_expr_parser_parsetab',  outputdir='/tmp/', debug=True, start=start_symbol,  ) 
+        return parser.parse(text, lexer=units_expr_lexer.UnitExprLexer())
 
 

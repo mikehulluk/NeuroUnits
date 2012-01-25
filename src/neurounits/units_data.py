@@ -1,4 +1,11 @@
-from units_core import Unit, Quantity, safe_dict_merge
+
+
+from units_backends.default import make_quantity as Quantity
+from units_backends.default import make_unit as Unit
+from units_backends.default import unit_as_dimensionless
+from units_misc import safe_dict_merge
+
+
 
 multipliers = (
        ( 'giga','G',  Unit(powerTen=9)  ),
@@ -10,6 +17,9 @@ multipliers = (
        ( 'nano','n',  Unit(powerTen=-9) ) ,
        ( 'pico','p',  Unit(powerTen=-12)) ,
         )
+
+
+
 
 units = (
        ( 'meter','m',       Unit(meter=1) ),
@@ -42,6 +52,8 @@ unit_LUT = safe_dict_merge(unit_long_LUT, unit_short_LUT)
 multiplier_long_LUT = dict([(u[0],u[2]) for u in multipliers] ) 
 multiplier_short_LUT = dict([(u[1],u[2]) for u in multipliers] ) 
 multiplier_LUT = safe_dict_merge(multiplier_long_LUT, multiplier_short_LUT)
+
+
 
 
 special_unit_abbrs = ( 
@@ -80,7 +92,8 @@ import math
 
 # Horrible way to wrap function calls :)
 def wrp( functor ):
-    return lambda s: Quantity( functor( s.dimensionless()), Unit() )
+    return lambda s: Quantity( functor( unit_as_dimensionless(s)), Unit() )
+    #return lambda s: Quantity( functor( s.dimensionless()), Unit() )
 
 std_funcs = (
     ('log_two', ['log2',],        wrp( lambda s: math.log(s,2) )      ),
