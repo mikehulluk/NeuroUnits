@@ -1,59 +1,25 @@
-
-from unit_errors import UnitError
-from units_data import unit_short_LUT, unit_long_LUT
-from units_data import multiplier_short_LUT, multiplier_long_LUT
+#-------------------------------------------------------------------------------
+# Copyright (c) 2012 Michael Hull.
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+# 
+#  - Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+#  - Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#-------------------------------------------------------------------------------
 import ply
 
-
-from units_data import multipliers, units, special_unit_abbrs
-
-multiplier_names_short = [ 'SHORT_%s'%m[0].upper() for m in multipliers]
-multiplier_names_long =  [ 'LONG_%s'%m[0].upper() for m in multipliers]
-
-unit_names_short = [ 'SHORT_%s'%m[0].upper() for m in units]
-unit_names_long =  [ 'LONG_%s'%m[0].upper() for m in units]
-
-tokens = multiplier_names_short + multiplier_names_long + unit_names_short + unit_names_long 
-
-
-
-# LEXING:
-#########
-
-# Register all the MULTIPLIER regular expressions:
-# [Programmatically, opposed to writing lines like:
-# t_SHORT_GIGA  = r"""G"""
-# t_LONG_GIGA  = r"""giga"""
-# ]
-for name, abbr, multiplier in multipliers:
-    vName_short = 't_SHORT_%s'%name.upper()
-    vName_long = 't_LONG_%s'%name.upper()
-    globals()[vName_short] = r"%s"% abbr
-    globals()[vName_long] = name
-
-
-# Register all the UNIT regular expressions:
-# [Programmatically, opposed to writing lines like:
-# t_SHORT_VOLT = r"""V"""
-# t_LONG_VOLT = r"""volt"""
-# ]
-for name, abbr, u_def in units:
-    vName_short = 't_SHORT_%s'%name.upper()
-    vName_long = 't_LONG_%s'%name.upper()
-    globals()[vName_short] = abbr
-    globals()[vName_long] = name
-
-
-def t_error(t):
-    raise UnitError( "Illegal character '%s'" % t.value[0])
-
-
-lexer = ply.lex.lex()
+from ..unit_errors import UnitError
+from unitterm_lexing import UnitTermLexer
+from ..units_data_unitterms import UnitTermData
 
 
 
 
-
+# Import the tokens:
+tokens = UnitTermLexer().tokens
 
 
 
@@ -71,7 +37,6 @@ def p_unit_term_unpowered_with_multipler(p):
     """unit_term_unpowered :    long_basic_multiplier long_basic_unit
                               | short_basic_multiplier short_basic_unit 
                               """
-    #print 'Term with Multiplier:', 'Modifier', p[1], 'Unit', p[2]
     p[0] = p[1] * p[2]
 
 def p_long_basic_unit(p):
@@ -88,6 +53,7 @@ def p_long_basic_unit(p):
                         | LONG_MOLE
                         | LONG_CANDELA
                         """
+    unit_long_LUT = UnitTermData.getUnitLUTLong(backend=p.parser.backend)  
     p[0] = unit_long_LUT[ p[1] ]
 
 def p_short_basic_unit(p):
@@ -104,6 +70,7 @@ def p_short_basic_unit(p):
                         | SHORT_MOLE
                         | SHORT_CANDELA
                         """
+    unit_short_LUT = UnitTermData.getUnitLUTShort(backend=p.parser.backend) 
     p[0] = unit_short_LUT[ p[1] ]
 
 
@@ -117,6 +84,7 @@ def p_long_basic_multiplier(p):
                               | LONG_NANO
                               | LONG_PICO
                               """
+    multiplier_long_LUT = UnitTermData.getMultiplierLUTLong(backend=p.parser.backend)  
     p[0] = multiplier_long_LUT[ p[1] ]
             
 
@@ -130,14 +98,11 @@ def p_short_basic_multiplier(p):
                                 | SHORT_NANO
                                 | SHORT_PICO
                               """
-    #print 'ShortBasicMultiplier', p[1], multiplier_short_LUT[ p[1]] 
-    #print 'LookUpDict:'
-    #for k,v in multiplier_short_LUT.iteritems():
-    #    print k,v
+    multiplier_short_LUT = UnitTermData.getMultiplierLUTShort(backend=p.parser.backend) 
     p[0] = multiplier_short_LUT[ p[1] ]
 
 def p_error(p):
-    raise UnitError( "Parsing Error " )
+    raise UnitError( "Parsing Error %s"%p )
 
 
 
@@ -153,19 +118,24 @@ def p_error(p):
 
 
 
-def parse_term( text ):
-    #print 'Parsing Unit Term', text
+def parse_term( text, backend ):
     
     text = text.strip()
 
+    print 'text', text
+
     # CHECK FOR STANDARD DEFINITIONS:
-    for u, u_def in special_unit_abbrs:
+    for u, u_def in UnitTermData.getSpecialCaseShortForms(backend=backend):
         if u == text:
             return u_def
 
     # Parse as per normal: 
-    parser = ply.yacc.yacc(tabmodule='unit_term_parser_parsetab', debug=0) #, outputdir='/tmp/'
-    res =  parser.parse(text, lexer=lexer)
+    parser = ply.yacc.yacc(write_tables=0, start='unit_term_unpowered')
+    parser.backend = backend
+    
+    #lexer = ply.lex.lex()
+    lexer = UnitTermLexer()
+    res =  parser.parse(text, lexer=lexer, )
     #print 'Parsed %s -> %s'%(text,res)
     return res
 

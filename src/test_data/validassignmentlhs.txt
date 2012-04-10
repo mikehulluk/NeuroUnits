@@ -1,0 +1,14 @@
+a * {3 mV {~kelvin} / {~second} }
+{3.0 mV {~joule} / mA {~kelvin} pS2 }
+
+a * b +c**2 /d * {1mV/cm2} * a
+a * b +c /d * {1mV/cm2} * a/({6pA/cm ms}) 
+
+exp(D)
+A+B*V / (C+exp((D+V)/E) )
+
+1* logten(2.3mV / 3V)
+
+
+testfunc(x=1,y=2) * r
+

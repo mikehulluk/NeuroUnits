@@ -1,0 +1,177 @@
+
+#i 
+
+x' =   (5 -  (x/{1kg})*2.0) * {1kg} *{1 s-1}
+
+#--
+
+#i 
+
+x' =  (mu/{1mV}) * ( (x/{1kg})-{0.3}*(x/{1kg})**3-y) * {1kg} * {1 s-1}
+y' = 1/(mu/{1mV}) *(x/{1kg}) *{1 s-1}
+
+<=> PARAMETER mu
+<=> OUTPUT x
+<=> OUTPUT y
+
+8-| PLOT x(t), y(t), y(x) WHERE t=0s:1s x0=1,y0=3,mu=2
+
+#--
+
+y' = 1/(mu) *x * {0.001 ms-1}
+
+
+#a = x+2
+#y = x+2
+
+x' = mu * ( x-{0.3}*x**3-y)
+y' = 1/mu *x
+
+<=> PARAMETER mu
+#--
+
+
+# Mega Chnnel:
+
+from std.math import exp
+from std.physics import F,T,R
+
+alpha_n = ( {10mV} - V ) / ( 100* exp( ({10mV}-V)/{10mV} ) -{1} )
+beta_n = 0.128 * exp( V / {-80mV})
+tau_n = 1/(alpha_n+beta_n)
+inf_n = alpha_n/(alpha_n+beta_n)
+n'= (inf_n - n) / tau_n
+
+gca = pca* 2 * up * F * (CAi - CAo*exp(-1.0*up) ) / (1-exp(-1.0*up) ) 
+ica = gca * n**2
+up = 2 * V * F / (R*T)
+
+f(x,y,z) = x+y/z
+
+
+<=> INPUT V: mV                 METADATA {"mf":{"role":"MEMBRANEVOLTAGE"} }
+<=> PARAMETER pca   
+<=> PARAMETER CAi   
+<=> PARAMETER CAo   
+<=> OUTPUT    ica:(mA/cm2)      METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
+
+#--
+
+from std.physics import F,T,R
+from std.math import exp
+
+ica = pca* 2 * up * F * (CAi - CAo*exp(-1.0*up) ) / (1-exp(-1.0*up) ) 
+up = 2 * V * F / (R*T)
+
+<=> PARAMETER pca   
+<=> PARAMETER CAi   
+<=> PARAMETER CAo   
+<=> OUTPUT    ica:(mA/cm2)      METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
+<=> INPUT V: mV                 METADATA {"mf":{"role":"MEMBRANEVOLTAGE"} }
+
+
+
+
+
+
+#--
+
+# Calcium Channel:
+from std.physics import F,T,R
+from std.math import exp
+
+ica = pca* 2 * up * F * (CAi - CAo*exp(-1.0*up) ) / (1-exp(-1.0*up) )
+up = 2 * V * F / (R*T)
+
+<=> PARAMETER pca   
+<=> PARAMETER CAi   
+<=> PARAMETER CAo   
+<=> OUTPUT    ica:(mA/cm2)      METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
+<=> INPUT V: mV      METADATA {"mf":{"role":"MEMBRANEVOLTAGE"} }
+
+#--
+
+# K-Channel
+
+ik = gk_bar * (V-Ek)*n**4
+alpha_n = ( {10mV} - V ) / ( 100* exp( ({10mV}-V)/10mV ) -1 )
+beta_n = 0.128 * exp( V / {-80mV})
+tau_n = 1/(alpha_n+beta_n)
+inf_n = alpha_n/(alpha_n+beta_n)
+n'= (inf_n - n) / tau_n
+
+<=> PARAMETER gk_bar   
+<=> PARAMETER Ek
+<=> OUTPUT i:(mA/cm2)  METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
+
+
+
+
+
+
+
+#--
+
+
+a = 4m
+b = 3s
+c = a/b
+d = c+ {3m/s} + {3m} / {0.002s}   +  1/({3m/s}/{1m2/s2})
+
+
+#gmx = {1pS/cm2}
+V = 1mV
+i = (V-eRev)*(1/gmx)
+
+<=> PARAMETER gmx
+<=> PARAMETER eRev   
+<=> OUTPUT i:(mA/cm2)  METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
+
+
+#--
+
+
+<=> PARAMETER gmx   METADATA {}
+<=> INPUT V: mV      METADATA {"mf":{"role":"MEMBRANEVOLTAGE"} }
+<=> OUTPUT i:(mA/cm2)  METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
+
+A(X,y,z) = (3*X +2) /(y+z)
+B(X,y,z) = X*X+y*z
+C(X,y) = A(X=X+2*y,y=0,z=1)/B(X=0,y=A(X=3pA*2ms,y=0,z=0),z=X)
+c = A(X=b+2*t,y=t,z=1.0)/B(X=10.0,y=A(X=3pA*2ms,y=0,z=0),z=1.0)
+K(x) = 1
+S(x) = 1
+k(t,z,a) = [a+t+z]if[(a<t)or(t>3)and(t<5)]else[3.4]
+
+f(x,y,z) = x+y+z
+g(x,y,z) = x+y+z*{1mV}
+
+bb3={3.0mV} + th * 0.3
+cc=3.0 mV
+a = 3.4 V
+tttt=K(t )
+n=S(0.0 ) + 1.0
+t=k(t2=1,y=45mV,z=4mV*3pA,a={3.0 {~joule}} )
+ttt=k(t=1,y2=45mV,z=4mV*3pA,a=3.0 {~joule} )
+tt=K(t )
+nn=S(0 ) + 1 + V
+i = gmx * (E-V) *n**2
+m' = n/ttt
+
+
+b=0
+E=0
+th=1
+
+# No default
+
+#--
+
+
+#! 8-| PLOT( V, {C,D}, 'Title:')
+
+
+
+#--
+
+

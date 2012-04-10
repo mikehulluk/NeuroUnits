@@ -1,0 +1,102 @@
+EQNSET chl2 {
+    c = 4
+    d=c+f
+    <=> PARAMETER f
+}
+
+
+#EQNSET chl1 {
+#    from std.math import exp
+#
+#    f(x,y,mu) = mu * ( x-{0.3}*x**3-y) * {1s-1}
+#
+#    x' = f(x=x,y=y,mu=mu) * exp(-1.0*t/{10s})
+#    y' = 1/mu *x *{1s-1}
+#
+#    i=x
+#    j= exp(-1.0*t / {1s} )
+#
+#    <=> PARAMETER mu
+#    <=> INPUT t
+#
+#    #@ ONEVENT name do ...
+#
+#    |-8 SummaryPlotData {"x":"x","y":"y","t_start":"0ms","t_end":"50000ms","dt":"10ms","params":{"mu":"3"},"y0":{"x":"2","y":"3"} }
+#    |-8 SummaryPlotData {"x":"t","y":"x","t_start":"0ms","t_end":"50000ms","dt":"10ms","params":{"mu":"3"},"y0":{"x":"2","y":"3"} }
+#    |-8 SummaryPlotData {"x":"t","y":"y","t_start":"0ms","t_end":"50000ms","dt":"10ms","params":{"mu":"3"},"y0":{"x":"2","y":"3"} }
+#    |-8 SummaryPlotData {"x":"t","y":"j","t_start":"0ms","t_end":"50000ms","dt":"10ms","params":{"mu":"3"},"y0":{"x":"2","y":"3"} }
+#
+#}
+#
+#
+#EQNSET chl2{
+#
+## Mega Chnnel:
+#
+#from std.math import exp
+#from std.physics import F,R
+#
+##alpha_n = ( {10mV} - V ) / ( 100* exp( ({10mV}-V)/{10mV} ) -{1} ) / ({1 s} * {1 mV})
+##beta_n = 0.128 * exp( V / {-80mV}) / ( {1 s} * {1 mV} )
+#
+#alpha_n = 1 / {1 s}
+#beta_n = 1/{1s}
+#
+#tau_n = 1/(alpha_n+beta_n)
+#inf_n = alpha_n/(alpha_n+beta_n)
+#n'= (inf_n - n) / tau_n
+#
+#gca = pca* 2 * up * F * (CAi - CAo*exp(-1.0*up) ) / (1-exp(-1.0*up) ) 
+#ica = gca *1
+#up = (2 * V * F) / (R*T)
+#
+##a1=pca
+##a2=CAi
+##a3=CAo
+##a4=T
+##a5=V
+##
+##|-8 SummaryPlotData {"x":"t","y":"n","t_start":"0ms","t_end":"500ms","dt":"1ms","params":{"V":"3mV","pca":"1cm s-1","T":"300K","CAi":"200mol","CAo":"100mol"},"y0":{"n":"0"} }
+##
+#<=> OUTPUT    ica:(mA/cm2)      METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
+#<=> INPUT V: mV                 METADATA {"mf":{"role":"MEMBRANEVOLTAGE"} }
+#<=> PARAMETER pca: (cm/s)
+#<=> PARAMETER CAi   
+#<=> PARAMETER T
+#<=> PARAMETER CAo   
+#}
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+##
+##LIBRARY lib1 {
+##
+##    F(x:mV) =  x
+##
+##}
+##
+##EQNSET chl2{
+##    x1' = mu1 * ( x1-{0.3}*x1**3-y1) *{1s-1}
+##    y1' = 1/mu1 *x1 *{1s-1}
+##
+##    <=> PARAMETER mu1
+##
+##}
+##
+#
+#
+#
