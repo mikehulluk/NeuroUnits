@@ -15,11 +15,12 @@ from neurounits.io_types import IOType
 from neurounits.units_misc import read_json
 
 class IOData(object):
-    def __init__(self, symbol, iotype, unit=None, metadata={}):
+    def __init__(self, symbol, iotype, dimension=None, metadata={}):
         self.symbol = symbol
         self.iotype = iotype
-        self.unit = unit
+        self.dimension = dimension
         self.metadata = metadata
+        
 
 def parse_io_line(line):
     from neurounits import NeuroUnitParser
@@ -50,28 +51,29 @@ def parse_io_line(line):
     for d in data.split(","):
         pDef = d.split(":")
         if len(pDef) == 1:
-            symbol,unit=pDef[0], None
+            symbol,dimension_str=pDef[0], None
         elif len(pDef) == 2:
-            symbol,unit=pDef
+            symbol,dimension_str=pDef
         else:
             raise ParsingError("Can't interpret line: %s"%line)
 
         symbol=symbol.strip()
-        unit=unit.strip()if unit else unit
+        dimension_str=dimension_str.strip()if dimension_str else dimension_str
 
-        print 'Parsing: Symbol: "%s" Unit:"%s"'%(symbol, unit)
+        print 'Parsing: Symbol: "%s" Unit:"%s"'%(symbol, dimension_str)
         print
-        u = NeuroUnitParser.Unit(unit) if unit is not None else None
+        dimension = NeuroUnitParser.Unit(dimension_str) if dimension_str is not None else None
+        dimension = dimension.with_no_powerten() if dimension is not None else dimension
 
-        io_data =  IOData(  symbol = symbol.strip(), iotype = IOType.LUT[mode], unit = u, metadata = metadata)
+        io_data =  IOData(  symbol = symbol.strip(), iotype = IOType.LUT[mode], dimension = dimension, metadata = metadata)
         defs.append(io_data)
     return defs
 
-    print 'U:', u
-    u = NeuroUnitParser.Unit(u) if u is not None else None
-    
-    return IOData(  symbol = g.get('SYMBOL'), 
-                    iotype = IOType.LUT[g.get('MODE')],
-                    unit = u,
-                    metadata = metadata
-                    )
+#    print 'U:', u
+#    u = NeuroUnitParser.Unit(u) if u is not None else None
+#    
+#    return IOData(  symbol = g.get('SYMBOL'), 
+#                    iotype = IOType.LUT[g.get('MODE')],
+#                    unit = u,
+#                    metadata = metadata
+#                    )

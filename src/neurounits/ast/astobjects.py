@@ -112,35 +112,81 @@ class EqnSet(ASTObject):
 
 
 class ASTExpressionObject(ASTObject):
-    def __init__(self, unit=None):
-        self._unit = unit
+    def __init__(self, unitMH=None, dimension=None):
+        
+        self._unitMH = None #unitMH
+        self._dimension = None #dimension
+        
+        if dimension:
+            self.set_dimensionality(dimension)
+        if unitMH:
+            self.set_unitMH(unitMH)
+        
 
-    def is_dimensionless(self):        
-        assert self.is_unit_known()
-        return self.get_unit().is_dimensionless()
+
+    def is_unitMH_known(self):
+        return self._unitMH is not None
+
+    def get_unitMH(self):
+        assert  self.is_unit_known()
+        return self._unitMH
+
+    def set_unitMH(self, u):
+        
+        if self.is_dimensionality_known():
+            self.get_dimensionality().check_compatible(u)
+        
+        else:
+            self.set_dimensionality( u.with_no_powerten() )
+        assert not self.is_unitMH_known()
+        self._unitMH = u
+        
+        
+        
+        #debug=False
+        #if debug:
+        #    try:
+        #        l = "Symbol: %s"% self.symbol + " -> " + str(u) 
+        #        if self.symbol is None:
+        #            print "SymbolNone:", type(self)
+        #        print l
+        #    except:
+        #        pass
+
+
+        
+
+
+
+    def is_dimensionality_known(self):
+        return self._dimension is not None
+
+    def get_dimensionality(self):
+        assert  self.is_dimensionality_known()
+        return self._dimension
+    
+    def set_dimensionality(self, dimension):
+        assert not self.is_dimensionality_known()
+        assert not self.is_unitMH_known()
+        self._dimension = dimension
+        
+    
+
+    def set_unit(self):
+        assert False
+
 
     def is_unit_known(self):
+        assert False
         return self._unit is not None
 
     def get_unit(self):
+        assert False
         assert  self.is_unit_known()
         return self._unit
 
-    def set_unit(self, u):
-        
-        debug=False
-        if debug:
-            try:
-                l = "Symbol: %s"% self.symbol + " -> " + str(u) 
-                if self.symbol is None:
-                    print "SymbolNone:", type(self)
-                print l
-            except:
-                pass
 
 
-        assert not self.is_unit_known()
-        self._unit = u
 
 
 
@@ -264,7 +310,7 @@ class SymbolicConstant(ASTExpressionObject):
         ASTExpressionObject.__init__(self,**kwargs)
         self.symbol = symbol
         self.value = value
-        self.set_unit( value.units )
+        self.set_unitMH( value.units )
     def __repr__(self):
         return "<SymbolicConstant: %s = %s>" %(self.symbol, self.value)
 
@@ -274,11 +320,11 @@ class BuiltInFunction(ASTExpressionObject):
     def AcceptVisitor(self, v, **kwargs):
         return v.VisitBuiltInFunction(self, **kwargs)
     
-    def __init__(self, funcname, parameters, unit, **kwargs):
+    def __init__(self, funcname, parameters, unitMH, **kwargs):
         ASTExpressionObject.__init__(self,**kwargs)
         self.funcname = funcname
         self.parameters = parameters
-        self.set_unit( unit )
+        self.set_unitMH( unitMH )
         
 
 class FunctionDef(ASTExpressionObject):

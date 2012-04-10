@@ -29,8 +29,8 @@ class StdLibrary():
         
         functiondefs ={
             'exp' : ast.BuiltInFunction(funcname='exp', 
-                                        parameters={'x':ast.FunctionDefParameter(symbol='x', unit=backend.Unit() ) },
-                                        unit=backend.Unit() ),
+                                        parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
+                                        unitMH=backend.Unit() ),
         } 
          
         return ast.Library('std.math', constants = constants, functiondefs = functiondefs, )

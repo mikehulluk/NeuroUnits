@@ -322,16 +322,19 @@ class EqnSetBuilder(object):
         io_data = list( itertools.chain( *[ parse_io_line(l) for l in self.builddata.io_data_lines] ) )
         self._astobject.io_data = io_data
 
+        #print io_data[0]
+        #assert False
+        
         # Update Symbols from IO Data:
         # ############################
         # Look through the io_data, and look for parameter definitions, and supplied values:
-        param_symbols = [ ast.Parameter(symbol=p.symbol,unit=p.unit) for p in io_data if p.iotype==IOType.Parameter ]
+        param_symbols = [ ast.Parameter(symbol=p.symbol,dimension=p.dimension) for p in io_data if p.iotype==IOType.Parameter ]
         for p in param_symbols:
             print 'Setting Parameter:', p.symbol
             self.resolve_global_symbol(p.symbol, p, expect_is_unresolved = True)
             self._astobject._parameters[p.symbol] = p
 
-        supplied_symbols = [ ast.SuppliedValue(symbol=p.symbol,unit=p.unit) for p in io_data if p.iotype==IOType.Input ]
+        supplied_symbols = [ ast.SuppliedValue(symbol=p.symbol,dimension=p.dimension) for p in io_data if p.iotype==IOType.Input ]
         for s in supplied_symbols:
             self.resolve_global_symbol(s.symbol, s, expect_is_unresolved = True)
             self._astobject._supplied_values[s.symbol] = s
@@ -348,9 +351,9 @@ class EqnSetBuilder(object):
         for o in output_symbols:
 #            from builder_visitor_remove_proxies import RemoveAllSymbolProxy
             os_obj = RemoveAllSymbolProxy().followSymbolProxy( self.global_scope.getSymbol(o.symbol) )
-            assert not os_obj.is_unit_known()
-            if o.unit:
-                os_obj.set_unit( o.unit )
+            assert not os_obj.is_dimensionality_known()
+            if o.dimension:
+                os_obj.set_dimensionality( o.dimension )
 
 
         

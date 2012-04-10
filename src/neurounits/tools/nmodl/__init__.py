@@ -17,7 +17,7 @@ from neurounits.visitors import SingleVisitPredicate
 
 from neurounits.unit_errors import panic
 from neurounits import ast 
-from neurounits.units_wrapper import NeuroUnitParser
+from neurounits.neurounitparser import NeuroUnitParser
 from neurounits.io_types import IOType
 
 

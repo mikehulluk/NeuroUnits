@@ -39,10 +39,10 @@ class NeuroUnitParser(object):
         return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L3_QuantityExpr, backend=backend)
 
 
-    @classmethod
-    def EqnSet(cls, text, debug=False, backend=None):
-        backend = backend or cls.getDefaultBackend()    
-        return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L4_EqnSet,backend=backend)
+    #@classmethod
+    #def EqnSet(cls, text, debug=False, backend=None):
+    #    backend = backend or cls.getDefaultBackend()    
+    #    return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L4_EqnSet,backend=backend)
     
     @classmethod
     def Library(cls, text,debug=False, backend=None):

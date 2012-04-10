@@ -92,7 +92,16 @@ class MMUnit(object):
         )
 
 
-
+    def with_no_powerten(self):
+        return MMUnit(
+            meter = self.meter,
+            kilogram = self.kilogram ,
+            second = self.second,
+            ampere = self.ampere,
+            kelvin = self.kelvin,
+            mole = self.mole,
+            candela = self.candela,
+        )
 
     def detail_str(self,):
         s1 = "(10e%d)" % self.powerTen

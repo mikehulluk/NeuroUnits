@@ -76,8 +76,10 @@ class UnitResolver(ASTVisitorBase):
         for obj, name in self.obj_label_dict.iteritems():
             if not isinstance(obj, ast.ASTExpressionObject):
                 continue
-            obj_unit = obj.get_unit() if obj.is_unit_known() else "<Unit Unknown>"
-            self.history.append(" %s - %s"%(name,obj_unit) )
+            
+            obj_dimensionality = obj.get_dimensionality() if obj.is_dimensionality_known() else "<Dimension Unknown>"
+            obj_unit = obj.get_unit() if obj.is_unitMH_known() else "<Unit Unknown>"
+            self.history.append(" %s -> Dim: %s Unit: %s"%(name, obj_dimensionality, obj_unit) )
 
     def DumpUnitStateToHistorySymbols(self):
         for obj, name in self.obj_label_dict.iteritems():
