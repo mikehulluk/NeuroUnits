@@ -18,7 +18,7 @@ from neurounits.units_misc import safe_dict_merge
 
 import numpy as np
 #import quantities as pq  
-from neurounits.writers.writer_ast_to_latex import FormatUnit
+from neurounits.writers.writer_ast_to_latex import FormatDimension
 from neurounits.visitors.common import VisitorFindDirectSymbolDependance
 #from neurounits.eqnset_ast.astobjects import AssignedVariable
         

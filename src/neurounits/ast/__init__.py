@@ -12,4 +12,4 @@
 from astobjects import *
 from astobjects_additional import *
 from library import Library
-
+from eqnset import EqnSet

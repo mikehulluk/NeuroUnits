@@ -1,12 +1,12 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-# 
+#
 #  - Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
 #  - Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #-------------------------------------------------------------------------------
 import re
@@ -24,6 +24,8 @@ import ast
 
 
 from units_data_unitterms import UnitTermData
+from morphforge.core.mgrs.locmgr import LocMgr
+
 
 
 
@@ -65,7 +67,7 @@ def p_whitespace_slurp3(p):
 
 
 def p_file_def1(p):
-    """text_block : block_type 
+    """text_block : block_type
                   | text_block white_or_newline_slurp block_type"""
     pass
 
@@ -87,7 +89,7 @@ def p_open_new_eqnset(p):
     """ open_eqnset : empty """
     print 'Opening Eqnset'
     p.parser.library_manager.start_eqnset_block()
-    
+
 
 
 
@@ -97,7 +99,7 @@ def p_close_new_eqnset(p):
     p.parser.library_manager.end_eqnset_block()
     print 'Eqnset Loaded'
 
-    
+
 
 def p_eqnset_def1(p):
     """eqnset_def_internal : EQNSET open_eqnset WHITESPACE alphanumtoken LCURLYBRACKET NEWLINE eqnsetcontents RCURLYBRACKET"""
@@ -107,7 +109,7 @@ def p_eqnset_def1(p):
 
 
 def p_parse_eqnsetline1(p):
-    """eqnsetcontents : eqnsetline 
+    """eqnsetcontents : eqnsetline
                       | eqnsetcontents NEWLINE eqnsetline
     """
     pass
@@ -115,7 +117,7 @@ def p_parse_eqnsetline1(p):
 
 
 def p_parse_eqnsetline(p):
-    """ eqnsetline : empty 
+    """ eqnsetline : empty
                    | COMMENT
                    | whiteslurp eqnsetlinecontents
                    | whiteslurp eqnsetlinecontents COMMENT
@@ -124,7 +126,7 @@ def p_parse_eqnsetline(p):
 
 
 
-def p_parse_eqnsetline2(p): 
+def p_parse_eqnsetline2(p):
     """eqnsetlinecontents   : IO_LINE"""
     p.parser.library_manager.get_current_block_builder().add_io_data(p[1])
 
@@ -132,33 +134,33 @@ def p_parse_eqnsetline2(p):
 
 
 
-def p_parse_eqnsetline2b(p): 
+def p_parse_eqnsetline2b(p):
     """eqnsetlinecontents   : ONEVENT_SYMBOL WHITESPACE event_def """
     pass
-    
-    
-    
+
+
+
 
 #def p_optional_comment(p):
 #    r""" optional_comment   : whiteslurp COMMENT
 #                            | COMMENT """
-#    pass              
-    
+#    pass
+
 
 def p_on_event_open_scope(p):
     """ open_event_def_scope : empty"""
-    
+
     p.parser.library_manager.get_current_block_builder().open_event_def_scope()
-    
 
 
 
 
-    
+
+
 def p_on_event_definition(p):
     """event_def : alphanumtoken LBRACKET function_def_params RBRACKET white_or_newline_slurp LCURLYBRACKET open_event_def_scope on_event_actions_blk RCURLYBRACKET """
     e = ast.OnEvent(name = p[1], parameters=p[3], actions=p[8] )
-    p.parser.library_manager.get_current_block_builder().close_scope_and_create_onevent(e) 
+    p.parser.library_manager.get_current_block_builder().close_scope_and_create_onevent(e)
 
 def p_on_event_actionsblk(p):
     """on_event_actions_blk : white_or_newline_slurp on_event_actions"""
@@ -169,13 +171,13 @@ def p_on_event_actionsblk(p):
 def p_on_event_actions1(p):
     """on_event_actions : empty"""
     p[0] = []
-def p_on_event_actions2(p): 
+def p_on_event_actions2(p):
     """on_event_actions :  on_event_action"""
     p[0] = [p[1]]
 def p_on_event_actions3(p):
-    """on_event_actions :  on_event_actions on_event_action""" 
+    """on_event_actions :  on_event_actions on_event_action"""
     p[0] = p[1] + [p[2]]
-              
+
 
 def p_on_event_action0(p):
     """on_event_action : empty NEWLINE"""
@@ -184,7 +186,7 @@ def p_on_event_action0(p):
 def p_on_event_action1(p):
     """on_event_action : alphanumtoken  EQUALS lhs_term whiteslurp NEWLINE"""
     lhs = p.parser.library_manager.get_current_block_builder().get_symbol_or_proxy(p[1])
-    p[0] = ast.OnEventStateAssignment(lhs=lhs,rhs=p[3]) 
+    p[0] = ast.OnEventStateAssignment(lhs=lhs,rhs=p[3])
 
 
 
@@ -196,11 +198,11 @@ def p_parse_eqnsetline3(p):
     p.parser.library_manager.get_current_block_builder().add_summary_info(p[1])
 
 
-def p_parse_eqnsetline4(p): 
+def p_parse_eqnsetline4(p):
     """eqnsetlinecontents   : import
-                            | function_def 
-                            | assignment 
-                            | time_derivative 
+                            | function_def
+                            | assignment
+                            | time_derivative
                             | quantity_def
                     """
     pass
@@ -215,19 +217,19 @@ def p_parse_eqnsetline4(p):
 #def p_open_new_library(p):
 #    """ open_library : empty """
 #    p.parser.library_manager.start_library_block()
-#    
+#
 #
 #def p_library_def(p):
 #    """library_def : library_def_internal """
 #    p.parser.library_manager.end_library_block()
-#                  
+#
 #def p_library_def1(p):
 #    """library_def_internal : LIBRARY open_library WHITESPACE alphanumtoken whiteslurp LCURLYBRACKET  lib_contents  RCURLYBRACKET"""
 #    pass
 #
 #def p_library_def2(p):
 #    """lib_contents : lib_contents_line
-#                    | lib_contents NEWLINE lib_contents_line 
+#                    | lib_contents NEWLINE lib_contents_line
 #    """
 #    pass
 #
@@ -253,8 +255,8 @@ def p_import_statement1(p):
 def p_import_statement2(p):
     """import : FROM WHITESPACE package_name WHITESPACE IMPORT WHITESPACE alphanumtoken WHITESPACE AS WHITESPACE  alphanumtoken"""
     p.parser.library_manager.get_current_block_builder().do_import(srclibrary = p[3], tokens=[(p[7],p[11])] )
-    
-    
+
+
 
 def p_packagename1(p):
     """package_name : alphanumtoken"""
@@ -272,13 +274,13 @@ def p_import_target_list2(p):
     """import_target_list : import_target_list COMMA alphanumtoken"""
     p[0] = p[1] + [p[3]]
 
-    
+
 
 
 
 
 def p_quantity_def1(p):
-    """quantity_def : quantity_expr 
+    """quantity_def : quantity_expr
                     | quantity_expr COLON unit_expr"""
     if len(p) == 4:
         t = (p[1])/(p[3])
@@ -286,7 +288,7 @@ def p_quantity_def1(p):
         assert False
         #TODO SOME ERROR CHECKING
         #backend.unit_as_dimensionless(t)
-    
+
     p[0] = p[1]
 
 
@@ -321,15 +323,15 @@ def p_function_definition_scope_open(p):
 
 def p_function_definition(p):
     """function_def : alphanumtoken LBRACKET function_def_params RBRACKET EQUALS open_funcdef_scope lhs_generic """
-    f = ast.FunctionDef( funcname=p[1], parameters=p[3], rhs=p[7] ) 
+    f = ast.FunctionDef( funcname=p[1], parameters=p[3], rhs=p[7] )
     p.parser.library_manager.get_current_block_builder().close_scope_and_create_function_def(f)
     p[0] = None
 
 def p_function_def_param(p):
     """function_def_param : alphanumtoken
                           | alphanumtoken COLON unit_expr"""
-    unit = None if len(p) == 2 else p[3]
-    p[0] = {p[1]:ast.FunctionDefParameter(symbol=p[1], unit=unit) }
+    dimension = None if len(p) == 2 else p[3]
+    p[0] = {p[1]:ast.FunctionDefParameter(symbol=p[1], dimension=dimension) }
 
 
 def p_function_def_params0(p):
@@ -343,7 +345,7 @@ def p_function_def_params1(p):
 
 def p_function_def_params2(p):
     """function_def_params : function_def_params COMMA function_def_param"""
-    #print p[1], p[3] 
+    #print p[1], p[3]
     p[0] = safe_dict_merge( p[1], p[3] )
 
 
@@ -356,7 +358,7 @@ def p_quantity_func_call_l3(p):
     p[0] = p[1]
 
 def p_quantity_func_call_l3_1(p):
-    """function_call_l3 :  alphanumtoken LBRACKET func_call_params_l3 RBRACKET """ 
+    """function_call_l3 :  alphanumtoken LBRACKET func_call_params_l3 RBRACKET """
     p[0] = p.parser.library_manager.get_current_block_builder().create_function_call( p[1], p[3] )
 
 
@@ -456,6 +458,14 @@ def p_lhs_term_div(p):
 
 
 
+
+
+
+
+
+
+
+
 def p_lhs_term1(p):
     """ lhs_term : lhs_variable
                  | lhs_quantity_expr
@@ -471,7 +481,7 @@ def p_lhs_term2(p):
 #    backend = p.parser.library_manager.backend
 #    neg_one = ast.ConstValue( backend.Quantity( -1.0, backend.Unit() ) )
 #    p[0] = ast.MulOp(neg_one, p.parser.library_manager.get_current_block_builder().get_symbol_or_proxy(p[2]) )
-    
+
 
 def p_lhs_variable(p):
     """ lhs_variable : alphanumtoken"""
@@ -506,16 +516,16 @@ def p_lhs_variable_name3(p):
 
 # Quantity Expressions:
 ##########################
-def p_quantity_expr_1(p): 
+def p_quantity_expr_1(p):
     """quantity_expr : quantity_expr PLUS quantity_term"""
     p[0] = p[1] + p[3]
 
-def p_quantity_expr_2(p): 
+def p_quantity_expr_2(p):
     """quantity_expr : quantity_expr MINUSMINUS quantity_term"""
     p[0] = p[1] - p[3]
-def p_quantity_expr_3(p): 
+def p_quantity_expr_3(p):
     """quantity_expr : quantity_term"""
-    p[0] = p[1] 
+    p[0] = p[1]
 
 def p_quantity_term_1(p):
     """quantity_term :  quantity_term TIMES quantity_factor"""
@@ -527,7 +537,7 @@ def p_quantity_term_2(p):
 
 def p_quantity_term_3(p):
     """quantity_term : quantity_factor"""
-    p[0] = p[1] 
+    p[0] = p[1]
 
 def p_quantity_factor_1(p):
     """quantity_factor : quantity """
@@ -541,14 +551,14 @@ def p_quantity_nounits(p):
     """ quantity : NO_UNIT LCURLYBRACKET quantity_expr COLON unit_expr RCURLYBRACKET """
     p[0] = p[3]
     print 'ERROR, not implemented yet'
-    
 
 
 
 
 
 
-# L1 
+
+# L1
 ##########
 # QUANTITY TERMS:
 def p_quantity_0( p ):
@@ -568,7 +578,7 @@ def p_quantity_2( p ):
 
 
 def p_quantity_magnitude(p):
-    """magnitude : FLOAT 
+    """magnitude : FLOAT
                  | INTEGER"""
     p[0] = float(p[1])
 
@@ -579,7 +589,7 @@ def p_quantity_magnitude(p):
 #    def p_quantity_constant(p):
 #        """ quantity : LCURLYBRACKET constant RCURLYBRACKET """
 #        p[0] = p[2]
-#    
+#
 #    def p_quantity_constant_2(p):
 #        """ constant : ALPHATOKEN """
 #        p[0] = constants[ p[1] ]
@@ -656,7 +666,7 @@ def p_unit_term_3(p):
     """ unit_term_unpowered : LCURLYBRACKET TILDE ALPHATOKEN RCURLYBRACKET """
 
     backend = p.parser.library_manager.backend
-    unit_long_LUT = UnitTermData.getUnitLUTLong(backend=backend)  
+    unit_long_LUT = UnitTermData.getUnitLUTLong(backend=backend)
 
     if p[3] in unit_long_LUT:
         p[0] = unit_long_LUT[p [3] ]
@@ -687,20 +697,20 @@ def p_error(p):
     #print "lexdata", p.lexer.lexer.lexdata
     try:
         line = p.lexer.lexer.lexdata.split("\n")[p.lexer.lexer.lineno]
-    
+
         o = p.lexer.lexer.lexpos
         line1 = p.lexer.lexer.lexdata[o-10: o+10]
         line2 = p.lexer.lexer.lexdata[o-3: o+3]
-    
+
         print 'Offending Line:', line1
         print 'Offending Line:', line2
     except:
         pass
     raise UnitError( "Parsing Error %s" % (p) )
-    
+
 precedence = (
 
-        
+
     ('left', 'WHITESPACE'),
     ('left', 'PLUS','MINUSMINUS'),
 
@@ -754,13 +764,13 @@ regexes_slashes = {
 
 
          # "{3 mV{~mjlk}/{~asd}}" -> {3 mV{~mjlk}/{~asd}}"
-        "CurlyBracketUnitWithSlash":      RE(to=r"\g<pre>//\g<post>", frm=r""" (?P<pre> [{]  [-]?[0-9]+(\.[0-9]*([eE][+-]?[0-9]+)?)? \s* ( ([{][~] [a-zA-Z]* [}])|([a-zA-Z]*)\d* )* \s* ) / (?P<post> (\s* ([{][~] [a-zA-Z]* [}])|([a-zA-Z]*)\d* \s* )*  [}] )""", ), 
-        "CurlyBracketUnitAddSpace1":      RE(to=r" \1", frm=r"(?:[^/])({~[a-zA-Z]*})""", ), 
-        "CurlyBracketUnitAddSpace2":      RE(to=r"} ", frm=r"""}(?:[a-zA-Z])""", ), 
+        "CurlyBracketUnitWithSlash":      RE(to=r"\g<pre>//\g<post>", frm=r""" (?P<pre> [{]  [-]?[0-9]+(\.[0-9]*([eE][+-]?[0-9]+)?)? \s* ( ([{][~] [a-zA-Z]* [}])|([a-zA-Z]*)\d* )* \s* ) / (?P<post> (\s* ([{][~] [a-zA-Z]* [}])|([a-zA-Z]*)\d* \s* )*  [}] )""", ),
+        "CurlyBracketUnitAddSpace1":      RE(to=r" \1", frm=r"(?:[^/])({~[a-zA-Z]*})""", ),
+        "CurlyBracketUnitAddSpace2":      RE(to=r"} ", frm=r"""}(?:[a-zA-Z])""", ),
         }
 
 
-regexes_by_parsetype_slashes = {    
+regexes_by_parsetype_slashes = {
         ParseTypes.L1_Unit:         [ regexes_slashes["SlashAlpha_To_DoubleSlash"], regexes_slashes["SlashCurlyTilde_To_DoubleSlash"], ],
         ParseTypes.L2_QuantitySimple:     [ regexes_slashes["SlashAlpha_To_DoubleSlash"], regexes_slashes["SlashCurlyTilde_To_DoubleSlash"], ],
         ParseTypes.L3_QuantityExpr:   [ regexes_slashes["CurlyBracketUnitWithSlash"], regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"]  ],
@@ -788,17 +798,23 @@ def apply_regex(r, text):
 
 
 
-    
 
 
 
 
 
-def parse_expr(text, parse_type, backend, start_symbol=None, debug=False, working_dir=None):
-    text = text.strip()
 
-    pRes, library_manager = parse_eqn_block(text, parse_type=parse_type, debug=debug, backend=backend, working_dir=working_dir)
-     
+def parse_expr(text, parse_type, backend, start_symbol=None, debug=False, working_dir=None, options=None):
+
+    # Some Cleaning
+    # This is a bit hacky
+    text = "\n".join( [l.strip() for l in text.split("\n") if l.strip() ] )
+
+    pRes, library_manager = parse_eqn_block(text, parse_type=parse_type, debug=debug, backend=backend, working_dir=working_dir, options=options)
+
+
+
+
     ret = { ParseTypes.L1_Unit:     lambda: pRes,
             ParseTypes.L2_QuantitySimple: lambda: pRes,
             ParseTypes.L3_QuantityExpr: lambda: pRes,
@@ -821,12 +837,14 @@ def parse_expr(text, parse_type, backend, start_symbol=None, debug=False, workin
 
 
 
-def parse_eqn_block(text_eqn, parse_type, debug, backend, working_dir=None):
+def parse_eqn_block(text_eqn, parse_type, debug, backend, working_dir=None, options=None):
+
+
 
     start_symbol = ParseDetails.start_symbols[parse_type]
     # Some preprocessing:
     #######################
-    
+
     assert not "--" in text_eqn
     assert not "//" in text_eqn
 
@@ -835,7 +853,7 @@ def parse_eqn_block(text_eqn, parse_type, debug, backend, working_dir=None):
     text_eqn = re.sub(s1,r'\1',text_eqn)
 
 
-    # '/' plays 2 roles. To simplify the grammar, turn '/' used to 
+    # '/' plays 2 roles. To simplify the grammar, turn '/' used to
     # purely separate unit terms to '//'
     # The syntax of this depends on the context of what we are parsing.
     assert not "//" in text_eqn
@@ -854,19 +872,26 @@ def parse_eqn_block(text_eqn, parse_type, debug, backend, working_dir=None):
     debug=False
 
     print start_symbol
-    #parser = yacc.yacc(tabmodule='unit_expr_parser_parsetab', outputdir='/tmp/',  debug=debug, start=start_symbol,write_tables=0   ) 
-    parser = yacc.yacc( debug=debug, start=start_symbol,write_tables=0   ) 
+    #parser = yacc.yacc(tabmodule='unit_expr_parser_parsetab', outputdir='/tmp/',  debug=debug, start=start_symbol,write_tables=0   )
+    #outputdir=
 
-    
-    
-    
+    parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=LocMgr.EnsureMakeDirs("/tmp/nu/yacc/parse_eqn_block")   )
+
+
+
+
+    # TODO: I think this can be removed.
     parser.src_text = text_eqn
-    
-    
+
     
 
-    parser.library_manager = LibraryManager(backend=backend, working_dir=working_dir )
+
+
+    parser.library_manager = LibraryManager(backend=backend, working_dir=working_dir, options=options )
+
+    parser.library_manager.src_text = text_eqn
     
+
     pRes = parser.parse(text_eqn, lexer=units_expr_lexer.UnitExprLexer(), debug=debug)
     return pRes, parser.library_manager
 

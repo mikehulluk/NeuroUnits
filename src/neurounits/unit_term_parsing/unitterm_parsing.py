@@ -14,6 +14,7 @@ import ply
 from ..unit_errors import UnitError
 from unitterm_lexing import UnitTermLexer
 from ..units_data_unitterms import UnitTermData
+from morphforge.core.mgrs.locmgr import LocMgr
 
 
 
@@ -130,12 +131,15 @@ def parse_term( text, backend ):
             return u_def
 
     # Parse as per normal: 
-    parser = ply.yacc.yacc(write_tables=0, start='unit_term_unpowered')
+    #parser = ply.yacc.yacc(write_tables=0, start='unit_term_unpowered')
+    parser = ply.yacc.yacc(  start='unit_term_unpowered',  tabmodule="neurounits_parsing_parse_eqn_term", outputdir=LocMgr.EnsureMakeDirs("/tmp/nu/yacc/parse_term")   )
+    
     parser.backend = backend
     
     #lexer = ply.lex.lex()
     lexer = UnitTermLexer()
     res =  parser.parse(text, lexer=lexer, )
+    
     #print 'Parsed %s -> %s'%(text,res)
     return res
 

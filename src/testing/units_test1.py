@@ -114,27 +114,33 @@ def test_valid_files():
         #StringWriterVisitor().Visit(result)
         #DotVisitor().Visit(result)
             #LatexWriterVisitor().Visit(result)
-            nmodl, nmodl_info = WriteToNMODL(result)
-            moddir=outputdir+"/modfiles/"
-            EnsureExisits(moddir)
-            f = open(moddir+result.name+".mod",'w')
-            mod_files.append(result.name +".mod")
-            f.write(nmodl)
-            f.close()
+
 
             pdf_file= outputdir + "/summary_"+result.name+".pdf"
             pdf_files.append(pdf_file)
-            WriteToPDF(result, filename=pdf_file, additional_verbatim=nmodl )
+            WriteToPDF(result, filename=pdf_file, additional_verbatim="" )
             print result.name
             
+            
+            nmodl, nmodl_info = WriteToNMODL(result)
+            moddir=outputdir+"/modfiles/"
+            EnsureExisits(moddir)
+            fName =moddir+result.name+".mod"
+            f = open(fName,'w')
+            mod_files.append(result.name +".mod")
+            f.write(nmodl)
+            f.close()
+            
+            print fName
+            #assert False
             #SimulateEquations(result)
             print result
 
         os.system("pdftk %s cat output %s"%( " ".join(pdf_files), outputdir + "/All.pdf")        )
 
-        with open(outputdir+"/modfiles/tests.sh","w") as f:
-            for mf in mod_files:
-                f.write("modlunit %s\n"%mf)
+        #with open(outputdir+"/modfiles/tests.sh","w") as f:
+        #    for mf in mod_files:
+        #        f.write("modlunit %s\n"%mf)
     
     import pylab
     #pylab.show()

@@ -114,9 +114,14 @@ class MMUnit(object):
     
     
     def __str__(self):
-        return "<MMUnit: " + self.detail_str() + ">"
+        s =  "<MMUnit: " + self.detail_str() + ">"
+        #assert False, s
+        return s
 
 
+
+    def __eq__(self, rhs):
+        return (self/rhs).is_dimensionless(allow_non_zero_power_of_ten=False)
 
     def is_dimensionless(self, allow_non_zero_power_of_ten):
         
@@ -152,7 +157,7 @@ class MMUnit(object):
     
 
 
-    def as_quanitites_unit(self):
+    def as_quantities_unit(self):
         import quantities as pq
         convs = ( ( self.meter, pq.m ),
                   ( self.kilogram, pq.kg ),
@@ -253,8 +258,13 @@ class MMQuantity(object):
         return self.unit.is_dimensionless(allow_non_zero_power_of_ten=allow_non_zero_power_of_ten)
 
 
+    def float_in_si(self):
+        return self.magnitude * 10**self.unit.powerTen  
+        
+    
 
-
+    def as_quantities_quantity(self):
+        return self.magnitude * self.unit.as_quantities_unit()
 
     
 

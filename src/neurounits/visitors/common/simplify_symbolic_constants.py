@@ -12,6 +12,7 @@
 from neurounits import ast 
 from neurounits.visitors.common.ast_replace_node import ReplaceNode
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase
+from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
 
 
 
@@ -19,7 +20,7 @@ class ReduceConstants(ASTVisitorBase):
     
     def Visit(self, o, **kwargs):
         return o.AcceptVisitor(self, **kwargs)
-
+        
     def VisitEqnSet(self, o, **kwargs):
         
         
@@ -29,14 +30,24 @@ class ReduceConstants(ASTVisitorBase):
             fixed_value = self.Visit(a.rhs)
             if fixed_value:
                 
-                s = ast.SymbolicConstant( symbol=aKey.symbol, value=fixed_value )
+                s = ast.SymbolicConstant( symbol=aKey.symbol+"_as_symconst", value=fixed_value )
                 print 'New Symbolic Constant', s, aKey.symbol, s.value
                 
                 #assert False
+                print 'Replacing Node:', a.lhs.symbol
                 ReplaceNode(a.lhs, s).Visit(o)
+                o._cache_nodes()
+                print 'Done replacing symbol'
                 
-                o._constants[aKey.symbol] = s
+                o._symbolicconstants[aKey.symbol] = s
                 del o._eqn_assignment[aKey]
+                
+                n = EqnsetVisitorNodeCollector()
+                n.Visit(o)
+                #assert not a.lhs in n.all() 
+                
+                
+                
             #else:
                 
                 
@@ -52,6 +63,8 @@ class ReduceConstants(ASTVisitorBase):
         return o.value
 
     def VisitIfThenElse(self, o, **kwargs):
+        # Optimisation's possible here
+        return None
         raise NotImplementedError()
 
     def VisitInEquality(self, o ,**kwargs):

@@ -24,26 +24,33 @@
 # SUCH DAMAGE.
 #-------------------------------------------------------------------------------
 
+from neurounits.importers.neuroml.neuroml_xml_data import _parse_channelml_file
+from morphforge.core.objectnumberer import ObjectLabeller
+from neurounits.importers.neuroml.neuroml_xml_to_eqnset import build_eqnset
+from neurounits.units_misc import ExpectSingle
 
-from ..units_misc import Chainmap
+from errors import NeuroUnitsImportNeuroMLNotImplementedException
+from errors import NeuroMLFileContainsNoChannels, NeuroMLFileContainsMultipleChannels
 
 
-class Library(object):
-    def __init__(self, name, functiondefs={}, constants = {}):
-        self.name = name
-        self.functiondefs = functiondefs
-        self.constants = constants
+
+class ChannelMLReader:
+    @classmethod
+    def LoadChlsRaw(self, filename):
+        return _parse_channelml_file(filename)
     
-    def getConstant(self, c):
-        return self.constants[c]
+    @classmethod
+    def LoadChlRaw(self, filename):
+        chl_infos = ChannelMLReader.LoadChlsRaw(filename).values()
+        if len(chl_infos) == 0:
+            raise NeuroMLFileContainsNoChannels()
+        if len(chl_infos) > 1:
+            raise NeuroMLFileContainsMultipleChannels()
+        return chl_infos[0]
     
-    def getFunctionDef(self, f):
-        return self.functiondefs[f]
-
-    def getSymbol(self, sym):
-        
-        try:
-            return Chainmap(self.functiondefs,self.constants)[sym]
-        except KeyError:
-            raise ValueError("Library: %s does not contain symbol: %s"%(self.name, sym) )
-        
+    @classmethod
+    def BuildEqnset(cls, filename):
+        chl_info = cls.LoadChlRaw(filename)
+        eqnset, default_params = build_eqnset(chl_info)
+        return eqnset, chl_info, default_params
+    

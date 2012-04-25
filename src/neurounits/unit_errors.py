@@ -32,7 +32,7 @@ def panic():
 
 
 class UnitMismatchError(ValueError):
-    def __init__(self, unitA, unitB, objA=None, objB=None):
+    def __init__(self, unitA, unitB, objA=None, objB=None,):
         self.unitA = unitA
         self.unitB = unitB
         self.objA = objA

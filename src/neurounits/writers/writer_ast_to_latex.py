@@ -64,23 +64,47 @@ $additional_verbatim
 """
 
 
-def get_prefered_units():
-    from ..units_wrapper import NeuroUnitParser
-    prefered_unit_dims = [
-                 (NeuroUnitParser.Unit("mV"), 'mV'),
-                 (NeuroUnitParser.Unit("pS"), 'pS'),
-                 (NeuroUnitParser.Unit("s"), 's')
+def get_prefered_dimensions():
+    from .. import NeuroUnitParser
+    prefered_dimension_dims = [
+                 (NeuroUnitParser.Unit("S"), 'S'),
+                 (NeuroUnitParser.Unit("V"), 'V'),
+                 (NeuroUnitParser.Unit("S/m2"), 'S/m2'),
+                 (NeuroUnitParser.Unit("A/m2"), 'A/m2'),
+                 (NeuroUnitParser.Unit("A"), 'A'),
+                 
+                 #(NeuroUnitParser.Unit("mV"), 'mV'),
+                 #(NeuroUnitParser.Unit("pS"), 'pS'),
+                 #(NeuroUnitParser.Unit("s"), 's')
                  ]
-    return prefered_unit_dims
+    return prefered_dimension_dims
 
 
 
+
+def FormatDimension(d ):
+    assert d.powerTen==0
+    return " < " + d.FormatLatex(inc_powerten=False) + " > "
+
+    #from .. import NeuroUnitParser
+    ##assert False
+    #for udim,udimstr in get_prefered_dimensions():
+    #    assert type(udim) == type(d), "Type: %s"%(type(d))
+    #    if d==udim:
+    #        assert False
+    #        return r"\mathit{%s}"%(str(v) + r" \langle " + udimstr +r"  \rangle ")
+    #print 'A',d
+    #s = NeuroUnitParser.Unit("S/m2")
+    #print 'B',s, type(s) 
+    #print 'C'
+    #assert False
+    ## Otherwise, return the string:
+    #return " < " + d.FormatLatex(inc_powerten=False) + " > "
 
     
     
-    
-def FormatUnit(u):
-    return " < " + u.FormatLatex(inc_powerten=False) + " > "
+#def FormatDimension(u):
+#    return " < " + u.FormatLatex(inc_powerten=False) + " > "
     
     
 def FormatConstant(c):
@@ -89,8 +113,10 @@ def FormatConstant(c):
         return "%s"%str(c.magnitude)
  
     else:
-        for udim,udimstr in get_prefered_units():
+        for udim,udimstr in get_prefered_dimensions():
             if c.is_compatible(udim):
+                #print c, type(c)
+                #assert False
                 v = c.rescale(udim).magnitude
                 return r"\mathit{%s}"%(str(v) + r" \langle " + udimstr +r"  \rangle ")
         return str(c)
@@ -140,6 +166,8 @@ class LatexWriterVisitor(ASTVisitorBase):
             f.write(ltx)
         os.system("pdflatex -output-directory %s %s"%(working_dir, tex_file))
         os.system("cp %s %s"%(tex_pdf,output_filename) )
+        if not os.path.exists(output_filename):
+            raise ValueError("Something went wrong building pdf")
         
         
 
@@ -216,7 +244,7 @@ class LatexWriterVisitor(ASTVisitorBase):
     def VisitOnEventStateAssignment(self, o, **kwargs):
         rhs = self.Visit(o.rhs)
         lhs = FormatVarname(o.lhs.symbol)
-        s = r"""\boldsymbol{%s} &= %s & %s""" % (lhs, rhs, FormatUnit(o.lhs.get_unit()) )
+        s = r"""\boldsymbol{%s} &= %s & %s""" % (lhs, rhs, FormatDimension(o.lhs.get_dimension()) )
         return s
         
         
@@ -224,13 +252,13 @@ class LatexWriterVisitor(ASTVisitorBase):
     def VisitEqnAssignment(self, o, **kwargs):
         rhs = self.Visit(o.rhs)
         lhs = FormatVarname(o.lhs.symbol)
-        s = r"""\boldsymbol{%s} &= %s & %s""" % (lhs, rhs, FormatUnit(o.lhs.get_unit()) )
+        s = r"""\boldsymbol{%s} &= %s & %s""" % (lhs, rhs, FormatDimension(o.lhs.get_dimension()) )
         self.assignment_data[o.lhs.symbol] = s
         
     def VisitEqnTimeDerivative(self, o, **kwargs):
         rhs = self.Visit(o.rhs)
         lhs = FormatVarname(o.lhs.symbol)
-        s = r"""\frac{d}{dt}\boldsymbol{%s} &= %s & %s""" % (lhs, rhs, FormatUnit(o.lhs.get_unit()),  )
+        s = r"""\frac{d}{dt}\boldsymbol{%s} &= %s & %s""" % (lhs, rhs, FormatDimension(o.lhs.get_dimension()),  )
         self.timederivative_data[o.lhs.symbol] = s
 
 
@@ -251,7 +279,7 @@ class LatexWriterVisitor(ASTVisitorBase):
         return FormatVarname( o.symbol )
     
     def VisitParameter(self, o, **kwargs):
-        self.parameter_data[o.symbol] = r"""\boldsymbol{%s} &  %s"""%(FormatVarname(o.symbol), FormatUnit(o.get_unit()) )
+        self.parameter_data[o.symbol] = r"""\boldsymbol{%s} &  %s"""%(FormatVarname(o.symbol), FormatDimension(o.get_dimension()) )
         return FormatVarname(o.symbol)
     
     def VisitConstant(self, o, **kwargs):
@@ -261,7 +289,7 @@ class LatexWriterVisitor(ASTVisitorBase):
         return FormatVarname( o.symbol )
 
     def VisitSuppliedValue(self, o, **kwargs):
-        self.suppliedvals_data[o.symbol] = r"""\boldsymbol{%s} & %s"""%(FormatVarname(o.symbol), FormatUnit(o.get_unit() ) )
+        self.suppliedvals_data[o.symbol] = r"""\boldsymbol{%s} & %s"""%(FormatVarname(o.symbol), FormatDimension(o.get_dimension() ) )
         return FormatVarname(o.symbol)
 
     def VisitSymbolicConstant(self, o, **kwargs):

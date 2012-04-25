@@ -20,7 +20,11 @@ from itertools import chain
 
 class LibraryManager(object):
     
-    def __init__(self,backend, working_dir=None):
+    def __init__(self,backend, working_dir=None, options=None):
+        from neurounits.neurounitparser import NeuroUnitParserOptions
+        self.options = options or NeuroUnitParserOptions() 
+
+        
         self.currentblock = None
         self.backend=backend
     
@@ -55,17 +59,12 @@ class LibraryManager(object):
     
     def start_eqnset_block(self,):
         assert self.currentblock is None
-        
         self.currentblock = EqnSetBuilder(library_manager=self)
         
     
     def end_eqnset_block(self,):
-        #builder = self.currentblock
-        #builder._astobject._builder = builder
-
         self.currentblock.finalise()
         self.eqnsets.append( self.currentblock._astobject )
-        #builder.astobject = self.working_dir + builder.astobject.name
         self.currentblock = None
     
         

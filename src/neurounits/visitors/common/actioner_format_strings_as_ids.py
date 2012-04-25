@@ -51,7 +51,13 @@ class ActionerFormatStringsAsIDs(ASTActionerDefault):
         self.format_strings[o] = "OnEvent: Name:%s Params:%s Actions: [%s]"%( o.name, pStr, actions,) 
     def ActionOnEventStateAssignment(self, o, **kwargs):
         self.format_strings[o] = "OnEventStateAssignment: '%s' = %s"%(self.IDs[o.lhs], self.IDs[o.rhs])
-        #raise NotImplementedError()
+
+
+
+
+    #def ActionInEquality(self, o, **kwargs):
+    #    self.format_strings[o] = "InEquality: '%s < %s"%(self.IDs[o.less_than], self.IDs[o.greater_than])
+
 
 
 
@@ -114,15 +120,12 @@ class ActionerFormatStringsAsIDs(ASTActionerDefault):
 
 
     def ActionBoolAnd(self, o, **kwargs):
-        raise NotImplementedError()
         return '(%s && %s)'%( self.IDs[o.lhs], self.IDs[o.rhs] )
     def ActionBoolOr(self, o, **kwargs):
-        raise NotImplementedError()
         return '(%s || %s)'%( self.IDs[o.lhs], self.IDs[o.rhs] )
     
     def ActionBoolNot(self, o, **kwargs):
-        raise NotImplementedError()
-        return '(! %s)'%( self.Action(o.lhs) )
+        return '(! %s)'%( self.IDs[o.lhs] )
 
 
     def ActionFunctionDefInstantiation(self, o, **kwargs):
@@ -134,11 +137,9 @@ class ActionerFormatStringsAsIDs(ASTActionerDefault):
 
 
     def ActionIfThenElse(self,o,**kwargs):
-        raise NotImplementedError()
-        return "[%s] if [%s] else [%s]" %(self.Action(o.if_true_ast),
-                                           self.Action(o.predicate),
-                                           self.Action(o.if_false_ast) )
+        return "[%s] if [%s] else [%s]" %(self.IDs[o.if_true_ast],
+                                           self.IDs[o.predicate],
+                                           self.IDs[o.if_false_ast] )
     def ActionInEquality(self,o,**kwargs):
-        raise NotImplementedError()
-        return "[%s < %s]" %(self.Action(o.less_than),self.Action(o.greater_than) )
+        return "[%s < %s]" %(self.IDs[o.less_than],self.IDs[o.greater_than] )
 

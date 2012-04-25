@@ -12,6 +12,7 @@
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 
 import itertools
+from neurounits.ast.astobjects import ASTObject
 
 class ReplaceNode(ASTVisitorBase):
     
@@ -21,9 +22,16 @@ class ReplaceNode(ASTVisitorBase):
         
         
     def replace_or_visit(self, o):
+        assert isinstance(o, ASTObject)
+        assert isinstance(self.srcObj, ASTObject)
         if o == self.srcObj:
+            print 'Removing Refernce to ',o.symbol
             return self.dstObj
         else:
+            if "symbol" in o.__dict__:
+                 print 'Not Removing Refernce to ',o.symbol
+                 assert not o.symbol==self.srcObj.symbol
+            
             return self.Visit(o)
         
         
@@ -45,16 +53,29 @@ class ReplaceNode(ASTVisitorBase):
         return o
 
     def VisitIfThenElse(self, o, **kwargs):
-        raise NotImplementedError()
+        o.predicate = self.replace_or_visit(o.predicate, **kwargs)
+        o.if_true_ast = self.replace_or_visit(o.if_true_ast,**kwargs)
+        o.if_false_ast = self.replace_or_visit(o.if_false_ast,**kwargs)
+        return o
 
     def VisitInEquality(self, o ,**kwargs):
-        raise NotImplementedError()
+        o.less_than = self.replace_or_visit(o.less_than)
+        o.greater_than = self.replace_or_visit(o.greater_than)
+        return o
+
     def VisitBoolAnd(self, o, **kwargs):
-        raise NotImplementedError()
+        o.lhs = self.replace_or_visit(o.lhs,**kwargs)
+        o.rhs = self.replace_or_visit(o.rhs,**kwargs)
+        return o
+
     def VisitBoolOr(self, o, **kwargs):
-        raise NotImplementedError()
+        o.lhs = self.replace_or_visit(o.lhs,**kwargs)
+        o.rhs = self.replace_or_visit(o.rhs,**kwargs)
+        return o
+
     def VisitBoolNot(self, o, **kwargs):
-        raise NotImplementedError()
+        o.lhs = self.replace_or_visit(o.lhs,**kwargs)
+        return o
 
     # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):
@@ -120,13 +141,21 @@ class ReplaceNode(ASTVisitorBase):
         return o
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
+
         pNew = {}
         for pName,p in o.parameters.iteritems():
             pNew[pName] = self.replace_or_visit(p,**kwargs)
         o.parameters = pNew
+        
+        assert not self.srcObj in o.parameters.values()
+        
         o.function_def = self.replace_or_visit(o.function_def)
+        
         return o
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
+        print 'ParamRHS:', o.rhs_ast
+        #assert False
+        o.rhs_ast = self.replace_or_visit(o.rhs_ast)
         return o
 

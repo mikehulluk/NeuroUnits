@@ -24,26 +24,6 @@
 # SUCH DAMAGE.
 #-------------------------------------------------------------------------------
 
-
-from ..units_misc import Chainmap
-
-
-class Library(object):
-    def __init__(self, name, functiondefs={}, constants = {}):
-        self.name = name
-        self.functiondefs = functiondefs
-        self.constants = constants
-    
-    def getConstant(self, c):
-        return self.constants[c]
-    
-    def getFunctionDef(self, f):
-        return self.functiondefs[f]
-
-    def getSymbol(self, sym):
-        
-        try:
-            return Chainmap(self.functiondefs,self.constants)[sym]
-        except KeyError:
-            raise ValueError("Library: %s does not contain symbol: %s"%(self.name, sym) )
-        
+class ASTObject(object):
+    def is_resolved(self):
+        return True

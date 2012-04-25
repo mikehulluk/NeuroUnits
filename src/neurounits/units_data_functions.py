@@ -31,6 +31,15 @@ class StdLibrary():
             'exp' : ast.BuiltInFunction(funcname='exp', 
                                         parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
                                         unitMH=backend.Unit() ),
+            
+            'fabs' : ast.BuiltInFunction(funcname='fabs', 
+                                        parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
+                                        unitMH=backend.Unit() ),
+
+            'pow' : ast.BuiltInFunction(funcname='pow', 
+                                        parameters={'base':ast.FunctionDefParameter(symbol='base', unitMH=backend.Unit() ),
+                                                    'exp':ast.FunctionDefParameter(symbol='exp', unitMH=backend.Unit() )  },
+                                        unitMH=backend.Unit() ),
         } 
          
         return ast.Library('std.math', constants = constants, functiondefs = functiondefs, )

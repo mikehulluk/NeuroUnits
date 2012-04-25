@@ -1,4 +1,29 @@
+EQNSET NeuroMLChannel1{
+        from std.math import exp
+        I = 0.0 *  GMAX * ( (VREV) - ((V/{1mV})*{1V}) ) * GATEPROP
+		A = GMAX
+		B = VREV
+		GATEPROP = h*m*m*m
+		m_alpha =  ({1.000000} * ( ((V/{1mV}) - {-40.000000}) / {10.000000}) / (1 - exp( -1.0 * (((V/{1mV}) - {-40.000000})/{10.000000}) )) ) * (1/{1ms})
+		m_beta =  ( {4.000000} * exp ( 1.0 * ((V/{1mV})- {-65.000000})/{-18.000000} ) ) * (1/{1ms})
+		m_tau =  1/(m_alpha+m_beta) 
+		m_inf =  m_alpha/(m_alpha+m_beta)
+		m' = (m_inf-m)/(m_tau) 
+		h_alpha =  ( {0.070000} * exp ( 1.0 * ((V/{1mV})- {-65.000000})/{-20.000000} ) ) * (1/{1ms})
+		h_beta =  ( (1 * {1.000000}) / ( 1.0 + exp ( ((V/{1mV}) - {-35.000000})/{-10.000000}  ) ) ) * (1/{1ms})
+		h_tau =  1/(h_alpha+h_beta) 
+		h_inf =  h_alpha/(h_alpha+h_beta)
+		h' = (h_inf-h)/(h_tau) 
+		        
+		vt = V
+		        
+		<=> PARAMETER GMAX:( S/cm2 )
+		<=> PARAMETER VREV:( V )
+		<=> OUTPUT    I:(A/cm2)   METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
+		<=> INPUT     V:(V)       METADATA {"mf":{"role":"MEMBRANEVOLTAGE"} }
+		<=> OUTPUT    vt:(V)       
 
+    }
 
 
 
@@ -71,36 +96,32 @@ EQNSET chlstd_hh_na {
 
 
 
-EQNSET libC{
-
-    F(X) = X**2  +1
-    i= {1mA/cm2}
-    <=> OUTPUT    i:(mA/cm2)      METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
-
-}
-EQNSET lib2{
-
-    from libC import F
-    from libC import F as T
-    G(x,Y) = F(x) + Y + T(1/Y)
-
-
-    const1 = 3.0
-
-    i= {1mA/cm2}
-    <=> OUTPUT    i:(mA/cm2)      METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
-}
+#EQNSET libC{
+#
+#    F(X) = X**2  +1
+#    i= {1mA/cm2}
+#    <=> OUTPUT    i:(mA/cm2)      METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
+#
+#}
+#EQNSET lib2{
+#    from libC import F
+#    from libC import F as T
+#    G(x,Y) = F(x) + Y + T(1/Y)
+#    const1 = 3.0
+#    i = {1mA/cm2} * 2.0 + {2.0mA/cm2}
+#    <=> OUTPUT    i:(mA/cm2)      METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
+#}
+##
 
 
-
-EQNSET lib2D{
-    from lib2 import G as Q
-    from lib2 import const1 as c1
-    t = Q(x=1,Y=3)
-
-    i= {1mA/cm2}
-    <=> OUTPUT    i:(mA/cm2)      METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
-}
+#EQNSET lib2D{
+#    from lib2 import G as Q
+#    from lib2 import const1 as c1
+#    t = Q(x=1,Y=3)
+#
+#    i= {1mA/cm2}
+#    <=> OUTPUT    i:(mA/cm2)      METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
+#}
 
 
 
@@ -200,6 +221,9 @@ EQNSET chl2ca{
 from std.math import exp
 from std.physics import F,R
 
+
+i2=  0.0 * {0 mA/cm2 }
+
 alpha_n = ( {10mV} - V ) / ( 100* exp( ({10mV}-V)/{10mV} ) -{1} ) * (1/ ({1 s} * {1 mV}) )
 beta_n = 0.128 * exp( V / {-80mV}) / ( {1s}  )
 
@@ -220,6 +244,8 @@ a3=CAo
 a4=T1
 a5=V
 
+
+
 #|-8 SummaryPlotData {"x":"t","y":"n","t_start":"0ms","t_end":"500ms","dt":"1ms","params":{"V":"3mV","pca":"1cm s-1","T1":"300K","CAi":"200mol","CAo":"100mol"},"y0":{"n":"0"} }
 #
 <=> OUTPUT    ica:(mA/cm2)      METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
@@ -232,8 +258,8 @@ a5=V
 <=> PARAMETER CAo
 
 
-i2= {0 mA/cm2 }
-<=> OUTPUT    i2:(mA/cm2)      METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
+
+#<=> OUTPUT    i2:(mA/cm2)      METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
 
 }
 ##

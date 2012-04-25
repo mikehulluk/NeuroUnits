@@ -1,12 +1,12 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-# 
+#
 #  - Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
 #  - Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #-------------------------------------------------------------------------------
 from neurounits.visitors import ASTVisitorBase,ASTActionerDefault
@@ -23,39 +23,39 @@ class ASTVisitorCollectorAll(ASTActionerDefault):
         ASTActionerDefault.__init__(self,**kwargs)
         self.objects = set()
         self.Visit(eqnset)
-       
+
     def ActionNode(self, o):
         self.objects.add(o)
 
 
 
 
-class UnitResolver(ASTVisitorBase):
+class DimensionResolver(ASTVisitorBase):
 
 
-    def EnsureEqualUnits(self, args, reason=None):
-        assigned_units = [a for a in args if a.is_unit_known()]
-        
-        # No units known?
-        if len(assigned_units) == 0:
+    def EnsureEqualDimensions(self, args, reason=None):
+        assigned_dimensions = [a for a in args if a.is_dimension_known()]
+
+        # No dimensions known?
+        if len(assigned_dimensions) == 0:
             return []
-        
-        u = assigned_units[0]
-        for au in assigned_units[1:]:
+
+        u = assigned_dimensions[0]
+
+        for au in assigned_dimensions[1:]:
             try:
-                u.get_unit().check_compatible( au.get_unit() )
+                u.get_dimension().check_compatible( au.get_dimension() )
+                u.get_dimension() == au.get_dimension()
             except UnitMismatchError, e:
-                raise UnitMismatchError( unitA=u.get_unit(), unitB=au.get_unit(), objA=u, objB=au) 
-            #check_unit_compatible(u, au)
+                raise UnitMismatchError( unitA=u.get_dimension(), unitB=au.get_dimension(), objA=u, objB=au)
+            #check_dimension_compatible(u, au)
 
-        unassigned_units = [a for a in args if not a.is_unit_known() ]
-        for au in unassigned_units:
-            self.RegisterUnitPropogation(obj=au, new_unit=u.get_unit(), reason=reason)
-        return unassigned_units
-
-
-
-
+        unassigned_dimensions = [a for a in args if not a.is_dimension_known() ]
+        for au in unassigned_dimensions:
+            print u, type(u)
+            u.get_dimension()
+            self.RegisterDimensionPropogation(obj=au, new_dimension=u.get_dimension(), reason=reason)
+        return unassigned_dimensions
 
 
 
@@ -63,7 +63,11 @@ class UnitResolver(ASTVisitorBase):
 
 
 
-    # Visit each node, and try and propogate units.
+
+
+
+
+    # Visit each node, and try and propogate dimensions.
     # Each method should return a list of nodes resolved.
 
     def __init__(self, ast, obj_label_dict):
@@ -76,19 +80,20 @@ class UnitResolver(ASTVisitorBase):
         for obj, name in self.obj_label_dict.iteritems():
             if not isinstance(obj, ast.ASTExpressionObject):
                 continue
-            
+
             obj_dimensionality = obj.get_dimensionality() if obj.is_dimensionality_known() else "<Dimension Unknown>"
-            obj_unit = obj.get_unit() if obj.is_unitMH_known() else "<Unit Unknown>"
+            obj_unit = obj.get_unitMH() if obj.is_unitMH_known() else "<Unit Unknown>"
             self.history.append(" %s -> Dim: %s Unit: %s"%(name, obj_dimensionality, obj_unit) )
 
     def DumpUnitStateToHistorySymbols(self):
         for obj, name in self.obj_label_dict.iteritems():
             if not isinstance(obj, ast.ASTExpressionObject):
                 continue
-            
+
             try:
-                obj_unit = obj.get_unit() if obj.is_unit_known() else "<Unit Unknown>"
-                self.history.append(" %s - %s - %s"%(name,obj.symbol,obj_unit) )
+                obj_dim = obj.get_dimension() if obj.is_dimension_known() else "<Dimension Unknown>"
+                obj_unit = obj.get_unitMH() if obj.is_unit_known() else "<Unit Unknown>"
+                self.history.append(" %s - %s - %s %s"%(name,obj.symbol, obj_dim, obj_unit) )
             except:
                 pass
 
@@ -98,7 +103,7 @@ class UnitResolver(ASTVisitorBase):
 
         self.history.append("Symbols:")
         self.DumpUnitStateToHistorySymbols()
-        
+
         self.history.append("All:")
         self.DumpUnitStateToHistoryAll()
         self.history.append("")
@@ -108,9 +113,9 @@ class UnitResolver(ASTVisitorBase):
         self.SummariseUnitState(title="Initially")
 
 
-    def RegisterUnitPropogation(self, obj, new_unit, reason):
-        obj.set_unit(new_unit)
-        self.history.append("Setting Unit: %s to %s because %s"%(self.obj_label_dict[obj],new_unit,reason) ) 
+    def RegisterDimensionPropogation(self, obj, new_dimension, reason):
+        obj.set_dimension(new_dimension)
+        self.history.append("Setting Dimension: %s to %s because %s"%(self.obj_label_dict[obj],new_dimension,reason) )
 
 
     def VisitEqnSet(self, o, **kwargs):
@@ -121,26 +126,30 @@ class UnitResolver(ASTVisitorBase):
         return
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
-        self.EnsureEqualUnits([o, o.lhs, o.rhs] )
+        self.EnsureEqualDimensions([o, o.lhs, o.rhs] )
 
     def VisitIfThenElse(self, o, **kwargs):
-        self.EnsureEqualUnits([o, o.if_true_lhs, o.if_false_lhs] )
+        #assert False
+        #print o.get_dimension()
+        print o.if_true_ast.is_dimensionality_known()
+        print o.if_false_ast.is_dimensionality_known()
+        print o.is_dimensionality_known()
+        self.EnsureEqualDimensions([o, o.if_true_ast, o.if_false_ast] )
 
     def VisitInEquality(self, o ,**kwargs):
-        self.EnsureEqualUnits([o, o.less_than, o.greater_than] )
-         
+        self.EnsureEqualDimensions([o.less_than, o.greater_than] )
+
     def VisitBoolAnd(self, o, **kwargs):
         panic()
-        
+
     def VisitBoolOr(self, o, **kwargs):
         panic()
-        
+
     def VisitBoolNot(self, o, **kwargs):
         panic()
-        
-        
 
-   
+
+
 
     # Terminals:
     def VisitStateVariable(self, o, **kwargs):
@@ -157,92 +166,92 @@ class UnitResolver(ASTVisitorBase):
 
     def VisitSuppliedValue(self, o, **kwargs):
         return []
-    
+
     def VisitSymbolicConstant(self, o, **kwargs):
         return []
 
     # AST Objects:
     def VisitEqnTimeDerivative(self, o, **kwargs):
-        if len( [True for i in (o.lhs, o.rhs) if i.is_unit_known()] ) != 1:
+        if len( [True for i in (o.lhs, o.rhs) if i.is_dimension_known()] ) != 1:
             return
 
-        one_sec = self.ast.backend.Unit(second=1) 
-        if o.lhs.is_unit_known():
-            self.RegisterUnitPropogation( o.rhs, new_unit= o.lhs.get_unit()/one_sec, reason='TimeDerivative')
+        one_sec = self.ast.backend.Unit(second=1)
+        if o.lhs.is_dimension_known():
+            self.RegisterDimensionPropogation( o.rhs, new_dimension= o.lhs.get_dimension()/one_sec, reason='TimeDerivative')
             return
-        if o.rhs.is_unit_known():
-            self.RegisterUnitPropogation( o.lhs, new_unit= o.rhs.get_unit()*one_sec, reason='TimeDerivative')
+        if o.rhs.is_dimension_known():
+            self.RegisterDimensionPropogation( o.lhs, new_dimension= o.rhs.get_dimension()*one_sec, reason='TimeDerivative')
             return
 
     def VisitEqnAssignment(self, o, **kwargs):
-        return self.EnsureEqualUnits([o.lhs, o.rhs],reason='EqnAssignment')
+        return self.EnsureEqualDimensions([o.lhs, o.rhs],reason='EqnAssignment')
 
 
 
     def VisitAddOp(self, o, **kwargs):
-        self.EnsureEqualUnits([o, o.lhs, o.rhs], reason='AddOp')
+        self.EnsureEqualDimensions([o, o.lhs, o.rhs], reason='AddOp')
 
     def VisitSubOp(self, o, **kwargs):
-        self.EnsureEqualUnits([o, o.lhs, o.rhs], reason='SubOp')
+        self.EnsureEqualDimensions([o, o.lhs, o.rhs], reason='SubOp')
 
     def VisitMulOp(self, o, **kwargs):
-        if len( [ True for i in (o, o.lhs,o.rhs) if i.is_unit_known()] ) !=2:
-            return 
-        
-        if o.is_unit_known():
-            if o.lhs.is_unit_known():
-                self.RegisterUnitPropogation( o.rhs, new_unit= o.get_unit()/o.lhs.get_unit(), reason='MulOp')
+        if len( [ True for i in (o, o.lhs,o.rhs) if i.is_dimension_known()] ) !=2:
+            return
+
+        if o.is_dimension_known():
+            if o.lhs.is_dimension_known():
+                self.RegisterDimensionPropogation( o.rhs, new_dimension= o.get_dimension()/o.lhs.get_dimension(), reason='MulOp')
             else:
-                self.RegisterUnitPropogation( o.lhs, new_unit= o.get_unit()/o.rhs.get_unit(), reason='MulOp')
+                self.RegisterDimensionPropogation( o.lhs, new_dimension= o.get_dimension()/o.rhs.get_dimension(), reason='MulOp')
         else:
-            self.RegisterUnitPropogation( o, new_unit= o.lhs.get_unit()*o.rhs.get_unit(), reason='MulOp')
+            self.RegisterDimensionPropogation( o, new_dimension= o.lhs.get_dimension()*o.rhs.get_dimension(), reason='MulOp')
 
 
 
     def VisitDivOp(self, o, **kwargs):
         # If we don't have 2 unknowns, we can't do much:
-        if len( [ True for i in (o, o.lhs,o.rhs) if i.is_unit_known()] ) !=2:
-            return 
-        
-        if o.is_unit_known():
-            if o.lhs.is_unit_known():
-                o.rhs.set_unit( o.lhs.get_unit() / o.get_unit() )
+        if len( [ True for i in (o, o.lhs,o.rhs) if i.is_dimension_known()] ) !=2:
+            return
+
+        if o.is_dimension_known():
+            if o.lhs.is_dimension_known():
+                o.rhs.set_dimension( o.lhs.get_dimension() / o.get_dimension() )
             else:
-                o.lhs.set_unit( o.get_unit() * o.rhs.get_unit() )
+                o.lhs.set_dimension( o.get_dimension() * o.rhs.get_dimension() )
         else:
-            o.set_unit( o.lhs.get_unit() / o.rhs.get_unit() )
+            o.set_dimension( o.lhs.get_dimension() / o.rhs.get_dimension() )
 
 
     def VisitExpOp(self, o, **kwargs):
-        if o.lhs.is_unit_known():
-            assert o.lhs.is_dimensionless(),  'LHS Expected to be dimensionless, actually %s'%(o.lhs.get_unit()) 
-        if o.is_unit_known():
-            assert o.is_dimensionless()
-        
-        if not o.lhs.is_unit_known():
-            o.lhs.set_unit( self.ast.backend.Unit() )
-        if not o.is_unit_known():
-            o.set_unit( self.ast.backend.Unit() )
+        if o.lhs.is_dimension_known():
+            assert o.lhs.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False),  'LHS Expected to be dimensionless, actually %s'%(o.lhs.get_dimension())
+        if o.is_dimension_known():
+            assert o.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False)
 
-                
+        if not o.lhs.is_dimension_known():
+            o.lhs.set_dimension( self.ast.backend.Unit() )
+        if not o.is_dimension_known():
+            o.set_dimension( self.ast.backend.Unit() )
+
+
     # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):
-        self.EnsureEqualUnits([o, o.rhs])
-        
+        self.EnsureEqualDimensions([o, o.rhs])
+
     def VisitFunctionDefParameter(self, o, **kwargs):
         pass
-        
+
     def VisitFunctionDefInstantiation(self, o, **kwargs):
-        self.EnsureEqualUnits([o, o.function_def])
-        
+        self.EnsureEqualDimensions([o, o.function_def])
+
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
-        self.EnsureEqualUnits([o, o.get_function_def_parameter(), o.rhs_ast], reason="Parameter Instantiation" )
+        self.EnsureEqualDimensions([o, o.get_function_def_parameter(), o.rhs_ast], reason="Parameter Instantiation" )
 
 
     def VisitBuiltInFunction(self, o, **kwargs):
-        assert o.funcname=='exp'
-        
+        assert o.funcname in ['exp', 'pow','fabs']
+
         return
         raise NotImplementedError()
 
@@ -251,10 +260,10 @@ class UnitResolver(ASTVisitorBase):
 
 
 
-class PropogateUnits(object):
+class PropogateDimensions(object):
     @classmethod
-    def propogate_units(cls, eqnset):
-    
+    def propogate_dimensions(cls, eqnset):
+
         wd =   eqnset.get_working_dir()
         print 'OutDir:', wd
         EnsureExisits(wd)
@@ -262,61 +271,61 @@ class PropogateUnits(object):
         labels = ASTNodeLabels()
         labels.Visit(eqnset)
         labels = labels.id_dict
-        
+
         # Generate a summary file of the ID's
         idStrings  = ActionerFormatStringsAsIDs(labels)
         idStrings.Visit(eqnset)
         idStrings.tofile(wd+'ID_Definitions.txt')
-        
+
         all_symbols = ASTVisitorCollectorAll( eqnset).objects
-        symbols_with_unit = [ s for s in all_symbols if isinstance(s, ast.ASTExpressionObject)]
+        obj_with_dimension = [ s for s in all_symbols if isinstance(s, ast.ASTExpressionObject)]
 
 
-        # Action, lets walk over the tree and try and resolve the units:
+        # Action, lets walk over the tree and try and resolve the dimensions:
         try:
-            uR = UnitResolver(ast = eqnset, obj_label_dict=labels)
-            
+            uR = DimensionResolver(ast = eqnset, obj_label_dict=labels)
+
             while True:
-                nUnresolvedPre = len( [ s for s in symbols_with_unit if not s.is_unit_known() ] )
+                nUnresolvedPre = len( [ s for s in obj_with_dimension if not s.is_dimension_known() ] )
                 res_symbols = [ uR.Visit(s) for s in all_symbols ]
-                nUnresolvedPost = len( [ s for s in symbols_with_unit if not s.is_unit_known() ] )
-    
+                nUnresolvedPost = len( [ s for s in obj_with_dimension if not s.is_dimension_known() ] )
+
                 if nUnresolvedPre == nUnresolvedPost:
                     break
-                
+
         except UnitMismatchError, e:
-            
+
             print 'Error with: '
-            print ' - ', labels[e.objA], "Unit:", e.objA.get_unit()
-            print ' - ', labels[e.objB], "Unit:", e.objB.get_unit()
+            print ' - ', labels[e.objA], "Unit:", e.objA.get_dimension()
+            print ' - ', labels[e.objB], "Unit:", e.objB.get_dimension()
             print
             s1 = StringWriterVisitor().Visit(e.objA)
             s2 = StringWriterVisitor().Visit(e.objB)
             print 'S1:', s1
             print 'S2:',  s2
-            assert False
+            #assert False
             raise
-            
-            
-            
+
+
+
         uR.SummariseUnitState(title="Finally")
-        
+
         # Print the History:
         with open(wd+'UnitsResolutionHistory','w') as f:
             f.writelines("\n".join(uR.history) )
 
-        
-        
+
+
         # Look for unresolved symbols:
-        symbols_without_unit = [ s for s in all_symbols if isinstance(s, ast.ASTExpressionObject) and not s.is_unit_known()]
-        if symbols_without_unit:
-            print 'Unable to resolve the units of the following symbols:'
-            for s in symbols_without_unit:
+        symbols_without_dimension = [ s for s in all_symbols if isinstance(s, ast.ASTExpressionObject) and not s.is_dimension_known()]
+        if symbols_without_dimension:
+            print 'Unable to resolve the dimensions of the following symbols:'
+            for s in symbols_without_dimension:
                 try:
                     print s
                     print s.symbol
                 except:
-                    pass 
+                    pass
             assert False
 
 

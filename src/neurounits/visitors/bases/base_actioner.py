@@ -1,15 +1,15 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-# 
+#
 #  - Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
 #  - Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #-------------------------------------------------------------------------------
-import itertools 
+import itertools
 from base_visitor import ASTVisitorBase
 
 
@@ -30,11 +30,13 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
 
     def __init__(self, action_predicates=None):
-        self.action_predicates = action_predicates or [] 
+        self.action_predicates = action_predicates or []
 
 
     def VisitEqnSet(self, o, **kwargs):
-        subnodes = itertools.chain( o.assignments, o.timederivatives, o.functiondefs, o.constants)
+
+
+        subnodes = itertools.chain( o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants)
         for f in subnodes:
             self.Visit(f,**kwargs)
 
@@ -59,15 +61,29 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
 
     def VisitIfThenElse(self, o, **kwargs):
-        raise NotImplementedError()
+        self.Visit(o.predicate,**kwargs)
+        self.Visit(o.if_true_ast,**kwargs)
+        self.Visit(o.if_false_ast,**kwargs)
+        self._ActionIfThenElse(o,**kwargs)
+
     def VisitInEquality(self, o ,**kwargs):
-        raise NotImplementedError()
+        self.Visit(o.less_than,**kwargs)
+        self.Visit(o.greater_than,**kwargs)
+        self._ActionInEquality(o,**kwargs)
+
     def VisitBoolAnd(self, o, **kwargs):
-        raise NotImplementedError()
+        self.Visit(o.lhs, **kwargs)
+        self.Visit(o.rhs, **kwargs)
+        self._ActionBoolAnd(o, **kwargs)
+
     def VisitBoolOr(self, o, **kwargs):
-        raise NotImplementedError()
+        self.Visit(o.lhs, **kwargs)
+        self.Visit(o.rhs, **kwargs)
+        self._ActionBoolOr(o, **kwargs)
+
     def VisitBoolNot(self, o, **kwargs):
-        raise NotImplementedError()
+        self.Visit(o.lhs, **kwargs)
+        self._ActionBoolNot(o, **kwargs)
 
     # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):
@@ -149,7 +165,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
             if not p(o,**kwargs):
                 return False
         return True
-    
+
 
 
     def _ActionEqnSet(self, o, **kwargs):
@@ -159,15 +175,19 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def _ActionIfThenElse(self, o, **kwargs):
         if self._ActionPredicate(o,**kwargs):
             return self.ActionIfThenElse( o, **kwargs)
+
     def _ActionInEquality(self, o ,**kwargs):
         if self._ActionPredicate(o,**kwargs):
             return self.ActionInEquality(o ,**kwargs)
+
     def _ActionBoolAnd(self, o, **kwargs):
         if self._ActionPredicate(o,**kwargs):
             return self.ActionBoolAnd(o, **kwargs)
+
     def _ActionBoolOr(self, o, **kwargs):
         if self._ActionPredicate(o,**kwargs):
             return self.ActionBoolOr(o, **kwargs)
+
     def _ActionBoolNot(self, o, **kwargs):
         if self._ActionPredicate(o,**kwargs):
             return self.ActionBoolNot(o, **kwargs)

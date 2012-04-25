@@ -14,12 +14,16 @@ from neurounits import ast
 from neurounits.io_types import IOType
 from neurounits.units_misc import SingleSetDict
 from eqnsetbuilder_io import parse_io_line
-from builder_visitor_propogate_units import PropogateUnits
+from builder_visitor_propogate_dimensions import PropogateDimensions
 from builder_visitor_remove_proxies import RemoveAllSymbolProxy
 from eqnsetbuilder_symbol_proxy import SymbolProxy
 from neurounits.visitors.common.clone_from_eqnset import CloneObject
 from neurounits.visitors.common.simplify_symbolic_constants import ReduceConstants
+from neurounits.ast.astobjects import AssignedVariable
 
+from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
+from neurounits.visitors.common.ast_node_to_id_dict import ASTNodeLabels
+from neurounits.visitors.common.actioner_format_strings_as_ids import ActionerFormatStringsAsIDs
 
 
 
@@ -66,7 +70,8 @@ class BuildData(object):
         self.onevents = SingleSetDict()
         self.timederivatives = SingleSetDict() 
         self.funcdefs = SingleSetDict()
-        self.constants = SingleSetDict() 
+        self.constants = SingleSetDict()
+        self.symbolicconstants = SingleSetDict()  
         self.summary_data = []
         self.eqnset_name = None
 
@@ -297,11 +302,14 @@ class EqnSetBuilder(object):
 
 
 
-    def finalise(self, unresolved_to_params=False):
+    def finalise(self):
     
         
+        from neurounits.librarymanager import LibraryManager
         
         self._astobject = ast.EqnSet()
+        assert isinstance( self.library_manager, LibraryManager)
+        self._astobject.library_manager = self.library_manager
         self._astobject.backend = self.library_manager.backend
         self._astobject._builder = self
         
@@ -309,7 +317,7 @@ class EqnSetBuilder(object):
         self._astobject._eqn_assignment = self.builddata.assignments        
         self._astobject._function_defs = self.builddata.funcdefs
         self._astobject._eqn_time_derivatives = self.builddata.timederivatives
-        self._astobject._constants = self.builddata.constants
+        self._astobject._symbolicconstants = self.builddata.symbolicconstants
         self._astobject.on_events = self.builddata.onevents
         
         
@@ -318,12 +326,13 @@ class EqnSetBuilder(object):
 
 
 
+        
+
         # Parse the IO data lines:
         io_data = list( itertools.chain( *[ parse_io_line(l) for l in self.builddata.io_data_lines] ) )
         self._astobject.io_data = io_data
 
-        #print io_data[0]
-        #assert False
+
         
         # Update Symbols from IO Data:
         # ############################
@@ -331,13 +340,21 @@ class EqnSetBuilder(object):
         param_symbols = [ ast.Parameter(symbol=p.symbol,dimension=p.dimension) for p in io_data if p.iotype==IOType.Parameter ]
         for p in param_symbols:
             print 'Setting Parameter:', p.symbol
-            self.resolve_global_symbol(p.symbol, p, expect_is_unresolved = True)
-            self._astobject._parameters[p.symbol] = p
+            
+            if self.library_manager.options.allow_unused_parameter_declarations:
+                self.resolve_global_symbol(p.symbol, p, expect_is_unresolved = False)
+            else:
+                self.resolve_global_symbol(p.symbol, p, expect_is_unresolved = True)
+                
+            #self._astobject._parameters[p.symbol] = p
 
         supplied_symbols = [ ast.SuppliedValue(symbol=p.symbol,dimension=p.dimension) for p in io_data if p.iotype==IOType.Input ]
         for s in supplied_symbols:
-            self.resolve_global_symbol(s.symbol, s, expect_is_unresolved = True)
-            self._astobject._supplied_values[s.symbol] = s
+            if self.library_manager.options.allow_unused_suppliedvalue_declarations:
+                self.resolve_global_symbol(s.symbol, s, expect_is_unresolved = False)
+            else:
+                self.resolve_global_symbol(s.symbol, s, expect_is_unresolved = True)
+            #self._astobject._supplied_values[s.symbol] = s
 
 
 
@@ -356,8 +373,12 @@ class EqnSetBuilder(object):
                 os_obj.set_dimensionality( o.dimension )
 
 
+        # Connect up the initial conditions for states:
+        self._astobject.initial_conditions = [ p for p in io_data if p.iotype==IOType.InitialCondition ]
+        #initial_conditions = 
+        #for ic in initial_conditions:   
+        #    self._astobject.initial_conditions[None] = None
         
-
 
 
         # Look for remaining unresolved symbols:
@@ -365,11 +386,9 @@ class EqnSetBuilder(object):
 
 
         
-        if unresolved_to_params == True:
-            raise NotImplementedError()
-        else:
-            if len(unresolved_symbols) != 0:
-                raise ValueError("Unresolved Symbols:%s"%([s[0] for s in unresolved_symbols]))
+        # We shouldn't get here!
+        if len(unresolved_symbols) != 0:
+            raise ValueError("Unresolved Symbols:%s"%([s[0] for s in unresolved_symbols]))
 
 
 
@@ -380,13 +399,46 @@ class EqnSetBuilder(object):
 
         # Resolve the SymbolProxies:
         #from builder_visitor_remove_proxies import RemoveAllSymbolProxy
-        print type(RemoveAllSymbolProxy)
+        
+        self._astobject._cache_nodes()
         a = RemoveAllSymbolProxy()
         a.Visit( self._astobject)
         #RemoveAllSymbolProxy().Visit(self._astobject)
         
         # Ensure we have units for all the terms:
-        PropogateUnits.propogate_units(self._astobject)
+        self._astobject._cache_nodes()
+        PropogateDimensions.propogate_dimensions(self._astobject)
 
 
+        # Reduce simple assignments to symbolic constants:
+        self._astobject._cache_nodes()
         ReduceConstants().Visit(self._astobject)
+        
+        
+        
+        id_dict = ASTNodeLabels()
+        id_dict.Visit(self._astobject)
+        data =ActionerFormatStringsAsIDs(id_dict.id_dict)
+        data.Visit(self._astobject)
+        data.tofile("/tmp/strings.txt")
+        
+        
+        
+        
+        
+        self._astobject._cache_nodes()
+        t = EqnsetVisitorNodeCollector()
+        t.Visit(self._astobject)
+#        assert not 'm_a1' in [ k.symbol for k in t.nodes[AssignedVariable]]
+        
+        
+        # Finally, the object can build dictionaries to 
+        # look-up data with:
+        self._astobject._cache_nodes()
+
+
+
+
+        
+        
+        
