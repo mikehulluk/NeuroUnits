@@ -45,5 +45,6 @@ class UnitMismatchError(ValueError):
             return "Unit Imcompatibility: (%s) <-> (%s)"%(self.unitA, self.unitB) 
         
         
-        
+class NeuroUnitParsingError(ValueError):
+    pass
 

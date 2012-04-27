@@ -15,16 +15,17 @@ import ply.yacc as yacc
 
 
 import units_expr_lexer
-from unit_errors import UnitError
+from neurounits.unit_errors import UnitError
 from units_expr_lexer import UnitExprLexer
-from units_misc import ExpectSingle, safe_dict_merge
+from neurounits.units_misc import ExpectSingle, safe_dict_merge
 from neurounits.librarymanager import LibraryManager
 
-import ast
+import neurounits.ast as ast
 
 
-from units_data_unitterms import UnitTermData
+from neurounits.units_data_unitterms import UnitTermData
 from morphforge.core.mgrs.locmgr import LocMgr
+
 
 
 
@@ -679,15 +680,31 @@ def p_unit_term_3(p):
 def p_unit_term_unpowered_token(p):
     """unit_term_unpowered : ALPHATOKEN """
     #p[0] = p.parser.library_manager.backend.Unit()
-    from unit_term_parsing import parse_term
-    p[0] = parse_term( p[1], backend=p.parser.library_manager.backend )
+    #from unit_term_parsing import parse_term
+    import neurounits.unit_term_parsing as unit_term_parsing
+    p[0] = unit_term_parsing.parse_term( p[1], backend=p.parser.library_manager.backend )
 
 
 
 
 
 def p_error(p):
-    print p
+    
+    
+    if p is None:
+        raise NeuroUnitParsingError("Unexpected end of file encountered")
+    else:
+        pass
+        #src_text = p.lexer.mparser.src_text
+        
+        #line_no = p.lineno
+        #print 'Line_no:', line_no
+        
+        #assert False
+        #line_no = p.lineno(p)
+        
+    
+    
     #pos = p.
     #line = p.parser.src_text.split("\n")#[p.lexer.lineno]
     #print p.__dict__
@@ -869,22 +886,29 @@ def parse_eqn_block(text_eqn, parse_type, debug, backend, working_dir=None, opti
 
 
     #debug=True
+    
     debug=False
 
     print start_symbol
-    #parser = yacc.yacc(tabmodule='unit_expr_parser_parsetab', outputdir='/tmp/',  debug=debug, start=start_symbol,write_tables=0   )
-    #outputdir=
 
+
+
+    lexer = units_expr_lexer.UnitExprLexer()
     parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=LocMgr.EnsureMakeDirs("/tmp/nu/yacc/parse_eqn_block")   )
-
+    
+    # Make each accessible to the other:
+    lexer.mparser=parser
+    parser.mlexer =lexer
 
 
 
     # TODO: I think this can be removed.
     parser.src_text = text_eqn
-
     
-
+    
+    #print text_eqn
+    #assert False
+    
 
 
     parser.library_manager = LibraryManager(backend=backend, working_dir=working_dir, options=options )
@@ -892,7 +916,7 @@ def parse_eqn_block(text_eqn, parse_type, debug, backend, working_dir=None, opti
     parser.library_manager.src_text = text_eqn
     
 
-    pRes = parser.parse(text_eqn, lexer=units_expr_lexer.UnitExprLexer(), debug=debug)
+    pRes = parser.parse(text_eqn, lexer=lexer, debug=debug)
     return pRes, parser.library_manager
 
 

@@ -13,4 +13,4 @@ from neurounits.neurounitparser import NeuroUnitParser
 from neurounits.neurounitparser import NeuroUnitParserOptions
 
 
-from units_expr_yacc import ParseTypes
+from neurounits.unit_expr_parsing.units_expr_yacc import ParseTypes

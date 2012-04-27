@@ -22,9 +22,10 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #-------------------------------------------------------------------------------
-import units_expr_yacc
-from morphforge.core.misc import ExpectSingle
 
+#import units_expr_yacc
+from morphforge.core.misc import ExpectSingle
+from  neurounits.unit_expr_parsing import units_expr_yacc
 
 
 class NeuroUnitParserOptions():
@@ -65,7 +66,6 @@ class NeuroUnitParser(object):
     def File(cls, text, working_dir=None, debug=False, backend=None, options=None ):
         backend = backend or cls.getDefaultBackend()
         return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L6_TextBlock, working_dir=working_dir, backend=backend, options=options)
-
 
     @classmethod
     def EqnSet(cls, text, **kwargs):

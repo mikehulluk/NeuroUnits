@@ -26,6 +26,8 @@ import traceback
 import StringIO
         
         
+from neurounits.writers.writer_ast_to_mredoc import MRedocWriterVisitor
+from mhlibs.mredoc.writers import LatexWriter
 
 
 
@@ -42,13 +44,20 @@ def main():
 
 
     for xmlfile in NeuroMLDataLibrary.getChannelMLV1FilesWithSingleChannel():
-
+        if xmlfile != "/home/michael/hw_to_come/mf_test_data/test_data/NeuroML/V1/example_simulations/CA1PyramidalCell_NeuroML/kdr.xml":
+                continue
         try:
+            print "XMLFILE:", xmlfile
             eqnset, chl_info, default_filename = ChannelMLReader.BuildEqnset(xmlfile)
+            redoc = MRedocWriterVisitor.build(eqnset)
+
+            print "XMLFILE:", xmlfile
+            LatexWriter.BuildPDF(redoc, '/tmp/output1.pdf')
         
         except NeuroUnitsImportNeuroMLNotImplementedException, e:
             pass
         
+        break
             
         
 

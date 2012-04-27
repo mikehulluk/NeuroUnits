@@ -27,14 +27,7 @@ EQNSET NeuroMLChannel1{
 
 
 
-EQNSET chlstd_leak {
-    i = g * (V-erev)
 
-    <=> PARAMETER g
-    <=> PARAMETER erev
-    <=> OUTPUT    i:(mA/cm2)   METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
-    <=> INPUT V: mV            METADATA {"mf":{"role":"MEMBRANEVOLTAGE"} }
-}
 
 EQNSET chlstd_hh_k {
 

@@ -25,7 +25,7 @@ import os
 
 
 # Clear out the output directory
-outputdir = '/home/michael/hw/morphforge/src/mhlibs/NeuroUnits/src/_output/'
+outputdir = '/home/michael/Desktop/_output/'
 if os.path.exists(outputdir):
     for dirpath, dirname,files in os.walk(outputdir):
         for f in files:

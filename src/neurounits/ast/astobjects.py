@@ -23,19 +23,10 @@
 # WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #-------------------------------------------------------------------------------
-from neurounits.units_misc import Chainmap
-from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
-
 
 
 from base import ASTObject
     
-
-
-
-
-
-
 
 
 class ASTExpressionObject(ASTObject):

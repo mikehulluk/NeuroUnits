@@ -63,7 +63,7 @@ class SuppliedValuesWriter(ASTActionerDefaultIgnoreMissing):
         ASTActionerDefaultIgnoreMissing.__init__(self,action_predicates=[ SingleVisitPredicate() ])
 
     def ActionSuppliedValue(self, n, modfilecontents, build_parameters,  **kwargs):
-        from neuron_constants import NeuronSuppliedValues
+        #from neuron_constants import NeuronSuppliedValues
 
         # Sanity Check;
         assert n in build_parameters.supplied_values,  " Can't find %s in supplied values[%s]"%(n.symbol,  ",".join([s.symbol for s in build_parameters.supplied_values]) )
