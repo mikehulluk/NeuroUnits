@@ -4,7 +4,8 @@ from test_locations import TestLocations
 from neurounits.neurounitparser import NeuroUnitParser
 from neurounits.writers.writer_ast_to_mredoc import MRedocWriterVisitor
 from mhlibs.mredoc.writers.latex import LatexWriter
-from mhlibs.mredoc.objects import Document
+from mhlibs.mredoc.objects import Document, PageBreak
+
 
 
 outputdir = '/home/michael/Desktop/_output/'
@@ -30,6 +31,7 @@ for f in TestLocations.getEqnSetFiles():
         
             redoc = MRedocWriterVisitor.build(eqnset)
             redocs.append( redoc)
+            redocs.append( PageBreak() )
             
     
     LatexWriter.BuildPDF(Document(redocs), '/tmp/output1.pdf')

@@ -283,9 +283,9 @@ class MRedocWriterVisitor(ASTVisitorBase):
         
         
     def VisitEqnSet(self, eqnset):
-        return HeadedScope("Eqnset Summary",
+        return HeadedScope("Eqnset Summary: %s"%eqnset.name.replace("_","\_"),
                 HeadedScope("Assignments",
-                   EquationBlock( *[LatexEqnWriterN().Visit(a) for a in eqnset.assignments])), 
+                   EquationBlock( *[LatexEqnWriterN().Visit(a) for a in sorted( eqnset.assignments, key=lambda a:a.lhs.symbol)])), 
                 HeadedScope("State Variables",
                    EquationBlock( *[LatexEqnWriterN().Visit(a) for a in
                        eqnset.timederivatives])), 
