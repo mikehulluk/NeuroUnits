@@ -24,7 +24,7 @@
 #-------------------------------------------------------------------------------
 
 #import units_expr_yacc
-from morphforge.core.misc import ExpectSingle
+from units_misc import ExpectSingle
 from  neurounits.unit_expr_parsing import units_expr_yacc
 
 

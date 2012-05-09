@@ -85,4 +85,13 @@ def read_json(s):
     return x
 
 
+#def ExpectSingle(l):
+#    assert len(l) == 1
+#    return l[0]
+
+
+
+
+
+
 

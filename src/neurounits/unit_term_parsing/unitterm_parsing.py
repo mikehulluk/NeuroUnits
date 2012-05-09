@@ -14,7 +14,8 @@ import ply
 from ..unit_errors import UnitError
 from unitterm_lexing import UnitTermLexer
 from ..units_data_unitterms import UnitTermData
-from morphforge.core.mgrs.locmgr import LocMgr
+#from morphforge.core.mgrs.locmgr import LocMgr
+from ..units_misc import EnsureExisits
 
 
 
@@ -115,8 +116,8 @@ def p_error(p):
 
 
 
-
-unit_expr_parser = ply.yacc.yacc(  start='unit_term_unpowered',  tabmodule="neurounits_parsing_parse_eqn_term", outputdir=LocMgr.EnsureMakeDirs("/tmp/nu/yacc/parse_term")   )
+tables_loc = EnsureExisits("/tmp/nu/yacc/parse_term")   
+unit_expr_parser = ply.yacc.yacc(  start='unit_term_unpowered',  tabmodule="neurounits_parsing_parse_eqn_term", outputdir=tables_loc)
 
 
 

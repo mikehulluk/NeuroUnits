@@ -17,14 +17,14 @@ import ply.yacc as yacc
 import units_expr_lexer
 from neurounits.unit_errors import UnitError
 from units_expr_lexer import UnitExprLexer
-from neurounits.units_misc import ExpectSingle, safe_dict_merge
+from neurounits.units_misc import ExpectSingle, safe_dict_merge, EnsureExisits
 from neurounits.librarymanager import LibraryManager
 
 import neurounits.ast as ast
 
 
 from neurounits.units_data_unitterms import UnitTermData
-from morphforge.core.mgrs.locmgr import LocMgr
+#from morphforge.core.mgrs.locmgr import LocMgr
 
 
 
@@ -855,7 +855,8 @@ class ParserMgr():
     @classmethod
     def build_parser( cls, start_symbol, debug):
         #lexer = units_expr_lexer.UnitExprLexer()
-        parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=LocMgr.EnsureMakeDirs("/tmp/nu/yacc/parse_eqn_block")   )
+        tables_loc =  EnsureExisits("/tmp/nu/yacc/parse_eqn_block")
+        parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc )
         return parser
 
     @classmethod
