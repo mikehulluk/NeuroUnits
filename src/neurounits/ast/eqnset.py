@@ -28,7 +28,9 @@
 from neurounits.units_misc import Chainmap
 from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
 from base import ASTObject
-from neurounits.ast.astobjects import Parameter, SuppliedValue, ConstValue
+from neurounits.ast.astobjects import Parameter, SuppliedValue, ConstValue,\
+    AssignedVariable
+from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
     
 
 
@@ -64,7 +66,11 @@ class EqnSet(ASTObject):
 
 
         # In Use!
+
         self.library_manager = None
+        self.io_data = None
+        
+        
 
 
     @property
@@ -99,11 +105,11 @@ class EqnSet(ASTObject):
 
     @property
     def assignedvalues(self):
-        return self._eqn_assignment.keys()
+        return sorted( self._eqn_assignment.keys(), key=lambda a:a.symbol )
 
     @property
     def states(self):
-        return self._eqn_time_derivatives.keys()
+        return sorted( self._eqn_time_derivatives.keys(), key=lambda a:a.symbol )
 
     @property
     def functiondefs(self):
@@ -111,7 +117,7 @@ class EqnSet(ASTObject):
 
     @property
     def symbolicconstants(self):
-        return self._symbolicconstants.values()
+        return sorted(self._symbolicconstants.values(), key=lambda a:a.symbol )
 
 
 
@@ -141,17 +147,6 @@ class EqnSet(ASTObject):
 
 
     def get_terminal_obj(self, symbol):
-#        m1 =  self._getParametersDict()
-#        m2 = self._getSuppliedValuesDict()
-#        m3 = self._getAssignedVariablesDict()
-#        m4 = self._getStateVariablesDict()
-#        m5 = self._symbolicconstants
-#        print "M1", m1, type(m1)
-#        print "M2", m2, type(m2)
-#        print "M3", m3, type(m3)
-#        print "M4", m4, type(m4)
-#        print "M5", m5, type(m5)
-
         m = Chainmap( self._getParametersDict(),
                       self._getSuppliedValuesDict(),
                       self._getAssignedVariablesDict(),
@@ -183,8 +178,6 @@ class EqnSet(ASTObject):
         return dict( [(s.symbol, s)  for s in self._supplied_values ])
     def _getParametersDict(self):
         return dict( [(s.symbol, s)  for s in self._parameters ])
-    #def _getSymbolicConstantsDict(self):
-        #return dict( [(s.symbol, s)  for s in self._symbolicconstants ])
     def _getAssignedVariablesDict(self):
         return  dict( [(ass.lhs.symbol, ass.lhs)  for ass in self._eqn_assignment.values() ])
     def _getStateVariablesDict(self):
@@ -192,6 +185,49 @@ class EqnSet(ASTObject):
 
 
 
+
+
+    def getSymbolDependancicesDirect(self, sym, include_constants=False):
+        
+        assert sym in self.terminal_symbols
+        
+        if isinstance(sym, AssignedVariable):
+            sym = sym.assignment_rhs
+        
+        d = VisitorFindDirectSymbolDependance()
+        
+        return list( set( d.Visit(sym) ) ) 
+    
+    def getSymbolDependancicesIndirect(self, sym,include_constants=False, include_ass_in_output=False):
+        res_deps = []
+        un_res_deps =  self.getSymbolDependancicesDirect(sym, include_constants=include_constants) 
+        
+        while un_res_deps:
+            p = un_res_deps.pop()
+            
+            if p is sym:
+                continue
+            if p in res_deps:
+                continue
+            
+            p_deps = self.getSymbolDependancicesIndirect(p, include_constants=include_constants) 
+            un_res_deps.extend(p_deps)
+            res_deps.append(p)
+            
+        if not include_ass_in_output:
+            res_deps = [d for d in res_deps if not isinstance(d,AssignedVariable) ]
+        return res_deps
+            
+
+
+    def getSymbolMetadata(self, sym):
+        assert sym in self.terminal_symbols
+        for io in self.io_data:
+            if io.symbol == sym.symbol:
+                return io.metadata
+        return None
+
+            
 
 
     def AcceptVisitor(self, v, **kwargs):

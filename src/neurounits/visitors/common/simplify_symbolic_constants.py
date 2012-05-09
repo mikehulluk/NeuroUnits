@@ -21,32 +21,41 @@ class ReduceConstants(ASTVisitorBase):
     def Visit(self, o, **kwargs):
         return o.AcceptVisitor(self, **kwargs)
         
+        
     def VisitEqnSet(self, o, **kwargs):
         
         
-        
+        removed = []
         for aKey in o._eqn_assignment.keys():
             a = o._eqn_assignment[aKey]
+            alhs = a.lhs
             fixed_value = self.Visit(a.rhs)
             if fixed_value:
                 
-                s = ast.SymbolicConstant( symbol=aKey.symbol+"_as_symconst", value=fixed_value )
+                sym_suffix = "_as_symconst"
+                sym_suffix= ""
+                s = ast.SymbolicConstant( symbol=aKey.symbol+sym_suffix, value=fixed_value )
                 print 'New Symbolic Constant', s, aKey.symbol, s.value
                 
                 #assert False
                 print 'Replacing Node:', a.lhs.symbol
                 ReplaceNode(a.lhs, s).Visit(o)
+                
                 o._cache_nodes()
                 print 'Done replacing symbol'
                 
                 o._symbolicconstants[aKey.symbol] = s
                 del o._eqn_assignment[aKey]
                 
-                n = EqnsetVisitorNodeCollector()
-                n.Visit(o)
-                #assert not a.lhs in n.all() 
-                
-                
+                removed.append(alhs)
+        
+
+        # Double check they have gone:
+        o._cache_nodes()        
+        for a in removed:
+            nc = EqnsetVisitorNodeCollector()
+            nc.Visit(o)
+            assert not a in nc.all()
                 
             #else:
                 

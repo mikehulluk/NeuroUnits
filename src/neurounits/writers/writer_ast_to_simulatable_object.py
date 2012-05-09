@@ -18,11 +18,12 @@ from neurounits.units_misc import safe_dict_merge
 
 import numpy as np
 #import quantities as pq  
-from neurounits.writers.writer_ast_to_latex import FormatDimension
+#from neurounits.writers.writer_ast_to_latex import FormatDimension
 from neurounits.visitors.common import VisitorFindDirectSymbolDependance
 #from neurounits.eqnset_ast.astobjects import AssignedVariable
         
 from neurounits import ast
+from neurounits.units_backends.mh import MHUnitBackend
 
 
 class EqnSimulator(object):
@@ -213,10 +214,7 @@ class FunctorGenerator(ASTVisitorBase):
             
     
     def VisitEqnAssignment(self, o, **kwargs):
-        
         self.assignment_evaluators[o.lhs.symbol]  = self.Visit(o.rhs)
-        #print o.rhs 
-        #print 'Executing!'
 
         
     # AST Objects:
@@ -227,32 +225,49 @@ class FunctorGenerator(ASTVisitorBase):
 
 
     def VisitIfThenElse(self, o, **kwargs):
-        raise NotImplementedError()
+        fpred = self.Visit(o.predicate)
+        ftrue = self.Visit(o.if_true_ast)
+        ffalse = self.Visit(o.if_false_ast)
+        def f(**kw):
+            if fpred(**kw):
+                return ftrue(**kw) 
+            else:
+                return ffalse(**kw)
+        return f
+    
+        
+        
     def VisitInEquality(self, o ,**kwargs):
-        raise NotImplementedError()
+        lt = self.Visit( o.less_than )
+        gt = self.Visit( o.greater_than )
+        def f(**kw):
+            return lt(**kw) < gt(**kw)
+        return f
+        
+        
+
     def VisitBoolAnd(self, o, **kwargs):
         raise NotImplementedError()
     def VisitBoolOr(self, o, **kwargs):
         raise NotImplementedError()
     def VisitBoolNot(self, o, **kwargs):
         raise NotImplementedError()
-    # Function Definitions:
-    #def VisitFunctionDef(self, o, **kwargs):
-    #    raise NotImplementedError()
+
     
     
     def VisitBuiltInFunction(self, o, **kwargs):
-        def eFunc(**kwargs):
+        def eFunc(**kw):
             if o.funcname == 'exp':
-                from neurounits.units_backends.default import ParsingBackend
-                return ParsingBackend.Quantity( float( np.exp( ( kwargs.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
+                ParsingBackend = MHUnitBackend
+                #from neurounits.units_backends.default import ParsingBackend
+                return ParsingBackend.Quantity( float( np.exp( ( kw.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
         return eFunc
         
     
 
 
     def VisitSymbolicConstant(self, o, **kwargs):
-        def eFunc(**kwargs):
+        def eFunc(**kw):
             return o.value
         return eFunc
 
@@ -265,8 +280,8 @@ class FunctorGenerator(ASTVisitorBase):
         
 
     def VisitParameter(self, o, **kwargs):
-        def eFunc(**kwargs):
-            return kwargs[ o.symbol ]
+        def eFunc(**kw):
+            return kw[ o.symbol ]
         return eFunc
         
 
@@ -278,18 +293,18 @@ class FunctorGenerator(ASTVisitorBase):
     
     
     def VisitSuppliedValue(self, o, **kwargs):
-        def eFunc(**kwargs):
-            return kwargs[ o.symbol ]
+        def eFunc(**kw):
+            return kw[ o.symbol ]
         return eFunc    
     
 
     def VisitAssignedVariable(self, o, **kwargs):
-        #print 'Visiting', o.symbol
+        print 'Visiting', o.symbol
         # We are at an assignment. We resolve this by looking up the 
         # Right hand side of the assigned variable:
         assignment_rhs = self.assignment_evaluators[o.symbol]
-        def eFunc(**kwargs):
-            return assignment_rhs(**kwargs)
+        def eFunc(**kw):
+            return assignment_rhs(**kw)
         return eFunc
     
 
@@ -301,40 +316,40 @@ class FunctorGenerator(ASTVisitorBase):
     def VisitAddOp(self, o, **kwargs):
         f_lhs = self.Visit(o.lhs)
         f_rhs = self.Visit(o.rhs)
-        def eFunc(**kwargs):
-            return f_lhs(**kwargs) + f_rhs(**kwargs)
+        def eFunc(**kw):
+            return f_lhs(**kw) + f_rhs(**kw)
         return eFunc
         
     def VisitSubOp(self, o, **kwargs):
         f_lhs = self.Visit(o.lhs)
         f_rhs = self.Visit(o.rhs)
-        def eFunc(**kwargs):
-            return f_lhs(**kwargs) - f_rhs(**kwargs)
+        def eFunc(**kw):
+            return f_lhs(**kw) - f_rhs(**kw)
         return eFunc
         
     def VisitMulOp(self, o, **kwargs):
         f_lhs = self.Visit(o.lhs)
         f_rhs = self.Visit(o.rhs)
-        def eFunc(**kwargs):
+        def eFunc(**kw):
             #print type(o.lhs)
             #print type(o.rhs)
             
-            f_lhs(**kwargs)
-            f_rhs(**kwargs)
-            return f_lhs(**kwargs) * f_rhs(**kwargs)
+            #f_lhs(**kw)
+            #f_rhs(**kw)
+            return f_lhs(**kw) * f_rhs(**kw)
         return eFunc
 
     def VisitDivOp(self, o, **kwargs):
         f_lhs = self.Visit(o.lhs)
         f_rhs = self.Visit(o.rhs)
-        def eFunc(**kwargs):
-            return f_lhs(**kwargs) / f_rhs(**kwargs)
+        def eFunc(**kw):
+            return f_lhs(**kw) / f_rhs(**kw)
         return eFunc
 
     def VisitExpOp(self, o, **kwargs):
         f_lhs = self.Visit(o.lhs)
-        def eFunc(**kwargs):
-            return f_lhs(**kwargs) ** o.rhs
+        def eFunc(**kw):
+            return f_lhs(**kw) ** o.rhs
         return eFunc
 
 
@@ -345,28 +360,28 @@ class FunctorGenerator(ASTVisitorBase):
         for p in o.parameters:
             param_functors[p] = self.Visit( o.parameters[p] )
         func_call_functor = self.Visit(o.function_def)
-        def eFunc(**kwargs):
-            func_params = dict( [(p,func(**kwargs) ) for p,func in param_functors.iteritems() ] )
+        def eFunc(**kw):
+            func_params = dict( [(p,func(**kw) ) for p,func in param_functors.iteritems() ] )
             return func_call_functor(**func_params)
         return eFunc
     
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         f_rhs = self.Visit(o.rhs_ast)
-        def eFunc(**kwargs):
-            return f_rhs(**kwargs) 
+        def eFunc(**kw):
+            return f_rhs(**kw) 
         return eFunc
 
 
             
     def VisitFunctionDef(self, o, **kwargs):
         f_rhs = self.Visit(o.rhs)
-        def eFunc(**kwargs):
-            return f_rhs(**kwargs) 
+        def eFunc(**kw):
+            return f_rhs(**kw) 
         return eFunc
         
         
     def VisitFunctionDefParameter(self, o, **kwargs):
-        def eFunc(**kwargs):
+        def eFunc(**kw):
             return kwargs[ o.symbol ]
         return eFunc
                 

@@ -8,58 +8,59 @@ from Cheetah.Template import Template
 from mhlibs.test_data.neuroml import NeuroMLDataLibrary
 from neurounits.importers.neuroml.errors import NeuroUnitsImportNeuroMLNotImplementedException
 from neurounits.importers.neuroml import ChannelMLReader
-html_output_dir = "/home/michael/Desktop/chl_comp"
-from morphforge.core import LocMgr
+#from mredoc import Document, PageBreak
 
-import lxml.etree as etree
-
-import pylab
-
-from morphforge.stdimports import NeuronSimulationEnvironment,MorphologyTree, unit
-from morphforge.stdimports import PassiveProperty, ApplyPassiveEverywhereUniform, StdRec
-from morphforge.stdimports import  ApplyMechanismEverywhereUniform, pq
-
-import random as R
-from morphforge.simulation.core.segmentation.cellsegmenter import CellSegmenter_SingleSegment
-import numpy as np
-import traceback
-import StringIO
-        
         
 from neurounits.writers.writer_ast_to_mredoc import MRedocWriterVisitor
-from mhlibs.mredoc.writers import LatexWriter
+from mredoc.writers import LatexWriter
+from mredoc.objects import TableOfContents
+from mredoc.util.removeemptysections import EmptySectionRemover, NormaliseHierachyScope
+from neurounits.tools import nmodl
+from mredoc.writers.html import HTMLWriter
+from mredoc.objects.core import Document
+#from testing.test_locations import TestLocations
 
-
+from test_locations import TestLocations
 
 
 
 def main():
 
-    ## Clear out the old directory:
-    #if os.path.exists(html_output_dir):
-    ##    shutil.rmtree(html_output_dir)
-    #LocMgr.EnsureMakeDirs(html_output_dir)
+    redocs = []
+    
+    for i,xmlfile in enumerate(NeuroMLDataLibrary.getChannelMLV1FilesWithSingleChannel()):
 
-    root_html = Join(html_output_dir,"index.html")
-
-
-    for xmlfile in NeuroMLDataLibrary.getChannelMLV1FilesWithSingleChannel():
-        if xmlfile != "/home/michael/hw_to_come/mf_test_data/test_data/NeuroML/V1/example_simulations/CA1PyramidalCell_NeuroML/kdr.xml":
-                continue
         try:
             print "XMLFILE:", xmlfile
             eqnset, chl_info, default_filename = ChannelMLReader.BuildEqnset(xmlfile)
+            
+            # Build the pdf for the channel:
             redoc = MRedocWriterVisitor.build(eqnset)
-
-            print "XMLFILE:", xmlfile
-            LatexWriter.BuildPDF(redoc, '/tmp/output1.pdf')
-        
+            redocs.extend([redoc])
+            
+            #Build the NModl for the channel:
+            txt, buildparameters = nmodl.WriteToNMODL(eqnset)
+            
+            
+            
         except NeuroUnitsImportNeuroMLNotImplementedException, e:
             pass
         
-        break
-            
-        
+        #break
+    
+        if i > 2:
+            break
+    
+    
+    doc =  Document( TableOfContents(), *redocs)
+    EmptySectionRemover().Visit(doc)       
+    NormaliseHierachyScope().Visit(doc)
+    
+    
+    opdir = os.path.join( TestLocations.getTestOutputDir(), 'neuroml' )
+    
+    HTMLWriter.BuildHTML(doc, os.path.join(opdir, 'html') )
+    LatexWriter.BuildPDF(doc, os.path.join(opdir, 'all.pdf') )
 
 
 

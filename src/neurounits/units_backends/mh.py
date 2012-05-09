@@ -146,7 +146,7 @@ class MMUnit(object):
 
 
     def FormatLatex(self, inc_powerten=True):
-        s1 = "(10e%d)" % self.powerTen if inc_powerten else ""
+        s1 = "(10^{%d})" % self.powerTen if inc_powerten and self.powerTen else ""
 
         basis_short_LUT = dict ( zip( MMUnit.Bases, MMUnit.BasesShort) )
         basisCounts = dict( [ (b, getattr(self, b)) for  b in MMUnit.Bases ] ) 

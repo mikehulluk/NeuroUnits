@@ -16,7 +16,7 @@ class TestLocations(object):
     
     @classmethod
     def getPackageRoot(cls):
-        return "/home/michael/workspace/morphforge/src/mhlibs/NeuroUnits"
+        return "/home/michael/workspace/libs/NeuroUnits"
     
     
     @classmethod

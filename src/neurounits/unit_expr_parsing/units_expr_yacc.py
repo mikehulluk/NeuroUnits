@@ -848,6 +848,22 @@ def parse_expr(text, parse_type, backend, start_symbol=None, debug=False, workin
 
 
 
+class ParserMgr():
+
+    parsers = {}
+
+    @classmethod
+    def build_parser( cls, start_symbol, debug):
+        #lexer = units_expr_lexer.UnitExprLexer()
+        parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=LocMgr.EnsureMakeDirs("/tmp/nu/yacc/parse_eqn_block")   )
+        return parser
+
+    @classmethod
+    def get_parser( cls, start_symbol, debug ):
+        k = (start_symbol, debug)
+        if not k in cls.parsers:
+            cls.parsers[k] = cls.build_parser(start_symbol=start_symbol, debug=debug)
+        return cls.parsers[k]
 
 
 
@@ -885,35 +901,31 @@ def parse_eqn_block(text_eqn, parse_type, debug, backend, working_dir=None, opti
 
 
 
-    #debug=True
     
-    debug=False
 
     print start_symbol
 
-
-
+    debug=False
     lexer = units_expr_lexer.UnitExprLexer()
-    parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=LocMgr.EnsureMakeDirs("/tmp/nu/yacc/parse_eqn_block")   )
-    
+    parser = ParserMgr.get_parser( start_symbol=start_symbol, debug=debug)
+    #parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=LocMgr.EnsureMakeDirs("/tmp/nu/yacc/parse_eqn_block")   )
+    parser.library_manager = LibraryManager(backend=backend, working_dir=working_dir, options=options )
+
     # Make each accessible to the other:
-    lexer.mparser=parser
-    parser.mlexer =lexer
+    #lexer.mparser=parser
+    #parser.mlexer =lexer
+
+
 
 
 
     # TODO: I think this can be removed.
     parser.src_text = text_eqn
-    
-    
-    #print text_eqn
-    #assert False
-    
-
-
-    parser.library_manager = LibraryManager(backend=backend, working_dir=working_dir, options=options )
-
     parser.library_manager.src_text = text_eqn
+    
+
+
+
     
 
     pRes = parser.parse(text_eqn, lexer=lexer, debug=debug)

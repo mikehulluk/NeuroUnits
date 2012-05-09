@@ -16,20 +16,20 @@ from neurounits.units_misc import read_json
 
 
 class IOData(object):
-    def __init__(self, symbol, iotype):
+    def __init__(self, symbol, iotype, metadata={}):
         self.symbol=symbol
         self.iotype=iotype
-
-
-class IODataDimensionSpec(IOData):
-    def __init__(self, symbol, iotype, dimension=None, metadata={}):
-        IOData.__init__(self, symbol=symbol, iotype=iotype)
-        self.dimension = dimension
         self.metadata = metadata
 
+class IODataDimensionSpec(IOData):
+    def __init__(self, symbol, iotype, dimension=None, **kwargs):
+        IOData.__init__(self, symbol=symbol, iotype=iotype, **kwargs)
+        self.dimension = dimension
+
+
 class IODataInitialCondition(IOData):
-    def __init__(self, symbol,  value):
-        IOData.__init__(self, symbol=symbol, iotype=IOType.InitialCondition)
+    def __init__(self, symbol,  value, **kwargs):
+        IOData.__init__(self, symbol=symbol, iotype=IOType.InitialCondition, **kwargs)
         self.value = value
 
     

@@ -346,7 +346,7 @@ class EqnSetBuilder(object):
             else:
                 self.resolve_global_symbol(p.symbol, p, expect_is_unresolved = True)
                 
-            #self._astobject._parameters[p.symbol] = p
+            
 
         supplied_symbols = [ ast.SuppliedValue(symbol=p.symbol,dimension=p.dimension) for p in io_data if p.iotype==IOType.Input ]
         for s in supplied_symbols:
@@ -366,7 +366,6 @@ class EqnSetBuilder(object):
         # but it might contain unit information:
         output_symbols = [ p for p in io_data if p.iotype==IOType.Output ]
         for o in output_symbols:
-#            from builder_visitor_remove_proxies import RemoveAllSymbolProxy
             os_obj = RemoveAllSymbolProxy().followSymbolProxy( self.global_scope.getSymbol(o.symbol) )
             assert not os_obj.is_dimensionality_known()
             if o.dimension:
