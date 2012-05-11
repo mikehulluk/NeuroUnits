@@ -60,6 +60,12 @@ class NeuroUnitParser(object):
         backend = backend or cls.getDefaultBackend()
         return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L3_QuantityExpr, backend=backend)
 
+    @classmethod
+    def Function(cls, text, debug=False, backend=None):
+        assert False
+        """ Should return a callable"""
+        backend = backend or cls.getDefaultBackend()
+        return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L1_Unit, backend=backend )
 
 
     @classmethod
