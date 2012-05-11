@@ -1,12 +1,22 @@
 
 
 
-.PHONEY: all clean
+.PHONEY: all clean force_look doc
 
 all:
+force_look:
+
+
+examples: force_look
+	make -C src/testing
+
+doc: force_look
+	make -C doc/ 
 
 clean:
-	rm -rf **/*.pyc
-	rm -rf sphinx/_build/
-	rm -rf src/_output/
-	rm -rf src/testing/_output/
+	# Source Code:
+	#find . -name "*.pyc" -exec rm {} \;
+
+	# Documentation:
+	make -C doc/ clean
+	make -C src/ clean
