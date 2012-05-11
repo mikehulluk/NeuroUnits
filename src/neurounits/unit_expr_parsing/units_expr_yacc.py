@@ -206,7 +206,7 @@ def p_parse_eqnsetline4(p):
                             | function_def
                             | assignment
                             | time_derivative
-                            | quantity_def
+                            | quantity_expr
                     """
     pass
 
@@ -256,25 +256,17 @@ def p_import_statement1(p):
     p.parser.library_manager.get_current_block_builder().do_import(srclibrary = p[3], tokens=[(t,None) for t in  p[7] ])
 
 def p_import_statement2(p):
-    """import : FROM WHITESPACE namespace WHITESPACE IMPORT WHITESPACE alphanumtoken WHITESPACE AS WHITESPACE  alphanumtoken"""
+    """import : FROM WHITESPACE namespace WHITESPACE IMPORT WHITESPACE localsymbol WHITESPACE AS WHITESPACE  localsymbol"""
     p.parser.library_manager.get_current_block_builder().do_import(srclibrary = p[3], tokens=[(p[7],p[11])] )
 
 
 
-#def p_packagename1(p):
-#    """package_name : alphanumtoken"""
-#    p[0] = p[1]
-#
-#def p_packagename2(p):
-#    """package_name : package_name DOT alphanumtoken"""
-#    p[0] = "%s%s%s"%( p[1],p[2],p[3] )
-#
 def p_import_target_list1(p):
-    """import_target_list : alphanumtoken"""
+    """import_target_list : localsymbol"""
     p[0] = [p[1]]
 
 def p_import_target_list2(p):
-    """import_target_list : import_target_list COMMA alphanumtoken"""
+    """import_target_list : import_target_list COMMA localsymbol"""
     p[0] = p[1] + [p[3]]
 
 
@@ -282,27 +274,27 @@ def p_import_target_list2(p):
 
 
 
-def p_quantity_def1(p):
-    """quantity_def : quantity_expr
-                    | quantity_expr COLON unit_expr"""
-    if len(p) == 4:
-        t = (p[1])/(p[3])
-        backend = p.parser.library_manager.backend
-        assert False
-        #TODO SOME ERROR CHECKING
-        #backend.unit_as_dimensionless(t)
-
-    p[0] = p[1]
+#def p_quantity_def1(p):
+#    """quantity_def : quantity_expr
+#                    | quantity_expr COLON unit_expr"""
+#    if len(p) == 4:
+#        t = (p[1])/(p[3])
+#        backend = p.parser.library_manager.backend
+#        assert False
+#        #TODO SOME ERROR CHECKING
+#        #backend.unit_as_dimensionless(t)
+#
+#    p[0] = p[1]
 
 
 def p_assignment(p):
-    """assignment : alphanumtoken EQUALS lhs_generic"""
+    """assignment : lhs_symbol EQUALS lhs_generic"""
     p.parser.library_manager.get_current_block_builder().add_assignment(
            lhs_name = p[1],
            rhs_ast = p[3] )
 
 def p_time_derivative(p):
-    """time_derivative : alphanumtoken PRIME EQUALS lhs_generic"""
+    """time_derivative : lhs_symbol PRIME EQUALS lhs_generic"""
     p.parser.library_manager.get_current_block_builder().add_timederivative(
            lhs_state_name = p[1],
            rhs_ast = p[4] )
@@ -333,8 +325,8 @@ def p_rhs_symbol(p):
     p[0] = p[1]
 
 def p_lhs_symbol(p):
-    """lhs_symbol : localsymbol
-                   | externalsymbol """
+    """lhs_symbol : localsymbol"""
+
     p[0] = p[1]
 
 
@@ -349,14 +341,14 @@ def p_function_definition_scope_open(p):
     p.parser.library_manager.get_current_block_builder().open_function_def_scope()
 
 def p_function_definition(p):
-    """function_def : alphanumtoken LBRACKET function_def_params RBRACKET EQUALS open_funcdef_scope lhs_generic """
+    """function_def : lhs_symbol LBRACKET function_def_params RBRACKET EQUALS open_funcdef_scope lhs_generic """
     f = ast.FunctionDef( funcname=p[1], parameters=p[3], rhs=p[7] )
     p.parser.library_manager.get_current_block_builder().close_scope_and_create_function_def(f)
     p[0] = None
 
 def p_function_def_param(p):
-    """function_def_param : alphanumtoken
-                          | alphanumtoken COLON unit_expr"""
+    """function_def_param : localsymbol
+                          | localsymbol COLON unit_expr"""
     dimension = None if len(p) == 2 else p[3]
     p[0] = {p[1]:ast.FunctionDefParameter(symbol=p[1], dimension=dimension) }
 
@@ -504,7 +496,7 @@ def p_lhs_term2(p):
 
 
 def p_lhs_variable(p):
-    """ lhs_variable : alphanumtoken"""
+    """ lhs_variable : lhs_symbol"""
     p[0] = p.parser.library_manager.get_current_block_builder().get_symbol_or_proxy(p[1])
 
 def p_lhs_unit_expr(p):
@@ -768,7 +760,7 @@ class ParseTypes(object):
 class ParseDetails(object):
     start_symbols = {
         ParseTypes.L1_Unit :            'unit_expr',
-        ParseTypes.L2_QuantitySimple :  'quantity_def',
+        ParseTypes.L2_QuantitySimple :  'quantity_expr',
         ParseTypes.L3_QuantityExpr :    'lhs_generic',
         ParseTypes.L4_EqnSet :          'eqnset',
         ParseTypes.L5_Library :         "library_set",
