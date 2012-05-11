@@ -90,17 +90,11 @@ def p_file_def2(p):
 
 def p_open_new_eqnset(p):
     """ open_eqnset : empty """
-    #print 'Opening Eqnset'
     p.parser.library_manager.start_eqnset_block()
-
-
-
 
 def p_close_new_eqnset(p):
     """eqnset_def : eqnset_def_internal"""
-    #print 'Closing Eqnset'
     p.parser.library_manager.end_eqnset_block()
-    #print 'Eqnset Loaded'
 
 
 
@@ -274,18 +268,6 @@ def p_import_target_list2(p):
 
 
 
-#def p_quantity_def1(p):
-#    """quantity_def : quantity_expr
-#                    | quantity_expr COLON unit_expr"""
-#    if len(p) == 4:
-#        t = (p[1])/(p[3])
-#        backend = p.parser.library_manager.backend
-#        assert False
-#        #TODO SOME ERROR CHECKING
-#        #backend.unit_as_dimensionless(t)
-#
-#    p[0] = p[1]
-
 
 def p_assignment(p):
     """assignment : lhs_symbol EQUALS rhs_generic"""
@@ -376,7 +358,7 @@ def p_quantity_func_call_l3(p):
     p[0] = p[1]
 
 def p_quantity_func_call_l3_1(p):
-    """function_call_l3 :  alphanumtoken LBRACKET func_call_params_l3 RBRACKET """
+    """function_call_l3 :  rhs_symbol LBRACKET func_call_params_l3 RBRACKET """
     p[0] = p.parser.library_manager.get_current_block_builder().create_function_call( p[1], p[3] )
 
 
@@ -486,22 +468,22 @@ def p_rhs_term_div(p):
 
 def p_rhs_term1(p):
     """ rhs_term : rhs_variable
-                 | rhs_quantity_expr
-                 """
+                 | rhs_quantity_expr """
     p[0] = p[1]
 
 def p_rhs_term2(p):
     """ rhs_term : quantity """
     p[0] = ast.ConstValue( p[1] )
 
-
 def p_lhs_variable(p):
-    """ rhs_variable : lhs_symbol"""
+    """ rhs_variable : rhs_symbol"""
     p[0] = p.parser.library_manager.get_current_block_builder().get_symbol_or_proxy(p[1])
 
 def p_lhs_unit_expr(p):
     """ rhs_quantity_expr : LCURLYBRACKET quantity RCURLYBRACKET"""
     p[0] = ast.ConstValue( p[2] )
+
+
 
 
 # Alphanumeric tokes:
@@ -519,9 +501,6 @@ def p_lhs_variable_name3(p):
 
 
 
-
-# L2
-##########
 
 
 
@@ -819,15 +798,40 @@ def apply_regex(r, text):
 
 
 
-def parse_expr(text, parse_type, backend, start_symbol=None, debug=False, working_dir=None, options=None):
+def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None):
 
 
 
     # Some Cleaning
     # This is a bit hacky
-    text = "\n".join( [l.strip() for l in text.split("\n") if l.strip() ] )
 
-    pRes, library_manager = parse_eqn_block(text, parse_type=parse_type, debug=debug, backend=backend, working_dir=working_dir, options=options)
+    # Preprocess the text a little:
+    if parse_type in [ParseTypes.L4_EqnSet, ParseTypes.L5_Library, ParseTypes.L6_TextBlock]:
+        lines = []
+        for l in text.split("\n"):
+            if len(lines)!=0 and lines[-1].endswith('\\'):
+                assert l
+                lines[-1] = lines[-1][:-1] + l
+
+            else:
+                l = l.strip()
+                if not l:
+                    continue
+                if not l[-1] in ('{'):
+                    l = l +";"
+                lines.append(l)
+
+        text = "\n".join( lines )
+    else:
+        text = text.strip()
+    print text
+
+
+
+
+    if library_manager == None:
+        library_manager = LibraryManager(backend=backend, working_dir=working_dir, options=options )
+    pRes, library_manager = parse_eqn_block(text, parse_type=parse_type, debug=debug, library_manager=library_manager)
 
 
 
@@ -880,7 +884,7 @@ class ParserMgr():
 
 
 
-def parse_eqn_block(text_eqn, parse_type, debug, backend, working_dir=None, options=None):
+def parse_eqn_block(text_eqn, parse_type, debug, library_manager):#backend, working_dir=None, options=None):
 
 
 
@@ -916,7 +920,8 @@ def parse_eqn_block(text_eqn, parse_type, debug, backend, working_dir=None, opti
     #debug=False
     lexer = units_expr_lexer.UnitExprLexer()
     parser = ParserMgr.get_parser( start_symbol=start_symbol, debug=debug)
-    parser.library_manager = LibraryManager(backend=backend, working_dir=working_dir, options=options )
+    #parser.library_manager = LibraryManager(backend=backend, working_dir=working_dir, options=options )
+    parser.library_manager = library_manager
 
 
     # 'A': When loading QuantityExpr or Functions, we might use

@@ -40,6 +40,11 @@ class Library(object):
     def getFunctionDef(self, f):
         return self.functiondefs[f]
 
+
+    def get_terminal_obj(self,sym):
+        return self.getSymbol(sym)
+
+
     def getSymbol(self, sym):
         
         try:

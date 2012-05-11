@@ -57,6 +57,7 @@ class UnitExprLexer(object):
         "PRIME",
         "LSQUAREBRACKET",
         "RSQUAREBRACKET",
+        "SEMICOLON",
         
         "DOT",
 
@@ -116,6 +117,7 @@ class UnitExprLexer(object):
     t_RSQUAREBRACKET = r"""\]"""
     t_TIMESTIMES = r"""\*\*"""
     t_PRIME = r"""'"""
+    t_SEMICOLON = r""";"""
 
     t_TILDE = r"""~"""
     t_DOT = r"""\."""

@@ -1,24 +1,24 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.
 # All rights reserved.
-# 
-# Redistribution and use in source and binary forms, with or without 
+#
+# Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 
-#  - Redistributions of source code must retain the above copyright notice, 
+#
+#  - Redistributions of source code must retain the above copyright notice,
 #    this list of conditions and the following disclaimer.
 #  - Redistributions in binary form must reproduce the above copyright notice,
 #    this list of conditions and the following disclaimer in the documentation
 #    and/or other materials provided with the distribution.
-# 
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE 
-# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
 # WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
@@ -31,7 +31,7 @@ from base import ASTObject
 from neurounits.ast.astobjects import Parameter, SuppliedValue, ConstValue,\
     AssignedVariable
 from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
-    
+
 
 
 
@@ -69,8 +69,8 @@ class EqnSet(ASTObject):
 
         self.library_manager = None
         self.io_data = None
-        
-        
+
+
 
 
     @property
@@ -132,6 +132,10 @@ class EqnSet(ASTObject):
     def suppliedvalues(self,):
         return self._supplied_values
 
+    #@property
+    #def symbolicconstants(self):
+    #    return self._symbolicconstants
+
 
 
     @property
@@ -188,36 +192,36 @@ class EqnSet(ASTObject):
 
 
     def getSymbolDependancicesDirect(self, sym, include_constants=False):
-        
+
         assert sym in self.terminal_symbols
-        
+
         if isinstance(sym, AssignedVariable):
             sym = sym.assignment_rhs
-        
+
         d = VisitorFindDirectSymbolDependance()
-        
-        return list( set( d.Visit(sym) ) ) 
-    
+
+        return list( set( d.Visit(sym) ) )
+
     def getSymbolDependancicesIndirect(self, sym,include_constants=False, include_ass_in_output=False):
         res_deps = []
-        un_res_deps =  self.getSymbolDependancicesDirect(sym, include_constants=include_constants) 
-        
+        un_res_deps =  self.getSymbolDependancicesDirect(sym, include_constants=include_constants)
+
         while un_res_deps:
             p = un_res_deps.pop()
-            
+
             if p is sym:
                 continue
             if p in res_deps:
                 continue
-            
-            p_deps = self.getSymbolDependancicesIndirect(p, include_constants=include_constants) 
+
+            p_deps = self.getSymbolDependancicesIndirect(p, include_constants=include_constants)
             un_res_deps.extend(p_deps)
             res_deps.append(p)
-            
+
         if not include_ass_in_output:
             res_deps = [d for d in res_deps if not isinstance(d,AssignedVariable) ]
         return res_deps
-            
+
 
 
     def getSymbolMetadata(self, sym):
@@ -227,7 +231,7 @@ class EqnSet(ASTObject):
                 return io.metadata
         return None
 
-            
+
 
 
     def AcceptVisitor(self, v, **kwargs):

@@ -10,13 +10,13 @@
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #-------------------------------------------------------------------------------
 from units_misc import ExpectSingle
-#from units_data_functions import StdLibrary
 import units_data_functions 
 
 from neurounits.units_misc import EnsureExisits
 from neurounits.ast_builder import EqnSetBuilder
 
 from itertools import chain
+import os
 
 class LibraryManager(object):
     
@@ -36,6 +36,15 @@ class LibraryManager(object):
         self.working_dir = working_dir or "/tmp/mf_neurounits/"
         EnsureExisits(self.working_dir)
         
+
+        # Read in the standard libraries:
+        #stdlib_dir = '/home/michael/hw_to_come/libs/NeuroUnits/src/stdlib/'
+        #from neurounits.unit_expr_parsing.units_expr_yacc import parse_expr, ParseTypes
+        #for f in os.listdir(stdlib_dir):
+        #    with open( os.path.join(stdlib_dir,f) ) as l:
+        #        parse_expr( l.read(), parse_type=ParseTypes.L6_TextBlock, library_manager=self)
+        #
+        #assert False
         
     def get(self,name):
         return ExpectSingle( [ l for l in chain(self.available_libraries,self.eqnsets) if l.name==name ] )

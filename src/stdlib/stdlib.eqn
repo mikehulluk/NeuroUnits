@@ -1,6 +1,7 @@
 
-LIBRARY std.math {
-    pi = 3.1414
+LIBRARY std.math2 {
+    mu = 3.1414
+    pi2 = 3.1414
 
 }
 
@@ -12,19 +13,21 @@ LIBRARY std.combinatorial {
 
 
 LIBRARY std.geom {
+    from std.math2 import pi2,mu
     from std.math import pi
 
-    area_of_sphere(r:m) = 4 * pi * r**2
+    area_of_sphere(r:m) = 4 * pi2 * r**2
     volume_of_sphere(r:m) = 4.0/3.0 * pi * r**3
 }
 
 
 LIBRARY std.neuro {
+    from std.math import pi
 	
 	# Linear Cable Theory (Koch Pg.32):
     #r_a(R_i, d) = (4*R_i)/(pi*d**2
     
-    space_constant(Rm, Ri, d) = pow( (Rm/Ri)*(d/4), 0.5 )
+    space_constant(Rm,Ri,d ) = pow( (Rm/Ri)*(d/4), 0.5 )
 
     Rinf_sealed_end(Rm,d) = (4*Rm/pi*d**2)
 
