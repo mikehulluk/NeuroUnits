@@ -9,6 +9,9 @@
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #-------------------------------------------------------------------------------
+
+
+
 import re
 import ply.yacc as yacc
 
@@ -24,7 +27,6 @@ import neurounits.ast as ast
 
 
 from neurounits.units_data_unitterms import UnitTermData
-#from morphforge.core.mgrs.locmgr import LocMgr
 
 
 
@@ -88,7 +90,7 @@ def p_file_def2(p):
 
 def p_open_new_eqnset(p):
     """ open_eqnset : empty """
-    print 'Opening Eqnset'
+    #print 'Opening Eqnset'
     p.parser.library_manager.start_eqnset_block()
 
 
@@ -96,14 +98,14 @@ def p_open_new_eqnset(p):
 
 def p_close_new_eqnset(p):
     """eqnset_def : eqnset_def_internal"""
-    print 'Closing Eqnset'
+    #print 'Closing Eqnset'
     p.parser.library_manager.end_eqnset_block()
-    print 'Eqnset Loaded'
+    #print 'Eqnset Loaded'
 
 
 
 def p_eqnset_def1(p):
-    """eqnset_def_internal : EQNSET open_eqnset WHITESPACE alphanumtoken LCURLYBRACKET NEWLINE eqnsetcontents RCURLYBRACKET"""
+    """eqnset_def_internal : EQNSET open_eqnset WHITESPACE namespace LCURLYBRACKET NEWLINE eqnsetcontents RCURLYBRACKET"""
     p.parser.library_manager.get_current_block_builder().set_name(p[4])
 
 
@@ -250,23 +252,23 @@ def p_parse_eqnsetline4(p):
 
 # Importing:
 def p_import_statement1(p):
-    """import : FROM WHITESPACE package_name WHITESPACE IMPORT WHITESPACE import_target_list"""
+    """import : FROM WHITESPACE namespace WHITESPACE IMPORT WHITESPACE import_target_list"""
     p.parser.library_manager.get_current_block_builder().do_import(srclibrary = p[3], tokens=[(t,None) for t in  p[7] ])
 
 def p_import_statement2(p):
-    """import : FROM WHITESPACE package_name WHITESPACE IMPORT WHITESPACE alphanumtoken WHITESPACE AS WHITESPACE  alphanumtoken"""
+    """import : FROM WHITESPACE namespace WHITESPACE IMPORT WHITESPACE alphanumtoken WHITESPACE AS WHITESPACE  alphanumtoken"""
     p.parser.library_manager.get_current_block_builder().do_import(srclibrary = p[3], tokens=[(p[7],p[11])] )
 
 
 
-def p_packagename1(p):
-    """package_name : alphanumtoken"""
-    p[0] = p[1]
-
-def p_packagename2(p):
-    """package_name : package_name DOT alphanumtoken"""
-    p[0] = "%s%s%s"%( p[1],p[2],p[3] )
-
+#def p_packagename1(p):
+#    """package_name : alphanumtoken"""
+#    p[0] = p[1]
+#
+#def p_packagename2(p):
+#    """package_name : package_name DOT alphanumtoken"""
+#    p[0] = "%s%s%s"%( p[1],p[2],p[3] )
+#
 def p_import_target_list1(p):
     """import_target_list : alphanumtoken"""
     p[0] = [p[1]]
@@ -307,9 +309,33 @@ def p_time_derivative(p):
 
 
 
+# Symbol definitons:
+# #################
+def p_namespace(p):
+    """namespace : alphanumtoken """
+    p[0] = p[1]
+def p_namespace2(p):
+    """namespace : namespace DOT alphanumtoken"""
+    p[0] = "%s.%s"%(p[1],p[3])
+
+def p_localsymbol(p):
+    """localsymbol : alphanumtoken """
+    p[0] = p[1]
+
+def p_externalsymbol(p):
+    """externalsymbol : namespace DOT localsymbol """
+    p[0] = "%s.%s"%(p[1],p[3])
 
 
+def p_rhs_symbol(p):
+    """rhs_symbol : localsymbol
+                   | externalsymbol """
+    p[0] = p[1]
 
+def p_lhs_symbol(p):
+    """lhs_symbol : localsymbol
+                   | externalsymbol """
+    p[0] = p[1]
 
 
 
@@ -346,7 +372,6 @@ def p_function_def_params1(p):
 
 def p_function_def_params2(p):
     """function_def_params : function_def_params COMMA function_def_param"""
-    #print p[1], p[3]
     p[0] = safe_dict_merge( p[1], p[3] )
 
 
@@ -477,12 +502,6 @@ def p_lhs_term2(p):
     """ lhs_term : quantity """
     p[0] = ast.ConstValue( p[1] )
 
-#def p_lhs_term3(p):
-#    """ lhs_term : MINUSMINUS alphanumtoken """
-#    backend = p.parser.library_manager.backend
-#    neg_one = ast.ConstValue( backend.Quantity( -1.0, backend.Unit() ) )
-#    p[0] = ast.MulOp(neg_one, p.parser.library_manager.get_current_block_builder().get_symbol_or_proxy(p[2]) )
-
 
 def p_lhs_variable(p):
     """ lhs_variable : alphanumtoken"""
@@ -559,9 +578,8 @@ def p_quantity_nounits(p):
 
 
 
-# L1
-##########
 # QUANTITY TERMS:
+# ###############
 def p_quantity_0( p ):
     """quantity : magnitude"""
     backend = p.parser.library_manager.backend
@@ -584,16 +602,6 @@ def p_quantity_magnitude(p):
     p[0] = float(p[1])
 
 
-
-
-#if False:
-#    def p_quantity_constant(p):
-#        """ quantity : LCURLYBRACKET constant RCURLYBRACKET """
-#        p[0] = p[2]
-#
-#    def p_quantity_constant_2(p):
-#        """ constant : ALPHATOKEN """
-#        p[0] = constants[ p[1] ]
 
 
 # UNIT EXPRESSIONS:
@@ -679,8 +687,6 @@ def p_unit_term_3(p):
 ########################
 def p_unit_term_unpowered_token(p):
     """unit_term_unpowered : ALPHATOKEN """
-    #p[0] = p.parser.library_manager.backend.Unit()
-    #from unit_term_parsing import parse_term
     import neurounits.unit_term_parsing as unit_term_parsing
     p[0] = unit_term_parsing.parse_term( p[1], backend=p.parser.library_manager.backend )
 
@@ -689,22 +695,22 @@ def p_unit_term_unpowered_token(p):
 
 
 def p_error(p):
-    
-    
+
+
     if p is None:
         raise NeuroUnitParsingError("Unexpected end of file encountered")
     else:
         pass
         #src_text = p.lexer.mparser.src_text
-        
+
         #line_no = p.lineno
         #print 'Line_no:', line_no
-        
+
         #assert False
         #line_no = p.lineno(p)
-        
-    
-    
+
+
+
     #pos = p.
     #line = p.parser.src_text.split("\n")#[p.lexer.lineno]
     #print p.__dict__
@@ -761,12 +767,12 @@ class ParseTypes(object):
 
 class ParseDetails(object):
     start_symbols = {
-        ParseTypes.L1_Unit : 'unit_expr',
-        ParseTypes.L2_QuantitySimple : 'quantity_def',
-        ParseTypes.L3_QuantityExpr : 'lhs_generic',
-        ParseTypes.L4_EqnSet : 'eqnset',
-        ParseTypes.L5_Library : "library_set",
-        ParseTypes.L6_TextBlock : 'text_block',
+        ParseTypes.L1_Unit :            'unit_expr',
+        ParseTypes.L2_QuantitySimple :  'quantity_def',
+        ParseTypes.L3_QuantityExpr :    'lhs_generic',
+        ParseTypes.L4_EqnSet :          'eqnset',
+        ParseTypes.L5_Library :         "library_set",
+        ParseTypes.L6_TextBlock :       'text_block',
             }
 
 
@@ -823,6 +829,8 @@ def apply_regex(r, text):
 
 def parse_expr(text, parse_type, backend, start_symbol=None, debug=False, working_dir=None, options=None):
 
+
+
     # Some Cleaning
     # This is a bit hacky
     text = "\n".join( [l.strip() for l in text.split("\n") if l.strip() ] )
@@ -832,12 +840,12 @@ def parse_expr(text, parse_type, backend, start_symbol=None, debug=False, workin
 
 
 
-    ret = { ParseTypes.L1_Unit:     lambda: pRes,
-            ParseTypes.L2_QuantitySimple: lambda: pRes,
-            ParseTypes.L3_QuantityExpr: lambda: pRes,
-            ParseTypes.L4_EqnSet:   lambda: ExpectSingle(library_manager.eqnsets),
-            ParseTypes.L5_Library:  lambda: ExpectSingle(library_manager.libraries),
-            ParseTypes.L6_TextBlock: lambda: library_manager,
+    ret = { ParseTypes.L1_Unit:             lambda: pRes,
+            ParseTypes.L2_QuantitySimple:   lambda: pRes,
+            ParseTypes.L3_QuantityExpr:     lambda: pRes.value,
+            ParseTypes.L4_EqnSet:           lambda: ExpectSingle(library_manager.eqnsets),
+            ParseTypes.L5_Library:          lambda: ExpectSingle(library_manager.libraries),
+            ParseTypes.L6_TextBlock:        lambda: library_manager,
              }
 
     return ret[parse_type]()
@@ -857,6 +865,15 @@ class ParserMgr():
         #lexer = units_expr_lexer.UnitExprLexer()
         tables_loc =  EnsureExisits("/tmp/nu/yacc/parse_eqn_block")
         parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc )
+
+        print parser.__dict__.keys()
+        with open("/tmp/neurounits_grammar.txt",'w') as f:
+            for p in parser.productions:
+                f.write( "%s\n"%p)
+        #assert False
+
+
+
         return parser
 
     @classmethod
@@ -902,19 +919,20 @@ def parse_eqn_block(text_eqn, parse_type, debug, backend, working_dir=None, opti
 
 
 
-    
 
-    print start_symbol
 
-    debug=False
+    #debug=False
     lexer = units_expr_lexer.UnitExprLexer()
     parser = ParserMgr.get_parser( start_symbol=start_symbol, debug=debug)
-    #parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=LocMgr.EnsureMakeDirs("/tmp/nu/yacc/parse_eqn_block")   )
     parser.library_manager = LibraryManager(backend=backend, working_dir=working_dir, options=options )
 
-    # Make each accessible to the other:
-    #lexer.mparser=parser
-    #parser.mlexer =lexer
+
+    # 'A': When loading QuantityExpr or Functions, we might use
+    # stdlib functions. Therefore; we we need a 'block_builder':
+    if parse_type in [ ParseTypes.L3_QuantityExpr]: #, ParseTypes.Function]:
+        parser.library_manager.start_eqnset_block()
+        parser.library_manager.get_current_block_builder().set_name("anon")
+
 
 
 
@@ -923,13 +941,21 @@ def parse_eqn_block(text_eqn, parse_type, debug, backend, working_dir=None, opti
     # TODO: I think this can be removed.
     parser.src_text = text_eqn
     parser.library_manager.src_text = text_eqn
-    
 
 
 
-    
+
+
 
     pRes = parser.parse(text_eqn, lexer=lexer, debug=debug)
+
+    # Close the block we opened in 'A'
+    if parse_type in [ ParseTypes.L3_QuantityExpr]: #, ParseTypes.Function]:
+        parser.library_manager.end_eqnset_block()
+
+
+
+
     return pRes, parser.library_manager
 
 

@@ -31,16 +31,26 @@ from test_locations import TestLocations
 
 
 
-
+def apply_reps(s,reps):
+    for (a,b) in reps:
+        s = s.replace(a,b)
+    return s
 
 
 # General Functions:
 # ###################
 def verify_equivalence_with_gnuunits(a,b):
-    cmd = "units", "-1", "-s","--compact",a,b
+    
+    # Some replaces:
+    reps = [('um','microm'), ('uF','micro-F')]
+    
+    a = apply_reps(a,reps)
+    b = apply_reps(b,reps)
+
+    cmd = 'units', '-1', '-s','--compact',"%s"%a,"%s"%b
     cmd_str = " ".join(cmd)
     print cmd_str
-    op = subprocess.check_output( cmd )
+    op = subprocess.check_output( cmd,  )
     print op
     assert op.strip() == "1"
 
@@ -74,9 +84,9 @@ valid_quantitysimple= [
                    ("1cm2",    "100.0 mm2",     True  ),
                    ("1cm2",    "100.0e6 um2",   True  ),
 
-                   ("1mA/cm2",    "10 pA/um2",   True  ),
-                   ("1mA cm-2",   "10 pA/um2",   True  ),
-                   ("1mA cm-2",   "10 pA um-2",   True  ),
+                   ("1mA/cm2",    "10 pA/um2",    True  ),
+                   #("1mA cm-2",   "10 pA/um2",    True  ),
+                   #("1mA cm-2",   "10 pA um-2",   True  ),
 
                    ]
 
@@ -85,7 +95,7 @@ valid_quantitysimple= [
 
 
 
-def test_quantity_simple():
+def test_quantitysimple():
     data = []
 
     for (a,b, check_with_gnu) in valid_quantitysimple:
@@ -115,47 +125,47 @@ valid_quantity_exprs = [
                     # From Koch, Biophysics of Computation:
                     # #####################################
                     # Pg. 7:
-                    ( 'area_of_sphere(r=5um) * {1 uF/cm2} * {-70mV}', "-0.22e-12 C",    True ),
+                    ( 'std.neuro.area_of_sphere(r=5um) * {1 uF/cm2} * {-70mV}', "-0.22e-12 C",    True ),
                     # Pg. 11:
                     ('{100M Ohm} * {100 pF}','10ms',                                    False),
                     # Pg. 32:
-                    (' space_constant(d=4um, Ri = 200 Ohm cm, Rm=20e3 Ohm cm2)', '1mm', False),
+                    ('std.neuro.space_constant(d=4um, Ri = 200 Ohm cm, Rm=20e3 Ohm cm2)', '1mm', False),
                     # Pg. 34:
-                    ('Rinf_sealed_end(d=2um,Rm=10e5 Ohm cm2)',                   '3000 GOhm', False),
+                    ('std.neuro.Rinf_sealed_end(d=2um,Rm=10e5 Ohm cm2)',                   '3000 GOhm', False),
                     # Pg. 42:
-                    ('space_constant(d=2um, Ri=200 Ohm cm, Rm=50000ohm cm2)','1.581um', False),
+                    ('std.neuron.space_constant(d=2um, Ri=200 Ohm cm, Rm=50000ohm cm2)','1.581um', False),
                     # Pg. 151:
                     ('1/({0.3mS/cm2})','3333 ohm cm2',           True),
-                    ('{1uF/cm2} * {3333 ohm cm2} = 0.85ms',      True)
+                    ('{1uF/cm2} * {3333 ohm cm2} = 0.85ms',      True),
 
                     # Current, Voltage, Conductance:
                     # ##############################
                     # V = I * R and V = I / G
-                    ("1V",          "{1A}*{1ohm}",       True)
-                    ("1V",          "{1A}/{1S}",         True)
-                    ("10V",         "{10A}/{1S}",        True)
-                    ("10V",         "{1A}/{0.1S}",       True)
-                    ("1mV",         "{1mA}/{1S}",        True)
-                    ("1mV/cm2",     "{1mA cm-2}/{1S}",   True)
-                    ("1mV/cm2",     "{10pA um-2}/{1S}",  True)
+                    ("1V",          "{1A}*{1ohm}",       True),
+                    ("1V",          "{1A}/{1S}",         True),
+                    ("10V",         "{10A}/{1S}",        True),
+                    ("10V",         "{1A}/{0.1S}",       True),
+                    ("1mV",         "{1mA}/{1S}",        True),
+                    ("1mV/cm2",     "{1mA cm-2}/{1S}",   True),
+                    ("1mV/cm2",     "{10pA um-2}/{1S}",  True),
 
 
 
                     # Check that builtin functions handle units properly:
                     # Functions must be dimensionless, and
-                    ("-5.0687e-1",     "sin(100)",              True)
-                    ("0",              "sin(0)",                True)
-                    ("-5.0687e-1",     "sin({0.1kV}/{1V})",     True)
-                    ("-5.0687e-1",     "sin({V}/{10mV})",     True)
+                    ("-5.0687e-1",     "sin(100)",              True),
+                    ("0",              "sin(0)",                True),
+                    ("-5.0687e-1",     "sin({0.1kV}/{1V})",     True),
+                    ("-5.0687e-1",     "sin({V}/{10mV})",       True),
 
 
                     # Check user defined functions:
-                    ("area_of_sphere( r=5um)",              "", False )
-                    ("area_of_sphere( r={5um}+{1um})",      "", False )
-                    ("area_of_sphere( {5um}+{1um})",        "", False )
-                    ("area_of_sphere( {5um}/3 )",           "", False )
-                    ("area_of_sphere( {5um2}/{1m} )",       "", False )
-                    ("area_of_sphere( r={5um2}/{1mm} )",    "", False )
+                    ("std.geom.area_of_sphere( r=5um)",              "", False ),
+                    ("std.geom.area_of_sphere( r={5um}+{1um})",      "", False ),
+                    ("std.geom.area_of_sphere( {5um}+{1um})",        "", False ),
+                    ("std.geom.area_of_sphere( {5um}/3 )",           "", False ),
+                    ("std.geom.area_of_sphere( {5um2}/{1m} )",       "", False ),
+                    ("std.geom.area_of_sphere( r={5um2}/{1mm} )",    "", False ),
 
 
 
@@ -197,13 +207,13 @@ invalid_exprs = [
 def test_quantityexpr():
     data = []
 
-    for (a,b, check_with_gnu) in valid_quantityexprs:
+    for (a,b, check_with_gnu) in valid_quantity_exprs:
         A = NeuroUnitParser.QuantityExpr(a)
         B = NeuroUnitParser.QuantityExpr(b)
 
 
         if check_with_gnu:
-            test_with_gnuunits(a,b)
+            verify_equivalence_with_gnuunits(a,b)
 
         pcA =  ((A-B)/A).dimensionless()
         pcB =  ((A-B)/B).dimensionless()
@@ -225,15 +235,15 @@ def test_quantityexpr():
 valid_functions = [
                     ('f(x,y) = x**2 + 2*y + 1',
                         [
-                        ( {'x':1, 'y':34}, 45 )
-                        ( {'x':5, 'y':34}, 45 )
+                        ( {'x':1, 'y':34}, 45 ),
+                        ( {'x':5, 'y':34}, 45 ),
                         ]
                     ),
 
                     ('f(x,y,z) = x**2 + 2*y + 1 + x*y',
                         [
-                        ( {'x':1, 'y':34, 'z':1}, 45 )
-                        ( {'x':5, 'y':34}, 45 )
+                        ( {'x':1, 'y':34, 'z':1}, 45 ),
+                        ( {'x':5, 'y':34}, 45 ),
                         ]
                     ),
                     ]
@@ -262,13 +272,14 @@ def test_invalid_units():
 
 def main():
 
-    r1 = test_quantity_simple()
-    r2 = test_quantity_expr()
+    r1 = test_quantitysimple()
+    #r2 = test_quantityexpr()
 
-    test_function()
-    test_invalid_units()
+    #test_function()
+    #test_invalid_units()
 
-    doc = Document( r1,r2 )
+    #doc = Document( r1,r2 )
+    doc = Document( r1 )
 
     opdir = os.path.join( TestLocations.getTestOutputDir(), 'quantity_exprs_valid' )
 
@@ -276,4 +287,5 @@ def main():
     LatexWriter.BuildPDF(doc, os.path.join(opdir, 'all.pdf') )
 
 
-if __
+if __name__ == "__main__":
+    main()

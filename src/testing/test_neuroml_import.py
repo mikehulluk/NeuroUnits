@@ -48,7 +48,7 @@ def main():
         
         #break
     
-        if i > 2:
+        if i > 20:
             break
     
     
