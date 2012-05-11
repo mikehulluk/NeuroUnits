@@ -69,15 +69,16 @@ def p_whitespace_slurp3(p):
 
 
 
+
 def p_file_def1(p):
-    """text_block : block_type
-                  | text_block white_or_newline_slurp block_type"""
+    """text_block : white_or_newline_slurp
+                  | text_block block_type"""
     pass
+
 
 
 def p_file_def2(p):
     """ block_type : eqnset_def """
-    print 'Block Loaded'
     pass
 
 
@@ -96,112 +97,32 @@ def p_close_new_eqnset(p):
     """eqnset_def : eqnset_def_internal"""
     p.parser.library_manager.end_eqnset_block()
 
-
-
 def p_eqnset_def1(p):
-    """eqnset_def_internal : EQNSET open_eqnset WHITESPACE namespace LCURLYBRACKET NEWLINE eqnsetcontents RCURLYBRACKET"""
+    """eqnset_def_internal : EQNSET open_eqnset WHITESPACE namespace LCURLYBRACKET eqnsetcontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
     p.parser.library_manager.get_current_block_builder().set_name(p[4])
 
-
-
+def p_complete_eqnset_line(p):
+    """complete_eqnset_line : white_or_newline_slurp eqnsetlinecontents white_or_newline_slurp SEMICOLON """
 
 def p_parse_eqnsetline1(p):
-    """eqnsetcontents : eqnsetline
-                      | eqnsetcontents NEWLINE eqnsetline
-    """
+    """eqnsetcontents : empty
+                      | complete_eqnset_line
+                      | eqnsetcontents complete_eqnset_line """
     pass
-
-
-
-def p_parse_eqnsetline(p):
-    """ eqnsetline : empty
-                   | COMMENT
-                   | whiteslurp eqnsetlinecontents
-                   | whiteslurp eqnsetlinecontents COMMENT
-    """
-    pass
-
-
 
 def p_parse_eqnsetline2(p):
-    """eqnsetlinecontents   : IO_LINE"""
+    """eqnsetlinecontents : IO_LINE"""
     p.parser.library_manager.get_current_block_builder().add_io_data(p[1])
-
-
-
-
 
 def p_parse_eqnsetline2b(p):
     """eqnsetlinecontents   : ONEVENT_SYMBOL WHITESPACE event_def """
     pass
 
-
-
-
-#def p_optional_comment(p):
-#    r""" optional_comment   : whiteslurp COMMENT
-#                            | COMMENT """
-#    pass
-
-
-def p_on_event_open_scope(p):
-    """ open_event_def_scope : empty"""
-
-    p.parser.library_manager.get_current_block_builder().open_event_def_scope()
-
-
-
-
-
-
-def p_on_event_definition(p):
-    """event_def : alphanumtoken LBRACKET function_def_params RBRACKET white_or_newline_slurp LCURLYBRACKET open_event_def_scope on_event_actions_blk RCURLYBRACKET """
-    e = ast.OnEvent(name = p[1], parameters=p[3], actions=p[8] )
-    p.parser.library_manager.get_current_block_builder().close_scope_and_create_onevent(e)
-
-def p_on_event_actionsblk(p):
-    """on_event_actions_blk : white_or_newline_slurp on_event_actions"""
-    p[0] = p[2]
-
-
-
-def p_on_event_actions1(p):
-    """on_event_actions : empty"""
-    p[0] = []
-def p_on_event_actions2(p):
-    """on_event_actions :  on_event_action"""
-    p[0] = [p[1]]
-def p_on_event_actions3(p):
-    """on_event_actions :  on_event_actions on_event_action"""
-    p[0] = p[1] + [p[2]]
-
-
-def p_on_event_action0(p):
-    """on_event_action : empty NEWLINE"""
-    p[0] = None
-
-def p_on_event_action1(p):
-    """on_event_action : alphanumtoken  EQUALS rhs_term whiteslurp NEWLINE"""
-    lhs = p.parser.library_manager.get_current_block_builder().get_symbol_or_proxy(p[1])
-    p[0] = ast.OnEventStateAssignment(lhs=lhs,rhs=p[3])
-
-
-
-
-
-
-def p_parse_eqnsetline3(p):
-    """eqnsetlinecontents   : SUMMARY_LINE"""
-    p.parser.library_manager.get_current_block_builder().add_summary_info(p[1])
-
-
 def p_parse_eqnsetline4(p):
     """eqnsetlinecontents   : import
                             | function_def
                             | assignment
-                            | time_derivative
-                            | quantity_expr
-                    """
+                            | time_derivative """
     pass
 
 
@@ -242,6 +163,50 @@ def p_parse_eqnsetline4(p):
 #    """constant_def : empty"""
 
 
+
+
+
+
+
+
+
+
+
+
+def p_on_event_open_scope(p):
+    """ open_event_def_scope : empty"""
+    p.parser.library_manager.get_current_block_builder().open_event_def_scope()
+
+def p_on_event_definition(p):
+    """event_def : alphanumtoken LBRACKET function_def_params RBRACKET white_or_newline_slurp LCURLYBRACKET open_event_def_scope on_event_actions_blk RCURLYBRACKET """
+    e = ast.OnEvent(name = p[1], parameters=p[3], actions=p[8] )
+    p.parser.library_manager.get_current_block_builder().close_scope_and_create_onevent(e)
+
+def p_on_event_actionsblk(p):
+    """on_event_actions_blk : white_or_newline_slurp on_event_actions"""
+    p[0] = p[2]
+
+
+
+def p_on_event_actions1(p):
+    """on_event_actions : empty"""
+    p[0] = []
+def p_on_event_actions2(p):
+    """on_event_actions :  on_event_action"""
+    p[0] = [p[1]]
+def p_on_event_actions3(p):
+    """on_event_actions :  on_event_actions on_event_action"""
+    p[0] = p[1] + [p[2]]
+
+
+def p_on_event_action0(p):
+    """on_event_action : empty NEWLINE"""
+    p[0] = None
+
+def p_on_event_action1(p):
+    """on_event_action : alphanumtoken  EQUALS rhs_term whiteslurp NEWLINE"""
+    lhs = p.parser.library_manager.get_current_block_builder().get_symbol_or_proxy(p[1])
+    p[0] = ast.OnEventStateAssignment(lhs=lhs,rhs=p[3])
 
 
 # Importing:
