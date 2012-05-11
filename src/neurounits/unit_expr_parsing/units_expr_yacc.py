@@ -187,7 +187,7 @@ def p_on_event_action0(p):
     p[0] = None
 
 def p_on_event_action1(p):
-    """on_event_action : alphanumtoken  EQUALS lhs_term whiteslurp NEWLINE"""
+    """on_event_action : alphanumtoken  EQUALS rhs_term whiteslurp NEWLINE"""
     lhs = p.parser.library_manager.get_current_block_builder().get_symbol_or_proxy(p[1])
     p[0] = ast.OnEventStateAssignment(lhs=lhs,rhs=p[3])
 
@@ -288,13 +288,13 @@ def p_import_target_list2(p):
 
 
 def p_assignment(p):
-    """assignment : lhs_symbol EQUALS lhs_generic"""
+    """assignment : lhs_symbol EQUALS rhs_generic"""
     p.parser.library_manager.get_current_block_builder().add_assignment(
            lhs_name = p[1],
            rhs_ast = p[3] )
 
 def p_time_derivative(p):
-    """time_derivative : lhs_symbol PRIME EQUALS lhs_generic"""
+    """time_derivative : lhs_symbol PRIME EQUALS rhs_generic"""
     p.parser.library_manager.get_current_block_builder().add_timederivative(
            lhs_state_name = p[1],
            rhs_ast = p[4] )
@@ -341,7 +341,7 @@ def p_function_definition_scope_open(p):
     p.parser.library_manager.get_current_block_builder().open_function_def_scope()
 
 def p_function_definition(p):
-    """function_def : lhs_symbol LBRACKET function_def_params RBRACKET EQUALS open_funcdef_scope lhs_generic """
+    """function_def : lhs_symbol LBRACKET function_def_params RBRACKET EQUALS open_funcdef_scope rhs_generic """
     f = ast.FunctionDef( funcname=p[1], parameters=p[3], rhs=p[7] )
     p.parser.library_manager.get_current_block_builder().close_scope_and_create_function_def(f)
     p[0] = None
@@ -372,7 +372,7 @@ def p_function_def_params2(p):
 # Function calls:
 ###################
 def p_quantity_func_call_l3(p):
-    """lhs_term :  function_call_l3 """
+    """rhs_term :  function_call_l3 """
     p[0] = p[1]
 
 def p_quantity_func_call_l3_1(p):
@@ -382,7 +382,7 @@ def p_quantity_func_call_l3_1(p):
 
 # For function parameters, we create a dictionary mapping parameter name to value
 def p_quantity_func_params_l3a(p):
-    """func_call_params_l3 : lhs_term"""
+    """func_call_params_l3 : rhs_term"""
     p[0] = { None: ast.FunctionDefParameterInstantiation( symbol = None, rhs_ast=p[1] ) }
 
 def p_quantity_func_params_l3b(p):
@@ -398,15 +398,15 @@ def p_quantity_func_params_l3c(p):
     p[0] = param_dict
 
 def p_quantity_func_params_term_l3(p):
-    """func_call_param_l3 : alphanumtoken EQUALS lhs_term"""
+    """func_call_param_l3 : alphanumtoken EQUALS rhs_term"""
     p[0] = ast.FunctionDefParameterInstantiation( symbol = p[1], rhs_ast=p[3] )
 
 
 
 
 
-def p_lhs_term4(p):
-    """ lhs_term : MINUSMINUS lhs_term """
+def p_rhs_term4(p):
+    """ rhs_term : MINUSMINUS rhs_term """
     backend = p.parser.library_manager.backend
     neg_one = ast.ConstValue( backend.Quantity( -1.0, backend.Unit() ) )
     p[0] = ast.MulOp(neg_one, p[2] )
@@ -415,16 +415,16 @@ def p_lhs_term4(p):
 
 
 def p_lhs(p):
-    """lhs_generic : lhs_term"""
+    """rhs_generic : rhs_term"""
     p[0] = p[1]
 
 
 def p_bool_term_a(p):
-    """bool_term : lhs_term LESSTHAN lhs_term"""
+    """bool_term : rhs_term LESSTHAN rhs_term"""
     p[0] = ast.InEquality(  less_than = p[1],
                             greater_than = p[3] )
 def p_bool_term_b(p):
-    """bool_term : lhs_term GREATERTHAN lhs_term"""
+    """bool_term : rhs_term GREATERTHAN rhs_term"""
     p[0] = ast.InEquality(  less_than = p[3],
                             greater_than = p[1] )
 
@@ -443,34 +443,34 @@ def p_bool_term4(p):
     p[0] = p[2]
 
 
-def p_lhs_term_conditional(p):
-    """lhs_term : LSQUAREBRACKET lhs_term RSQUAREBRACKET IF LSQUAREBRACKET bool_term RSQUAREBRACKET ELSE LSQUAREBRACKET lhs_term RSQUAREBRACKET"""
+def p_rhs_term_conditional(p):
+    """rhs_term : LSQUAREBRACKET rhs_generic RSQUAREBRACKET IF LSQUAREBRACKET bool_term RSQUAREBRACKET ELSE LSQUAREBRACKET rhs_generic RSQUAREBRACKET"""
     p[0] = ast.IfThenElse(  predicate=p[6],
                         if_true_ast=p[2],
                         if_false_ast=p[10])
 
-def p_lhs_term_params(p):
-    """lhs_term : LBRACKET lhs_term RBRACKET"""
+def p_rhs_term_params(p):
+    """rhs_term : LBRACKET rhs_term RBRACKET"""
     p[0] = p[2]
 
-def p_lhs_term_add(p):
-    """lhs_term : lhs_term PLUS lhs_term"""
+def p_rhs_term_add(p):
+    """rhs_term : rhs_term PLUS rhs_term"""
     p[0] = ast.AddOp( p[1], p[3] )
 
-def p_lhs_term_sub(p):
-    """lhs_term : lhs_term MINUSMINUS lhs_term"""
+def p_rhs_term_sub(p):
+    """rhs_term : rhs_term MINUSMINUS rhs_term"""
     p[0] = ast.SubOp( p[1], p[3] )
 
-def p_lhs_term_mul(p):
-    """lhs_term : lhs_term TIMES lhs_term"""
+def p_rhs_term_mul(p):
+    """rhs_term : rhs_term TIMES rhs_term"""
     p[0] = ast.MulOp( p[1], p[3] )
 
-def p_lhs_term_exp(p):
-    """lhs_term : lhs_term TIMESTIMES INTEGER"""
+def p_rhs_term_exp(p):
+    """rhs_term : rhs_term TIMESTIMES INTEGER"""
     p[0] = ast.ExpOp( p[1], p[3] )
 
-def p_lhs_term_div(p):
-    """lhs_term : lhs_term SLASH lhs_term"""
+def p_rhs_term_div(p):
+    """rhs_term : rhs_term SLASH rhs_term"""
     p[0] = ast.DivOp( p[1], p[3] )
 
 
@@ -484,23 +484,23 @@ def p_lhs_term_div(p):
 
 
 
-def p_lhs_term1(p):
-    """ lhs_term : lhs_variable
-                 | lhs_quantity_expr
+def p_rhs_term1(p):
+    """ rhs_term : rhs_variable
+                 | rhs_quantity_expr
                  """
     p[0] = p[1]
 
-def p_lhs_term2(p):
-    """ lhs_term : quantity """
+def p_rhs_term2(p):
+    """ rhs_term : quantity """
     p[0] = ast.ConstValue( p[1] )
 
 
 def p_lhs_variable(p):
-    """ lhs_variable : lhs_symbol"""
+    """ rhs_variable : lhs_symbol"""
     p[0] = p.parser.library_manager.get_current_block_builder().get_symbol_or_proxy(p[1])
 
 def p_lhs_unit_expr(p):
-    """ lhs_quantity_expr : LCURLYBRACKET quantity RCURLYBRACKET"""
+    """ rhs_quantity_expr : LCURLYBRACKET quantity RCURLYBRACKET"""
     p[0] = ast.ConstValue( p[2] )
 
 
@@ -761,7 +761,7 @@ class ParseDetails(object):
     start_symbols = {
         ParseTypes.L1_Unit :            'unit_expr',
         ParseTypes.L2_QuantitySimple :  'quantity_expr',
-        ParseTypes.L3_QuantityExpr :    'lhs_generic',
+        ParseTypes.L3_QuantityExpr :    'rhs_generic',
         ParseTypes.L4_EqnSet :          'eqnset',
         ParseTypes.L5_Library :         "library_set",
         ParseTypes.L6_TextBlock :       'text_block',
