@@ -259,8 +259,12 @@ class FunctorGenerator(ASTVisitorBase):
         def eFunc(**kw):
             if o.funcname == 'exp':
                 ParsingBackend = MHUnitBackend
-                #from neurounits.units_backends.default import ParsingBackend
                 return ParsingBackend.Quantity( float( np.exp( ( kw.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
+            if o.funcname == 'sin':
+                ParsingBackend = MHUnitBackend
+                return ParsingBackend.Quantity( float( np.sin( ( kw.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
+            else:
+                assert False
         return eFunc
 
 
@@ -273,7 +277,6 @@ class FunctorGenerator(ASTVisitorBase):
 
     # Terminals:
     def VisitStateVariable(self, o, **kwargs):
-
         def eFunc2(**kw):
             return kw[ o.symbol ]
         return eFunc2
@@ -331,11 +334,6 @@ class FunctorGenerator(ASTVisitorBase):
         f_lhs = self.Visit(o.lhs)
         f_rhs = self.Visit(o.rhs)
         def eFunc(**kw):
-            #print type(o.lhs)
-            #print type(o.rhs)
-
-            #f_lhs(**kw)
-            #f_rhs(**kw)
             return f_lhs(**kw) * f_rhs(**kw)
         return eFunc
 

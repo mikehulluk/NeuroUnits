@@ -389,6 +389,12 @@ class AbstractBlockBuilder(object):
         if funcname[0:2] == "__" and not funcname in self.builddata.funcdefs:
             self.builddata.funcdefs[funcname] = StdFuncs.get_builtin_function(funcname, backend=self.library_manager.backend)
 
+        # Allow fully qulaified names that are not explicity imported
+        if '.' in funcname and not funcname in self.builddata.funcdefs:
+            mod = ".".join( funcname.split(".")[:-1] )
+            self.do_import( mod, tokens= [(funcname.split(".")[-1], funcname), ])
+
+
         assert funcname in self.builddata.funcdefs, ('Function not defined:'+ funcname)
         func_def = self.builddata.funcdefs[funcname]
 

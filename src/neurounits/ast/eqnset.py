@@ -66,7 +66,9 @@ class Block(object):
         raise NotImplementedError()
 
 
-
+    @property
+    def backend(self):
+        assert False
 
 class Library(Block):
     def AcceptVisitor(self, v, **kwargs):
@@ -99,6 +101,7 @@ class Library(Block):
         return sorted(self._symbolicconstants.values(), key=lambda a:a.symbol )
 
 
+    
 
 
 

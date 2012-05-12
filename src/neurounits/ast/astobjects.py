@@ -259,9 +259,12 @@ class FunctionDefParameter(ASTExpressionObject):
     def AcceptVisitor(self, v, **kwargs):
         return v.VisitFunctionDefParameter(self, **kwargs)
 
-    def __init__(self, symbol=None, **kwargs):
+    def __init__(self, symbol=None, unitMH=None, **kwargs):
         ASTExpressionObject.__init__(self, **kwargs)
         self.symbol=symbol
+        if unitMH is not None:
+            #assert False
+            self.set_unitMH( unitMH )
 
 
 

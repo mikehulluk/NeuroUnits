@@ -239,12 +239,97 @@ class DimensionResolver(ASTVisitorBase):
     # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):
         self.EnsureEqualDimensions([o, o.rhs])
+        #print "Is func def rhs unit known", o.rhs.is_dimension_known()
+        #print "Is func def unit known", o.is_dimension_known()
+        #for p,v in self.parameters.iteritems():
+
+
+
 
     def VisitFunctionDefParameter(self, o, **kwargs):
+        #self.EnsureEqualDimensions([o, o.rhs_ast])
         pass
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
-        self.EnsureEqualDimensions([o, o.function_def])
+
+        # Check the parameters tie up:
+        for p in o.parameters.values():
+            self.EnsureEqualDimensions([p.rhs_ast, p])
+            self.EnsureEqualDimensions([p, p._function_def_parameter])
+            self.EnsureEqualDimensions([p.rhs_ast, p._function_def_parameter])
+            #self.EnsureEqualDimensions([p, p._function_def_parameter.rhs_ast])
+
+        # powint and sqrt need to  be handled differently, since thier
+        # dimensions depend on the input and output:
+        if isinstance(o.function_def, ast.BuiltInFunction) and o.function_def.funcname in ['powint','sqrt']:
+            
+            if o.function_def.funcname == "powint":
+                assert False
+                p = o.parameters['x']
+                n = int( o.parameters['n'].rhs_ast.value.magnitude )
+                d = int( o.parameters['d'].rhs_ast.value.magnitude )
+                if o.is_dimension_known() and not p.is_dimension_known():
+                    odim = o.get_dimension()
+                    assert odim.powerTen == 0
+                    pdim = self.ast.backend.Unit(
+                            meter=odim.meter*2,
+                            second=odim.second*2,
+                            ampere=odim.ampere*2,
+                            kelvin=odim.kelvin*2,
+                            mole=odim.mole*2,
+                            candela=odim.candela*2,)
+                    p.set_dimension(pdim)
+                    assert False
+                if p.is_dimension_known() and not o.is_dimension_known():
+                    pdim = p.get_dimension()
+                    assert pdim.powerTen == 0
+                    odim = self.ast.backend.Unit(
+                            meter=pdim.meter/2,
+                            second=pdim.second/2,
+                            ampere=pdim.ampere/2,
+                            kelvin=pdim.kelvin/2,
+                            mole=pdim.mole/2,
+                            candela=pdim.candela/2,)
+                    o.set_dimension(odim)
+                    assert False
+
+
+            elif o.function_def.funcname == "sqrt":
+                p = o.parameters.values()[0]
+
+                if o.is_dimension_known() and not p.is_dimension_known():
+                    odim = o.get_dimension()
+                    assert odim.powerTen == 0
+                    pdim = self.ast.backend.Unit(
+                            meter=odim.meter*2,
+                            second=odim.second*2,
+                            ampere=odim.ampere*2,
+                            kelvin=odim.kelvin*2,
+                            mole=odim.mole*2,
+                            candela=odim.candela*2,)
+                    p.set_dimension(pdim)
+                    assert False
+                if p.is_dimension_known() and not o.is_dimension_known():
+                    pdim = p.get_dimension()
+                    assert pdim.powerTen == 0
+                    odim = self.ast.backend.Unit(
+                            meter=pdim.meter/2,
+                            second=pdim.second/2,
+                            ampere=pdim.ampere/2,
+                            kelvin=pdim.kelvin/2,
+                            mole=pdim.mole/2,
+                            candela=pdim.candela/2,)
+                    o.set_dimension(odim)
+                    assert False
+
+
+            else:
+                assert False
+
+
+        else:
+            self.EnsureEqualDimensions([o, o.function_def])
+
 
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
@@ -252,7 +337,6 @@ class DimensionResolver(ASTVisitorBase):
 
 
     def VisitBuiltInFunction(self, o, **kwargs):
-        #print o.funcname
         dimensionless_functions = [
                 'sin','cos','tan',
                 'sinh','cosh','tanh',
@@ -260,6 +344,11 @@ class DimensionResolver(ASTVisitorBase):
                 'exp','ln','log2','log10', 
                 'pow','ceil','fabs','floor', 
                 ]
+        if o.funcname in dimensionless_functions:
+            return
+
+        return 
+        print 'Dealing with special'
         assert o.funcname in dimensionless_functions
 
         return
@@ -332,10 +421,13 @@ class PropogateDimensions(object):
             print 'Unable to resolve the dimensions of the following symbols:'
             for s in symbols_without_dimension:
                 try:
-                    print s
-                    print s.symbol
+                    print '\tObj:', type(s),s,
+                    print '\t  -', 
+                    print '\t', s.symbol
                 except:
                     pass
+                    print
+            print
             assert False
 
 

@@ -155,13 +155,6 @@ def p_parse_libraryline1(p):
                       | librarycontents complete_library_line """
     pass
 
-#def p_parse_libraryline2(p):
-#    """librarylinecontents : IO_LINE"""
-#    p.parser.library_manager.get_current_block_builder().add_io_data(p[1])
-#
-#def p_parse_libraryline2b(p):
-#    """librarylinecontents   : ONEVENT_SYMBOL WHITESPACE event_def """
-#    pass
 
 def p_parse_libraryline4(p):
     """librarylinecontents  : import
@@ -244,12 +237,12 @@ def p_import_statement2(p):
 
 
 def p_import_target_list1(p):
-    """import_target_list : localsymbol"""
+    """import_target_list : localsymbol whiteslurp"""
     p[0] = [p[1]]
 
 def p_import_target_list2(p):
-    """import_target_list : import_target_list COMMA localsymbol"""
-    p[0] = p[1] + [p[3]]
+    """import_target_list : import_target_list COMMA whiteslurp localsymbol whiteslurp"""
+    p[0] = p[1] + [p[4]]
 
 
 
@@ -320,21 +313,22 @@ def p_function_def_param(p):
     """function_def_param : localsymbol
                           | localsymbol COLON unit_expr"""
     dimension = None if len(p) == 2 else p[3]
-    p[0] = {p[1]:ast.FunctionDefParameter(symbol=p[1], dimension=dimension) }
+    #assert not dimension
+    p[0] = {p[1]:ast.FunctionDefParameter(symbol=p[1], unitMH=dimension) }
 
 
 def p_function_def_params0(p):
-    """function_def_params : empty"""
+    """function_def_params : whiteslurp"""
     p[0] = {}
 
 
 def p_function_def_params1(p):
-    """function_def_params : function_def_param"""
+    """function_def_params : function_def_param whiteslurp"""
     p[0] = p[1]
 
 def p_function_def_params2(p):
-    """function_def_params : function_def_params COMMA function_def_param"""
-    p[0] = safe_dict_merge( p[1], p[3] )
+    """function_def_params : function_def_params COMMA whiteslurp function_def_param whiteslurp"""
+    p[0] = safe_dict_merge( p[1], p[4] )
 
 
 
@@ -827,11 +821,20 @@ def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, w
     pRes, library_manager = parse_eqn_block(text, parse_type=parse_type, debug=debug, library_manager=library_manager)
 
 
+    if parse_type==ParseTypes.L3_QuantityExpr:
+        #from neurounits.visitors.common.simplify_symbolic_constants import ReduceConstants
+        from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator
+        #ReduceConstants().Visit(pRes)
+        F = FunctorGenerator()
+        ev = F.Visit(pRes)
+        pRes = ev()
+
+        
 
 
     ret = { ParseTypes.L1_Unit:             lambda: pRes,
             ParseTypes.L2_QuantitySimple:   lambda: pRes,
-            ParseTypes.L3_QuantityExpr:     lambda: pRes.value,
+            ParseTypes.L3_QuantityExpr:     lambda: pRes,
             ParseTypes.L4_EqnSet:           lambda: ExpectSingle(library_manager.eqnsets),
             ParseTypes.L5_Library:          lambda: ExpectSingle(library_manager.libraries),
             ParseTypes.L6_TextBlock:        lambda: library_manager,
