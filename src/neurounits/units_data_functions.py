@@ -64,6 +64,7 @@ class StdLibrary():
     
     @classmethod
     def getDefault(cls, backend):
+        return []
         return [cls.getMath(backend=backend), cls.getPhysics(backend=backend) ]
     
     

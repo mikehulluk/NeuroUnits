@@ -1,12 +1,12 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-# 
+#
 #  - Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
 #  - Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #-------------------------------------------------------------------------------
 import itertools
@@ -18,10 +18,10 @@ from ..visitors import ASTVisitorBase
 class RemoveAllSymbolProxy(ASTVisitorBase):
 
     def followSymbolProxy(self, node, visited_nodes=None):
-        if visited_nodes is None: 
+        if visited_nodes is None:
             visited_nodes = set()
         if node in visited_nodes:
-            assert False, 'Unable to resolve xymbol-proxy! %s'%str(visited_nodes)
+            assert False, 'Unable to resolve symbol-proxy! %s'%str(visited_nodes)
         visited_nodes.add(node)
 
         if type(node) == SymbolProxy:
@@ -30,12 +30,17 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         return node
 
     def VisitEqnSet(self, o, **kwargs):
-        for i in itertools.chain( o.timederivatives, o.assignments, o.functiondefs):
+        for i in itertools.chain( o.timederivatives, o.assignments, o.functiondefs, o.symbolicconstants):
             self.Visit(i)
 
         for onevent in o.on_events:
             self.Visit(onevent)
 
+        o._cache_nodes()
+
+    def VisitLibrary(self, o, **kwargs):
+        for i in itertools.chain( o.functiondefs, o.symbolicconstants):
+            self.Visit(i)
 
 
     # Terminals:
@@ -56,9 +61,9 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
 
     def VisitSymbolicConstant(self, o, **kwargs):
         pass
-    
-    
-    
+
+
+
     # Terminals:
     def VisitOnEventStateAssignment(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)
@@ -149,10 +154,10 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         o.rhs_ast = self.followSymbolProxy( o.rhs_ast)
         self.Visit(o.rhs_ast)
-        
+
     def VisitBuiltInFunction(self, o, **kwargs):
         pass
-    
+
     # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):
         for p in o.parameters.values():

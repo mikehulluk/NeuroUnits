@@ -19,9 +19,11 @@ class ASTActionerDefault(ASTActionerDepthFirst):
         
     
     def ActionNode(self, n, **kwargs):
-        assert False, 'Action node'
+        assert False, 'Action node in %s %s'% (type(self), type(n) )
 
     def ActionEqnSet(self, o, **kwargs):
+        return self.ActionNode(o,**kwargs)
+    def ActionLibrary(self, o, **kwargs):
         return self.ActionNode(o,**kwargs)
 
     def ActionIfThenElse(self, o, **kwargs):

@@ -32,15 +32,19 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def __init__(self, action_predicates=None):
         self.action_predicates = action_predicates or []
 
+    def VisitLibrary(self, o, **kwargs):
+
+        subnodes = itertools.chain( o.functiondefs, o.symbolicconstants)
+        for f in subnodes:
+            self.Visit(f,**kwargs)
+
+        self._ActionLibrary(o,**kwargs)
 
     def VisitEqnSet(self, o, **kwargs):
-
 
         subnodes = itertools.chain( o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants)
         for f in subnodes:
             self.Visit(f,**kwargs)
-
-
 
         for onev in o.on_events:
             self.Visit(onev,**kwargs)
@@ -168,6 +172,11 @@ class ASTActionerDepthFirst(ASTVisitorBase):
                 return False
         return True
 
+
+
+    def _ActionLibrary(self, o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionLibrary( o, **kwargs)
 
 
     def _ActionEqnSet(self, o, **kwargs):

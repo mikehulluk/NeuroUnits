@@ -14,9 +14,6 @@ doc: force_look
 	make -C doc/ 
 
 clean:
-	# Source Code:
-	#find . -name "*.pyc" -exec rm {} \;
-
 	# Documentation:
 	make -C doc/ clean
 	make -C src/ clean

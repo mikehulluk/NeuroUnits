@@ -320,7 +320,33 @@ class MRedocWriterVisitor(ASTVisitorBase):
                     Section("Imports"),
                     Section("Events"),
                     Section("Plots", *plts ),
-)
+                    )
 
+    def VisitLibrary(self, eqnset):
+
+        format_dim = lambda o: "$%s$"%FormatDimensionality( o.get_dimension() ) if not o.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False) else  "-" 
+
+        #symbol_format = lambda s:s
+
+        #dep_string_indir = lambda s: ",".join( [symbol_format(o.symbol) for o in sorted( set(eqnset.getSymbolDependancicesIndirect(s, include_ass_in_output=False)), key=lambda s:s.symbol ) ] )
+
+        #meta_format = lambda s: eqnset.getSymbolMetadata(s) or "-"
+        #plts = build_figures( eqnset)
+
+
+        terminal_symbols = VerticalColTable("Symbol  | Type      | Value | Dimensions | Dependancies | Metadata",
+                                            ["%s     | Constant  | %s    | %s         | -            | -   " % (s.symbol, s.value, format_dim(s),    ) for s in eqnset.symbolicconstants]
+                                            )
+
+
+
+
+
+        return SectionNewPage("Eqnset Summary: %s"%eqnset.name,
+                    Section("Imports"),
+                    Section("Function Definitions",
+                       EquationBlock( *[LatexEqnWriterN().Visit(a) for a in eqnset.functiondefs if not isinstance(a, BuiltInFunction)])),
+                    Section("Symbols", terminal_symbols),
+                    )
 
 

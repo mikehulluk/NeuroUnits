@@ -1,7 +1,64 @@
 
-LIBRARY std.math2 {
+LIBRARY std.math {
     mu = 3.1414
     pi2 = 3.1414
+    pi = pi2
+
+
+    sin(x) = __sin__(x)
+    cos(x) = __cos__(x)
+    tan(x) = __tan__(x)
+
+    sinh(x) = __sinh__(x)
+    cosh(x) = __cosh__(x)
+    tanh(x) = __tanh__(x)
+
+    asin(x) = __asin__(x)
+    acos(x) = __acos__(x)
+    atan(x) = __atan__(x)
+    atan2(x,y) = __atan2__(x=x,y=y)
+
+    exp(x) = __exp__(x)
+    ln(x) = __ln__(x)
+    log2(x) = __log2__(x)
+    log10(x) = __log10__(x)
+
+    # Expected to be dimensionless:
+    pow(base,exp) = __pow__(base=base,exp=exp)
+
+    # Allow integer numerator and 
+    # denominator:
+    #powint(x,n,d) = __powint__(x=x,n=n,d=d)
+    #sqrt(x) = __sqrt__(x)
+
+    ceil(x) = __ceil__(x)
+    fabs(x) = __fabs__(x)
+    floor(x) = __floor__(x)
+
+
+a=1
+}
+
+
+
+
+LIBRARY std.geom {
+    from std.math import pi2,mu
+
+    area_of_sphere(r:m) = 4 * pi2 * r*r
+    volume_of_sphere(r:m) = 4.0/3.0 * pi2 * r*r *r
+}
+
+
+LIBRARY std.neuro {
+    from std.math import pi,pow
+	
+	# Linear Cable Theory (Koch Pg.32):
+    #r_a(R_i, d) = (4*R_i)/(pi*d**2)
+    
+    #space_constant(Rm,Ri,d) = pow(base=(Rm/Ri)*(d/4),exp=0.5)
+
+    #Rinf_sealed_end(Rm,d) = (4*Rm/pi*d**2)
 
 }
 
@@ -11,24 +68,3 @@ LIBRARY std.combinatorial {
 
 }
 
-
-LIBRARY std.geom {
-    from std.math2 import pi2,mu
-    from std.math import pi
-
-    area_of_sphere(r:m) = 4 * pi2 * r**2
-    volume_of_sphere(r:m) = 4.0/3.0 * pi * r**3
-}
-
-
-LIBRARY std.neuro {
-    from std.math import pi
-	
-	# Linear Cable Theory (Koch Pg.32):
-    #r_a(R_i, d) = (4*R_i)/(pi*d**2
-    
-    space_constant(Rm,Ri,d ) = pow( (Rm/Ri)*(d/4), 0.5 )
-
-    Rinf_sealed_end(Rm,d) = (4*Rm/pi*d**2)
-
-}

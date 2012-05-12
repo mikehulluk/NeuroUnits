@@ -241,7 +241,8 @@ class BuiltInFunction(ASTExpressionObject):
         ASTExpressionObject.__init__(self,**kwargs)
         self.funcname = funcname
         self.parameters = parameters
-        self.set_unitMH( unitMH )
+        if unitMH is not None:
+            self.set_unitMH( unitMH )
 
 
 class FunctionDef(ASTExpressionObject):

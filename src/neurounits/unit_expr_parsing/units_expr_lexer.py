@@ -34,7 +34,6 @@ class UnitExprLexer(object):
     tokens = [
         "IO_LINE",
         "ONEVENT_SYMBOL",
-        "SUMMARY_LINE",
 
         "INTEGER", 
         "FLOAT",
@@ -100,7 +99,6 @@ class UnitExprLexer(object):
         return t
 
     t_IO_LINE = r"""<=> [^;]*"""
-    t_SUMMARY_LINE = r"""\|-8 .*"""
 
     t_ONEVENT_SYMBOL = r"""<==>"""
 

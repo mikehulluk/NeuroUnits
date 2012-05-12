@@ -78,7 +78,8 @@ def p_file_def1(p):
 
 
 def p_file_def2(p):
-    """ block_type : eqnset_def """
+    """ block_type : eqnset_def 
+                   | library_def"""
     pass
 
 
@@ -105,7 +106,7 @@ def p_complete_eqnset_line(p):
     """complete_eqnset_line : white_or_newline_slurp eqnsetlinecontents white_or_newline_slurp SEMICOLON """
 
 def p_parse_eqnsetline1(p):
-    """eqnsetcontents : empty
+    """eqnsetcontents : white_or_newline_slurp
                       | complete_eqnset_line
                       | eqnsetcontents complete_eqnset_line """
     pass
@@ -129,38 +130,60 @@ def p_parse_eqnsetline4(p):
 
 
 
-# LIBRARY DEFINITIONS:
-###########################
 
-#def p_open_new_library(p):
-#    """ open_library : empty """
-#    p.parser.library_manager.start_library_block()
+# LIBRARY DEFINITIONS:
+# ##########################
+
+def p_open_new_library(p):
+    """ open_library : empty """
+    p.parser.library_manager.start_library_block()
+
+def p_close_new_library(p):
+    """library_def : library_def_internal"""
+    p.parser.library_manager.end_library_block()
+
+def p_library_def1(p):
+    """library_def_internal : LIBRARY open_library WHITESPACE namespace LCURLYBRACKET librarycontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
+    p.parser.library_manager.get_current_block_builder().set_name(p[4])
+
+def p_complete_library_line(p):
+    """complete_library_line : white_or_newline_slurp librarylinecontents white_or_newline_slurp SEMICOLON """
+
+def p_parse_libraryline1(p):
+    """librarycontents : white_or_newline_slurp
+                      | complete_library_line
+                      | librarycontents complete_library_line """
+    pass
+
+#def p_parse_libraryline2(p):
+#    """librarylinecontents : IO_LINE"""
+#    p.parser.library_manager.get_current_block_builder().add_io_data(p[1])
 #
-#
-#def p_library_def(p):
-#    """library_def : library_def_internal """
-#    p.parser.library_manager.end_library_block()
-#
-#def p_library_def1(p):
-#    """library_def_internal : LIBRARY open_library WHITESPACE alphanumtoken whiteslurp LCURLYBRACKET  lib_contents  RCURLYBRACKET"""
+#def p_parse_libraryline2b(p):
+#    """librarylinecontents   : ONEVENT_SYMBOL WHITESPACE event_def """
 #    pass
-#
-#def p_library_def2(p):
-#    """lib_contents : lib_contents_line
-#                    | lib_contents NEWLINE lib_contents_line
-#    """
-#    pass
-#
-#def p_library_line(p):
-#    """lib_contents_line : import
-#                         | function_def
-#                         | constant_def
-#                         """
-#    pass
-#
-#
-#def p_constant(p):
-#    """constant_def : empty"""
+
+def p_parse_libraryline4(p):
+    """librarylinecontents  : import
+                            | function_def
+                            | assignment """
+    pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -772,6 +795,7 @@ def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, w
 
     # Preprocess the text a little:
     if parse_type in [ParseTypes.L4_EqnSet, ParseTypes.L5_Library, ParseTypes.L6_TextBlock]:
+        text  = "\n".join([ l.split("#")[0] for l in text.split("\n") ])
         lines = []
         for l in text.split("\n"):
             if len(lines)!=0 and lines[-1].endswith('\\'):
@@ -789,13 +813,17 @@ def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, w
         text = "\n".join( lines )
     else:
         text = text.strip()
-    print text
+    #print text
 
 
 
 
-    if library_manager == None:
+    if library_manager is None:
+    #    print 'Building new LibraryManager'
         library_manager = LibraryManager(backend=backend, working_dir=working_dir, options=options )
+    #print 'About to parse text:'
+    #print text
+    #print 'LibaryManaher:', library_manager
     pRes, library_manager = parse_eqn_block(text, parse_type=parse_type, debug=debug, library_manager=library_manager)
 
 
@@ -827,7 +855,7 @@ class ParserMgr():
         tables_loc =  EnsureExisits("/tmp/nu/yacc/parse_eqn_block")
         parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc )
 
-        print parser.__dict__.keys()
+        #print parser.__dict__.keys()
         with open("/tmp/neurounits_grammar.txt",'w') as f:
             for p in parser.productions:
                 f.write( "%s\n"%p)
@@ -842,14 +870,15 @@ class ParserMgr():
         k = (start_symbol, debug)
         if not k in cls.parsers:
             cls.parsers[k] = cls.build_parser(start_symbol=start_symbol, debug=debug)
-        return cls.parsers[k]
+        import copy
+        return copy.copy( cls.parsers[k] )
 
 
 
 
 
 
-def parse_eqn_block(text_eqn, parse_type, debug, library_manager):#backend, working_dir=None, options=None):
+def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
 
 
 
@@ -885,9 +914,9 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):#backend, work
     #debug=False
     lexer = units_expr_lexer.UnitExprLexer()
     parser = ParserMgr.get_parser( start_symbol=start_symbol, debug=debug)
-    #parser.library_manager = LibraryManager(backend=backend, working_dir=working_dir, options=options )
     parser.library_manager = library_manager
 
+    assert parser.library_manager is library_manager
 
     # 'A': When loading QuantityExpr or Functions, we might use
     # stdlib functions. Therefore; we we need a 'block_builder':
@@ -896,6 +925,8 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):#backend, work
         parser.library_manager.get_current_block_builder().set_name("anon")
 
 
+
+    assert parser.library_manager is library_manager
 
 
 
@@ -908,14 +939,17 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):#backend, work
 
 
 
+    assert parser.library_manager is library_manager
 
     pRes = parser.parse(text_eqn, lexer=lexer, debug=debug)
 
+    assert parser.library_manager is library_manager
+
     # Close the block we opened in 'A'
-    if parse_type in [ ParseTypes.L3_QuantityExpr]: #, ParseTypes.Function]:
+    if parse_type in [ ParseTypes.L3_QuantityExpr]: 
         parser.library_manager.end_eqnset_block()
 
-
+    assert parser.library_manager is library_manager
 
 
     return pRes, parser.library_manager

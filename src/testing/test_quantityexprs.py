@@ -205,7 +205,7 @@ invalid_exprs = [
 
 
 def test_quantityexpr():
-    return
+    #return
     data = []
 
     for (a,b, check_with_gnu) in valid_quantity_exprs:
@@ -276,7 +276,7 @@ def test_invalid_units():
 def main():
 
     r1 = test_quantitysimple()
-    r2 = test_quantityexpr()
+    #r2 = test_quantityexpr()
 
     #test_function()
     #test_invalid_units()

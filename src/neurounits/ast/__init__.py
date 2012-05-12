@@ -11,5 +11,5 @@
 #-------------------------------------------------------------------------------
 from astobjects import *
 from astobjects_events import *
-from library import Library
-from eqnset import EqnSet
+#from library import Library
+from eqnset import EqnSet,Library

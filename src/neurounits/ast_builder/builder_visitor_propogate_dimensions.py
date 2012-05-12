@@ -120,6 +120,8 @@ class DimensionResolver(ASTVisitorBase):
 
     def VisitEqnSet(self, o, **kwargs):
         pass
+    def VisitLibrary(self, o, **kwargs):
+        pass
 
 
     def VisitOnEvent(self, o, **kwargs):
@@ -131,9 +133,9 @@ class DimensionResolver(ASTVisitorBase):
     def VisitIfThenElse(self, o, **kwargs):
         #assert False
         #print o.get_dimension()
-        print o.if_true_ast.is_dimensionality_known()
-        print o.if_false_ast.is_dimensionality_known()
-        print o.is_dimensionality_known()
+        #print o.if_true_ast.is_dimensionality_known()
+        #print o.if_false_ast.is_dimensionality_known()
+        #print o.is_dimensionality_known()
         self.EnsureEqualDimensions([o, o.if_true_ast, o.if_false_ast] )
 
     def VisitInEquality(self, o ,**kwargs):
@@ -175,7 +177,7 @@ class DimensionResolver(ASTVisitorBase):
         if len( [True for i in (o.lhs, o.rhs) if i.is_dimension_known()] ) != 1:
             return
 
-        one_sec = self.ast.backend.Unit(second=1)
+        one_sec = self.ast.library_manager.backend.Unit(second=1)
         if o.lhs.is_dimension_known():
             self.RegisterDimensionPropogation( o.rhs, new_dimension= o.lhs.get_dimension()/one_sec, reason='TimeDerivative')
             return
@@ -250,7 +252,15 @@ class DimensionResolver(ASTVisitorBase):
 
 
     def VisitBuiltInFunction(self, o, **kwargs):
-        assert o.funcname in ['exp', 'pow','fabs']
+        #print o.funcname
+        dimensionless_functions = [
+                'sin','cos','tan',
+                'sinh','cosh','tanh',
+                'asin','acos','atan','atan2',
+                'exp','ln','log2','log10', 
+                'pow','ceil','fabs','floor', 
+                ]
+        assert o.funcname in dimensionless_functions
 
         return
         raise NotImplementedError()

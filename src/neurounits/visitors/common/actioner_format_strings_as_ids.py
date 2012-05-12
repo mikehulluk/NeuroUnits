@@ -35,12 +35,19 @@ class ActionerFormatStringsAsIDs(ASTActionerDefault):
         funcdefs = ",".join( self.IDs[f] for f in o.functiondefs ) 
         timederivatives =  ",".join( self.IDs[f] for f in o.timederivatives ) 
         assignments =  ",".join( self.IDs[f] for f in o.assignments ) 
-        constants = ""# ",".join( self.IDs[f] for f in o.constants ) 
+        symbolicconstants = ",".join( self.IDs[f] for f in o.symbolicconstants ) 
 
-        data = (assignments, timederivatives, funcdefs, constants)
-        s = "<EqnSet: Assignments: [%s] TimeDerivatives:[%s], FunctionDefs:[%s], Constants:[%s]"%data
+        data = (assignments, timederivatives, funcdefs, symbolicconstants)
+        s = "<EqnSet: Assignments: [%s] TimeDerivatives:[%s], FunctionDefs:[%s], SymbolicConstants:[%s]"%data
         self.format_strings[o] = s
 
+    def ActionLibrary(self, o, **kwargs):
+        funcdefs = ",".join( self.IDs[f] for f in o.functiondefs ) 
+        symbolicconstants = ",".join( self.IDs[f] for f in o.symbolicconstants ) 
+
+        data = (funcdefs, symbolicconstants)
+        s = "<EqnSet: FunctionDefs:[%s], SymbolicConstants:[%s]"%data
+        self.format_strings[o] = s
 
 
 
