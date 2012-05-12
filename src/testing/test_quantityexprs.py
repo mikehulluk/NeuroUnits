@@ -129,11 +129,11 @@ valid_quantity_exprs = [
                     # Pg. 11:
                     ('{100 megaohm} * {100 pF}','10 ms',                                    False),
                     # Pg. 32:
-                    #('std.neuro.space_constant(d=4um, Ri = 200 Ohm cm, Rm=20e3 Ohm cm2)', '1mm', False),
+                    ('std.neuro.space_constant(d=4um,Ri={200 ohm cm},Rm={20e3 ohm cm2})', '1mm', False),
                     # Pg. 34:
-                    #('std.neuro.Rinf_sealed_end(d=2um,Rm=10e5 Ohm cm2)',                   '3000 GOhm', False),
+                    ('std.neuro.Rinf_sealed_end(d=2um,Rm=10e5 Ohm cm2)',                   '3000 GOhm', False),
                     # Pg. 42:
-#                    #('std.neuron.space_constant(d=2um, Ri=200 Ohm cm, Rm=50000ohm cm2)','1.581um', False),
+                    ('std.neuro.space_constant(d=2um,Ri=200 Ohm cm,Rm=50000ohm cm2)','1.581um', False),
 #                    # Pg. 151:
                     ('1/({0.3mS/cm2})','3333 ohm cm2',           False),
                     ('{1uF/cm2} * {3333 ohm cm2}','0.85ms',      False),

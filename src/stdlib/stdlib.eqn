@@ -53,14 +53,16 @@ LIBRARY std.geom {
 LIBRARY std.neuro {
     from std.math import pi,pow
     #from std.math import powint
+    #from std.math import sqrt
 	
 	# Linear Cable Theory (Koch Pg.32):
     r_a(R_i:ohm m, d:m) = (4*R_i)/(pi*d*d)
     
     #space_constant(Rm:ohm m2,Ri:ohm m,d:m) = powint(base=(Rm/Ri)*(d/4),n=1,d=2)
-    #space_constant(Rm:ohm m2,Ri:ohm m,d:m) = sqrt(base=(Rm/Ri)*(d/4) )
+    #space_constant(Rm:ohm m2,Ri:ohm m,d:m) = sqrt(base= (Rm/Ri)*(d/4) )
+    space_constant(Rm:ohm m2,Ri:ohm m,d:m) = pow(base=(( (Rm/Ri)*(d/4) )/{1m2}),exp=0.5) * {1m}
 
-    #Rinf_sealed_end(Rm:ohm m2,d:m) = (4*Rm/pi*d**2)
+    Rinf_sealed_end(Rm:ohm m2,d:m) = (4*Rm/(pi*d*d) )
 
 }
 

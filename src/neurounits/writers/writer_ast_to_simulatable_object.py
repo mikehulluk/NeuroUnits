@@ -263,6 +263,11 @@ class FunctorGenerator(ASTVisitorBase):
             if o.funcname == 'sin':
                 ParsingBackend = MHUnitBackend
                 return ParsingBackend.Quantity( float( np.sin( ( kw.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
+            if o.funcname == 'pow':
+                ParsingBackend = MHUnitBackend
+                return ParsingBackend.Quantity( 
+                        float( np.power( ( kw['base'] ).dimensionless() ,( kw['exp'] ).dimensionless() )  ),
+                        ParsingBackend.Unit() )
             else:
                 assert False
         return eFunc

@@ -264,7 +264,7 @@ class DimensionResolver(ASTVisitorBase):
         if isinstance(o.function_def, ast.BuiltInFunction) and o.function_def.funcname in ['powint','sqrt']:
             
             if o.function_def.funcname == "powint":
-                assert False
+                #assert False
                 p = o.parameters['x']
                 n = int( o.parameters['n'].rhs_ast.value.magnitude )
                 d = int( o.parameters['d'].rhs_ast.value.magnitude )
