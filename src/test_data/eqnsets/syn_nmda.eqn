@@ -22,4 +22,11 @@ EQNSET syn_nmda {
     g2_tau = 0.67ms
     <=> INPUT     v: mV           METADATA {"mf":{"role":"MEMBRANEVOLTAGE"} }
     <=> OUTPUT    i:(mA)      METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
+    
+    ==>> on_event(  ){
+        g1 = g1 + 4.0 
+        g2 = g2 + 4.0
+    }
+    
+    
 }

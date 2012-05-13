@@ -6,6 +6,7 @@ from neurounits.tools.nmodl.neuron_constants import NeuronSuppliedValues
 from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
 from neurounits.ast.astobjects import AssignedVariable, StateVariable,\
     SymbolicConstant, SuppliedValue, InEquality
+import string
 
 
 
@@ -184,7 +185,10 @@ class FunctionWriter(ASTActionerDefaultIgnoreMissing):
         ASTActionerDefaultIgnoreMissing.__init__(self, action_predicates=[ SingleVisitPredicate() ] )
 
     def ActionFunctionDef(self, o, modfilecontents,  build_parameters,**kwargs):
-        import string
+        if o.funcname in ['exp','sin','fabs','pow']:
+            return False
+
+
 
         func_def_tmpl = """
             FUNCTION $func_name ($func_params) $func_unit
@@ -192,7 +196,7 @@ class FunctionWriter(ASTActionerDefaultIgnoreMissing):
                 $func_name = $result_string
             }"""
 
-        func_def = string.Template(func_def_tmpl).substitute( {'func_name' :  o.funcname,
+        func_def = string.Template(func_def_tmpl).substitute( {'func_name' :  o.funcname.replace(".","__"),
                                                                'func_params' : ",".join( [ p.symbol for p in o.parameters.values()] ),
                                                                'result_string' : CStringWriter.Build(o.rhs, build_parameters=build_parameters, expand_assignments=False  ),
                                                                'func_unit' : "",
@@ -209,10 +213,14 @@ class FunctionWriter(ASTActionerDefaultIgnoreMissing):
 
 
 class OnEventWriter(ASTActionerDefaultIgnoreMissing):
+    def __init__(self,):
+        ASTActionerDefaultIgnoreMissing.__init__(self, action_predicates=[ SingleVisitPredicate() ] )
 
     def ActionOnEvent(self, o, modfilecontents, build_parameters,  **kwargs):
-        raise NotImplementedError()
-
+        #assert False
+        #raise NotImplementedError()
+        #print build_parameters.event_function
+        #assert False
         if o != build_parameters.event_function:
             return
 
@@ -220,14 +228,15 @@ class OnEventWriter(ASTActionerDefaultIgnoreMissing):
         assert len( o.parameters ) == 0
         tmpl = """NET_RECEIVE( weight ) \n {    $contents \n}"""
 
-        contents = "\n".join( [ "" + self.DoActionOnEventAssignment(a, modfilecontents, varnames, varunits,nmodl_units_to_str_db, **kwargs ) for a in o.actions ] )
+        contents = "\n".join( [ "" + self.ActionOnEventAssignment(a, modfilecontents=modfilecontents, build_parameters=build_parameters, **kwargs ) for a in o.actions ] )
         txt = string.Template( tmpl).substitute( contents=contents)
         modfilecontents.section_NETRECEIVES.append(txt)
 
-    def DoActionOnEventAssignment(self, o, modfilecontents, varnames, varunits,nmodl_units_to_str_db, **kwargs):
-        raise NotImplementedError()
-        rhs = CString.Build(o.rhs, varnames=varnames, varunits=varunits)
-        return  "%s = %s" %( varnames[o.lhs].in_si_name, rhs )
+    def ActionOnEventAssignment(self, o, modfilecontents, build_parameters, **kwargs):
+        #raise NotImplementedError()
+        #rhs = CString.Build(o.rhs, varnames=varnames, varunits=varunits)
+        #return  "%s = %s" %( varnames[o.lhs].in_si_name, rhs )
+        return CStringWriter.Build(o, build_parameters=build_parameters, expand_assignments=False)
 
 
 
@@ -391,6 +400,19 @@ class CStringWriter(ASTVisitorBase):
         return "%s = %s %s" %( lhs, multiplier, rhs_si )
 
 
+    def VisitOnEventStateAssignment(self, o, **kwargs):
+        rhs_si =  self.Visit(o.rhs)
+        lhs =  o.lhs.symbol
+
+        # Check for non-SI assignments to the lhs
+        multiplier = ""
+        if o.lhs.get_dimensionality() != self.build_parameters.symbol_units[o.lhs]:
+            multiplier = "(%f)*"% 10**(-1*self.build_parameters.symbol_units[o.lhs].powerTen)
+
+        return "%s = %s %s" %( lhs, multiplier, rhs_si )
+
+
+
     def VisitAddOp(self, o, **kwargs):
         return "( %s + %s )"%( self.Visit(o.lhs,**kwargs), self.Visit(o.rhs, **kwargs) )
 
@@ -426,7 +448,7 @@ class CStringWriter(ASTVisitorBase):
             #func_call = "%s(%s)"%( varnames[o.function_def].raw_name, params)
             print 'T',  [ type(p.rhs_ast) for p in o.parameters.values()]
             params = ",".join( self.Visit(p.rhs_ast) for p in o.parameters.values()  )
-            func_call = "%s(%s)"%( o.function_def.funcname, params)
+            func_call = "%s(%s)"%( o.function_def.funcname.replace(".","__"), params)
             return func_call
         else:
             panic()
