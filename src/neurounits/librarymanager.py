@@ -22,11 +22,14 @@ import os,glob
 class LibraryManager(object):
 
 
-    #_cache = {}
+    _stdlib_cache = None
 
     def AcceptVisitor(self, v, **kwargs):
         return v.VisitLibraryManager(self,**kwargs)
 
+
+    
+    
 
 
     def __init__(self,backend, working_dir=None, options=None, name=None, src_text=None):

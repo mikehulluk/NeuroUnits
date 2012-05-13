@@ -266,14 +266,14 @@ def test_invalid_units():
 
 
 def load():
-    r1 = test_quantitysimple()
+    #r1 = test_quantitysimple()
     r2 = test_quantityexpr()
 
     #test_function()
     #test_invalid_units()
 
     #doc = Document( r1,r2 )
-    return [r1,r2]
+    return [r2]#,r2]
 
 
 
@@ -284,6 +284,7 @@ class SingleLinesDoc(ReportGenerator):
     def __init__(self):
         ReportGenerator.__init__(self, "SingleLines")
     def __call__(self):
+        #return []
         return load()
 SingleLinesDoc()
 

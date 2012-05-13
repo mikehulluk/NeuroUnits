@@ -70,7 +70,7 @@ class DimensionResolver(ASTVisitorBase):
     # Visit each node, and try and propogate dimensions.
     # Each method should return a list of nodes resolved.
 
-    def __init__(self, ast, obj_label_dict):
+    def __init__(self, ast, obj_label_dict=None):
         self.ast = ast
         self.history = []
         self.obj_label_dict = obj_label_dict
@@ -98,6 +98,7 @@ class DimensionResolver(ASTVisitorBase):
                 pass
 
     def SummariseUnitState(self, title):
+        return
         if title is not None:
             self.history.append(title)
 
@@ -115,7 +116,7 @@ class DimensionResolver(ASTVisitorBase):
 
     def RegisterDimensionPropogation(self, obj, new_dimension, reason):
         obj.set_dimension(new_dimension)
-        self.history.append("Setting Dimension: %s to %s because %s"%(self.obj_label_dict[obj],new_dimension,reason) )
+        #self.history.append("Setting Dimension: %s to %s because %s"%(self.obj_label_dict[obj],new_dimension,reason) )
 
 
     def VisitEqnSet(self, o, **kwargs):
@@ -131,11 +132,6 @@ class DimensionResolver(ASTVisitorBase):
         self.EnsureEqualDimensions([o, o.lhs, o.rhs] )
 
     def VisitIfThenElse(self, o, **kwargs):
-        #assert False
-        #print o.get_dimension()
-        #print o.if_true_ast.is_dimensionality_known()
-        #print o.if_false_ast.is_dimensionality_known()
-        #print o.is_dimensionality_known()
         self.EnsureEqualDimensions([o, o.if_true_ast, o.if_false_ast] )
 
     def VisitInEquality(self, o ,**kwargs):
@@ -262,7 +258,7 @@ class DimensionResolver(ASTVisitorBase):
         # powint and sqrt need to  be handled differently, since thier
         # dimensions depend on the input and output:
         if isinstance(o.function_def, ast.BuiltInFunction) and o.function_def.funcname in ['powint','sqrt']:
-            
+
             if o.function_def.funcname == "powint":
                 #assert False
                 p = o.parameters['x']
@@ -341,13 +337,13 @@ class DimensionResolver(ASTVisitorBase):
                 'sin','cos','tan',
                 'sinh','cosh','tanh',
                 'asin','acos','atan','atan2',
-                'exp','ln','log2','log10', 
-                'pow','ceil','fabs','floor', 
+                'exp','ln','log2','log10',
+                'pow','ceil','fabs','floor',
                 ]
         if o.funcname in dimensionless_functions:
             return
 
-        return 
+        return
         print 'Dealing with special'
         assert o.funcname in dimensionless_functions
 
@@ -367,14 +363,15 @@ class PropogateDimensions(object):
         print 'OutDir:', wd
         EnsureExisits(wd)
 
-        labels = ASTNodeLabels()
-        labels.Visit(eqnset)
-        labels = labels.id_dict
+        labels=None
+        #labels = ASTNodeLabels()
+        #labels.Visit(eqnset)
+        #labels = labels.id_dict
 
-        # Generate a summary file of the ID's
-        idStrings  = ActionerFormatStringsAsIDs(labels)
-        idStrings.Visit(eqnset)
-        idStrings.tofile(wd+'ID_Definitions.txt')
+        ## Generate a summary file of the ID's
+        #idStrings  = ActionerFormatStringsAsIDs(labels)
+        #idStrings.Visit(eqnset)
+        #idStrings.tofile(wd+'ID_Definitions.txt')
 
         all_symbols = ASTVisitorCollectorAll( eqnset).objects
         obj_with_dimension = [ s for s in all_symbols if isinstance(s, ast.ASTExpressionObject)]
@@ -393,25 +390,26 @@ class PropogateDimensions(object):
                     break
 
         except UnitMismatchError, e:
-
-            print 'Error with: '
-            print ' - ', labels[e.objA], "Unit:", e.objA.get_dimension()
-            print ' - ', labels[e.objB], "Unit:", e.objB.get_dimension()
-            print
-            s1 = StringWriterVisitor().Visit(e.objA)
-            s2 = StringWriterVisitor().Visit(e.objB)
-            print 'S1:', s1
-            print 'S2:',  s2
-            #assert False
             raise
 
+            #print 'Error with: '
+            #print ' - ', labels[e.objA], "Unit:", e.objA.get_dimension()
+            #print ' - ', labels[e.objB], "Unit:", e.objB.get_dimension()
+            #print
+            #s1 = StringWriterVisitor().Visit(e.objA)
+            #s2 = StringWriterVisitor().Visit(e.objB)
+            #print 'S1:', s1
+            #print 'S2:',  s2
+            ##assert False
+            #raise
 
 
-        uR.SummariseUnitState(title="Finally")
 
-        # Print the History:
-        with open(wd+'UnitsResolutionHistory','w') as f:
-            f.writelines("\n".join(uR.history) )
+        #uR.SummariseUnitState(title="Finally")
+
+        ## Print the History:
+        #with open(wd+'UnitsResolutionHistory','w') as f:
+        #    f.writelines("\n".join(uR.history) )
 
 
 
@@ -422,7 +420,7 @@ class PropogateDimensions(object):
             for s in symbols_without_dimension:
                 try:
                     print '\tObj:', type(s),s,
-                    print '\t  -', 
+                    print '\t  -',
                     print '\t', s.symbol
                 except:
                     pass
