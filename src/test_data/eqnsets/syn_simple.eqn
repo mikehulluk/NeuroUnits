@@ -1,22 +1,16 @@
 EQNSET syn_simple {
 
     g' = - g/g_tau
-  
-    
     i = gmax * (v-erev) * g
     
-    gmax = 10nS
+    gmax = 300pS
     erev = 0mV
     
-    
-    g_tau = 10ms
-    
-    <=> INPUT     v: mV           METADATA {"mf":{"role":"MEMBRANEVOLTAGE"} }
+    g_tau = 20ms
+    <=> INPUT     v: mV       METADATA {"mf":{"role":"MEMBRANEVOLTAGE"} }
     <=> OUTPUT    i:(mA)      METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
     
-    ==>> on_event(  ){
+    ==>> on_event() {
         g = g + 1.0 
     }
-    
-    
 }

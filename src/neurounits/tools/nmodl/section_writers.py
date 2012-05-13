@@ -188,8 +188,6 @@ class FunctionWriter(ASTActionerDefaultIgnoreMissing):
         if o.funcname in ['exp','sin','fabs','pow']:
             return False
 
-
-
         func_def_tmpl = """
             FUNCTION $func_name ($func_params) $func_unit
             {
@@ -205,22 +203,12 @@ class FunctionWriter(ASTActionerDefaultIgnoreMissing):
 
 
 
-    #def getParameterString(self, p,varnames,varunits, nmodl_units_to_str_db ):
-    #    nmodl_unit_string = nmodl_units_to_str_db.get_unit_nmodlname(varunits[p].get_si_unit() )
-    #    return varnames[p].raw_name + "(" + nmodl_unit_string + ")"
-
-
-
 
 class OnEventWriter(ASTActionerDefaultIgnoreMissing):
     def __init__(self,):
         ASTActionerDefaultIgnoreMissing.__init__(self, action_predicates=[ SingleVisitPredicate() ] )
 
     def ActionOnEvent(self, o, modfilecontents, build_parameters,  **kwargs):
-        #assert False
-        #raise NotImplementedError()
-        #print build_parameters.event_function
-        #assert False
         if o != build_parameters.event_function:
             return
 
@@ -233,9 +221,6 @@ class OnEventWriter(ASTActionerDefaultIgnoreMissing):
         modfilecontents.section_NETRECEIVES.append(txt)
 
     def ActionOnEventAssignment(self, o, modfilecontents, build_parameters, **kwargs):
-        #raise NotImplementedError()
-        #rhs = CString.Build(o.rhs, varnames=varnames, varunits=varunits)
-        #return  "%s = %s" %( varnames[o.lhs].in_si_name, rhs )
         return CStringWriter.Build(o, build_parameters=build_parameters, expand_assignments=False)
 
 
@@ -347,7 +332,7 @@ class CStringWriter(ASTVisitorBase):
             return symbol
 
         else:
-            multiplier = "(%f)"% 10**self.build_parameters.symbol_units[n].powerTen
+            multiplier = "(%e)"% 10**self.build_parameters.symbol_units[n].powerTen
             return "%s * %s"%(multiplier, symbol)
 
 
@@ -367,10 +352,10 @@ class CStringWriter(ASTVisitorBase):
 
 
     def VisitConstant(self, o, **kwargs):
-        return "%f"% o.value.float_in_si()
+        return "%e"% o.value.float_in_si()
 
     def VisitSymbolicConstant(self,o , **kwargs):
-        return "%f"%o.value.float_in_si()
+        return "%e"%o.value.float_in_si()
 
 
 
@@ -382,7 +367,7 @@ class CStringWriter(ASTVisitorBase):
         # Check for non-SI assignments to the lhs
         multiplier = ""
         if o.lhs.get_dimensionality() != self.build_parameters.symbol_units[o.lhs]:
-            multiplier = "(%f)*"% 10**(-1*self.build_parameters.symbol_units[o.lhs].powerTen)
+            multiplier = "(%e)*"% 10**(-1*self.build_parameters.symbol_units[o.lhs].powerTen)
 
         # NEURON has a dt in 'ms', so we need to scale from SI.
         return "%s' = (0.001)* %s %s" %( lhs, multiplier, rhs_si )
@@ -395,7 +380,7 @@ class CStringWriter(ASTVisitorBase):
         # Check for non-SI assignments to the lhs
         multiplier = ""
         if o.lhs.get_dimensionality() != self.build_parameters.symbol_units[o.lhs]:
-            multiplier = "(%f)*"% 10**(-1*self.build_parameters.symbol_units[o.lhs].powerTen)
+            multiplier = "(%e)*"% 10**(-1*self.build_parameters.symbol_units[o.lhs].powerTen)
 
         return "%s = %s %s" %( lhs, multiplier, rhs_si )
 
@@ -407,7 +392,7 @@ class CStringWriter(ASTVisitorBase):
         # Check for non-SI assignments to the lhs
         multiplier = ""
         if o.lhs.get_dimensionality() != self.build_parameters.symbol_units[o.lhs]:
-            multiplier = "(%f)*"% 10**(-1*self.build_parameters.symbol_units[o.lhs].powerTen)
+            multiplier = "(%e)*"% 10**(-1*self.build_parameters.symbol_units[o.lhs].powerTen)
 
         return "%s = %s %s" %( lhs, multiplier, rhs_si )
 
