@@ -283,13 +283,30 @@ class MRedocWriterVisitor(ASTVisitorBase):
         return writer.Visit(eqnset)
 
 
+    def VisitLibraryManager(self, library_manager):
+        local_redocs = []
+        for block in library_manager.eqnsets + library_manager.libraries:
+            redoc = MRedocWriterVisitor.build(block)
+            local_redocs.append( redoc)
+
+        title = "LibraryManager Context"
+        if library_manager.name:
+            title += ": %s"%library_manager.name
+        if library_manager.src_text:
+            p = Section('Source', VerbatimBlock(library_manager.src_text))
+            local_redocs = [p] + local_redocs
+
+        d = Section(title, local_redocs)
+        return d
+
 
 
     def VisitEqnSet(self, eqnset):
 
         format_dim = lambda o: "$%s$"%FormatDimensionality( o.get_dimension() ) if not o.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False) else  "-" 
 
-        symbol_format = lambda s:s
+        f = LatexEqnWriterN() #FormatTerminalSymbol(self, symbol):
+        symbol_format = lambda s:f.FormatTerminalSymbol(s)
 
         dep_string_indir = lambda s: ",".join( [symbol_format(o.symbol) for o in sorted( set(eqnset.getSymbolDependancicesIndirect(s, include_ass_in_output=False)), key=lambda s:s.symbol ) ] )
 
@@ -297,11 +314,11 @@ class MRedocWriterVisitor(ASTVisitorBase):
 
 
         terminal_symbols = VerticalColTable("Symbol  | Type      | Value | Dimensions | Dependancies | Metadata",
-                                            ["%s     | Parameter | -     | %s         | -            | %s  " % (p.symbol, format_dim(p), meta_format(p)) for p in eqnset.parameters] +
-                                            ["%s     | Supplied  | -     | %s         | -            | %s  " % (s.symbol, format_dim(s),meta_format(s) )  for s in eqnset.suppliedvalues] +
-                                            ["%s     | Constant  | %s    | %s         | -            | -   " % (s.symbol, s.value, format_dim(s),    ) for s in eqnset.symbolicconstants] +
-                                            ["%s     | Assigned  | -     | %s         | $\{%s\}$     | %s  " % (a.symbol, format_dim(a), dep_string_indir(a), meta_format(a)   ) for a in eqnset.assignedvalues] +
-                                            ["%s     | State     | -     | %s         | $\{%s\}$     | %s  " % (s.symbol, format_dim(s), dep_string_indir(s), meta_format(s)  ) for s in eqnset.states]
+                                            ["$%s$     | Param | -     | %s         | -            | %s  " % (symbol_format(p.symbol), format_dim(p), meta_format(p)) for p in eqnset.parameters] +
+                                            ["$%s$     | Supp  | -     | %s         | -            | %s  " % (symbol_format(s.symbol), format_dim(s),meta_format(s) )  for s in eqnset.suppliedvalues] +
+                                            ["$%s$     | Const | %s    | %s         | -            | -   " % (symbol_format(s.symbol), s.value, format_dim(s),    ) for s in eqnset.symbolicconstants] +
+                                            ["$%s$     | Assd  | -     | %s         | $\{%s\}$     | %s  " % (symbol_format(a.symbol), format_dim(a), dep_string_indir(a), meta_format(a)   ) for a in eqnset.assignedvalues] +
+                                            ["$%s$     | State | -     | %s         | $\{%s\}$     | %s  " % (symbol_format(s.symbol), format_dim(s), dep_string_indir(s), meta_format(s)  ) for s in eqnset.states]
                                             )
 
 
@@ -322,7 +339,7 @@ class MRedocWriterVisitor(ASTVisitorBase):
                     Section("Plots", *plts ),
                     )
 
-    def VisitLibrary(self, eqnset):
+    def VisitLibrary(self, library):
 
         format_dim = lambda o: "$%s$"%FormatDimensionality( o.get_dimension() ) if not o.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False) else  "-" 
 
@@ -342,7 +359,7 @@ class MRedocWriterVisitor(ASTVisitorBase):
 
 
 
-        return SectionNewPage("Eqnset Summary: %s"%eqnset.name,
+        return SectionNewPage("Library Summary: %s"%library.name,
                     Section("Imports"),
                     Section("Function Definitions",
                        EquationBlock( *[LatexEqnWriterN().Visit(a) for a in eqnset.functiondefs if not isinstance(a, BuiltInFunction)])),

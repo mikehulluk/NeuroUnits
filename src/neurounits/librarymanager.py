@@ -24,12 +24,18 @@ class LibraryManager(object):
 
     #_cache = {}
 
+    def AcceptVisitor(self, v, **kwargs):
+        return v.VisitLibraryManager(self,**kwargs)
 
 
 
-    def __init__(self,backend, working_dir=None, options=None):
+    def __init__(self,backend, working_dir=None, options=None, name=None, src_text=None):
         from neurounits.neurounitparser import NeuroUnitParserOptions
         self.options = options or NeuroUnitParserOptions()
+
+        # This is only used to make summarising easier:
+        self.name = name
+        self.src_text = src_text
 
 
         self.currentblock = None

@@ -231,9 +231,9 @@ class DimensionResolver(ASTVisitorBase):
             assert o.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False)
 
         if not o.lhs.is_dimension_known():
-            o.lhs.set_dimension( self.ast.backend.Unit() )
+            o.lhs.set_dimension( self.ast.library_manager.backend.Unit() )
         if not o.is_dimension_known():
-            o.set_dimension( self.ast.backend.Unit() )
+            o.set_dimension( self.ast.library_manager.backend.Unit() )
 
 
     # Function Definitions:
@@ -271,7 +271,7 @@ class DimensionResolver(ASTVisitorBase):
                 if o.is_dimension_known() and not p.is_dimension_known():
                     odim = o.get_dimension()
                     assert odim.powerTen == 0
-                    pdim = self.ast.backend.Unit(
+                    pdim = self.ast.library_manager.backend.Unit(
                             meter=odim.meter*2,
                             second=odim.second*2,
                             ampere=odim.ampere*2,
@@ -283,7 +283,7 @@ class DimensionResolver(ASTVisitorBase):
                 if p.is_dimension_known() and not o.is_dimension_known():
                     pdim = p.get_dimension()
                     assert pdim.powerTen == 0
-                    odim = self.ast.backend.Unit(
+                    odim = self.ast.library_manager.backend.Unit(
                             meter=pdim.meter/2,
                             second=pdim.second/2,
                             ampere=pdim.ampere/2,

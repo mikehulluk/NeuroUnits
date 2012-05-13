@@ -16,7 +16,7 @@ class TestLocations(object):
     
     @classmethod
     def getPackageRoot(cls):
-        return "/home/michael/workspace/libs/NeuroUnits"
+        return "/home/michael/hw_to_come//libs/NeuroUnits"
     
     
     @classmethod

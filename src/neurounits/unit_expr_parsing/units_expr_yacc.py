@@ -582,6 +582,11 @@ def p_unit_expr_6( p ):
     """unit_expr : parameterised_unit_term"""
     p[0] = p[1]
 
+# Allow empty unit 
+def p_unit_expr_7( p ):
+    """unit_expr : LBRACKET RBRACKET"""
+    backend = p.parser.library_manager.backend
+    p[0] = backend.Unit()
 
 
 #Parameterised Unit Term
@@ -780,14 +785,12 @@ def apply_regex(r, text):
 
 
 
-def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None):
+def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
 
+    original_text = text
 
-
-    # Some Cleaning
-    # This is a bit hacky
-
-    # Preprocess the text a little:
+    # Some initial preprocessing
+    # (This is a bit hacky)
     if parse_type in [ParseTypes.L4_EqnSet, ParseTypes.L5_Library, ParseTypes.L6_TextBlock]:
         text  = "\n".join([ l.split("#")[0] for l in text.split("\n") ])
         lines = []
@@ -800,31 +803,24 @@ def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, w
                 l = l.strip()
                 if not l:
                     continue
-                if not l[-1] in ('{'):
+                if not l[-1] in ('{',';'):
                     l = l +";"
                 lines.append(l)
 
         text = "\n".join( lines )
     else:
         text = text.strip()
-    #print text
 
 
 
 
     if library_manager is None:
-    #    print 'Building new LibraryManager'
-        library_manager = LibraryManager(backend=backend, working_dir=working_dir, options=options )
-    #print 'About to parse text:'
-    #print text
-    #print 'LibaryManaher:', library_manager
+        library_manager = LibraryManager(backend=backend, working_dir=working_dir, options=options, name=name, src_text=original_text )
     pRes, library_manager = parse_eqn_block(text, parse_type=parse_type, debug=debug, library_manager=library_manager)
 
 
     if parse_type==ParseTypes.L3_QuantityExpr:
-        #from neurounits.visitors.common.simplify_symbolic_constants import ReduceConstants
         from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator
-        #ReduceConstants().Visit(pRes)
         F = FunctorGenerator()
         ev = F.Visit(pRes)
         pRes = ev()
@@ -858,11 +854,9 @@ class ParserMgr():
         tables_loc =  EnsureExisits("/tmp/nu/yacc/parse_eqn_block")
         parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc )
 
-        #print parser.__dict__.keys()
         with open("/tmp/neurounits_grammar.txt",'w') as f:
             for p in parser.productions:
                 f.write( "%s\n"%p)
-        #assert False
 
 
 

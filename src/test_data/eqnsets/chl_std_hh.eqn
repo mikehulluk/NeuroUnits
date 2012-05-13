@@ -10,17 +10,19 @@ EQNSET chlstd_leak {
 
 EQNSET chlstd_hh_k {
 
-    from std.math import exp
+    from std.neuro import RateConstant5
+    
+    #from std.math import exp
     i = g * (v-erev) * n**4
 
     ninf = n_alpha_rate / (n_alpha_rate + n_beta_rate)
     ntau = 1.0 / (n_alpha_rate + n_beta_rate)
     n' = (ninf-n) / ntau
 
-    StdFormAB(V,a1,a2,a3,a4,a5) = (a1 + a2*V)/(a3+exp( (V+a4)/a5) )
+    #StdFormAB(V,a1,a2,a3,a4,a5) = (a1 + a2*V)/(a3+exp( (V+a4)/a5) )
     
-    n_alpha_rate = StdFormAB( V=v,a1=n_a1,a2=n_a2,a3=n_a3,a4=n_a4,a5=n_a5)
-    n_beta_rate =  StdFormAB( V=v,a1=n_b1,a2=n_b2,a3=n_b3,a4=n_b4,a5=n_b5)
+    n_alpha_rate = RateConstant5( V=v,a1=n_a1,a2=n_a2,a3=n_a3,a4=n_a4,a5=n_a5)
+    n_beta_rate =  RateConstant5( V=v,a1=n_b1,a2=n_b2,a3=n_b3,a4=n_b4,a5=n_b5)
 
     <=> PARAMETER g
     <=> PARAMETER erev
@@ -33,6 +35,7 @@ EQNSET chlstd_hh_k {
 
 EQNSET chlstd_hh_na {
 
+    from std.neuro import RateConstant5
     from std.math import exp
     i = g * (v-erev) * m**3*h
 
@@ -44,12 +47,12 @@ EQNSET chlstd_hh_na {
     htau = 1.0 / (h_alpha_rate + h_beta_rate)
     h' = (hinf-h) / htau
 
-    StdFormAB(V,a1,a2,a3,a4,a5) = (a1 + a2*V)/(a3+exp( (V+a4)/a5) )
+    #StdFormAB(V,a1,a2,a3,a4,a5) = (a1 + a2*V)/(a3+exp( (V+a4)/a5) )
     
-    m_alpha_rate = StdFormAB( V=v,a1=m_a1,a2=m_a2,a3=m_a3,a4=m_a4,a5=m_a5)
-    m_beta_rate =  StdFormAB( V=v,a1=m_b1,a2=m_b2,a3=m_b3,a4=m_b4,a5=m_b5)
-    h_alpha_rate = StdFormAB( V=v,a1=h_a1,a2=h_a2,a3=h_a3,a4=h_a4,a5=h_a5)
-    h_beta_rate =  StdFormAB( V=v,a1=h_b1,a2=h_b2,a3=h_b3,a4=h_b4,a5=h_b5)
+    m_alpha_rate = RateConstant5( V=v,a1=m_a1,a2=m_a2,a3=m_a3,a4=m_a4,a5=m_a5)
+    m_beta_rate =  RateConstant5( V=v,a1=m_b1,a2=m_b2,a3=m_b3,a4=m_b4,a5=m_b5)
+    h_alpha_rate = RateConstant5( V=v,a1=h_a1,a2=h_a2,a3=h_a3,a4=h_a4,a5=h_a5)
+    h_beta_rate =  RateConstant5( V=v,a1=h_b1,a2=h_b2,a3=h_b3,a4=h_b4,a5=h_b5)
 
     <=> PARAMETER g
     <=> PARAMETER erev

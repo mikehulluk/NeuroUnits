@@ -85,8 +85,8 @@ valid_quantitysimple= [
                    ("1cm2",    "100.0e6 um2",   True  ),
 
                    ("1mA/cm2",    "10 pA/um2",    True  ),
-                   #("1mA cm-2",   "10 pA/um2",    True  ),
-                   #("1mA cm-2",   "10 pA um-2",   True  ),
+                   ("1mA cm-2",   "10 pA/um2",    False  ),
+                   ("1mA cm-2",   "10 pA um-2",   False  ),
 
                    ]
 
@@ -120,43 +120,43 @@ def test_quantitysimple():
 required_libraries = ["std.math","std.geom","std.neuro",]
 
 valid_quantity_exprs = [
-                    ( '1.0',       "1.0",                                               True ),
+                    ( '1.0',       "1.0",                                                               True ),
 
                     # From Koch, Biophysics of Computation:
                     # #####################################
                     # Pg. 7:
-                    ( 'std.geom.area_of_sphere(r=5um) * {1 uF/cm2} * {-70mV}', "-0.22e-12 C",    False ),
+                    ( 'std.geom.area_of_sphere(r=5um) * {1 uF/cm2} * {-70mV}', "-0.22e-12 C",            False ),
                     # Pg. 11:
-                    ('{100 megaohm} * {100 pF}','10 ms',                                    False),
+                    ('{100 megaohm} * {100 pF}','10 ms',                                                 False),
                     # Pg. 32:
-                    ('std.neuro.space_constant(d=4um,Ri={200 ohm cm},Rm={20e3 ohm cm2})', '1mm', False),
+                    ('std.neuro.space_constant(d=4um,Ri={200 ohm cm},Rm={20e3 ohm cm2})', '1mm',         False),
                     # Pg. 34:
-                    ('std.neuro.Rinf_sealed_end(d=2um,Rm=10e5 Ohm cm2)',                   '3000 GOhm', False),
+                    ('std.neuro.Rinf_sealed_end(d=2um,Rm=10e5 Ohm cm2)',                   '3000 GOhm',  False),
                     # Pg. 42:
-                    ('std.neuro.space_constant(d=2um,Ri=200 Ohm cm,Rm=50000ohm cm2)','1.581um', False),
+                    ('std.neuro.space_constant(d=2um,Ri=200 Ohm cm,Rm=50000ohm cm2)','1.581um',          False),
 #                    # Pg. 151:
-                    ('1/({0.3mS/cm2})','3333 ohm cm2',           False),
-                    ('{1uF/cm2} * {3333 ohm cm2}','0.85ms',      False),
+                    ('1/({0.3mS/cm2})','3333 ohm cm2',                                                   False),
+                    ('{1uF/cm2} * {3333 ohm cm2}','0.85ms',                                              False),
 
                     # Current, Voltage, Conductance:
                     # ##############################
                     # V = I * R and V = I / G
-                    ("1V",          "{1A}*{1ohm}",       False),
-                    ("1V",          "{1A}/{1S}",         False),
-                    ("10V",         "{10A}/{1S}",        False),
-                    ("10V",         "{1A}/{0.1S}",       False),
-                    ("1mV",         "{1mA}/{1S}",        False),
-                    ("{1mV/cm2}",     "{1mA cm-2}/{1S}",   False),
-                    ("{1mV/cm2}",     "{10pA um-2}/{1S}",  False),
+                    ("1V",          "{1A}*{1ohm}",          False),
+                    ("1V",          "{1A}/{1S}",            False),
+                    ("10V",         "{10A}/{1S}",           False),
+                    ("10V",         "{1A}/{0.1S}",          False),
+                    ("1mV",         "{1mA}/{1S}",           False),
+                    ("{1mV/cm2}",     "{1mA cm-2}/{1S}",    False),
+                    ("{1mV/cm2}",     "{10pA um-2}/{1S}",   False),
 
 
 
                     # Check that builtin functions handle units properly:
                     # Functions must be dimensionless, and
-                    ("-5.0687e-1",     "std.math.sin(100)",              False),
-                    #("0",              "std.math.sin(0)",                False),
-                    ("-5.0687e-1",     "std.math.sin({0.1kV}/{1V})",     False),
-                    ("-5.0687e-1",     "std.math.sin({1V}/{10mV})",       False),
+                    ("-5.0687e-1",     "std.math.sin(100)",                     False),
+                    #("0",              "std.math.sin(0)",                      False),
+                    ("-5.0687e-1",     "std.math.sin({0.1kV}/{1V})",            False),
+                    ("-5.0687e-1",     "std.math.sin({1V}/{10mV})",             False),
 
 
                     # Check user defined functions:
@@ -222,9 +222,7 @@ def test_quantityexpr():
 
         pcA =  ((A-B)/A).dimensionless()
         pcB =  ((A-B)/B).dimensionless()
-        #assert pcA==0
-        #assert pcB==0
-        data.append ( [a,b, str(A), str(B), str(pcA), str(pcB)] )
+        data.append ( [a,b, "$%s$"%(A.FormatLatex()), "$%s$"%(B.FormatLatex()), str(pcA), str(pcB)] )
 
     header = "A|B|Parsed(A)|Parsed(B)|PC(A)|PC(B)".split("|")
     return  Table( header=header, data=data)
@@ -267,16 +265,7 @@ def test_invalid_units():
 
 
 
-
-
-
-
-
-
-
-
-def main():
-
+def load():
     r1 = test_quantitysimple()
     r2 = test_quantityexpr()
 
@@ -284,7 +273,28 @@ def main():
     #test_invalid_units()
 
     #doc = Document( r1,r2 )
-    doc = Document( r1,r2 )
+    return [r1,r2]
+
+
+
+
+# Hook into automatic documentation:
+from test_base import ReportGenerator
+class SingleLinesDoc(ReportGenerator):
+    def __init__(self):
+        ReportGenerator.__init__(self, "SingleLines")
+    def __call__(self):
+        return load()
+SingleLinesDoc()
+
+
+
+
+
+def main():
+    sections = load()
+
+    doc = Document( *sections )
 
     opdir = os.path.join( TestLocations.getTestOutputDir(), 'quantity_exprs_valid' )
 

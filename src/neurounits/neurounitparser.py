@@ -69,9 +69,9 @@ class NeuroUnitParser(object):
 
 
     @classmethod
-    def File(cls, text, working_dir=None, debug=False, backend=None, options=None ):
+    def File(cls, text, working_dir=None, debug=False, backend=None, options=None, name=None ):
         backend = backend or cls.getDefaultBackend()
-        return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L6_TextBlock, working_dir=working_dir, backend=backend, options=options)
+        return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L6_TextBlock, working_dir=working_dir, backend=backend, options=options, name=name)
 
     @classmethod
     def EqnSet(cls, text, **kwargs):
