@@ -220,7 +220,7 @@ def p_on_event_action0(p):
     p[0] = None
 
 def p_on_event_action1(p):
-    """on_event_action : alphanumtoken  EQUALS rhs_term whiteslurp NEWLINE"""
+    """on_event_action : alphanumtoken  EQUALS rhs_term whiteslurp SEMICOLON"""
     lhs = p.parser.library_manager.get_current_block_builder().get_symbol_or_proxy(p[1])
     p[0] = ast.OnEventStateAssignment(lhs=lhs,rhs=p[3])
 

@@ -100,7 +100,7 @@ class UnitExprLexer(object):
 
     t_IO_LINE = r"""<=> [^;]*"""
 
-    t_ONEVENT_SYMBOL = r"""<==>"""
+    t_ONEVENT_SYMBOL =r"""==>>"""
 
     t_LESSTHAN = r"""<"""
     t_GREATERTHAN = r""">"""

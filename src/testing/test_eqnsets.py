@@ -27,7 +27,7 @@
 
 
 import os
-from test_locations import TestLocations
+from util_test_locations import TestLocations
 from neurounits.neurounitparser import NeuroUnitParser
 from neurounits.writers.writer_ast_to_mredoc import MRedocWriterVisitor
 from mredoc.writers import LatexWriter

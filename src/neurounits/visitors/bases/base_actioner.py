@@ -46,7 +46,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         for f in subnodes:
             self.Visit(f,**kwargs)
 
-        for onev in o.on_events:
+        for onev in o.onevents:
             self.Visit(onev,**kwargs)
 
         self._ActionEqnSet(o,**kwargs)

@@ -39,7 +39,7 @@ class ReplaceNode(ASTVisitorBase):
         return o.AcceptVisitor(self, **kwargs)
 
     def VisitEqnSet(self, o, **kwargs):
-        subnodes = itertools.chain( o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants, o.on_events)
+        subnodes = itertools.chain( o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants, o.onevents)
         for f in subnodes:
             self.Visit(f,**kwargs)
         return o
@@ -51,9 +51,14 @@ class ReplaceNode(ASTVisitorBase):
         return o
 
     def VisitOnEvent(self, o, **kwargs):
-        raise NotImplementedError()
+        o.parameters =dict( [ (pName, self.replace_or_visit(p) )for (pName,p) in o.parameters.iteritems()] )
+        o.actions = [self.replace_or_visit(a,**kwargs) for a in o.actions]
+        return o        
+
     def VisitOnEventStateAssignment(self, o, **kwargs):
-        raise NotImplementedError()
+        o.lhs = self.replace_or_visit(o.lhs)
+        o.rhs = self.replace_or_visit(o.rhs)
+        return o
 
     def VisitSymbolicConstant(self, o, **kwargs):
         return o
@@ -85,10 +90,7 @@ class ReplaceNode(ASTVisitorBase):
 
     # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):
-        pNew = {}
-        for pName,p in o.parameters.iteritems():
-            pNew[pName] = self.replace_or_visit(p,**kwargs)
-        o.parameters = pNew
+        o.parameters =dict( [ (pName, self.replace_or_visit(p) )for (pName,p) in o.parameters.iteritems()] )
         o.rhs = self.replace_or_visit(o.rhs)
         return o        
     
@@ -147,14 +149,8 @@ class ReplaceNode(ASTVisitorBase):
         return o
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
-
-        pNew = {}
-        for pName,p in o.parameters.iteritems():
-            pNew[pName] = self.replace_or_visit(p,**kwargs)
-        o.parameters = pNew
-        
+        o.parameters =dict( [ (pName, self.replace_or_visit(p) )for (pName,p) in o.parameters.iteritems()] )
         assert not self.srcObj in o.parameters.values()
-        
         o.function_def = self.replace_or_visit(o.function_def)
         
         return o

@@ -28,14 +28,9 @@
 #-------------------------------------------------------------------------------
 
 
-import os
-from test_locations import TestLocations
-from neurounits.neurounitparser import NeuroUnitParser
-from neurounits.writers.writer_ast_to_mredoc import MRedocWriterVisitor
+from util_test_locations import TestLocations
 from mredoc.writers import LatexWriter
 from mredoc import Document, TableOfContents, SectionNewPage
-
-
 from os.path import join as Join
 
 

@@ -1,8 +1,8 @@
 
 LIBRARY std.math {
-    mu = 3.1414
-    pi2 = 3.1414
-    pi = pi2
+
+    pi = 3.141592653
+    e =  2.718281828
 
 
     sin(x) = __sin__(x)
@@ -34,19 +34,16 @@ LIBRARY std.math {
     ceil(x) = __ceil__(x)
     fabs(x) = __fabs__(x)
     floor(x) = __floor__(x)
-
-
-a=1
 }
 
 
 
 
 LIBRARY std.geom {
-    from std.math import pi2,mu
+    from std.math import pi
 
-    area_of_sphere(r:m) = 4 * pi2 * r*r
-    volume_of_sphere(r:m) = 4.0/3.0 * pi2 * r*r *r
+    area_of_sphere(r:m) = 4 * pi * r*r
+    volume_of_sphere(r:m) = 4.0/3.0 * pi * r*r *r
 }
 
 
@@ -71,8 +68,14 @@ LIBRARY std.neuro {
 }
 
 
-LIBRARY std.combinatorial {
+LIBRARY std.physics {
     
-
+    F = 96485.3365 coulomb mole-1
+    Na = 6.02214129e23 mole-1
+    k = 1.380648e-23 joule kelvin-1
+    e =  1.602176565 coulomb
+    R = 8.3144621 J mole-1 kelvin-1
+    #R = 8.3144621 J/(mole kelvin)
 }
 
+ 

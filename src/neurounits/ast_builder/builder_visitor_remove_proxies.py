@@ -33,7 +33,7 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         for i in itertools.chain( o.timederivatives, o.assignments, o.functiondefs, o.symbolicconstants):
             self.Visit(i)
 
-        for onevent in o.on_events:
+        for onevent in o.onevents:
             self.Visit(onevent)
 
         o._cache_nodes()

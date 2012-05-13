@@ -1,6 +1,25 @@
 EQNSET syn_nmda {
 
+    g1' = g1/g1_tau
+    g2' = g2/g2_tau
 
-
-
+    
+    vdep = 1/(1+ n * mgConc * std.math.exp( -1.0*gamma*v) )
+    drivingforce = (v-erev)
+    
+    ibar = drivingforce * vdep * gmax
+    
+    i = ibar * (g1 - g2)
+    
+    gmax = 1pS
+    erev = -50mV
+    
+    mgConc=1mM
+    n = 0.33 mM-1
+    gamma = 0.06 mV-1
+    
+    g1_tau = 80ms
+    g2_tau = 0.67ms
+    <=> INPUT     v: mV           METADATA {"mf":{"role":"MEMBRANEVOLTAGE"} }
+    <=> OUTPUT    i:(mA)      METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
 }

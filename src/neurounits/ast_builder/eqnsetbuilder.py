@@ -559,7 +559,7 @@ class EqnSetBuilder(AbstractBlockBuilder):
                 obj.set_target( self.global_scope.getSymbolOrProxy(sym) )
 
         # Save this event
-        self.onevents.append(ev)
+        self.builddata.onevents[ev.name] = ev
 
 
     def add_timederivative(self, lhs_state_name, rhs_ast):

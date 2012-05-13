@@ -29,7 +29,7 @@ class OnEvent(object):
     def __init__(self,name, parameters, actions,**kwargs):
         self.name = name
         self.parameters = parameters
-        self.actions = actions
+        self.actions = [a for a in actions if a]
     def AcceptVisitor(self, o, **kwargs):
         return o.VisitOnEvent(self, **kwargs)
 

@@ -45,6 +45,7 @@ def p_long_basic_unit(p):
     """long_basic_unit :  LONG_VOLT
                         | LONG_AMP
                         | LONG_SIEMEN
+                        | LONG_JOULE
                         | LONG_OHM
                         | LONG_COULOMB
                         | LONG_FARAD
@@ -62,6 +63,7 @@ def p_short_basic_unit(p):
     """short_basic_unit : SHORT_VOLT
                         | SHORT_AMP
                         | SHORT_SIEMEN
+                        | SHORT_JOULE
                         | SHORT_OHM
                         | SHORT_COULOMB
                         | SHORT_FARAD
@@ -125,7 +127,7 @@ def parse_term( text, backend ):
 
     text = text.strip()
 
-    print 'text', text
+    print 'Parsing Term:', text
 
     # CHECK FOR STANDARD DEFINITIONS:
     for u, u_def in UnitTermData.getSpecialCaseShortForms(backend=backend):
@@ -142,6 +144,7 @@ def parse_term( text, backend ):
     res =  unit_expr_parser.parse(text, lexer=lexer, )
 
     #print 'Parsed %s -> %s'%(text,res)
+    print 'Parsed Term:', text, "OK!"
     return res
 
 

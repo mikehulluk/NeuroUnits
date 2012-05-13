@@ -38,7 +38,7 @@ from mredoc.writers import LatexWriter, HTMLWriter
 from neurounits.writers.writer_ast_to_mredoc import MRedocWriterVisitor
 from neurounits.tools import nmodl
 
-from test_locations import TestLocations
+from util_test_locations import TestLocations
 
 from os.path import join as Join
 
