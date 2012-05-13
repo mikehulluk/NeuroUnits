@@ -359,9 +359,6 @@ class PropogateDimensions(object):
     @classmethod
     def propogate_dimensions(cls, eqnset):
 
-        wd =   eqnset.get_working_dir()
-        print 'OutDir:', wd
-        EnsureExisits(wd)
 
         labels=None
         #labels = ASTNodeLabels()

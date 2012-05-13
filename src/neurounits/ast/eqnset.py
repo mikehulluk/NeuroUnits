@@ -53,8 +53,8 @@ class Block(object):
     @property
     def src_text(self):
         return self.library_manager.src_text
-    def get_working_dir(self):
-        return self._builder.library_manager.working_dir + "/" + self.name + "/"
+    #def get_working_dir(self):
+    #    return self._builder.library_manager.working_dir + "/" + self.name + "/"
 
 
     @property

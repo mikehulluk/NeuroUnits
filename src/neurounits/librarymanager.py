@@ -22,17 +22,19 @@ import os,glob
 class LibraryManager(object):
 
 
-    _stdlib_cache = None
+    _stdlib_cache = False
+    _stdlib_cache_loading = False
 
     def AcceptVisitor(self, v, **kwargs):
         return v.VisitLibraryManager(self,**kwargs)
 
 
+
     
     
 
 
-    def __init__(self,backend, working_dir=None, options=None, name=None, src_text=None):
+    def __init__(self,backend, working_dir=None, options=None, name=None, src_text=None, is_stdlib_cache=False):
         from neurounits.neurounitparser import NeuroUnitParserOptions
         self.options = options or NeuroUnitParserOptions()
 
@@ -47,35 +49,46 @@ class LibraryManager(object):
         self.libraries = []
         self.eqnsets = []
 
-        self.working_dir = working_dir or "/tmp/mf_neurounits/"
-        EnsureExisits(self.working_dir)
+        #self.working_dir = working_dir or "/tmp/mf_neurounits/"
+        #EnsureExisits(self.working_dir)
 
 
-        self.stdlibraries = []
 
-        # Load in the standard libraries:
-        stdlib_dir = '/home/michael/hw_to_come/libs/NeuroUnits/src/stdlib/'
-        from neurounits.unit_expr_parsing.units_expr_yacc import parse_expr, ParseTypes
-        self.load_into_stdlibs = True
-        for f in glob.glob(stdlib_dir+"/*.eqn"):
-            print 'Loading Stdlibfile:',f
-            with open( f ) as l:
-                parse_expr( l.read(), parse_type=ParseTypes.L6_TextBlock, library_manager=self)
-        print 'Finished Loading standard library'
-        self.load_into_stdlibs = False
+
+
+        if is_stdlib_cache:
+            # Load in the standard libraries:
+            stdlib_dir = '/home/michael/hw_to_come/libs/NeuroUnits/src/stdlib/'
+            from neurounits.unit_expr_parsing.units_expr_yacc import parse_expr, ParseTypes
+            LibraryManager._stdlib_cache_loading=True
+            for f in glob.glob(stdlib_dir+"/*.eqn"):
+                with open( f ) as l:
+                    parse_expr( l.read(), parse_type=ParseTypes.L6_TextBlock, library_manager=self)
+
+            LibraryManager._stdlib_cache_loading=False
+            LibraryManager._stdlib_cache = self
+
+
+        # Ensure the cache is setup:
+        if not LibraryManager._stdlib_cache and not is_stdlib_cache:
+            LibraryManager( backend=backend, is_stdlib_cache=True)
+
+
 
 
     def get(self,name, include_stdlibs=True):
-        print 'getting;',name
+        if LibraryManager._stdlib_cache_loading:
+            include_stdlibs = False
+
         if include_stdlibs:
-            srcs = chain(self.eqnsets, self.libraries, self.stdlibraries)
+            srcs = chain(self.eqnsets, self.libraries, self._stdlib_cache.libraries)
         else:
             srcs = chain(self.eqnsets, self.libraries)
         return ExpectSingle( [ l for l in srcs if l.name==name ] )
 
 
     def get_library(self,libname):
-        lib = ExpectSingle( [ l for l in chain(self.libraries,self.stdlibraries) if l.name==libname ] )
+        lib = ExpectSingle( [ l for l in chain(self.libraries,self._stdlib_cache.libraries) if l.name==libname ] )
         return lib
 
 
@@ -88,7 +101,7 @@ class LibraryManager(object):
         return names
 
     def get_library_names(self, include_stdlibs=True):
-        return [ l.name for l in self.libraries+self.stdlibraries]
+        return [ l.name for l in self.libraries]
 
 
     def start_eqnset_block(self,):
@@ -113,10 +126,10 @@ class LibraryManager(object):
         self.currentblock.finalise()
         print 'Name',self.currentblock._astobject.name
         assert not self.currentblock._astobject.name in self.get_library_names()
-        if self.load_into_stdlibs:
-            self.stdlibraries.append( self.currentblock._astobject )
-        else:
-            self.libraries.append( self.currentblock._astobject )
+        #if self.load_into_stdlibs:
+        #    self.stdlibraries.append( self.currentblock._astobject )
+        #else:
+        self.libraries.append( self.currentblock._astobject )
         self.currentblock = None
 
 
