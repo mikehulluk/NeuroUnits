@@ -39,7 +39,7 @@ class EqnSimulator(object):
         self.timederivatives = list(ast.timederivatives)
         self.timederivatives_evaluators = [ self.fObj.timederivative_evaluators[td.lhs.symbol] for td in self.timederivatives ]
 
-        self.state_variable_working_units = [ td.lhs.get_unit() for td in self.timederivatives ]
+        self.state_variable_working_units = [ td.lhs.get_dimension() for td in self.timederivatives ]
 
     def __call__(self, time_data, params, state0In):
         if len(self.ast.timederivatives) == 0:
