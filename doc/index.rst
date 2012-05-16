@@ -140,7 +140,7 @@ The following defines a simple Libary::
     LIBRARY  simple_library {
         a = 14 mV
         b = a + {12mV}
-        my_func( c:V, d:S) = c+ d*{3pA}
+        my_func( c:V, d:ohm) = c+ d*{3pA}
     }
 
 
