@@ -34,7 +34,7 @@ definition.  NeuroUnits has 3 levels complexity:
 
     * *Level 1* **Simple Quantities and Units**
     * *Level 2* **Expressions involving Quantities**
-    * *Level 3* **Complex Equation Set and Library Defintions**
+    * *Level 3* **Systems of ODEs and Library Definitions**
 
 The Python library implements all these levels and acts as a reference. BNF
 definition of the grammar is also given.
@@ -55,7 +55,7 @@ For example, we can write code like this:
     # Level 2:
     NeuroUnitParser.QuantityExpression("2 mS/cm2")
     NeuroUnitParser.QuantityExpression("( {2 mS/cm2} * {5 mV} ) ")
-    NeuroUnitParser.QuantityExpression("( {2 mS/cm2} * {5 mV} ) * std.geom.area_of_spehere(r=5um)")
+    NeuroUnitParser.QuantityExpression("( {2 mS/cm2} * {5 mV} ) * std.geom.area_of_sphere(r=5um)")
 
     # Level 3:
     NeuroUnitParser.EqnSet("""
