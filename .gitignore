@@ -4,3 +4,5 @@
 parser.out
 
 doc/_build/*
+src/testing/htmlcov/
+src/testing/.coverage
