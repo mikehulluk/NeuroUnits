@@ -4,6 +4,8 @@
 
 all:
 	python run_all.py
-	#python test_quantityexprs.py
-	#python test_eqnsets.py
-	#python test_neuroml_import.py
+
+coverage:
+	rm -rf .coverage htmlcov/
+	python-coverage run --source "neurounits" run_all.py
+	python-coverage html

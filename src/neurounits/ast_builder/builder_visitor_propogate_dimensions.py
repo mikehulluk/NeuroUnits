@@ -15,7 +15,7 @@ from neurounits.visitors.common import ASTNodeLabels
 from neurounits.units_misc import EnsureExisits
 from neurounits.visitors.common import ActionerFormatStringsAsIDs
 from neurounits.unit_errors import panic,UnitMismatchError
-from neurounits.writers.writer_ast_to_str import StringWriterVisitor
+#from neurounits.writers.writer_ast_to_str import StringWriterVisitor
 
 
 class ASTVisitorCollectorAll(ASTActionerDefault):

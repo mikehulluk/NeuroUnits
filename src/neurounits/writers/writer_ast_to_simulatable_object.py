@@ -2,12 +2,26 @@
 # Copyright (c) 2012 Michael Hull.
 # All rights reserved.
 #
-# Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 #
-#  - Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-#  - Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+#  - Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+#  - Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
 #
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
 #-------------------------------------------------------------------------------
 from neurounits.visitors import ASTVisitorBase
 
@@ -17,71 +31,134 @@ import scipy.integrate
 from neurounits.units_misc import safe_dict_merge
 
 import numpy as np
-#import quantities as pq
-#from neurounits.writers.writer_ast_to_latex import FormatDimension
 from neurounits.visitors.common import VisitorFindDirectSymbolDependance
-#from neurounits.eqnset_ast.astobjects import AssignedVariable
 
 from neurounits import ast
 from neurounits.units_backends.mh import MHUnitBackend
+import neurounits
 
+
+import pylab
+import mredoc
+
+class Mode:
+    RetainUnits = "RetainUnits"
+    AssumeSIFloat = "AssumeSIFloat"
 
 class EqnSimulator(object):
+    """A class to allow the evaluation of eqnsets.
+    A simulator object is created using
+    """
+
     def __init__(self, ast):
 
         self.ast = ast
-        # Generate Evaluator:
-        self.fObj = FunctorGenerator()
-        self.fObj.Visit(ast)
-
+        self.fObj = FunctorGenerator(ast, as_float_in_si=True)
 
         # Set the variable order:
         self.timederivatives = list(ast.timederivatives)
         self.timederivatives_evaluators = [ self.fObj.timederivative_evaluators[td.lhs.symbol] for td in self.timederivatives ]
 
-        self.state_variable_working_units = [ td.lhs.get_dimension() for td in self.timederivatives ]
 
-    def __call__(self, time_data, params, state0In):
+
+
+    def build_redoc( self, time_data, traces= None, phase_plots=None, params={}, state0In={}, default_state0=None):
+        res = self.__call__(time_data=time_data, params=params, default_state0=default_state0)
+
+        # What traces do we plot:
+        if traces is False:
+            traces = []
+        if traces is None:
+            traces = res.keys()
+    
+        # What phase plots shall we draw:
+        if phase_plots is False:
+            phase_plots = []
+        if phase_plots is None:
+            phase_plots = []
+            for r in res.keys():
+                for s in res.keys():
+                    if r != s:
+                        phase_plots.append( (r,s) )
+
+        
+        def build_trace_plot(sym):
+            f = pylab.figure()
+            pylab.plot( res['t'], res[sym], )
+            pylab.xlabel("Time (s)")
+            pylab.ylabel("Symbol: %s")
+            return mredoc.Figure(f)
+
+        def build_phase_plot(sym1,sym2):
+            f = pylab.figure()
+            pylab.plot( res[sym1], res[sym2], )
+            pylab.xlabel("Symbol: %s"%sym1)
+            pylab.ylabel("Symbol: %s"%sym2)
+            return mredoc.Figure(f)
+
+
+        return mredoc.Section( "Simulation Results for: %s",
+                 [ build_trace_plot(tr) for tr in traces ] + [ build_phase_plot(*tr) for tr in phase_plots ]
+                )
+
+
+
+    def __call__(self, time_data, params={}, state0In={}, default_state0 = None ):
         if len(self.ast.timederivatives) == 0:
             return
 
-        state0_with_units = [ state0In[td.lhs.symbol] for td in self.timederivatives ]
-        state0 = [ state.rescale(s_unit) for (state,s_unit) in zip( state0_with_units, self.state_variable_working_units ) ]
+        assert isinstance( time_data, np.ndarray)
+
+
+        def get_as_si(o):
+            if isinstance(o, (float,int)):
+                return o
+            return o.float_in_si()
+
+
+        initial_condition_map = {}
+        for s in self.ast.initial_conditions:
+            assert isinstance( s.value, basestring)
+            v = neurounits.NeuroUnitParser.QuantitySimple(s.value)
+            initial_condition_map[s.symbol] = v
+
+        def get_initial_condition(symbol):
+            if symbol in state0In:
+                return state0In[symbol]
+            if symbol in initial_condition_map:
+                return initial_condition_map[symbol]
+            if default_state0:
+                return default_state0
+            raise ValueError("No Starting Value for StateVariable: %s found"%symbol)
+
+        # Resolve the starting values:
+        state0 = [ get_as_si(get_initial_condition(td.lhs.symbol) ) for td in self.timederivatives ]
+
 
 
         def rebuild_kw_dict(raw_state_data, params, t0):
-            y = [ self.ast.backend.Quantity(x,y) for (x,y) in zip(raw_state_data,self.state_variable_working_units)]
-            kw_states = dict(zip([td.lhs.symbol for td in self.timederivatives] ,y))
+            kw_states = dict( [ (td.lhs.symbol,y) for (td,y) in zip(self.timederivatives,raw_state_data ) ] )
             kw = safe_dict_merge(kw_states, params)
-            kw['t'] = self.ast.backend.Quantity( float(t0), self.ast.backend.Unit(second=1) )
+            kw['t'] = t0
             return kw
 
 
         def evaluate_gradient(y, t0):
-
             # Create a dictionary containing the current states and
             # the parameters:
             kw = rebuild_kw_dict(raw_state_data=y, params=params,t0=t0)
-
-            # Evaluate each gradient:
-            dys = []
-            for ev, working_unit in zip(self.timederivatives_evaluators, self.state_variable_working_units):
-                #grad = self.ast.backend.quantity_magnitude_in_unit( ev(**kw), (working_unit *self.ast.backend.Unit(second=-1) ) )
-                grad = ev(**kw).rescale( working_unit *self.ast.backend.Unit(second=-1) )
-                dys.append(grad)
-            return dys
+            return [ ev(**kw) for ev in self.timederivatives_evaluators ]
 
 
-
-        # Sanity Check:
-        for a,ev in self.fObj.assignment_evaluators.iteritems():
-            x = state0In
-            x.update(params)
-            x['t'] = self.ast.backend.Quantity(0.0,self.ast.backend.Unit(second=1) )
-            ev(**state0In)
+        ## Sanity Check:
+        #for a,ev in self.fObj.assignment_evaluators.iteritems():
+        #    x = state0In
+        #    x.update(params)
+        #    x['t'] = self.ast.library_manager.backend.Quantity(0.0,self.ast.library_manager.backend.Unit(second=1) )
+        #    ev(**state0In)
 
         # ACTION!
-        evaluate_gradient(state0, 0.0)
+        #evaluate_gradient(state0, 0.0)
 
 
         # Evaluate:
@@ -89,10 +166,12 @@ class EqnSimulator(object):
 
         # Add the units back to the states:
         res = {}
-        res['t'] = time_data, self.ast.backend.Unit(second=1)
-        for i,(td,unit) in enumerate( zip(self.timederivatives,self.state_variable_working_units ) ):
-            res[td.lhs.symbol] = ( y[:,i], unit )
+        res['t'] = time_data#, self.ast.library_manager.backend.Unit(second=1)
+        for i,(td) in enumerate( self.timederivatives ):
+            res[td.lhs.symbol] = ( y[:,i] )
 
+
+        #print res
 
 
         # Re-evaluate the assignments:
@@ -112,23 +191,17 @@ class EqnSimulator(object):
 
                 aVal = afunctor(**kw)
 
-                if ass_units[i] is None:
-                    ass_units[i]= aVal.units
                 if ass_names[i] is None:
                     ass_names[i]= a
 
-                aValRaw = aVal.rescale(ass_units[i])
-
-                    #@classmethod
-                    #def quantity_magnitude_in_unit(cls, quantity, unit):
-                    #    return quantity.converted_to_unit(unit)
+                aValRaw = aVal # .rescale(ass_units[i])
 
 
                 ass_data[i].append( aValRaw )
 
         for i,(name,unit) in enumerate(zip(ass_names,ass_units)):
             d = np.array(ass_data[i])
-            res[name] = d,unit
+            res[name] = d
             print 'Ass;',name
 
         return res
@@ -138,36 +211,41 @@ class EqnSimulator(object):
 
 
 
-def SimulateEquations(ast,):
-    evaluator = EqnSimulator(ast)
-
-    import pylab
-
-    nPlots = len(ast.summary_data)
-    f = pylab.figure()
-
-    for i,s in enumerate(ast.summary_data):
-
-        res = evaluator(state0In=s.y0, params=s.params,time_data=s.t)
-
-        ax = f.add_subplot(nPlots,1,i)
-        x,xunit = res[s.x]
-        y,yunit = res[s.y]
-
-        ax.plot( x,y, 'r')
-        FormatUnit
-        ax.set_xlabel("%s (Unit: %s)"%(s.x, FormatUnit(xunit) ))
-        ax.set_ylabel("%s (Unit: %s)"%(s.y, FormatUnit(yunit) ))
-
+#def SimulateEquations(ast,):
+#    evaluator = EqnSimulator(ast)
+#
+#    import pylab
+#
+#    nPlots = len(ast.summary_data)
+#    f = pylab.figure()
+#
+#    for i,s in enumerate(ast.summary_data):
+#
+#        res = evaluator(state0In=s.y0, params=s.params,time_data=s.t)
+#
+#        ax = f.add_subplot(nPlots,1,i)
+#        x,xunit = res[s.x]
+#        y,yunit = res[s.y]
+#
+#        ax.plot( x,y, 'r')
+#        FormatUnit
+#        ax.set_xlabel("%s (Unit: %s)"%(s.x, FormatUnit(xunit) ))
+#        ax.set_ylabel("%s (Unit: %s)"%(s.y, FormatUnit(yunit) ))
+#
 
 
 class FunctorGenerator(ASTVisitorBase):
 
-    def __init__(self):
+    def __init__(self, eqnset, as_float_in_si=False):
         self.ast = None
 
         self.assignment_evaluators = {}
         self.timederivative_evaluators = {}
+
+        self.as_float_in_si = as_float_in_si
+
+        assert isinstance(eqnset, ast.EqnSet)
+        self.Visit(eqnset)
 
 
     def VisitEqnSet(self, o, **kwargs):
@@ -182,8 +260,6 @@ class FunctorGenerator(ASTVisitorBase):
         self.assignee_to_assigment ={}
         for a in o.assignments:
             self.assignee_to_assigment[a.lhs] = a
-
-
 
 
         assignment_deps =  deps.dependancies
@@ -265,7 +341,7 @@ class FunctorGenerator(ASTVisitorBase):
                 return ParsingBackend.Quantity( float( np.sin( ( kw.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
             if o.funcname == 'pow':
                 ParsingBackend = MHUnitBackend
-                return ParsingBackend.Quantity( 
+                return ParsingBackend.Quantity(
                         float( np.power( ( kw['base'] ).dimensionless() ,( kw['exp'] ).dimensionless() )  ),
                         ParsingBackend.Unit() )
             else:
@@ -276,9 +352,15 @@ class FunctorGenerator(ASTVisitorBase):
 
 
     def VisitSymbolicConstant(self, o, **kwargs):
-        def eFunc(**kw):
-            return o.value
-        return eFunc
+        if not self.as_float_in_si:
+            def eFunc(**kw):
+                return o.value
+            return eFunc
+        else:
+            def eFunc(**kw):
+                return o.value.float_in_si()
+            return eFunc
+
 
     # Terminals:
     def VisitStateVariable(self, o, **kwargs):
@@ -294,10 +376,15 @@ class FunctorGenerator(ASTVisitorBase):
 
 
     def VisitConstant(self, o, **kwargs):
+        if not self.as_float_in_si:
+            def eFunc(**kw):
+                return o.value
+            return eFunc
+        else:
+            def eFunc(**kw):
+                return o.value.float_in_si()
+            return eFunc
 
-        def eFunc(**kw):
-            return o.value
-        return eFunc
 
 
     def VisitSuppliedValue(self, o, **kwargs):

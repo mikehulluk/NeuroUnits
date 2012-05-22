@@ -73,8 +73,6 @@ def load_neuroml():
         except NeuroUnitsImportNeuroMLNotImplementedException, e:
             pass
 
-        #break
-
         if i > 1:
             break
 

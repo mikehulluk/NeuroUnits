@@ -63,10 +63,14 @@ class Block(object):
     def has_terminal_obj(self, symbol):
         raise NotImplementedError()
 
-    # Deprecating....
-    @property
-    def backend(self):
-        assert False
+
+    def to_redoc(self):
+        from neurounits.writers import MRedocWriterVisitor
+        return MRedocWriterVisitor.build(self)
+
+    # to functor:
+    # ....
+
 
 class Library(Block):
     def AcceptVisitor(self, v, **kwargs):
@@ -109,6 +113,8 @@ class EqnSet(Block):
         return v.VisitEqnSet(self, **kwargs)
 
 
+
+
     def __init__(self,  library_manager, builder, builddata, io_data):
         Block.__init__(self, library_manager=library_manager, builder=builder, name=builddata.eqnset_name)
 
@@ -137,6 +143,8 @@ class EqnSet(Block):
         t.Visit(self)
         self._parameters =  t.nodes[Parameter]
         self._supplied_values =  t.nodes[SuppliedValue]
+
+
 
 
 

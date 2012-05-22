@@ -212,11 +212,19 @@ class MMQuantity(object):
     def __mul__(self, rhs):
         if isinstance(rhs, MMUnit):
             rhs = MMQuantity(1.0,rhs)
-        return MMQuantity( self.magnitude*rhs.magnitude,  self.unit*rhs.unit)
+        elif isinstance(rhs, float):
+            return MMQuantity( self.magnitude*rhs,  self.unit)
+        else:
+            return MMQuantity( self.magnitude*rhs.magnitude,  self.unit*rhs.unit)
+
     def __div__(self, rhs):
         if isinstance(rhs, MMUnit):
             rhs = MMQuantity(1.0,rhs)
-        return MMQuantity( self.magnitude/rhs.magnitude,  self.unit/rhs.unit)
+        elif isinstance(rhs, float):
+            return MMQuantity( self.magnitude/rhs,  self.unit)
+        else:
+            return MMQuantity( self.magnitude/rhs.magnitude,  self.unit/rhs.unit)
+
 
 
     def __add__(self, rhs):
