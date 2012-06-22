@@ -30,7 +30,7 @@ class OnEvent(object):
         self.name = name
         self.parameters = parameters
         self.actions = [a for a in actions if a]
-    def AcceptVisitor(self, o, **kwargs):
+    def accept_visitor(self, o, **kwargs):
         return o.VisitOnEvent(self, **kwargs)
 
 class OnEventStateAssignment(ASTExpressionObject):
@@ -38,5 +38,5 @@ class OnEventStateAssignment(ASTExpressionObject):
         ASTExpressionObject.__init__(self,**kwargs)
         self.lhs = lhs
         self.rhs = rhs
-    def AcceptVisitor(self, o, **kwargs):
+    def accept_visitor(self, o, **kwargs):
         return o.VisitOnEventStateAssignment(self, **kwargs)

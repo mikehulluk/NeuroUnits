@@ -30,34 +30,34 @@ from base import ASTObject
 
 
 class ASTExpressionObject(ASTObject):
-    def __init__(self, unitMH=None, dimension=None):
+    def __init__(self,  dimension=None):
 
-        self._unitMH = None #unitMH
+        #self._unitMH = None #unitMH
         self._dimension = None #dimension
 
         if dimension:
             self.set_dimensionality(dimension)
-        if unitMH:
-            self.set_unitMH(unitMH)
+        #if unitMH:
+        #    self.set_unitMH(unitMH)
 
 
 
-    def is_unitMH_known(self):
-        return self._unitMH is not None
+    #def is_unitMH_known(self):
+    #    return self._unitMH is not None
 
-    def get_unitMH(self):
-        assert  self.is_unitMH_known()
-        return self._unitMH
+    #def get_unitMH(self):
+    #    assert  self.is_unitMH_known()
+    #    return self._unitMH
 
-    def set_unitMH(self, u):
+    #def set_unitMH(self, u):
 
-        if self.is_dimensionality_known():
-            self.get_dimensionality().check_compatible(u)
+    #    if self.is_dimensionality_known():
+    #        self.get_dimensionality().check_compatible(u)
 
-        else:
-            self.set_dimensionality( u.with_no_powerten() )
-        assert not self.is_unitMH_known()
-        self._unitMH = u
+    #    else:
+    #        self.set_dimensionality( u.with_no_powerten() )
+    #    assert not self.is_unitMH_known()
+    #    self._unitMH = u
 
 
 
@@ -81,25 +81,16 @@ class ASTExpressionObject(ASTObject):
         return self._dimension
 
     def set_dimensionality(self, dimension):
+        print dimension, type(dimension)
+        import neurounits
+        assert isinstance( dimension, neurounits.units_backends.mh.MMUnit)
+        #assert False
         assert not self.is_dimensionality_known()
-        assert not self.is_unitMH_known()
+        dimension = dimension.with_no_powerten()
         assert dimension.powerTen == 0
         self._dimension = dimension
 
 
-
-    def set_unit(self, a):
-        assert False
-
-
-    def is_unit_known(self):
-        assert False
-        #return self._unit is not None
-
-    def get_unit(self):
-        assert False
-        #assert  self.is_unit_known()
-        #return self._unit
 
 
 
@@ -108,7 +99,7 @@ class ASTExpressionObject(ASTObject):
 
 # Boolean Expressions:
 class IfThenElse(ASTExpressionObject):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitIfThenElse(self, **kwargs)
 
     def __init__(self, predicate, if_true_ast, if_false_ast,**kwargs):
@@ -121,7 +112,7 @@ class IfThenElse(ASTExpressionObject):
 # Boolean Objects:
 ####################
 class InEquality(ASTObject):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitInEquality(self, **kwargs)
 
     def __init__(self, less_than, greater_than,**kwargs):
@@ -130,7 +121,7 @@ class InEquality(ASTObject):
         self.greater_than = greater_than
 
 class BoolAnd(ASTObject):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitBoolAnd(self, **kwargs)
 
     def __init__(self, lhs, rhs,**kwargs):
@@ -138,7 +129,7 @@ class BoolAnd(ASTObject):
         self.rhs = rhs
 
 class BoolOr(ASTObject):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitBoolOr(self, **kwargs)
 
     def __init__(self, lhs, rhs,**kwargs):
@@ -146,7 +137,7 @@ class BoolOr(ASTObject):
         self.rhs = rhs
 
 class BoolNot(ASTObject):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitBoolNot(self, **kwargs)
 
     def __init__(self, lhs,**kwargs):
@@ -158,7 +149,7 @@ class BoolNot(ASTObject):
 
 
 class AssignedVariable(ASTExpressionObject):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitAssignedVariable(self, **kwargs)
 
     def __init__(self, symbol,**kwargs):
@@ -167,7 +158,7 @@ class AssignedVariable(ASTExpressionObject):
         self.assignment_rhs = None
 
 class SuppliedValue(ASTExpressionObject):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitSuppliedValue(self, **kwargs)
 
     def __init__(self, symbol,**kwargs):
@@ -175,7 +166,7 @@ class SuppliedValue(ASTExpressionObject):
         self.symbol = symbol
 
 class StateVariable(ASTExpressionObject):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitStateVariable(self, **kwargs)
 
     def __init__(self,symbol, **kwargs):
@@ -183,7 +174,7 @@ class StateVariable(ASTExpressionObject):
         self.symbol = symbol
 
 class Parameter(ASTExpressionObject):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitParameter(self, **kwargs)
 
     def __init__(self, symbol, **kwargs):
@@ -191,18 +182,20 @@ class Parameter(ASTExpressionObject):
         self.symbol = symbol
 
 class ConstValue(ASTExpressionObject):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitConstant(self, **kwargs)
 
     def __init__(self,value,**kwargs):
         ASTExpressionObject.__init__(self,**kwargs)
         self.value = value
-        self.set_unitMH(value.units)
+        #self.set_unitMH(value.units)
+        self.set_dimensionality( value.units.with_no_powerten() )
+
 
 
 
 class EqnTimeDerivative(ASTObject):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitEqnTimeDerivative(self, **kwargs)
 
     def __init__(self,lhs,rhs,**kwargs):
@@ -210,7 +203,7 @@ class EqnTimeDerivative(ASTObject):
         self.rhs = rhs
 
 class EqnAssignment(ASTObject):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitEqnAssignment(self, **kwargs)
 
     def __init__(self,lhs,rhs,**kwargs):
@@ -221,32 +214,36 @@ class EqnAssignment(ASTObject):
 
 
 class SymbolicConstant(ASTExpressionObject):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitSymbolicConstant(self, **kwargs)
     def __init__(self,symbol, value,**kwargs):
         ASTExpressionObject.__init__(self,**kwargs)
         self.symbol = symbol
         self.value = value
-        self.set_unitMH( value.units )
+        #self.set_unitMH( value.units )
+        self.set_dimensionality( value.units.with_no_powerten() )
     def __repr__(self):
         return "<SymbolicConstant: %s = %s>" %(self.symbol, self.value)
 
 
 
 class BuiltInFunction(ASTExpressionObject):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitBuiltInFunction(self, **kwargs)
 
-    def __init__(self, funcname, parameters, unitMH, **kwargs):
+    def __init__(self, funcname, parameters, dimension=None, **kwargs):
         ASTExpressionObject.__init__(self,**kwargs)
         self.funcname = funcname
         self.parameters = parameters
-        if unitMH is not None:
-            self.set_unitMH( unitMH )
+        if dimension is not None:
+            self.set_dimensionality( dimension)
+
+        #if unitMH is not None:
+        #    self.set_unitMH( unitMH )
 
 
 class FunctionDef(ASTExpressionObject):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitFunctionDef(self, **kwargs)
 
     def __init__(self, funcname, parameters, rhs, **kwargs):
@@ -256,15 +253,17 @@ class FunctionDef(ASTExpressionObject):
         self.rhs = rhs
 
 class FunctionDefParameter(ASTExpressionObject):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitFunctionDefParameter(self, **kwargs)
 
-    def __init__(self, symbol=None, unitMH=None, **kwargs):
+    def __init__(self, symbol=None, dimension=None, **kwargs):
         ASTExpressionObject.__init__(self, **kwargs)
         self.symbol=symbol
-        if unitMH is not None:
-            #assert False
-            self.set_unitMH( unitMH )
+        if dimension is not None:
+            self.set_dimensionality( dimension)
+        #if unitMH is not None:
+        #    #assert False
+        #    self.set_unitMH( unitMH )
 
 
 
@@ -273,7 +272,7 @@ class FunctionDefParameter(ASTExpressionObject):
 
 
 class FunctionDefInstantiation(ASTExpressionObject):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitFunctionDefInstantiation(self, **kwargs)
 
     def __init__(self, parameters, function_def,**kwargs):
@@ -282,7 +281,7 @@ class FunctionDefInstantiation(ASTExpressionObject):
         self.parameters = parameters
 
 class FunctionDefParameterInstantiation(ASTExpressionObject):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitFunctionDefInstantiationParater(self, **kwargs)
     def __init__(self, rhs_ast, symbol, **kwargs):
         ASTExpressionObject.__init__(self,**kwargs)
@@ -328,23 +327,23 @@ class BinaryOp(ASTExpressionObject):
 
 
 class AddOp(BinaryOp):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitAddOp(self, **kwargs)
 
 class SubOp(BinaryOp):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitSubOp(self, **kwargs)
 
 class MulOp(BinaryOp):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitMulOp(self, **kwargs)
 
 class DivOp(BinaryOp):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitDivOp(self, **kwargs)
 
 class ExpOp(BinaryOp):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitExpOp(self, **kwargs)
 
 

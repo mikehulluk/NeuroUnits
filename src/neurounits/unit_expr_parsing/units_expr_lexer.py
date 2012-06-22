@@ -52,7 +52,7 @@ class UnitExprLexer(object):
         "NO_UNIT",
         "TIMESTIMES",
         "NEWLINE",
-        "COMMENT",
+#        "COMMENT",
         "PRIME",
         "LSQUAREBRACKET",
         "RSQUAREBRACKET",

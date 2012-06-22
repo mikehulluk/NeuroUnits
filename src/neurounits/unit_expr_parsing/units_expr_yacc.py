@@ -14,13 +14,14 @@
 
 import re
 import ply.yacc as yacc
-
+import ply
 
 
 import units_expr_lexer
 from neurounits.unit_errors import UnitError
 from units_expr_lexer import UnitExprLexer
-from neurounits.units_misc import ExpectSingle, safe_dict_merge, EnsureExisits
+from neurounits.units_misc import  safe_dict_merge, EnsureExisits
+from morphforge.core.misc import SeqUtils
 from neurounits.librarymanager import LibraryManager
 
 import neurounits.ast as ast
@@ -314,7 +315,7 @@ def p_function_def_param(p):
                           | localsymbol COLON unit_expr"""
     dimension = None if len(p) == 2 else p[3]
     #assert not dimension
-    p[0] = {p[1]:ast.FunctionDefParameter(symbol=p[1], unitMH=dimension) }
+    p[0] = {p[1]:ast.FunctionDefParameter(symbol=p[1], dimension=dimension) }
 
 
 def p_function_def_params0(p):
@@ -659,23 +660,6 @@ def p_error(p):
         raise NeuroUnitParsingError("Unexpected end of file encountered")
     else:
         pass
-        #src_text = p.lexer.mparser.src_text
-
-        #line_no = p.lineno
-        #print 'Line_no:', line_no
-
-        #assert False
-        #line_no = p.lineno(p)
-
-
-
-    #pos = p.
-    #line = p.parser.src_text.split("\n")#[p.lexer.lineno]
-    #print p.__dict__
-    #print p.lexer.lexer.__dict__.keys()
-    #print "lexpos", p.lexer.lexer.lexpos
-    #print "line", p.lexer.lexer.lineno
-    #print "lexdata", p.lexer.lexer.lexdata
     try:
         line = p.lexer.lexer.lexdata.split("\n")[p.lexer.lexer.lineno]
 
@@ -740,7 +724,7 @@ RE = namedtuple('RE', ["frm","to"])
 
 
 regexes_slashes = {
-        "SlashAlpha_To_DoubleSlash":      RE(to=r"//", frm=r"""/(?= [(]* (?:[a-zA-Z]) [^(] )"""),  # For unit expressions: convert mA/cm2 to mA//cm2. Looks for a bracket, so '6 mA/log(10)' is OK
+        "SlashAlpha_To_DoubleSlash":      RE(to=r"//", frm=r"""/(?= [(]* (?:[a-zA-Z]) ([^(]|$) )"""),  # For unit expressions: convert mA/cm2 to mA//cm2. Looks for a bracket (or end of line), so '6 mA/log(10)' is OK
         "SlashCurlyTilde_To_DoubleSlash": RE(to=r"//", frm=r"""/(?= [(]* (?:[{][~]) )"""),    # For unit expressions: convert mA/{~milliamp} to mA//{~milliamp}
 
 
@@ -783,7 +767,7 @@ def apply_regex(r, text):
 
 
 
-
+#unit_library_manager
 
 def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
 
@@ -814,7 +798,7 @@ def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, w
 
 
 
-    if library_manager is None:
+    if library_manager is None and ParseTypes is not ParseTypes.L1_Unit:
         library_manager = LibraryManager(backend=backend, working_dir=working_dir, options=options, name=name, src_text=original_text )
     pRes, library_manager = parse_eqn_block(text, parse_type=parse_type, debug=debug, library_manager=library_manager)
 
@@ -822,7 +806,7 @@ def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, w
     if parse_type==ParseTypes.L3_QuantityExpr:
         from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator
         F = FunctorGenerator()
-        ev = F.Visit(pRes)
+        ev = F.visit(pRes)
         pRes = ev()
 
         
@@ -831,8 +815,8 @@ def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, w
     ret = { ParseTypes.L1_Unit:             lambda: pRes,
             ParseTypes.L2_QuantitySimple:   lambda: pRes,
             ParseTypes.L3_QuantityExpr:     lambda: pRes,
-            ParseTypes.L4_EqnSet:           lambda: ExpectSingle(library_manager.eqnsets),
-            ParseTypes.L5_Library:          lambda: ExpectSingle(library_manager.libraries),
+            ParseTypes.L4_EqnSet:           lambda: SeqUtils.expect_single(library_manager.eqnsets),
+            ParseTypes.L5_Library:          lambda: SeqUtils.expect_single(library_manager.libraries),
             ParseTypes.L6_TextBlock:        lambda: library_manager,
              }
 
@@ -852,11 +836,11 @@ class ParserMgr():
     def build_parser( cls, start_symbol, debug):
         #lexer = units_expr_lexer.UnitExprLexer()
         tables_loc =  EnsureExisits("/tmp/nu/yacc/parse_eqn_block")
-        parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc )
+        parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1, errorlog=ply.yacc.NullLogger()  )
 
-        with open("/tmp/neurounits_grammar.txt",'w') as f:
-            for p in parser.productions:
-                f.write( "%s\n"%p)
+        #with open("/tmp/neurounits_grammar.txt",'w') as f:
+        #    for p in parser.productions:
+        #        f.write( "%s\n"%p)
 
 
 
@@ -904,6 +888,9 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
     s = re.compile(r"""[ ]* [-](?=[^0-9]) [ ]*""", re.VERBOSE)
     text_eqn = re.sub(s,'--',text_eqn)
 
+    print 'Post-Processing:'
+    print text_eqn
+
 
 
 
@@ -913,7 +900,7 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
     parser = ParserMgr.get_parser( start_symbol=start_symbol, debug=debug)
     parser.library_manager = library_manager
 
-    assert parser.library_manager is library_manager
+    #assert parser.library_manager is library_manager
 
     # 'A': When loading QuantityExpr or Functions, we might use
     # stdlib functions. Therefore; we we need a 'block_builder':
@@ -923,7 +910,7 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
 
 
 
-    assert parser.library_manager is library_manager
+    #assert parser.library_manager is library_manager
 
 
 
@@ -936,17 +923,17 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
 
 
 
-    assert parser.library_manager is library_manager
+    #assert parser.library_manager is library_manager
 
     pRes = parser.parse(text_eqn, lexer=lexer, debug=debug)
 
-    assert parser.library_manager is library_manager
+    #assert parser.library_manager is library_manager
 
     # Close the block we opened in 'A'
     if parse_type in [ ParseTypes.L3_QuantityExpr]: 
         parser.library_manager.end_eqnset_block()
 
-    assert parser.library_manager is library_manager
+    #assert parser.library_manager is library_manager
 
 
     return pRes, parser.library_manager

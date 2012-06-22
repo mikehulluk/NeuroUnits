@@ -32,22 +32,22 @@ class ReplaceNode(ASTVisitorBase):
                  #print 'Not Removing Refernce to ',o.symbol
                  assert not o.symbol==self.srcObj.symbol
             
-            return self.Visit(o)
+            return self.visit(o)
         
         
-    def Visit(self, o, **kwargs):
-        return o.AcceptVisitor(self, **kwargs)
+    def visit(self, o, **kwargs):
+        return o.accept_visitor(self, **kwargs)
 
     def VisitEqnSet(self, o, **kwargs):
         subnodes = itertools.chain( o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants, o.onevents)
         for f in subnodes:
-            self.Visit(f,**kwargs)
+            self.visit(f,**kwargs)
         return o
 
     def VisitLibrary(self, o, **kwargs):
         subnodes = itertools.chain( o.functiondefs, o.symbolicconstants)
         for f in subnodes:
-            self.Visit(f,**kwargs)
+            self.visit(f,**kwargs)
         return o
 
     def VisitOnEvent(self, o, **kwargs):

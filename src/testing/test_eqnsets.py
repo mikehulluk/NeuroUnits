@@ -78,7 +78,7 @@ class EqnsetDoc(ReportGenerator):
 EqnsetDoc()
 
 
-# Run individually:
+# run individually:
 def main():
     all_redocs = document_eqnsets(individual_reports = True)
     d = Document( TableOfContents(), all_redocs)

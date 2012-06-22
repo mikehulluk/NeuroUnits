@@ -5,7 +5,7 @@ from neurounits.unit_errors import panic
 from neurounits.tools.nmodl.neuron_constants import NeuronSuppliedValues
 from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
 from neurounits.ast.astobjects import AssignedVariable, StateVariable,\
-    SymbolicConstant, SuppliedValue, InEquality
+    SymbolicConstant, SuppliedValue, InEquality, Parameter
 import string
 
 
@@ -141,7 +141,7 @@ class AssignmentWriter(ASTActionerDefaultIgnoreMissing):
             all_deps.append(i)
 
         for ass in unique(all_deps):
-            unexpected_deps = [d for d in dependancies.dependancies[ass] if not isinstance(d, (AssignedVariable, SymbolicConstant, SuppliedValue)) ]
+            unexpected_deps = [d for d in dependancies.dependancies[ass] if not isinstance(d, (AssignedVariable, SymbolicConstant, SuppliedValue, Parameter)) ]
             print unexpected_deps
             print 'Unexpected:', [s.symbol for s in unexpected_deps]
 
@@ -231,7 +231,7 @@ class OnEventWriter(ASTActionerDefaultIgnoreMissing):
 
 class NeuronBlockWriter(object):
     def __init__(self,  eqnset,  build_parameters,  modfilecontents):
-        from neuron_constants import MechanismType,NEURONMappings
+        from neuron_constants import MechanismType#,NEURONMappings
         # Heading
         if build_parameters.mechanismtype == MechanismType.Point:
             modfilecontents.section_NEURON.append("POINT_PROCESS %s"%build_parameters.suffix )
@@ -241,7 +241,7 @@ class NeuronBlockWriter(object):
             assert False
 
 
-        current_unit_in_nrn = NEURONMappings.current_units[build_parameters.mechanismtype]
+        #current_unit_in_nrn = NEURONMappings.current_units[build_parameters.mechanismtype]
         # Currents:
         for currentSymbol, neuronCurrentObj in build_parameters.currents.iteritems():
             modfilecontents.section_NEURON.append("NONSPECIFIC_CURRENT %s"%currentSymbol.symbol )
@@ -257,10 +257,11 @@ class NeuronInterfaceWriter(ASTActionerDefaultIgnoreMissing):
     def ActionAssignedVariable(self, n, modfilecontents,build_parameters, **kwargs):
         modfilecontents.section_NEURON.append("RANGE %s"%(n.symbol) )
 
-
     def ActionStateVariable(self, n, modfilecontents, **kwargs):
         modfilecontents.section_NEURON.append("RANGE %s"%(n.symbol) )
 
+    def ActionParameter(self, n, modfilecontents, **kwargs):
+        modfilecontents.section_NEURON.append("RANGE %s"%(n.symbol) )
 
 
 
@@ -286,18 +287,18 @@ class CStringWriter(ASTVisitorBase):
     @classmethod
     def Build (self, lhs, build_parameters, expand_assignments):
         c = CStringWriter(build_parameters = build_parameters,expand_assignments=expand_assignments)
-        return c.Visit(lhs)
+        return c.visit(lhs)
 
     def VisitIfThenElse(self, o, **kwargs):
         assert isinstance( o.predicate, InEquality), "Only simple if supported"
         return """ifthenelse( %s, %s, %s, %s)"""%( 
-                self.Visit(o.predicate.less_than),
-                self.Visit(o.predicate.greater_than),
-                self.Visit(o.if_true_ast), 
-                self.Visit(o.if_false_ast) )
+                self.visit(o.predicate.less_than),
+                self.visit(o.predicate.greater_than),
+                self.visit(o.if_true_ast), 
+                self.visit(o.if_false_ast) )
         #raise NotImplementedError()
     def VisitInEquality(self, o,**kwargs):
-        return "%s < %s"%( self.Visit(o.less_than), self.Visit(o.greater_than))
+        return "%s < %s"%( self.visit(o.less_than), self.visit(o.greater_than))
 
     def VisitBoolAnd(self, o, **kwargs):
         raise NotImplementedError()
@@ -345,7 +346,7 @@ class CStringWriter(ASTVisitorBase):
         if not self.expand_assignments:
             return self.GetTerminal(o)
         else:
-            return self.Visit( o.assignment_rhs )
+            return self.visit( o.assignment_rhs )
 
     def VisitSuppliedValue(self, o, **kwargs):
         return self.GetTerminal(o)
@@ -361,7 +362,7 @@ class CStringWriter(ASTVisitorBase):
 
     # AST Objects:
     def VisitEqnTimeDerivative(self, o, **kwargs):
-        rhs_si =  self.Visit(o.rhs)
+        rhs_si =  self.visit(o.rhs)
         lhs =  o.lhs.symbol
 
         # Check for non-SI assignments to the lhs
@@ -374,7 +375,7 @@ class CStringWriter(ASTVisitorBase):
 
 
     def VisitEqnAssignment(self, o, **kwargs):
-        rhs_si =  self.Visit(o.rhs)
+        rhs_si =  self.visit(o.rhs)
         lhs =  o.lhs.symbol
 
         # Check for non-SI assignments to the lhs
@@ -386,7 +387,7 @@ class CStringWriter(ASTVisitorBase):
 
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
-        rhs_si =  self.Visit(o.rhs)
+        rhs_si =  self.visit(o.rhs)
         lhs =  o.lhs.symbol
 
         # Check for non-SI assignments to the lhs
@@ -399,40 +400,40 @@ class CStringWriter(ASTVisitorBase):
 
 
     def VisitAddOp(self, o, **kwargs):
-        return "( %s + %s )"%( self.Visit(o.lhs,**kwargs), self.Visit(o.rhs, **kwargs) )
+        return "( %s + %s )"%( self.visit(o.lhs,**kwargs), self.visit(o.rhs, **kwargs) )
 
     def VisitSubOp(self, o,  **kwargs):
-        return "( %s - %s )"%( self.Visit(o.lhs,**kwargs), self.Visit(o.rhs, **kwargs) )
+        return "( %s - %s )"%( self.visit(o.lhs,**kwargs), self.visit(o.rhs, **kwargs) )
 
     def VisitMulOp(self, o, **kwargs):
-        return "( %s * %s )"%( self.Visit(o.lhs,**kwargs), self.Visit(o.rhs, **kwargs) )
+        return "( %s * %s )"%( self.visit(o.lhs,**kwargs), self.visit(o.rhs, **kwargs) )
 
     def VisitDivOp(self, o, **kwargs):
-        return "( %s / %s )"%( self.Visit(o.lhs,**kwargs), self.Visit(o.rhs, **kwargs) )
+        return "( %s / %s )"%( self.visit(o.lhs,**kwargs), self.visit(o.rhs, **kwargs) )
 
     def VisitExpOp(self, o, **kwargs):
-        return "((%s)^%s )"%( self.Visit(o.lhs,**kwargs), o.rhs )
+        return "((%s)^%s )"%( self.visit(o.lhs,**kwargs), o.rhs )
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
         import neurounits
         if type(o.function_def) == neurounits.ast.astobjects.BuiltInFunction:
 
             if o.function_def.funcname == "pow":
-                p0_rhs = self.Visit(o.parameters['base'].rhs_ast)
-                p1_rhs = self.Visit(o.parameters['exp'].rhs_ast)
+                p0_rhs = self.visit(o.parameters['base'].rhs_ast)
+                p1_rhs = self.visit(o.parameters['exp'].rhs_ast)
                 r = "%s(%s,%s)"%( o.function_def.funcname, p0_rhs, p1_rhs  )
                 return r
 
             else:
                 assert len(o.parameters) == 1
-                p0_rhs = self.Visit(o.parameters.values()[0].rhs_ast)
+                p0_rhs = self.visit(o.parameters.values()[0].rhs_ast)
                 r = "%s(%s)"%( o.function_def.funcname, p0_rhs )
                 return r
         elif type(o.function_def) == neurounits.ast.astobjects.FunctionDef:
-            #params = ",".join( self.Visit(p.rhs_ast,varnames=varnames, varunits=varunits,**kwargs) for p in o.parameters.values()  )
+            #params = ",".join( self.visit(p.rhs_ast,varnames=varnames, varunits=varunits,**kwargs) for p in o.parameters.values()  )
             #func_call = "%s(%s)"%( varnames[o.function_def].raw_name, params)
             print 'T',  [ type(p.rhs_ast) for p in o.parameters.values()]
-            params = ",".join( self.Visit(p.rhs_ast) for p in o.parameters.values()  )
+            params = ",".join( self.visit(p.rhs_ast) for p in o.parameters.values()  )
             func_call = "%s(%s)"%( o.function_def.funcname.replace(".","__"), params)
             return func_call
         else:

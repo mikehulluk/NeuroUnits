@@ -36,7 +36,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
         subnodes = itertools.chain( o.functiondefs, o.symbolicconstants)
         for f in subnodes:
-            self.Visit(f,**kwargs)
+            self.visit(f,**kwargs)
 
         self._ActionLibrary(o,**kwargs)
 
@@ -44,63 +44,63 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
         subnodes = itertools.chain( o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants)
         for f in subnodes:
-            self.Visit(f,**kwargs)
+            self.visit(f,**kwargs)
 
         for onev in o.onevents:
-            self.Visit(onev,**kwargs)
+            self.visit(onev,**kwargs)
 
         self._ActionEqnSet(o,**kwargs)
 
 
     def VisitOnEvent(self, o, **kwargs):
         for p in o.parameters.values():
-            self.Visit(p,**kwargs)
+            self.visit(p,**kwargs)
         for action in o.actions:
-            self.Visit(action, **kwargs)
+            self.visit(action, **kwargs)
         self._ActionOnEvent(o,**kwargs)
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
-        self.Visit(o.lhs,**kwargs)
-        self.Visit(o.rhs,**kwargs)
+        self.visit(o.lhs,**kwargs)
+        self.visit(o.rhs,**kwargs)
         self._ActionOnEventStateAssignment(o,**kwargs)
 
 
 
     def VisitIfThenElse(self, o, **kwargs):
-        self.Visit(o.predicate,**kwargs)
-        self.Visit(o.if_true_ast,**kwargs)
-        self.Visit(o.if_false_ast,**kwargs)
+        self.visit(o.predicate,**kwargs)
+        self.visit(o.if_true_ast,**kwargs)
+        self.visit(o.if_false_ast,**kwargs)
         self._ActionIfThenElse(o,**kwargs)
 
     def VisitInEquality(self, o ,**kwargs):
-        self.Visit(o.less_than,**kwargs)
-        self.Visit(o.greater_than,**kwargs)
+        self.visit(o.less_than,**kwargs)
+        self.visit(o.greater_than,**kwargs)
         self._ActionInEquality(o,**kwargs)
 
     def VisitBoolAnd(self, o, **kwargs):
-        self.Visit(o.lhs, **kwargs)
-        self.Visit(o.rhs, **kwargs)
+        self.visit(o.lhs, **kwargs)
+        self.visit(o.rhs, **kwargs)
         self._ActionBoolAnd(o, **kwargs)
 
     def VisitBoolOr(self, o, **kwargs):
-        self.Visit(o.lhs, **kwargs)
-        self.Visit(o.rhs, **kwargs)
+        self.visit(o.lhs, **kwargs)
+        self.visit(o.rhs, **kwargs)
         self._ActionBoolOr(o, **kwargs)
 
     def VisitBoolNot(self, o, **kwargs):
-        self.Visit(o.lhs, **kwargs)
+        self.visit(o.lhs, **kwargs)
         self._ActionBoolNot(o, **kwargs)
 
     # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):
         for p in o.parameters.values():
-            self.Visit(p,**kwargs)
-        self.Visit(o.rhs,**kwargs)
+            self.visit(p,**kwargs)
+        self.visit(o.rhs,**kwargs)
         self._ActionFunctionDef(o,**kwargs)
 
     def VisitBuiltInFunction(self, o, **kwargs):
         for p in o.parameters.values():
-            self.Visit(p,**kwargs)
+            self.visit(p,**kwargs)
         self._ActionBuiltInFunction(o,**kwargs)
 
     def VisitFunctionDefParameter(self, o, **kwargs):
@@ -122,47 +122,47 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
     # AST Objects:
     def VisitEqnTimeDerivative(self, o, **kwargs):
-        self.Visit(o.lhs,**kwargs)
-        self.Visit(o.rhs,**kwargs)
+        self.visit(o.lhs,**kwargs)
+        self.visit(o.rhs,**kwargs)
         self._ActionEqnTimeDerivative(o,**kwargs)
 
     def VisitEqnAssignment(self, o, **kwargs):
-        self.Visit(o.lhs,**kwargs)
-        self.Visit(o.rhs,**kwargs)
+        self.visit(o.lhs,**kwargs)
+        self.visit(o.rhs,**kwargs)
         self._ActionEqnAssignment(o,**kwargs)
 
     def VisitAddOp(self, o, **kwargs):
-        self.Visit(o.lhs,**kwargs)
-        self.Visit(o.rhs,**kwargs)
+        self.visit(o.lhs,**kwargs)
+        self.visit(o.rhs,**kwargs)
         self._ActionAddOp(o,**kwargs)
 
     def VisitSubOp(self, o, **kwargs):
-        self.Visit(o.lhs,**kwargs)
-        self.Visit(o.rhs,**kwargs)
+        self.visit(o.lhs,**kwargs)
+        self.visit(o.rhs,**kwargs)
         self._ActionSubOp(o,**kwargs)
 
     def VisitMulOp(self, o, **kwargs):
-        self.Visit(o.lhs,**kwargs)
-        self.Visit(o.rhs,**kwargs)
+        self.visit(o.lhs,**kwargs)
+        self.visit(o.rhs,**kwargs)
         self._ActionMulOp(o,**kwargs)
 
     def VisitDivOp(self, o, **kwargs):
-        self.Visit(o.lhs,**kwargs)
-        self.Visit(o.rhs,**kwargs)
+        self.visit(o.lhs,**kwargs)
+        self.visit(o.rhs,**kwargs)
         self._ActionDivOp(o,**kwargs)
 
     def VisitExpOp(self, o, **kwargs):
-        self.Visit(o.lhs,**kwargs)
+        self.visit(o.lhs,**kwargs)
         self._ActionExpOp(o,**kwargs)
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
         for p in o.parameters.values():
-            self.Visit(p,**kwargs)
-        self.Visit(o.function_def,**kwargs)
+            self.visit(p,**kwargs)
+        self.visit(o.function_def,**kwargs)
         self._ActionFunctionDefInstantiation(o,**kwargs)
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
-        self.Visit(o.rhs_ast,**kwargs)
+        self.visit(o.rhs_ast,**kwargs)
         self._ActionFunctionDefInstantiationParater(o,**kwargs)
 
 

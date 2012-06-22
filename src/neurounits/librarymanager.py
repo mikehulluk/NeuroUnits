@@ -9,7 +9,7 @@
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #-------------------------------------------------------------------------------
-from units_misc import ExpectSingle
+from morphforge.core.misc import SeqUtils
 import units_data_functions
 
 from neurounits.units_misc import EnsureExisits
@@ -25,16 +25,17 @@ class LibraryManager(object):
     _stdlib_cache = False
     _stdlib_cache_loading = False
 
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitLibraryManager(self,**kwargs)
 
 
 
-    
-    
+
+
 
 
     def __init__(self,backend, working_dir=None, options=None, name=None, src_text=None, is_stdlib_cache=False):
+        #assert src_text is None
         from neurounits.neurounitparser import NeuroUnitParserOptions
         self.options = options or NeuroUnitParserOptions()
 
@@ -84,16 +85,16 @@ class LibraryManager(object):
             srcs = chain(self.eqnsets, self.libraries, self._stdlib_cache.libraries)
         else:
             srcs = chain(self.eqnsets, self.libraries)
-        return ExpectSingle( [ l for l in srcs if l.name==name ] )
+        return SeqUtils.expect_single( [ l for l in srcs if l.name==name ] )
 
 
     def get_library(self,libname):
-        lib = ExpectSingle( [ l for l in chain(self.libraries,self._stdlib_cache.libraries) if l.name==libname ] )
+        lib = SeqUtils.expect_single( [ l for l in chain(self.libraries,self._stdlib_cache.libraries) if l.name==libname ] )
         return lib
 
 
     def get_eqnset(self,libname):
-        eqnset = ExpectSingle( [ l for l in self.eqnsets if l.name==libname ] )
+        eqnset = SeqUtils.expect_single( [ l for l in self.eqnsets if l.name==libname ] )
         return eqnset
 
     def get_eqnset_names(self):

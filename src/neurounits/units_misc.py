@@ -27,11 +27,11 @@ def safe_dict_merge(*args):
             out_dct[k] = v
     return out_dct
 
-def ExpectSingle(l):
-    if not len(l) == 1:
-        raise ValueError("Expect list of len 1, found iterable len: %d"% len(l))
-    #assert len(l) == 1
-    return l[0]
+#def ExpectSingle(l):
+#    if not len(l) == 1:
+#        raise ValueError("Expect list of len 1, found iterable len: %d"% len(l))
+#    #assert len(l) == 1
+#    return l[0]
 
 
 
@@ -85,7 +85,7 @@ def read_json(s):
     return x
 
 
-#def ExpectSingle(l):
+#def SeqUtils.expect_single(l):
 #    assert len(l) == 1
 #    return l[0]
 

@@ -55,6 +55,8 @@ def p_long_basic_unit(p):
                         | LONG_KELVIN
                         | LONG_MOLE
                         | LONG_CANDELA
+                        | LONG_MOLAR
+                        | LONG_HERTZ
                         """
     unit_long_LUT = UnitTermData.getUnitLUTLong(backend=p.parser.backend)
     p[0] = unit_long_LUT[ p[1] ]
@@ -73,6 +75,8 @@ def p_short_basic_unit(p):
                         | SHORT_KELVIN
                         | SHORT_MOLE
                         | SHORT_CANDELA
+                        | SHORT_MOLAR
+                        | SHORT_HERTZ
                         """
     unit_short_LUT = UnitTermData.getUnitLUTShort(backend=p.parser.backend)
     p[0] = unit_short_LUT[ p[1] ]
@@ -119,7 +123,7 @@ def p_error(p):
 
 
 tables_loc = EnsureExisits("/tmp/nu/yacc/parse_term")   
-unit_expr_parser = ply.yacc.yacc(  start='unit_term_unpowered',  tabmodule="neurounits_parsing_parse_eqn_term", outputdir=tables_loc)
+unit_expr_parser = ply.yacc.yacc(  start='unit_term_unpowered',  tabmodule="neurounits_parsing_parse_eqn_term", outputdir=tables_loc,errorlog=ply.yacc.NullLogger() )
 
 
 
@@ -127,24 +131,18 @@ def parse_term( text, backend ):
 
     text = text.strip()
 
-    print 'Parsing Term:', text
 
     # CHECK FOR STANDARD DEFINITIONS:
     for u, u_def in UnitTermData.getSpecialCaseShortForms(backend=backend):
         if u == text:
             return u_def
 
-    # Parse as per normal:
-    #parser = ply.yacc.yacc(write_tables=0, start='unit_term_unpowered')
 
     unit_expr_parser.backend = backend
 
-    #lexer = ply.lex.lex()
     lexer = UnitTermLexer()
     res =  unit_expr_parser.parse(text, lexer=lexer, )
 
-    #print 'Parsed %s -> %s'%(text,res)
-    print 'Parsed Term:', text, "OK!"
     return res
 
 

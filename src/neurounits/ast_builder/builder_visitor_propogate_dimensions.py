@@ -22,7 +22,7 @@ class ASTVisitorCollectorAll(ASTActionerDefault):
     def __init__(self,eqnset,**kwargs):
         ASTActionerDefault.__init__(self,**kwargs)
         self.objects = set()
-        self.Visit(eqnset)
+        self.visit(eqnset)
 
     def ActionNode(self, o):
         self.objects.add(o)
@@ -52,7 +52,7 @@ class DimensionResolver(ASTVisitorBase):
 
         unassigned_dimensions = [a for a in args if not a.is_dimension_known() ]
         for au in unassigned_dimensions:
-            print u, type(u)
+            #print u, type(u)
             u.get_dimension()
             self.RegisterDimensionPropogation(obj=au, new_dimension=u.get_dimension(), reason=reason)
         return unassigned_dimensions
@@ -67,7 +67,7 @@ class DimensionResolver(ASTVisitorBase):
 
 
 
-    # Visit each node, and try and propogate dimensions.
+    # visit each node, and try and propogate dimensions.
     # Each method should return a list of nodes resolved.
 
     def __init__(self, ast, obj_label_dict=None):
@@ -82,7 +82,7 @@ class DimensionResolver(ASTVisitorBase):
                 continue
 
             obj_dimensionality = obj.get_dimensionality() if obj.is_dimensionality_known() else "<Dimension Unknown>"
-            obj_unit = obj.get_unitMH() if obj.is_unitMH_known() else "<Unit Unknown>"
+            obj_unit = None#obj.get_unitMH() if obj.is_unitMH_known() else "<Unit Unknown>"
             self.history.append(" %s -> Dim: %s Unit: %s"%(name, obj_dimensionality, obj_unit) )
 
     def DumpUnitStateToHistorySymbols(self):
@@ -92,7 +92,7 @@ class DimensionResolver(ASTVisitorBase):
 
             try:
                 obj_dim = obj.get_dimension() if obj.is_dimension_known() else "<Dimension Unknown>"
-                obj_unit = obj.get_unitMH() if obj.is_unit_known() else "<Unit Unknown>"
+                obj_unit = None#obj.get_unitMH() if obj.is_unit_known() else "<Unit Unknown>"
                 self.history.append(" %s - %s - %s %s"%(name,obj.symbol, obj_dim, obj_unit) )
             except:
                 pass
@@ -362,12 +362,12 @@ class PropogateDimensions(object):
 
         labels=None
         #labels = ASTNodeLabels()
-        #labels.Visit(eqnset)
+        #labels.visit(eqnset)
         #labels = labels.id_dict
 
         ## Generate a summary file of the ID's
         #idStrings  = ActionerFormatStringsAsIDs(labels)
-        #idStrings.Visit(eqnset)
+        #idStrings.visit(eqnset)
         #idStrings.tofile(wd+'ID_Definitions.txt')
 
         all_symbols = ASTVisitorCollectorAll( eqnset).objects
@@ -380,7 +380,7 @@ class PropogateDimensions(object):
 
             while True:
                 nUnresolvedPre = len( [ s for s in obj_with_dimension if not s.is_dimension_known() ] )
-                res_symbols = [ uR.Visit(s) for s in all_symbols ]
+                res_symbols = [ uR.visit(s) for s in all_symbols ]
                 nUnresolvedPost = len( [ s for s in obj_with_dimension if not s.is_dimension_known() ] )
 
                 if nUnresolvedPre == nUnresolvedPost:
@@ -393,8 +393,8 @@ class PropogateDimensions(object):
             #print ' - ', labels[e.objA], "Unit:", e.objA.get_dimension()
             #print ' - ', labels[e.objB], "Unit:", e.objB.get_dimension()
             #print
-            #s1 = StringWriterVisitor().Visit(e.objA)
-            #s2 = StringWriterVisitor().Visit(e.objB)
+            #s1 = StringWriterVisitor().visit(e.objA)
+            #s2 = StringWriterVisitor().visit(e.objB)
             #print 'S1:', s1
             #print 'S2:',  s2
             ##assert False

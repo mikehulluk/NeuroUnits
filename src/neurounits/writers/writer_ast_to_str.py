@@ -23,17 +23,17 @@ class StringWriterVisitor(ASTVisitorBase):
         print '----'
         
         for a in o.assignments:
-            print self.Visit(a)
+            print self.visit(a)
         
         for a in o.timederivatives:
-            print self.Visit(a)
+            print self.visit(a)
 
         for a in o.functiondefs:
-            print self.Visit(a)
+            print self.visit(a)
 
     # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):
-        return '<FUNCDEF:%s => %s>'%( o.funcname, self.Visit(o.rhs) )
+        return '<FUNCDEF:%s => %s>'%( o.funcname, self.visit(o.rhs) )
 
     def VisitFunctionDefParameter(self, o, **kwargs):
         return "<%s: %s>"%(o.__class__.__name__, o.symbol)
@@ -63,38 +63,38 @@ class StringWriterVisitor(ASTVisitorBase):
 
     # AST Objects:
     def VisitEqnTimeDerivative(self, o, **kwargs):
-        return "%s' = %s"%( self.Visit(o.lhs), self.Visit(o.rhs) )
+        return "%s' = %s"%( self.visit(o.lhs), self.visit(o.rhs) )
 
     def VisitEqnAssignment(self, o, **kwargs):
-        return '%s = %s'%( self.Visit(o.lhs), self.Visit(o.rhs) )
+        return '%s = %s'%( self.visit(o.lhs), self.visit(o.rhs) )
 
     # AST Nodes:
     def VisitAddOp(self, o, **kwargs):
-        return '(%s + %s)'%( self.Visit(o.lhs), self.Visit(o.rhs) )
+        return '(%s + %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
 
     def VisitSubOp(self, o, **kwargs):
-        return '(%s - %s)'%( self.Visit(o.lhs), self.Visit(o.rhs) )
+        return '(%s - %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
         
     def VisitMulOp(self, o, **kwargs):
-        return '(%s * %s)'%( self.Visit(o.lhs), self.Visit(o.rhs) )
+        return '(%s * %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
 
     def VisitDivOp(self, o, **kwargs):
-        return '(%s / %s)'%( self.Visit(o.lhs), self.Visit(o.rhs) )
+        return '(%s / %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
 
     def VisitExpOp(self, o, **kwargs):
-        return '(%s ** %s)'%( self.Visit(o.lhs), o.rhs )
+        return '(%s ** %s)'%( self.visit(o.lhs), o.rhs )
 
 
     def VisitBoolAnd(self, o, **kwargs):
-        return '(%s && %s)'%( self.Visit(o.lhs), self.Visit(o.rhs) )
+        return '(%s && %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
     def VisitBoolOr(self, o, **kwargs):
-        return '(%s || %s)'%( self.Visit(o.lhs), self.Visit(o.rhs) )
+        return '(%s || %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
     def VisitBoolNot(self, o, **kwargs):
-        return '(! %s)'%( self.Visit(o.lhs) )
+        return '(! %s)'%( self.visit(o.lhs) )
 
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
-        p = [ self.Visit(p) for p in o.parameters.values() ]
+        p = [ self.visit(p) for p in o.parameters.values() ]
         return "<%s: %s(%s)>"%(o.__class__.__name__, o.function_def.funcname, ",".join(p))
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
@@ -102,9 +102,9 @@ class StringWriterVisitor(ASTVisitorBase):
 
 
     def VisitIfThenElse(self,o,**kwargs):
-        return "[%s] if [%s] else [%s]" %(self.Visit(o.if_true_ast),
-                                           self.Visit(o.predicate),
-                                           self.Visit(o.if_false_ast) )
+        return "[%s] if [%s] else [%s]" %(self.visit(o.if_true_ast),
+                                           self.visit(o.predicate),
+                                           self.visit(o.if_false_ast) )
     def VisitInEquality(self,o,**kwargs):
-        return "[%s < %s]" %(self.Visit(o.less_than),self.Visit(o.greater_than) )
+        return "[%s < %s]" %(self.visit(o.less_than),self.visit(o.greater_than) )
 

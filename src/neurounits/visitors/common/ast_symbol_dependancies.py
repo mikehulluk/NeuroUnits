@@ -31,7 +31,7 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
     @classmethod
     def get_assignment_dependancy_ordering(cls, eqnset):
         from neurounits.ast.astobjects import AssignedVariable
-        deps = dict( [ (ass, VisitorFindDirectSymbolDependance().Visit( ass_eqn.rhs ) ) for ass, ass_eqn in eqnset._eqn_assignment.iteritems() ] )
+        deps = dict( [ (ass, VisitorFindDirectSymbolDependance().visit( ass_eqn.rhs ) ) for ass, ass_eqn in eqnset._eqn_assignment.iteritems() ] )
         
         ordered = []
         to_order = set( deps.keys() )
@@ -57,7 +57,7 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
     def get_assignment_dependancy_ordering_recursive(cls, eqnset, ass):
         from neurounits.ast.astobjects import AssignedVariable
         D = VisitorFindDirectSymbolDependance()
-        D.Visit(eqnset)
+        D.visit(eqnset)
         
         
         def ass_deps(a):
@@ -105,23 +105,23 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
 
     def VisitEqnSet(self, o, **kwargs):
         for a in o.assignments:
-            self.dependancies[a.lhs] = self.Visit(a)
+            self.dependancies[a.lhs] = self.visit(a)
         
         for a in o.timederivatives:
-            self.dependancies[a] = self.Visit(a)
+            self.dependancies[a] = self.visit(a)
     
 
     def VisitSymbolicConstant(self, o, **kwargs):
         return []
     def VisitIfThenElse(self, o, **kwargs):
-        d1 = self.Visit(o.predicate,**kwargs)
-        d2 = self.Visit(o.if_true_ast,**kwargs)
-        d3 = self.Visit(o.if_false_ast,**kwargs)
+        d1 = self.visit(o.predicate,**kwargs)
+        d2 = self.visit(o.if_true_ast,**kwargs)
+        d3 = self.visit(o.if_false_ast,**kwargs)
         return d1+d2+d3
 
     def VisitInEquality(self, o ,**kwargs):
-        d1 = self.Visit(o.less_than,**kwargs)
-        d2 = self.Visit(o.greater_than,**kwargs)
+        d1 = self.visit(o.less_than,**kwargs)
+        d2 = self.visit(o.greater_than,**kwargs)
         return d1+d2
 
     def VisitBoolAnd(self, o, **kwargs):
@@ -159,32 +159,32 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
 
     # AST Objects:
     def VisitEqnTimeDerivative(self, o, **kwargs):
-        return self.Visit(o.rhs)
+        return self.visit(o.rhs)
         raise NotImplementedError()
 
     def VisitEqnAssignment(self, o, **kwargs):
-        return self.Visit(o.rhs)
+        return self.visit(o.rhs)
 
 
     def VisitAddOp(self, o, **kwargs):
-        return self.Visit(o.lhs) + self.Visit(o.rhs)
+        return self.visit(o.lhs) + self.visit(o.rhs)
 
     def VisitSubOp(self, o, **kwargs):
-        return self.Visit(o.lhs) + self.Visit(o.rhs)
+        return self.visit(o.lhs) + self.visit(o.rhs)
 
     def VisitMulOp(self, o, **kwargs):
-        return self.Visit(o.lhs) + self.Visit(o.rhs)
+        return self.visit(o.lhs) + self.visit(o.rhs)
 
     def VisitDivOp(self, o, **kwargs):
-        return self.Visit(o.lhs) + self.Visit(o.rhs) 
+        return self.visit(o.lhs) + self.visit(o.rhs) 
 
     def VisitExpOp(self, o, **kwargs):
-        return self.Visit(o.lhs)
+        return self.visit(o.lhs)
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
-        return list( itertools.chain( * [ self.Visit(p) for p in o.parameters.values() ] ) ) 
+        return list( itertools.chain( * [ self.visit(p) for p in o.parameters.values() ] ) ) 
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
-        return self.Visit(o.rhs_ast)
+        return self.visit(o.rhs_ast)
 
 

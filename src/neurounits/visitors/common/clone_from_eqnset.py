@@ -30,7 +30,7 @@ class CloneObject(object):
 
     @classmethod
     def FunctionDef(cls, srcObj, dst_symbol=None ):
-        fNew = _CloneFuncDef().Visit(srcObj)
+        fNew = _CloneFuncDef().visit(srcObj)
 
         # Over-ride the function name? ('import .. as..')
         if dst_symbol is not None:
@@ -85,10 +85,10 @@ class _CloneFuncDef(ASTVisitorBase):
     def VisitFunctionDef(self, o, **kwargs):
         params = {}
         for pName,pObj in o.parameters.iteritems():
-             p = ast.FunctionDefParameter(symbol=pObj.symbol, unitMH=pObj._unitMH)
+             p = ast.FunctionDefParameter(symbol=pObj.symbol, dimension = pObj.get_dimension() ) #unitMH=pObj._unitMH)
              params[pName] = p
              self.func_param_map[pObj] = p
-        fDef = ast.FunctionDef(funcname=o.funcname, parameters=params, rhs=self.Visit(o.rhs))
+        fDef = ast.FunctionDef(funcname=o.funcname, parameters=params, rhs=self.visit(o.rhs))
         return fDef
 
     def VisitIfThenElse(self, o, **kwargs):
@@ -105,19 +105,19 @@ class _CloneFuncDef(ASTVisitorBase):
 
 
     def VisitAddOp(self, o, **kwargs):
-        return ast.AddOp(self.Visit(o.lhs), self.Visit(o.rhs) )
+        return ast.AddOp(self.visit(o.lhs), self.visit(o.rhs) )
 
     def VisitSubOp(self, o, **kwargs):
-        return ast.SubOp(self.Visit(o.lhs), self.Visit(o.rhs) )
+        return ast.SubOp(self.visit(o.lhs), self.visit(o.rhs) )
 
     def VisitMulOp(self, o, **kwargs):
-        return ast.MulOp(self.Visit(o.lhs), self.Visit(o.rhs) )
+        return ast.MulOp(self.visit(o.lhs), self.visit(o.rhs) )
 
     def VisitDivOp(self, o, **kwargs):
-        return ast.DivOp(self.Visit(o.lhs), self.Visit(o.rhs) )
+        return ast.DivOp(self.visit(o.lhs), self.visit(o.rhs) )
 
     def VisitExpOp(self, o, **kwargs):
-        return ast.ExpOp(self.Visit(o.lhs), o.rhs )
+        return ast.ExpOp(self.visit(o.lhs), o.rhs )
 
 
     def VisitBuiltInFunction(self, o, **kwargs):
@@ -139,11 +139,11 @@ class _CloneFuncDef(ASTVisitorBase):
     def VisitFunctionDefInstantiation(self, o, **kwargs):
 
         # Clone the defintion:
-        newDef = self.Visit( o.function_def)
+        newDef = self.visit( o.function_def)
 
         params = {}
         for pName,pObj in o.parameters.iteritems():
-            p = ast.FunctionDefParameterInstantiation(rhs_ast=self.Visit(pObj.rhs_ast), symbol=pObj.symbol )
+            p = ast.FunctionDefParameterInstantiation(rhs_ast=self.visit(pObj.rhs_ast), symbol=pObj.symbol )
             p.set_function_def_parameter( newDef.parameters[pName]  )
             params[pName] = p
             self.func_param_map[pObj] = p

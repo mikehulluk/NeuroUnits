@@ -27,13 +27,13 @@ class DotVisitor(ASTVisitorBase):
         import networkx as nx 
         
         for a in o.functiondefs:
-            self.Visit(a)
+            self.visit(a)
 
         for a in o.assignments:
-            self.Visit(a)
+            self.visit(a)
         
         for a in o.timederivatives:
-            self.Visit(a)
+            self.visit(a)
 
 
         nodelist = list( self.g )
@@ -101,7 +101,7 @@ class DotVisitor(ASTVisitorBase):
 
 
     def VisitAndAddEdge(self, src, dst):
-        self.Visit(dst)
+        self.visit(dst)
         self.g.add_edge(src,dst)
 
     # Function Definitions:

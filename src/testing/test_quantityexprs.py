@@ -265,7 +265,7 @@ def test_invalid_units():
 
 
 
-def load():
+def run_tests():
     r1 = test_quantitysimple()
     r2 = test_quantityexpr()
 
@@ -285,7 +285,7 @@ class SingleLinesDoc(ReportGenerator):
         ReportGenerator.__init__(self, "SingleLines")
     def __call__(self):
         #return []
-        return load()
+        return run_tests()
 SingleLinesDoc()
 
 
@@ -293,7 +293,7 @@ SingleLinesDoc()
 
 
 def main():
-    sections = load()
+    sections = run_tests()
 
     doc = Document( *sections )
 

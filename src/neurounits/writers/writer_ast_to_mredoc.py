@@ -94,25 +94,25 @@ class LatexEqnWriterN(ASTVisitorBase):
 
     # High Level Display:
     def VisitEqnAssignment(self, o, **kwargs):
-        return Equation("%s&=%s"%( self.Visit(o.lhs), self.Visit(o.rhs) ) )
+        return Equation("%s&=%s"%( self.visit(o.lhs), self.visit(o.rhs) ) )
 
 
     def VisitEqnTimeDerivative(self, o, **kwargs):
-        return Equation(r"""\frac{d}{dt}%s &= %s""" % (self.Visit(o.lhs), self.Visit(o.rhs),))
+        return Equation(r"""\frac{d}{dt}%s &= %s""" % (self.visit(o.lhs), self.visit(o.rhs),))
 
     def VisitOnEvent(self, o, **kwargs):
         ev_name = o.name.replace("_","\\_")
                 
         tr = "%s(%s) \\rightarrow "%(ev_name, ",".join(o.parameters.keys()) ) #
-        evts = "\\begin{cases}" + r"\\".join( [self.Visit(a) for a in o.actions] ) + "\\end{cases}"
+        evts = "\\begin{cases}" + r"\\".join( [self.visit(a) for a in o.actions] ) + "\\end{cases}"
         return  Equation( tr + evts )
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
-        return "%s = %s"%(self.Visit(o.lhs),self.Visit(o.rhs) )
+        return "%s = %s"%(self.visit(o.lhs),self.visit(o.rhs) )
 
     # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):
-        return  Equation("%s(%s) \\rightarrow %s"%(o.funcname, ",".join(o.parameters.keys()), self.Visit(o.rhs)) )
+        return  Equation("%s(%s) \\rightarrow %s"%(o.funcname, ",".join(o.parameters.keys()), self.visit(o.rhs)) )
 
     def VisitFunctionDefParameter(self, o, **kwargs):
         return "\mathit{%s}"%o.symbol.replace("_","\\_")
@@ -140,38 +140,38 @@ class LatexEqnWriterN(ASTVisitorBase):
 
     # AST Nodes:
     def VisitAddOp(self, o, **kwargs):
-        return '(%s + %s)'%( self.Visit(o.lhs), self.Visit(o.rhs) )
+        return '(%s + %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
 
     def VisitSubOp(self, o, **kwargs):
-        return '(%s - %s)'%( self.Visit(o.lhs), self.Visit(o.rhs) )
+        return '(%s - %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
 
     def VisitMulOp(self, o, **kwargs):
-        return '%s \cdot %s'%( self.Visit(o.lhs), self.Visit(o.rhs) )
+        return '%s \cdot %s'%( self.visit(o.lhs), self.visit(o.rhs) )
 
     def VisitDivOp(self, o, **kwargs):
-        return '\dfrac{%s}{%s}'%( self.Visit(o.lhs), self.Visit(o.rhs) )
+        return '\dfrac{%s}{%s}'%( self.visit(o.lhs), self.visit(o.rhs) )
 
     def VisitExpOp(self, o, **kwargs):
-        return '%s ^{ %s }'%( self.Visit(o.lhs), o.rhs )
+        return '%s ^{ %s }'%( self.visit(o.lhs), o.rhs )
 
 
     def VisitBoolAnd(self, o, **kwargs):
         raise NotImplementedError()
-        return '(%s && %s)'%( self.Visit(o.lhs), self.Visit(o.rhs) )
+        return '(%s && %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
     def VisitBoolOr(self, o, **kwargs):
         raise NotImplementedError()
-        return '(%s || %s)'%( self.Visit(o.lhs), self.Visit(o.rhs) )
+        return '(%s || %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
     def VisitBoolNot(self, o, **kwargs):
         raise NotImplementedError()
-        return '(! %s)'%( self.Visit(o.lhs) )
+        return '(! %s)'%( self.visit(o.lhs) )
 
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
-        p = [ self.Visit(p) for p in o.parameters.values() ]
+        p = [ self.visit(p) for p in o.parameters.values() ]
         return "\\textrm{%s}(%s)"%(o.function_def.funcname, ",".join(p))
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
-        rhs = self.Visit(o.rhs_ast)
+        rhs = self.visit(o.rhs_ast)
         if o.symbol is not None:
             return "%s=%s"%(o.symbol, rhs)
         else:
@@ -179,13 +179,13 @@ class LatexEqnWriterN(ASTVisitorBase):
 
 
     def VisitIfThenElse(self,o,**kwargs):
-        s_if_true = self.Visit(o.if_true_ast)
-        s_if_false = self.Visit(o.if_false_ast)
-        s_predicate = self.Visit(o.predicate)
+        s_if_true = self.visit(o.if_true_ast)
+        s_if_false = self.visit(o.if_false_ast)
+        s_predicate = self.visit(o.predicate)
         return r""" \begin{cases} %s & if %s \\ %s & otherwise \end{cases}"""%(s_if_true, s_predicate, s_if_false)
 
     def VisitInEquality(self,o,**kwargs):
-        return "%s < %s" %(self.Visit(o.less_than),self.Visit(o.greater_than) )
+        return "%s < %s" %(self.visit(o.less_than),self.visit(o.greater_than) )
 
 
 
@@ -226,7 +226,7 @@ def build_figures(eqnset):
             print "sup.symbol", sup.symbol
 
             F = FunctorGenerator()
-            F.Visit(eqnset)
+            F.visit(eqnset)
 
             f = F.assignment_evaluators[a.symbol]
 
@@ -294,7 +294,7 @@ class MRedocWriterVisitor(ASTVisitorBase):
     @classmethod
     def build(self, eqnset):
         writer = MRedocWriterVisitor()
-        return writer.Visit(eqnset)
+        return writer.visit(eqnset)
 
 
     def VisitLibraryManager(self, library_manager):
@@ -342,15 +342,15 @@ class MRedocWriterVisitor(ASTVisitorBase):
 
         return SectionNewPage("Eqnset Summary: %s"%eqnset.name,
                     Section("Assignments",
-                       EquationBlock( *[LatexEqnWriterN().Visit(a) for a in sorted( eqnset.assignments, key=lambda a:a.lhs.symbol)])),
+                       EquationBlock( *[LatexEqnWriterN().visit(a) for a in sorted( eqnset.assignments, key=lambda a:a.lhs.symbol)])),
                     Section("State Variable Evolution",
-                       EquationBlock( *[LatexEqnWriterN().Visit(a) for a in eqnset.timederivatives])),
+                       EquationBlock( *[LatexEqnWriterN().visit(a) for a in eqnset.timederivatives])),
                     Section("Function Definitions",
-                       EquationBlock( *[LatexEqnWriterN().Visit(a) for a in eqnset.functiondefs if not isinstance(a, BuiltInFunction)])),
+                       EquationBlock( *[LatexEqnWriterN().visit(a) for a in eqnset.functiondefs if not isinstance(a, BuiltInFunction)])),
                     Section("Symbols", terminal_symbols),
                     Section("Imports"),
                     Section("Events",
-                       EquationBlock( *[LatexEqnWriterN().Visit(a) for a in eqnset.onevents])),
+                       EquationBlock( *[LatexEqnWriterN().visit(a) for a in eqnset.onevents])),
                     Section("Plots", *plts ),
                     )
 
@@ -377,7 +377,7 @@ class MRedocWriterVisitor(ASTVisitorBase):
         return SectionNewPage("Library Summary: %s"%library.name,
                     Section("Imports"),
                     Section("Function Definitions",
-                       EquationBlock( *[LatexEqnWriterN().Visit(a) for a in eqnset.functiondefs if not isinstance(a, BuiltInFunction)])),
+                       EquationBlock( *[LatexEqnWriterN().visit(a) for a in eqnset.functiondefs if not isinstance(a, BuiltInFunction)])),
                     Section("Symbols", terminal_symbols),
                     )
 

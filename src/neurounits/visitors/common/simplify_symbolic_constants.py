@@ -18,8 +18,8 @@ from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNode
 
 class ReduceConstants(ASTVisitorBase):
 
-    def Visit(self, o, **kwargs):
-        return o.AcceptVisitor(self, **kwargs)
+    def visit(self, o, **kwargs):
+        return o.accept_visitor(self, **kwargs)
 
 
     def VisitEqnSet(self, o, **kwargs):
@@ -28,7 +28,7 @@ class ReduceConstants(ASTVisitorBase):
         for aKey in o._eqn_assignment.keys():
             a = o._eqn_assignment[aKey]
             alhs = a.lhs
-            fixed_value = self.Visit(a.rhs)
+            fixed_value = self.visit(a.rhs)
             if fixed_value:
 
                 sym_suffix = "_as_symconst"
@@ -38,7 +38,7 @@ class ReduceConstants(ASTVisitorBase):
 
                 #assert False
                 #print 'Replacing Node:', a.lhs.symbol
-                ReplaceNode(a.lhs, s).Visit(o)
+                ReplaceNode(a.lhs, s).visit(o)
 
                 o._cache_nodes()
                 #print 'Done replacing symbol'
@@ -53,7 +53,7 @@ class ReduceConstants(ASTVisitorBase):
         o._cache_nodes()
         for a in removed:
             nc = EqnsetVisitorNodeCollector()
-            nc.Visit(o)
+            nc.visit(o)
             assert not a in nc.all()
 
     def VisitLibrary(self, o, **kwargs):
@@ -62,7 +62,7 @@ class ReduceConstants(ASTVisitorBase):
         for aKey in o._eqn_assignment.keys():
             a = o._eqn_assignment[aKey]
             alhs = a.lhs
-            fixed_value = self.Visit(a.rhs)
+            fixed_value = self.visit(a.rhs)
             if fixed_value:
 
                 sym_suffix = "_as_symconst"
@@ -72,7 +72,7 @@ class ReduceConstants(ASTVisitorBase):
 
                 #assert False
                 #print 'Replacing Node:', a.lhs.symbol
-                ReplaceNode(a.lhs, s).Visit(o)
+                ReplaceNode(a.lhs, s).visit(o)
 
                 #o._cache_nodes()
                 #print 'Done replacing symbol'
@@ -86,7 +86,7 @@ class ReduceConstants(ASTVisitorBase):
         # Double check they have gone:
         for a in removed:
             nc = EqnsetVisitorNodeCollector()
-            nc.Visit(o)
+            nc.visit(o)
             assert not a in nc.all()
 
         # Should be no more assignments:
@@ -143,7 +143,7 @@ class ReduceConstants(ASTVisitorBase):
         return None
 
     def VisitAssignedVariable(self, o, **kwargs):
-        return self.Visit(o.assignment_rhs)
+        return self.visit(o.assignment_rhs)
 
     # AST Objects:
     def VisitEqnTimeDerivative(self, o, **kwargs):
@@ -155,31 +155,31 @@ class ReduceConstants(ASTVisitorBase):
 
 
     def VisitAddOp(self, o, **kwargs):
-        t1,t2 = self.Visit(o.lhs), self.Visit(o.rhs)
+        t1,t2 = self.visit(o.lhs), self.visit(o.rhs)
         if t1 is None or t2 is None:
             return None
         return t1+t2
 
     def VisitSubOp(self, o, **kwargs):
-        t1,t2 = self.Visit(o.lhs), self.Visit(o.rhs)
+        t1,t2 = self.visit(o.lhs), self.visit(o.rhs)
         if t1 is None or t2 is None:
             return None
         return t1-t2
 
     def VisitMulOp(self, o, **kwargs):
-        t1,t2 = self.Visit(o.lhs), self.Visit(o.rhs)
+        t1,t2 = self.visit(o.lhs), self.visit(o.rhs)
         if t1 is None or t2 is None:
             return None
         return t1*t2
 
     def VisitDivOp(self, o, **kwargs):
-        t1,t2 = self.Visit(o.lhs), self.Visit(o.rhs)
+        t1,t2 = self.visit(o.lhs), self.visit(o.rhs)
         if t1 is None or t2 is None:
             return None
         return t1/t2
 
     def VisitExpOp(self, o, **kwargs):
-        t1 = self.Visit(o.lhs)
+        t1 = self.visit(o.lhs)
         if t1 is None:
             return None
         return t1**o.rhs
@@ -187,19 +187,19 @@ class ReduceConstants(ASTVisitorBase):
 
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
-        #return self.Visit( o.rhs_ast, **kwargs)
+        #return self.visit( o.rhs_ast, **kwargs)
         #assert False
         # Check if the parameters are constant
         params = {}
         for p in o.parameters.values():
-            pres = self.Visit(p.rhs_ast)
+            pres = self.visit(p.rhs_ast)
             if pres is None:
                 return None
             params[p] = pres
 
-        #self.Visit
+        #self.visit
 
-        #return self.Visit( o.rhs_ast)
+        #return self.visit( o.rhs_ast)
 
         # Not Implmented how to calculate it yet!
         print 'We can evalute function:' , o.function_def.funcname

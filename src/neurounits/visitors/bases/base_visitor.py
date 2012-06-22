@@ -12,8 +12,8 @@
 class ASTVisitorBase(object):
 
 
-    def Visit(self, o, **kwargs):
-        return o.AcceptVisitor(self, **kwargs)
+    def visit(self, o, **kwargs):
+        return o.accept_visitor(self, **kwargs)
 
     def VisitEqnSet(self, o, **kwargs):
         raise NotImplementedError()

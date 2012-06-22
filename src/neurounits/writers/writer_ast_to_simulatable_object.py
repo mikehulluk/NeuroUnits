@@ -245,7 +245,7 @@ class FunctorGenerator(ASTVisitorBase):
         self.as_float_in_si = as_float_in_si
 
         assert isinstance(eqnset, ast.EqnSet)
-        self.Visit(eqnset)
+        self.visit(eqnset)
 
 
     def VisitEqnSet(self, o, **kwargs):
@@ -253,7 +253,7 @@ class FunctorGenerator(ASTVisitorBase):
 
 
         deps = VisitorFindDirectSymbolDependance()
-        deps.Visit(o)
+        deps.visit(o)
 
 
 
@@ -274,7 +274,7 @@ class FunctorGenerator(ASTVisitorBase):
                 return
             for dep in assignment_deps[assignment]:
                 resolve(dep)
-            self.Visit(self.assignee_to_assigment[assignment])
+            self.visit(self.assignee_to_assigment[assignment])
             resolved.add(assignment)
 
 
@@ -282,28 +282,28 @@ class FunctorGenerator(ASTVisitorBase):
             resolve(a.lhs)
 
         for a in o.assignments:
-            self.Visit(a)
+            self.visit(a)
 
         for a in o.timederivatives:
-            self.Visit(a)
+            self.visit(a)
 
 
 
     def VisitEqnAssignment(self, o, **kwargs):
-        self.assignment_evaluators[o.lhs.symbol]  = self.Visit(o.rhs)
+        self.assignment_evaluators[o.lhs.symbol]  = self.visit(o.rhs)
 
 
     # AST Objects:
     def VisitEqnTimeDerivative(self, o, **kwargs):
-        self.timederivative_evaluators[o.lhs.symbol]  = self.Visit(o.rhs)
+        self.timederivative_evaluators[o.lhs.symbol]  = self.visit(o.rhs)
 
 
 
 
     def VisitIfThenElse(self, o, **kwargs):
-        fpred = self.Visit(o.predicate)
-        ftrue = self.Visit(o.if_true_ast)
-        ffalse = self.Visit(o.if_false_ast)
+        fpred = self.visit(o.predicate)
+        ftrue = self.visit(o.if_true_ast)
+        ffalse = self.visit(o.if_false_ast)
         def f(**kw):
             if fpred(**kw):
                 return ftrue(**kw)
@@ -314,8 +314,8 @@ class FunctorGenerator(ASTVisitorBase):
 
 
     def VisitInEquality(self, o ,**kwargs):
-        lt = self.Visit( o.less_than )
-        gt = self.Visit( o.greater_than )
+        lt = self.visit( o.less_than )
+        gt = self.visit( o.greater_than )
         def f(**kw):
             return lt(**kw) < gt(**kw)
         return f
@@ -409,35 +409,35 @@ class FunctorGenerator(ASTVisitorBase):
 
 
     def VisitAddOp(self, o, **kwargs):
-        f_lhs = self.Visit(o.lhs)
-        f_rhs = self.Visit(o.rhs)
+        f_lhs = self.visit(o.lhs)
+        f_rhs = self.visit(o.rhs)
         def eFunc(**kw):
             return f_lhs(**kw) + f_rhs(**kw)
         return eFunc
 
     def VisitSubOp(self, o, **kwargs):
-        f_lhs = self.Visit(o.lhs)
-        f_rhs = self.Visit(o.rhs)
+        f_lhs = self.visit(o.lhs)
+        f_rhs = self.visit(o.rhs)
         def eFunc(**kw):
             return f_lhs(**kw) - f_rhs(**kw)
         return eFunc
 
     def VisitMulOp(self, o, **kwargs):
-        f_lhs = self.Visit(o.lhs)
-        f_rhs = self.Visit(o.rhs)
+        f_lhs = self.visit(o.lhs)
+        f_rhs = self.visit(o.rhs)
         def eFunc(**kw):
             return f_lhs(**kw) * f_rhs(**kw)
         return eFunc
 
     def VisitDivOp(self, o, **kwargs):
-        f_lhs = self.Visit(o.lhs)
-        f_rhs = self.Visit(o.rhs)
+        f_lhs = self.visit(o.lhs)
+        f_rhs = self.visit(o.rhs)
         def eFunc(**kw):
             return f_lhs(**kw) / f_rhs(**kw)
         return eFunc
 
     def VisitExpOp(self, o, **kwargs):
-        f_lhs = self.Visit(o.lhs)
+        f_lhs = self.visit(o.lhs)
         def eFunc(**kw):
             return f_lhs(**kw) ** o.rhs
         return eFunc
@@ -448,15 +448,15 @@ class FunctorGenerator(ASTVisitorBase):
         # Param Functors:
         param_functors = {}
         for p in o.parameters:
-            param_functors[p] = self.Visit( o.parameters[p] )
-        func_call_functor = self.Visit(o.function_def)
+            param_functors[p] = self.visit( o.parameters[p] )
+        func_call_functor = self.visit(o.function_def)
         def eFunc(**kw):
             func_params = dict( [(p,func(**kw) ) for p,func in param_functors.iteritems() ] )
             return func_call_functor(**func_params)
         return eFunc
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
-        f_rhs = self.Visit(o.rhs_ast)
+        f_rhs = self.visit(o.rhs_ast)
         def eFunc(**kw):
             return f_rhs(**kw)
         return eFunc
@@ -464,7 +464,7 @@ class FunctorGenerator(ASTVisitorBase):
 
 
     def VisitFunctionDef(self, o, **kwargs):
-        f_rhs = self.Visit(o.rhs)
+        f_rhs = self.visit(o.rhs)
         def eFunc(**kw):
             return f_rhs(**kw)
         return eFunc

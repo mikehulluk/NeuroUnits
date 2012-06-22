@@ -157,7 +157,7 @@ class NeuronMembraneCurrent(object):
         elif self.obj.get_dimension().is_compatible( NEURONMappings.current_units[MechanismType.Distributed] ):
             return MechanismType.Distributed
         else:
-            assert False, "Unknown type: %s"% self.obj.get_unit()
+            assert False, "Unknown type: %s"% self.obj.get_dimension()
 
 
 
@@ -227,7 +227,7 @@ class MODLBuildParameters(object):
 
         objs = eqnset.terminal_symbols
         n = EqnsetVisitorNodeCollector()
-        n.Visit(eqnset)
+        n.visit(eqnset)
         objs = n.all()
         for s in objs:
 
@@ -271,27 +271,30 @@ class MODLBuildParameters(object):
 
 
 
-def WriteToNMODL(eqnset, buildparameters=None, initial_values=None ):
+def WriteToNMODL(eqnset, buildparameters=None, initial_values=None, neuron_suffix=None ):
 
     if buildparameters is None:
         buildparameters = MODLBuildParameters.InferFromEqnset(eqnset)
 
+    # Overloading the neuron-suffix:
+    if neuron_suffix is not None:
+        buildparameters.suffix = neuron_suffix
 
 
     m = ModFileContents()
 
     # Write the header:
     NeuronBlockWriter(eqnset=eqnset,  build_parameters=buildparameters,  modfilecontents=m,   )
-    NeuronInterfaceWriter().Visit(eqnset, build_parameters=buildparameters, modfilecontents=m)
+    NeuronInterfaceWriter().visit(eqnset, build_parameters=buildparameters, modfilecontents=m)
 
     # Write the sections (order is important for Assignment Block):
-    ParameterWriter().Visit(eqnset,modfilecontents=m,build_parameters=buildparameters, )
-    SuppliedValuesWriter().Visit(eqnset,modfilecontents=m, build_parameters=buildparameters, buildparameters=buildparameters)
-    AssignmentWriter().Visit(eqnset,modfilecontents=m, build_parameters=buildparameters)
-    StateWriter().Visit(eqnset,modfilecontents=m,build_parameters=buildparameters, )
-    FunctionWriter().Visit(eqnset,modfilecontents=m, build_parameters=buildparameters, )
-    ConstantWriter().Visit(eqnset,modfilecontents=m, build_parameters=buildparameters, )
-    OnEventWriter().Visit(eqnset,modfilecontents=m, build_parameters=buildparameters)
+    ParameterWriter().visit(eqnset,modfilecontents=m,build_parameters=buildparameters, )
+    SuppliedValuesWriter().visit(eqnset,modfilecontents=m, build_parameters=buildparameters, buildparameters=buildparameters)
+    AssignmentWriter().visit(eqnset,modfilecontents=m, build_parameters=buildparameters)
+    StateWriter().visit(eqnset,modfilecontents=m,build_parameters=buildparameters, )
+    FunctionWriter().visit(eqnset,modfilecontents=m, build_parameters=buildparameters, )
+    ConstantWriter().visit(eqnset,modfilecontents=m, build_parameters=buildparameters, )
+    OnEventWriter().visit(eqnset,modfilecontents=m, build_parameters=buildparameters)
 
     print len(eqnset.onevents)
 

@@ -71,8 +71,11 @@ def parse_io_line(line):
             symbol=symbol.strip()
             dimension_str=dimension_str.strip()if dimension_str else dimension_str
     
-            #print 'Parsing: Symbol: "%s" Unit:"%s"'%(symbol, dimension_str)
-            #print
+            # Allow units to be specified in '{' '}' too. This is hacky and should be better
+            # integrated.
+            if dimension_str[0] == '{' and dimension_str[-1] == '}':
+                dimension_str = '(' + dimension_str[1:-1] + ')'
+
             dimension = NeuroUnitParser.Unit(dimension_str) if dimension_str is not None else None
             dimension = dimension.with_no_powerten() if dimension is not None else dimension
     

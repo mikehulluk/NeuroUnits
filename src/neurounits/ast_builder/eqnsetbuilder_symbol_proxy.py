@@ -22,8 +22,8 @@ class SymbolProxy(object):
         return self.target is not None
 
 
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         assert self.is_resolved()
-        return self.target.AcceptVisitor(v,**kwargs)
+        return self.target.accept_visitor(v,**kwargs)
 
 

@@ -52,6 +52,7 @@ class Block(object):
 
     @property
     def src_text(self):
+        assert False 
         return self.library_manager.src_text
 
 
@@ -73,7 +74,7 @@ class Block(object):
 
 
 class Library(Block):
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitLibrary(self, **kwargs)
 
     def __init__(self,  library_manager, builder, builddata, io_data):
@@ -109,7 +110,7 @@ class Library(Block):
 
 class EqnSet(Block):
 
-    def AcceptVisitor(self, v, **kwargs):
+    def accept_visitor(self, v, **kwargs):
         return v.VisitEqnSet(self, **kwargs)
 
 
@@ -140,7 +141,7 @@ class EqnSet(Block):
 
     def _cache_nodes(self):
         t = EqnsetVisitorNodeCollector()
-        t.Visit(self)
+        t.visit(self)
         self._parameters =  t.nodes[Parameter]
         self._supplied_values =  t.nodes[SuppliedValue]
 
@@ -240,7 +241,7 @@ class EqnSet(Block):
 
         d = VisitorFindDirectSymbolDependance()
 
-        return list( set( d.Visit(sym) ) )
+        return list( set( d.visit(sym) ) )
 
     def getSymbolDependancicesIndirect(self, sym,include_constants=False, include_ass_in_output=False):
         res_deps = []

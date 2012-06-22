@@ -30,7 +30,7 @@ from string import Template
 
 from neuroml_xml_data import NeuroUnitsImportNeuroMLNotImplementedException
 from neuroml_xml_data import ChannelMLInfo
-from morphforge.core.misc import FilterExpectSingle, ExpectSingle
+from morphforge.core.misc import SeqUtils
 from neurounits import NeuroUnitParser,NeuroUnitParserOptions
 
 
@@ -100,8 +100,8 @@ def _build_gate_inftau(g, q10tempadjustmentName, neuroml_dt):
                 s = re.sub(r"""\bv\b""", '__VGate__',s)
                 return s
 
-            tc = ExpectSingle(g.time_courses)
-            ss = ExpectSingle(g.steady_states)
+            tc = SeqUtils.expect_single(g.time_courses)
+            ss = SeqUtils.expect_single(g.steady_states)
             tc_eqn = '%s =  ( %s) * (%s)' % ( term_name_tau, remap_gate_eqnI(tc.getEqn()), neuroml_dt )
             ss_eqn = '%s =  %s' % ( term_name_inf, remap_gate_eqnI( ss.getEqn())  )
             state_eqn = "%s' = (%s-%s)/(%s) "%( state_name, term_name_inf,state_name,term_name_tau)
@@ -121,8 +121,8 @@ def _build_gate_alphabetainftau(g, q10tempadjustmentName, neuroml_dt):
 
 
         state_name = g.name
-        alphaTr = FilterExpectSingle(g.transitions, lambda s: s.name=="alpha")
-        betaTr = FilterExpectSingle(g.transitions, lambda s: s.name=="beta")
+        alphaTr = SeqUtils.filter_expect_single(g.transitions, lambda s: s.name=="alpha")
+        betaTr = SeqUtils.filter_expect_single(g.transitions, lambda s: s.name=="beta")
         term_name_alpha = "%s_%s"%(state_name, 'alpha' )
         term_name_beta = "%s_%s"%(state_name, 'beta' )
         term_name_inf = "%s_%s"%(state_name, 'inf' )
@@ -151,13 +151,13 @@ def _build_gate_alphabetainftau(g, q10tempadjustmentName, neuroml_dt):
 
         # Time courses should always be divided by rate_adjustment term!
         if len(g.time_courses) != 0:
-            tc = ExpectSingle(g.time_courses)
+            tc = SeqUtils.expect_single(g.time_courses)
             tc_eqn = '%s =  %s * (1/%s) *(%s)' % ( term_name_tau, remap_gate_eqn(tc.getEqn() ),q10tempadjustmentName,neuroml_dt )
         else:
             tc_eqn = '%s =  1/(%s* (%s+%s))' % ( term_name_tau, q10tempadjustmentName, term_name_alpha,term_name_beta )
 
         if len(g.steady_states) != 0:
-            ss = ExpectSingle(g.steady_states)
+            ss = SeqUtils.expect_single(g.steady_states)
             ss_eqn = '%s =  %s' % ( term_name_inf, remap_gate_eqn( ss.getEqn() )  )
         else:
             ss_eqn = '%s =  %s/(%s+%s)' % ( term_name_inf, term_name_alpha,term_name_alpha,term_name_beta )

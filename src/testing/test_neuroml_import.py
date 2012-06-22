@@ -50,7 +50,7 @@ def load_neuroml():
 
     redocs = []
 
-    for i,xmlfile in enumerate(NeuroMLDataLibrary.getChannelMLV1FilesWithSingleChannel()):
+    for i,xmlfile in enumerate(NeuroMLDataLibrary.get_channelMLV1FilesWithSingleChannel()):
 
         try:
             print "XMLFILE:", xmlfile

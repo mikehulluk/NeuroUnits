@@ -18,5 +18,5 @@ class WriteToPDF(object):
 
        latex_working_dir = EnsureExisits(eqnset.get_working_dir() + "latex") 
 
-       LatexWriterVisitor().Visit(eqnset, working_dir=latex_working_dir,output_filename=filename, additional_verbatim = additional_verbatim)
+       LatexWriterVisitor().visit(eqnset, working_dir=latex_working_dir,output_filename=filename, additional_verbatim = additional_verbatim)
        #assert False

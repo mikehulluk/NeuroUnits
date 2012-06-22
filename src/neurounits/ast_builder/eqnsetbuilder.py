@@ -26,121 +26,121 @@ class StdFuncs(object):
     @classmethod
     def get_sin(cls, backend):
         return ast.BuiltInFunction(funcname='sin',
-                                    parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
-                                    unitMH=backend.Unit() )
+                                    parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
+                                    dimension=backend.Unit() )
     @classmethod
     def get_cos(cls, backend):
         return ast.BuiltInFunction(funcname='cos',
-                                    parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
-                                    unitMH=backend.Unit() )
+                                    parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
+                                    dimension=backend.Unit() )
     @classmethod
     def get_tan(cls, backend):
         return ast.BuiltInFunction(funcname='tan',
-                                    parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
-                                    unitMH=backend.Unit() )
+                                    parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
+                                    dimension=backend.Unit() )
     @classmethod
     def get_sinh(cls, backend):
         return ast.BuiltInFunction(funcname='sinh',
-                                    parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
-                                    unitMH=backend.Unit() )
+                                    parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
+                                    dimension=backend.Unit() )
     @classmethod
     def get_cosh(cls, backend):
         return ast.BuiltInFunction(funcname='cosh',
-                                    parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
-                                    unitMH=backend.Unit() )
+                                    parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
+                                    dimension=backend.Unit() )
     @classmethod
     def get_tanh(cls, backend):
         return ast.BuiltInFunction(funcname='tanh',
-                                    parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
-                                    unitMH=backend.Unit() )
+                                    parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
+                                    dimension=backend.Unit() )
     @classmethod
     def get_asin(cls, backend):
         return ast.BuiltInFunction(funcname='asin',
-                                    parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
-                                    unitMH=backend.Unit() )
+                                    parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
+                                    dimension=backend.Unit() )
     @classmethod
     def get_acos(cls, backend):
         return ast.BuiltInFunction(funcname='acos',
-                                    parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
-                                    unitMH=backend.Unit() )
+                                    parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
+                                    dimension=backend.Unit() )
     @classmethod
     def get_atan(cls, backend):
         return ast.BuiltInFunction(funcname='atan',
-                                    parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
-                                    unitMH=backend.Unit() )
+                                    parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
+                                    dimension=backend.Unit() )
     @classmethod
     def get_atan2(cls, backend):
         return ast.BuiltInFunction(funcname='atan2',
                                     parameters={
-                                        'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ),
-                                        'y':ast.FunctionDefParameter(symbol='y', unitMH=backend.Unit() ),
+                                        'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ),
+                                        'y':ast.FunctionDefParameter(symbol='y', dimension=backend.Unit() ),
                                         },
-                                    unitMH=backend.Unit() )
+                                    dimension=backend.Unit() )
 
     @classmethod
     def get_exp(cls,backend):
         return ast.BuiltInFunction(funcname='exp',
-                                    parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
-                                    unitMH=backend.Unit() )
+                                    parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
+                                    dimension=backend.Unit() )
 
     @classmethod
     def get_ln(cls,backend):
         return ast.BuiltInFunction(funcname='ln',
-                                    parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
-                                    unitMH=backend.Unit() )
+                                    parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
+                                    dimension=backend.Unit() )
     @classmethod
     def get_log2(cls,backend):
         return ast.BuiltInFunction(funcname='log2',
-                                    parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
-                                    unitMH=backend.Unit() )
+                                    parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
+                                    dimension=backend.Unit() )
     @classmethod
     def get_log10(cls,backend):
         return ast.BuiltInFunction(funcname='log10',
-                                    parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
-                                    unitMH=backend.Unit() )
+                                    parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
+                                    dimension=backend.Unit() )
 
 
 
     @classmethod
     def get_pow(cls, backend):
         return ast.BuiltInFunction(funcname='pow',
-                                    parameters={'base':ast.FunctionDefParameter(symbol='base', unitMH=backend.Unit() ),
-                                                'exp':ast.FunctionDefParameter(symbol='exp', unitMH=backend.Unit() )  },
-                                    unitMH=backend.Unit() )
+                                    parameters={'base':ast.FunctionDefParameter(symbol='base', dimension=backend.Unit() ),
+                                                'exp':ast.FunctionDefParameter(symbol='exp', dimension=backend.Unit() )  },
+                                    dimension=backend.Unit() )
     @classmethod
     def get_sqrt(cls, backend):
         return ast.BuiltInFunction(funcname='sqrt',
-                                    parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=None ), },
-                                    unitMH=None )
+                                    parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=None ), },
+                                    dimension=None )
 
     @classmethod
     def get_powint(cls, backend):
         return ast.BuiltInFunction(funcname='powint',
                                     parameters={
-                                        'x':ast.FunctionDefParameter(symbol='x', unitMH=None ),
-                                        'n':ast.FunctionDefParameter(symbol='n', unitMH=backend.Unit() ),
-                                        'd':ast.FunctionDefParameter(symbol='d', unitMH=backend.Unit() ),
+                                        'x':ast.FunctionDefParameter(symbol='x', dimension=None ),
+                                        'n':ast.FunctionDefParameter(symbol='n', dimension=backend.Unit() ),
+                                        'd':ast.FunctionDefParameter(symbol='d', dimension=backend.Unit() ),
                                         },
-                                    unitMH=None )
+                                    dimension=None )
 
 
     @classmethod
     def get_fabs(cls,backend):
         return ast.BuiltInFunction(funcname='fabs',
-                                    parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
-                                    unitMH=backend.Unit() )
+                                    parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
+                                    dimension=backend.Unit() )
 
     @classmethod
     def get_ceil(cls,backend):
         return ast.BuiltInFunction(funcname='ceil',
-                                    parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
-                                    unitMH=backend.Unit() )
+                                    parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
+                                    dimension=backend.Unit() )
 
     @classmethod
     def get_floor(cls,backend):
         return ast.BuiltInFunction(funcname='floor',
-                                    parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
-                                    unitMH=backend.Unit() )
+                                    parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
+                                    dimension=backend.Unit() )
 
 
     @classmethod
@@ -185,17 +185,17 @@ class StdFuncs(object):
 #
 #        functiondefs ={
 #            'exp' : ast.BuiltInFunction(funcname='exp',
-#                                        parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
-#                                        unitMH=backend.Unit() ),
+#                                        parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
+#                                        dimension=backend.Unit() ),
 #
 #            'fabs' : ast.BuiltInFunction(funcname='fabs',
-#                                        parameters={'x':ast.FunctionDefParameter(symbol='x', unitMH=backend.Unit() ) },
-#                                        unitMH=backend.Unit() ),
+#                                        parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
+#                                        dimension=backend.Unit() ),
 #
 #            'pow' : ast.BuiltInFunction(funcname='pow',
-#                                        parameters={'base':ast.FunctionDefParameter(symbol='base', unitMH=backend.Unit() ),
-#                                                    'exp':ast.FunctionDefParameter(symbol='exp', unitMH=backend.Unit() )  },
-#                                        unitMH=backend.Unit() ),
+#                                        parameters={'base':ast.FunctionDefParameter(symbol='base', dimension=backend.Unit() ),
+#                                                    'exp':ast.FunctionDefParameter(symbol='exp', dimension=backend.Unit() )  },
+#                                        dimension=backend.Unit() ),
 #        }
 #
 #        return ast.Library('std.math', constants = constants, functiondefs = functiondefs, )
@@ -219,7 +219,7 @@ class StdFuncs(object):
 #
 #
 #    @classmethod
-#    def getDefault(cls, backend):
+#    def get_default(cls, backend):
 #        return []
 #        return [cls.getMath(backend=backend), cls.getPhysics(backend=backend) ]
 
@@ -517,13 +517,13 @@ class AbstractBlockBuilder(object):
         # #################################################################
 
         # 1. Resolve the SymbolProxies:
-        RemoveAllSymbolProxy().Visit(self._astobject)
+        RemoveAllSymbolProxy().visit(self._astobject)
 
         # 2. Propagate the dimensionalities accross the system:
         PropogateDimensions.propogate_dimensions(self._astobject)
 
         # 3. Reduce simple assignments to symbolic constants:
-        ReduceConstants().Visit(self._astobject)
+        ReduceConstants().visit(self._astobject)
 
 
 

@@ -23,9 +23,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #-------------------------------------------------------------------------------
 
-#import units_expr_yacc
-from units_misc import ExpectSingle
 from  neurounits.unit_expr_parsing import units_expr_yacc
+from morphforge.core.misc import SeqUtils
 
 
 class NeuroUnitParserOptions():
@@ -40,43 +39,43 @@ class NeuroUnitParserOptions():
 class NeuroUnitParser(object):
 
     @classmethod
-    def getDefaultBackend(cls):
+    def get_defaultBackend(cls):
         from units_backends.mh import MHUnitBackend as defaultbackend
         return defaultbackend()
 
 
     @classmethod
     def Unit(cls, text, debug=False, backend=None):
-        backend = backend or cls.getDefaultBackend()
+        backend = backend or cls.get_defaultBackend()
         return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L1_Unit, backend=backend )
 
     @classmethod
     def QuantitySimple(cls, text, debug=False, backend=None):
-        backend = backend or cls.getDefaultBackend()
+        backend = backend or cls.get_defaultBackend()
         return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L2_QuantitySimple, backend=backend )
 
     @classmethod
     def QuantityExpr(cls, text, debug=False, backend=None):
-        backend = backend or cls.getDefaultBackend()
+        backend = backend or cls.get_defaultBackend()
         return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L3_QuantityExpr, backend=backend)
 
     @classmethod
     def Function(cls, text, debug=False, backend=None):
         assert False
         """ Should return a callable"""
-        backend = backend or cls.getDefaultBackend()
+        backend = backend or cls.get_defaultBackend()
         return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L1_Unit, backend=backend )
 
 
     @classmethod
     def File(cls, text, working_dir=None, debug=False, backend=None, options=None, name=None ):
-        backend = backend or cls.getDefaultBackend()
+        backend = backend or cls.get_defaultBackend()
         return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L6_TextBlock, working_dir=working_dir, backend=backend, options=options, name=name)
 
     @classmethod
     def EqnSet(cls, text, **kwargs):
         library_manager = cls.File(text=text, **kwargs )
-        eqnset_name = ExpectSingle( library_manager.get_eqnset_names() )
+        eqnset_name = SeqUtils.expect_single( library_manager.get_eqnset_names() )
         return library_manager.get_eqnset(eqnset_name)
 
 

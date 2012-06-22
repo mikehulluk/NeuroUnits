@@ -31,16 +31,16 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
 
     def VisitEqnSet(self, o, **kwargs):
         for i in itertools.chain( o.timederivatives, o.assignments, o.functiondefs, o.symbolicconstants):
-            self.Visit(i)
+            self.visit(i)
 
         for onevent in o.onevents:
-            self.Visit(onevent)
+            self.visit(onevent)
 
         o._cache_nodes()
 
     def VisitLibrary(self, o, **kwargs):
         for i in itertools.chain( o.functiondefs, o.symbolicconstants):
-            self.Visit(i)
+            self.visit(i)
 
 
     # Terminals:
@@ -68,92 +68,92 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
     def VisitOnEventStateAssignment(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)
         o.rhs = self.followSymbolProxy(o.rhs)
-        self.Visit(o.lhs)
-        self.Visit(o.rhs)
+        self.visit(o.lhs)
+        self.visit(o.rhs)
     def VisitOnEvent(self, o, **kwargs):
         for a in o.actions:
-            self.Visit(a)
+            self.visit(a)
         for p in o.parameters.values():
-            self.Visit(p)
+            self.visit(p)
 
 
     # AST Objects:
     def VisitEqnTimeDerivative(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)
         o.rhs = self.followSymbolProxy(o.rhs)
-        self.Visit(o.rhs)
+        self.visit(o.rhs)
 
     def VisitEqnAssignment(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)
         o.rhs = self.followSymbolProxy(o.rhs)
-        self.Visit(o.rhs)
+        self.visit(o.rhs)
 
     def VisitAddOp(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)
         o.rhs = self.followSymbolProxy(o.rhs)
-        self.Visit(o.lhs)
-        self.Visit(o.rhs)
+        self.visit(o.lhs)
+        self.visit(o.rhs)
 
     def VisitSubOp(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)
         o.rhs = self.followSymbolProxy(o.rhs)
-        self.Visit(o.lhs)
-        self.Visit(o.rhs)
+        self.visit(o.lhs)
+        self.visit(o.rhs)
 
     def VisitMulOp(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)
         o.rhs = self.followSymbolProxy(o.rhs)
-        self.Visit(o.lhs)
-        self.Visit(o.rhs)
+        self.visit(o.lhs)
+        self.visit(o.rhs)
 
     def VisitDivOp(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)
         o.rhs = self.followSymbolProxy(o.rhs)
-        self.Visit(o.lhs)
-        self.Visit(o.rhs)
+        self.visit(o.lhs)
+        self.visit(o.rhs)
 
     def VisitIfThenElse(self, o, **kwargs):
         o.if_true_ast = self.followSymbolProxy(o.if_true_ast)
         o.if_false_ast= self.followSymbolProxy(o.if_false_ast)
         o.predicate = self.followSymbolProxy(o.predicate)
-        self.Visit(o.if_true_ast)
-        self.Visit(o.if_false_ast)
-        self.Visit(o.predicate)
+        self.visit(o.if_true_ast)
+        self.visit(o.if_false_ast)
+        self.visit(o.predicate)
 
     def VisitInEquality(self, o, **kwargs):
         o.less_than = self.followSymbolProxy(o.less_than)
         o.greater_than= self.followSymbolProxy(o.greater_than)
-        self.Visit(o.less_than)
-        self.Visit(o.greater_than)
+        self.visit(o.less_than)
+        self.visit(o.greater_than)
 
 
     def VisitBoolAnd(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)
         o.rhs = self.followSymbolProxy(o.rhs)
-        self.Visit(o.lhs)
-        self.Visit(o.rhs)
+        self.visit(o.lhs)
+        self.visit(o.rhs)
 
     def VisitBoolOr(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)
         o.rhs = self.followSymbolProxy(o.rhs)
-        self.Visit(o.lhs)
-        self.Visit(o.rhs)
+        self.visit(o.lhs)
+        self.visit(o.rhs)
 
     def VisitBoolNot(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)
-        self.Visit(o.lhs)
+        self.visit(o.lhs)
 
     def VisitExpOp(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)
-        self.Visit(o.lhs)
+        self.visit(o.lhs)
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
         for p in o.parameters.values():
-            self.Visit(p)
+            self.visit(p)
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         o.rhs_ast = self.followSymbolProxy( o.rhs_ast)
-        self.Visit(o.rhs_ast)
+        self.visit(o.rhs_ast)
 
     def VisitBuiltInFunction(self, o, **kwargs):
         pass
@@ -161,9 +161,9 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
     # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):
         for p in o.parameters.values():
-            self.Visit(p)
+            self.visit(p)
         o.rhs = self.followSymbolProxy( o.rhs )
-        self.Visit(o.rhs)
+        self.visit(o.rhs)
 
     def VisitFunctionDefParameter(self, o, **kwargs):
         pass
