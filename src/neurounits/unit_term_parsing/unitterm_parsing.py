@@ -122,7 +122,7 @@ def p_error(p):
 
 
 
-tables_loc = EnsureExisits("/tmp/nu/yacc/parse_term")   
+tables_loc = EnsureExisits("/tmp/nu/yacc/parse_term")
 unit_expr_parser = ply.yacc.yacc(  start='unit_term_unpowered',  tabmodule="neurounits_parsing_parse_eqn_term", outputdir=tables_loc,errorlog=ply.yacc.NullLogger() )
 
 

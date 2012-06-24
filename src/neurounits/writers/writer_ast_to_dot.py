@@ -1,12 +1,12 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-# 
+#
 #  - Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
 #  - Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #-------------------------------------------------------------------------------
 
@@ -19,19 +19,19 @@ from neurounits.visitors import ASTVisitorBase
 class DotVisitor(ASTVisitorBase):
 
     def __init__(self,):
-        import networkx as nx 
+        import networkx as nx
         print 'DotWriter'
-        self.g = nx.Graph() 
+        self.g = nx.Graph()
 
     def VisitEqnSet(self, o, **kwargs):
-        import networkx as nx 
-        
+        import networkx as nx
+
         for a in o.functiondefs:
             self.visit(a)
 
         for a in o.assignments:
             self.visit(a)
-        
+
         for a in o.timederivatives:
             self.visit(a)
 
@@ -88,10 +88,10 @@ class DotVisitor(ASTVisitorBase):
             ast.StateVariable :             'purple',
             }
 
-         
+
         labels = dict( [ (n,get_label(n)) for n in nodelist ] )
-        colors = [ color_scheme.get(type(n),'grey' )  for n in nodelist  ] 
-        nx.draw_networkx( self.g, 
+        colors = [ color_scheme.get(type(n),'grey' )  for n in nodelist  ]
+        nx.draw_networkx( self.g,
                           nodelist=nodelist,
                           labels=labels,
                           node_color=colors
@@ -173,7 +173,7 @@ class DotVisitor(ASTVisitorBase):
         self.g.add_node( o )
         self.VisitAndAddEdge(o,o.lhs)
         self.VisitAndAddEdge(o,o.rhs)
-        
+
     def VisitBoolOr(self, o, **kwargs):
         self.g.add_node( o )
         self.VisitAndAddEdge(o,o.lhs)
@@ -201,8 +201,8 @@ class DotVisitor(ASTVisitorBase):
 
     def VisitBuiltInFunction(self, o, **kwargs):
         self.g.add_node( o )
-        
+
     def VisitSymbolicConstant(self, o, **kwargs):
         self.g.add_node( o )
-        
+
 

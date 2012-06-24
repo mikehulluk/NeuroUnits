@@ -2,14 +2,14 @@
 # Copyright (c) 2012 Michael Hull.
 # All rights reserved.
 #
-# Redistribution and use in source and binary forms, with or without 
-# modification, are permitted provided that the following conditions are 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
 # met:
 #
 #  - Redistributions of source code must retain the above copyright notice,
 #    this list of conditions and the following disclaimer.
-#  - Redistributions in binary form must reproduce the above copyright 
-#    notice, this list of conditions and the following disclaimer in the 
+#  - Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -43,20 +43,20 @@ def document_eqnsets(individual_reports=True):
     all_redocs = []
 
     for f in TestLocations.getEqnSetFiles():
-        f_basename = os.path.splitext( os.path.basename(f))[0] 
+        f_basename = os.path.splitext( os.path.basename(f))[0]
 
         # Load the EqnSet:
         library_manager = NeuroUnitParser.File( open(f).read(), name=f_basename )
 
         # Create the documentation:
-        local_redoc = MRedocWriterVisitor.build( library_manager) 
+        local_redoc = MRedocWriterVisitor.build( library_manager)
 
         # Create a local documentation file:
         if individual_reports:
             LatexWriter.BuildPDF(
                 Document(TableOfContents(), local_redoc),
                 Join(TestLocations.getTestOutputDir(), 'eqnsets_%s.pdf'%f_basename  ) )
-        
+
         # Add it to single large file:
         all_redocs.append( local_redoc )
 

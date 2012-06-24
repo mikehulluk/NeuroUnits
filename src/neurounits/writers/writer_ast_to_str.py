@@ -1,12 +1,12 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-# 
+#
 #  - Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
 #  - Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #-------------------------------------------------------------------------------
 from neurounits.visitors import ASTVisitorBase
@@ -15,16 +15,16 @@ class StringWriterVisitor(ASTVisitorBase):
     def __init__(self,):
         pass
         print 'StringWriterVisitor'
-        
+
 
     # AST Top Level:
     def VisitEqnSet(self, o, **kwargs):
         print 'AST:'
         print '----'
-        
+
         for a in o.assignments:
             print self.visit(a)
-        
+
         for a in o.timederivatives:
             print self.visit(a)
 
@@ -41,7 +41,7 @@ class StringWriterVisitor(ASTVisitorBase):
     def VisitBuiltInFunction(self, o, **kwargs):
         return "<%s: %s>"%(o.__class__.__name__, o.funcname)
 
-    
+
     # Terminals:
     def VisitStateVariable(self, o, **kwargs):
         return "<%s: %s>"%(o.__class__.__name__, o.symbol)
@@ -74,7 +74,7 @@ class StringWriterVisitor(ASTVisitorBase):
 
     def VisitSubOp(self, o, **kwargs):
         return '(%s - %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
-        
+
     def VisitMulOp(self, o, **kwargs):
         return '(%s * %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
 

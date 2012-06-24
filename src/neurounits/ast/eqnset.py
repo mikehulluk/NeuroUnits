@@ -52,7 +52,7 @@ class Block(object):
 
     @property
     def src_text(self):
-        assert False 
+        assert False
         return self.library_manager.src_text
 
 
@@ -91,7 +91,7 @@ class Library(Block):
             return self._symbolicconstants[sym]
         if sym in self._function_defs:
             return self._function_defs[sym]
-        assert False, "Can't find Symbol: %s in: %s"%(sym, self.name) 
+        assert False, "Can't find Symbol: %s in: %s"%(sym, self.name)
 
 
 
@@ -104,7 +104,7 @@ class Library(Block):
         return sorted(self._symbolicconstants.values(), key=lambda a:a.symbol )
 
 
-    
+
 
 
 

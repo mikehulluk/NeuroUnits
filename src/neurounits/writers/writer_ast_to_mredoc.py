@@ -102,7 +102,7 @@ class LatexEqnWriterN(ASTVisitorBase):
 
     def VisitOnEvent(self, o, **kwargs):
         ev_name = o.name.replace("_","\\_")
-                
+
         tr = "%s(%s) \\rightarrow "%(ev_name, ",".join(o.parameters.keys()) ) #
         evts = "\\begin{cases}" + r"\\".join( [self.visit(a) for a in o.actions] ) + "\\end{cases}"
         return  Equation( tr + evts )

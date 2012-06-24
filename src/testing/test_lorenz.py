@@ -30,8 +30,8 @@ import numpy as np
 evaluator = EqnSimulator(es, )
 
 
-one = es.library_manager.backend.Quantity( 1.0, es.library_manager.backend.Unit() ) 
-six = es.library_manager.backend.Quantity( 6.0, es.library_manager.backend.Unit() ) 
+one = es.library_manager.backend.Quantity( 1.0, es.library_manager.backend.Unit() )
+six = es.library_manager.backend.Quantity( 6.0, es.library_manager.backend.Unit() )
 print 'Simulating'
 res = evaluator(time_data = np.linspace(0.0,2.00, 1000), )
 

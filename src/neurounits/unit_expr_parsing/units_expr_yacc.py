@@ -79,7 +79,7 @@ def p_file_def1(p):
 
 
 def p_file_def2(p):
-    """ block_type : eqnset_def 
+    """ block_type : eqnset_def
                    | library_def"""
     pass
 
@@ -583,7 +583,7 @@ def p_unit_expr_6( p ):
     """unit_expr : parameterised_unit_term"""
     p[0] = p[1]
 
-# Allow empty unit 
+# Allow empty unit
 def p_unit_expr_7( p ):
     """unit_expr : LBRACKET RBRACKET"""
     backend = p.parser.library_manager.backend
@@ -809,7 +809,7 @@ def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, w
         ev = F.visit(pRes)
         pRes = ev()
 
-        
+
 
 
     ret = { ParseTypes.L1_Unit:             lambda: pRes,
@@ -930,7 +930,7 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
     #assert parser.library_manager is library_manager
 
     # Close the block we opened in 'A'
-    if parse_type in [ ParseTypes.L3_QuantityExpr]: 
+    if parse_type in [ ParseTypes.L3_QuantityExpr]:
         parser.library_manager.end_eqnset_block()
 
     #assert parser.library_manager is library_manager

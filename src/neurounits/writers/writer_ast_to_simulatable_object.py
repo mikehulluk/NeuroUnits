@@ -70,7 +70,7 @@ class EqnSimulator(object):
             traces = []
         if traces is None:
             traces = res.keys()
-    
+
         # What phase plots shall we draw:
         if phase_plots is False:
             phase_plots = []
@@ -81,7 +81,7 @@ class EqnSimulator(object):
                     if r != s:
                         phase_plots.append( (r,s) )
 
-        
+
         def build_trace_plot(sym):
             f = pylab.figure()
             pylab.plot( res['t'], res[sym], )
