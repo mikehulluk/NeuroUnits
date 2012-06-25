@@ -14,7 +14,6 @@ import ply
 from ..unit_errors import UnitError
 from unitterm_lexing import UnitTermLexer
 from ..units_data_unitterms import UnitTermData
-#from morphforge.core.mgrs.locmgr import LocMgr
 from ..units_misc import EnsureExisits
 
 

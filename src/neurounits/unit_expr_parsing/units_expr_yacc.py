@@ -21,7 +21,7 @@ import units_expr_lexer
 from neurounits.unit_errors import UnitError
 from units_expr_lexer import UnitExprLexer
 from neurounits.units_misc import  safe_dict_merge, EnsureExisits
-from morphforge.core.misc import SeqUtils
+from neurounits.misc import SeqUtils
 from neurounits.librarymanager import LibraryManager
 
 import neurounits.ast as ast
@@ -805,8 +805,9 @@ def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, w
 
     if parse_type==ParseTypes.L3_QuantityExpr:
         from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator
-        F = FunctorGenerator()
-        ev = F.visit(pRes)
+        ev = FunctorGenerator().visit(pRes)
+        #functor = SeqUtils.expect_single( F.assignment_evaluators.values() )
+        #\ev = F.visit(pRes
         pRes = ev()
 
 

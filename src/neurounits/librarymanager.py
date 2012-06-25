@@ -9,15 +9,15 @@
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #-------------------------------------------------------------------------------
-from morphforge.core.misc import SeqUtils
+from neurounits.misc import SeqUtils
 import units_data_functions
 
-from neurounits.units_misc import EnsureExisits
+#from neurounits.units_misc import EnsureExisits
 from neurounits.ast_builder import EqnSetBuilder
 from neurounits.ast_builder.eqnsetbuilder import LibraryBuilder
 
 from itertools import chain
-import os,glob
+import glob, os
 
 class LibraryManager(object):
 
@@ -25,13 +25,13 @@ class LibraryManager(object):
     _stdlib_cache = False
     _stdlib_cache_loading = False
 
+    # Find the location of the standard library, relative to this directory
+    _stdlibdir = os.path.join( os.path.dirname(__file__), '../stdlib/' )
+
+
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitLibraryManager(self,**kwargs)
-
-
-
-
-
 
 
     def __init__(self,backend, working_dir=None, options=None, name=None, src_text=None, is_stdlib_cache=False):
@@ -59,10 +59,9 @@ class LibraryManager(object):
 
         if is_stdlib_cache:
             # Load in the standard libraries:
-            stdlib_dir = '/home/michael/hw_to_come/libs/NeuroUnits/src/stdlib/'
             from neurounits.unit_expr_parsing.units_expr_yacc import parse_expr, ParseTypes
             LibraryManager._stdlib_cache_loading=True
-            for f in glob.glob(stdlib_dir+"/*.eqn"):
+            for f in glob.glob(self._stdlibdir+"/*.eqn"):
                 with open( f ) as l:
                     parse_expr( l.read(), parse_type=ParseTypes.L6_TextBlock, library_manager=self)
 
@@ -78,6 +77,7 @@ class LibraryManager(object):
 
 
     def get(self,name, include_stdlibs=True):
+        print 'Searching for library: ' , name
         if LibraryManager._stdlib_cache_loading:
             include_stdlibs = False
 
@@ -89,6 +89,7 @@ class LibraryManager(object):
 
 
     def get_library(self,libname):
+        print 'Searching for library: ' % libname
         lib = SeqUtils.expect_single( [ l for l in chain(self.libraries,self._stdlib_cache.libraries) if l.name==libname ] )
         return lib
 

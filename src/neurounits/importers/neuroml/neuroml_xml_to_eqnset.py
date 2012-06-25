@@ -30,7 +30,7 @@ from string import Template
 
 from neuroml_xml_data import NeuroUnitsImportNeuroMLNotImplementedException
 from neuroml_xml_data import ChannelMLInfo
-from morphforge.core.misc import SeqUtils
+from neurounits.misc import SeqUtils
 from neurounits import NeuroUnitParser,NeuroUnitParserOptions
 
 

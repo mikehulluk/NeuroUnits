@@ -23,8 +23,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #-------------------------------------------------------------------------------
 
-from  neurounits.unit_expr_parsing import units_expr_yacc
-from morphforge.core.misc import SeqUtils
+from neurounits.unit_expr_parsing import units_expr_yacc
+from neurounits.misc import SeqUtils
 
 
 class NeuroUnitParserOptions():

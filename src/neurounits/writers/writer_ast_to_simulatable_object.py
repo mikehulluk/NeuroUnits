@@ -236,7 +236,7 @@ class EqnSimulator(object):
 
 class FunctorGenerator(ASTVisitorBase):
 
-    def __init__(self, eqnset, as_float_in_si=False):
+    def __init__(self, eqnset=None, as_float_in_si=False):
         self.ast = None
 
         self.assignment_evaluators = {}
@@ -244,8 +244,10 @@ class FunctorGenerator(ASTVisitorBase):
 
         self.as_float_in_si = as_float_in_si
 
-        assert isinstance(eqnset, ast.EqnSet)
-        self.visit(eqnset)
+        print eqnset
+        if eqnset is not None:
+            assert isinstance(eqnset, ast.EqnSet)
+            self.visit(eqnset)
 
 
     def VisitEqnSet(self, o, **kwargs):

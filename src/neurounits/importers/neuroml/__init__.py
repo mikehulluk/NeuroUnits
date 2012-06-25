@@ -25,10 +25,8 @@
 #-------------------------------------------------------------------------------
 
 from neurounits.importers.neuroml.neuroml_xml_data import _parse_channelml_file
-#from morphforge.core.objectnumberer import ObjectLabeller
 from neurounits.importers.neuroml.neuroml_xml_to_eqnset import build_eqnset
 
-#from errors import NeuroUnitsImportNeuroMLNotImplementedException
 from errors import NeuroMLFileContainsNoChannels, NeuroMLFileContainsMultipleChannels
 
 
