@@ -11,7 +11,7 @@
 #-------------------------------------------------------------------------------
 import itertools
 
-from eqnsetbuilder_symbol_proxy import SymbolProxy
+from .eqnsetbuilder_symbol_proxy import SymbolProxy
 
 from ..visitors import ASTVisitorBase
 

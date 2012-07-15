@@ -28,8 +28,8 @@
 import re
 from string import Template
 
-from neuroml_xml_data import NeuroUnitsImportNeuroMLNotImplementedException
-from neuroml_xml_data import ChannelMLInfo
+from .neuroml_xml_data import NeuroUnitsImportNeuroMLNotImplementedException
+from .neuroml_xml_data import ChannelMLInfo
 from neurounits.misc import SeqUtils
 from neurounits import NeuroUnitParser,NeuroUnitParserOptions
 

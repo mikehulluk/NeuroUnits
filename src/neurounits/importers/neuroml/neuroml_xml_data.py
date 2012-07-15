@@ -27,7 +27,7 @@
 import re
 import xml.etree.cElementTree as etree
 
-from errors import NeuroUnitsImportNeuroMLNotImplementedException
+from .errors import NeuroUnitsImportNeuroMLNotImplementedException
 
 
 def ignore(*args,**kwargs):

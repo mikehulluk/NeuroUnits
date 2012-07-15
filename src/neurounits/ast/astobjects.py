@@ -25,7 +25,7 @@
 #-------------------------------------------------------------------------------
 
 
-from base import ASTObject
+from .base import ASTObject
 
 
 

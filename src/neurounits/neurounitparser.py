@@ -40,7 +40,7 @@ class NeuroUnitParser(object):
 
     @classmethod
     def get_defaultBackend(cls):
-        from units_backends.mh import MHUnitBackend as defaultbackend
+        from .units_backends.mh import MHUnitBackend as defaultbackend
         return defaultbackend()
 
 

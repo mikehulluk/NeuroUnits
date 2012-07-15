@@ -231,7 +231,7 @@ class OnEventWriter(ASTActionerDefaultIgnoreMissing):
 
 class NeuronBlockWriter(object):
     def __init__(self,  eqnset,  build_parameters,  modfilecontents):
-        from neuron_constants import MechanismType#,NEURONMappings
+        from .neuron_constants import MechanismType#,NEURONMappings
         # Heading
         if build_parameters.mechanismtype == MechanismType.Point:
             modfilecontents.section_NEURON.append("POINT_PROCESS %s"%build_parameters.suffix )

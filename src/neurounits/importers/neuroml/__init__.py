@@ -27,7 +27,7 @@
 from neurounits.importers.neuroml.neuroml_xml_data import _parse_channelml_file
 from neurounits.importers.neuroml.neuroml_xml_to_eqnset import build_eqnset
 
-from errors import NeuroMLFileContainsNoChannels, NeuroMLFileContainsMultipleChannels
+from .errors import NeuroMLFileContainsNoChannels, NeuroMLFileContainsMultipleChannels
 
 
 

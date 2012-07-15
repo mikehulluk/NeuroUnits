@@ -27,7 +27,7 @@
 
 from neurounits.units_misc import Chainmap
 from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
-from base import ASTObject
+from .base import ASTObject
 from neurounits.ast.astobjects import Parameter, SuppliedValue, AssignedVariable
 from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
 from neurounits.io_types import IOType

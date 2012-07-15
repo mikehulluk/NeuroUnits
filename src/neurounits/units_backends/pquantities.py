@@ -12,7 +12,7 @@
 import sys
 import quantities as pq
 
-from bases import ParsingBackendBase
+from .bases import ParsingBackendBase
 
 
 

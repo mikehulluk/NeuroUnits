@@ -21,20 +21,20 @@ from neurounits.visitors import ASTActionerDefault
 from neurounits.io_types import IOType
 
 
-from section_writers import NeuronBlockWriter
-from section_writers import NeuronInterfaceWriter
+from .section_writers import NeuronBlockWriter
+from .section_writers import NeuronInterfaceWriter
 
 
-from section_writers import ParameterWriter
-from section_writers import SuppliedValuesWriter
-from section_writers import AssignmentWriter
-from section_writers import StateWriter
-from section_writers import FunctionWriter
-from section_writers import ConstantWriter
-from section_writers import OnEventWriter
+from .section_writers import ParameterWriter
+from .section_writers import SuppliedValuesWriter
+from .section_writers import AssignmentWriter
+from .section_writers import StateWriter
+from .section_writers import FunctionWriter
+from .section_writers import ConstantWriter
+from .section_writers import OnEventWriter
 
 
-from neuron_constants import NeuronSuppliedValues, NEURONMappings, MechanismType
+from .neuron_constants import NeuronSuppliedValues, NEURONMappings, MechanismType
 from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
 from neurounits.ast import EqnTimeDerivative, EqnAssignment, EqnSet,\
     ConstValue, InEquality, OnEvent

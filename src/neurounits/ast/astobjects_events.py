@@ -23,7 +23,7 @@
 # WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #-------------------------------------------------------------------------------
-from astobjects import ASTExpressionObject
+from .astobjects import ASTExpressionObject
 
 class OnEvent(object):
     def __init__(self,name, parameters, actions,**kwargs):

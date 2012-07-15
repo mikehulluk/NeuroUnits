@@ -13,10 +13,10 @@ import itertools
 from neurounits import ast
 from neurounits.io_types import IOType
 from neurounits.units_misc import SingleSetDict
-from eqnsetbuilder_io import parse_io_line
-from builder_visitor_propogate_dimensions import PropogateDimensions
-from builder_visitor_remove_proxies import RemoveAllSymbolProxy
-from eqnsetbuilder_symbol_proxy import SymbolProxy
+from .eqnsetbuilder_io import parse_io_line
+from .builder_visitor_propogate_dimensions import PropogateDimensions
+from .builder_visitor_remove_proxies import RemoveAllSymbolProxy
+from .eqnsetbuilder_symbol_proxy import SymbolProxy
 from neurounits.visitors.common.clone_from_eqnset import CloneObject
 from neurounits.visitors.common.simplify_symbolic_constants import ReduceConstants
 from neurounits.ast.astobjects import SymbolicConstant

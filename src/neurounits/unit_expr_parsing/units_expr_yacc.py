@@ -17,9 +17,9 @@ import ply.yacc as yacc
 import ply
 
 
-import units_expr_lexer
+from . import units_expr_lexer
 from neurounits.unit_errors import UnitError
-from units_expr_lexer import UnitExprLexer
+from .units_expr_lexer import UnitExprLexer
 from neurounits.units_misc import  safe_dict_merge, EnsureExisits
 from neurounits.misc import SeqUtils
 from neurounits.librarymanager import LibraryManager
