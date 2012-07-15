@@ -215,15 +215,15 @@ def build_figures(eqnset):
             sup = deps_sup[0]
             meta = eqnset.getSymbolMetadata(sup)
             if not meta: continue
-            print meta
+            #print meta
             if not 'mf' in meta or not 'role' in meta['mf']:
                 continue
             role = meta['mf']['role']
-            print role
+            #print role
 
             if role != 'MEMBRANEVOLTAGE':
                 continue
-            print "sup.symbol", sup.symbol
+            #print "sup.symbol", sup.symbol
 
             F = FunctorGenerator()
             F.visit(eqnset)
@@ -232,7 +232,7 @@ def build_figures(eqnset):
 
 
             try:
-                print f
+                #print f
                 vVals = [-80, -70, -60, -40, -20, 0, 20, 40]
                 vVals = range(-80, 50, 10)
                 oUnit = None

@@ -45,8 +45,8 @@ class StateWriter(ASTActionerDefaultIgnoreMissing):
         for ic in n.initial_conditions:
             o1 = n.get_terminal_obj(ic.symbol)
             o2 = n.get_terminal_obj(ic.value)
-            print "o1", ic.symbol, build_parameters.symbol_units[o1]
-            print "o2", ic.value, build_parameters.symbol_units[o2]
+            #print "o1", ic.symbol, build_parameters.symbol_units[o1]
+            #print "o2", ic.value, build_parameters.symbol_units[o2]
             assert build_parameters.symbol_units[o1] == build_parameters.symbol_units[o2]
 
             s = "%s = %s"%(ic.symbol, ic.value)

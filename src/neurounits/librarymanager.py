@@ -12,7 +12,6 @@
 from neurounits.misc import SeqUtils
 from . import units_data_functions
 
-#from neurounits.units_misc import EnsureExisits
 from neurounits.ast_builder import EqnSetBuilder
 from neurounits.ast_builder.eqnsetbuilder import LibraryBuilder
 
@@ -77,7 +76,7 @@ class LibraryManager(object):
 
 
     def get(self,name, include_stdlibs=True):
-        print 'Searching for library: ' , name
+        #print 'Searching for library: ' , name
         if LibraryManager._stdlib_cache_loading:
             include_stdlibs = False
 
@@ -89,7 +88,7 @@ class LibraryManager(object):
 
 
     def get_library(self,libname):
-        print 'Searching for library: ' % libname
+        #print 'Searching for library: ' % libname
         lib = SeqUtils.expect_single( [ l for l in chain(self.libraries,self._stdlib_cache.libraries) if l.name==libname ] )
         return lib
 
@@ -126,7 +125,7 @@ class LibraryManager(object):
 
     def end_library_block(self,):
         self.currentblock.finalise()
-        print 'Name',self.currentblock._astobject.name
+        #print 'Name',self.currentblock._astobject.name
         assert not self.currentblock._astobject.name in self.get_library_names()
         #if self.load_into_stdlibs:
         #    self.stdlibraries.append( self.currentblock._astobject )

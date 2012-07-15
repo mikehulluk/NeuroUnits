@@ -81,7 +81,7 @@ class ASTExpressionObject(ASTObject):
         return self._dimension
 
     def set_dimensionality(self, dimension):
-        print dimension, type(dimension)
+        #print dimension, type(dimension)
         import neurounits
         assert isinstance( dimension, neurounits.units_backends.mh.MMUnit)
         #assert False

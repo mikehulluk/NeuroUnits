@@ -67,7 +67,6 @@ class UnitTermLexer(object):
 
     def token(self, *args,**kwargs):
         t = self.lexer.token(*args,**kwargs)
-        #print 'Token: %s'%t
         return t
 
     def t_error(self, t):

@@ -889,8 +889,8 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
     s = re.compile(r"""[ ]* [-](?=[^0-9]) [ ]*""", re.VERBOSE)
     text_eqn = re.sub(s,'--',text_eqn)
 
-    print 'Post-Processing:'
-    print text_eqn
+    #print 'Post-Processing:'
+    #print text_eqn
 
 
 

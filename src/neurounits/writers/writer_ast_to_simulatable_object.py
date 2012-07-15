@@ -244,7 +244,7 @@ class FunctorGenerator(ASTVisitorBase):
 
         self.as_float_in_si = as_float_in_si
 
-        print eqnset
+        #print eqnset
         if eqnset is not None:
             assert isinstance(eqnset, ast.EqnSet)
             self.visit(eqnset)
@@ -396,7 +396,7 @@ class FunctorGenerator(ASTVisitorBase):
 
 
     def VisitAssignedVariable(self, o, **kwargs):
-        print 'Visiting', o.symbol
+        #print 'Visiting', o.symbol
         # We are at an assignment. We resolve this by looking up the
         # Right hand side of the assigned variable:
         assignment_rhs = self.assignment_evaluators[o.symbol]

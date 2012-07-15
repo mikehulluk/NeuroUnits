@@ -12,9 +12,9 @@
 from neurounits.visitors import ASTVisitorBase
 
 class StringWriterVisitor(ASTVisitorBase):
-    def __init__(self,):
-        pass
-        print 'StringWriterVisitor'
+    #def __init__(self,):
+        #pass
+        #print 'StringWriterVisitor'
 
 
     # AST Top Level:

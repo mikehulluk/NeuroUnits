@@ -25,11 +25,9 @@ class ReplaceNode(ASTVisitorBase):
         assert isinstance(o, ASTObject)
         assert isinstance(self.srcObj, ASTObject)
         if o == self.srcObj:
-            #print 'Removing Refernce to ',o.symbol
             return self.dstObj
         else:
             if "symbol" in o.__dict__:
-                 #print 'Not Removing Refernce to ',o.symbol
                  assert not o.symbol==self.srcObj.symbol
 
             return self.visit(o)
@@ -156,8 +154,6 @@ class ReplaceNode(ASTVisitorBase):
         return o
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
-        #print 'ParamRHS:', o.rhs_ast
-        #assert False
         o.rhs_ast = self.replace_or_visit(o.rhs_ast)
         return o
 

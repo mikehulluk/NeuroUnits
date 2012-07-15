@@ -296,7 +296,7 @@ def WriteToNMODL(eqnset, buildparameters=None, initial_values=None, neuron_suffi
     ConstantWriter().visit(eqnset,modfilecontents=m, build_parameters=buildparameters, )
     OnEventWriter().visit(eqnset,modfilecontents=m, build_parameters=buildparameters)
 
-    print len(eqnset.onevents)
+    #print len(eqnset.onevents)
 
     txt = m.to_text()
 

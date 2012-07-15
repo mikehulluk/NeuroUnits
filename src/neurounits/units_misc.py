@@ -61,7 +61,6 @@ class Chainmap(UserDict.DictMixin):
     def __getitem__(self, key):
         for mapping in self._maps:
             try:
-                #print mapping
                 return mapping[key]
             except KeyError:
                 pass
