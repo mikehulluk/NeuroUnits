@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,28 +23,32 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
+
 
 class UnitError(ValueError):
+
     pass
 
 class DuplicateKeyError(RuntimeError):
     def __init__(self, key):
         self.key = key
     def __repr__(self):
-        return "Duplicate Key Found: %s"%str(self.key)
+        return 'Duplicate Key Found: %s' % str(self.key)
+
 
 class ParsingError(RuntimeError):
+
     pass
 
 
 class InternalError(RuntimeError):
+
     pass
 
 
 def panic():
     raise InternalError()
-
 
 
 class UnitMismatchError(ValueError):
@@ -54,11 +60,15 @@ class UnitMismatchError(ValueError):
 
     def __str__(self):
         if self.objA:
-            return "Unit Imcompatibility: (%s) <-> (%s)"%(self.unitA, self.unitB)
+            return 'Unit Imcompatibility: (%s) <-> (%s)' % (self.unitA,
+                    self.unitB)
         else:
-            return "Unit Imcompatibility: (%s) <-> (%s)"%(self.unitA, self.unitB)
+            return 'Unit Imcompatibility: (%s) <-> (%s)' % (self.unitA,
+                    self.unitB)
 
 
 class NeuroUnitParsingError(ValueError):
+
     pass
+
 

@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,10 +23,11 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 
 class SeqUtils(object):
+
     @classmethod
     def expect_single(cls, seq):
         assert len(seq) == 1
@@ -36,6 +39,7 @@ class SeqUtils(object):
         expects a single item to remain, which it returns.  If 0 or more than 
         1 objects are found, it raises an error.
         """
+
         filtered_seq = [s for s in seq if filter_func(s)]
         if len(filtered_seq) == 0:
             print seq
@@ -43,3 +47,5 @@ class SeqUtils(object):
         if len(filtered_seq) > 1:
             raise ValueError('Found too many occurances')
         return filtered_seq[0]
+
+

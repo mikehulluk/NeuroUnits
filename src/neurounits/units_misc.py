@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,32 +23,31 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
+
+import os
+import UserDict
+
+import json
 
 from .unit_errors import DuplicateKeyError
 
 
-import os
 def EnsureExisits(l):
     if not os.path.exists(l):
         os.makedirs(l)
     return l
 
+
 def safe_dict_merge(*args):
     out_dct = {}
     for dct in args:
-        for k,v in dct.iteritems():
+        for (k, v) in dct.iteritems():
             if k in out_dct:
                 raise DuplicateKeyError(k)
             out_dct[k] = v
     return out_dct
-
-#def ExpectSingle(l):
-#    if not len(l) == 1:
-#        raise ValueError("Expect list of len 1, found iterable len: %d"% len(l))
-#    #assert len(l) == 1
-#    return l[0]
 
 
 
@@ -54,14 +55,15 @@ class SingleSetDict(dict):
 
     def __setitem__(self, key, val):
         if key in self:
-            raise ValueError('SingleSetDictionary - setting Key twice: %s'%key)
+            raise ValueError('SingleSetDictionary - setting Key twice: %s'
+                              % key)
         dict.__setitem__(self, key, val)
 
 
 
-import UserDict
-#http://code.activestate.com/recipes/305268-chained-map-lookups/
+# http://code.activestate.com/recipes/305268-chained-map-lookups/
 class Chainmap(UserDict.DictMixin):
+
     """Combine multiple mappings for sequential lookup.
 
     For example, to emulate Python's normal lookup sequence:
@@ -82,30 +84,14 @@ class Chainmap(UserDict.DictMixin):
         raise KeyError(key)
 
 
-
 def IterateDictValueByKeySorted(d):
-    keys = sorted( d.keys() )
+    keys = sorted(d.keys())
     for k in keys:
         yield d[k]
 
 
 
-
-import json
-
 def read_json(s):
     print 'Reading JSON:', s
     x = json.loads(s)
     return x
-
-
-#def SeqUtils.expect_single(l):
-#    assert len(l) == 1
-#    return l[0]
-
-
-
-
-
-
-

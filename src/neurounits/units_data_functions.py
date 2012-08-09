@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,17 +23,13 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
-
+# -------------------------------------------------------------------------------
 
 from neurounits import ast
-from .units_data_unitterms import UnitTermData
+from units_data_unitterms import UnitTermData
 
 
-
-
-
-class StdLibrary():
+class StdLibrary(object):
 
     @classmethod
     def getMath(cls, backend):
@@ -47,18 +45,8 @@ class StdLibrary():
                                         parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
                                         dimension=backend.Unit() ),
 
-            'fabs' : ast.BuiltInFunction(funcname='fabs',
-                                        parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
-                                        dimension=backend.Unit() ),
-
-            'pow' : ast.BuiltInFunction(funcname='pow',
-                                        parameters={'base':ast.FunctionDefParameter(symbol='base', dimension=backend.Unit() ),
-                                                    'exp':ast.FunctionDefParameter(symbol='exp', dimension=backend.Unit() )  },
-                                        dimension=backend.Unit() ),
-        }
-
-        return ast.Library('std.math', constants = constants, functiondefs = functiondefs, )
-
+        return ast.Library('std.math', constants=constants,
+                           functiondefs=functiondefs)
 
     @classmethod
     def getPhysics(cls, backend):

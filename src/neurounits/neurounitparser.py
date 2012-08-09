@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,13 +23,13 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 from neurounits.unit_expr_parsing import units_expr_yacc
 from neurounits.misc import SeqUtils
 
 
-class NeuroUnitParserOptions():
+class NeuroUnitParserOptions(object):
     def __init__(  self,
                     allow_unused_parameter_declarations=False,
                     allow_unused_suppliedvalue_declarations = False):
@@ -42,7 +44,6 @@ class NeuroUnitParser(object):
     def get_defaultBackend(cls):
         from .units_backends.mh import MHUnitBackend as defaultbackend
         return defaultbackend()
-
 
     @classmethod
     def Unit(cls, text, debug=False, backend=None):
@@ -77,8 +78,5 @@ class NeuroUnitParser(object):
         library_manager = cls.File(text=text, **kwargs )
         eqnset_name = SeqUtils.expect_single( library_manager.get_eqnset_names() )
         return library_manager.get_eqnset(eqnset_name)
-
-
-
 
 
