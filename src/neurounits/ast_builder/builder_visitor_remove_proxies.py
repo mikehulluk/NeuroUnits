@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +23,8 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
+
 import itertools
 
 from .eqnsetbuilder_symbol_proxy import SymbolProxy
@@ -34,7 +37,8 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         if visited_nodes is None:
             visited_nodes = set()
         if node in visited_nodes:
-            assert False, 'Unable to resolve symbol-proxy! %s'%str(visited_nodes)
+            assert False, 'Unable to resolve symbol-proxy! %s' \
+                % str(visited_nodes)
         visited_nodes.add(node)
 
         if type(node) == SymbolProxy:
@@ -56,7 +60,6 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
             self.visit(i)
 
 
-    # Terminals:
     def VisitStateVariable(self, o, **kwargs):
         pass
 
@@ -76,8 +79,6 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         pass
 
 
-
-    # Terminals:
     def VisitOnEventStateAssignment(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)
         o.rhs = self.followSymbolProxy(o.rhs)
@@ -88,7 +89,6 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
             self.visit(a)
         for p in o.parameters.values():
             self.visit(p)
-
 
     # AST Objects:
     def VisitEqnTimeDerivative(self, o, **kwargs):
@@ -127,7 +127,7 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
 
     def VisitIfThenElse(self, o, **kwargs):
         o.if_true_ast = self.followSymbolProxy(o.if_true_ast)
-        o.if_false_ast= self.followSymbolProxy(o.if_false_ast)
+        o.if_false_ast = self.followSymbolProxy(o.if_false_ast)
         o.predicate = self.followSymbolProxy(o.predicate)
         self.visit(o.if_true_ast)
         self.visit(o.if_false_ast)
@@ -135,7 +135,7 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
 
     def VisitInEquality(self, o, **kwargs):
         o.less_than = self.followSymbolProxy(o.less_than)
-        o.greater_than= self.followSymbolProxy(o.greater_than)
+        o.greater_than = self.followSymbolProxy(o.greater_than)
         self.visit(o.less_than)
         self.visit(o.greater_than)
 
@@ -165,20 +165,17 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
             self.visit(p)
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
-        o.rhs_ast = self.followSymbolProxy( o.rhs_ast)
+        o.rhs_ast = self.followSymbolProxy(o.rhs_ast)
         self.visit(o.rhs_ast)
 
     def VisitBuiltInFunction(self, o, **kwargs):
         pass
 
-    # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):
         for p in o.parameters.values():
             self.visit(p)
-        o.rhs = self.followSymbolProxy( o.rhs )
+        o.rhs = self.followSymbolProxy(o.rhs)
         self.visit(o.rhs)
 
     def VisitFunctionDefParameter(self, o, **kwargs):
         pass
-
-

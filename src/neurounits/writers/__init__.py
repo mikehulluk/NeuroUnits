@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,10 +23,13 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
-from .writer_ast_to_dot import DotVisitor
-#from writer_ast_to_latex import LatexWriterVisitor
-from .writer_ast_to_mredoc import  MRedocWriterVisitor
-from .writer_ast_to_simulatable_object import EqnSimulator
-from .writer_ast_to_str import StringWriterVisitor
+# -------------------------------------------------------------------------------
+
+from writer_ast_to_dot import DotVisitor
+
+# from writer_ast_to_latex import LatexWriterVisitor
+
+from writer_ast_to_mredoc import MRedocWriterVisitor
+from writer_ast_to_simulatable_object import EqnSimulator
+from writer_ast_to_str import StringWriterVisitor
 

@@ -1,4 +1,7 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,16 +24,16 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 import itertools
 from .base_visitor import ASTVisitorBase
 
 
 class SingleVisitPredicate(object):
-    def __init__(self,):
+    def __init__(self):
         self.visited = set()
-    def __call__(self,n,**kwargs):
+    def __call__(self, n, **kwargs):
         has_not_visited = n not in self.visited
         self.visited.add(n)
         return has_not_visited
@@ -48,48 +51,48 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
     def VisitLibrary(self, o, **kwargs):
 
-        subnodes = itertools.chain( o.functiondefs, o.symbolicconstants)
+        subnodes = itertools.chain(o.functiondefs, o.symbolicconstants)
         for f in subnodes:
-            self.visit(f,**kwargs)
+            self.visit(f, **kwargs)
 
-        self._ActionLibrary(o,**kwargs)
+        self._ActionLibrary(o, **kwargs)
 
     def VisitEqnSet(self, o, **kwargs):
 
         subnodes = itertools.chain( o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants)
         for f in subnodes:
-            self.visit(f,**kwargs)
+            self.visit(f, **kwargs)
 
         for onev in o.onevents:
-            self.visit(onev,**kwargs)
+            self.visit(onev, **kwargs)
 
-        self._ActionEqnSet(o,**kwargs)
+        self._ActionEqnSet(o, **kwargs)
 
 
     def VisitOnEvent(self, o, **kwargs):
         for p in o.parameters.values():
-            self.visit(p,**kwargs)
+            self.visit(p, **kwargs)
         for action in o.actions:
             self.visit(action, **kwargs)
-        self._ActionOnEvent(o,**kwargs)
+        self._ActionOnEvent(o, **kwargs)
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
-        self.visit(o.lhs,**kwargs)
-        self.visit(o.rhs,**kwargs)
-        self._ActionOnEventStateAssignment(o,**kwargs)
+        self.visit(o.lhs, **kwargs)
+        self.visit(o.rhs, **kwargs)
+        self._ActionOnEventStateAssignment(o, **kwargs)
 
 
 
     def VisitIfThenElse(self, o, **kwargs):
-        self.visit(o.predicate,**kwargs)
-        self.visit(o.if_true_ast,**kwargs)
-        self.visit(o.if_false_ast,**kwargs)
-        self._ActionIfThenElse(o,**kwargs)
+        self.visit(o.predicate, **kwargs)
+        self.visit(o.if_true_ast, **kwargs)
+        self.visit(o.if_false_ast, **kwargs)
+        self._ActionIfThenElse(o, **kwargs)
 
-    def VisitInEquality(self, o ,**kwargs):
-        self.visit(o.less_than,**kwargs)
-        self.visit(o.greater_than,**kwargs)
-        self._ActionInEquality(o,**kwargs)
+    def VisitInEquality(self, o, **kwargs):
+        self.visit(o.less_than, **kwargs)
+        self.visit(o.greater_than, **kwargs)
+        self._ActionInEquality(o, **kwargs)
 
     def VisitBoolAnd(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
@@ -108,181 +111,181 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):
         for p in o.parameters.values():
-            self.visit(p,**kwargs)
-        self.visit(o.rhs,**kwargs)
-        self._ActionFunctionDef(o,**kwargs)
+            self.visit(p, **kwargs)
+        self.visit(o.rhs, **kwargs)
+        self._ActionFunctionDef(o, **kwargs)
 
     def VisitBuiltInFunction(self, o, **kwargs):
         for p in o.parameters.values():
-            self.visit(p,**kwargs)
-        self._ActionBuiltInFunction(o,**kwargs)
+            self.visit(p, **kwargs)
+        self._ActionBuiltInFunction(o, **kwargs)
 
     def VisitFunctionDefParameter(self, o, **kwargs):
-        self._ActionFunctionDefParameter(o,**kwargs)
+        self._ActionFunctionDefParameter(o, **kwargs)
 
     # Terminals:
     def VisitStateVariable(self, o, **kwargs):
-        self._ActionStateVariable(o,**kwargs)
+        self._ActionStateVariable(o, **kwargs)
     def VisitSymbolicConstant(self, o, **kwargs):
-        self._ActionSymbolicConstant(o,**kwargs)
+        self._ActionSymbolicConstant(o, **kwargs)
     def VisitParameter(self, o, **kwargs):
-        self._ActionParameter(o,**kwargs)
+        self._ActionParameter(o, **kwargs)
     def VisitConstant(self, o, **kwargs):
-        self._ActionConstant(o,**kwargs)
+        self._ActionConstant(o, **kwargs)
     def VisitAssignedVariable(self, o, **kwargs):
-        self._ActionAssignedVariable(o,**kwargs)
+        self._ActionAssignedVariable(o, **kwargs)
     def VisitSuppliedValue(self, o, **kwargs):
-        self._ActionSuppliedValue(o,**kwargs)
+        self._ActionSuppliedValue(o, **kwargs)
 
     # AST Objects:
     def VisitEqnTimeDerivative(self, o, **kwargs):
-        self.visit(o.lhs,**kwargs)
-        self.visit(o.rhs,**kwargs)
-        self._ActionEqnTimeDerivative(o,**kwargs)
+        self.visit(o.lhs, **kwargs)
+        self.visit(o.rhs, **kwargs)
+        self._ActionEqnTimeDerivative(o, **kwargs)
 
     def VisitEqnAssignment(self, o, **kwargs):
-        self.visit(o.lhs,**kwargs)
-        self.visit(o.rhs,**kwargs)
-        self._ActionEqnAssignment(o,**kwargs)
+        self.visit(o.lhs, **kwargs)
+        self.visit(o.rhs, **kwargs)
+        self._ActionEqnAssignment(o, **kwargs)
 
     def VisitAddOp(self, o, **kwargs):
-        self.visit(o.lhs,**kwargs)
-        self.visit(o.rhs,**kwargs)
-        self._ActionAddOp(o,**kwargs)
+        self.visit(o.lhs, **kwargs)
+        self.visit(o.rhs, **kwargs)
+        self._ActionAddOp(o, **kwargs)
 
     def VisitSubOp(self, o, **kwargs):
-        self.visit(o.lhs,**kwargs)
-        self.visit(o.rhs,**kwargs)
-        self._ActionSubOp(o,**kwargs)
+        self.visit(o.lhs, **kwargs)
+        self.visit(o.rhs, **kwargs)
+        self._ActionSubOp(o, **kwargs)
 
     def VisitMulOp(self, o, **kwargs):
-        self.visit(o.lhs,**kwargs)
-        self.visit(o.rhs,**kwargs)
-        self._ActionMulOp(o,**kwargs)
+        self.visit(o.lhs, **kwargs)
+        self.visit(o.rhs, **kwargs)
+        self._ActionMulOp(o, **kwargs)
 
     def VisitDivOp(self, o, **kwargs):
-        self.visit(o.lhs,**kwargs)
-        self.visit(o.rhs,**kwargs)
-        self._ActionDivOp(o,**kwargs)
+        self.visit(o.lhs, **kwargs)
+        self.visit(o.rhs, **kwargs)
+        self._ActionDivOp(o, **kwargs)
 
     def VisitExpOp(self, o, **kwargs):
-        self.visit(o.lhs,**kwargs)
-        self._ActionExpOp(o,**kwargs)
+        self.visit(o.lhs, **kwargs)
+        self._ActionExpOp(o, **kwargs)
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
         for p in o.parameters.values():
-            self.visit(p,**kwargs)
-        self.visit(o.function_def,**kwargs)
-        self._ActionFunctionDefInstantiation(o,**kwargs)
+            self.visit(p, **kwargs)
+        self.visit(o.function_def, **kwargs)
+        self._ActionFunctionDefInstantiation(o, **kwargs)
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
-        self.visit(o.rhs_ast,**kwargs)
-        self._ActionFunctionDefInstantiationParater(o,**kwargs)
+        self.visit(o.rhs_ast, **kwargs)
+        self._ActionFunctionDefInstantiationParater(o, **kwargs)
 
 
     def _ActionPredicate(self, o, **kwargs):
         for p in self.action_predicates:
-            if not p(o,**kwargs):
+            if not p(o, **kwargs):
                 return False
         return True
 
 
 
-    def _ActionLibrary(self, o,**kwargs):
+    def _ActionLibrary(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
-            return self.ActionLibrary( o, **kwargs)
+            return self.ActionLibrary(o, **kwargs)
 
 
     def _ActionEqnSet(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
-            return self.ActionEqnSet( o, **kwargs)
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionEqnSet(o, **kwargs)
 
     def _ActionIfThenElse(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
-            return self.ActionIfThenElse( o, **kwargs)
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionIfThenElse(o, **kwargs)
 
-    def _ActionInEquality(self, o ,**kwargs):
-        if self._ActionPredicate(o,**kwargs):
-            return self.ActionInEquality(o ,**kwargs)
+    def _ActionInEquality(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionInEquality(o, **kwargs)
 
     def _ActionBoolAnd(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionBoolAnd(o, **kwargs)
 
     def _ActionBoolOr(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionBoolOr(o, **kwargs)
 
     def _ActionBoolNot(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionBoolNot(o, **kwargs)
 
     # Function Definitions:
     def _ActionFunctionDef(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionFunctionDef(o, **kwargs)
     def _ActionBuiltInFunction(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionBuiltInFunction(o, **kwargs)
     def _ActionFunctionDefParameter(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionFunctionDefParameter(o, **kwargs)
 
     # Terminals:
     def _ActionStateVariable(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionStateVariable(o, **kwargs)
 
     def _ActionSymbolicConstant(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionSymbolicConstant(o, **kwargs)
 
     def _ActionParameter(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionParameter(o, **kwargs)
 
     def _ActionConstant(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionConstant(o, **kwargs)
 
     def _ActionAssignedVariable(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionAssignedVariable(o, **kwargs)
 
     def _ActionSuppliedValue(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionSuppliedValue(o, **kwargs)
 
     # AST Objects:
     def _ActionEqnTimeDerivative(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionEqnTimeDerivative(o, **kwargs)
 
     def _ActionEqnAssignment(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionEqnAssignment(o, **kwargs)
 
     def _ActionAddOp(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionAddOp(o, **kwargs)
     def _ActionSubOp(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionSubOp(o, **kwargs)
     def _ActionMulOp(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionMulOp(o, **kwargs)
     def _ActionDivOp(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionDivOp(o, **kwargs)
     def _ActionExpOp(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionExpOp(o, **kwargs)
 
     def _ActionFunctionDefInstantiation(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionFunctionDefInstantiation(o, **kwargs)
     def _ActionFunctionDefInstantiationParater(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
+        if self._ActionPredicate(o, **kwargs):
             return self.ActionFunctionDefInstantiationParater(o, **kwargs)
 
 
@@ -307,7 +310,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
     def ActionIfThenElse(self, o, **kwargs):
         raise NotImplementedError()
-    def ActionInEquality(self, o ,**kwargs):
+    def ActionInEquality(self, o, **kwargs):
         raise NotImplementedError()
     def ActionBoolAnd(self, o, **kwargs):
         raise NotImplementedError()
@@ -357,6 +360,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
     def ActionFunctionDefInstantiation(self, o, **kwargs):
         raise NotImplementedError()
+
     def ActionFunctionDefInstantiationParater(self, o, **kwargs):
        raise NotImplementedError()
 

@@ -1,4 +1,7 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +24,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 import sys
 import quantities as pq
@@ -61,17 +64,17 @@ class PQParsingBackend(ParsingBackendBase):
                   (candela, pq.candela) ,
                 ]
         o = pTen
-        for i,j in types:
+        for (i, j) in types:
             if i != 0:
-                o = o * j**i
+                o = o * j ** i
         return o
 
-        return make_unit(*args,**kwargs)
+        return make_unit(*args, **kwargs)
 
     @classmethod
     def unit_as_dimensionless(cls, u1):
-        assert u1.rescale("")
-        return float(u1.rescale("").magnitude)
+        assert u1.rescale('')
+        return float(u1.rescale('').magnitude)
 
 
 

@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,16 +23,15 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
-
-
+# -------------------------------------------------------------------------------
 
 from neurounits import ast
 from neurounits.visitors import ASTVisitorBase
 
+
 class DotVisitor(ASTVisitorBase):
 
-    def __init__(self,):
+    def __init__(self):
         import networkx as nx
         print 'DotWriter'
         self.g = nx.Graph()
@@ -101,120 +102,117 @@ class DotVisitor(ASTVisitorBase):
             }
 
 
-        labels = dict( [ (n,get_label(n)) for n in nodelist ] )
-        colors = [ color_scheme.get(type(n),'grey' )  for n in nodelist  ]
-        nx.draw_networkx( self.g,
-                          nodelist=nodelist,
-                          labels=labels,
-                          node_color=colors
-                          )
-        #P.show()
-
-
+        # P.show()
 
     def VisitAndAddEdge(self, src, dst):
         self.visit(dst)
-        self.g.add_edge(src,dst)
+        self.g.add_edge(src, dst)
 
     # Function Definitions:
-    def VisitFunctionDef(self,o, **kwargs):
-        self.g.add_node( o )
+
+    def VisitFunctionDef(self, o, **kwargs):
+        self.g.add_node(o)
 
         # Parameters:
+
         for p in o.parameters.values():
             self.VisitAndAddEdge(o, p)
 
         # RHS:
-        self.VisitAndAddEdge(o,o.rhs)
+        self.VisitAndAddEdge(o, o.rhs)
 
 
     def VisitFunctionDefParameter(self, o, **kwargs):
-        self.g.add_node( o )
+        self.g.add_node(o)
 
     # Terminals:
-    def VisitStateVariable(self, o, **kwargs):
-        self.g.add_node( o )
 
-    def VisitParameter(self,o, **kwargs):
-        self.g.add_node( o )
+    def VisitStateVariable(self, o, **kwargs):
+        self.g.add_node(o)
+
+    def VisitParameter(self, o, **kwargs):
+        self.g.add_node(o)
 
     def VisitConstant(self, o, **kwargs):
-        self.g.add_node( o )
+        self.g.add_node(o)
 
     def VisitAssignedVariable(self, o, **kwargs):
-        self.g.add_node( o )
+        self.g.add_node(o)
+
     def VisitSuppliedValue(self, o, **kwargs):
-        self.g.add_node( o )
+        self.g.add_node(o)
 
     # AST Objects:
+
     def VisitEqnTimeDerivative(self, o, **kwargs):
-        self.g.add_node( o )
-        self.VisitAndAddEdge(o,o.lhs)
-        self.VisitAndAddEdge(o,o.rhs)
+        self.g.add_node(o)
+        self.VisitAndAddEdge(o, o.lhs)
+        self.VisitAndAddEdge(o, o.rhs)
 
     def VisitEqnAssignment(self, o, **kwargs):
-        self.g.add_node( o )
-        self.VisitAndAddEdge(o,o.lhs)
-        self.VisitAndAddEdge(o,o.rhs)
+        self.g.add_node(o)
+        self.VisitAndAddEdge(o, o.lhs)
+        self.VisitAndAddEdge(o, o.rhs)
 
     def VisitAddOp(self, o, **kwargs):
-        self.g.add_node( o )
-        self.VisitAndAddEdge(o,o.lhs)
-        self.VisitAndAddEdge(o,o.rhs)
+        self.g.add_node(o)
+        self.VisitAndAddEdge(o, o.lhs)
+        self.VisitAndAddEdge(o, o.rhs)
 
     def VisitSubOp(self, o, **kwargs):
-        self.g.add_node( o )
-        self.VisitAndAddEdge(o,o.lhs)
-        self.VisitAndAddEdge(o,o.rhs)
+        self.g.add_node(o)
+        self.VisitAndAddEdge(o, o.lhs)
+        self.VisitAndAddEdge(o, o.rhs)
 
     def VisitMulOp(self, o, **kwargs):
-        self.g.add_node( o )
-        self.VisitAndAddEdge(o,o.lhs)
-        self.VisitAndAddEdge(o,o.rhs)
+        self.g.add_node(o)
+        self.VisitAndAddEdge(o, o.lhs)
+        self.VisitAndAddEdge(o, o.rhs)
 
     def VisitDivOp(self, o, **kwargs):
-        self.g.add_node( o )
-        self.VisitAndAddEdge(o,o.lhs)
-        self.VisitAndAddEdge(o,o.rhs)
+        self.g.add_node(o)
+        self.VisitAndAddEdge(o, o.lhs)
+        self.VisitAndAddEdge(o, o.rhs)
 
     def VisitExpOp(self, o, **kwargs):
-        self.g.add_node( o )
-        self.VisitAndAddEdge(o,o.lhs)
+        self.g.add_node(o)
+        self.VisitAndAddEdge(o, o.lhs)
 
     def VisitBoolAnd(self, o, **kwargs):
-        self.g.add_node( o )
-        self.VisitAndAddEdge(o,o.lhs)
-        self.VisitAndAddEdge(o,o.rhs)
+        self.g.add_node(o)
+        self.VisitAndAddEdge(o, o.lhs)
+        self.VisitAndAddEdge(o, o.rhs)
 
     def VisitBoolOr(self, o, **kwargs):
-        self.g.add_node( o )
-        self.VisitAndAddEdge(o,o.lhs)
-        self.VisitAndAddEdge(o,o.rhs)
+        self.g.add_node(o)
+        self.VisitAndAddEdge(o, o.lhs)
+        self.VisitAndAddEdge(o, o.rhs)
+
     def VisitBoolNot(self, o, **kwargs):
-        self.g.add_node( o )
-        self.VisitAndAddEdge(o,o.lhs)
+        self.g.add_node(o)
+        self.VisitAndAddEdge(o, o.lhs)
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
-        self.g.add_node( o )
+        self.g.add_node(o)
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
-        self.g.add_node( o )
+        self.g.add_node(o)
 
-    def VisitIfThenElse(self,o,**kwargs):
-        self.g.add_node( o )
+    def VisitIfThenElse(self, o, **kwargs):
+        self.g.add_node(o)
         self.VisitAndAddEdge(o, o.if_true_ast)
         self.VisitAndAddEdge(o, o.if_false_ast)
         self.VisitAndAddEdge(o, o.predicate)
 
-    def VisitInEquality(self,o,**kwargs):
-        self.g.add_node( o )
+    def VisitInEquality(self, o, **kwargs):
+        self.g.add_node(o)
         self.VisitAndAddEdge(o, o.less_than)
         self.VisitAndAddEdge(o, o.greater_than)
 
     def VisitBuiltInFunction(self, o, **kwargs):
-        self.g.add_node( o )
+        self.g.add_node(o)
 
     def VisitSymbolicConstant(self, o, **kwargs):
-        self.g.add_node( o )
+        self.g.add_node(o)
 
 

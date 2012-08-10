@@ -1,4 +1,7 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +24,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 
 from .base import ASTObject
@@ -76,7 +79,7 @@ class ASTExpressionObject(ASTObject):
         return self._dimension is not None
 
     def get_dimensionality(self):
-        assert  self.is_dimensionality_known()
+        assert self.is_dimensionality_known()
         return self._dimension
 
     def set_dimensionality(self, dimension):
@@ -139,7 +142,7 @@ class BoolNot(ASTObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitBoolNot(self, **kwargs)
 
-    def __init__(self, lhs,**kwargs):
+    def __init__(self, lhs, **kwargs):
         self.lhs = lhs
 
 
@@ -151,8 +154,8 @@ class AssignedVariable(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitAssignedVariable(self, **kwargs)
 
-    def __init__(self, symbol,**kwargs):
-        ASTExpressionObject.__init__(self,**kwargs)
+    def __init__(self, symbol, **kwargs):
+        ASTExpressionObject.__init__(self, **kwargs)
         self.symbol = symbol
         self.assignment_rhs = None
 
@@ -160,16 +163,16 @@ class SuppliedValue(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitSuppliedValue(self, **kwargs)
 
-    def __init__(self, symbol,**kwargs):
-        ASTExpressionObject.__init__(self,**kwargs)
+    def __init__(self, symbol, **kwargs):
+        ASTExpressionObject.__init__(self, **kwargs)
         self.symbol = symbol
 
 class StateVariable(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitStateVariable(self, **kwargs)
 
-    def __init__(self,symbol, **kwargs):
-        ASTExpressionObject.__init__(self,**kwargs)
+    def __init__(self, symbol, **kwargs):
+        ASTExpressionObject.__init__(self, **kwargs)
         self.symbol = symbol
 
 class Parameter(ASTExpressionObject):
@@ -177,15 +180,15 @@ class Parameter(ASTExpressionObject):
         return v.VisitParameter(self, **kwargs)
 
     def __init__(self, symbol, **kwargs):
-        ASTExpressionObject.__init__(self,**kwargs)
+        ASTExpressionObject.__init__(self, **kwargs)
         self.symbol = symbol
 
 class ConstValue(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitConstant(self, **kwargs)
 
-    def __init__(self,value,**kwargs):
-        ASTExpressionObject.__init__(self,**kwargs)
+    def __init__(self, value, **kwargs):
+        ASTExpressionObject.__init__(self, **kwargs)
         self.value = value
         #self.set_unitMH(value.units)
         self.set_dimensionality( value.units.with_no_powerten() )
@@ -235,7 +238,7 @@ class BuiltInFunction(ASTExpressionObject):
         self.funcname = funcname
         self.parameters = parameters
         if dimension is not None:
-            self.set_dimensionality( dimension)
+            self.set_dimensionality(dimension)
 
         #if unitMH is not None:
         #    self.set_unitMH( unitMH )
@@ -321,8 +324,8 @@ class BinaryOp(ASTExpressionObject):
 
     def __init__(self,lhs,rhs,**kwargs):
         ASTExpressionObject.__init__(self,**kwargs)
-        self.lhs=lhs
-        self.rhs=rhs
+        self.lhs = lhs
+        self.rhs = rhs
 
 
 class AddOp(BinaryOp):

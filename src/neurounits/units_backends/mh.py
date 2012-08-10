@@ -1,4 +1,7 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,9 +24,9 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
-from .bases import ParsingBackendBase
+from bases import ParsingBackendBase
 from neurounits.unit_errors import UnitMismatchError
 
 
@@ -64,67 +67,69 @@ class MMUnit(object):
         assert isinstance( rhs, MMUnit)
 
         return MMUnit(
-            meter = self.meter + rhs.meter,
-            kilogram = self.kilogram + rhs.kilogram,
-            second = self.second + rhs.second,
-            ampere = self.ampere + rhs.ampere,
-            kelvin = self.kelvin + rhs.kelvin,
-            mole = self.mole + rhs.mole,
-            candela = self.candela + rhs.candela,
-            powerTen = self.powerTen + rhs.powerTen,
-        )
+            meter=self.meter + rhs.meter,
+            kilogram=self.kilogram + rhs.kilogram,
+            second=self.second + rhs.second,
+            ampere=self.ampere + rhs.ampere,
+            kelvin=self.kelvin + rhs.kelvin,
+            mole=self.mole + rhs.mole,
+            candela=self.candela + rhs.candela,
+            powerTen=self.powerTen + rhs.powerTen,
+            )
 
     def __div__(self, rhs):
-        if not isinstance( rhs, MMUnit):
-            raise ValueError("Can't divide by non-unit! %s"%type(rhs))
-        assert isinstance( rhs, MMUnit)
+        if not isinstance(rhs, MMUnit):
+            raise ValueError("Can't divide by non-unit! %s" % type(rhs))
+        assert isinstance(rhs, MMUnit)
 
         return MMUnit(
-            meter = self.meter - rhs.meter,
-            kilogram = self.kilogram - rhs.kilogram,
-            second = self.second - rhs.second,
-            ampere = self.ampere - rhs.ampere,
-            kelvin = self.kelvin - rhs.kelvin,
-            mole = self.mole - rhs.mole,
-            candela = self.candela - rhs.candela,
-            powerTen = self.powerTen - rhs.powerTen,
-        )
+            meter=self.meter - rhs.meter,
+            kilogram=self.kilogram - rhs.kilogram,
+            second=self.second - rhs.second,
+            ampere=self.ampere - rhs.ampere,
+            kelvin=self.kelvin - rhs.kelvin,
+            mole=self.mole - rhs.mole,
+            candela=self.candela - rhs.candela,
+            powerTen=self.powerTen - rhs.powerTen,
+            )
 
     def __pow__(self, p):
         return self._raise_to_power(p)
 
     def _raise_to_power(self, p):
         return MMUnit(
-            meter = self.meter * p,
-            kilogram = self.kilogram * p ,
-            second = self.second * p,
-            ampere = self.ampere * p ,
-            kelvin = self.kelvin * p,
-            mole = self.mole * p ,
-            candela = self.candela * p ,
-            powerTen = self.powerTen * p,
-        )
+            meter=self.meter * p,
+            kilogram=self.kilogram * p,
+            second=self.second * p,
+            ampere=self.ampere * p,
+            kelvin=self.kelvin * p,
+            mole=self.mole * p,
+            candela=self.candela * p,
+            powerTen=self.powerTen * p,
+            )
 
 
     def with_no_powerten(self):
         return MMUnit(
-            meter = self.meter,
-            kilogram = self.kilogram ,
-            second = self.second,
-            ampere = self.ampere,
-            kelvin = self.kelvin,
-            mole = self.mole,
-            candela = self.candela,
-        )
+            meter=self.meter,
+            kilogram=self.kilogram,
+            second=self.second,
+            ampere=self.ampere,
+            kelvin=self.kelvin,
+            mole=self.mole,
+            candela=self.candela,
+            )
 
-    def detail_str(self,):
-        s1 = "(10e%d)" % self.powerTen
+    def detail_str(self):
+        s1 = '(10e%d)' % self.powerTen
 
-        basis_short_LUT = dict ( zip( MMUnit.Bases, MMUnit.BasesShort) )
-        basisCounts = dict( [ (b, getattr(self, b)) for  b in MMUnit.Bases ] )
-        terms = [ "%s %d"%(basis_short_LUT[b], basisCounts[b]) for b in MMUnit.Bases if basisCounts[b] ]
+        basis_short_LUT = dict(zip(MMUnit.Bases, MMUnit.BasesShort))
+        basisCounts = dict([(b, getattr(self, b)) for b in
+                           MMUnit.Bases])
+        terms = ['%s %d' % (basis_short_LUT[b], basisCounts[b])
+                 for b in MMUnit.Bases if basisCounts[b]]
         s2 = ' '.join(terms)
-        return "%s %s"%(s1,s2)
+        return '%s %s' % (s1, s2)
 
 
     def __str__(self):
@@ -160,11 +165,14 @@ class MMUnit(object):
 
 
     def FormatLatex(self, inc_powerten=True):
-        s1 = "(10^{%d})" % self.powerTen if inc_powerten and self.powerTen else ""
+        s1 = ('(10^{%d})' % self.powerTen if inc_powerten
+              and self.powerTen else '')
 
-        basis_short_LUT = dict ( zip( MMUnit.Bases, MMUnit.BasesShort) )
-        basisCounts = dict( [ (b, getattr(self, b)) for  b in MMUnit.Bases ] )
-        terms = [ "%s^{%d}"%(basis_short_LUT[b], basisCounts[b]) for b in MMUnit.Bases if basisCounts[b] ]
+        basis_short_LUT = dict(zip(MMUnit.Bases, MMUnit.BasesShort))
+        basisCounts = dict([(b, getattr(self, b)) for b in
+                           MMUnit.Bases])
+        terms = ['%s^{%d}' % (basis_short_LUT[b], basisCounts[b])
+                 for b in MMUnit.Bases if basisCounts[b]]
         s2 = '\cdot '.join(terms)
         return "%s %s"%(s1,s2)
 
@@ -173,21 +181,21 @@ class MMUnit(object):
 
     def as_quantities_unit(self):
         import quantities as pq
-        convs = ( ( self.meter, pq.m ),
-                  ( self.kilogram, pq.kg ),
-                  ( self.second, pq.s ),
-
-                  ( self.ampere, pq.ampere ),
-                  ( self.kelvin, pq.kelvin ),
-                  ( self.mole, pq.mole ),
-                  ( self.candela, pq.candela ),
-                 )
+        convs = (
+            (self.meter, pq.m),
+            (self.kilogram, pq.kg),
+            (self.second, pq.s),
+            (self.ampere, pq.ampere),
+            (self.kelvin, pq.kelvin),
+            (self.mole, pq.mole),
+            (self.candela, pq.candela),
+            )
         res = pq.dimensionless
-        for (n,u) in convs:
-            if n==0:
+        for (n, u) in convs:
+            if n == 0:
                 continue
-            res = res * u**n
-        return res * 10**self.powerTen
+            res = res * u ** n
+        return res * 10 ** self.powerTen
 
 
 
@@ -204,12 +212,14 @@ class MMQuantity(object):
 
     def __str__(self):
         if self.unit.is_dimensionless(allow_non_zero_power_of_ten=False):
-            dim=""
+            dim = ''
         else:
-            dim= self.unit.detail_str()
-        #return
-        return '%s %s'%(self.magnitude , dim)
-        return '<Quantity: %s %s>'%(self.magnitude , self.unit)
+            dim = self.unit.detail_str()
+
+        # return
+
+        return '%s %s' % (self.magnitude, dim)
+        return '<Quantity: %s %s>' % (self.magnitude, self.unit)
 
     def __eq__(self, rhs):
         lhs_mag =self.magnitude * 10**self.unit.powerTen
@@ -225,39 +235,41 @@ class MMQuantity(object):
 
     def __mul__(self, rhs):
         if isinstance(rhs, MMUnit):
-            rhs = MMQuantity(1.0,rhs)
+            rhs = MMQuantity(1.0, rhs)
         elif isinstance(rhs, float):
-            return MMQuantity( self.magnitude*rhs,  self.unit)
+            return MMQuantity(self.magnitude * rhs, self.unit)
         else:
-            return MMQuantity( self.magnitude*rhs.magnitude,  self.unit*rhs.unit)
+            return MMQuantity(self.magnitude * rhs.magnitude, self.unit
+                              * rhs.unit)
 
     def __div__(self, rhs):
         if isinstance(rhs, MMUnit):
-            rhs = MMQuantity(1.0,rhs)
+            rhs = MMQuantity(1.0, rhs)
         elif isinstance(rhs, float):
-            return MMQuantity( self.magnitude/rhs,  self.unit)
+            return MMQuantity(self.magnitude / rhs, self.unit)
         else:
-            return MMQuantity( self.magnitude/rhs.magnitude,  self.unit/rhs.unit)
+            return MMQuantity(self.magnitude / rhs.magnitude, self.unit
+                              / rhs.unit)
 
 
 
     def __add__(self, rhs):
         if isinstance(rhs, MMUnit):
-            rhs = MMQuantity(1.0,rhs)
-        assert isinstance( rhs, MMQuantity)
+            rhs = MMQuantity(1.0, rhs)
+        assert isinstance(rhs, MMQuantity)
         rhs_conv = rhs.rescale(self.unit)
         return MMQuantity( self.magnitude + rhs_conv.magnitude, self.unit)
 
     def __sub__(self, rhs):
         if isinstance(rhs, MMUnit):
-            rhs = MMQuantity(1.0,rhs)
-        assert isinstance( rhs, MMQuantity)
+            rhs = MMQuantity(1.0, rhs)
+        assert isinstance(rhs, MMQuantity)
         rhs_conv = rhs.rescale(self.unit)
         return MMQuantity( self.magnitude - rhs_conv.magnitude, self.unit)
 
     def __pow__(self, rhs):
         assert type(rhs) == int
-        return MMQuantity( self.magnitude**rhs, self.unit**rhs)
+        return MMQuantity(self.magnitude ** rhs, self.unit ** rhs)
 
 
 
@@ -270,28 +282,28 @@ class MMQuantity(object):
     def rescale(self, u):
         self.check_compatible(u)
         mul_fac = u.powerTen - self.unit.powerTen
-        return MMQuantity( self.magnitude / 10**mul_fac,  u )
+        return MMQuantity(self.magnitude / 10 ** mul_fac, u)
 
-    def dimensionless( self, ):
+    def dimensionless(self):
         assert self.is_dimensionless(allow_non_zero_power_of_ten=True)
-        return self.magnitude * 10**self.unit.powerTen
+        return self.magnitude * 10 ** self.unit.powerTen
 
-    def is_dimensionless(self,allow_non_zero_power_of_ten):
+    def is_dimensionless(self, allow_non_zero_power_of_ten):
         return self.unit.is_dimensionless(allow_non_zero_power_of_ten=allow_non_zero_power_of_ten)
 
 
     def float_in_si(self):
-        return self.magnitude * 10**self.unit.powerTen
+        return self.magnitude * 10 ** self.unit.powerTen
 
 
     def FormatLatex(self):
-        pre =  "%1.3f"%self.magnitude
+        pre = '%1.3f' % self.magnitude
         if self.unit.powerTen:
-            pre = pre + "e%d"%self.unit.powerTen
+            pre = pre + 'e%d' % self.unit.powerTen
         post = self.unit.FormatLatex(inc_powerten=False)
-        return "%s %s"%(pre,post)
+        return '%s %s' % (pre, post)
 
-    #FormatLatex(self, inc_powerten=True):
+    # FormatLatex(self, inc_powerten=True):
 
     def as_quantities_quantity(self):
         return self.magnitude * self.unit.as_quantities_unit()

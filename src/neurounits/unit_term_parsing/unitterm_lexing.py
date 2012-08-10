@@ -1,4 +1,7 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +24,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 
 import ply.lex as lex
@@ -36,10 +39,10 @@ from ..units_data_unitterms import UnitTermData
 
 class UnitTermLexer(object):
 
-    def add_token(self,t):
+    def add_token(self, t):
         self.tokens.append(t)
 
-    def __init__(self,  **kwargs):
+    def __init__(self, **kwargs):
         self.tokens = []
 
         # Register all the MULTIPLIER regular expressions:
@@ -48,11 +51,11 @@ class UnitTermLexer(object):
         # t_LONG_GIGA  = r"""giga"""
         # ]
 
-        for name, abbr in UnitTermData.getMultiplierKeys():
-            vName_short = 'SHORT_%s'%name.upper()
-            vName_long =  'LONG_%s'%name.upper()
-            setattr(self, 't_'+vName_short, r"%s"% abbr)
-            setattr(self, 't_'+vName_long, name)
+        for (name, abbr) in UnitTermData.getMultiplierKeys():
+            vName_short = 'SHORT_%s' % name.upper()
+            vName_long = 'LONG_%s' % name.upper()
+            setattr(self, 't_' + vName_short, r"%s" % abbr)
+            setattr(self, 't_' + vName_long, name)
             self.add_token(vName_short)
             self.add_token(vName_long)
 
@@ -61,14 +64,14 @@ class UnitTermLexer(object):
         # t_SHORT_VOLT = r"""V"""
         # t_LONG_VOLT = r"""volt"""
         # ]
-        for name, abbr  in UnitTermData.getUnitKeys():
-            vName_short = 'SHORT_%s'%name.upper()
-            vName_long = 'LONG_%s'%name.upper()
+        for (name, abbr) in UnitTermData.getUnitKeys():
+            vName_short = 'SHORT_%s' % name.upper()
+            vName_long = 'LONG_%s' % name.upper()
 
             # Ignore 'm' terms, since they should be
             if abbr != 'm':
-                setattr(self, 't_'+vName_short, r"%s"% abbr)
-            setattr(self, 't_'+vName_long, name)
+                setattr(self, 't_' + vName_short, r"%s" % abbr)
+            setattr(self, 't_' + vName_long, name)
             self.add_token(vName_short)
             self.add_token(vName_long)
 
@@ -77,12 +80,12 @@ class UnitTermLexer(object):
 
 
     def input(self,*args, **kwargs):
-        return self.lexer.input(*args,**kwargs)
+        return self.lexer.input(*args, **kwargs)
 
-    def token(self, *args,**kwargs):
-        t = self.lexer.token(*args,**kwargs)
+    def token(self, *args, **kwargs):
+        t = self.lexer.token(*args, **kwargs)
         return t
 
     def t_error(self, t):
-        raise UnitError( "Illegal character '%s'" % t.value[0])
+        raise UnitError("Illegal character '%s'" % t.value[0])
 

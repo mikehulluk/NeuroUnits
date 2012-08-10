@@ -1,4 +1,7 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +24,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 
 class SymbolProxy(object):
@@ -29,8 +32,8 @@ class SymbolProxy(object):
         self.target = None
 
     def set_target(self, target):
-        assert not self.target, "Trying to set target, but already set! (%s)"% self.target.symbol
-        assert target, "Can not set SymbolProxy with no target"
+        assert not self.target, 'Trying to set target, but already set! (%s)'  % self.target.symbol
+        assert target, 'Can not set SymbolProxy with no target'
         self.target = target
 
     def is_resolved(self):
@@ -39,6 +42,6 @@ class SymbolProxy(object):
 
     def accept_visitor(self, v, **kwargs):
         assert self.is_resolved()
-        return self.target.accept_visitor(v,**kwargs)
+        return self.target.accept_visitor(v, **kwargs)
 
 

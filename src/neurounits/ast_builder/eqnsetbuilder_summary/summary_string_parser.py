@@ -1,4 +1,7 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +24,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 from neurounits.units_misc import read_json
 from neurounits.units_wrapper import NeuroUnitParser
 
@@ -48,11 +51,11 @@ class SummaryPlotData(object):
 
 
         self.params = {}
-        for k,v in params.iteritems():
+        for (k, v) in params.iteritems():
             self.params[k] = NeuroUnitParser.Expr(v)
 
         self.y0 = {}
-        for k,v in y0.iteritems():
+        for (k, v) in y0.iteritems():
             self.y0[k] = NeuroUnitParser.Expr(v)
 
 
@@ -65,7 +68,7 @@ def parse_string(s):
     # Trim the start:
     s = s[19:]
 
-    print "parsing string", s
+    print 'parsing string', s
 
     kw = read_json(s)
 

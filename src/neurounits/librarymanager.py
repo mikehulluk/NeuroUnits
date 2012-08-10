@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 # -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
@@ -26,7 +27,6 @@
 # -------------------------------------------------------------------------------
 
 from neurounits.misc import SeqUtils
-from  import units_data_functions
 
 from neurounits.ast_builder import EqnSetBuilder
 from neurounits.ast_builder.eqnsetbuilder import LibraryBuilder
@@ -86,8 +86,8 @@ class LibraryManager(object):
             LibraryManager(backend=backend, is_stdlib_cache=True)
 
 
-    def get(self,name, include_stdlibs=True):
-        #print 'Searching for library: ' , name
+    def get(self, name, include_stdlibs=True):
+
         if LibraryManager._stdlib_cache_loading:
             include_stdlibs = False
 

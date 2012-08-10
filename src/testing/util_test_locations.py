@@ -35,11 +35,16 @@ def EnsureDir(l):
         os.makedirs(d)
     return d
 
+
+
 class TestLocations(object):
+
+    _package_root_dir = os.path.normpath(os.path.join(os.path.dirname( __file__), '../../'))
 
     @classmethod
     def getPackageRoot(cls):
-        return "/home/michael/hw_to_come//libs/NeuroUnits"
+        return cls._package_root_dir
+        #return "/home/michael/hw_to_come//libs/NeuroUnits"
 
 
     @classmethod

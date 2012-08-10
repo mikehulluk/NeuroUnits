@@ -149,11 +149,11 @@ class UnitTermData(object):
             # ( 'uM', backend.Unit(meter=1, powerTen=-3)  ),
             # ( 'nM', backend.Unit(meter=1, powerTen=-6)  ),
             # ( 'pM', backend.Unit(meter=1, powerTen=-9)  ),
-            #( 'mM', backend.Unit(meter=1, powerTen=-2)  ),
-            #( 'uM', backend.Unit(meter=1, powerTen=-3)  ),
-            #( 'nM', backend.Unit(meter=1, powerTen=-6)  ),
-            #( 'pM', backend.Unit(meter=1, powerTen=-9)  ),
-                )
+            # ( 'mM', backend.Unit(meter=1, powerTen=-2)  ),
+            # ( 'uM', backend.Unit(meter=1, powerTen=-3)  ),
+            # ( 'nM', backend.Unit(meter=1, powerTen=-6)  ),
+            # ( 'pM', backend.Unit(meter=1, powerTen=-9)  ),
+            #    )
         return special_unit_abbrs
 
 

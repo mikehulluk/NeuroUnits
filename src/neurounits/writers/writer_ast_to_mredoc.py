@@ -1,4 +1,7 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,13 +24,10 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 from neurounits.visitors import ASTVisitorBase
-import os
-from ..units_misc import IterateDictValueByKeySorted
-import string
-from mredoc import Table, VerticalColTable, Figure, Image, SectionNewPage
+from mredoc import VerticalColTable, Figure, SectionNewPage, Section, EquationBlock, VerbatimBlock, Equation
 from neurounits.ast.astobjects import SuppliedValue
 from neurounits.ast.astobjects import Parameter, StateVariable
 from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator
@@ -36,7 +36,7 @@ from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator
 import pylab
 
 
-from mredoc import *
+#from mredoc import *
 from neurounits.ast import BuiltInFunction
 
 
@@ -66,7 +66,7 @@ def get_prefered_dimensions():
 
 
 def FormatDimensionality(dim):
-    for unit,symbol in get_prefered_dimensions():
+    for (unit, symbol) in get_prefered_dimensions():
         if dim == unit:
             return symbol
     return dim.FormatLatex()
@@ -80,58 +80,63 @@ def FormatDimensionality(dim):
 class LatexEqnWriterN(ASTVisitorBase):
 
     def FormatTerminalSymbol(self, symbol):
-        symbol_components = symbol.split("_")
+        symbol_components = symbol.split('_')
         subscripts = symbol_components[1:]
 
         if subscripts:
-            symbol = "%s_{%s}"%( symbol_components[0], ",".join(subscripts) )
+            symbol = '%s_{%s}' % (symbol_components[0],
+                                  ','.join(subscripts))
 
-
-        return r"""\boldsymbol{%s}"""%symbol.replace("alpha",r"\alpha").replace("beta",r"\beta").replace("inf",r"\infty").replace("tau",r"\tau")
-        return r"""\boldsymbol{%s}"""%symbol
-
-
+        return r"""\boldsymbol{%s}""" % symbol.replace('alpha',
+                r"\alpha").replace('beta', r"\beta").replace('inf',
+                r"\infty").replace('tau', r"\tau")
+        return r"""\boldsymbol{%s}""" % symbol
 
     def FormatInlineConstant(self, val):
         if val.is_dimensionless(allow_non_zero_power_of_ten=False):
             return str(val.magnitude)
         elif val.is_dimensionless(allow_non_zero_power_of_ten=True):
-            return "%fe%d"%(str(val.magnitude), val.unit.powerTen)
-
+            return '%fe%d' % (str(val.magnitude), val.unit.powerTen)
         else:
+
             dim_str = FormatDimensionality(val.unit)
-            return r"\langle %s ~ \mathrm{%s} \rangle"% (str(val.magnitude), dim_str )
-
-
-
+            return r"\langle %s ~ \mathrm{%s} \rangle" \
+                % (str(val.magnitude), dim_str)
 
     # High Level Display:
-    def VisitEqnAssignment(self, o, **kwargs):
-        return Equation("%s&=%s"%( self.visit(o.lhs), self.visit(o.rhs) ) )
 
+    def VisitEqnAssignment(self, o, **kwargs):
+        return Equation('%s&=%s' % (self.visit(o.lhs),
+                        self.visit(o.rhs)))
 
     def VisitEqnTimeDerivative(self, o, **kwargs):
-        return Equation(r"""\frac{d}{dt}%s &= %s""" % (self.visit(o.lhs), self.visit(o.rhs),))
+        return Equation(r"""\frac{d}{dt}%s &= %s"""
+                        % (self.visit(o.lhs), self.visit(o.rhs)))
 
     def VisitOnEvent(self, o, **kwargs):
-        ev_name = o.name.replace("_","\\_")
+        ev_name = o.name.replace('_', '\\_')
 
-        tr = "%s(%s) \\rightarrow "%(ev_name, ",".join(o.parameters.keys()) ) #
-        evts = "\\begin{cases}" + r"\\".join( [self.visit(a) for a in o.actions] ) + "\\end{cases}"
-        return  Equation( tr + evts )
+        tr = '%s(%s) \\rightarrow ' % (ev_name,
+                ','.join(o.parameters.keys()))  #
+        evts = '\\begin{cases}' + r"\\".join([self.visit(a) for a in
+                o.actions]) + '\\end{cases}'
+        return Equation(tr + evts)
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
-        return "%s = %s"%(self.visit(o.lhs),self.visit(o.rhs) )
+        return '%s = %s' % (self.visit(o.lhs), self.visit(o.rhs))
 
     # Function Definitions:
+
     def VisitFunctionDef(self, o, **kwargs):
-        return  Equation("%s(%s) \\rightarrow %s"%(o.funcname, ",".join(o.parameters.keys()), self.visit(o.rhs)) )
+        return Equation('%s(%s) \\rightarrow %s' % (o.funcname,
+                        ','.join(o.parameters.keys()),
+                        self.visit(o.rhs)))
 
     def VisitFunctionDefParameter(self, o, **kwargs):
-        return "\mathit{%s}"%o.symbol.replace("_","\\_")
-
+        return "\mathit{%s}" % o.symbol.replace('_', '\\_')
 
     # Terminals:
+
     def VisitStateVariable(self, o, **kwargs):
         return self.FormatTerminalSymbol(o.symbol)
 
@@ -152,91 +157,100 @@ class LatexEqnWriterN(ASTVisitorBase):
 
 
     # AST Nodes:
+
     def VisitAddOp(self, o, **kwargs):
-        return '(%s + %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
+        return '(%s + %s)' % (self.visit(o.lhs), self.visit(o.rhs))
 
     def VisitSubOp(self, o, **kwargs):
-        return '(%s - %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
+        return '(%s - %s)' % (self.visit(o.lhs), self.visit(o.rhs))
 
     def VisitMulOp(self, o, **kwargs):
-        return '%s \cdot %s'%( self.visit(o.lhs), self.visit(o.rhs) )
+        return '%s \cdot %s' % (self.visit(o.lhs), self.visit(o.rhs))
 
     def VisitDivOp(self, o, **kwargs):
-        return '\dfrac{%s}{%s}'%( self.visit(o.lhs), self.visit(o.rhs) )
+        return '\dfrac{%s}{%s}' % (self.visit(o.lhs), self.visit(o.rhs))
 
     def VisitExpOp(self, o, **kwargs):
-        return '%s ^{ %s }'%( self.visit(o.lhs), o.rhs )
-
+        return '%s ^{ %s }' % (self.visit(o.lhs), o.rhs)
 
     def VisitBoolAnd(self, o, **kwargs):
         raise NotImplementedError()
-        return '(%s && %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
+        return '(%s && %s)' % (self.visit(o.lhs), self.visit(o.rhs))
+
     def VisitBoolOr(self, o, **kwargs):
         raise NotImplementedError()
-        return '(%s || %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
+        return '(%s || %s)' % (self.visit(o.lhs), self.visit(o.rhs))
+
     def VisitBoolNot(self, o, **kwargs):
         raise NotImplementedError()
-        return '(! %s)'%( self.visit(o.lhs) )
-
+        return '(! %s)' % self.visit(o.lhs)
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
-        p = [ self.visit(p) for p in o.parameters.values() ]
-        return "\\textrm{%s}(%s)"%(o.function_def.funcname, ",".join(p))
+        p = [self.visit(p) for p in o.parameters.values()]
+        return '\\textrm{%s}(%s)' % (o.function_def.funcname,
+                ','.join(p))
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         rhs = self.visit(o.rhs_ast)
         if o.symbol is not None:
-            return "%s=%s"%(o.symbol, rhs)
+            return '%s=%s' % (o.symbol, rhs)
         else:
-            return "%s"%( rhs)
+            return '%s' % rhs
 
-
-    def VisitIfThenElse(self,o,**kwargs):
+    def VisitIfThenElse(self, o, **kwargs):
         s_if_true = self.visit(o.if_true_ast)
         s_if_false = self.visit(o.if_false_ast)
         s_predicate = self.visit(o.predicate)
-        return r""" \begin{cases} %s & if %s \\ %s & otherwise \end{cases}"""%(s_if_true, s_predicate, s_if_false)
+        return r""" \begin{cases} %s & if %s \\ %s & otherwise \end{cases}""" \
+            % (s_if_true, s_predicate, s_if_false)
 
-    def VisitInEquality(self,o,**kwargs):
-        return "%s < %s" %(self.visit(o.less_than),self.visit(o.greater_than) )
-
-
-
-
-
+    def VisitInEquality(self, o, **kwargs):
+        return '%s < %s' % (self.visit(o.less_than),
+                            self.visit(o.greater_than))
 
 
 def build_figures(eqnset):
     plots = {}
+
     # Find all assignments only dependant on 1 supplied values and parameters:
+
     for a in eqnset.assignedvalues:
-        all_deps = eqnset.getSymbolDependancicesIndirect(a,include_ass_in_output=False)
-        deps_sup = [ d for d in all_deps if isinstance(d, SuppliedValue)]
-        deps_params = [ d for d in all_deps if isinstance(d, Parameter)]
-        deps_state = [ d for d in all_deps if isinstance(d, StateVariable)]
+        all_deps = eqnset.getSymbolDependancicesIndirect(a,
+                include_ass_in_output=False)
+        deps_sup = [d for d in all_deps if isinstance(d, SuppliedValue)]
+        deps_params = [d for d in all_deps if isinstance(d, Parameter)]
+        deps_state = [d for d in all_deps if isinstance(d,
+                      StateVariable)]
         assert len(deps_sup + deps_params + deps_state) == len(all_deps)
 
         # Ignore anything deopendant on state variables:
+
         if len(deps_state) != 0:
             continue
 
         # We can't be dependant on parameters:
+
         if len(deps_params) != 0:
             continue
 
         if len(deps_sup) == 1:
             sup = deps_sup[0]
             meta = eqnset.getSymbolMetadata(sup)
-            if not meta: continue
-            #print meta
+            if not meta:
+                continue
+
+            # print meta
+
             if not 'mf' in meta or not 'role' in meta['mf']:
                 continue
             role = meta['mf']['role']
-            #print role
+
+            # print role
 
             if role != 'MEMBRANEVOLTAGE':
                 continue
-            #print "sup.symbol", sup.symbol
+
+            # print "sup.symbol", sup.symbol
 
             F = FunctorGenerator()
             F.visit(eqnset)
@@ -252,46 +266,50 @@ def build_figures(eqnset):
                 fOut = []
                 for v in vVals:
                     from neurounits.neurounitparser import NeuroUnitParser
-                    vUnit = NeuroUnitParser.QuantitySimple("%f mV"%v)
+                    vUnit = NeuroUnitParser.QuantitySimple('%f mV' % v)
                     vRes = f(V=vUnit, v=vUnit)
                     if oUnit is None:
                         oUnit = vRes.unit
                     assert vRes.unit == oUnit
                     fOut.append(vRes.magnitude)
             except ZeroDivisionError:
-                color='r'
-                f = pylab.figure( figsize=(2,2))
-                ax = f.add_subplot(1,1,1)
-                ax.plot(vVals, vVals,color=color)
-                f.suptitle("ERROR PLOTTING: Graph of %s"%a.symbol)
-                ax.set_xlabel("Membrane Voltage (mV)")
-                ax.set_ylabel("%s (%s)"%(a.symbol, oUnit) )
+                color = 'r'
+                f = pylab.figure(figsize=(2, 2))
+                ax = f.add_subplot(1, 1, 1)
+                ax.plot(vVals, vVals, color=color)
+                f.suptitle('ERROR PLOTTING: Graph of %s' % a.symbol)
+                ax.set_xlabel('Membrane Voltage (mV)')
+                ax.set_ylabel('%s (%s)' % (a.symbol, oUnit))
                 plots[a.symbol] = f
 
             else:
-                color="b"
-                f = pylab.figure(figsize=(2,2))
-                ax = f.add_subplot(1,1,1)
-                ax.plot(vVals, fOut,)
-                f.suptitle("Graph of %s"%a.symbol)
-                ax.set_xlabel("Membrane Voltage (mV)")
-                ax.set_ylabel("%s ($%s$)"%(a.symbol, FormatDimensionality(oUnit))  )
+
+                color = 'b'
+                f = pylab.figure(figsize=(2, 2))
+                ax = f.add_subplot(1, 1, 1)
+                ax.plot(vVals, fOut)
+                f.suptitle('Graph of %s' % a.symbol)
+                ax.set_xlabel('Membrane Voltage (mV)')
+                ax.set_ylabel('%s ($%s$)' % (a.symbol,
+                              FormatDimensionality(oUnit)))
                 plots[a.symbol] = f
 
 
     # Build figure groups based on the first term:
-    if len(plots) <=3:
-        imgs= [ ImageMPL(f) for f in sorted(plots.values())]
-        F = Figure( *imgs, caption="jkl")
+
+    if len(plots) <= 3:
+        imgs = [ImageMPL(f) for f in sorted(plots.values())]
+        F = Figure(caption='jkl', *imgs)
         return [F]
 
 
     ps = []
-    states = set( [ k.split("_")[0] for k in plots.keys() ] )
+    states = set([k.split('_')[0] for k in plots.keys()])
     for s in states:
-        vs = [(k,v) for (k,v) in plots.iteritems() if k.split("_")[0] == s ]
-        imgs= [ ImageMPL(f[1]) for f in sorted(vs)]
-        F = Figure( *imgs, caption="State:%s"%s)
+        vs = [(k, v) for (k, v) in plots.iteritems() if k.split('_')[0]
+              == s]
+        imgs = [ImageMPL(f[1]) for f in sorted(vs)]
+        F = Figure(caption='State:%s' % s, *imgs)
         ps.append(F)
 
     return ps
@@ -305,24 +323,30 @@ def build_figures(eqnset):
 class MRedocWriterVisitor(ASTVisitorBase):
 
     @classmethod
-    def build(self, eqnset):
+    def build(self, obj):
         writer = MRedocWriterVisitor()
-        return writer.visit(eqnset)
+        return writer.visit(obj)
 
 
     def VisitLibraryManager(self, library_manager):
         local_redocs = []
-        for block in library_manager.eqnsets + library_manager.libraries:
+        for block in library_manager.eqnsets \
+            + library_manager.libraries:
             redoc = MRedocWriterVisitor.build(block)
-            local_redocs.append( redoc)
+            local_redocs.append(redoc)
 
-        title = "LibraryManager Context"
+        title = 'LibraryManager Context'
         if library_manager.name:
-            title += ": %s"%library_manager.name
+            title += ': %s' % library_manager.name
         if library_manager.src_text:
-            p = Section('Source', VerbatimBlock(library_manager.src_text))
+            p = Section('Source',
+                        VerbatimBlock(library_manager.src_text))
             local_redocs = [p] + local_redocs
 
+        #print local_redocs
+        #assert False
+
+        # Check here;
         d = SectionNewPage(title, local_redocs)
         return d
 
@@ -330,14 +354,19 @@ class MRedocWriterVisitor(ASTVisitorBase):
 
     def VisitEqnSet(self, eqnset):
 
-        format_dim = lambda o: "$%s$"%FormatDimensionality( o.get_dimension() ) if not o.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False) else  "-"
+        format_dim = lambda o: ('$%s$'
+                                % FormatDimensionality(o.get_dimension()) if not o.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False) else '-'
+                                )
 
-        f = LatexEqnWriterN() #FormatTerminalSymbol(self, symbol):
-        symbol_format = lambda s:f.FormatTerminalSymbol(s)
+        f = LatexEqnWriterN()  # FormatTerminalSymbol(self, symbol):
+        symbol_format = lambda s: f.FormatTerminalSymbol(s)
 
-        dep_string_indir = lambda s: ",".join( [symbol_format(o.symbol) for o in sorted( set(eqnset.getSymbolDependancicesIndirect(s, include_ass_in_output=False)), key=lambda s:s.symbol ) ] )
+        dep_string_indir = lambda s: ','.join([symbol_format(o.symbol)
+                for o in
+                sorted(set(eqnset.getSymbolDependancicesIndirect(s,
+                include_ass_in_output=False)), key=lambda s: s.symbol)])
 
-        meta_format = lambda s: eqnset.getSymbolMetadata(s) or "-"
+        meta_format = lambda s: eqnset.getSymbolMetadata(s) or '-'
 
 
         terminal_symbols = VerticalColTable("Symbol  | Type      | Value | Dimensions | Dependancies | Metadata",
@@ -348,24 +377,26 @@ class MRedocWriterVisitor(ASTVisitorBase):
                                             ["$%s$     | State | -     | %s         | $\{%s\}$     | %s  " % (symbol_format(s.symbol), format_dim(s), dep_string_indir(s), meta_format(s)  ) for s in eqnset.states]
                                             )
 
-
-
-
-        plts = build_figures( eqnset)
-
-        return SectionNewPage("Eqnset Summary: %s"%eqnset.name,
-                    Section("Assignments",
-                       EquationBlock( *[LatexEqnWriterN().visit(a) for a in sorted( eqnset.assignments, key=lambda a:a.lhs.symbol)])),
-                    Section("State Variable Evolution",
-                       EquationBlock( *[LatexEqnWriterN().visit(a) for a in eqnset.timederivatives])),
-                    Section("Function Definitions",
-                       EquationBlock( *[LatexEqnWriterN().visit(a) for a in eqnset.functiondefs if not isinstance(a, BuiltInFunction)])),
-                    Section("Symbols", terminal_symbols),
-                    Section("Imports"),
-                    Section("Events",
-                       EquationBlock( *[LatexEqnWriterN().visit(a) for a in eqnset.onevents])),
-                    Section("Plots", *plts ),
-                    )
+        return SectionNewPage(
+            'Eqnset Summary: %s' % eqnset.name,
+            Section('Assignments',
+                    EquationBlock(*[LatexEqnWriterN().visit(a) for a in
+                    sorted(eqnset.assignments, key=lambda a: \
+                    a.lhs.symbol)])),
+            Section('State Variable Evolution',
+                    EquationBlock(*[LatexEqnWriterN().visit(a) for a in
+                    eqnset.timederivatives])),
+            Section('Function Definitions',
+                    EquationBlock(*[LatexEqnWriterN().visit(a) for a in
+                    eqnset.functiondefs if not isinstance(a,
+                    BuiltInFunction)])),
+            Section('Symbols', terminal_symbols),
+            Section('Imports'),
+            Section('Events',
+                    EquationBlock(*[LatexEqnWriterN().visit(a) for a in
+                    eqnset.onevents])),
+            #Section('Plots', *plts),
+            )
 
     def VisitLibrary(self, library):
 
@@ -379,19 +410,12 @@ class MRedocWriterVisitor(ASTVisitorBase):
         #plts = build_figures( eqnset)
 
 
-        terminal_symbols = VerticalColTable("Symbol  | Type      | Value | Dimensions | Dependancies | Metadata",
-                                            ["%s     | Constant  | %s    | %s         | -            | -   " % (s.symbol, s.value, format_dim(s),    ) for s in eqnset.symbolicconstants]
-                                            )
-
-
-
-
-
-        return SectionNewPage("Library Summary: %s"%library.name,
-                    Section("Imports"),
-                    Section("Function Definitions",
-                       EquationBlock( *[LatexEqnWriterN().visit(a) for a in eqnset.functiondefs if not isinstance(a, BuiltInFunction)])),
-                    Section("Symbols", terminal_symbols),
-                    )
+        return SectionNewPage('Library Summary: %s' % library.name,
+                              Section('Imports'),
+                              Section('Function Definitions',
+                              EquationBlock(*[LatexEqnWriterN().visit(a)
+                              for a in eqnset.functiondefs
+                              if not isinstance(a, BuiltInFunction)])),
+                              Section('Symbols', terminal_symbols))
 
 

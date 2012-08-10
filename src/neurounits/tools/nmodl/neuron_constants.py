@@ -1,4 +1,7 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,22 +24,25 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
+
+from neurounits import NeuroUnitParser
 
 
-class MechanismType:
-    Point = "Point"
-    Distributed = "Distributed"
+class MechanismType(object):
+    Point = 'Point'
+    Distributed = 'Distributed'
 
-class NeuronSuppliedValues:
+class NeuronSuppliedValues(object):
+
     Time = "Time"
     MembraneVoltage = "MembraneVoltage"
     Temperature = "Temperature"
     All = [ Time, MembraneVoltage, Temperature ]
 
 
-class NEURONMappings():
-    from neurounits import NeuroUnitParser
+class NEURONMappings(object):
+    
     current_units = {
             MechanismType.Distributed: NeuroUnitParser.Unit("mA/cm2"),
             MechanismType.Point: NeuroUnitParser.Unit("nA"),
@@ -48,7 +54,7 @@ class NEURONMappings():
                 NeuronSuppliedValues.Temperature: 'celsius'
     }
 
-    supplied_value_units= {
+    supplied_value_units = {
                 NeuronSuppliedValues.MembraneVoltage : NeuroUnitParser.Unit("mV"),
                 NeuronSuppliedValues.Time: NeuroUnitParser.Unit("ms"),
                 NeuronSuppliedValues.Temperature: NeuroUnitParser.Unit("K")

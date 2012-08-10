@@ -1,4 +1,7 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +24,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 
 import re
@@ -54,14 +57,14 @@ def build_gate_q10_settings_dict(chlmlinfo):
     # Add the Q10 settings:
     q10gateadjustments = {None: 'temp_adj'}
     if not chlmlinfo.q10settings:
-        eqns.append("%s  = 1.0"%q10gateadjustments[None])
+        eqns.append('%s  = 1.0' % q10gateadjustments[None])
     else:
 
         for setting in chlmlinfo.q10settings:
 
-            var_name = "temp_adj"
+            var_name = 'temp_adj'
             if setting.gate:
-                var_name += '_'+setting.gate
+                var_name += '_' + setting.gate
 
             q10gateadjustments[setting.gate] = var_name
             if setting.mode == "q10_factor":

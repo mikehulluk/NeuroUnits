@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +23,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 import re
 import xml.etree.cElementTree as etree
@@ -29,9 +31,9 @@ import xml.etree.cElementTree as etree
 from .errors import NeuroUnitsImportNeuroMLNotImplementedException
 
 
-def ignore(*args,**kwargs):
+def ignore(*args, **kwargs):
     pass
-def not_supported(*args,**kwargs):
+def not_supported(*args, **kwargs):
     raise NeuroUnitsImportNeuroMLNotImplementedException()
 
 
@@ -46,7 +48,7 @@ def recursive_strip_namespaces(xmlNode):
         recursive_strip_namespaces(child)
 
 
-def dispatch_subnodes( node, dispatch_map):
+def dispatch_subnodes(node, dispatch_map):
 
     for n in node.getchildren():
         if n.tag in dispatch_map:
@@ -85,11 +87,11 @@ class ChannelML_GateEqn(object):
         self.frm = sn.attrib['from']
         self.to = sn.attrib['to']
 
-        self.expr_form  = sn.attrib['expr_form']
-        self.rate = sn.attrib.get('rate',None)
-        self.scale = sn.attrib.get('scale',None)
-        self.midpoint = sn.attrib.get('midpoint',None)
-        self.expr  = sn.attrib.get('expr',None)
+        self.expr_form = sn.attrib['expr_form']
+        self.rate = sn.attrib.get('rate', None)
+        self.scale = sn.attrib.get('scale', None)
+        self.midpoint = sn.attrib.get('midpoint', None)
+        self.expr = sn.attrib.get('expr', None)
 
 
 
@@ -100,11 +102,9 @@ class ChannelML_GateEqn(object):
         #       'midpoint':lambda : "{%f mV}" % float( self.midpoint),
         #       }
 
-        LUT = {
-               'rate':    lambda : "{%f}" % float( self.rate) ,
-               'scale':   lambda : "{%f}" % float( self.scale),
-               'midpoint':lambda : "{%f}" % float( self.midpoint),
-               }
+        LUT = {'rate': lambda : '{%f}' % float(self.rate),
+               'scale': lambda : '{%f}' % float(self.scale),
+               'midpoint': lambda : '{%f}' % float(self.midpoint)}
 
         return LUT[what]()
 
@@ -126,12 +126,13 @@ class ChannelML_GateEqn(object):
             return self.expr
 
 
-        scale = "{%f}"% float( self.scale ) #self.getSubString('scale')
+        scale = '{%f}' % float(self.scale)  # self.getSubString('scale')
         rate = self.getSubString('rate')
         midpoint = self.getSubString('midpoint')
 
         if self.expr_form == 'sigmoid':
-            return ' (1 * %s) / ( 1.0 + exp ( (V - %s)/%s  ) ) '%( rate,midpoint, scale )
+            return ' (1 * %s) / ( 1.0 + exp ( (V - %s)/%s  ) ) ' \
+                % (rate, midpoint, scale)
 
         elif self.expr_form == 'exponential':
             return ' %s * exp ( 1.0 * (V- %s)/%s ) '%( rate, midpoint,scale)
@@ -154,15 +155,15 @@ class ChannelML_SteadyState(ChannelML_GateEqn):
 class ChannelML_Gate(object):
 
     def load_closed_state(self, sn):
-        self.closedstates.append(sn.attrib['id'] )
+        self.closedstates.append(sn.attrib['id'])
     def load_open_state(self, sn):
-        self.openstates.append(sn.attrib['id'] )
+        self.openstates.append(sn.attrib['id'])
     def load_time_course(self, sn):
-        self.time_courses.append( ChannelML_TimeCourse(sn) )
+        self.time_courses.append(ChannelML_TimeCourse(sn))
     def load_steady_state(self, sn):
-        self.steady_states.append( ChannelML_SteadyState(sn) )
+        self.steady_states.append(ChannelML_SteadyState(sn))
     def load_transition(self, sn):
-        self.transitions.append( ChannelML_Transition(sn) )
+        self.transitions.append(ChannelML_Transition(sn))
 
     def load_initialisation(self, sn):
         assert not self.initialisation
@@ -184,7 +185,7 @@ class ChannelML_Gate(object):
         self.initialisation = None
 
         self.name = node.attrib['name']
-        self.instances = int( node.attrib['instances'] )
+        self.instances = int(node.attrib['instances'])
 
         tag_handlers = {
                         'closed_state': self.load_closed_state,
@@ -192,7 +193,7 @@ class ChannelML_Gate(object):
                         'time_course':  self.load_time_course,
                         'steady_state': self.load_steady_state,
 
-                        'transition' :  self.load_transition,
+                        'transition':  self.load_transition,
                         'initialisation': self.load_initialisation,
                       }
 
@@ -245,37 +246,37 @@ class ChannelMLInfo(object):
 
         self.iv_conc_dep_name = node.attrib['name']
         self.iv_conc_dep_ion = node.attrib['ion']
-        self.iv_conc_dep_charge = int( node.attrib['charge'] )
+        self.iv_conc_dep_charge = int(node.attrib['charge'])
         self.iv_conc_dep_variable_name = node.attrib['variable_name']
         self.iv_conc_dep_min_conc = node.attrib['min_conc']
         self.iv_conc_dep_max_conc = node.attrib['max_conc']
 
     def load_gate(self, node):
-        self.gates.append( ChannelML_Gate(node) )
+        self.gates.append(ChannelML_Gate(node))
 
     def load_offset(self, n):
-        self.offset = float( n.attrib['value'] )
+        self.offset = float(n.attrib['value'])
 
 
 
-    def load_current_voltage_relation(self,node):
-        self.iv_cond_law = node.attrib.get( 'cond_law', None)
-        self.iv_ion = node.attrib.get( 'ion',None)
-        self.iv_default_gmax = node.attrib.get( 'default_gmax', None )
-        self.iv_default_erev = node.attrib.get( 'default_erev', None )
-        self.iv_charge = node.attrib.get( 'charge', None )
-        self.iv_fixed_erev = node.attrib.get( 'fixed_erev', None )
+    def load_current_voltage_relation(self, node):
+        self.iv_cond_law = node.attrib.get('cond_law', None)
+        self.iv_ion = node.attrib.get('ion', None)
+        self.iv_default_gmax = node.attrib.get('default_gmax', None)
+        self.iv_default_erev = node.attrib.get('default_erev', None)
+        self.iv_charge = node.attrib.get('charge', None)
+        self.iv_fixed_erev = node.attrib.get('fixed_erev', None)
 
 
 
         tag_handlers = {
-                           'q10_settings':self.load_Q10Settings,
-                           'offset': self.load_offset,
-                           'conc_dependence': self.load_conc_dependence,
-                           'ohmic': ignore,
-                           'conc_factor': self.load_conc_factor,
-                           'gate': self.load_gate
-                      }
+            'q10_settings': self.load_Q10Settings,
+            'offset': self.load_offset,
+            'conc_dependence': self.load_conc_dependence,
+            'ohmic': ignore,
+            'conc_factor': self.load_conc_factor,
+            'gate': self.load_gate,
+            }
 
         dispatch_subnodes(node, tag_handlers)
 
@@ -291,25 +292,25 @@ class ChannelMLInfo(object):
         self.gates = []
         self.units = units
 
-        #self.iv_conc_dep_name = None
-        #self.iv_conc_dep_ion = None
+        # self.iv_conc_dep_name = None
+        # self.iv_conc_dep_ion = None
 
         self.unsupported_tags = None
 
-        #Sanity Checks:
-        assert chl_type_node.get('density','yes') == 'yes'
+        # Sanity Checks:
+        assert chl_type_node.get('density', 'yes') == 'yes'
 
         tag_handlers = {
-                          'status': ignore,
-                          'notes': ignore,
-                          'authorList':ignore,
-                          'publication':ignore,
-                          'neuronDBref': ignore,
-                          'modelDBref': ignore,
-                          'impl_prefs': ignore,
-                          'current_voltage_relation': self.load_current_voltage_relation,
-                          'parameters': self.load_parameters
-                      }
+            'status': ignore,
+            'notes': ignore,
+            'authorList': ignore,
+            'publication': ignore,
+            'neuronDBref': ignore,
+            'modelDBref': ignore,
+            'impl_prefs': ignore,
+            'current_voltage_relation': self.load_current_voltage_relation,
+            'parameters': self.load_parameters,
+            }
 
         dispatch_subnodes(chl_type_node, tag_handlers)
 
@@ -340,7 +341,7 @@ def _parse_channelml_file(xmlfile):
     chls = {}
     for ch in root.iter('channel_type'):
         chl = ChannelMLInfo(ch, units=root.attrib['units'])
-        chls[ chl.name + ' (%s)'%xmlfile ] = chl
+        chls[chl.name + ' (%s)' % xmlfile] = chl
 
     return chls
 

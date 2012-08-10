@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +23,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 from neurounits.visitors import ASTVisitorBase,ASTActionerDefault
 from neurounits import ast
@@ -33,8 +35,9 @@ from neurounits.unit_errors import panic,UnitMismatchError
 
 
 class ASTVisitorCollectorAll(ASTActionerDefault):
-    def __init__(self,eqnset,**kwargs):
-        ASTActionerDefault.__init__(self,**kwargs)
+
+    def __init__(self, eqnset, **kwargs):
+        ASTActionerDefault.__init__(self, **kwargs)
         self.objects = set()
         self.visit(eqnset)
 
@@ -58,7 +61,7 @@ class DimensionResolver(ASTVisitorBase):
 
         for au in assigned_dimensions[1:]:
             try:
-                u.get_dimension().check_compatible( au.get_dimension() )
+                u.get_dimension().check_compatible(au.get_dimension())
                 u.get_dimension() == au.get_dimension()
             except UnitMismatchError, e:
                 raise UnitMismatchError( unitA=u.get_dimension(), unitB=au.get_dimension(), objA=u, objB=au)
@@ -91,23 +94,24 @@ class DimensionResolver(ASTVisitorBase):
         self.Initialise()
 
     def DumpUnitStateToHistoryAll(self):
-        for obj, name in self.obj_label_dict.iteritems():
+        for (obj, name) in self.obj_label_dict.iteritems():
             if not isinstance(obj, ast.ASTExpressionObject):
                 continue
 
-            obj_dimensionality = obj.get_dimensionality() if obj.is_dimensionality_known() else "<Dimension Unknown>"
-            obj_unit = None#obj.get_unitMH() if obj.is_unitMH_known() else "<Unit Unknown>"
-            self.history.append(" %s -> Dim: %s Unit: %s"%(name, obj_dimensionality, obj_unit) )
+            obj_dimensionality = (obj.get_dimensionality() if obj.is_dimensionality_known() else '<Dimension Unknown>')
+            obj_unit = None  # obj.get_unitMH() if obj.is_unitMH_known() else "<Unit Unknown>"
+            self.history.append(' %s -> Dim: %s Unit: %s' % (name,
+                                obj_dimensionality, obj_unit))
 
     def DumpUnitStateToHistorySymbols(self):
-        for obj, name in self.obj_label_dict.iteritems():
+        for (obj, name) in self.obj_label_dict.iteritems():
             if not isinstance(obj, ast.ASTExpressionObject):
                 continue
 
             try:
                 obj_dim = obj.get_dimension() if obj.is_dimension_known() else "<Dimension Unknown>"
-                obj_unit = None#obj.get_unitMH() if obj.is_unit_known() else "<Unit Unknown>"
-                self.history.append(" %s - %s - %s %s"%(name,obj.symbol, obj_dim, obj_unit) )
+                obj_unit = None
+                self.history.append(' %s - %s - %s %s' % (name,obj.symbol, obj_dim, obj_unit) )
             except:
                 pass
 
@@ -116,16 +120,15 @@ class DimensionResolver(ASTVisitorBase):
         if title is not None:
             self.history.append(title)
 
-        self.history.append("Symbols:")
+        self.history.append('Symbols:')
         self.DumpUnitStateToHistorySymbols()
 
-        self.history.append("All:")
+        self.history.append('All:')
         self.DumpUnitStateToHistoryAll()
-        self.history.append("")
-
+        self.history.append('')
 
     def Initialise(self):
-        self.SummariseUnitState(title="Initially")
+        self.SummariseUnitState(title='Initially')
 
 
     def RegisterDimensionPropogation(self, obj, new_dimension, reason):
@@ -143,13 +146,13 @@ class DimensionResolver(ASTVisitorBase):
         return
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
-        self.EnsureEqualDimensions([o, o.lhs, o.rhs] )
+        self.EnsureEqualDimensions([o, o.lhs, o.rhs])
 
     def VisitIfThenElse(self, o, **kwargs):
-        self.EnsureEqualDimensions([o, o.if_true_ast, o.if_false_ast] )
+        self.EnsureEqualDimensions([o, o.if_true_ast, o.if_false_ast])
 
-    def VisitInEquality(self, o ,**kwargs):
-        self.EnsureEqualDimensions([o.less_than, o.greater_than] )
+    def VisitInEquality(self, o, **kwargs):
+        self.EnsureEqualDimensions([o.less_than, o.greater_than])
 
     def VisitBoolAnd(self, o, **kwargs):
         panic()
@@ -207,7 +210,8 @@ class DimensionResolver(ASTVisitorBase):
         self.EnsureEqualDimensions([o, o.lhs, o.rhs], reason='SubOp')
 
     def VisitMulOp(self, o, **kwargs):
-        if len( [ True for i in (o, o.lhs,o.rhs) if i.is_dimension_known()] ) !=2:
+        if len([True for i in (o, o.lhs, o.rhs)
+               if i.is_dimension_known()]) != 2:
             return
 
         if o.is_dimension_known():
@@ -222,7 +226,8 @@ class DimensionResolver(ASTVisitorBase):
 
     def VisitDivOp(self, o, **kwargs):
         # If we don't have 2 unknowns, we can't do much:
-        if len( [ True for i in (o, o.lhs,o.rhs) if i.is_dimension_known()] ) !=2:
+        if len([True for i in (o, o.lhs, o.rhs)
+               if i.is_dimension_known()]) != 2:
             return
 
         if o.is_dimension_known():
@@ -273,7 +278,7 @@ class DimensionResolver(ASTVisitorBase):
         # dimensions depend on the input and output:
         if isinstance(o.function_def, ast.BuiltInFunction) and o.function_def.funcname in ['powint','sqrt']:
 
-            if o.function_def.funcname == "powint":
+            if o.function_def.funcname == 'powint':
                 #assert False
                 p = o.parameters['x']
                 n = int( o.parameters['n'].rhs_ast.value.magnitude )
@@ -282,53 +287,57 @@ class DimensionResolver(ASTVisitorBase):
                     odim = o.get_dimension()
                     assert odim.powerTen == 0
                     pdim = self.ast.library_manager.backend.Unit(
-                            meter=odim.meter*2,
-                            second=odim.second*2,
-                            ampere=odim.ampere*2,
-                            kelvin=odim.kelvin*2,
-                            mole=odim.mole*2,
-                            candela=odim.candela*2,)
+                        meter=odim.meter * 2,
+                        second=odim.second * 2,
+                        ampere=odim.ampere * 2,
+                        kelvin=odim.kelvin * 2,
+                        mole=odim.mole * 2,
+                        candela=odim.candela * 2,
+                        )
                     p.set_dimension(pdim)
                     assert False
                 if p.is_dimension_known() and not o.is_dimension_known():
                     pdim = p.get_dimension()
                     assert pdim.powerTen == 0
                     odim = self.ast.library_manager.backend.Unit(
-                            meter=pdim.meter/2,
-                            second=pdim.second/2,
-                            ampere=pdim.ampere/2,
-                            kelvin=pdim.kelvin/2,
-                            mole=pdim.mole/2,
-                            candela=pdim.candela/2,)
+                        meter=pdim.meter / 2,
+                        second=pdim.second / 2,
+                        ampere=pdim.ampere / 2,
+                        kelvin=pdim.kelvin / 2,
+                        mole=pdim.mole / 2,
+                        candela=pdim.candela / 2,
+                        )
                     o.set_dimension(odim)
                     assert False
 
 
-            elif o.function_def.funcname == "sqrt":
+            elif o.function_def.funcname == 'sqrt':
                 p = o.parameters.values()[0]
 
                 if o.is_dimension_known() and not p.is_dimension_known():
                     odim = o.get_dimension()
                     assert odim.powerTen == 0
                     pdim = self.ast.backend.Unit(
-                            meter=odim.meter*2,
-                            second=odim.second*2,
-                            ampere=odim.ampere*2,
-                            kelvin=odim.kelvin*2,
-                            mole=odim.mole*2,
-                            candela=odim.candela*2,)
+                        meter=odim.meter * 2,
+                        second=odim.second * 2,
+                        ampere=odim.ampere * 2,
+                        kelvin=odim.kelvin * 2,
+                        mole=odim.mole * 2,
+                        candela=odim.candela * 2,
+                        )
                     p.set_dimension(pdim)
                     assert False
                 if p.is_dimension_known() and not o.is_dimension_known():
                     pdim = p.get_dimension()
                     assert pdim.powerTen == 0
                     odim = self.ast.backend.Unit(
-                            meter=pdim.meter/2,
-                            second=pdim.second/2,
-                            ampere=pdim.ampere/2,
-                            kelvin=pdim.kelvin/2,
-                            mole=pdim.mole/2,
-                            candela=pdim.candela/2,)
+                        meter=pdim.meter / 2,
+                        second=pdim.second / 2,
+                        ampere=pdim.ampere / 2,
+                        kelvin=pdim.kelvin / 2,
+                        mole=pdim.mole / 2,
+                        candela=pdim.candela / 2,
+                        )
                     o.set_dimension(odim)
                     assert False
 
@@ -343,7 +352,9 @@ class DimensionResolver(ASTVisitorBase):
 
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
-        self.EnsureEqualDimensions([o, o.get_function_def_parameter(), o.rhs_ast], reason="Parameter Instantiation" )
+        self.EnsureEqualDimensions([o, o.get_function_def_parameter(),
+                                   o.rhs_ast],
+                                   reason='Parameter Instantiation')
 
 
     def VisitBuiltInFunction(self, o, **kwargs):
@@ -390,12 +401,14 @@ class PropogateDimensions(object):
 
         # Action, lets walk over the tree and try and resolve the dimensions:
         try:
-            uR = DimensionResolver(ast = eqnset, obj_label_dict=labels)
+            uR = DimensionResolver(ast=eqnset, obj_label_dict=labels)
 
             while True:
-                nUnresolvedPre = len( [ s for s in obj_with_dimension if not s.is_dimension_known() ] )
-                res_symbols = [ uR.visit(s) for s in all_symbols ]
-                nUnresolvedPost = len( [ s for s in obj_with_dimension if not s.is_dimension_known() ] )
+                nUnresolvedPre = len([s for s in obj_with_dimension
+                        if not s.is_dimension_known()])
+                res_symbols = [uR.visit(s) for s in all_symbols]
+                nUnresolvedPost = len([s for s in obj_with_dimension
+                        if not s.is_dimension_known()])
 
                 if nUnresolvedPre == nUnresolvedPost:
                     break

@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +23,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 from neurounits.visitors import ASTVisitorBase
 import itertools
@@ -48,17 +50,17 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         deps = dict( [ (ass, VisitorFindDirectSymbolDependance().visit( ass_eqn.rhs ) ) for ass, ass_eqn in eqnset._eqn_assignment.iteritems() ] )
 
         ordered = []
-        to_order = set( deps.keys() )
+        to_order = set(deps.keys())
 
         while to_order:
-            found=False
+            found = False
             for o in to_order:
                 o_deps = [ d for d in deps[o] if type(d)==AssignedVariable]
                 o_deps_unsatisfied = [d for d in  o_deps if not d in ordered]
                 if len(o_deps_unsatisfied)==0:
                     ordered.append(o)
                     to_order.remove(o)
-                    found=True
+                    found = True
                     break
             # Prevent recursion:
             assert found==True, """Can't find the dependencies for: %s"""%",".join( [o.symbol for o in to_order] )
@@ -77,9 +79,11 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         def ass_deps(a):
             return [ t for t in D.dependancies[a] if isinstance(t, AssignedVariable)]
 
-        #resolved_deps = set()
-        required_deps = set( ass_deps(ass) )
-        #required_deps = set()
+        # resolved_deps = set()
+
+        required_deps = set(ass_deps(ass))
+
+        # required_deps = set()
 
         # Find all the dependancies:
         start_dep_len = None
@@ -113,7 +117,7 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
 
 
 
-    def __init__(self, ):
+    def __init__(self):
         self.dependancies = {}
 
 
@@ -128,15 +132,15 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
     def VisitSymbolicConstant(self, o, **kwargs):
         return []
     def VisitIfThenElse(self, o, **kwargs):
-        d1 = self.visit(o.predicate,**kwargs)
-        d2 = self.visit(o.if_true_ast,**kwargs)
-        d3 = self.visit(o.if_false_ast,**kwargs)
-        return d1+d2+d3
+        d1 = self.visit(o.predicate, **kwargs)
+        d2 = self.visit(o.if_true_ast, **kwargs)
+        d3 = self.visit(o.if_false_ast, **kwargs)
+        return d1 + d2 + d3
 
-    def VisitInEquality(self, o ,**kwargs):
-        d1 = self.visit(o.less_than,**kwargs)
-        d2 = self.visit(o.greater_than,**kwargs)
-        return d1+d2
+    def VisitInEquality(self, o, **kwargs):
+        d1 = self.visit(o.less_than, **kwargs)
+        d2 = self.visit(o.greater_than, **kwargs)
+        return d1 + d2
 
     def VisitBoolAnd(self, o, **kwargs):
         raise NotImplementedError()
@@ -196,7 +200,8 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         return self.visit(o.lhs)
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
-        return list( itertools.chain( * [ self.visit(p) for p in o.parameters.values() ] ) )
+        return list(itertools.chain(*[self.visit(p) for p in
+                    o.parameters.values()]))
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         return self.visit(o.rhs_ast)

@@ -1,4 +1,7 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,13 +24,15 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 
 from neurounits.importers.neuroml.neuroml_xml_data import _parse_channelml_file
 from neurounits.importers.neuroml.neuroml_xml_to_eqnset import build_eqnset
 
-from .errors import NeuroMLFileContainsNoChannels, NeuroMLFileContainsMultipleChannels
+from .errors import NeuroMLFileContainsNoChannels
+from .errors import NeuroMLFileContainsMultipleChannels
+
 
 
 
@@ -48,6 +53,6 @@ class ChannelMLReader:
     @classmethod
     def BuildEqnset(cls, filename):
         chl_info = cls.LoadChlRaw(filename)
-        eqnset, default_params = build_eqnset(chl_info)
-        return eqnset, chl_info, default_params
+        (eqnset, default_params) = build_eqnset(chl_info)
+        return (eqnset, chl_info, default_params)
 

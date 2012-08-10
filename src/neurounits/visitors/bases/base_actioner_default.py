@@ -1,4 +1,7 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,83 +24,101 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 from .base_actioner import ASTActionerDepthFirst
 
 
 class ASTActionerDefault(ASTActionerDepthFirst):
 
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs):
         ASTActionerDepthFirst.__init__(self, **kwargs)
 
 
     def ActionNode(self, n, **kwargs):
-        assert False, 'Action node in %s %s'% (type(self), type(n) )
+        assert False, 'Action node in %s %s' % (type(self), type(n))
 
     def ActionEqnSet(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
     def ActionLibrary(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
 
     def ActionIfThenElse(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
-    def ActionInEquality(self, o ,**kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
+
+    def ActionInEquality(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
+
     def ActionBoolAnd(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
+
     def ActionBoolOr(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
+
     def ActionBoolNot(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
 
     # Function Definitions:
     def ActionFunctionDef(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
+
     def ActionBuiltInFunction(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
+
     def ActionFunctionDefParameter(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
 
     # Terminals:
     def ActionStateVariable(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
+
     def ActionSymbolicConstant(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
+
     def ActionParameter(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
+
     def ActionConstant(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
+
     def ActionAssignedVariable(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
+
     def ActionSuppliedValue(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
 
     def ActionOnEvent(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
+
     def ActionOnEventStateAssignment(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
 
     # AST Objects:
     def ActionEqnTimeDerivative(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
+
     def ActionEqnAssignment(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
 
     def ActionAddOp(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
+
     def ActionSubOp(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
+
     def ActionMulOp(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
+
     def ActionDivOp(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
+
     def ActionExpOp(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
 
     def ActionFunctionDefInstantiation(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
+
     def ActionFunctionDefInstantiationParater(self, o, **kwargs):
-        return self.ActionNode(o,**kwargs)
+        return self.ActionNode(o, **kwargs)
 
 

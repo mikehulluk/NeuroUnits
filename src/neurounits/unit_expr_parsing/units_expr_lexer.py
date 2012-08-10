@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +23,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 
 import ply.lex
@@ -101,11 +103,11 @@ class UnitExprLexer(object):
 
     def t_ALPHATOKEN(self, t):
         r"""[a-zA-Z_]+"""
-        t.type = UnitExprLexer.reserved.get(t.value,t.type)
+        t.type = UnitExprLexer.reserved.get(t.value, t.type)
         return t
 
     def t_COMMENT(self, t):
-        r"\#.*"
+        r"""\#.*"""
         return t
 
     def t_NEWLINE(self, t):
@@ -115,7 +117,7 @@ class UnitExprLexer(object):
 
     t_IO_LINE = r"""<=> [^;]*"""
 
-    t_ONEVENT_SYMBOL =r"""==>>"""
+    t_ONEVENT_SYMBOL = r"""==>>"""
 
     t_LESSTHAN = r"""<"""
     t_GREATERTHAN = r""">"""
@@ -137,7 +139,7 @@ class UnitExprLexer(object):
     t_TIMES = r"""\*"""
     t_PLUS = r"""\+"""
 
-    #t_NEWLINE = r"""\n"""
+    # t_NEWLINE = r"""\n"""
 
     t_COMMA = r""","""
     t_COLON = r""":"""
@@ -148,17 +150,18 @@ class UnitExprLexer(object):
     # {~xyz} units
 
     def t_error(self, t):
-        raise UnitError( "Illegal character '%s'" % t.value[0])
+        raise UnitError("Illegal character '%s'" % t.value[0])
 
 
     def __init__(self):
         self.lexer = ply.lex.lex(module=self)
 
-    def input(self, *args,**kwargs):
-        return self.lexer.input(*args,**kwargs)
+    def input(self, *args, **kwargs):
+        return self.lexer.input(*args, **kwargs)
 
-    def token(self, *args,**kwargs):
-        t = self.lexer.token(*args,**kwargs)
-        #print 'TOKEN:',t
+    def token(self, *args, **kwargs):
+        t = self.lexer.token(*args, **kwargs)
+
+        # print 'TOKEN:',t
         return t
 

@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +23,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 
 import ply
@@ -93,7 +95,7 @@ def p_short_basic_unit(p):
                         | SHORT_HERTZ
                         """
     unit_short_LUT = UnitTermData.getUnitLUTShort(backend=p.parser.backend)
-    p[0] = unit_short_LUT[ p[1] ]
+    p[0] = unit_short_LUT[p[1]]
 
 
 def p_long_basic_multiplier(p):
@@ -147,7 +149,7 @@ def parse_term( text, backend ):
 
 
     # CHECK FOR STANDARD DEFINITIONS:
-    for u, u_def in UnitTermData.getSpecialCaseShortForms(backend=backend):
+    for (u, u_def) in UnitTermData.getSpecialCaseShortForms(backend=backend):
         if u == text:
             return u_def
 
@@ -155,7 +157,7 @@ def parse_term( text, backend ):
     unit_expr_parser.backend = backend
 
     lexer = UnitTermLexer()
-    res =  unit_expr_parser.parse(text, lexer=lexer, )
+    res = unit_expr_parser.parse(text, lexer=lexer)
 
     return res
 

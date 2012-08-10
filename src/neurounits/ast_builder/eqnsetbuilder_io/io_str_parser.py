@@ -1,4 +1,7 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,8 +24,9 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
-#import json
+# -------------------------------------------------------------------------------
+
+
 import re
 from neurounits.io_types import IOType
 from neurounits.units_misc import read_json
@@ -30,8 +34,8 @@ from neurounits.units_misc import read_json
 
 class IOData(object):
     def __init__(self, symbol, iotype, metadata={}):
-        self.symbol=symbol
-        self.iotype=iotype
+        self.symbol = symbol
+        self.iotype = iotype
         self.metadata = metadata
 
 class IODataDimensionSpec(IOData):
@@ -50,10 +54,12 @@ class IODataInitialCondition(IOData):
 def parse_io_line(line):
     from neurounits import NeuroUnitParser
     from neurounits.unit_errors import ParsingError
+    assert isinstance(line, basestring)
+    print 'Line', line
 
     metadata = {}
     if 'METADATA' in line:
-        line, metadata = line.split('METADATA')
+        (line, metadata) = line.split('METADATA')
         metadata = read_json(metadata)
 
 
@@ -68,44 +74,47 @@ def parse_io_line(line):
     mode = g['MODE']
 
 
-    if mode in ("INPUT","OUTPUT","PARAMETER"):
+    if mode in ('INPUT', 'OUTPUT', 'PARAMETER'):
         defs = []
 
         data = g['DEFS']
-        for d in data.split(","):
-            pDef = d.split(":")
+        for d in data.split(','):
+            pDef = d.split(':')
             if len(pDef) == 1:
-                symbol,dimension_str=pDef[0], None
+                (symbol, dimension_str) = (pDef[0], None)
             elif len(pDef) == 2:
-                symbol,dimension_str=pDef
+                (symbol, dimension_str) = pDef
             else:
-                raise ParsingError("Can't interpret line: %s"%line)
+                raise ParsingError("Can't interpret line: %s" % line)
 
-            symbol=symbol.strip()
-            dimension_str=dimension_str.strip()if dimension_str else dimension_str
+            symbol = symbol.strip()
+            dimension_str = (dimension_str.strip() if dimension_str else dimension_str)
 
             # Allow units to be specified in '{' '}' too. This is hacky and should be better
             # integrated.
-            if dimension_str[0] == '{' and dimension_str[-1] == '}':
-                dimension_str = '(' + dimension_str[1:-1] + ')'
+            if dimension_str:
+                if dimension_str[0] == '{' and dimension_str[-1] == '}':
+                    dimension_str = '(' + dimension_str[1:-1] + ')'
 
             dimension = NeuroUnitParser.Unit(dimension_str) if dimension_str is not None else None
             dimension = dimension.with_no_powerten() if dimension is not None else dimension
 
-            io_data =  IODataDimensionSpec(  symbol = symbol.strip(), iotype = IOType.LUT[mode], dimension = dimension, metadata = metadata)
+            io_data = IODataDimensionSpec(symbol=symbol.strip(),
+                    iotype=IOType.LUT[mode], dimension=dimension,
+                    metadata=metadata)
             defs.append(io_data)
         return defs
 
     elif mode == "INITIAL":
         defs = []
         data = g['DEFS']
-        for d in data.split(","):
-            pDef = d.split(":")
+        for d in data.split(','):
+            pDef = d.split(':')
 
-            ic = IODataInitialCondition(symbol=pDef[0], value = pDef[1])
+            ic = IODataInitialCondition(symbol=pDef[0], value=pDef[1])
             defs.append(ic)
         return defs
     else:
-        raise ParsingError("Unexpected Mode: %s"%mode)
+        raise ParsingError('Unexpected Mode: %s' % mode)
 
 

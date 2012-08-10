@@ -27,7 +27,7 @@ import os
 from util_test_locations import TestLocations
 from neurounits.neurounitparser import NeuroUnitParser
 from neurounits.writers.writer_ast_to_mredoc import MRedocWriterVisitor
-from mredoc.writers import LatexWriter
+from mredoc.writers import LatexWriter, HTMLWriter
 from mredoc import Document, TableOfContents
 
 
@@ -57,6 +57,13 @@ def document_eqnsets(individual_reports=True):
         # Add it to single large file:
         all_redocs.append( local_redoc )
 
+    print all_redocs
+    'Redoc Objets;'
+    for r in all_redocs:
+        print str(r)
+        
+    assert False
+
     return all_redocs
 
 
@@ -78,10 +85,14 @@ EqnsetDoc()
 # run individually:
 def main():
     all_redocs = document_eqnsets(individual_reports = True)
-    d = Document( TableOfContents(), all_redocs)
+    d = Document( TableOfContents(), *all_redocs)
     op_dir = TestLocations.getTestOutputDir()
     op_loc = os.path.join( op_dir, 'eqnsets', "all.pdf" )
     LatexWriter.BuildPDF(d, op_loc)
+    #HTMLWriter.BuildHTML(d, TestLocations.getTestOutputDir() + '/html/')
+
+
+    print d
 
 if __name__=="__main__":
     main()

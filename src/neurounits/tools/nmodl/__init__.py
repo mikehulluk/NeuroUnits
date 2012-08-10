@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +23,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 #import string
 #
@@ -119,10 +121,11 @@ class ModFileContents(object):
             if len(l) < max_length:
                 return l
             else:
-                breakPoint = l.rfind(" ", 0, max_length)
-                assert breakPoint != -1, "Unable to find breakpoint when splitting string"
-                st1, st2 = l[:breakPoint], l[breakPoint:]
-                return "\n".join( [st1]+[split_if_long(st2)])
+                breakPoint = l.rfind(' ', 0, max_length)
+                assert breakPoint != -1, \
+                    'Unable to find breakpoint when splitting string'
+                (st1, st2) = (l[:breakPoint], l[breakPoint:])
+                return '\n'.join([st1] + [split_if_long(st2)])
 
         def newlineandtabjoinlines(lines): return "\n".join(["    %s"% split_if_long(sl) for sl in lines] )
         def buildersection(s,t): return "%s\n{\n%s\n}\n"%(t, newlineandtabjoinlines(lines=s) ) if len(s) != 0 else ""
@@ -157,21 +160,21 @@ class ASTActionerDefaultIgnoreMissing(ASTActionerDefault):
 
 
 class NeuronMembraneCurrent(object):
-    def __init__(self,  symbol,  obj):
+    def __init__(self, symbol, obj):
         self.symbol = symbol
         self.obj = obj
 
     def get_neuron_name(self):
-        return self.symbol + "_tonrn"
+        return self.symbol + '_tonrn'
 
     def getCurrentType(self):
 
-        if self.obj.get_dimension().is_compatible( NEURONMappings.current_units[MechanismType.Point] ):
+        if self.obj.get_dimension().is_compatible(NEURONMappings.current_units[MechanismType.Point]):
             return MechanismType.Point
-        elif self.obj.get_dimension().is_compatible( NEURONMappings.current_units[MechanismType.Distributed] ):
+        elif self.obj.get_dimension().is_compatible(NEURONMappings.current_units[MechanismType.Distributed]):
             return MechanismType.Distributed
         else:
-            assert False, "Unknown type: %s"% self.obj.get_dimension()
+            assert False, 'Unknown type: %s' % self.obj.get_dimension()
 
 
 
@@ -202,10 +205,10 @@ class MODLBuildParameters(object):
 
             if role:
 
-                if not  eqnset.has_terminal_obj( io_info.symbol):
+                if not eqnset.has_terminal_obj(io_info.symbol):
                     continue
 
-                obj = eqnset.get_terminal_obj( io_info.symbol)
+                obj = eqnset.get_terminal_obj(io_info.symbol)
 
                 # Outputs:
                 if role == "TRANSMEMBRANECURRENT":
@@ -271,7 +274,7 @@ class MODLBuildParameters(object):
         # Event Handling:
         zero_arg_events = [ ev for ev in eqnset.onevents if len(ev.parameters) == 0 ]
         if len(zero_arg_events) == 0:
-            event_function= None
+            event_function = None
         elif len(zero_arg_events) == 1:
             event_function= zero_arg_events[0]
             #assert False, 'Not yet handled!'
@@ -314,5 +317,5 @@ def WriteToNMODL(eqnset, buildparameters=None, initial_values=None, neuron_suffi
 
     txt = m.to_text()
 
-    return txt, buildparameters
+    return (txt, buildparameters)
 

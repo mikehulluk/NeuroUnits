@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +23,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 
 
@@ -210,7 +212,7 @@ def p_on_event_open_scope(p):
 
 def p_on_event_definition(p):
     """event_def : alphanumtoken LBRACKET function_def_params RBRACKET white_or_newline_slurp LCURLYBRACKET open_event_def_scope on_event_actions_blk RCURLYBRACKET """
-    e = ast.OnEvent(name = p[1], parameters=p[3], actions=p[8] )
+    e = ast.OnEvent(name=p[1], parameters=p[3], actions=p[8])
     p.parser.library_manager.get_current_block_builder().close_scope_and_create_onevent(e)
 
 def p_on_event_actionsblk(p):
@@ -280,13 +282,13 @@ def p_time_derivative(p):
 
 
 # Symbol definitons:
-# #################
+##################
 def p_namespace(p):
     """namespace : alphanumtoken """
     p[0] = p[1]
 def p_namespace2(p):
     """namespace : namespace DOT alphanumtoken"""
-    p[0] = "%s.%s"%(p[1],p[3])
+    p[0] = '%s.%s' % (p[1], p[3])
 
 def p_localsymbol(p):
     """localsymbol : alphanumtoken """
@@ -294,7 +296,7 @@ def p_localsymbol(p):
 
 def p_externalsymbol(p):
     """externalsymbol : namespace DOT localsymbol """
-    p[0] = "%s.%s"%(p[1],p[3])
+    p[0] = '%s.%s' % (p[1], p[3])
 
 
 def p_rhs_symbol(p):
@@ -320,7 +322,7 @@ def p_function_definition_scope_open(p):
 
 def p_function_definition(p):
     """function_def : lhs_symbol LBRACKET function_def_params RBRACKET EQUALS open_funcdef_scope rhs_generic """
-    f = ast.FunctionDef( funcname=p[1], parameters=p[3], rhs=p[7] )
+    f = ast.FunctionDef(funcname=p[1], parameters=p[3], rhs=p[7])
     p.parser.library_manager.get_current_block_builder().close_scope_and_create_function_def(f)
     p[0] = None
 
@@ -343,6 +345,7 @@ def p_function_def_params1(p):
 
 def p_function_def_params2(p):
     """function_def_params : function_def_params COMMA whiteslurp function_def_param whiteslurp"""
+    
     p[0] = safe_dict_merge( p[1], p[4] )
 
 
@@ -366,7 +369,7 @@ def p_quantity_func_params_l3a(p):
 
 def p_quantity_func_params_l3b(p):
     """func_call_params_l3 : func_call_param_l3"""
-    p[0] = {p[1].symbol:p[1]}
+    p[0] = {p[1].symbol: p[1]}
 
 def p_quantity_func_params_l3c(p):
     """func_call_params_l3 : func_call_params_l3 COMMA func_call_param_l3"""
@@ -400,22 +403,20 @@ def p_lhs(p):
 
 def p_bool_term_a(p):
     """bool_term : rhs_term LESSTHAN rhs_term"""
-    p[0] = ast.InEquality(  less_than = p[1],
-                            greater_than = p[3] )
+    p[0] = ast.InEquality(less_than=p[1], greater_than=p[3])
 def p_bool_term_b(p):
     """bool_term : rhs_term GREATERTHAN rhs_term"""
-    p[0] = ast.InEquality(  less_than = p[3],
-                            greater_than = p[1] )
+    p[0] = ast.InEquality(less_than=p[3], greater_than=p[1])
 
 def p_bool_term1(p):
     """bool_term : bool_term AND bool_term"""
-    p[0] = ast.BoolAnd(  lhs = p[1], rhs = p[3] )
+    p[0] = ast.BoolAnd(lhs=p[1], rhs=p[3])
 def p_bool_term2(p):
     """bool_term : bool_term OR bool_term"""
-    p[0] = ast.BoolOr(  lhs = p[1], rhs = p[3] )
+    p[0] = ast.BoolOr(lhs=p[1], rhs=p[3])
 def p_bool_term3(p):
     """bool_term : NOT bool_term"""
-    p[0] = ast.BoolNot(  lhs = p[2] )
+    p[0] = ast.BoolNot(lhs=p[2])
 
 def p_bool_term4(p):
     """bool_term : LBRACKET bool_term RBRACKET"""
@@ -434,23 +435,23 @@ def p_rhs_term_params(p):
 
 def p_rhs_term_add(p):
     """rhs_term : rhs_term PLUS rhs_term"""
-    p[0] = ast.AddOp( p[1], p[3] )
+    p[0] = ast.AddOp(p[1], p[3])
 
 def p_rhs_term_sub(p):
     """rhs_term : rhs_term MINUSMINUS rhs_term"""
-    p[0] = ast.SubOp( p[1], p[3] )
+    p[0] = ast.SubOp(p[1], p[3])
 
 def p_rhs_term_mul(p):
     """rhs_term : rhs_term TIMES rhs_term"""
-    p[0] = ast.MulOp( p[1], p[3] )
+    p[0] = ast.MulOp(p[1], p[3])
 
 def p_rhs_term_exp(p):
     """rhs_term : rhs_term TIMESTIMES INTEGER"""
-    p[0] = ast.ExpOp( p[1], p[3] )
+    p[0] = ast.ExpOp(p[1], p[3])
 
 def p_rhs_term_div(p):
     """rhs_term : rhs_term SLASH rhs_term"""
-    p[0] = ast.DivOp( p[1], p[3] )
+    p[0] = ast.DivOp(p[1], p[3])
 
 
 
@@ -470,7 +471,7 @@ def p_rhs_term1(p):
 
 def p_rhs_term2(p):
     """ rhs_term : quantity """
-    p[0] = ast.ConstValue( p[1] )
+    p[0] = ast.ConstValue(p[1])
 
 def p_lhs_variable(p):
     """ rhs_variable : rhs_symbol"""
@@ -548,20 +549,20 @@ def p_quantity_nounits(p):
 
 # QUANTITY TERMS:
 # ###############
-def p_quantity_0( p ):
+def p_quantity_0(p):
     """quantity : magnitude"""
     backend = p.parser.library_manager.backend
-    p[0] = backend.Quantity( p[1], backend.Unit() )
+    p[0] = backend.Quantity(p[1], backend.Unit() )
 
-def p_quantity_1( p ):
+def p_quantity_1(p):
     """quantity : magnitude unit_expr """
     backend = p.parser.library_manager.backend
     p[0] = backend.Quantity( p[1], p[2] )
 
-def p_quantity_2( p ):
+def p_quantity_2(p):
     """quantity : magnitude WHITESPACE unit_expr"""
     backend = p.parser.library_manager.backend
-    p[0] = backend.Quantity( p[1], p[3] )
+    p[0] = backend.Quantity(p[1], p[3])
 
 
 def p_quantity_magnitude(p):
@@ -573,32 +574,32 @@ def p_quantity_magnitude(p):
 
 
 # UNIT EXPRESSIONS:
-def p_unit_expr_1( p ):
+def p_unit_expr_1(p):
     """unit_expr : unit_term_grp"""
     p[0] = p[1]
 
-def p_unit_expr_2( p ):
+def p_unit_expr_2(p):
     """unit_expr : unit_term_grp SLASHSLASH unit_term_grp"""
     p[0] = p[1] / p[3]
 
-def p_unit_expr_3( p ):
+def p_unit_expr_3(p):
     """unit_expr : parameterised_unit_term SLASHSLASH parameterised_unit_term"""
     p[0] = p[1] / p[3]
 
-def p_unit_expr_4( p ):
+def p_unit_expr_4(p):
     """unit_expr : unit_term_grp SLASHSLASH parameterised_unit_term"""
     p[0] = p[1] / p[3]
 
-def p_unit_expr_5( p ):
+def p_unit_expr_5(p):
     """unit_expr : parameterised_unit_term SLASHSLASH unit_term_grp"""
     p[0] = p[1] / p[3]
 
-def p_unit_expr_6( p ):
+def p_unit_expr_6(p):
     """unit_expr : parameterised_unit_term"""
     p[0] = p[1]
 
 # Allow empty unit
-def p_unit_expr_7( p ):
+def p_unit_expr_7(p):
     """unit_expr : LBRACKET RBRACKET"""
     backend = p.parser.library_manager.backend
     p[0] = backend.Unit()
@@ -607,11 +608,11 @@ def p_unit_expr_7( p ):
 #Parameterised Unit Term
 #########################
 
-def p_paramterised_unit_term_1( p ):
+def p_paramterised_unit_term_1(p):
     """parameterised_unit_term : LBRACKET unit_term_grp RBRACKET"""
     p[0] = p[2]
 
-def p_paramterised_unit_term_2( p ):
+def p_paramterised_unit_term_2(p):
     """parameterised_unit_term : LBRACKET unit_term_grp SLASHSLASH unit_term_grp RBRACKET"""
     p[0] = p[2] / p[4]
 
@@ -641,7 +642,7 @@ def p_unit_term_1(p):
 
 def p_unit_term_2(p):
     """unit_term : unit_term_unpowered INTEGER"""
-    p[0] = p[1] ** ( int(p[2]) )
+    p[0] = p[1] ** int(p[2])
 
 
 def p_unit_term_3(p):
@@ -651,9 +652,8 @@ def p_unit_term_3(p):
     unit_long_LUT = UnitTermData.getUnitLUTLong(backend=backend)
 
     if p[3] in unit_long_LUT:
-        p[0] = unit_long_LUT[p [3] ]
+        p[0] = unit_long_LUT[p[3]]
     else:
-        #print p[3]
         assert False
 
 # Unpowered unit terms:
@@ -661,7 +661,7 @@ def p_unit_term_3(p):
 def p_unit_term_unpowered_token(p):
     """unit_term_unpowered : ALPHATOKEN """
     import neurounits.unit_term_parsing as unit_term_parsing
-    p[0] = unit_term_parsing.parse_term( p[1], backend=p.parser.library_manager.backend )
+    p[0] = unit_term_parsing.parse_term(p[1], backend=p.parser.library_manager.backend )
 
 
 
@@ -675,7 +675,7 @@ def p_error(p):
     else:
         pass
     try:
-        line = p.lexer.lexer.lexdata.split("\n")[p.lexer.lexer.lineno]
+        line = p.lexer.lexer.lexdata.split('\n')[p.lexer.lexer.lineno]
 
         o = p.lexer.lexer.lexpos
         line1 = p.lexer.lexer.lexdata[o-10: o+10]
@@ -685,13 +685,11 @@ def p_error(p):
         print 'Offending Line:', line2
     except:
         pass
-    raise UnitError( "Parsing Error %s" % (p) )
+    raise UnitError('Parsing Error %s' % p)
 
 precedence = (
-
-
     ('left', 'WHITESPACE'),
-    ('left', 'PLUS','MINUSMINUS'),
+    ('left', 'PLUS', 'MINUSMINUS'),
 
     ('left', 'TIMES', 'SLASH'),
     ('left', 'TIMESTIMES'),
@@ -713,28 +711,28 @@ precedence = (
 
 
 class ParseTypes(object):
-    L1_Unit = "L1_Unit"
-    L2_QuantitySimple = "L2_QuantitySimple"
-    L3_QuantityExpr = "L3_QuantityExpr"
-    L4_EqnSet = "L4_EqnSet"
-    L5_Library = "L5_Library"
-    L6_TextBlock = "L6_TextBlock"
+    L1_Unit = 'L1_Unit'
+    L2_QuantitySimple = 'L2_QuantitySimple'
+    L3_QuantityExpr = 'L3_QuantityExpr'
+    L4_EqnSet = 'L4_EqnSet'
+    L5_Library = 'L5_Library'
+    L6_TextBlock = 'L6_TextBlock'
 
 
 class ParseDetails(object):
     start_symbols = {
-        ParseTypes.L1_Unit :            'unit_expr',
-        ParseTypes.L2_QuantitySimple :  'quantity_expr',
-        ParseTypes.L3_QuantityExpr :    'rhs_generic',
-        ParseTypes.L4_EqnSet :          'eqnset',
-        ParseTypes.L5_Library :         "library_set",
-        ParseTypes.L6_TextBlock :       'text_block',
-            }
+        ParseTypes.L1_Unit: 'unit_expr',
+        ParseTypes.L2_QuantitySimple: 'quantity_expr',
+        ParseTypes.L3_QuantityExpr: 'rhs_generic',
+        ParseTypes.L4_EqnSet: 'eqnset',
+        ParseTypes.L5_Library: 'library_set',
+        ParseTypes.L6_TextBlock: 'text_block',
+        }
 
 
 
 from collections import namedtuple
-RE = namedtuple('RE', ["frm","to"])
+RE = namedtuple('RE', ['frm', 'to'])
 
 
 regexes_slashes = {
@@ -759,29 +757,17 @@ regexes_by_parsetype_slashes = {
         }
 
 
-def apply_all_regexes(text, parsetype,regexes_by_parsetype):
+def apply_all_regexes(text, parsetype, regexes_by_parsetype):
     for r in regexes_by_parsetype[parsetype]:
-        text = apply_regex(r,text)
+        text = apply_regex(r, text)
     return text
 
 
 def apply_regex(r, text):
-    regex = re.compile(r.frm,re.VERBOSE)
+    regex = re.compile(r.frm, re.VERBOSE)
     return re.sub(regex, r.to, text)
 
 
-
-
-
-
-
-
-
-
-
-
-
-#unit_library_manager
 
 def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
 
@@ -792,20 +778,20 @@ def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, w
     if parse_type in [ParseTypes.L4_EqnSet, ParseTypes.L5_Library, ParseTypes.L6_TextBlock]:
         text  = "\n".join([ l.split("#")[0] for l in text.split("\n") ])
         lines = []
-        for l in text.split("\n"):
-            if len(lines)!=0 and lines[-1].endswith('\\'):
+        for l in text.split('\n'):
+            if len(lines) != 0 and lines[-1].endswith('\\'):
                 assert l
-                lines[-1] = lines[-1][:-1] + l
+                lines[-1] = (lines[-1])[:-1] + l
 
             else:
                 l = l.strip()
                 if not l:
                     continue
-                if not l[-1] in ('{',';'):
-                    l = l +";"
+                if not l[-1] in ('{', ';'):
+                    l = l + ';'
                 lines.append(l)
 
-        text = "\n".join( lines )
+        text = '\n'.join(lines)
     else:
         text = text.strip()
 
@@ -867,7 +853,7 @@ class ParserMgr():
         if not k in cls.parsers:
             cls.parsers[k] = cls.build_parser(start_symbol=start_symbol, debug=debug)
         import copy
-        return copy.copy( cls.parsers[k] )
+        return copy.copy(cls.parsers[k])
 
 
 
@@ -880,10 +866,10 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
 
     start_symbol = ParseDetails.start_symbols[parse_type]
     # Some preprocessing:
-    #######################
+    # ######################
 
-    assert not "--" in text_eqn
-    assert not "//" in text_eqn
+    assert not '--' in text_eqn
+    assert not r"//" in text_eqn
 
     # Strip all unnessesary whitespace:
     s1 = re.compile(r'[ ]* ([()/*:+{}=]) [ ]*',re.VERBOSE)
@@ -901,7 +887,7 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
     # as subtraction. Lets remap subtraction to '--', unless its followed
     # by a digit, in which case its part of that digit
     s = re.compile(r"""[ ]* [-](?=[^0-9]) [ ]*""", re.VERBOSE)
-    text_eqn = re.sub(s,'--',text_eqn)
+    text_eqn = re.sub(s, '--', text_eqn)
 
     #print 'Post-Processing:'
     #print text_eqn
@@ -925,7 +911,7 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
 
 
 
-    #assert parser.library_manager is library_manager
+    # assert parser.library_manager is library_manager
 
 
 
@@ -938,20 +924,20 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
 
 
 
-    #assert parser.library_manager is library_manager
+    # assert parser.library_manager is library_manager
 
     pRes = parser.parse(text_eqn, lexer=lexer, debug=debug)
 
-    #assert parser.library_manager is library_manager
+    # assert parser.library_manager is library_manager
 
     # Close the block we opened in 'A'
-    if parse_type in [ ParseTypes.L3_QuantityExpr]:
+    if parse_type in [ParseTypes.L3_QuantityExpr]:
         parser.library_manager.end_eqnset_block()
 
-    #assert parser.library_manager is library_manager
+    # assert parser.library_manager is library_manager
 
 
-    return pRes, parser.library_manager
+    return (pRes, parser.library_manager)
 
 
 

@@ -1,4 +1,7 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +24,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 from neurounits.visitors import ASTVisitorBase
 
 from neurounits import ast
@@ -36,13 +39,13 @@ class CloneObject(object):
         return ast.SymbolicConstant(symbol=dst_symbol, value=srcObj.value)
 
     @classmethod
-    def BuiltinFunction(cls, srcObj, dst_symbol=None ):
+    def BuiltinFunction(cls, srcObj, dst_symbol=None):
         return srcObj
 
 
 
     @classmethod
-    def FunctionDef(cls, srcObj, dst_symbol=None ):
+    def FunctionDef(cls, srcObj, dst_symbol=None):
         fNew = _CloneFuncDef().visit(srcObj)
 
         # Over-ride the function name? ('import .. as..')
@@ -65,7 +68,7 @@ class CloneObject(object):
 class _CloneFuncDef(ASTVisitorBase):
 
 
-    def __init__(self, ):
+    def __init__(self):
         self.func_param_map = {}
 
     def VisitEqnSet(self, o, **kwargs):
@@ -106,7 +109,7 @@ class _CloneFuncDef(ASTVisitorBase):
 
     def VisitIfThenElse(self, o, **kwargs):
         raise NotImplementedError()
-    def VisitInEquality(self, o ,**kwargs):
+    def VisitInEquality(self, o, **kwargs):
         raise NotImplementedError()
     def VisitBoolAnd(self, o, **kwargs):
         raise NotImplementedError()
@@ -118,19 +121,19 @@ class _CloneFuncDef(ASTVisitorBase):
 
 
     def VisitAddOp(self, o, **kwargs):
-        return ast.AddOp(self.visit(o.lhs), self.visit(o.rhs) )
+        return ast.AddOp(self.visit(o.lhs), self.visit(o.rhs))
 
     def VisitSubOp(self, o, **kwargs):
-        return ast.SubOp(self.visit(o.lhs), self.visit(o.rhs) )
+        return ast.SubOp(self.visit(o.lhs), self.visit(o.rhs))
 
     def VisitMulOp(self, o, **kwargs):
-        return ast.MulOp(self.visit(o.lhs), self.visit(o.rhs) )
+        return ast.MulOp(self.visit(o.lhs), self.visit(o.rhs))
 
     def VisitDivOp(self, o, **kwargs):
-        return ast.DivOp(self.visit(o.lhs), self.visit(o.rhs) )
+        return ast.DivOp(self.visit(o.lhs), self.visit(o.rhs))
 
     def VisitExpOp(self, o, **kwargs):
-        return ast.ExpOp(self.visit(o.lhs), o.rhs )
+        return ast.ExpOp(self.visit(o.lhs), o.rhs)
 
 
     def VisitBuiltInFunction(self, o, **kwargs):
@@ -139,7 +142,7 @@ class _CloneFuncDef(ASTVisitorBase):
         return self.func_param_map[o]
 
     def VisitSymbolicConstant(self, o, **kwargs):
-        return ast.SymbolicConstant( symbol=o.symbol, value=o.value)
+        return ast.SymbolicConstant(symbol=o.symbol, value=o.value)
 
     def VisitConstant(self, o, **kwargs):
         return ast.ConstValue(value=o.value)
@@ -152,12 +155,12 @@ class _CloneFuncDef(ASTVisitorBase):
     def VisitFunctionDefInstantiation(self, o, **kwargs):
 
         # Clone the defintion:
-        newDef = self.visit( o.function_def)
+        newDef = self.visit(o.function_def)
 
         params = {}
-        for pName,pObj in o.parameters.iteritems():
+        for (pName,pObj) in o.parameters.iteritems():
             p = ast.FunctionDefParameterInstantiation(rhs_ast=self.visit(pObj.rhs_ast), symbol=pObj.symbol )
-            p.set_function_def_parameter( newDef.parameters[pName]  )
+            p.set_function_def_parameter(newDef.parameters[pName]  )
             params[pName] = p
             self.func_param_map[pObj] = p
 

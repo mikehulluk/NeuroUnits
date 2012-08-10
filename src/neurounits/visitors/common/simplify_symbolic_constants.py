@@ -1,4 +1,7 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +24,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 
 from neurounits import ast
@@ -46,10 +49,10 @@ class ReduceConstants(ASTVisitorBase):
             fixed_value = self.visit(a.rhs)
             if fixed_value:
 
-                sym_suffix = "_as_symconst"
-                sym_suffix= ""
-                s = ast.SymbolicConstant( symbol=aKey.symbol+sym_suffix, value=fixed_value )
-                #print 'New Symbolic Constant', s, aKey.symbol, s.value
+                sym_suffix = '_as_symconst'
+                sym_suffix = ''
+                s = ast.SymbolicConstant(symbol=aKey.symbol
+                        + sym_suffix, value=fixed_value)
 
                 #assert False
                 #print 'Replacing Node:', a.lhs.symbol
@@ -80,10 +83,10 @@ class ReduceConstants(ASTVisitorBase):
             fixed_value = self.visit(a.rhs)
             if fixed_value:
 
-                sym_suffix = "_as_symconst"
-                sym_suffix= ""
-                s = ast.SymbolicConstant( symbol=aKey.symbol+sym_suffix, value=fixed_value )
-                #print 'New Symbolic Constant', s, aKey.symbol, s.value
+                sym_suffix = '_as_symconst'
+                sym_suffix = ''
+                s = ast.SymbolicConstant(symbol=aKey.symbol
+                        + sym_suffix, value=fixed_value)
 
                 #assert False
                 #print 'Replacing Node:', a.lhs.symbol
@@ -125,7 +128,7 @@ class ReduceConstants(ASTVisitorBase):
         return None
         raise NotImplementedError()
 
-    def VisitInEquality(self, o ,**kwargs):
+    def VisitInEquality(self, o, **kwargs):
         raise NotImplementedError()
     def VisitBoolAnd(self, o, **kwargs):
         raise NotImplementedError()
@@ -170,34 +173,34 @@ class ReduceConstants(ASTVisitorBase):
 
 
     def VisitAddOp(self, o, **kwargs):
-        t1,t2 = self.visit(o.lhs), self.visit(o.rhs)
+        (t1, t2) = (self.visit(o.lhs), self.visit(o.rhs))
         if t1 is None or t2 is None:
             return None
-        return t1+t2
+        return t1 + t2
 
     def VisitSubOp(self, o, **kwargs):
-        t1,t2 = self.visit(o.lhs), self.visit(o.rhs)
+        (t1, t2) = (self.visit(o.lhs), self.visit(o.rhs))
         if t1 is None or t2 is None:
             return None
-        return t1-t2
+        return t1 - t2
 
     def VisitMulOp(self, o, **kwargs):
-        t1,t2 = self.visit(o.lhs), self.visit(o.rhs)
+        (t1, t2) = (self.visit(o.lhs), self.visit(o.rhs))
         if t1 is None or t2 is None:
             return None
-        return t1*t2
+        return t1 * t2
 
     def VisitDivOp(self, o, **kwargs):
-        t1,t2 = self.visit(o.lhs), self.visit(o.rhs)
+        (t1, t2) = (self.visit(o.lhs), self.visit(o.rhs))
         if t1 is None or t2 is None:
             return None
-        return t1/t2
+        return t1 / t2
 
     def VisitExpOp(self, o, **kwargs):
         t1 = self.visit(o.lhs)
         if t1 is None:
             return None
-        return t1**o.rhs
+        return t1 ** o.rhs
 
 
 

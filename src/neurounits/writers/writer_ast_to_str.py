@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,17 +23,13 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 from neurounits.visitors import ASTVisitorBase
 
+
 class StringWriterVisitor(ASTVisitorBase):
-    #def __init__(self,):
-        #pass
-        #print 'StringWriterVisitor'
 
-
-    # AST Top Level:
     def VisitEqnSet(self, o, **kwargs):
         print 'AST:'
         print '----'
@@ -45,80 +43,80 @@ class StringWriterVisitor(ASTVisitorBase):
         for a in o.functiondefs:
             print self.visit(a)
 
-    # Function Definitions:
+
     def VisitFunctionDef(self, o, **kwargs):
-        return '<FUNCDEF:%s => %s>'%( o.funcname, self.visit(o.rhs) )
+        return '<FUNCDEF:%s => %s>' % (o.funcname, self.visit(o.rhs))
 
     def VisitFunctionDefParameter(self, o, **kwargs):
-        return "<%s: %s>"%(o.__class__.__name__, o.symbol)
+        return '<%s: %s>' % (o.__class__.__name__, o.symbol)
 
     def VisitBuiltInFunction(self, o, **kwargs):
-        return "<%s: %s>"%(o.__class__.__name__, o.funcname)
+        return '<%s: %s>' % (o.__class__.__name__, o.funcname)
 
-
-    # Terminals:
     def VisitStateVariable(self, o, **kwargs):
-        return "<%s: %s>"%(o.__class__.__name__, o.symbol)
+        return '<%s: %s>' % (o.__class__.__name__, o.symbol)
 
     def VisitParameter(self, o, **kwargs):
-        return "<%s: %s>"%(o.__class__.__name__, o.symbol)
+        return '<%s: %s>' % (o.__class__.__name__, o.symbol)
 
     def VisitConstant(self, o, **kwargs):
-        return "<%s: %s>"%(o.__class__.__name__, o.value)
+        return '<%s: %s>' % (o.__class__.__name__, o.value)
 
     def VisitAssignedVariable(self, o, **kwargs):
-        return "<%s: %s>"%(o.__class__.__name__, o.symbol)
+        return '<%s: %s>' % (o.__class__.__name__, o.symbol)
 
     def VisitSuppliedValue(self, o, **kwargs):
-        return "<%s: %s>"%(o.__class__.__name__, o.symbol)
+        return '<%s: %s>' % (o.__class__.__name__, o.symbol)
 
     def VisitSymbolicConstant(self, o, **kwargs):
-        return "<%s: %s %s>"%(o.__class__.__name__, o.symbol, o.value)
+        return '<%s: %s %s>' % (o.__class__.__name__, o.symbol, o.value)
 
     # AST Objects:
+
     def VisitEqnTimeDerivative(self, o, **kwargs):
-        return "%s' = %s"%( self.visit(o.lhs), self.visit(o.rhs) )
+        return "%s' = %s" % (self.visit(o.lhs), self.visit(o.rhs))
 
     def VisitEqnAssignment(self, o, **kwargs):
-        return '%s = %s'%( self.visit(o.lhs), self.visit(o.rhs) )
+        return '%s = %s' % (self.visit(o.lhs), self.visit(o.rhs))
 
-    # AST Nodes:
     def VisitAddOp(self, o, **kwargs):
-        return '(%s + %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
+        return '(%s + %s)' % (self.visit(o.lhs), self.visit(o.rhs))
 
     def VisitSubOp(self, o, **kwargs):
-        return '(%s - %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
+        return '(%s - %s)' % (self.visit(o.lhs), self.visit(o.rhs))
 
     def VisitMulOp(self, o, **kwargs):
-        return '(%s * %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
+        return '(%s * %s)' % (self.visit(o.lhs), self.visit(o.rhs))
 
     def VisitDivOp(self, o, **kwargs):
-        return '(%s / %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
+        return '(%s / %s)' % (self.visit(o.lhs), self.visit(o.rhs))
 
     def VisitExpOp(self, o, **kwargs):
-        return '(%s ** %s)'%( self.visit(o.lhs), o.rhs )
-
+        return '(%s ** %s)' % (self.visit(o.lhs), o.rhs)
 
     def VisitBoolAnd(self, o, **kwargs):
-        return '(%s && %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
+        return '(%s && %s)' % (self.visit(o.lhs), self.visit(o.rhs))
+
     def VisitBoolOr(self, o, **kwargs):
-        return '(%s || %s)'%( self.visit(o.lhs), self.visit(o.rhs) )
+        return '(%s || %s)' % (self.visit(o.lhs), self.visit(o.rhs))
+
     def VisitBoolNot(self, o, **kwargs):
         return '(! %s)'%( self.visit(o.lhs) )
 
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
-        p = [ self.visit(p) for p in o.parameters.values() ]
-        return "<%s: %s(%s)>"%(o.__class__.__name__, o.function_def.funcname, ",".join(p))
+        p = [self.visit(p) for p in o.parameters.values()]
+        return '<%s: %s(%s)>' % (o.__class__.__name__,
+                                 o.function_def.funcname, ','.join(p))
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
-        return "<%s: %s>"%(o.__class__.__name__, o.symbol)
+        return '<%s: %s>' % (o.__class__.__name__, o.symbol)
 
 
-    def VisitIfThenElse(self,o,**kwargs):
-        return "[%s] if [%s] else [%s]" %(self.visit(o.if_true_ast),
+    def VisitIfThenElse(self, o, **kwargs):
+        return "[%s] if [%s] else [%s]" % (self.visit(o.if_true_ast),
                                            self.visit(o.predicate),
                                            self.visit(o.if_false_ast) )
-    def VisitInEquality(self,o,**kwargs):
-        return "[%s < %s]" %(self.visit(o.less_than),self.visit(o.greater_than) )
+    def VisitInEquality(self, o, **kwargs):
+        return "[%s < %s]" % (self.visit(o.less_than),self.visit(o.greater_than) )
 

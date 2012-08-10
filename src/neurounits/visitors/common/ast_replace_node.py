@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +23,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 
@@ -41,8 +43,8 @@ class ReplaceNode(ASTVisitorBase):
         if o == self.srcObj:
             return self.dstObj
         else:
-            if "symbol" in o.__dict__:
-                 assert not o.symbol==self.srcObj.symbol
+            if 'symbol' in o.__dict__:
+                assert not o.symbol == self.srcObj.symbol
 
             return self.visit(o)
 
@@ -51,20 +53,24 @@ class ReplaceNode(ASTVisitorBase):
         return o.accept_visitor(self, **kwargs)
 
     def VisitEqnSet(self, o, **kwargs):
-        subnodes = itertools.chain( o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants, o.onevents)
+        subnodes = itertools.chain(o.assignments, o.timederivatives,
+                                   o.functiondefs, o.symbolicconstants,
+                                   o.onevents)
         for f in subnodes:
-            self.visit(f,**kwargs)
+            self.visit(f, **kwargs)
         return o
 
     def VisitLibrary(self, o, **kwargs):
-        subnodes = itertools.chain( o.functiondefs, o.symbolicconstants)
+        subnodes = itertools.chain(o.functiondefs, o.symbolicconstants)
         for f in subnodes:
-            self.visit(f,**kwargs)
+            self.visit(f, **kwargs)
         return o
 
     def VisitOnEvent(self, o, **kwargs):
-        o.parameters =dict( [ (pName, self.replace_or_visit(p) )for (pName,p) in o.parameters.iteritems()] )
-        o.actions = [self.replace_or_visit(a,**kwargs) for a in o.actions]
+        o.parameters = dict([(pName, self.replace_or_visit(p))
+                            for (pName, p) in o.parameters.iteritems()])
+        o.actions = [self.replace_or_visit(a, **kwargs) for a in
+                     o.actions]
         return o
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
@@ -77,32 +83,33 @@ class ReplaceNode(ASTVisitorBase):
 
     def VisitIfThenElse(self, o, **kwargs):
         o.predicate = self.replace_or_visit(o.predicate, **kwargs)
-        o.if_true_ast = self.replace_or_visit(o.if_true_ast,**kwargs)
-        o.if_false_ast = self.replace_or_visit(o.if_false_ast,**kwargs)
+        o.if_true_ast = self.replace_or_visit(o.if_true_ast, **kwargs)
+        o.if_false_ast = self.replace_or_visit(o.if_false_ast, **kwargs)
         return o
 
-    def VisitInEquality(self, o ,**kwargs):
+    def VisitInEquality(self, o, **kwargs):
         o.less_than = self.replace_or_visit(o.less_than)
         o.greater_than = self.replace_or_visit(o.greater_than)
         return o
 
     def VisitBoolAnd(self, o, **kwargs):
-        o.lhs = self.replace_or_visit(o.lhs,**kwargs)
-        o.rhs = self.replace_or_visit(o.rhs,**kwargs)
+        o.lhs = self.replace_or_visit(o.lhs, **kwargs)
+        o.rhs = self.replace_or_visit(o.rhs, **kwargs)
         return o
 
     def VisitBoolOr(self, o, **kwargs):
-        o.lhs = self.replace_or_visit(o.lhs,**kwargs)
-        o.rhs = self.replace_or_visit(o.rhs,**kwargs)
+        o.lhs = self.replace_or_visit(o.lhs, **kwargs)
+        o.rhs = self.replace_or_visit(o.rhs, **kwargs)
         return o
 
     def VisitBoolNot(self, o, **kwargs):
-        o.lhs = self.replace_or_visit(o.lhs,**kwargs)
+        o.lhs = self.replace_or_visit(o.lhs, **kwargs)
         return o
 
     # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):
-        o.parameters =dict( [ (pName, self.replace_or_visit(p) )for (pName,p) in o.parameters.iteritems()] )
+        o.parameters = dict([(pName, self.replace_or_visit(p))
+                            for (pName, p) in o.parameters.iteritems()])
         o.rhs = self.replace_or_visit(o.rhs)
         return o
 
@@ -161,7 +168,8 @@ class ReplaceNode(ASTVisitorBase):
         return o
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
-        o.parameters =dict( [ (pName, self.replace_or_visit(p) )for (pName,p) in o.parameters.iteritems()] )
+        o.parameters = dict([(pName, self.replace_or_visit(p))
+                            for (pName, p) in o.parameters.iteritems()])
         assert not self.srcObj in o.parameters.values()
         o.function_def = self.replace_or_visit(o.function_def)
 
