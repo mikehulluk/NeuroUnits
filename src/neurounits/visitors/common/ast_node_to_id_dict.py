@@ -35,4 +35,4 @@ class ASTNodeLabels(ASTActionerDefault):
 
 
     def ActionNode(self,n):
-        self.id_dict[n] = "ID%03d"%len(self.id_dict)
+        self.id_dict[n] = "ID%03d" % len(self.id_dict)

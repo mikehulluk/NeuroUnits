@@ -27,7 +27,6 @@
 
 
 from util_test_locations import TestLocations
-from mredoc.writers import LatexWriter
 from mredoc import Document, TableOfContents, SectionNewPage
 from os.path import join as Join
 
@@ -51,5 +50,5 @@ class ReportGenerator(object):
         d = Document( TableOfContents(), *op)
         op_dir = TestLocations.getTestOutputDir()
         op_loc = Join( op_dir, 'everything.pdf' )
-        LatexWriter.BuildPDF(d, op_loc)
+        d.to_pdf(op_loc)
 

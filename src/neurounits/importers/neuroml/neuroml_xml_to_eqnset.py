@@ -78,7 +78,7 @@ def build_gate_q10_settings_dict(chlmlinfo):
     # Hack to allow direct access to q10 ssettings in eqns:
     for g in chlmlinfo.gates:
         if not g.name in q10gateadjustments:
-            q10gateadjustments[g.name] = "temp_adj_%s"%g.name
+            q10gateadjustments[g.name] = "temp_adj_%s" % g.name
             eqns.append(" %s = %s"%(q10gateadjustments[g.name], q10gateadjustments[None]) )
     return q10gateadjustments, eqns
 
@@ -106,7 +106,7 @@ def _build_gate_inftau(g, q10tempadjustmentName, neuroml_dt):
             ss = SeqUtils.expect_single(g.steady_states)
             tc_eqn = '%s =  ( %s) * (%s)' % ( term_name_tau, remap_gate_eqnI(tc.getEqn()), neuroml_dt )
             ss_eqn = '%s =  %s' % ( term_name_inf, remap_gate_eqnI( ss.getEqn())  )
-            state_eqn = "%s' = (%s-%s)/(%s) "%( state_name, term_name_inf,state_name,term_name_tau)
+            state_eqn = "%s' = (%s-%s)/(%s) " % ( state_name, term_name_inf,state_name,term_name_tau)
 
             # Add the equations
             eqns.extend([tc_eqn, ss_eqn,state_eqn, ])
@@ -165,12 +165,12 @@ def _build_gate_alphabetainftau(g, q10tempadjustmentName, neuroml_dt):
             ss_eqn = '%s =  %s/(%s+%s)' % ( term_name_inf, term_name_alpha,term_name_alpha,term_name_beta )
 
         # The state-equations
-        state_eqn = "%s' = (%s-%s)/(%s) "%( state_name, term_name_inf,state_name,term_name_tau)
+        state_eqn = "%s' = (%s-%s)/(%s) " % ( state_name, term_name_inf,state_name,term_name_tau)
 
 
         # Set the initial value of the state-variable to be the same
         # as the steady-state value:
-        initial_cond = "<=> INITIAL %s:%s"%(state_name,term_name_inf)
+        initial_cond = "<=> INITIAL %s:%s" % (state_name,term_name_inf)
 
         return [ e1,e2,tc_eqn,ss_eqn, state_eqn, initial_cond]
 
@@ -241,7 +241,7 @@ def build_eqnset( chlmlinfo, eqnsetname=None ):
     eqns.append( '%s =  %s * %s' % ( Name.Conductance, Name.OpenConductance,  Name.PropGatesOpen ) )
     eqns.append( '%s =  %s * ( (%s) - (%s) ) '% ( Name.MembraneCurrent, Name.Conductance, Name.Voltage, Name.ReversalPotential ) )
 
-    gate_prop_names = dict( [ (gate, '%s'%gate.name) for gate in chlmlinfo.gates ] )
+    gate_prop_names = dict( [ (gate, '%s' % gate.name) for gate in chlmlinfo.gates ] )
     gate_prop_terms = dict( [ (gate, '*'.join( [ gate_prop_names[gate] ] * gate.instances )) for gate in chlmlinfo.gates ] )
 
     if gate_prop_terms:
@@ -274,7 +274,7 @@ def build_eqnset( chlmlinfo, eqnsetname=None ):
     vOffset = None
     if chlmlinfo.offset:
         vOffset = "( %f * %s )"%( chlmlinfo.offset, neuroml_v_unit )
-    vOffsetTerm = "-%s"%vOffset if vOffset is not None else ""
+    vOffsetTerm = "-%s" %vOffset if vOffset is not None else ""
 
 
     # OK, use regular expressions to remap variables

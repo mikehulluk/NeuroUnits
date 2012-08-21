@@ -121,7 +121,7 @@ class ChannelML_GateEqn(object):
                 A,BC = self.expr.split("?")
                 B,C = BC.split(":")
 
-                self.expr = "[%s]if[%s]else[%s]"%(B.strip(),A.strip().replace(" ",""),C.strip())
+                self.expr = "[%s]if[%s]else[%s]" % (B.strip(),A.strip().replace(" ",""),C.strip())
 
             return self.expr
 

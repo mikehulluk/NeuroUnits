@@ -126,7 +126,7 @@ def p_short_basic_multiplier(p):
     p[0] = multiplier_short_LUT[ p[1] ]
 
 def p_error(p):
-    raise UnitError( "Parsing Error %s"%p )
+    raise UnitError( "Parsing Error %s" % p)
 
 
 

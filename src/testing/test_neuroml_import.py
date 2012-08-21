@@ -31,7 +31,6 @@ from neurounits.importers.neuroml.errors import NeuroUnitsImportNeuroMLNotImplem
 from neurounits.importers.neuroml import ChannelMLReader
 
 from mredoc.objects.core import Document, TableOfContents, SectionNewPage, Section, VerbatimBlock, Paragraph
-from mredoc.writers import LatexWriter, HTMLWriter
 
 from neurounits.writers.writer_ast_to_mredoc import MRedocWriterVisitor
 from neurounits.tools import nmodl
@@ -91,8 +90,8 @@ def main():
     doc =  Document( TableOfContents(), *redocs)
 
     opdir = os.path.join( TestLocations.getTestOutputDir(), 'neuroml' )
-    HTMLWriter.BuildHTML(doc, Join(opdir, 'html') )
-    LatexWriter.BuildPDF(doc, Join(opdir, 'all.pdf') )
+    doc.to_html(Join(opdir, 'html') )
+    doc.to_pdf( Join(opdir, 'all.pdf') )
 
 
 main()

@@ -285,7 +285,7 @@ class AbstractBlockBuilder(object):
 
     def _resolve_global_symbol(self,symbol,target, expect_is_unresolved=False):
         if expect_is_unresolved and not self.global_scope.hasSymbol(symbol):
-                raise ValueError("I was expecting to resolve a symbol in globalnamespace that is not there %s"%symbol)
+                raise ValueError("I was expecting to resolve a symbol in globalnamespace that is not there %s" % symbol)
 
         if not self.global_scope.hasSymbol(symbol):
             self.global_scope[symbol] = target

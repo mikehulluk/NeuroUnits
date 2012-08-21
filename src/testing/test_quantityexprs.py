@@ -29,8 +29,6 @@ import os
 
 from neurounits.neurounitparser import NeuroUnitParser
 from mredoc.objects.core import Document, Table
-from mredoc.writers.html import HTMLWriter
-from mredoc.writers.latex import LatexWriter
 
 
 from util_test_locations import TestLocations
@@ -70,7 +68,7 @@ def verify_equivalence_with_gnuunits(a,b):
     a = apply_reps(a,reps)
     b = apply_reps(b,reps)
 
-    cmd = 'units', '-1', '-s','--compact',"%s"%a,"%s"%b
+    cmd = ('units', '-1', '-s','--compact',"%s" % a,"%s" % b)
     cmd_str = " ".join(cmd)
     print cmd_str
     op = subprocess.check_output( cmd,  )
@@ -322,8 +320,8 @@ def main():
 
     opdir = os.path.join( TestLocations.getTestOutputDir(), 'quantity_exprs_valid' )
 
-    HTMLWriter.BuildHTML(doc, os.path.join(opdir, 'html') )
-    LatexWriter.BuildPDF(doc, os.path.join(opdir, 'all.pdf') )
+    doc.to_html(os.path.join(opdir, 'html') )
+    doc.to_pdf(os.path.join(opdir, 'all.pdf') )
 
 
 if __name__ == "__main__":

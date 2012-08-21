@@ -17,3 +17,5 @@ clean:
 	# Documentation:
 	make -C doc/ clean
 	make -C src/ clean
+	find . -name '*.new' -exec rm {} \;
+	find . -name '*~' -exec rm {} \;

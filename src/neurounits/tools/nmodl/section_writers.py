@@ -93,7 +93,7 @@ class SuppliedValuesWriter(ASTActionerDefaultIgnoreMissing):
         #from neuron_constants import NeuronSuppliedValues
 
         # Sanity Check;
-        assert n in build_parameters.supplied_values,  " Can't find %s in supplied values[%s]"%(n.symbol,  ",".join([s.symbol for s in build_parameters.supplied_values]) )
+        assert n in build_parameters.supplied_values,  " Can't find %s in supplied values[%s]" % (n.symbol,  ",".join([s.symbol for s in build_parameters.supplied_values]) )
 
         what = build_parameters.supplied_values[n]
 
@@ -260,9 +260,9 @@ class NeuronBlockWriter(object):
         from .neuron_constants import MechanismType#,NEURONMappings
         # Heading
         if build_parameters.mechanismtype == MechanismType.Point:
-            modfilecontents.section_NEURON.append("POINT_PROCESS %s"%build_parameters.suffix )
+            modfilecontents.section_NEURON.append("POINT_PROCESS %s" %build_parameters.suffix )
         elif build_parameters.mechanismtype == MechanismType.Distributed:
-            modfilecontents.section_NEURON.append("SUFFIX %s"%build_parameters.suffix )
+            modfilecontents.section_NEURON.append("SUFFIX %s" %build_parameters.suffix )
         else:
             assert False
 
@@ -270,7 +270,7 @@ class NeuronBlockWriter(object):
         #current_unit_in_nrn = NEURONMappings.current_units[build_parameters.mechanismtype]
         # Currents:
         for currentSymbol, neuronCurrentObj in build_parameters.currents.iteritems():
-            modfilecontents.section_NEURON.append("NONSPECIFIC_CURRENT %s"%currentSymbol.symbol )
+            modfilecontents.section_NEURON.append("NONSPECIFIC_CURRENT %s" %currentSymbol.symbol )
             #modfilecontents.section_ASSIGNED.append("%s (%s)"%(currentSymbol.symbol, current_unit_in_nrn ) )
 
 
@@ -382,7 +382,7 @@ class CStringWriter(ASTVisitorBase):
         return "%e"% o.value.float_in_si()
 
     def VisitSymbolicConstant(self,o , **kwargs):
-        return "%e"%o.value.float_in_si()
+        return "%e" %o.value.float_in_si()
 
 
 

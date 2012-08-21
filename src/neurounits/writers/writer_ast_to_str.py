@@ -45,7 +45,7 @@ class StringWriterVisitor(ASTVisitorBase):
 
 
     def VisitFunctionDef(self, o, **kwargs):
-        return '<FUNCDEF:%s => %s>' % (o.funcname, self.visit(o.rhs))
+        return '<FUNCDEF: %s => %s>' % (o.funcname, self.visit(o.rhs))
 
     def VisitFunctionDefParameter(self, o, **kwargs):
         return '<%s: %s>' % (o.__class__.__name__, o.symbol)

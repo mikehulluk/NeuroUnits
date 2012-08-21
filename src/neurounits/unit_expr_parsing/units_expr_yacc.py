@@ -368,13 +368,13 @@ def p_quantity_func_params_l3a(p):
     p[0] = { None: ast.FunctionDefParameterInstantiation( symbol = None, rhs_ast=p[1] ) }
 
 def p_quantity_func_params_l3b(p):
-    """func_call_params_l3 : func_call_param_l3"""
+    """func_call_params_l3 : func_call_param_l3 whiteslurp"""
     p[0] = {p[1].symbol: p[1]}
 
 def p_quantity_func_params_l3c(p):
-    """func_call_params_l3 : func_call_params_l3 COMMA func_call_param_l3"""
+    """func_call_params_l3 : func_call_params_l3 COMMA whiteslurp func_call_param_l3"""
     param_dict = p[1]
-    new_param = p[3]
+    new_param = p[4]
     assert not new_param.symbol in param_dict
     param_dict[new_param.symbol] = new_param
     p[0] = param_dict
@@ -841,7 +841,7 @@ class ParserMgr():
 
         #with open("/tmp/neurounits_grammar.txt",'w') as f:
         #    for p in parser.productions:
-        #        f.write( "%s\n"%p)
+        #        f.write( "%s\n" %p)
 
 
 
