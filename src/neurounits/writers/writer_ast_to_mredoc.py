@@ -347,7 +347,7 @@ class MRedocWriterVisitor(ASTVisitorBase):
         #assert False
 
         # Check here;
-        d = SectionNewPage(title, local_redocs)
+        d = Section(title, local_redocs)
         return d
 
 

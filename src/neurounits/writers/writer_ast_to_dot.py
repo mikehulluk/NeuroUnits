@@ -52,20 +52,20 @@ class DotVisitor(ASTVisitorBase):
         nodelist = list( self.g )
 
         labeller = {
-                ast.BuiltInFunction :       lambda n: "BuiltInFunc: %s %n.funcname,
-                ast.FunctionDef :           lambda n: "FuncDef: %s %n.funcname,
-                ast.FunctionDefParameter :  lambda n: "Param %s %n.symbol,
+                ast.BuiltInFunction :       lambda n: "BuiltInFunc: %s" %n.funcname,
+                ast.FunctionDef :           lambda n: "FuncDef: %s" %n.funcname,
+                ast.FunctionDefParameter :  lambda n: "Param %s" %n.symbol,
                 ast.AddOp :                 lambda n: "+",
                 ast.SubOp :                 lambda n: "-",
                 ast.MulOp :                 lambda n: "*",
                 ast.DivOp :                 lambda n: "/",
                 ast.ExpOp :                 lambda n: "**",
 
-                ast.SuppliedValue :         lambda n: "Supplied: %s %n.symbol,
-                ast.ConstValue:             lambda n: "Const: %s %n.value,
-                ast.Parameter:              lambda n: "Param: %s %n.symbol,
-                ast.AssignedVariable:       lambda n: "Assigned: %s %n.symbol,
-                ast.StateVariable:          lambda n: "State: %s %n.symbol,
+                ast.SuppliedValue :         lambda n: "Supplied: %s" %n.symbol,
+                ast.ConstValue:             lambda n: "Const: %s "%n.value,
+                ast.Parameter:              lambda n: "Param: %s" %n.symbol,
+                ast.AssignedVariable:       lambda n: "Assigned: %s" %n.symbol,
+                ast.StateVariable:          lambda n: "State: %s" %n.symbol,
                 ast.SymbolicConstant:       lambda n: "SymConst: %s %s"%(n.symbol,n.value),
 
 
@@ -86,20 +86,20 @@ class DotVisitor(ASTVisitorBase):
             return labeller[type(o)](o)
 
         color_scheme = {
-            ast.FunctionDef :           'b',
-            ast.FunctionDefParameter :  'r',
-            ast.AddOp :                 'orange',
-            ast.SubOp :                 'orange',
-            ast.MulOp :                 'orange',
-            ast.DivOp :                 'orange',
+                ast.FunctionDef :           'b',
+                ast.FunctionDefParameter :  'r',
+                ast.AddOp :                 'orange',
+                ast.SubOp :                 'orange',
+                ast.MulOp :                 'orange',
+                ast.DivOp :                 'orange',
 
-            ast.SuppliedValue :         'green',
-            ast.ConstValue :            'green',
-            ast.Parameter :             'green',
+                ast.SuppliedValue :         'green',
+                ast.ConstValue :            'green',
+                ast.Parameter :             'green',
 
-            ast.AssignedVariable :             'purple',
-            ast.StateVariable :             'purple',
-            }
+                ast.AssignedVariable :             'purple',
+                ast.StateVariable :             'purple',
+                }
 
 
         # P.show()
