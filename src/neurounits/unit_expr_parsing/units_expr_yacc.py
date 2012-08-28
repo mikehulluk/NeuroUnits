@@ -836,7 +836,11 @@ class ParserMgr():
     @classmethod
     def build_parser( cls, start_symbol, debug):
         #lexer = units_expr_lexer.UnitExprLexer()
-        tables_loc =  EnsureExisits("/tmp/nu/yacc/parse_eqn_block")
+
+        import os
+        username = os.getusername()
+        #tables_loc = EnsureExisits("/tmp/%s/nu/yacc/parse_term" % username)
+        tables_loc =  EnsureExisits("/tmp/%s/nu/yacc/parse_eqn_block" % username)
         parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1, errorlog=ply.yacc.NullLogger()  )
 
         #with open("/tmp/neurounits_grammar.txt",'w') as f:
