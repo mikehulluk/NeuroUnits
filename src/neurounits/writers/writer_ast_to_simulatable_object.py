@@ -264,7 +264,6 @@ class FunctorGenerator(ASTVisitorBase):
                 return
 
             if type(assignment) != ast.AssignedVariable:
-                #print 'Skipping', assignment
                 return
             for dep in assignment_deps[assignment]:
                 resolve(dep)

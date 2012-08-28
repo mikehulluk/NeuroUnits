@@ -27,13 +27,15 @@
 # -------------------------------------------------------------------------------
 
 from neurounits.visitors import ASTVisitorBase
-from mredoc import VerticalColTable, Figure, SectionNewPage, Section, EquationBlock, VerbatimBlock, Equation
+from mredoc import VerticalColTable, Figure, SectionNewPage, Section, EquationBlock, VerbatimBlock, Equation, Image, HierachyScope
 from neurounits.ast.astobjects import SuppliedValue
 from neurounits.ast.astobjects import Parameter, StateVariable
 from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator
 
 
 import pylab
+import quantities as pq
+import numpy as np
 
 
 #from mredoc import *
@@ -250,8 +252,6 @@ def build_figures(eqnset):
             if role != 'MEMBRANEVOLTAGE':
                 continue
 
-            # print "sup.symbol", sup.symbol
-
             F = FunctorGenerator()
             F.visit(eqnset)
 
@@ -261,13 +261,14 @@ def build_figures(eqnset):
             try:
                 #print f
                 vVals = [-80, -70, -60, -40, -20, 0, 20, 40]
-                vVals = range(-80, 50, 10)
+                vVals = np.linspace(-80, 50, 22) #* pq.milli * pq.volt
                 oUnit = None
                 fOut = []
                 for v in vVals:
                     from neurounits.neurounitparser import NeuroUnitParser
                     vUnit = NeuroUnitParser.QuantitySimple('%f mV' % v)
                     vRes = f(V=vUnit, v=vUnit)
+                    #vRes = f(V=v, v=v)
                     if oUnit is None:
                         oUnit = vRes.unit
                     assert vRes.unit == oUnit
@@ -277,9 +278,10 @@ def build_figures(eqnset):
                 f = pylab.figure(figsize=(2, 2))
                 ax = f.add_subplot(1, 1, 1)
                 ax.plot(vVals, vVals, color=color)
-                f.suptitle('ERROR PLOTTING: Graph of %s' % a.symbol)
+                f.suptitle('ERROR PLOTTING: Graph of %s against %s ' % (a.symbol, 'V' ))
                 ax.set_xlabel('Membrane Voltage (mV)')
                 ax.set_ylabel('%s (%s)' % (a.symbol, oUnit))
+                ax.grid('on')
                 plots[a.symbol] = f
 
             else:
@@ -287,31 +289,35 @@ def build_figures(eqnset):
                 color = 'b'
                 f = pylab.figure(figsize=(2, 2))
                 ax = f.add_subplot(1, 1, 1)
-                ax.plot(vVals, fOut)
-                f.suptitle('Graph of %s' % a.symbol)
+                ax.plot(vVals, fOut, color=color)
+                f.suptitle('Graph of %s against V' % a.symbol)
                 ax.set_xlabel('Membrane Voltage (mV)')
                 ax.set_ylabel('%s ($%s$)' % (a.symbol,
                               FormatDimensionality(oUnit)))
+                ax.grid('on')
                 plots[a.symbol] = f
 
 
     # Build figure groups based on the first term:
 
     if len(plots) <= 3:
-        imgs = [ImageMPL(f) for f in sorted(plots.values())]
-        F = Figure(caption='jkl', *imgs)
+        imgs = [Image(f) for f in sorted(plots.values())]
+        F = Figure(caption='Plots for channel', *imgs)
         return [F]
 
 
-    ps = []
     states = set([k.split('_')[0] for k in plots.keys()])
-    for s in states:
-        vs = [(k, v) for (k, v) in plots.iteritems() if k.split('_')[0]
-              == s]
-        imgs = [ImageMPL(f[1]) for f in sorted(vs)]
-        F = Figure(caption='State:%s' % s, *imgs)
-        ps.append(F)
 
+    img_sets = []
+    for s in states:
+        vs = [(k, v) for (k, v) in plots.iteritems() if k.split('_')[0] == s]
+        imgs = [Image(f[1]) for f in sorted(vs)]
+        img_sets.append((imgs, s))
+
+    
+
+    
+    ps = [ Figure(caption='State:%s' % state, *imgs) for (imgs, state) in img_sets]
     return ps
 
 
@@ -377,8 +383,9 @@ class MRedocWriterVisitor(ASTVisitorBase):
                                             ["$%s$     | State | -     | %s         | $\{%s\}$     | %s  " % (symbol_format(s.symbol), format_dim(s), dep_string_indir(s), meta_format(s)  ) for s in eqnset.states]
                                             )
 
-        return SectionNewPage(
-            'Eqnset Summary: %s' % eqnset.name,
+        plts = build_figures( eqnset)
+        return HierachyScope(
+            "Summary of '%s'" % eqnset.name,
             Section('Assignments',
                     EquationBlock(*[LatexEqnWriterN().visit(a) for a in
                     sorted(eqnset.assignments, key=lambda a: \
@@ -395,7 +402,7 @@ class MRedocWriterVisitor(ASTVisitorBase):
             Section('Events',
                     EquationBlock(*[LatexEqnWriterN().visit(a) for a in
                     eqnset.onevents])),
-            #Section('Plots', *plts),
+            Section('Plots', *plts),
             )
 
     def VisitLibrary(self, library):
