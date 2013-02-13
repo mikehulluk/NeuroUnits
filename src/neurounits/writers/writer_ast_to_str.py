@@ -34,14 +34,24 @@ class StringWriterVisitor(ASTVisitorBase):
         print 'AST:'
         print '----'
 
-        for a in o.assignments:
-            print self.visit(a)
 
-        for a in o.timederivatives:
-            print self.visit(a)
+        ass_str = [self.visit(a) for a in o.assignments]
+        tds_str = [self.visit(a) for a in o.timederivatives]
+        fnc_str = [self.visit(a) for a in o.functiondefs]
 
-        for a in o.functiondefs:
-            print self.visit(a)
+
+        details = 'Eqnset: %s' % o.name
+        actions =  '\n'.join( ass_str + tds_str + fnc_str )
+
+        return '\n'.join([details,actions])
+        #for a in o.assignments:
+        #    print self.visit(a)
+
+        #for a in o.timederivatives:
+        #    print self.visit(a)
+
+        #for a in o.functiondefs:
+        #    print self.visit(a)
 
 
     def VisitFunctionDef(self, o, **kwargs):
