@@ -102,7 +102,7 @@ class EqnSimulator(object):
             return mredoc.Figure(f)
 
 
-        return mredoc.Section( "Simulation Results for: %s",
+        return mredoc.Section( "Simulation Results for: %s" % self.ast.name,
                  [ build_trace_plot(tr) for tr in traces ] + [ build_phase_plot(*tr) for tr in phase_plots ]
                 )
 

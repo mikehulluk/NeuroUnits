@@ -27,8 +27,8 @@
 import subprocess
 import os
 
-from neurounits.neurounitparser import NeuroUnitParser
-from mredoc.objects.core import Document, Table
+from neurounits import NeuroUnitParser
+from mredoc import Document, Table
 
 
 from util_test_locations import TestLocations
