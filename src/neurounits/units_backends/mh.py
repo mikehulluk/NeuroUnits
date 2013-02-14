@@ -222,7 +222,7 @@ class MMQuantity(object):
         return '<Quantity: %s %s>' % (self.magnitude, self.unit)
 
     def __eq__(self, rhs):
-        lhs_mag =self.magnitude * 10**self.unit.powerTen
+        lhs_mag = self.magnitude * 10**self.unit.powerTen
         rhs_mag = rhs.magnitude * 10** rhs.unit.powerTen
         return  (lhs_mag== rhs_mag) and \
                 (self.unit.meter == rhs.unit.meter) and \

@@ -1,0 +1,20 @@
+# Some Examples of valid L1
+# Blah blah
+#
+#@ {'type':'L1','test-gnu-unit':true}
+m == meter
+s == second
+millisecond == ms 
+millisecond-1 == ms-1
+volt == coulomb/mol
+amp == coulomb/s
+
+#@ {'type':'L2','test-gnu-unit':true, 'eps':0.01}
+1.0m == 1meter
+
+#@ {'type':'L3','test-gnu-unit':true, 'eps':0.01}
+{1.0m} / {2s} == {0.5 m/s} == {50 cm/s} == {0.5 mm/ms}
+3+4/2==5
+3+6/2+1==7
+#std.math.pi * 2**2 == {12}
+

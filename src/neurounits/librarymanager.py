@@ -152,3 +152,10 @@ class LibraryManager(object):
         return self.currentblock
 
 
+
+    def summary(self, details=True):
+        name = self.name if self.name else ''
+        simple = '<LibraryManager: %s EqnSets:%d Libraries:%d>' % (name, len(self.eqnsets), len(self.libraries))
+
+        return simple
+

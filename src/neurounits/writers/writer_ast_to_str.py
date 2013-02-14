@@ -44,14 +44,6 @@ class StringWriterVisitor(ASTVisitorBase):
         actions =  '\n'.join( ass_str + tds_str + fnc_str )
 
         return '\n'.join([details,actions])
-        #for a in o.assignments:
-        #    print self.visit(a)
-
-        #for a in o.timederivatives:
-        #    print self.visit(a)
-
-        #for a in o.functiondefs:
-        #    print self.visit(a)
 
 
     def VisitFunctionDef(self, o, **kwargs):
