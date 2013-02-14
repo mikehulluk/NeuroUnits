@@ -1,14 +1,46 @@
 
+
+
+import json
+import neurounits
+import copy
+
+
+
+
 class NutsIO(object):
 
     @classmethod
     def load(cls, filename):
-        _check_nuts_file(filename)
+        options = NutsOptions()
+        nuts_lines = []
+        with open(filename) as f:
+            for lineno,line in enumerate(f.readlines()):
+                line = line.strip()
+                if not line:
+                    continue
+                elif line.startswith('#@'):
+                    options = copy.deepcopy(options)
+                    options.update(line[2:])
+                elif line.startswith('#'):
+                    pass
+                else:
+                    nuts_lines.append( NutsIOLine(line=line, lineno=lineno, options=options) )
+        return nuts_lines
+
+    @classmethod
+    def validate(cls, filename):
+        print 'Checking nuts files', filename
+        nuts_lines = cls.load(filename)
+
+        for ln in nuts_lines:
+            print ln.validate()
+        print len(nuts_lines)
 
 
 
 
-import json
+
 
 
 
@@ -24,12 +56,18 @@ class NutsOptions():
             setattr(self,k,v)
 
     def update(self, line):
-        #print 'Updating options:', line
         line = line.replace("'",'"')
         new_options = json.loads(line)
         for k,v in new_options.items():
             assert k in NutsOptions.valid_attrs, 'Invalid option: %s'%k
             setattr(self,k,v)
+
+
+
+
+
+
+
 
 
 
@@ -40,12 +78,8 @@ def compare_l2(u1,u2):
     return u1==u2
 
 def compare_l3(u1,u2):
-    #print 'Comparing:', u1,u2
-    #print '==', u1,u2,u1==u2
-    #print '-', u1-u2
     return u1==u2
 
-import neurounits
 parse_func_lut = {
         'L1':neurounits.NeuroUnitParser.Unit,
         'L2':neurounits.NeuroUnitParser.QuantitySimple,
@@ -59,51 +93,41 @@ comp_func_lut = {
         }
 
 
-def check_line(line, options):
-
-    parse_func = parse_func_lut[options.type]
-    comp_func = comp_func_lut[options.type]
-
-    print 'Checking', line.ljust(30),
-
-    if '==' in line:
-        toks = line.split('==')
-        are_equal = True
-
-        #for t in toks:
-        #    print 'Parsing:',t
-        #    parse_func(t)
 
 
-        for t in toks[1:]:
-            are_equal_comp = comp_func(
-                    parse_func(toks[0]),
-                    parse_func(t)
-                    )
-            are_equal = are_equal and are_equal_comp
-        print are_equal
+class NutsIOLine(object):
+    def __init__(self, line, lineno, options):
+        self.line = line
+        self.lineno = lineno
+        self.options=options
+
+
+    def validate(self,):
+        parse_func = parse_func_lut[self.options.type]
+        comp_func = comp_func_lut[self.options.type]
+
+        print 'Checking', self.line.ljust(30),
+
+        if '==' in self.line:
+            toks = self.line.split('==')
+            are_equal = True
+
+            for t in toks[1:]:
+                are_equal_comp = comp_func(
+                        parse_func(toks[0]),
+                        parse_func(t)
+                        )
+                are_equal = are_equal and are_equal_comp
+            print are_equal
+        else:
+            assert False
 
 
 
 
 
 
-def _check_nuts_file(filename):
-    print 'Checking nuts files', filename
 
-    options = NutsOptions()
-
-    with open(filename) as f:
-        for line in f.readlines():
-            line = line.strip()
-            if not line:
-                continue
-            elif line.startswith('#@'):
-                options.update(line[2:])
-            elif line.startswith('#'):
-                pass
-            else:
-                check_line(line,options)
 
 
 

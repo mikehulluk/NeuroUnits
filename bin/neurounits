@@ -4,9 +4,13 @@ import argparse
 from neurounits import NeuroUnitParser, NutsIO
 
 
-parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument('--validate', dest='validate', action='store', nargs='+')
-args= parser.parse_args()
+def build_parser():
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('--validate', dest='validate', action='store_true')
+    parser.add_argument('--extract-level', dest='extract', action='store', nargs=1)
+    parser.add_argument('--extract-to', dest='extract_to', action='store', nargs=1)
+    parser.add_argument('files', nargs='+')
+    return parser
 
 
 
@@ -18,20 +22,31 @@ def validate_eqn(filename):
     print '  ', f.summary()
 
 def validate_nuts(filename):
-    NutsIO.load(filename)
+    NutsIO.validate(filename)
     print 'Validating:', filename
 
 
-for f in args.validate:
-
-    if f.endswith('.eqn'):
-        validate_eqn(f)
-
-    if f.endswith('nuts'):
-        validate_nuts(f)
 
 
 
 
 def main():
-    pass
+    parser = build_parser()
+    args= parser.parse_args()
+
+    print args.files
+    print 'validate', args.validate
+    print 'extract', args.extract
+    
+    # Validation:
+    for f in args.files:
+        if f.endswith('.eqn'):
+            validate_eqn(f)
+        if f.endswith('nuts'):
+            validate_nuts(f)
+    
+    # Extraction:
+
+
+if __name__=='__main__':
+    main()
