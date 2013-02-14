@@ -27,11 +27,7 @@
 import subprocess
 import os
 
-<<<<<<< HEAD
-from neurounits.neurounitparser import NeuroUnitParser
-=======
 from neurounits import NeuroUnitParser
->>>>>>> b95a5377d2e90c320a06e3f68e6ee618fe2c4099
 from mredoc import Document, Table
 
 
