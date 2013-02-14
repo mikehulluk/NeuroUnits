@@ -408,23 +408,29 @@ def p_bool_term_b(p):
     """bool_term : rhs_term GREATERTHAN rhs_term"""
     p[0] = ast.InEquality(less_than=p[3], greater_than=p[1])
 
-def p_bool_term1(p):
-    """bool_term : bool_term AND bool_term"""
+def p_bool_term_c(p):
+    """bool_expr : bool_term"""
+    p[0] = p[1]
+
+def p_bool_term_and1(p):
+    """bool_expr : bool_expr AND bool_expr"""
     p[0] = ast.BoolAnd(lhs=p[1], rhs=p[3])
+
+
 def p_bool_term2(p):
-    """bool_term : bool_term OR bool_term"""
+    """bool_expr : bool_expr OR bool_expr"""
     p[0] = ast.BoolOr(lhs=p[1], rhs=p[3])
 def p_bool_term3(p):
-    """bool_term : NOT bool_term"""
+    """bool_expr : NOT bool_expr"""
     p[0] = ast.BoolNot(lhs=p[2])
 
 def p_bool_term4(p):
-    """bool_term : LBRACKET bool_term RBRACKET"""
+    """bool_expr : LBRACKET bool_expr RBRACKET"""
     p[0] = p[2]
 
 
 def p_rhs_term_conditional(p):
-    """rhs_term : LSQUAREBRACKET rhs_generic RSQUAREBRACKET IF LSQUAREBRACKET bool_term RSQUAREBRACKET ELSE LSQUAREBRACKET rhs_generic RSQUAREBRACKET"""
+    """rhs_term : LSQUAREBRACKET rhs_generic RSQUAREBRACKET IF LSQUAREBRACKET bool_expr RSQUAREBRACKET ELSE LSQUAREBRACKET rhs_generic RSQUAREBRACKET"""
     p[0] = ast.IfThenElse(  predicate=p[6],
                         if_true_ast=p[2],
                         if_false_ast=p[10])
@@ -695,6 +701,8 @@ precedence = (
     ('left', 'TIMESTIMES'),
     ('left', 'SLASHSLASH'),
 
+    ('left', 'GREATERTHAN'),
+    ('left', 'LESSTHAN'),
     ('right', 'NOT'),
     ('left', 'AND'),
     ('left', 'OR'),
@@ -747,13 +755,26 @@ regexes_slashes = {
         }
 
 
+# Remove whitespace around the 'if' then' or else'
+if_stmt_regex1 =  RE(frm=r"\s*\bif\b\s*", to=r"""if""")
+if_stmt_regex2 =  RE(frm=r"\s*\bthen\b\s*", to=r"""then""")
+if_stmt_regex3 =  RE(frm=r"\s*\belse\b\s*", to=r"""else""")
+if_stmt_regexes = [if_stmt_regex1, if_stmt_regex2, if_stmt_regex3]
+
+logical_regex_not = RE(frm=r"\s*\bnot\b\s*", to=r"""!""")
+logical_regex_and = RE(frm=r"\s*\band\b\s*", to=r"""&""")
+logical_regex_or = RE(frm=r"\s*\bor\b\s*", to=r"""|""")
+logic_regexes = [logical_regex_not, logical_regex_and, logical_regex_or]
+
+complex_regexes = if_stmt_regexes + logic_regexes
+
 regexes_by_parsetype_slashes = {
-        ParseTypes.L1_Unit:         [ regexes_slashes["SlashAlpha_To_DoubleSlash"], regexes_slashes["SlashCurlyTilde_To_DoubleSlash"], ],
-        ParseTypes.L2_QuantitySimple:     [ regexes_slashes["SlashAlpha_To_DoubleSlash"], regexes_slashes["SlashCurlyTilde_To_DoubleSlash"], ],
-        ParseTypes.L3_QuantityExpr:   [ regexes_slashes["CurlyBracketUnitWithSlash"], regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"]  ],
-        ParseTypes.L4_EqnSet:   [ regexes_slashes["CurlyBracketUnitWithSlash"], regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"], ],
-        ParseTypes.L5_Library:   [ regexes_slashes["CurlyBracketUnitWithSlash"], regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"], ],
-        ParseTypes.L6_TextBlock:   [ regexes_slashes["CurlyBracketUnitWithSlash"], regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"], ],
+        ParseTypes.L1_Unit:             [ regexes_slashes["SlashAlpha_To_DoubleSlash"], regexes_slashes["SlashCurlyTilde_To_DoubleSlash"], ],
+        ParseTypes.L2_QuantitySimple:   [ regexes_slashes["SlashAlpha_To_DoubleSlash"], regexes_slashes["SlashCurlyTilde_To_DoubleSlash"], ],
+        ParseTypes.L3_QuantityExpr:     [ regexes_slashes["CurlyBracketUnitWithSlash"], regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"]  ] + complex_regexes,
+        ParseTypes.L4_EqnSet:           [ regexes_slashes["CurlyBracketUnitWithSlash"], regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"], ] + complex_regexes,
+        ParseTypes.L5_Library:          [ regexes_slashes["CurlyBracketUnitWithSlash"], regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"], ] + complex_regexes,
+        ParseTypes.L6_TextBlock:        [ regexes_slashes["CurlyBracketUnitWithSlash"], regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"], ] + complex_regexes,
         }
 
 
@@ -841,6 +862,7 @@ class ParserMgr():
         username = 'tmp_%d' % os.getuid()
         #tables_loc = EnsureExisits("/tmp/%s/nu/yacc/parse_term" % username)
         tables_loc =  EnsureExisits("/tmp/%s/nu/yacc/parse_eqn_block" % username)
+        #parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1  )
         parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1, errorlog=ply.yacc.NullLogger()  )
 
         #with open("/tmp/neurounits_grammar.txt",'w') as f:
@@ -899,7 +921,7 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
 
 
 
-
+    #debug=True
     #debug=False
     lexer = units_expr_lexer.UnitExprLexer()
     parser = ParserMgr.get_parser( start_symbol=start_symbol, debug=debug)

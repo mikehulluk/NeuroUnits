@@ -8,4 +8,5 @@ clean:
 	find . -name "*parser.out*" -exec rm {} \;
 	rm -rf _output/
 	rm -rf testing/_output/
+	rm -rf testing/htmlcov/
 

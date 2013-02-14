@@ -48,6 +48,21 @@ class Mode:
     AssumeSIFloat = 'AssumeSIFloat'
 
 
+
+
+
+def get_as_si(o):
+    if isinstance(o, (float, int)):
+        return o
+    return o.float_in_si()
+
+
+
+
+
+
+
+
 class EqnSimulator(object):
 
     """A class to allow the evaluation of eqnsets.
@@ -114,10 +129,6 @@ class EqnSimulator(object):
 
         assert isinstance(time_data, np.ndarray)
 
-        def get_as_si(o):
-            if isinstance(o, (float, int)):
-                return o
-            return o.float_in_si()
 
         initial_condition_map = {}
         for s in self.ast.initial_conditions:
@@ -132,17 +143,13 @@ class EqnSimulator(object):
                 return initial_condition_map[symbol]
             if default_state0:
                 return default_state0
-            raise ValueError('No Starting Value for StateVariable: %s found'
-                              % symbol)
+            raise ValueError('No Starting Value for StateVariable: %s found' % symbol)
 
-        # Resolve the starting values:
-        state0 = [ get_as_si(get_initial_condition(td.lhs.symbol) ) for td in self.timederivatives ]
 
 
 
         def rebuild_kw_dict(raw_state_data, params, t0):
-            kw_states = dict([(td.lhs.symbol, y) for (td, y) in
-                             zip(self.timederivatives, raw_state_data)])
+            kw_states = dict([(td.lhs.symbol, y) for (td, y) in zip(self.timederivatives, raw_state_data)])
             kw = safe_dict_merge(kw_states, params)
             kw['t'] = t0
             return kw
@@ -164,6 +171,8 @@ class EqnSimulator(object):
         # ACTION!
         #evaluate_gradient(state0, 0.0)
 
+        # Resolve the starting values:
+        state0 = [ get_as_si(get_initial_condition(td.lhs.symbol) ) for td in self.timederivatives ]
 
         # Evaluate:
         y = scipy.integrate.odeint( evaluate_gradient, state0, t=time_data )
@@ -184,11 +193,9 @@ class EqnSimulator(object):
         ass_names = [None for i in range(nAssignments)]
         for t in time_data:
             state_data = y[t, :]
-            kw = rebuild_kw_dict(raw_state_data=state_data,
-                                 params=params, t0=t)
+            kw = rebuild_kw_dict(raw_state_data=state_data, params=params, t0=t)
 
-            for (i, (a, afunctor)) in \
-                enumerate(self.fObj.assignment_evaluators.iteritems()):
+            for (i, (a, afunctor)) in enumerate(self.fObj.assignment_evaluators.iteritems()):
 
                 aVal = afunctor(**kw)
 
@@ -196,6 +203,8 @@ class EqnSimulator(object):
                     ass_names[i] = a
 
                 aValRaw = aVal # .rescale(ass_units[i])
+
+                print a, aValRaw
 
                 ass_data[i].append(aValRaw)
 
@@ -306,27 +315,57 @@ class FunctorGenerator(ASTVisitorBase):
         return f
 
     def VisitBoolAnd(self, o, **kwargs):
-        raise NotImplementedError()
+        s1 = self.visit( o.lhs )
+        s2 = self.visit( o.rhs )
+        def f(**kw):
+            return s1(**kw) and s2(**kw)
+        return f
+
     def VisitBoolOr(self, o, **kwargs):
-        raise NotImplementedError()
+        s1 = self.visit( o.lhs )
+        s2 = self.visit( o.rhs )
+        def f(**kw):
+            return s1(**kw) or s2(**kw)
+        return f
+
     def VisitBoolNot(self, o, **kwargs):
-        raise NotImplementedError()
+        s1 = self.visit( o.lhs )
+        def f(**kw):
+            return not s1(**kw) 
+        return f
 
     def VisitBuiltInFunction(self, o, **kwargs):
-        def eFunc(**kw):
-            if o.funcname == 'exp':
-                ParsingBackend = MHUnitBackend
-                return ParsingBackend.Quantity( float( np.exp( ( kw.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
-            if o.funcname == 'sin':
-                ParsingBackend = MHUnitBackend
-                return ParsingBackend.Quantity( float( np.sin( ( kw.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
-            if o.funcname == 'pow':
-                ParsingBackend = MHUnitBackend
-                return ParsingBackend.Quantity(
-                        float( np.power( ( kw['base'] ).dimensionless() ,( kw['exp'] ).dimensionless() )  ),
-                        ParsingBackend.Unit() )
-            else:
-                assert False
+        if not self.as_float_in_si:
+
+            def eFunc(**kw):
+                if o.funcname == 'exp':
+                    ParsingBackend = MHUnitBackend
+                    assert len(kw) == 1
+                    return ParsingBackend.Quantity( float( np.exp( ( kw.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
+                if o.funcname == 'sin':
+                    assert len(kw) == 1
+                    ParsingBackend = MHUnitBackend
+                    return ParsingBackend.Quantity( float( np.sin( ( kw.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
+                if o.funcname == 'pow':
+                    assert len(kw) == 2
+                    ParsingBackend = MHUnitBackend
+                    return ParsingBackend.Quantity( float( np.power( ( kw['base'] ).dimensionless() ,( kw['exp'] ).dimensionless() )  ), ParsingBackend.Unit() )
+                else:
+                    assert False
+        else:
+            def eFunc(**kw):
+                if o.funcname == 'exp':
+                    assert len(kw) == 1
+                    return float( np.exp( ( kw.values()[0] ) ) )
+                if o.funcname == 'sin':
+                    assert len(kw) == 1
+                    return  float( np.sin( ( kw.values()[0] )) )
+                if o.funcname == 'pow':
+                    assert len(kw) == 2
+                    return float( np.power( ( kw['base'] ),( kw['exp'] ) ) ) 
+                else:
+                    assert False
+
         return eFunc
 
     def VisitSymbolicConstant(self, o, **kwargs):

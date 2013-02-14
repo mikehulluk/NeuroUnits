@@ -155,13 +155,16 @@ class DimensionResolver(ASTVisitorBase):
         self.EnsureEqualDimensions([o.less_than, o.greater_than])
 
     def VisitBoolAnd(self, o, **kwargs):
-        panic()
+        pass
+        #panic()
 
     def VisitBoolOr(self, o, **kwargs):
-        panic()
+        pass
+        #panic()
 
     def VisitBoolNot(self, o, **kwargs):
-        panic()
+        pass
+        #panic()
 
 
 

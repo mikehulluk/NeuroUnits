@@ -34,6 +34,11 @@ library std.math {
     ceil(x) = __ceil__(x)
     fabs(x) = __fabs__(x)
     floor(x) = __floor__(x)
+    
+    #min(x,y) = __min__(x=x,y=y)
+    #max(x,y) = __max__(x=x,y=y)
+    #fabs(x,y) = __fabs__(x=x)
+    
 }
 
 

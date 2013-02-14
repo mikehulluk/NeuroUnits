@@ -15,6 +15,7 @@ doc: force_look
 
 clean:
 	# Documentation:
+	make -C spec/latex/ clean
 	make -C doc/ clean
 	make -C src/ clean
 	find . -name '*.new' -exec rm {} \;

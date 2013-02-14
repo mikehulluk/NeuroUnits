@@ -35,9 +35,9 @@ class UnitExprLexer(object):
     reserved = {
             'if':   'IF',
             'else': 'ELSE',
-            'and':  'AND',
-            'or':   'OR',
-            'not':  'NOT',
+            #'and':  'AND',
+            #'or':   'OR',
+            #'not':  'NOT',
 
             'from': 'FROM',
             'import':'IMPORT',
@@ -78,6 +78,9 @@ class UnitExprLexer(object):
 
         "LESSTHAN",
         "GREATERTHAN",
+        'AND',
+        'OR',
+        'NOT',
 
 
 
@@ -143,6 +146,9 @@ class UnitExprLexer(object):
     t_COLON = r""":"""
     t_EQUALS = r"""="""
 
+    t_NOT = r"""!"""
+    t_AND = r"""&"""
+    t_OR = r"""\|"""
 
 
     # {~xyz} units
