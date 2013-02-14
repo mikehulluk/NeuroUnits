@@ -420,9 +420,8 @@ class MRedocWriterVisitor(ASTVisitorBase):
         return SectionNewPage('Library Summary: %s' % library.name,
                               Section('Imports'),
                               Section('Function Definitions',
-                              EquationBlock(*[LatexEqnWriterN().visit(a)
-                              for a in eqnset.functiondefs
-                              if not isinstance(a, BuiltInFunction)])),
-                              Section('Symbols', terminal_symbols))
+                              EquationBlock(*[LatexEqnWriterN().visit(a) for a in library.functiondefs if not isinstance(a, BuiltInFunction)])),
+                              #Section('Symbols', terminal_symbols)
+                              )
 
 
