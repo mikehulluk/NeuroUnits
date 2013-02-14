@@ -59,7 +59,7 @@ For example, we can write code like this:
 
     # Level 3:
     NeuroUnitParser.EqnSet("""
-       EQNSET syn_simple {
+       eqnset syn_simple {
             g' = - g/g_tau
             i = gmax * (v-erev) * g
 
@@ -137,7 +137,7 @@ Libraries allow us to define constants and functions that can be used in other
 Eqnsets. This is how the Standard-Library is defined for example.
 The following defines a simple Libary::
 
-    LIBRARY  simple_library {
+    library  simple_library {
         a = 14 mV
         b = a + {12mV}
         my_func( c:V, d:ohm) = c+ d*{3pA}
@@ -156,7 +156,7 @@ constants available in thier namespace.  This is done to prevent, for example,
 having to pass ``pi`` as a paramter to a function that calculates the surface
 area of a sphere.  The following is valid for example::
 
-    LIBRARY  simple_library2 {
+    library  simple_library2 {
         my_constant = 23.4534 my_func( a ) = a + my_constant
         }
 
@@ -165,18 +165,18 @@ It is possible to use symbols in other loaded libaries by using their fully
 qualified address, or they can be imported using a syntax similar to python
 into the library. The following are all valid libraries::
 
-    LIBRARY  simple_library2 {
+    library  simple_library2 {
         my_r = 4um
         my_area = std.math.pi * my_r ** 2
         }
 
-    LIBRARY  simple_library3 {
+    library  simple_library3 {
         from std.math import pi
         my_r = 4um
         my_area = pi * my_r ** 2
         }
 
-    LIBRARY  simple_library4 {
+    library  simple_library4 {
         from std.math import pi as PI
         my_r = 4um
         my_area = PI * my_r ** 2
@@ -203,7 +203,7 @@ in an Eqnset can be one of the following:
 NeuroUnits will infer the types of most symbols automatically from the context.
 For example, the following defines a leak channel (no state variables)::
 
-    EQNSET leak_chl {
+    eqnset leak_chl {
         i = (v - {-50mV} ) * {30pS}
     }
 
@@ -211,7 +211,7 @@ However, it is unable to determine whether a symbol is Parameter or a
 SuppliedValue, and in this case it must be specified.  For example, the
 following block defines a Hodgkin-Huxley type potassium channel::
 
-    EQNSET hh_k {
+    eqnset hh_k {
 
     }
 

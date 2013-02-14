@@ -143,11 +143,16 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         return d1 + d2
 
     def VisitBoolAnd(self, o, **kwargs):
-        raise NotImplementedError()
+        d1 = self.visit(o.lhs, **kwargs)
+        d2 = self.visit(o.rhs, **kwargs)
+        return d1 + d2
     def VisitBoolOr(self, o, **kwargs):
-        raise NotImplementedError()
+        d1 = self.visit(o.lhs, **kwargs)
+        d2 = self.visit(o.rhs, **kwargs)
+        return d1 + d2
     def VisitBoolNot(self, o, **kwargs):
-        raise NotImplementedError()
+        d1 = self.visit(o.lhs, **kwargs)
+        return d1 
 
     # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):

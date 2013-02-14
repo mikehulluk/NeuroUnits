@@ -59,12 +59,10 @@ class UnitMismatchError(ValueError):
         self.objB = objB
 
     def __str__(self):
-        if self.objA:
-            return 'Unit Imcompatibility: (%s) <-> (%s)' % (self.unitA,
-                    self.unitB)
-        else:
-            return 'Unit Imcompatibility: (%s) <-> (%s)' % (self.unitA,
-                    self.unitB)
+
+        objA_name = str(self.objA)
+        objB_name = str(self.objB)
+        return 'Unit Imcompatibility: (%s) <-> (%s) [%s %s]' % (self.unitA, self.unitB, objA_name, objB_name)
 
 
 class NeuroUnitParsingError(ValueError):

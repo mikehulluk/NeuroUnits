@@ -1,5 +1,5 @@
 
-LIBRARY std.math {
+library std.math {
 
     pi = 3.141592653
     e =  2.718281828
@@ -34,12 +34,17 @@ LIBRARY std.math {
     ceil(x) = __ceil__(x)
     fabs(x) = __fabs__(x)
     floor(x) = __floor__(x)
+    
+    #min(x,y) = __min__(x=x,y=y)
+    #max(x,y) = __max__(x=x,y=y)
+    #fabs(x,y) = __fabs__(x=x)
+    
 }
 
 
 
 
-LIBRARY std.geom {
+library std.geom {
     from std.math import pi
 
     area_of_sphere(r:m) = 4 * pi * r*r
@@ -47,7 +52,7 @@ LIBRARY std.geom {
 }
 
 
-LIBRARY std.neuro {
+library std.neuro {
     from std.math import pi,pow
     
 	
@@ -68,7 +73,7 @@ LIBRARY std.neuro {
 }
 
 
-LIBRARY std.physics {
+library std.physics {
     
     F = 96485.3365 coulomb mole-1
     Na = 6.02214129e23 mole-1

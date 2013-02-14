@@ -1,4 +1,4 @@
-EQNSET NeuroMLChannel1{
+eqnset NeuroMLChannel1{
         from std.math import exp
         I = 0.0 *  GMAX * ( (VREV) - ((V/{1mV})*{1V}) ) * GATEPROP
 		A = GMAX
@@ -29,7 +29,7 @@ EQNSET NeuroMLChannel1{
 
 
 
-EQNSET chlstd_hh_k {
+eqnset chlstd_hh_k {
 
     from std.math import exp
     i = g * (v-erev) * n**4
@@ -54,7 +54,7 @@ EQNSET chlstd_hh_k {
 }
 
 
-EQNSET chlstd_hh_na {
+eqnset chlstd_hh_na {
 
     from std.math import exp
     i = g * (v-erev) * m**3*h
@@ -89,14 +89,14 @@ EQNSET chlstd_hh_na {
 
 
 
-#EQNSET libC{
+#eqnset libC{
 #
 #    F(X) = X**2  +1
 #    i= {1mA/cm2}
 #    <=> OUTPUT    i:(mA/cm2)      METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
 #
 #}
-#EQNSET lib2{
+#eqnset lib2{
 #    from libC import F
 #    from libC import F as T
 #    G(x,Y) = F(x) + Y + T(1/Y)
@@ -107,7 +107,7 @@ EQNSET chlstd_hh_na {
 ##
 
 
-#EQNSET lib2D{
+#eqnset lib2D{
 #    from lib2 import G as Q
 #    from lib2 import const1 as c1
 #    t = Q(x=1,Y=3)
@@ -119,7 +119,7 @@ EQNSET chlstd_hh_na {
 
 
 
-#EQNSET CH {
+#eqnset CH {
 #f=2 pS
 #c=3mV
 #e = f*c + g
@@ -133,7 +133,7 @@ EQNSET chlstd_hh_na {
 #
 #
 #
-#EQNSET chl2 {
+#eqnset chl2 {
 #    c = 4
 #    d=c+f
 #    <=> PARAMETER f
@@ -146,7 +146,7 @@ EQNSET chlstd_hh_na {
 #
 #
 #
-#EQNSET chl1 {
+#eqnset chl1 {
 #    from std.math import exp
 #
 #    f(x,y1,mu) = mu * ( x-{0.3}*x**3-y1) * {1s-1}
@@ -192,7 +192,7 @@ EQNSET chlstd_hh_na {
 #
 #
 #
-#EQNSET chlALP {
+#eqnset chlALP {
 #from std.math import exp
 #alpha_n = ( {10mV} - V ) / ( 100* exp( ({10mV}-V)/{10mV} ) -{1} ) / ({1 s} * {1 mV})
 #beta_n = 0.128 * exp( V / {-80mV}) / ( {1 s} * {1 mV} )
@@ -207,7 +207,7 @@ EQNSET chlstd_hh_na {
 #
 #
 #
-EQNSET chl2ca{
+eqnset chl2ca{
 
 # Mega Chnnel:
 
@@ -273,13 +273,13 @@ a5=V
 ##
 ##
 ###
-###LIBRARY lib1 {
+###library lib1 {
 ###
 ###    F(x:mV) =  x
 ###
 ###}
 ###
-###EQNSET chl2{
+###eqnset chl2{
 ###    x1' = mu1 * ( x1-{0.3}*x1**3-y1) *{1s-1}
 ###    y1' = 1/mu1 *x1 *{1s-1}
 ###

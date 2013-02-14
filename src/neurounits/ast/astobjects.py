@@ -159,6 +159,9 @@ class AssignedVariable(ASTExpressionObject):
         self.symbol = symbol
         self.assignment_rhs = None
 
+    def __str__(self,):
+        return "<AssignedVariable: '%s'>" % (self.symbol)
+
 class SuppliedValue(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitSuppliedValue(self, **kwargs)
@@ -263,6 +266,9 @@ class FunctionDefParameter(ASTExpressionObject):
         self.symbol=symbol
         if dimension is not None:
             self.set_dimensionality( dimension)
+
+    def __str__(self):
+        return "<FunctionDefParameter '%s'>" % self.symbol
         #if unitMH is not None:
         #    #assert False
         #    self.set_unitMH( unitMH )

@@ -108,9 +108,17 @@ class _CloneFuncDef(ASTVisitorBase):
         return fDef
 
     def VisitIfThenElse(self, o, **kwargs):
-        raise NotImplementedError()
+        return ast.IfThenElse(
+             predicate= self.visit(o.predicate,**kwargs),
+             if_true_ast=self.visit(o.if_true_ast, **kwargs), 
+             if_false_ast=self.visit(o.if_false_ast, **kwargs),
+                )
+
     def VisitInEquality(self, o, **kwargs):
-        raise NotImplementedError()
+        return ast.InEquality(
+             less_than= self.visit(o.less_than,**kwargs),
+             greater_than=self.visit(o.greater_than,**kwargs), 
+                )
     def VisitBoolAnd(self, o, **kwargs):
         raise NotImplementedError()
     def VisitBoolOr(self, o, **kwargs):
