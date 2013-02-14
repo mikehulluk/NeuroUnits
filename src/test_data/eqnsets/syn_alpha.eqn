@@ -1,4 +1,4 @@
-EQNSET syn_alpha {
+eqnset syn_alpha {
 
     g' = -g/g_tau
     g2' = -g2/g_tau2

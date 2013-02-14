@@ -307,7 +307,7 @@ def build_eqnset( chlmlinfo, eqnsetname=None ):
 
 
     neuroEqn = """
-    EQNSET %s{
+    eqnset %s{
         %s
         %s
         %s

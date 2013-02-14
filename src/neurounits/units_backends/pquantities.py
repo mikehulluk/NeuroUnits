@@ -69,7 +69,6 @@ class PQParsingBackend(ParsingBackendBase):
                 o = o * j ** i
         return o
 
-        return make_unit(*args, **kwargs)
 
     @classmethod
     def unit_as_dimensionless(cls, u1):

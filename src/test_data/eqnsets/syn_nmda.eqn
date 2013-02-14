@@ -1,4 +1,4 @@
-EQNSET syn_nmda {
+eqnset syn_nmda {
 
     g1' = g1/g1_tau
     g2' = g2/g2_tau

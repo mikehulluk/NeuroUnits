@@ -1,4 +1,4 @@
-EQNSET cachl {
+eqnset cachl {
 	from std.math import exp
 	from std.physics import F,R
 	

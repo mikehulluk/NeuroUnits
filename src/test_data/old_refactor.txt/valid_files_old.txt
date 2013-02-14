@@ -1,11 +1,11 @@
-EQNSET chl2 {
+eqnset chl2 {
     c = 4
     d=c+f
     <=> PARAMETER f
 }
 
 
-#EQNSET chl1 {
+#eqnset chl1 {
 #    from std.math import exp
 #
 #    f(x,y,mu) = mu * ( x-{0.3}*x**3-y) * {1s-1}
@@ -29,7 +29,7 @@ EQNSET chl2 {
 #}
 #
 #
-#EQNSET chl2{
+#eqnset chl2{
 #
 ## Mega Chnnel:
 #
@@ -83,13 +83,13 @@ EQNSET chl2 {
 #
 #
 ##
-##LIBRARY lib1 {
+##library lib1 {
 ##
 ##    F(x:mV) =  x
 ##
 ##}
 ##
-##EQNSET chl2{
+##eqnset chl2{
 ##    x1' = mu1 * ( x1-{0.3}*x1**3-y1) *{1s-1}
 ##    y1' = 1/mu1 *x1 *{1s-1}
 ##

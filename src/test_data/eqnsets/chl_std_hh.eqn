@@ -1,4 +1,4 @@
-EQNSET chlstd_leak {
+eqnset chlstd_leak {
     i = g * (V-erev)
 
     <=> PARAMETER g
@@ -8,7 +8,7 @@ EQNSET chlstd_leak {
 }
 
 
-EQNSET chlstd_hh_k {
+eqnset chlstd_hh_k {
 
     from std.neuro import RateConstant5
     
@@ -33,7 +33,7 @@ EQNSET chlstd_hh_k {
 }
 
 
-EQNSET chlstd_hh_na {
+eqnset chlstd_hh_na {
 
     from std.neuro import RateConstant5
     from std.math import exp

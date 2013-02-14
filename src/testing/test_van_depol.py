@@ -30,7 +30,7 @@ from neurounits.writers.writer_ast_to_simulatable_object import EqnSimulator
 
 
 es = NeuroUnitParser.EqnSet("""
-        EQNSET van_de_pol {
+        eqnset van_de_pol {
             x' = mu * (x-(x**3)/3 - y)  * {10ms-1}
             y' = x/mu * {10ms-1}
             #mu = 6.0

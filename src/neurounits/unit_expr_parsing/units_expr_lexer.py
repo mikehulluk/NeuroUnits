@@ -42,8 +42,8 @@ class UnitExprLexer(object):
             'from': 'FROM',
             'import':'IMPORT',
             'as':'AS',
-            'LIBRARY':'LIBRARY',
-            'EQNSET': 'EQNSET',
+            'library':'LIBRARY',
+            'eqnset': 'EQNSET',
 
             }
 
@@ -69,7 +69,6 @@ class UnitExprLexer(object):
         "NO_UNIT",
         "TIMESTIMES",
         "NEWLINE",
-#        "COMMENT",
         "PRIME",
         "LSQUAREBRACKET",
         "RSQUAREBRACKET",
@@ -106,9 +105,9 @@ class UnitExprLexer(object):
         t.type = UnitExprLexer.reserved.get(t.value, t.type)
         return t
 
-    def t_COMMENT(self, t):
-        r"""\#.*"""
-        return t
+    #def t_COMMENT(self, t):
+    #    r"""\#.*"""
+    #    return t
 
     def t_NEWLINE(self, t):
         r"""\n+"""
@@ -139,7 +138,6 @@ class UnitExprLexer(object):
     t_TIMES = r"""\*"""
     t_PLUS = r"""\+"""
 
-    # t_NEWLINE = r"""\n"""
 
     t_COMMA = r""","""
     t_COLON = r""":"""

@@ -30,7 +30,7 @@ from neurounits.writers.writer_ast_to_simulatable_object import EqnSimulator
 
 
 es = NeuroUnitParser.EqnSet("""
-        EQNSET lorenz {
+        eqnset lorenz {
             x' = (sigma*(y-x)) * {1s-1}
             y' = (x*( rho-z)-y) * {1s-1}
             z' = (x*y-beta*z) * {1s-1}
