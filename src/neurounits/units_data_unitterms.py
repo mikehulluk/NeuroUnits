@@ -138,22 +138,13 @@ class UnitTermData(object):
             ('um', backend.Unit(meter=1, powerTen=-6)),
             ('nm', backend.Unit(meter=1, powerTen=-9)),
             ('pm', backend.Unit(meter=1, powerTen=-12)),
-            ('M', backend.Unit(mole=1, meter=3, powerTen=-3)),
-            ('mM', backend.Unit(mole=1, meter=3, powerTen=-6)),
-            ('uM', backend.Unit(mole=1, meter=3, powerTen=-9)),
-            ('nM', backend.Unit(mole=1, meter=3, powerTen=-12)),
-            ('pM', backend.Unit(mole=1, meter=3, powerTen=-15)),
+            ('M', backend.Unit(mole=1, meter=-3, powerTen=-3)),
+            ('mM', backend.Unit(mole=1, meter=-3, powerTen=-6)),
+            ('uM', backend.Unit(mole=1, meter=-3, powerTen=-9)),
+            ('nM', backend.Unit(mole=1, meter=-3, powerTen=-12)),
+            ('pM', backend.Unit(mole=1, meter=-3, powerTen=-15)),
             )
 
-            # ( 'mM', backend.Unit(meter=1, powerTen=-2)  ),
-            # ( 'uM', backend.Unit(meter=1, powerTen=-3)  ),
-            # ( 'nM', backend.Unit(meter=1, powerTen=-6)  ),
-            # ( 'pM', backend.Unit(meter=1, powerTen=-9)  ),
-            # ( 'mM', backend.Unit(meter=1, powerTen=-2)  ),
-            # ( 'uM', backend.Unit(meter=1, powerTen=-3)  ),
-            # ( 'nM', backend.Unit(meter=1, powerTen=-6)  ),
-            # ( 'pM', backend.Unit(meter=1, powerTen=-9)  ),
-            #    )
         return special_unit_abbrs
 
 

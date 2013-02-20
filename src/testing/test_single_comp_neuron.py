@@ -49,31 +49,24 @@ eqnset my_din {
     i_lk_bar = g_lk * (e_lk-V)
 
     # Ca currents:
-
     ca_m_alpha = RateConstant5(V=V, a1={4.05 ms-1}, a2={0.0   mV-1 ms-1}, a3= 1.0, a4={-15.32mV}, a5={-13.57mV} )
     ca_m_beta1 = RateConstant5(V=V, a1={1.24 ms-1}, a2={0.093 mV-1 ms-1}, a3=-1.0, a4={ 10.63mV}, a5={  1.00mV} )
     ca_m_beta2 = RateConstant5(V=V, a1={1.28 ms-1}, a2={0.0   mV-1 ms-1}, a3= 1.0, a4={  5.39mV}, a5={ 12.11mV} )
-    ca_m_beta = [ca_m_beta1] if [V<{25mV}] else [ca_m_beta2]
-    ca_m_tau =  ClipTau( tau=1/(ca_m_alpha+ca_m_beta), tau_min={1ms} )
+    ca_m_beta = [ca_m_beta1] if [V<{-25mV}] else [ca_m_beta2]
+    ca_m_tau =  ClipTau( tau=1/(ca_m_alpha+ca_m_beta), tau_min={0.11ms} )
     ca_m_inf =  ClipInf( ca_m_alpha/(ca_m_alpha+ca_m_beta) )
     ca_m'= (ca_m_inf - ca_m) / ca_m_tau
 
-
-
-    ica_ungated = pca* 2 * up * F * (CAi - CAo*exp(-1.0*up) ) / (1-exp(-1.0*up) )
-    i_ca_bar = ica_ungated * ca_m**2 
     up = 2 * V * F / (R*T)
+    ica_ungated = pca * 2 * up * F * (CAi - CAo*exp(-1.0*up) ) / (1-exp(-1.0*up) )
+    i_ca_bar = ica_ungated * ca_m**2
 
-    <=> OUTPUT    i_ca_bar : mA/cm2
 
     T = 300 K
-    pca = {0.0000016cm/s}
+    pca = {0.016cm/s} * 100
 
     CAi = 100nM
     CAo = 10uM
-
-
-
 
     area = 1000um2
     C = {1uF/cm2} * area
@@ -88,9 +81,6 @@ eqnset my_din {
 
 
     # Injected Currents:
-    #i_Inj = [100pA] if [t>50ms t<200ms] else [0pA]
-    #i_Inj = [0pA] if [t<50ms] else [[0pA] if [t>200ms] else [80pA]]
-
     i_Inj = [100pA] if [t>50ms and t<1000ms] else [0pA]
 
 
@@ -100,7 +90,7 @@ eqnset my_din {
     i_na = i_na_bar * area
     i_ks = i_ks_bar * area
     i_kf = i_kf_bar * area
-    i_ca = i_ca_bar * area * 0
+    i_ca = i_ca_bar * area
 
     # Simulated equation:
     V' = (i_lk + i_na + i_kf + i_ks +  i_ca + i_Inj) / C
@@ -124,7 +114,6 @@ import pylab
 from neurounits.writers.writer_ast_to_simulatable_object import EqnSimulator
 
 
-#neurounits.NeuroUnitParser.QuantityExpr(''' [1.0] if [2<3 or not 4>1 and (3+2>2)] else [45]''')
 
 
 library_manager = neurounits.NeuroUnitParser.File(neuron_def)
@@ -137,7 +126,7 @@ print library_manager
 
 evaluator = EqnSimulator( library_manager.eqnsets[0] )
 res = evaluator(
-        time_data = np.linspace(0.0, 1.00, 1000),
+        time_data = np.linspace(0.0, 0.100, 1000),
         params={
             },
         state0In={
@@ -160,33 +149,45 @@ print res.keys()
 
 fig = pylab.figure()
 
-ax1 = fig.add_subplot(411)
-ax2 = fig.add_subplot(412)
-ax3 = fig.add_subplot(413)
-ax4 = fig.add_subplot(414)
+ax1 = fig.add_subplot(611)
+ax2 = fig.add_subplot(612)
+ax3 = fig.add_subplot(613)
+ax4 = fig.add_subplot(614)
+ax5 = fig.add_subplot(615)
+ax6 = fig.add_subplot(616)
 
 ax1.plot(res['t'], res['V'],'x-')
 
 ax2.plot(res['t'], res['i_na_bar'])
-ax2.plot(res['t'], res['i_lk_bar'])
-ax2.plot(res['t'], res['i_ks_bar'])
-ax2.plot(res['t'], res['i_kf_bar'])
+#ax2.plot(res['t'], res['i_lk_bar'])
+#ax2.plot(res['t'], res['i_ks_bar'])
+#ax2.plot(res['t'], res['i_kf_bar'])
 ax2.plot(res['t'], res['i_ca_bar'])
+#ax5.plot(res['t'], res['i_ca_bar'])
 
 
 
-ax3.plot(res['t'], res['m'], 'b')
-ax3.plot(res['t'], res['h'], 'g')
-ax3.plot(res['t'], res['ks'], 'm')
-ax3.plot(res['t'], res['kf'], 'm')
+#ax3.plot(res['t'], res['m'], 'b')
+#ax3.plot(res['t'], res['h'], 'g')
+#ax3.plot(res['t'], res['ks'], 'm')
+#ax3.plot(res['t'], res['kf'], 'm')
 ax3.plot(res['t'], res['ca_m'],'r')
 
-ax4.plot(res['t'], res['i_na'])
-ax4.plot(res['t'], res['i_lk'])
-ax4.plot(res['t'], res['i_ks'])
-ax4.plot(res['t'], res['i_kf'])
-ax4.plot(res['t'], res['i_ca'])
-ax4.plot(res['t'], res['i_Inj'])
+
+ax4.plot(res['t'], res['i_na']  ,label='na')
+#ax4.plot(res['t'], res['i_lk']  ,label='lk')
+#ax4.plot(res['t'], res['i_ks']  ,label='ks')
+#ax4.plot(res['t'], res['i_kf']  ,label='kf')
+ax4.plot(res['t'], res['i_ca']  ,label='ca')
+ax6.plot(res['t'], res['i_ca']  ,label='ca')
+#ax4.plot(res['t'], res['i_Inj'] ,label='iinj')
+
+ax4.legend()
+
+
+
+
+
 
 #ax1.plot(res['t'], res['i_Inj'])
 ax1.margins( 0.1)

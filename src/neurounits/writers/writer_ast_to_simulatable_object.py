@@ -41,12 +41,13 @@ import neurounits
 
 import pylab
 import mredoc
+from functools import partial
 
-class Mode:
-
-    RetainUnits = 'RetainUnits'
-    AssumeSIFloat = 'AssumeSIFloat'
-
+#class Mode:
+#
+#    RetainUnits = 'RetainUnits'
+#    AssumeSIFloat = 'AssumeSIFloat'
+#
 
 
 
@@ -58,6 +59,32 @@ def get_as_si(o):
 
 
 
+
+def rebuild_kw_dict(raw_state_data, params, t0, timederivatives):
+    kw_states = dict([(td.lhs.symbol, y) for (td, y) in zip(timederivatives, raw_state_data)])
+    #print t0, 'kw_states', kw_states
+    kw = safe_dict_merge(kw_states, params)
+    kw['t'] = t0
+    return kw
+
+def evaluate_gradient(y, t0, params, timederivatives_evaluators, timederivatives):
+    # Create a dictionary containing the current states and
+    # the parameters:
+    kw = rebuild_kw_dict(raw_state_data=y, params=params,t0=t0, timederivatives=timederivatives)
+    return [ ev(**kw) for ev in timederivatives_evaluators ]
+
+
+
+
+
+#def get_initial_condition(symbol):
+#    if symbol in state0In:
+#        return state0In[symbol]
+#    if symbol in initial_condition_map:
+#        return initial_condition_map[symbol]
+#    if default_state0:
+#        return default_state0
+#    raise ValueError('No Starting Value for StateVariable: %s found' % symbol)
 
 
 
@@ -136,29 +163,10 @@ class EqnSimulator(object):
             v = neurounits.NeuroUnitParser.QuantitySimple(s.value)
             initial_condition_map[s.symbol] = v
 
-        def get_initial_condition(symbol):
-            if symbol in state0In:
-                return state0In[symbol]
-            if symbol in initial_condition_map:
-                return initial_condition_map[symbol]
-            if default_state0:
-                return default_state0
-            raise ValueError('No Starting Value for StateVariable: %s found' % symbol)
 
 
 
 
-        def rebuild_kw_dict(raw_state_data, params, t0):
-            kw_states = dict([(td.lhs.symbol, y) for (td, y) in zip(self.timederivatives, raw_state_data)])
-            kw = safe_dict_merge(kw_states, params)
-            kw['t'] = t0
-            return kw
-
-        def evaluate_gradient(y, t0):
-            # Create a dictionary containing the current states and
-            # the parameters:
-            kw = rebuild_kw_dict(raw_state_data=y, params=params,t0=t0)
-            return [ ev(**kw) for ev in self.timederivatives_evaluators ]
 
 
         ## Sanity Check:
@@ -172,16 +180,44 @@ class EqnSimulator(object):
         #evaluate_gradient(state0, 0.0)
 
         # Resolve the starting values:
-        state0 = [ get_as_si(get_initial_condition(td.lhs.symbol) ) for td in self.timederivatives ]
+        #state0 = [ get_as_si(get_initial_condition(td.lhs.symbol) ) for td in self.timederivatives ]
 
-        # Evaluate:
-        y = scipy.integrate.odeint( evaluate_gradient, state0, t=time_data )
 
-        # Add the units back to the states:
-        res = {}
-        res['t'] = time_data  # , self.ast.library_manager.backend.Unit(second=1)
-        for (i, td) in enumerate(self.timederivatives):
-            res[td.lhs.symbol] = y[:, i]
+
+
+        # A.Calculate the initial values of
+        # each state-variable (in SI)
+        # ----------------------------------
+        state0=[]
+        for td in self.timederivatives:
+            symbol = td.lhs.symbol
+
+            if symbol in state0In:
+                init = state0In[symbol]
+            elif symbol in initial_condition_map:
+                init = initial_condition_map[symbol]
+            elif default_state0:
+                init = default_state0
+            else:
+                raise ValueError('No Starting Value for StateVariable: %s found' % symbol)
+            # Convert the value to SI:
+            state0.append( get_as_si(init) )
+
+
+
+        # B. Evaluate, do the integration to
+        # find values for all the state variables:
+        # -----------------------------------------
+        y = scipy.integrate.odeint(
+                partial(evaluate_gradient,
+                    timederivatives_evaluators=self.timederivatives_evaluators,
+                    timederivatives=self.timederivatives,
+                    params=params),
+                state0,
+                t=time_data,
+                )
+
+
 
 
         # Re-evaluate the assignments:
@@ -191,9 +227,9 @@ class EqnSimulator(object):
 
         ass_units = [None for i in range(nAssignments)]
         ass_names = [None for i in range(nAssignments)]
-        for t in time_data:
-            state_data = y[t, :]
-            kw = rebuild_kw_dict(raw_state_data=state_data, params=params, t0=t)
+        for time_index,t in enumerate(time_data):
+            state_data = y[time_index, :]
+            kw = rebuild_kw_dict(raw_state_data=state_data, params=params, t0=t, timederivatives=self.timederivatives)
 
             for (i, (a, afunctor)) in enumerate(self.fObj.assignment_evaluators.iteritems()):
 
@@ -204,14 +240,23 @@ class EqnSimulator(object):
 
                 aValRaw = aVal # .rescale(ass_units[i])
 
-                print a, aValRaw
+                #print a, aValRaw
 
                 ass_data[i].append(aValRaw)
+
+
+        # Add the units back to the states:
+        res = {}
+        res['t'] = time_data  # , self.ast.library_manager.backend.Unit(second=1)
+        for (i, td) in enumerate(self.timederivatives):
+            res[td.lhs.symbol] = y[:, i]
+
+
 
         for (i, (name, unit)) in enumerate(zip(ass_names, ass_units)):
             d = np.array(ass_data[i])
             res[name] = d
-            print 'Ass;', name
+            #print 'Ass;', name
 
         return res
 
@@ -331,7 +376,7 @@ class FunctorGenerator(ASTVisitorBase):
     def VisitBoolNot(self, o, **kwargs):
         s1 = self.visit( o.lhs )
         def f(**kw):
-            return not s1(**kw) 
+            return not s1(**kw)
         return f
 
     def VisitBuiltInFunction(self, o, **kwargs):
@@ -362,7 +407,7 @@ class FunctorGenerator(ASTVisitorBase):
                     return  float( np.sin( ( kw.values()[0] )) )
                 if o.funcname == 'pow':
                     assert len(kw) == 2
-                    return float( np.power( ( kw['base'] ),( kw['exp'] ) ) ) 
+                    return float( np.power( ( kw['base'] ),( kw['exp'] ) ) )
                 else:
                     assert False
 
