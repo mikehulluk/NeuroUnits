@@ -35,9 +35,6 @@ class UnitExprLexer(object):
     reserved = {
             'if':   'IF',
             'else': 'ELSE',
-            #'and':  'AND',
-            #'or':   'OR',
-            #'not':  'NOT',
 
             'from': 'FROM',
             'import':'IMPORT',
@@ -55,13 +52,14 @@ class UnitExprLexer(object):
         "INTEGER",
         "FLOAT",
         "SLASH",
-        "SLASHSLASH",
+        #"SLASHSLASH",
         "WHITESPACE",
         "LBRACKET",
         "RBRACKET",
         "LCURLYBRACKET","RCURLYBRACKET",
         "ALPHATOKEN",
-        "TIMES","PLUS","MINUSMINUS",
+        "TIMES","PLUS", #,"MINUSMINUS",
+        'MINUS',
         "TILDE",
         "COMMA",
         "EQUALS",
@@ -86,7 +84,6 @@ class UnitExprLexer(object):
 
         ] + list(reserved.values())
 
-    t_MINUSMINUS = r"""--"""
 
     def t_NO_UNIT(self, t):
         r"""NO_UNIT"""
@@ -118,12 +115,13 @@ class UnitExprLexer(object):
         return t
 
     t_IO_LINE = r"""<=> [^;]*"""
+    t_MINUS = r"""-"""
 
     t_ONEVENT_SYMBOL = r"""==>>"""
 
     t_LESSTHAN = r"""<"""
     t_GREATERTHAN = r""">"""
-    t_SLASHSLASH = r"""//"""
+    #t_SLASHSLASH = r"""//"""
     t_SLASH = r"""/"""
     t_WHITESPACE = r"""[ \t]+"""
     t_LBRACKET = r"""\("""

@@ -47,8 +47,8 @@ library std.math {
 library std.geom {
     from std.math import pi
 
-    area_of_sphere(r:m) = 4 * pi * r*r
-    volume_of_sphere(r:m) = 4.0/3.0 * pi * r*r *r
+    area_of_sphere(r:{m}) = 4 * pi * r*r
+    volume_of_sphere(r:{m}) = 4.0/3.0 * pi * r*r *r
 }
 
 
@@ -57,18 +57,18 @@ library std.neuro {
     
 	
 	# Linear Cable Theory (Koch Pg.32):
-    r_a(R_i:ohm m, d:m) = (4*R_i)/(pi*d*d)
+    r_a(R_i:{ohm m}, d:{m}) = (4*R_i)/(pi*d*d)
     
     # Nasty hack to get around exponents and dimensions problem:
-    #space_constant(Rm:ohm m2,Ri:ohm m,d:m) = powint(base=(Rm/Ri)*(d/4),n=1,d=2)
-    #space_constant(Rm:ohm m2,Ri:ohm m,d:m) = sqrt(base= (Rm/Ri)*(d/4) )
-    space_constant(Rm:ohm m2,Ri:ohm m,d:m) = pow(base=(( (Rm/Ri)*(d/4) )/{1m2}),exp=0.5) * {1m}
+    #space_constant(Rm:{ohm m2},Ri:{ohm m},d:{m}) = powint(base=(Rm/Ri)*(d/4),n=1,d=2)
+    #space_constant(Rm:{ohm m2},Ri:{ohm m},d:{m}) = sqrt(base= (Rm/Ri)*(d/4) )
+    space_constant(Rm:{ohm m2},Ri:{ohm m},d:{m}) = pow(base=(( (Rm/Ri)*(d/4) )/{1m2}),exp=0.5) * {1m}
 
-    Rinf_sealed_end(Rm:ohm m2,d:m) = (4*Rm/(pi*d*d) )
+    Rinf_sealed_end(Rm:{ohm m2},d:{m}) = (4*Rm/(pi*d*d) )
 
 
     # Expressions for defining forward and backward rate constants:
-    RateConstant5(V:(V),a1:(s-1) ,a2:(V-1 s-1), a3:(),a4:(V),a5:(V) ) = (a1 + a2*V)/(a3+std.math.exp( (V+a4)/a5) )
+    RateConstant5(V:{V},a1:{s-1} ,a2:{V-1 s-1}, a3:{},a4:{V},a5:{V} ) = (a1 + a2*V)/(a3+std.math.exp( (V+a4)/a5) )
 
 }
 

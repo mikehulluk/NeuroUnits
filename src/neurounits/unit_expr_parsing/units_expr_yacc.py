@@ -328,8 +328,18 @@ def p_function_definition(p):
 
 def p_function_def_param(p):
     """function_def_param : localsymbol
-                          | localsymbol COLON unit_expr"""
-    dimension = None if len(p) == 2 else p[3]
+                          | localsymbol COLON LCURLYBRACKET  RCURLYBRACKET
+                          | localsymbol COLON LCURLYBRACKET unit_expr RCURLYBRACKET"""
+    backend = p.parser.library_manager.backend
+
+    if len(p) == 2:
+        dimension = None 
+    elif len(p) == 5:
+        dimension = backend.Unit()
+    elif len(p) == 6:
+        dimension = p[4]
+    else:
+        assert False, 'len(p):%s'%len(p)
     #assert not dimension
     p[0] = {p[1]:ast.FunctionDefParameter(symbol=p[1], dimension=dimension) }
 
@@ -388,7 +398,7 @@ def p_quantity_func_params_term_l3(p):
 
 
 def p_rhs_term4(p):
-    """ rhs_term : MINUSMINUS rhs_term """
+    """ rhs_term : MINUS rhs_term """
     backend = p.parser.library_manager.backend
     neg_one = ast.ConstValue( backend.Quantity( -1.0, backend.Unit() ) )
     p[0] = ast.MulOp(neg_one, p[2] )
@@ -444,7 +454,7 @@ def p_rhs_term_add(p):
     p[0] = ast.AddOp(p[1], p[3])
 
 def p_rhs_term_sub(p):
-    """rhs_term : rhs_term MINUSMINUS rhs_term"""
+    """rhs_term : rhs_term MINUS rhs_term"""
     p[0] = ast.SubOp(p[1], p[3])
 
 def p_rhs_term_mul(p):
@@ -516,7 +526,7 @@ def p_quantity_expr_1(p):
     p[0] = p[1] + p[3]
 
 def p_quantity_expr_2(p):
-    """quantity_expr : quantity_expr MINUSMINUS quantity_term"""
+    """quantity_expr : quantity_expr MINUS quantity_term"""
     p[0] = p[1] - p[3]
 def p_quantity_expr_3(p):
     """quantity_expr : quantity_term"""
@@ -585,19 +595,19 @@ def p_unit_expr_1(p):
     p[0] = p[1]
 
 def p_unit_expr_2(p):
-    """unit_expr : unit_term_grp SLASHSLASH unit_term_grp"""
+    """unit_expr : unit_term_grp SLASH unit_term_grp"""
     p[0] = p[1] / p[3]
 
 def p_unit_expr_3(p):
-    """unit_expr : parameterised_unit_term SLASHSLASH parameterised_unit_term"""
+    """unit_expr : parameterised_unit_term SLASH parameterised_unit_term"""
     p[0] = p[1] / p[3]
 
 def p_unit_expr_4(p):
-    """unit_expr : unit_term_grp SLASHSLASH parameterised_unit_term"""
+    """unit_expr : unit_term_grp SLASH parameterised_unit_term"""
     p[0] = p[1] / p[3]
 
 def p_unit_expr_5(p):
-    """unit_expr : parameterised_unit_term SLASHSLASH unit_term_grp"""
+    """unit_expr : parameterised_unit_term SLASH unit_term_grp"""
     p[0] = p[1] / p[3]
 
 def p_unit_expr_6(p):
@@ -619,7 +629,7 @@ def p_paramterised_unit_term_1(p):
     p[0] = p[2]
 
 def p_paramterised_unit_term_2(p):
-    """parameterised_unit_term : LBRACKET unit_term_grp SLASHSLASH unit_term_grp RBRACKET"""
+    """parameterised_unit_term : LBRACKET unit_term_grp SLASH unit_term_grp RBRACKET"""
     p[0] = p[2] / p[4]
 
 
@@ -693,19 +703,19 @@ def p_error(p):
         pass
     raise UnitError('Parsing Error %s' % p)
 
+
+#Low to high:
 precedence = (
-    ('left', 'WHITESPACE'),
-    ('left', 'PLUS', 'MINUSMINUS'),
 
-    ('left', 'TIMES', 'SLASH'),
-    ('left', 'TIMESTIMES'),
-    ('left', 'SLASHSLASH'),
-
+    ('left', 'OR'),
+    ('left', 'AND'),
+    ('right', 'NOT'),
     ('left', 'GREATERTHAN'),
     ('left', 'LESSTHAN'),
-    ('right', 'NOT'),
-    ('left', 'AND'),
-    ('left', 'OR'),
+    ('left', 'PLUS', 'MINUS'),
+    ('left', 'TIMES', 'SLASH'),
+    ('left', 'TIMESTIMES'),
+    ('left', 'WHITESPACE'),
 )
 
 
@@ -744,23 +754,14 @@ RE = namedtuple('RE', ['frm', 'to'])
 
 
 regexes_slashes = {
-        "SlashAlpha_To_DoubleSlash":      RE(to=r"//", frm=r"""/(?= [(]* (?:[a-zA-Z]) ([^(]|$) )"""),  # For unit expressions: convert mA/cm2 to mA//cm2. Looks for a bracket (or end of line), so '6 mA/log(10)' is OK
-        "SlashCurlyTilde_To_DoubleSlash": RE(to=r"//", frm=r"""/(?= [(]* (?:[{][~]) )"""),    # For unit expressions: convert mA/{~milliamp} to mA//{~milliamp}
-
-
-         # "{3 mV{~mjlk}/{~asd}}" -> {3 mV{~mjlk}/{~asd}}"
-        "CurlyBracketUnitWithSlash":      RE(to=r"\g<pre>//\g<post>", frm=r""" (?P<pre> [{]  [-]?[0-9]+(\.[0-9]*([eE][+-]?[0-9]+)?)? \s* ( ([{][~] [a-zA-Z]* [}])|([a-zA-Z]*)\d* )* \s* ) / (?P<post> (\s* ([{][~] [a-zA-Z]* [}])|([a-zA-Z]*)\d* \s* )*  [}] )""", ),
-        "CurlyBracketUnitAddSpace1":      RE(to=r" \1", frm=r"(?:[^/])({~[a-zA-Z]*})""", ),
+        #"CurlyBracketUnitAddSpace1":      RE(to=r" \1", frm=r"(?:[^/])({~[a-zA-Z]*})""", ),
         "CurlyBracketUnitAddSpace2":      RE(to=r"} ", frm=r"""}(?:[a-zA-Z])""", ),
         }
 
 
 # Remove whitespace around the 'if' then' or else'
-if_stmt_regex1 =  RE(frm=r"\s*\bif\b\s*", to=r"""if""")
-if_stmt_regex2 =  RE(frm=r"\s*\bthen\b\s*", to=r"""then""")
-if_stmt_regex3 =  RE(frm=r"\s*\belse\b\s*", to=r"""else""")
-if_stmt_regexes = [if_stmt_regex1, if_stmt_regex2, if_stmt_regex3]
-
+if_stmt_regex1 =  RE(frm=r"\s*\b(if|then|else)\b\s*", to=r"""\1""")
+if_stmt_regexes = [if_stmt_regex1] #, if_stmt_regex2, if_stmt_regex3]
 logical_regex_not = RE(frm=r"\s*\bnot\b\s*", to=r"""!""")
 logical_regex_and = RE(frm=r"\s*\band\b\s*", to=r"""&""")
 logical_regex_or = RE(frm=r"\s*\bor\b\s*", to=r"""|""")
@@ -768,14 +769,29 @@ logic_regexes = [logical_regex_not, logical_regex_and, logical_regex_or]
 
 complex_regexes = if_stmt_regexes + logic_regexes
 
-regexes_by_parsetype_slashes = {
-        ParseTypes.L1_Unit:             [ regexes_slashes["SlashAlpha_To_DoubleSlash"], regexes_slashes["SlashCurlyTilde_To_DoubleSlash"], ],
-        ParseTypes.L2_QuantitySimple:   [ regexes_slashes["SlashAlpha_To_DoubleSlash"], regexes_slashes["SlashCurlyTilde_To_DoubleSlash"], ],
-        ParseTypes.L3_QuantityExpr:     [ regexes_slashes["CurlyBracketUnitWithSlash"], regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"]  ] + complex_regexes,
-        ParseTypes.L4_EqnSet:           [ regexes_slashes["CurlyBracketUnitWithSlash"], regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"], ] + complex_regexes,
-        ParseTypes.L5_Library:          [ regexes_slashes["CurlyBracketUnitWithSlash"], regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"], ] + complex_regexes,
-        ParseTypes.L6_TextBlock:        [ regexes_slashes["CurlyBracketUnitWithSlash"], regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"], ] + complex_regexes,
+
+ws_minus = RE(frm=r"\s*-\s*", to=r"""-""")
+
+#regexes_by_parsetype = {
+#        ParseTypes.L1_Unit:             [ ], #regexes_slashes["SlashAlpha_To_DoubleSlash"], regexes_slashes["SlashCurlyTilde_To_DoubleSlash"], ],
+#        ParseTypes.L2_QuantitySimple:   [ ], #regexes_slashes["SlashAlpha_To_DoubleSlash"], regexes_slashes["SlashCurlyTilde_To_DoubleSlash"], ],
+#        ParseTypes.L3_QuantityExpr:     [ regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"]  ] + complex_regexes,
+#        ParseTypes.L4_EqnSet:           [ regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"], ] + complex_regexes,
+#        ParseTypes.L5_Library:          [ regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"], ] + complex_regexes,
+#        ParseTypes.L6_TextBlock:        [ regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"], ] + complex_regexes,
+#        }
+
+regexes1 = [ regexes_slashes["CurlyBracketUnitAddSpace2"]  ] + complex_regexes + [ws_minus]
+
+regexes_by_parsetype = {
+        ParseTypes.L1_Unit:             regexes1,
+        ParseTypes.L2_QuantitySimple:   regexes1,
+        ParseTypes.L3_QuantityExpr:     regexes1,
+        ParseTypes.L4_EqnSet:           regexes1,
+        ParseTypes.L5_Library:          regexes1,
+        ParseTypes.L6_TextBlock:        regexes1,
         }
+
 
 
 def apply_all_regexes(text, parsetype, regexes_by_parsetype):
@@ -790,7 +806,16 @@ def apply_regex(r, text):
 
 
 
-def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
+def parse_expr(text, **kwargs):
+    try:
+        return _parse_expr(text, **kwargs)
+
+    except:
+        print 'Error Parsing: %s' % text
+        raise
+
+def _parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
+    #debug=True
 
     original_text = text
 
@@ -862,8 +887,8 @@ class ParserMgr():
         username = 'tmp_%d' % os.getuid()
         #tables_loc = EnsureExisits("/tmp/%s/nu/yacc/parse_term" % username)
         tables_loc =  EnsureExisits("/tmp/%s/nu/yacc/parse_eqn_block" % username)
-        #parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1  )
-        parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1, errorlog=ply.yacc.NullLogger()  )
+        parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1  )
+        #parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1, errorlog=ply.yacc.NullLogger()  )
 
         #with open("/tmp/neurounits_grammar.txt",'w') as f:
         #    for p in parser.productions:
@@ -906,14 +931,17 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
     # purely separate unit terms to '//'
     # The syntax of this depends on the context of what we are parsing.
     assert not "//" in text_eqn
-    text_eqn = apply_all_regexes(text_eqn, parse_type, regexes_by_parsetype_slashes)
+    text_eqn = apply_all_regexes(text_eqn, parse_type, regexes_by_parsetype)
 
 
     # Likewise, '-' plays 2 roles, as negative exponent as
     # as subtraction. Lets remap subtraction to '--', unless its followed
     # by a digit, in which case its part of that digit
-    s = re.compile(r"""[ ]* [-](?=[^0-9]) [ ]*""", re.VERBOSE)
-    text_eqn = re.sub(s, '--', text_eqn)
+    #s = re.compile(r"""[ ]* [-](?=[^0-9]) [ ]*""", re.VERBOSE)
+    #
+    #text_new = re.sub(s, '--', text_eqn)
+    ##assert text_new==text_eqn, '%s != %s' %(text_eqn, text_new)
+    #text_eqn = text_new
 
     #print 'Post-Processing:'
     #print text_eqn

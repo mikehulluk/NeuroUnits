@@ -3,10 +3,10 @@
 neuron_def = r'''
 library my_neuro {
     from std.math import pow
-    RateConstant5(V:(V),a1:(s-1 ) ,a2:(V-1 s-1 ), a3:(),a4:(V),a5:(V) ) = (a1 + a2*V)/(a3+std.math.exp( (V+a4)/a5) )
+    RateConstant5(V:{V},a1:{s-1} ,a2:{V-1 s-1 }, a3:{},a4:{V},a5:{V} ) = (a1 + a2*V)/(a3+std.math.exp( (V+a4)/a5) )
 
-    ClipInf(inf:()) = [0.0] if [inf<0.0] else [[1.0] if [inf>1.0]  else [inf]]
-    ClipTau(tau:(s),tau_min:(s)) = [tau_min] if [tau<tau_min] else [tau]
+    ClipInf(inf:{}) = [0.0] if [inf<0.0] else [[1.0] if [inf>1.0]  else [inf]]
+    ClipTau(tau:{s},tau_min:{s}) = [tau_min] if [tau<tau_min] else [tau]
 }
 
 eqnset my_din {

@@ -11,7 +11,7 @@ eqnset syn_alpha {
     <=> OUTPUT    i:(mA)      METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
 
     gInc = 5pS
-    ==>> on_event( r:S ){
+    ==>> on_event( r:{S} ){
         g = g + 4pS + gInc + r + [2pS]if[v<10mV]else[0pS]
         g2 = g + 4pS + gInc + r
     }
