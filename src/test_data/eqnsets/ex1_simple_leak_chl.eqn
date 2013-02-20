@@ -1,4 +1,4 @@
-EQNSET chlstd_leak {
+eqnset chlstd_leak {
     i = g * (V-erev)
 
     <=> PARAMETER g, erev

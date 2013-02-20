@@ -1,4 +1,4 @@
-EQNSET syn_simple {
+eqnset syn_simple {
     g' = - g/g_tau
     i = gmax * (v-erev) * g
     
