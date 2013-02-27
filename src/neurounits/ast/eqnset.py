@@ -71,8 +71,6 @@ class Block(object):
         from neurounits.writers import MRedocWriterVisitor
         return MRedocWriterVisitor.build(self)
 
-    # to functor:
-    # ....
 
 
 class Library(Block):

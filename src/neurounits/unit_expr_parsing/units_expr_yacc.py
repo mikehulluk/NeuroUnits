@@ -45,6 +45,7 @@ import neurounits.ast as ast
 
 from neurounits.units_data_unitterms import UnitTermData
 
+import os
 
 
 
@@ -133,7 +134,7 @@ def p_parse_eqnsetline2(p):
     p.parser.library_manager.get_current_block_builder().add_io_data(p[1])
 
 def p_parse_eqnsetline2b(p):
-    """eqnsetlinecontents   : ONEVENT_SYMBOL WHITESPACE event_def """
+    """eqnsetlinecontents   : ONEVENT_SYMBOL  event_def """
     pass
 
 def p_parse_eqnsetline4(p):
@@ -704,7 +705,7 @@ def p_error(p):
     raise UnitError('Parsing Error %s' % p)
 
 
-#Low to high:
+#Low to high: (WHITESPACE needs highest priority, so that multipluication of units happens before division ( e.g. {2 m/ s s} )
 precedence = (
 
     ('left', 'OR'),
@@ -726,15 +727,9 @@ precedence = (
 
 
 
+from units_expr_parsetypes import ParseTypes
+from units_expr_preprocessing import preprocess_string
 
-
-class ParseTypes(object):
-    L1_Unit = 'L1_Unit'
-    L2_QuantitySimple = 'L2_QuantitySimple'
-    L3_QuantityExpr = 'L3_QuantityExpr'
-    L4_EqnSet = 'L4_EqnSet'
-    L5_Library = 'L5_Library'
-    L6_TextBlock = 'L6_TextBlock'
 
 
 class ParseDetails(object):
@@ -748,147 +743,17 @@ class ParseDetails(object):
         }
 
 
-
-from collections import namedtuple
-RE = namedtuple('RE', ['frm', 'to'])
-
-
-regexes_slashes = {
-        #"CurlyBracketUnitAddSpace1":      RE(to=r" \1", frm=r"(?:[^/])({~[a-zA-Z]*})""", ),
-        "CurlyBracketUnitAddSpace2":      RE(to=r"} ", frm=r"""}(?:[a-zA-Z])""", ),
-        }
-
-
-# Remove whitespace around the 'if' then' or else'
-if_stmt_regex1 =  RE(frm=r"\s*\b(if|then|else)\b\s*", to=r"""\1""")
-if_stmt_regexes = [if_stmt_regex1] #, if_stmt_regex2, if_stmt_regex3]
-logical_regex_not = RE(frm=r"\s*\bnot\b\s*", to=r"""!""")
-logical_regex_and = RE(frm=r"\s*\band\b\s*", to=r"""&""")
-logical_regex_or = RE(frm=r"\s*\bor\b\s*", to=r"""|""")
-logic_regexes = [logical_regex_not, logical_regex_and, logical_regex_or]
-
-complex_regexes = if_stmt_regexes + logic_regexes
-
-
-ws_minus = RE(frm=r"\s*-\s*", to=r"""-""")
-
-#regexes_by_parsetype = {
-#        ParseTypes.L1_Unit:             [ ], #regexes_slashes["SlashAlpha_To_DoubleSlash"], regexes_slashes["SlashCurlyTilde_To_DoubleSlash"], ],
-#        ParseTypes.L2_QuantitySimple:   [ ], #regexes_slashes["SlashAlpha_To_DoubleSlash"], regexes_slashes["SlashCurlyTilde_To_DoubleSlash"], ],
-#        ParseTypes.L3_QuantityExpr:     [ regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"]  ] + complex_regexes,
-#        ParseTypes.L4_EqnSet:           [ regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"], ] + complex_regexes,
-#        ParseTypes.L5_Library:          [ regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"], ] + complex_regexes,
-#        ParseTypes.L6_TextBlock:        [ regexes_slashes["CurlyBracketUnitAddSpace1"], regexes_slashes["CurlyBracketUnitAddSpace2"], ] + complex_regexes,
-#        }
-
-regexes1 = [ regexes_slashes["CurlyBracketUnitAddSpace2"]  ] + complex_regexes + [ws_minus]
-
-regexes_by_parsetype = {
-        ParseTypes.L1_Unit:             regexes1,
-        ParseTypes.L2_QuantitySimple:   regexes1,
-        ParseTypes.L3_QuantityExpr:     regexes1,
-        ParseTypes.L4_EqnSet:           regexes1,
-        ParseTypes.L5_Library:          regexes1,
-        ParseTypes.L6_TextBlock:        regexes1,
-        }
-
-
-
-def apply_all_regexes(text, parsetype, regexes_by_parsetype):
-    for r in regexes_by_parsetype[parsetype]:
-        text = apply_regex(r, text)
-    return text
-
-
-def apply_regex(r, text):
-    regex = re.compile(r.frm, re.VERBOSE)
-    return re.sub(regex, r.to, text)
-
-
-
-def parse_expr(text, **kwargs):
-    try:
-        return _parse_expr(text, **kwargs)
-
-    except:
-        print 'Error Parsing: %s' % text
-        raise
-
-def _parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
-    #debug=True
-
-    original_text = text
-
-    # Some initial preprocessing
-    # (This is a bit hacky)
-    if parse_type in [ParseTypes.L4_EqnSet, ParseTypes.L5_Library, ParseTypes.L6_TextBlock]:
-        text  = "\n".join([ l.split("#")[0] for l in text.split("\n") ])
-        lines = []
-        for l in text.split('\n'):
-            if len(lines) != 0 and lines[-1].endswith('\\'):
-                assert l
-                lines[-1] = (lines[-1])[:-1] + l
-
-            else:
-                l = l.strip()
-                if not l:
-                    continue
-                if not l[-1] in ('{', ';'):
-                    l = l + ';'
-                lines.append(l)
-
-        text = '\n'.join(lines)
-    else:
-        text = text.strip()
-
-
-
-
-    if library_manager is None and ParseTypes is not ParseTypes.L1_Unit:
-        library_manager = LibraryManager(backend=backend, working_dir=working_dir, options=options, name=name, src_text=original_text )
-    pRes, library_manager = parse_eqn_block(text, parse_type=parse_type, debug=debug, library_manager=library_manager)
-
-
-    if parse_type==ParseTypes.L3_QuantityExpr:
-        from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator
-        ev = FunctorGenerator().visit(pRes)
-        #functor = SeqUtils.expect_single( F.assignment_evaluators.values() )
-        #\ev = F.visit(pRes
-        pRes = ev()
-
-
-
-
-    ret = { ParseTypes.L1_Unit:             lambda: pRes,
-            ParseTypes.L2_QuantitySimple:   lambda: pRes,
-            ParseTypes.L3_QuantityExpr:     lambda: pRes,
-            ParseTypes.L4_EqnSet:           lambda: SeqUtils.expect_single(library_manager.eqnsets),
-            ParseTypes.L5_Library:          lambda: SeqUtils.expect_single(library_manager.libraries),
-            ParseTypes.L6_TextBlock:        lambda: library_manager,
-             }
-
-    return ret[parse_type]()
-
-
-
-
-
-
-
 class ParserMgr():
 
     parsers = {}
 
     @classmethod
     def build_parser( cls, start_symbol, debug):
-        #lexer = units_expr_lexer.UnitExprLexer()
 
-        import os
         username = 'tmp_%d' % os.getuid()
-        #tables_loc = EnsureExisits("/tmp/%s/nu/yacc/parse_term" % username)
         tables_loc =  EnsureExisits("/tmp/%s/nu/yacc/parse_eqn_block" % username)
-        parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1  )
-        #parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1, errorlog=ply.yacc.NullLogger()  )
+        #parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1  )
+        parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1, errorlog=ply.yacc.NullLogger()  )
 
         #with open("/tmp/neurounits_grammar.txt",'w') as f:
         #    for p in parser.productions:
@@ -911,84 +776,80 @@ class ParserMgr():
 
 
 
+def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
+
+
+    # Are a parsing a complex expression? Then we need a library manager:
+    if library_manager is None and ParseTypes is not ParseTypes.L1_Unit:
+        library_manager = LibraryManager(backend=backend, working_dir=working_dir, options=options, name=name, src_text=text )
+
+
+    #First, let preprocess the text:
+    text = preprocess_string(text, parse_type=parse_type)
+
+
+    # Now, we can parse the expression using PLY:
+    try:
+        pRes, library_manager = parse_eqn_block(text, parse_type=parse_type, debug=debug, library_manager=library_manager)
+    except:
+        print 'Error Parsing: %s' % text
+        raise
+
+
+
+    # If its a level-3 expression, we need to evaluate it:
+    if parse_type==ParseTypes.L3_QuantityExpr:
+        from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator
+        ev = FunctorGenerator().visit(pRes)
+        pRes = ev()
+
+    # And return the correct type of object:
+    ret = { ParseTypes.L1_Unit:             lambda: pRes,
+            ParseTypes.L2_QuantitySimple:   lambda: pRes,
+            ParseTypes.L3_QuantityExpr:     lambda: pRes,
+            ParseTypes.L4_EqnSet:           lambda: SeqUtils.expect_single(library_manager.eqnsets),
+            ParseTypes.L5_Library:          lambda: SeqUtils.expect_single(library_manager.libraries),
+            ParseTypes.L6_TextBlock:        lambda: library_manager,
+    }
+
+    return ret[parse_type]()
+
+
+
+
+
+
+
+
+
+
+
+
+
 def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
 
-
-
     start_symbol = ParseDetails.start_symbols[parse_type]
-    # Some preprocessing:
-    # ######################
 
-    assert not '--' in text_eqn
-    assert not r"//" in text_eqn
-
-    # Strip all unnessesary whitespace:
-    s1 = re.compile(r'[ ]* ([()/*:+{}=]) [ ]*',re.VERBOSE)
-    text_eqn = re.sub(s1,r'\1',text_eqn)
-
-
-    # '/' plays 2 roles. To simplify the grammar, turn '/' used to
-    # purely separate unit terms to '//'
-    # The syntax of this depends on the context of what we are parsing.
-    assert not "//" in text_eqn
-    text_eqn = apply_all_regexes(text_eqn, parse_type, regexes_by_parsetype)
-
-
-    # Likewise, '-' plays 2 roles, as negative exponent as
-    # as subtraction. Lets remap subtraction to '--', unless its followed
-    # by a digit, in which case its part of that digit
-    #s = re.compile(r"""[ ]* [-](?=[^0-9]) [ ]*""", re.VERBOSE)
-    #
-    #text_new = re.sub(s, '--', text_eqn)
-    ##assert text_new==text_eqn, '%s != %s' %(text_eqn, text_new)
-    #text_eqn = text_new
-
-    #print 'Post-Processing:'
-    #print text_eqn
-
-
-
-
-    #debug=True
-    #debug=False
+    # Build the lexer and the parser:
     lexer = units_expr_lexer.UnitExprLexer()
     parser = ParserMgr.get_parser( start_symbol=start_symbol, debug=debug)
     parser.library_manager = library_manager
-
-    #assert parser.library_manager is library_manager
-
-    # 'A': When loading QuantityExpr or Functions, we might use
-    # stdlib functions. Therefore; we we need a 'block_builder':
-    if parse_type in [ ParseTypes.L3_QuantityExpr]: #, ParseTypes.Function]:
-        parser.library_manager.start_eqnset_block()
-        parser.library_manager.get_current_block_builder().set_name("anon")
-
-
-
-    # assert parser.library_manager is library_manager
-
-
-
 
     # TODO: I think this can be removed.
     parser.src_text = text_eqn
     parser.library_manager.src_text = text_eqn
 
-
-
-
-
-    # assert parser.library_manager is library_manager
+    # 'A': When loading QuantityExpr or Functions, we might use
+    # stdlib functions. Therefore; we we need a 'block_builder':
+    if parse_type in [ ParseTypes.L3_QuantityExpr]: 
+        parser.library_manager.start_eqnset_block()
+        parser.library_manager.get_current_block_builder().set_name("anon")
 
     pRes = parser.parse(text_eqn, lexer=lexer, debug=debug)
-
-    # assert parser.library_manager is library_manager
 
     # Close the block we opened in 'A'
     if parse_type in [ParseTypes.L3_QuantityExpr]:
         parser.library_manager.end_eqnset_block()
-
-    # assert parser.library_manager is library_manager
 
 
     return (pRes, parser.library_manager)

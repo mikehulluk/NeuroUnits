@@ -97,20 +97,37 @@ comp_func_lut = {
 
 class NutsIOLine(object):
     def __init__(self, line, lineno, options):
-        self.line = line
+
+        line = line.strip()
+        
+        if line.startswith('!!'):
+            self.line = line[2:]
+            self.is_valid=False
+        else:
+            self.line = line
+            self.is_valid=True
         self.lineno = lineno
         self.options=options
 
 
     def validate(self,):
-        parse_func = parse_func_lut[self.options.type]
-        comp_func = comp_func_lut[self.options.type]
+
 
         print 'Checking', self.line.ljust(30),
 
+        if self.is_valid:
+            self.test_valid()
+        else:
+            self.test_invalid()
+
+
+    def test_valid(self):
+        parse_func = parse_func_lut[self.options.type]
+        comp_func = comp_func_lut[self.options.type]
         if '==' in self.line:
             toks = self.line.split('==')
             are_equal = True
+
 
             for t in toks[1:]:
                 are_equal_comp = comp_func(
@@ -122,6 +139,18 @@ class NutsIOLine(object):
         else:
             assert False
 
+
+    def test_invalid(self):
+        parse_func = parse_func_lut[self.options.type]
+        comp_func = comp_func_lut[self.options.type]
+        for tok in self.line.split(','):
+            try:
+                print 'Checking: %s is invalid' % tok
+                parse_func(tok)
+                assert False, 'No exception raised!'
+            except Exception, e:
+                print 'Exception raised (OK)!', e
+                pass
 
 
 

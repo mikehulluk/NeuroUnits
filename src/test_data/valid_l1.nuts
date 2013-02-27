@@ -8,13 +8,45 @@ millisecond == ms
 millisecond-1 == ms-1
 volt == coulomb/mol
 amp == coulomb/s
+m/s2 == m/s s == m/(s s)
+
+
+
+#@ {'type':'L1'}
+!! m/s/s, m /2s
+!! 3 4
 
 #@ {'type':'L2','test-gnu-unit':true, 'eps':0.01}
 1.0m == 1meter
+100.cm == 1m
+!! 101cm == 1m
+
+# Molarity
+1 mM == 1 mol/m3
+1uM == 1e-3 mol/m3
+
+
 
 #@ {'type':'L3','test-gnu-unit':true, 'eps':0.01}
 {1.0m} / {2s} == {0.5 m/s} == {50 cm/s} == {0.5 mm/ms}
+
 3+4/2==5
 3+6/2+1==7
 #std.math.pi * 2**2 == {12}
 
+5 m/s2 == 5 m/s s
+6 s/m ==  6 ms/mm
+
+1/{1s} == 1Hz
+{1000L = 1m3}
+
+
+# Acc'n
+({1m/s} - {5m s-1}) / {8ms} == 0.002 m/s2
+{500mN} == {1 kg} * {1 m/s2} / 2.
+
+# Check integer division:
+1 == 1 / 2 * 2
+
+# Check division/multipication preecedance::
+0.125 == 1 / 2 / 4

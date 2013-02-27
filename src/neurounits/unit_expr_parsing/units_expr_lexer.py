@@ -56,9 +56,10 @@ class UnitExprLexer(object):
         "WHITESPACE",
         "LBRACKET",
         "RBRACKET",
-        "LCURLYBRACKET","RCURLYBRACKET",
+        "LCURLYBRACKET",
+        "RCURLYBRACKET",
         "ALPHATOKEN",
-        "TIMES","PLUS", #,"MINUSMINUS",
+        "TIMES","PLUS", 
         'MINUS',
         "TILDE",
         "COMMA",
@@ -90,7 +91,6 @@ class UnitExprLexer(object):
         return t
 
     def t_FLOAT(self, t):
-        #r"""[-]?[0-9]+\.[0-9]*([eE][+-]?[0-9]+)?"""
         r"""([-]?[0-9]+\.[0-9]*([eE][+-]?[0-9]+)?)|([-]?[0-9]+([eE][+-]?[0-9]+))"""
         t.value = float(t.value)
         return t
@@ -105,9 +105,6 @@ class UnitExprLexer(object):
         t.type = UnitExprLexer.reserved.get(t.value, t.type)
         return t
 
-    #def t_COMMENT(self, t):
-    #    r"""\#.*"""
-    #    return t
 
     def t_NEWLINE(self, t):
         r"""\n+"""
@@ -121,7 +118,6 @@ class UnitExprLexer(object):
 
     t_LESSTHAN = r"""<"""
     t_GREATERTHAN = r""">"""
-    #t_SLASHSLASH = r"""//"""
     t_SLASH = r"""/"""
     t_WHITESPACE = r"""[ \t]+"""
     t_LBRACKET = r"""\("""
