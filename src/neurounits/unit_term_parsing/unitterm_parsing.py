@@ -28,7 +28,7 @@
 
 import ply
 
-from ..unit_errors import UnitError
+from ..unit_errors import UnitError, InvalidUnitTermError
 from .unitterm_lexing import UnitTermLexer
 from ..units_data_unitterms import UnitTermData
 from ..units_misc import EnsureExisits
@@ -46,14 +46,12 @@ tokens = UnitTermLexer().tokens
 ##########
 
 def p_unit_term_unpowered_no_multipler(p):
-    """unit_term_unpowered :    short_basic_unit
-                              | long_basic_unit
+    """unit_term_unpowered :  long_basic_unit
     """
     p[0] = p[1]
 
 def p_unit_term_unpowered_with_multipler(p):
     """unit_term_unpowered :    long_basic_multiplier long_basic_unit
-                              | short_basic_multiplier short_basic_unit
                               """
     p[0] = p[1] * p[2]
 
@@ -77,25 +75,25 @@ def p_long_basic_unit(p):
     unit_long_LUT = UnitTermData.getUnitLUTLong(backend=p.parser.backend)
     p[0] = unit_long_LUT[ p[1] ]
 
-def p_short_basic_unit(p):
-    """short_basic_unit : SHORT_VOLT
-                        | SHORT_AMP
-                        | SHORT_SIEMEN
-                        | SHORT_JOULE
-                        | SHORT_OHM
-                        | SHORT_COULOMB
-                        | SHORT_FARAD
-                        | SHORT_METER
-                        | SHORT_GRAM
-                        | SHORT_SECOND
-                        | SHORT_KELVIN
-                        | SHORT_MOLE
-                        | SHORT_CANDELA
-                        | SHORT_MOLAR
-                        | SHORT_HERTZ
-                        """
-    unit_short_LUT = UnitTermData.getUnitLUTShort(backend=p.parser.backend)
-    p[0] = unit_short_LUT[p[1]]
+#def p_short_basic_unit(p):
+#    """short_basic_unit : SHORT_VOLT
+#                        | SHORT_AMP
+#                        | SHORT_SIEMEN
+#                        | SHORT_JOULE
+#                        | SHORT_OHM
+#                        | SHORT_COULOMB
+#                        | SHORT_FARAD
+#                        | SHORT_METER
+#                        | SHORT_GRAM
+#                        | SHORT_SECOND
+#                        | SHORT_KELVIN
+#                        | SHORT_MOLE
+#                        | SHORT_CANDELA
+#                        | SHORT_MOLAR
+#                        | SHORT_HERTZ
+#                        """
+#    unit_short_LUT = UnitTermData.getUnitLUTShort(backend=p.parser.backend)
+#    p[0] = unit_short_LUT[p[1]]
 
 
 def p_long_basic_multiplier(p):
@@ -112,18 +110,18 @@ def p_long_basic_multiplier(p):
     p[0] = multiplier_long_LUT[ p[1] ]
 
 
-def p_short_basic_multiplier(p):
-    """short_basic_multiplier :   SHORT_GIGA
-                                | SHORT_MEGA
-                                | SHORT_KILO
-                                | SHORT_CENTI
-                                | SHORT_MILLI
-                                | SHORT_MICRO
-                                | SHORT_NANO
-                                | SHORT_PICO
-                              """
-    multiplier_short_LUT = UnitTermData.getMultiplierLUTShort(backend=p.parser.backend)
-    p[0] = multiplier_short_LUT[ p[1] ]
+#def p_short_basic_multiplier(p):
+#    """short_basic_multiplier :   SHORT_GIGA
+#                                | SHORT_MEGA
+#                                | SHORT_KILO
+#                                | SHORT_CENTI
+#                                | SHORT_MILLI
+#                                | SHORT_MICRO
+#                                | SHORT_NANO
+#                                | SHORT_PICO
+#                              """
+#    multiplier_short_LUT = UnitTermData.getMultiplierLUTShort(backend=p.parser.backend)
+#    p[0] = multiplier_short_LUT[ p[1] ]
 
 def p_error(p):
     raise UnitError( "Parsing Error %s" % p)
@@ -144,22 +142,98 @@ unit_expr_parser = ply.yacc.yacc(  start='unit_term_unpowered',  tabmodule="neur
 
 
 
+def _parse_candela(text,backend):
+    assert text.endswith('cd')
+
+
+def _parse_single_letter(text,backend):
+    assert len(text) == 1
+    lut = UnitTermData.getUnitLUTShort(backend=backend)
+    if not text in lut:
+        raise InvalidUnitTermError('Unknown unit: %s' % text)
+    return lut[text]
+
+
+
+def _parse_double_letter(text,backend):
+    assert len(text) == 2
+    str_prefix = text[0]
+    str_unit = text[1]
+
+    #  prefix:
+    lut_prefix = UnitTermData.getMultiplierLUTShort(backend=backend)
+    if not str_prefix in lut_prefix:
+        raise InvalidUnitTermError('Unknown prefix: "%s" while parsing: %s' % (str_prefix,text) )
+    prefix_term  = lut_prefix[str_prefix]
+
+    #  unit:
+    lut_unit = UnitTermData.getUnitLUTShort(backend=backend)
+    if not str_unit in lut_unit:
+        raise InvalidUnitTermError('Unknown unit: "%s" while parsing: %s' % (str_unit,text) )
+    unit_term  = lut_unit[str_unit]
+
+    return prefix_term * unit_term 
+    #raise NotImplementedError()
+
+
 def parse_term( text, backend ):
 
     text = text.strip()
 
 
-    # CHECK FOR STANDARD DEFINITIONS:
-    for (u, u_def) in UnitTermData.getSpecialCaseShortForms(backend=backend):
-        if u == text:
-            return u_def
+    lut_unit_short= UnitTermData.getUnitLUTShort(backend=backend)
+    lut_prefix_short = UnitTermData.getMultiplierLUTShort(backend=backend)
 
 
+    # Single letters are single:
+    if len(text) == 0:
+        raise InvalidUnitTermError()
+
+    # Is it just a unit string (no prefix)?, 'Hz', 'm', 'cd'
+    if text in lut_unit_short:
+        return lut_unit_short[text]
+
+    # If its only one letter long, we have a problem:
+    if len(text) == 1:
+        raise InvalidUnitTermError('Unknown unit: "%s" ' % (text) )
+
+    # What about if we ignore the first letter, then is is in? e.g. 'MHz'
+    if text[1:] in lut_unit_short:
+        if text[0] not in lut_prefix_short:
+            raise InvalidUnitTermError('Unknown prefix: "%s" while parsing: %s' % (text[0],text) )
+
+        prefix_term  = lut_prefix_short[text[0]]
+        unit_term = lut_unit_short[text[1:]]
+        return prefix_term * unit_term
+
+
+    ## No luck so far? Its probably a long-unit:
     unit_expr_parser.backend = backend
 
     lexer = UnitTermLexer()
     res = unit_expr_parser.parse(text, lexer=lexer)
 
     return res
+
+
+    #if len(text) == 1:
+    #    return _parse_single_letter(text, backend=backend)
+
+    #
+    ## Its a multiple letter. One possibility is that its for example 'mHz'
+    ## Lets see if
+    ## -- Candela ---
+    #if text.endswith('cd'):
+    #    return 
+    #
+    #if len(text) == 2:
+    #    return _parse_double_letter(text, backend=backend)
+    #
+
+
+    # CHECK FOR STANDARD DEFINITIONS:
+    #for (u, u_def) in UnitTermData.getSpecialCaseShortForms(backend=backend):
+    #    if u == text:
+    #        return u_def
 
 

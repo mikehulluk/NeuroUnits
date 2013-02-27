@@ -70,3 +70,6 @@ class NeuroUnitParsingError(ValueError):
     pass
 
 
+class InvalidUnitTermError(ValueError):
+    pass
+

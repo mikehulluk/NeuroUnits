@@ -74,9 +74,8 @@ class LibraryManager(object):
             LibraryManager._stdlib_cache_loading = True
             for f in glob.glob(self._stdlibdir+"/*.eqn"):
                 with open(f) as l:
-                    parse_expr( l.read(), 
-								parse_type=ParseTypes.L6_TextBlock, 
-								library_manager=self)
+                    print 'Loading StdLib file:', f
+                    parse_expr( l.read(), parse_type=ParseTypes.L6_TextBlock, library_manager=self)
 
             LibraryManager._stdlib_cache_loading = False
             LibraryManager._stdlib_cache = self

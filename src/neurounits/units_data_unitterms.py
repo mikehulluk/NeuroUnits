@@ -81,34 +81,24 @@ class UnitTermData(object):
             ('kelvin', 'K', lambda backend: backend.Unit(kelvin=1)),
             ('mole', 'mol', lambda backend: backend.Unit(mole=1)),
             ('candela', 'cd', lambda backend: backend.Unit(candela=1)),
-            ('volt', 'V', lambda backend: backend.Unit(meter=2,
-             kilogram=1, second=-3, ampere=-1)),
-            ('siemen', 'S', lambda backend: backend.Unit(meter=-2,
-             kilogram=-1, second=3, ampere=2)),
-            ('farad', 'F', lambda backend: backend.Unit(meter=-2,
-             kilogram=-1, second=4, ampere=2)),
-            ('ohm', 'Ohm', lambda backend: backend.Unit(meter=2,
-             kilogram=1, second=-3, ampere=-2)),
-            ('coulomb', 'C', lambda backend: backend.Unit(second=1,
-             ampere=1)),
+            ('volt', 'V', lambda backend: backend.Unit(meter=2, kilogram=1, second=-3, ampere=-1)),
+            ('siemen', 'S', lambda backend: backend.Unit(meter=-2, kilogram=-1, second=3, ampere=2)),
+            ('farad', 'F', lambda backend: backend.Unit(meter=-2, kilogram=-1, second=4, ampere=2)),
+            ('ohm', 'Ohm', lambda backend: backend.Unit(meter=2, kilogram=1, second=-3, ampere=-2)),
+            ('coulomb', 'C', lambda backend: backend.Unit(second=1, ampere=1)),
             ('hertz', 'Hz', lambda backend: backend.Unit(second=-1)),
-            ('watt', 'W', lambda backend: backend.Unit(kilogram=1,
-             meter=2, second=-3)),
-            ('joule', 'J', lambda backend: backend.Unit(kilogram=1,
-             meter=2, second=-2)),
-            ('newton', 'N', lambda backend: backend.Unit(kilogram=1,
-             meter=1, second=-2)),
-            ('liter', 'l', lambda backend: backend.Unit(powerTen=-3,
-             meter=3)),
-            ('molar', 'M', lambda backend: backend.Unit(mole=1,
-             powerTen=3, meter=-3)),
+            ('watt', 'W', lambda backend: backend.Unit(kilogram=1, meter=2, second=-3)),
+            ('joule', 'J', lambda backend: backend.Unit(kilogram=1, meter=2, second=-2)),
+            ('newton', 'N', lambda backend: backend.Unit(kilogram=1, meter=1, second=-2)),
+            #('liter', 'l', lambda backend: backend.Unit(powerTen=-3, meter=3)),
+            ('liter', 'L', lambda backend: backend.Unit(powerTen=-3, meter=3)),
+            ('molar', 'M', lambda backend: backend.Unit(mole=1, powerTen=3, meter=-3)),
             )
         return units
 
     @classmethod
     def getUnits(cls, backend):
-        return [(u1, u2, u3(backend=backend)) for (u1, u2, u3) in
-                cls._getUnits()]
+        return [(u1, u2, u3(backend=backend)) for (u1, u2, u3) in cls._getUnits()]
 
     @classmethod
     def getUnitKeys(cls):
@@ -129,22 +119,22 @@ class UnitTermData(object):
         return safe_dict_merge(cls.getUnitLUTShort(backend=backend),
                                cls.getUnitLUTLong(backend=backend))
 
-    @classmethod
-    def getSpecialCaseShortForms(cls, backend):
-        special_unit_abbrs = (
-            ('m', backend.Unit(meter=1)),
-            ('cm', backend.Unit(meter=1, powerTen=-2)),
-            ('mm', backend.Unit(meter=1, powerTen=-3)),
-            ('um', backend.Unit(meter=1, powerTen=-6)),
-            ('nm', backend.Unit(meter=1, powerTen=-9)),
-            ('pm', backend.Unit(meter=1, powerTen=-12)),
-            ('M', backend.Unit(mole=1, meter=-3, powerTen=-3)),
-            ('mM', backend.Unit(mole=1, meter=-3, powerTen=-6)),
-            ('uM', backend.Unit(mole=1, meter=-3, powerTen=-9)),
-            ('nM', backend.Unit(mole=1, meter=-3, powerTen=-12)),
-            ('pM', backend.Unit(mole=1, meter=-3, powerTen=-15)),
-            )
+    #@classmethod
+    #def getSpecialCaseShortForms(cls, backend):
+    #    special_unit_abbrs = (
+    #        ('m', backend.Unit(meter=1)),
+    #        ('cm', backend.Unit(meter=1, powerTen=-2)),
+    #        ('mm', backend.Unit(meter=1, powerTen=-3)),
+    #        ('um', backend.Unit(meter=1, powerTen=-6)),
+    #        ('nm', backend.Unit(meter=1, powerTen=-9)),
+    #        ('pm', backend.Unit(meter=1, powerTen=-12)),
+    #        ('M', backend.Unit(mole=1, meter=-3, powerTen=-3)),
+    #        ('mM', backend.Unit(mole=1, meter=-3, powerTen=-6)),
+    #        ('uM', backend.Unit(mole=1, meter=-3, powerTen=-9)),
+    #        ('nM', backend.Unit(mole=1, meter=-3, powerTen=-12)),
+    #        ('pM', backend.Unit(mole=1, meter=-3, powerTen=-15)),
+    #        )
 
-        return special_unit_abbrs
+    #    return special_unit_abbrs
 
 

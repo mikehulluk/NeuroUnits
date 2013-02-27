@@ -1,33 +1,38 @@
 # Some Examples of valid L1
 # Blah blah
 #
-#@ {'type':'L1','test-gnu-unit':true}
+#@ {'type':'L1A','test-gnu-unit':true}
 m == meter
 s == second
 millisecond == ms 
 millisecond-1 == ms-1
-volt == coulomb/mol
 amp == coulomb/s
 m/s2 == m/s s == m/(s s)
 
 
+# From Wikipedia:
+volt == amp ohm == A Ohm == W / A == J / A s == N m / A s ==  kg m2 / C s2 == N m / C == J /C == kg m2/A s3
 
-#@ {'type':'L1'}
+
+#@ {'type':'L1A'}
 !! m/s/s, m /2s
 !! 3 4
 
-#@ {'type':'L2','test-gnu-unit':true, 'eps':0.01}
+#@ {'type':'L1B','test-gnu-unit':true, 'eps':0.01}
 1.0m == 1meter
 100.cm == 1m
-!! 101cm == 1m
+101cm != 1m
 
 # Molarity
 1 mM == 1 mol/m3
 1uM == 1e-3 mol/m3
 
+3 millivolt == 3 kiloamp microohm == 3.0 mA Ohm == 3 W / kA == 3 pJ / A ns == 3e-3 N m / A s ==  0.003 kg m2 / C s2 == 0.003  N m / C == 3 J / kilocoulomb == 3 g m2/A s3
+3 millivolt != 1 kiloamp microohm 
+3 millivolt != 3 kiloamp ohm 
 
 
-#@ {'type':'L3','test-gnu-unit':true, 'eps':0.01}
+#@ {'type':'L2','test-gnu-unit':true, 'eps':0.01}
 {1.0m} / {2s} == {0.5 m/s} == {50 cm/s} == {0.5 mm/ms}
 
 3+4/2==5
@@ -38,11 +43,11 @@ m/s2 == m/s s == m/(s s)
 6 s/m ==  6 ms/mm
 
 1/{1s} == 1Hz
-{1000L = 1m3}
+1000L == 1m3
 
 
 # Acc'n
-({1m/s} - {5m s-1}) / {8ms} == 0.002 m/s2
+({1m/s} - {5m s-1}) / {8ms} == -500. m/s2 == -0.5 km s-1 s-1 
 {500mN} == {1 kg} * {1 m/s2} / 2.
 
 # Check integer division:
@@ -50,3 +55,8 @@ m/s2 == m/s s == m/(s s)
 
 # Check division/multipication preecedance::
 0.125 == 1 / 2 / 4
+
+
+# Check some physical constants:
+#@ {'type':'L2','test-gnu-unit':true, 'eps':0.0001}
+std.physics.R == 8.314472 J mol-1 K-1

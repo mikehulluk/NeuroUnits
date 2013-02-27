@@ -52,11 +52,11 @@ class UnitTermLexer(object):
         # ]
 
         for (name, abbr) in UnitTermData.getMultiplierKeys():
-            vName_short = 'SHORT_%s' % name.upper()
+            #vName_short = 'SHORT_%s' % name.upper()
             vName_long = 'LONG_%s' % name.upper()
-            setattr(self, 't_' + vName_short, r" %s" % abbr)
+            #setattr(self, 't_' + vName_short, r" %s" % abbr)
             setattr(self, 't_' + vName_long, name)
-            self.add_token(vName_short)
+            #self.add_token(vName_short)
             self.add_token(vName_long)
 
         # Register all the UNIT regular expressions:
@@ -65,14 +65,14 @@ class UnitTermLexer(object):
         # t_LONG_VOLT = r"""volt"""
         # ]
         for (name, abbr) in UnitTermData.getUnitKeys():
-            vName_short = 'SHORT_%s' % name.upper()
+            #vName_short = 'SHORT_%s' % name.upper()
             vName_long = 'LONG_%s' % name.upper()
 
             # Ignore 'm' terms, since they should be
-            if abbr != 'm':
-                setattr(self, 't_' + vName_short, r" %s" % abbr)
+            #if abbr != 'm':
+            #    setattr(self, 't_' + vName_short, r" %s" % abbr)
             setattr(self, 't_' + vName_long, name)
-            self.add_token(vName_short)
+            #self.add_token(vName_short)
             self.add_token(vName_long)
 
 

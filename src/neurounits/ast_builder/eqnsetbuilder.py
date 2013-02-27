@@ -220,7 +220,7 @@ class StdFuncs(object):
             '__ceil__': cls.get_ceil,
             '__fabs__': cls.get_fabs,
             '__floor__': cls.get_floor,
-            
+
             #'__min__': cls.get_min,
             #'__max__': cls.get_max,
             #'__fabs__': cls.get_fabs,
@@ -291,6 +291,7 @@ class AbstractBlockBuilder(object):
 
     # Internal symbol handling:
     def get_symbol_or_proxy(self, s):
+        print 'get_symbol_or_proxy:', s
         # Are we in a function definition?
         if self.active_scope is not None:
             return self.active_scope.getSymbolOrProxy(s)
@@ -448,6 +449,19 @@ class AbstractBlockBuilder(object):
 
         from neurounits.librarymanager import LibraryManager
         assert isinstance(self.library_manager, LibraryManager)
+
+
+
+        # OK, perhaps we used some functions or constants from standard libraries,
+        # and we didn't import them. Lets let this slide and automatically import them:
+        unresolved_symbols = [ (k,v) for (k,v) in self.global_scope.iteritems() if not v.is_resolved() ]
+        for (symbol, proxyobj) in unresolved_symbols:
+            if not symbol.startswith('std.'):
+                continue
+            lib, token = symbol.rsplit('.',1)
+            print 'Automatically importing: %s' % symbol
+            self.do_import(srclibrary=lib, tokens=[(token,symbol)])
+
 
 
 

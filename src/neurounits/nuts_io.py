@@ -4,9 +4,12 @@
 import json
 import neurounits
 import copy
+import math
 
 
 
+class NutsIOValidationError(Exception):
+    pass
 
 class NutsIO(object):
 
@@ -34,7 +37,11 @@ class NutsIO(object):
         nuts_lines = cls.load(filename)
 
         for ln in nuts_lines:
-            print ln.validate()
+            print 'Validating:', ln.line
+            res = ln.validate()
+            if not res:
+                raise NutsIOValidationError('NUTS Validation failed: %s' % ln.line)
+
         print len(nuts_lines)
 
 
@@ -43,12 +50,13 @@ class NutsIO(object):
 
 
 
+default_eps = 1.e-14
 
 class NutsOptions():
     valid_attrs = {
         'type': None,
         'test-gnu-unit':True,
-        'eps':0.01
+        'eps': default_eps
         }
 
     def __init__(self):
@@ -70,26 +78,30 @@ class NutsOptions():
 
 
 
-
-def compare_l1(u1,u2):
+def compare_l1A(u1,u2, eps=None):
     return u1==u2
+    #eps = eps if eps is not None else default_eps
+    #return math.fabs( float(u1-u2) ) < eps
+    #return u1==u2
 
-def compare_l2(u1,u2):
-    return u1==u2
+def compare_l1B(u1,u2, eps=None):
+    eps = eps if eps is not None else default_eps
+    return math.fabs( (u1-u2).float_in_si() ) < eps
 
-def compare_l3(u1,u2):
-    return u1==u2
+def compare_l2(u1,u2, eps=None):
+    eps = eps if eps is not None else default_eps
+    return math.fabs( (u1-u2).float_in_si() ) < eps
 
 parse_func_lut = {
-        'L1':neurounits.NeuroUnitParser.Unit,
-        'L2':neurounits.NeuroUnitParser.QuantitySimple,
-        'L3':neurounits.NeuroUnitParser.QuantityExpr,
+        'L1A':neurounits.NeuroUnitParser.Unit,
+        'L1B':neurounits.NeuroUnitParser.QuantitySimple,
+        'L2':neurounits.NeuroUnitParser.QuantityExpr,
         }
 
 comp_func_lut = {
-        'L1': compare_l1,
+        'L1A': compare_l1A,
+        'L1B': compare_l1B,
         'L2': compare_l2,
-        'L3': compare_l3,
         }
 
 
@@ -99,7 +111,7 @@ class NutsIOLine(object):
     def __init__(self, line, lineno, options):
 
         line = line.strip()
-        
+
         if line.startswith('!!'):
             self.line = line[2:]
             self.is_valid=False
@@ -112,13 +124,10 @@ class NutsIOLine(object):
 
     def validate(self,):
 
-
-        print 'Checking', self.line.ljust(30),
-
         if self.is_valid:
-            self.test_valid()
+            return self.test_valid()
         else:
-            self.test_invalid()
+            return self.test_invalid()
 
 
     def test_valid(self):
@@ -126,18 +135,35 @@ class NutsIOLine(object):
         comp_func = comp_func_lut[self.options.type]
         if '==' in self.line:
             toks = self.line.split('==')
-            are_equal = True
-
 
             for t in toks[1:]:
-                are_equal_comp = comp_func(
+                print ' -- Checking: %s == %s' % tuple([toks[0],t])
+                print self.options.__dict__
+                are_equal = comp_func(
                         parse_func(toks[0]),
-                        parse_func(t)
+                        parse_func(t),
+                        eps = self.options.eps
                         )
-                are_equal = are_equal and are_equal_comp
-            print are_equal
+                if not are_equal:
+                    return False
+            return True
+
+        if '!=' in self.line:
+            toks = self.line.split('!=')
+            assert len(toks) == 2
+            print ' -- Checking: %s != %s' % tuple(toks)
+            are_equal = comp_func(
+                    parse_func(toks[0]),
+                    parse_func(toks[1])
+                    )
+            if are_equal: 
+                return False
+            return True
+
+
+
         else:
-            assert False
+            raise NotImplementedError()
 
 
     def test_invalid(self):
@@ -145,12 +171,14 @@ class NutsIOLine(object):
         comp_func = comp_func_lut[self.options.type]
         for tok in self.line.split(','):
             try:
-                print 'Checking: %s is invalid' % tok
+                print ' -- Checking: %s is invalid' % tok
                 parse_func(tok)
-                assert False, 'No exception raised!'
+                # An exception should be raised, so we shouldn't get here:!
+                return False
             except Exception, e:
-                print 'Exception raised (OK)!', e
+                print ' -- Exception raised (OK)!', e
                 pass
+        return True
 
 
 
