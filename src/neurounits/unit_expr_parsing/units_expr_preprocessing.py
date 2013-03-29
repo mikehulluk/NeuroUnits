@@ -62,7 +62,7 @@ def preprocess_string(src_text, parse_type):
     text = src_text
 
     # Add semicolons and join lines with a trailing \
-    if parse_type in [ParseTypes.L4_EqnSet, ParseTypes.L5_Library, ParseTypes.L6_TextBlock]:
+    if parse_type in [ParseTypes.L4_EqnSet, ParseTypes.L5_Library, ParseTypes.L6_TextBlock, ParseTypes.N6_9MLFile]:
         text= join_lines_and_add_semicolons(text)
     else:
         text = text.strip()

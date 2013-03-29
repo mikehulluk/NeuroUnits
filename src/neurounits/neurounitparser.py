@@ -81,3 +81,12 @@ class NeuroUnitParser(object):
         return library_manager.get_eqnset(eqnset_name)
 
 
+    @classmethod
+    def Parse9MLFile(cls, text, debug=False, backend=None, working_dir=None, options=None, name=None, **kwargs):
+        backend = backend or cls.get_defaultBackend()
+        return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.N6_9MLFile, working_dir=working_dir, backend=backend, options=options, name=name)
+        
+        
+        
+        
+

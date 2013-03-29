@@ -84,6 +84,119 @@ def p_whitespace_slurp3(p):
 
 
 
+def p_l4_module_def1(p):
+    """nineml_file : empty"""
+    pass
+    print 'Parsed Module file!'
+    
+def p_l4_module_def2(p):
+    """nineml_file : nineml_file white_or_newline_slurp module_def"""
+    
+    
+    
+def p_open_new_module(p):
+    """ open_module : empty """
+    p.parser.library_manager.start_module_block()
+
+def p_close_new_module(p):
+    """module_def : module_def_internal"""
+    p.parser.library_manager.end_module_block()
+
+def p_module_def1(p):
+    """module_def_internal : MODULE open_module WHITESPACE ALPHATOKEN LCURLYBRACKET modulecontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
+    p.parser.library_manager.get_current_block_builder().set_name(p[4])
+
+
+
+def p_module_def2(p):
+    """modulecontents : empty
+                         | white_or_newline_slurp component_def
+                         | modulecontents white_or_newline_slurp component_def"""
+    pass
+
+
+
+def p_open_new_component(p):
+    """ open_component : empty """
+    p.parser.library_manager.start_component_block()
+
+def p_close_new_component(p):
+    """component_def : component_def_internal"""
+    p.parser.library_manager.end_component_block()
+
+def p_component_def1(p):
+    """component_def_internal : DEFINE_COMPONENT open_component WHITESPACE ALPHATOKEN LCURLYBRACKET componentcontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
+    p.parser.library_manager.get_current_block_builder().set_name(p[4])
+
+
+
+
+
+def p_parse_componentline1(p):
+    """componentcontents : white_or_newline_slurp
+                      | complete_component_line
+                      | componentcontents complete_component_line """
+    pass
+
+def p_parse_componentline2(p):
+    """componentlinecontents : IO_LINE"""
+    p.parser.library_manager.get_current_block_builder().add_io_data(p[1])
+
+
+def p_complete_component_line(p):
+    """complete_component_line : white_or_newline_slurp componentlinecontents white_or_newline_slurp SEMICOLON """
+
+
+def p_parse_componentline2b(p):
+    """componentlinecontents   : ONEVENT_SYMBOL  event_def """
+    pass
+
+def p_parse_componentline4(p):
+    """componentlinecontents   : import
+                               | function_def
+                               | assignment
+                               | time_derivative """
+    pass
+
+
+def p_parse_componentline5(p):
+    """componentlinecontents   : regime_block """
+    pass
+
+
+
+def p_parse_component_regimename(p):
+    """regime_name : alphanumtoken"""
+    pass
+
+def p_parse_component_regime_block(p):
+    """regime_block : REGIME white_or_newline_slurp regime_name white_or_newline_slurp LCURLYBRACKET regimecontents white_or_newline_slurp RCURLYBRACKET"""
+    pass
+
+
+def p_parse_regimeline1(p):
+    """regimecontents : white_or_newline_slurp
+                      | complete_regimecontentsline
+                      | regimecontents complete_regimecontentsline """
+    
+    
+def p_parse_regimeline2(p):
+    
+    """regimecontentsline : time_derivative"""
+    
+def p_parse_regimeline3(p):
+    """complete_regimecontentsline : white_or_newline_slurp regimecontentsline white_or_newline_slurp SEMICOLON """
+
+    
+    
+    
+    
+
+
+
+
+
+
 
 
 
@@ -601,7 +714,7 @@ def p_quantity_magnitude(p):
 
 
 
-
+# Control the division of unit-terms
 def p_unit_expr_0(p):
     """unit_expr : unit_expr_divisible
                 | unit_expr_indivisible """
@@ -756,6 +869,7 @@ class ParseDetails(object):
         ParseTypes.L4_EqnSet: 'eqnset',
         ParseTypes.L5_Library: 'library_set',
         ParseTypes.L6_TextBlock: 'text_block',
+        ParseTypes.N6_9MLFile: 'nineml_file',
         }
 
 
@@ -809,7 +923,7 @@ class ParserMgr():
 
 
 def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
-    #debug=True
+    debug=True
 
 
     # Are a parsing a complex expression? Then we need a library manager:
@@ -826,8 +940,8 @@ def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, w
         pRes, library_manager = parse_eqn_block(text, parse_type=parse_type, debug=debug, library_manager=library_manager)
     except:
         print 
-        print 'Error Parsing: %s' % text
-        print 'Parsing as', parse_type
+        #print 'Error Parsing: %s' % text
+        #print 'Parsing as', parse_type
         raise
 
 
@@ -845,6 +959,7 @@ def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, w
             ParseTypes.L4_EqnSet:           lambda: SeqUtils.expect_single(library_manager.eqnsets),
             ParseTypes.L5_Library:          lambda: SeqUtils.expect_single(library_manager.libraries),
             ParseTypes.L6_TextBlock:        lambda: library_manager,
+            ParseTypes.N6_9MLFile:        lambda: library_manager,
     }
 
     return ret[parse_type]()

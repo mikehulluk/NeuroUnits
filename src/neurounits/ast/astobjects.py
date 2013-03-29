@@ -203,7 +203,6 @@ class SymbolicConstant(ASTExpressionObject):
         ASTExpressionObject.__init__(self,**kwargs)
         self.symbol = symbol
         self.value = value
-        #self.set_unitMH( value.units )
         self.set_dimensionality( value.units.with_no_powerten() )
     def __repr__(self):
         return "<SymbolicConstant: %s = %s>" %(self.symbol, self.value)
@@ -220,9 +219,6 @@ class BuiltInFunction(ASTExpressionObject):
         self.parameters = parameters
         if dimension is not None:
             self.set_dimensionality(dimension)
-
-        #if unitMH is not None:
-        #    self.set_unitMH( unitMH )
 
 
 class FunctionDef(ASTExpressionObject):
@@ -247,9 +243,6 @@ class FunctionDefParameter(ASTExpressionObject):
 
     def __str__(self):
         return "<FunctionDefParameter '%s'>" % self.symbol
-        #if unitMH is not None:
-        #    #assert False
-        #    self.set_unitMH( unitMH )
 
 
 

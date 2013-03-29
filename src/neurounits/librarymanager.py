@@ -30,11 +30,22 @@ from neurounits.misc import SeqUtils
 
 from neurounits.ast_builder import EqnSetBuilder
 from neurounits.ast_builder.eqnsetbuilder import LibraryBuilder
+from neurounits.ast_builder.eqnsetbuilder import NineMLComponentBuilder
 
 from itertools import chain
 import glob
 import os
 
+
+
+
+class ComponentNamespace(object):
+    def __init__(self):
+        self.name = None
+
+    def set_name(self, name):
+        assert self.name is None
+        self.name = name
 
 class LibraryManager(object):
 
@@ -49,8 +60,16 @@ class LibraryManager(object):
         return v.VisitLibraryManager(self, **kwargs)
 
 
+
+
+    @property
+    def currentblock(self):
+        if len( self.block_stack ) == 0:
+            return None
+        else:
+            return self.block_stack[-1]
+
     def __init__(self,backend, working_dir=None, options=None, name=None, src_text=None, is_stdlib_cache=False):
-        #assert src_text is None
         from neurounits.neurounitparser import NeuroUnitParserOptions
         self.options = options or NeuroUnitParserOptions()
 
@@ -59,14 +78,15 @@ class LibraryManager(object):
         self.name = name
         self.src_text = src_text
 
-        self.currentblock = None
+        self.block_stack=[]
+
         self.backend = backend
 
         self.libraries = []
         self.eqnsets = []
+        self.components = []
 
-        # self.working_dir = working_dir or "/tmp/mf_neurounits/"
-        # EnsureExisits(self.working_dir)
+
 
         if is_stdlib_cache:
             # Load in the standard libraries:
@@ -118,37 +138,56 @@ class LibraryManager(object):
     def get_library_names(self, include_stdlibs=True):
         return [l.name for l in self.libraries]
 
+
+    def open_block(self, block):
+        self.block_stack.append(block)
+
+    def pop_block(self):
+        return self.block_stack.pop()
+
+
     def start_eqnset_block(self):
-        assert self.currentblock is None
-        self.currentblock = EqnSetBuilder(library_manager=self)
+        self.open_block( EqnSetBuilder(library_manager=self) )
 
     def end_eqnset_block(self):
-        self.currentblock.finalise()
-        self.eqnsets.append(self.currentblock._astobject)
-        self.currentblock = None
+        eqnset = self.pop_block()
+        eqnset.finalise()
+        self.eqnsets.append(eqnset._astobject)
         self.get_eqnset_names()
 
+
+
     def start_library_block(self):
-        assert self.currentblock is None
-        self.currentblock = LibraryBuilder(library_manager=self)
+        self.open_block( LibraryBuilder(library_manager=self) )
 
     def end_library_block(self):
-        self.currentblock.finalise()
+        lib = self.pop_block()
+        lib.finalise()
+        assert not lib._astobject.name in self.get_library_names()
 
-        # print 'Name',self.currentblock._astobject.name
-
-        assert not self.currentblock._astobject.name \
-            in self.get_library_names()
-
-        # if self.load_into_stdlibs:
-        #    self.stdlibraries.append( self.currentblock._astobject )
-        # else:
-
-        self.libraries.append(self.currentblock._astobject)
-        self.currentblock = None
+        self.libraries.append(lib._astobject)
 
     def get_current_block_builder(self):
         return self.currentblock
+
+
+
+    def start_module_block(self):
+        self.open_block( ComponentNamespace() )
+
+    def end_module_block(self):
+        self.pop_block()
+
+
+    def start_component_block(self):
+        self.open_block( NineMLComponentBuilder(library_manager=self) )
+
+    def end_component_block(self):
+        component = self.pop_block()
+        component.finalise()
+
+        
+        self.components.append(component._astobject)
 
 
 

@@ -34,12 +34,14 @@ class IOType(object):
     Parameter = 'Parameter'
     State = 'State'
     InitialCondition = 'InitialCondition'
+    AnalogReducePort = 'AnalogReducePort'
 
     LUT = {
         'INPUT': Input,
         'OUTPUT': Output,
         'PARAMETER': Parameter,
         'STATE': State,
+        'ANALOG_REDUCE_PORT': AnalogReducePort,
         }
 
 

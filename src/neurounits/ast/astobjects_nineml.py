@@ -1,3 +1,4 @@
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
@@ -26,7 +27,34 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-from .astobjects import *
-from .astobjects_events import *
-from .eqnset import EqnSet, Library, NineMLComponent, NineMLModule
-from astobjects_nineml import EqnAssignmentPerRegime, EqnTimeDerivativePerRegime
+
+from .astobjects import ASTObject
+
+
+class EqnAssignmentPerRegime(ASTObject):
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitEqnAssignmentPerRegime(self, **kwargs)
+
+    def __init__(self,lhs,rhs,regime_name,**kwargs):
+        self.lhs = lhs
+        self.rhs = rhs
+        self.regime_name = regime_name
+
+class EqnAssignmentByRegime(ASTObject):
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitEqnAssignmentByRegime(self, **kwargs)
+    def __init__(self,lhs,rhs_map,**kwargs):
+        self.lhs = lhs
+        self.rhs_map = rhs_map
+
+
+
+
+class EqnTimeDerivativePerRegime(ASTObject):
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitEqnTimeDerivativePerRegime(self, **kwargs)
+
+    def __init__(self,lhs,rhs, regime_name, **kwargs):
+        self.lhs = lhs
+        self.rhs = rhs
+        self.regime_name = regime_name

@@ -42,6 +42,12 @@ class UnitExprLexer(object):
             'library':'LIBRARY',
             'eqnset': 'EQNSET',
 
+            'module': 'MODULE',
+            'define_component': 'DEFINE_COMPONENT',
+            'regime': 'REGIME',
+            'transition_to': 'TRANSITION_TO',
+            
+
             }
 
 
@@ -52,7 +58,6 @@ class UnitExprLexer(object):
         "INTEGER",
         "FLOAT",
         "SLASH",
-        #"SLASHSLASH",
         "WHITESPACE",
         "LBRACKET",
         "RBRACKET",

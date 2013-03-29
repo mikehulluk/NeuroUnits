@@ -63,7 +63,7 @@ def parse_io_line(line):
         metadata = read_json(metadata)
 
 
-    r = re.compile( r"""<=> \s* (?P<MODE>[a-zA-Z]+) \s* (?P<DEFS>.*) $""", re.VERBOSE)
+    r = re.compile( r"""<=> \s* (?P<MODE>[a-zA-Z][a-zA-Z_]*) \s* (?P<DEFS>.*) $""", re.VERBOSE)
     m = r.match(line)
 
     if not m:
@@ -73,7 +73,7 @@ def parse_io_line(line):
     mode = g['MODE']
 
 
-    if mode in ('INPUT', 'OUTPUT', 'PARAMETER'):
+    if mode in ('INPUT', 'OUTPUT', 'PARAMETER', 'ANALOG_REDUCE_PORT'):
         defs = []
 
         data = g['DEFS']

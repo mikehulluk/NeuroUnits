@@ -6,3 +6,5 @@ class ParseTypes(object):
     L4_EqnSet = 'L4_EqnSet'
     L5_Library = 'L5_Library'
     L6_TextBlock = 'L6_TextBlock'
+    
+    N6_9MLFile = 'N6_9MLFile'

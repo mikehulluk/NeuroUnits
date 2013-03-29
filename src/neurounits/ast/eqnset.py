@@ -274,6 +274,17 @@ class EqnSet(Block):
 
 
 
+class NineMLComponent(EqnSet):
+    pass
 
 
+class NineMLModule(object):
+    
+    def accept_visitor(self, visitor, **kwargs):
+        return visitor.VisitNineMLModule(self, **kwargs)
+
+    def __init__(self, **kwargs):
+        print 'building NineMLModule'
+        print kwargs
+    pass
 

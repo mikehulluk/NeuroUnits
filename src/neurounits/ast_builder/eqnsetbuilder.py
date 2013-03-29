@@ -38,6 +38,10 @@ from neurounits.visitors.common.clone_from_eqnset import CloneObject
 from neurounits.visitors.common.simplify_symbolic_constants import ReduceConstants
 from neurounits.ast.astobjects import SymbolicConstant
 
+from collections import defaultdict
+
+
+
 class StdFuncs(object):
 
     @classmethod
@@ -273,6 +277,10 @@ class BuildData(object):
         self.symbolicconstants = SingleSetDict()
 
         self.io_data_lines = []
+        
+        # Temporary lists, that will be resolved later:
+        self._time_derivatives_per_regime = []
+        #self._assigments_per_regime = []
 
 
 class AbstractBlockBuilder(object):
@@ -285,6 +293,9 @@ class AbstractBlockBuilder(object):
         # Scoping:
         self.global_scope = Scope(proxy_if_absent=True)
         self.active_scope = None
+
+        # Current Regime:
+        self.current_regime = None
 
     def set_name(self, name):
         self.builddata.eqnset_name = name.strip()
@@ -434,10 +445,14 @@ class AbstractBlockBuilder(object):
         self._resolve_global_symbol(lhs_name, assigned_obj)
 
         # Create the assignment object:
+        assert self.active_scope == None
+        #a = ast.EqnAssignmentPerRegime(lhs=assigned_obj, rhs=rhs_ast, regime_name=self.current_regime)
         a = ast.EqnAssignment(lhs=assigned_obj, rhs=rhs_ast)
 
-        assert not assigned_obj in self.builddata.assignments
+        #assert not assigned_obj in self.builddata.assignments
         self.builddata.assignments[assigned_obj] = a
+        #self.builddata._assigments_per_regime.append(a)
+        
         # Connect the assignment values to its rhs:
         assigned_obj.assignment_rhs = a.rhs
 
@@ -449,6 +464,20 @@ class AbstractBlockBuilder(object):
 
         from neurounits.librarymanager import LibraryManager
         assert isinstance(self.library_manager, LibraryManager)
+
+
+        ## Resolve the EqnAssignments into a single object:
+        ##assignments = []
+        #maps_asses = defaultdict(dict)
+        #for regime_assignment in self.builddata._assigments_per_regime:
+        #    assert not regime_assignment.regime_name in maps_asses[regime_assignment.lhs]
+        #    maps_asses[regime_assignment.lhs][regime_assignment.regime_name] = regime_assignment.rhs
+
+        #for d
+
+
+
+        #assert False
 
 
 
@@ -481,7 +510,7 @@ class AbstractBlockBuilder(object):
             else:
                 self._resolve_global_symbol(p.symbol, p, expect_is_unresolved = True)
 
-        supplied_symbols = [ast.SuppliedValue(symbol=p.symbol,dimension=p.dimension) for p in io_data if p.iotype==IOType.Input ]
+        supplied_symbols = [ast.SuppliedValue(symbol=p.symbol,dimension=p.dimension) for p in io_data if p.iotype in (IOType.Input, IOType.AnalogReducePort) ]
         for s in supplied_symbols:
             if self.library_manager.options.allow_unused_suppliedvalue_declarations:
                 self._resolve_global_symbol(s.symbol, s, expect_is_unresolved = False)
@@ -513,6 +542,7 @@ class AbstractBlockBuilder(object):
         # Lets build the Block Object!
         # ################################
         #self._astobject = ast.EqnSet(
+        print self.block_type
         self._astobject = self.block_type(
                     library_manager = self.library_manager,
                     builder = self,
@@ -536,8 +566,8 @@ class AbstractBlockBuilder(object):
 
 class EqnSetBuilder(AbstractBlockBuilder):
 
-    def __init__(self, library_manager):
-        AbstractBlockBuilder.__init__(self,block_type=ast.EqnSet, library_manager=library_manager)
+    def __init__(self, library_manager, block_type=ast.EqnSet):
+        AbstractBlockBuilder.__init__(self,block_type=block_type, library_manager=library_manager)
 
     def add_io_data(self,l):
         self.builddata.io_data_lines.append(l)
@@ -585,6 +615,13 @@ class LibraryBuilder(AbstractBlockBuilder):
         AbstractBlockBuilder.__init__(self,block_type=ast.Library, library_manager=library_manager)
 
 
+
+
+
+
+class NineMLComponentBuilder(EqnSetBuilder):
+    def __init__(self, library_manager):
+        EqnSetBuilder.__init__(self,block_type=ast.NineMLComponent, library_manager=library_manager)
 
 
 

@@ -1,0 +1,91 @@
+module my_components {
+
+
+	define_component syn_simple {
+	    g' = - g/g_tau
+	    i = gmax * (v-erev) * g
+	    
+	    gmax = 300pS
+	    erev = 0mV
+	    
+	    g_tau = 20ms
+	    <=> INPUT     v: mV       METADATA {"mf":{"role":"MEMBRANEVOLTAGE"} }
+	    <=> OUTPUT    i:(mA)      METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
+	    
+	    ==>> on_event() {
+		g = g + 1.0 
+	    }
+	}
+
+	define_component chlstd_leak {
+	    i = g * (V-erev)
+
+	    <=> PARAMETER g, erev
+	    <=> OUTPUT    i:(mA/cm2)   METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
+	    <=> INPUT     V: mV            METADATA {"mf":{"role":"MEMBRANEVOLTAGE"} }
+	}
+
+
+	define_component std_neuron {
+
+	    V' = i_sum / C
+
+	    <=> ANALOG_REDUCE_PORT i_sum 
+	    <=> PARAMETER C:(uF)
+	    <=> OUTPUT     V: mV            METADATA {"mf":{"role":"MEMBRANEVOLTAGE"} }
+
+	}
+
+
+	define_component my_analog_stim_two {
+
+		regime init{
+			f'=0
+		}		
+
+		i' = 0
+		tswitch = 0
+		dur = 10 ms
+		#regime OFF {
+		#	f'=0
+		#	}
+
+		#regime ON {
+		#	g'=0
+		#	}
+		
+	}
+
+
+
+
+	#define_component my_analog_stim{
+	#	
+	#	i = 0
+	#	tswitch = 0
+	#	dur = 10 ms
+	#	regime OFF {
+	#		on( t > tswitch + dur ) {
+	#			i=1;
+	#			tswitch = t
+	#			transition_to ON;
+	#		}
+	#
+	#	regime ON {
+	#		on (t > tswitch + dur ) {
+	#			i=0;
+	#			tswitch = t;
+	#			transition_to OFF;
+	#		}
+	#	}
+	#}
+
+
+
+}
+
+
+
+#RUN test_harness
+
+
