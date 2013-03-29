@@ -32,6 +32,6 @@ test_all:
 	
 	make -C src/testing
 	./bin/neurounits --validate  src/test_data/valid_l1.nuts
-	./bin/neurounits --validate  src/test_data/thesis.nuts
+	./bin/neurounits --validate  src/test_data/thesis_l1.nuts
 
 

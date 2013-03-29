@@ -600,19 +600,19 @@ def p_unit_expr_2(p):
     p[0] = p[1] / p[3]
 
 def p_unit_expr_3(p):
-    """unit_expr : parameterised_unit_term SLASH parameterised_unit_term"""
+    """unit_expr : parenthesised_unit_term SLASH parenthesised_unit_term"""
     p[0] = p[1] / p[3]
 
 def p_unit_expr_4(p):
-    """unit_expr : unit_term_grp SLASH parameterised_unit_term"""
+    """unit_expr : unit_term_grp SLASH parenthesised_unit_term"""
     p[0] = p[1] / p[3]
 
 def p_unit_expr_5(p):
-    """unit_expr : parameterised_unit_term SLASH unit_term_grp"""
+    """unit_expr : parenthesised_unit_term SLASH unit_term_grp"""
     p[0] = p[1] / p[3]
 
 def p_unit_expr_6(p):
-    """unit_expr : parameterised_unit_term"""
+    """unit_expr : parenthesised_unit_term"""
     p[0] = p[1]
 
 # Allow empty unit
@@ -622,16 +622,17 @@ def p_unit_expr_7(p):
     p[0] = backend.Unit()
 
 
-#Parameterised Unit Term
+#parenthesised Unit Term
 #########################
 
 def p_paramterised_unit_term_1(p):
-    """parameterised_unit_term : LBRACKET unit_term_grp RBRACKET"""
+    """parenthesised_unit_term : LBRACKET unit_term_grp RBRACKET"""
     p[0] = p[2]
 
 def p_paramterised_unit_term_2(p):
-    """parameterised_unit_term : LBRACKET unit_term_grp SLASH unit_term_grp RBRACKET"""
+    """parenthesised_unit_term : LBRACKET unit_term_grp SLASH unit_term_grp RBRACKET"""
     p[0] = p[2] / p[4]
+
 
 
 
@@ -750,10 +751,26 @@ class ParserMgr():
     @classmethod
     def build_parser( cls, start_symbol, debug):
 
+        import logging
+        if not os.path.exists('/tmp/mflog'):
+            os.makedirs('/tmp/mflog')
+        logging.basicConfig(
+            level = logging.DEBUG,
+            filename = "/tmp/mflog/parselog.txt",
+            filemode = "w",
+            format = "%(filename)10s:%(lineno)4d:%(message)s"
+        )
+        log = logging.getLogger()
+
+
+
         username = 'tmp_%d' % os.getuid()
         tables_loc =  EnsureExisits("/tmp/%s/nu/yacc/parse_eqn_block" % username)
-        #parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1  )
-        parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1, errorlog=ply.yacc.NullLogger()  )
+
+        if debug:
+            parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1  )
+        else: 
+            parser = yacc.yacc( debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1, errorlog=ply.yacc.NullLogger()  )
 
         #with open("/tmp/neurounits_grammar.txt",'w') as f:
         #    for p in parser.productions:
@@ -777,6 +794,7 @@ class ParserMgr():
 
 
 def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
+    debug=True
 
 
     # Are a parsing a complex expression? Then we need a library manager:
@@ -792,7 +810,9 @@ def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, w
     try:
         pRes, library_manager = parse_eqn_block(text, parse_type=parse_type, debug=debug, library_manager=library_manager)
     except:
+        print 
         print 'Error Parsing: %s' % text
+        print 'Parsing as', parse_type
         raise
 
 

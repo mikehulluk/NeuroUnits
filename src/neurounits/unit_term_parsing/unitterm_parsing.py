@@ -75,25 +75,7 @@ def p_long_basic_unit(p):
     unit_long_LUT = UnitTermData.getUnitLUTLong(backend=p.parser.backend)
     p[0] = unit_long_LUT[ p[1] ]
 
-#def p_short_basic_unit(p):
-#    """short_basic_unit : SHORT_VOLT
-#                        | SHORT_AMP
-#                        | SHORT_SIEMEN
-#                        | SHORT_JOULE
-#                        | SHORT_OHM
-#                        | SHORT_COULOMB
-#                        | SHORT_FARAD
-#                        | SHORT_METER
-#                        | SHORT_GRAM
-#                        | SHORT_SECOND
-#                        | SHORT_KELVIN
-#                        | SHORT_MOLE
-#                        | SHORT_CANDELA
-#                        | SHORT_MOLAR
-#                        | SHORT_HERTZ
-#                        """
-#    unit_short_LUT = UnitTermData.getUnitLUTShort(backend=p.parser.backend)
-#    p[0] = unit_short_LUT[p[1]]
+
 
 
 def p_long_basic_multiplier(p):
@@ -110,18 +92,6 @@ def p_long_basic_multiplier(p):
     p[0] = multiplier_long_LUT[ p[1] ]
 
 
-#def p_short_basic_multiplier(p):
-#    """short_basic_multiplier :   SHORT_GIGA
-#                                | SHORT_MEGA
-#                                | SHORT_KILO
-#                                | SHORT_CENTI
-#                                | SHORT_MILLI
-#                                | SHORT_MICRO
-#                                | SHORT_NANO
-#                                | SHORT_PICO
-#                              """
-#    multiplier_short_LUT = UnitTermData.getMultiplierLUTShort(backend=p.parser.backend)
-#    p[0] = multiplier_short_LUT[ p[1] ]
 
 def p_error(p):
     raise UnitError( "Parsing Error %s" % p)
@@ -215,25 +185,5 @@ def parse_term( text, backend ):
 
     return res
 
-
-    #if len(text) == 1:
-    #    return _parse_single_letter(text, backend=backend)
-
-    #
-    ## Its a multiple letter. One possibility is that its for example 'mHz'
-    ## Lets see if
-    ## -- Candela ---
-    #if text.endswith('cd'):
-    #    return 
-    #
-    #if len(text) == 2:
-    #    return _parse_double_letter(text, backend=backend)
-    #
-
-
-    # CHECK FOR STANDARD DEFINITIONS:
-    #for (u, u_def) in UnitTermData.getSpecialCaseShortForms(backend=backend):
-    #    if u == text:
-    #        return u_def
 
 
