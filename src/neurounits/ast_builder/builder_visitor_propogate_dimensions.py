@@ -99,7 +99,7 @@ class DimensionResolver(ASTVisitorBase):
                 continue
 
             obj_dimensionality = (obj.get_dimensionality() if obj.is_dimensionality_known() else '<Dimension Unknown>')
-            obj_unit = None  # obj.get_unitMH() if obj.is_unitMH_known() else "<Unit Unknown>"
+            obj_unit = None  
             self.history.append(' %s -> Dim: %s Unit: %s' % (name,
                                 obj_dimensionality, obj_unit))
 

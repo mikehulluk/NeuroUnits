@@ -34,32 +34,10 @@ from .base import ASTObject
 class ASTExpressionObject(ASTObject):
     def __init__(self,  dimension=None):
 
-        #self._unitMH = None #unitMH
-        self._dimension = None #dimension
+        self._dimension = None 
 
         if dimension:
             self.set_dimensionality(dimension)
-        #if unitMH:
-        #    self.set_unitMH(unitMH)
-
-
-
-    #def is_unitMH_known(self):
-    #    return self._unitMH is not None
-
-    #def get_unitMH(self):
-    #    assert  self.is_unitMH_known()
-    #    return self._unitMH
-
-    #def set_unitMH(self, u):
-
-    #    if self.is_dimensionality_known():
-    #        self.get_dimensionality().check_compatible(u)
-
-    #    else:
-    #        self.set_dimensionality( u.with_no_powerten() )
-    #    assert not self.is_unitMH_known()
-    #    self._unitMH = u
 
 
 
@@ -83,10 +61,10 @@ class ASTExpressionObject(ASTObject):
         return self._dimension
 
     def set_dimensionality(self, dimension):
-        #print dimension, type(dimension)
+
         import neurounits
         assert isinstance( dimension, neurounits.units_backends.mh.MMUnit)
-        #assert False
+
         assert not self.is_dimensionality_known()
         dimension = dimension.with_no_powerten()
         assert dimension.powerTen == 0

@@ -72,9 +72,4 @@ def parse_string(s):
 
     kw = read_json(s)
 
-
-    #return SummaryPlotData( x=d['x'], y=d['y'], t_start=d['t_start'],t_end=d['t_end'], params=d['params'])
     return SummaryPlotData( **kw)
-
-    #print data
-    #assert False

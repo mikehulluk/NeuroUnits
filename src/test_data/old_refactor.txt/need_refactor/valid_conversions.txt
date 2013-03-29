@@ -1,8 +1,0 @@
- 1 kV = 1000 V
-1 kA = 1000 A
-1 mS/cm2 = 10 pS/um2
-1 (mA/V)/cm2 = 10pS/um2
-1 (mA/V)/cm2 = 10pS/(um um)
-
-(1mS)/(10.0um/cm2) = 1pS/um2
-

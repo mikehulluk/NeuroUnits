@@ -14,6 +14,51 @@ m/s2 == m/s s == m/(s s)
 volt == amp ohm == A Ohm == W / A == J / A s == N m / A s ==  kg m2 / C s2 == N m / C == J /C == kg m2/A s3
 
 
+
+
+
+kV
+uF/cm2
+pF/mm2
+F/um2
+(F/um2)/cm
+F/(um2/cm)
+mm
+meter
+meter2
+m
+m2
+um2
+mS/cm2
+MA
+V2
+kA2
+V2 kA2
+volt2  A-5 megasiemen2
+volt2/A-5 megasiemen2
+megaamp
+milliamp
+meter meter
+milliamp volt
+milliamp/(uF s)
+
+
+
+
+
+1 kV == 1000 V
+1 kA == 1000 A
+1 mS/cm2 == 10 pS/um2
+1 (mA/V)/cm2 == 10pS/um2
+1 (mA/V)/cm2 == 10pS/(um um)
+
+(1mS)/(10.0um/cm2) == 1pS/um2
+
+
+
+
+
+
 #@ {'type':'L1A'}
 !! m/s/s, m /2s
 !! 3 4
@@ -44,6 +89,9 @@ volt == amp ohm == A Ohm == W / A == J / A s == N m / A s ==  kg m2 / C s2 == N 
 
 1/{1s} == 1Hz
 1000L == 1m3
+
+
+
 
 
 # Acc'n

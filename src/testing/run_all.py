@@ -23,6 +23,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #-------------------------------------------------------------------------------
 
+import mreorg
 
 from test_base import ReportGenerator
 
@@ -35,6 +36,10 @@ try:
 except ImportError:
     print "Can't test test_neuroml_import; files not installed"
 
+
+import test_lorenz
+import test_van_depol
+import test_single_comp_neuron
 
 ReportGenerator.report_all()
 

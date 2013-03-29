@@ -63,7 +63,6 @@ def parse_io_line(line):
         metadata = read_json(metadata)
 
 
-    #r = re.compile( r"""<=> \s* (?P<MODE>[a-zA-Z]+) \s* (?P<SYMBOL>[a-zA-Z][a-zA-Z0-9_]*) \s* ([:] \s* (?P<UNIT>[a-zA-Z0-9/()]*) )? """, re.VERBOSE)
     r = re.compile( r"""<=> \s* (?P<MODE>[a-zA-Z]+) \s* (?P<DEFS>.*) $""", re.VERBOSE)
     m = r.match(line)
 

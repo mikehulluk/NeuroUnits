@@ -293,8 +293,8 @@ def build_figures(eqnset):
                 ax.plot(vVals, fOut, color=color)
                 f.suptitle('Graph of %s against V' % a.symbol)
                 ax.set_xlabel('Membrane Voltage (mV)')
-                ax.set_ylabel('%s ($%s$)' % (a.symbol,
-                              FormatDimensionality(oUnit)))
+                dim = FormatDimensionality(oUnit)
+                ax.set_ylabel('%s (%s)' % (a.symbol, '$%s$'%dim if dim.strip() else ''))
                 ax.grid('on')
                 plots[a.symbol] = f
 

@@ -163,7 +163,14 @@ class NutsIOLine(object):
 
 
         else:
-            raise NotImplementedError()
+            # Make sure all the tokens (separated by commas) can be parsed'
+            tokens = self.line.split(",")
+            for t in tokens:
+                parse_func(t)
+            return True
+
+
+            #raise NotImplementedError()
 
 
     def test_invalid(self):

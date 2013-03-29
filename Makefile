@@ -22,12 +22,16 @@ clean:
 	find . -name '*~' -exec rm {} \;
 	rm -rf tmp_out/
 
-test1_new:
+test_all:
 	rm -fr tmp_out/
 	mkdir tmp_out/
 	#./bin/neurounits --validate --extract --extract-level=L1 --extract-to='L1.txt'  src/test_data/valid_l1.nuts
 	#./bin/neurounits --validate --extract --extract-level=L2 --extract-to='L2.txt'  src/test_data/valid_l1.nuts
 	#./bin/neurounits --validate --extract --extract-level=L3 --extract-to='L3.txt'  src/test_data/valid_l1.nuts
+	
+	
+	make -C src/testing
 	./bin/neurounits --validate  src/test_data/valid_l1.nuts
+	./bin/neurounits --validate  src/test_data/thesis.nuts
 
 

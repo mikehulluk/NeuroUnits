@@ -90,7 +90,6 @@ class UnitTermData(object):
             ('watt', 'W', lambda backend: backend.Unit(kilogram=1, meter=2, second=-3)),
             ('joule', 'J', lambda backend: backend.Unit(kilogram=1, meter=2, second=-2)),
             ('newton', 'N', lambda backend: backend.Unit(kilogram=1, meter=1, second=-2)),
-            #('liter', 'l', lambda backend: backend.Unit(powerTen=-3, meter=3)),
             ('liter', 'L', lambda backend: backend.Unit(powerTen=-3, meter=3)),
             ('molar', 'M', lambda backend: backend.Unit(mole=1, powerTen=3, meter=-3)),
             )
