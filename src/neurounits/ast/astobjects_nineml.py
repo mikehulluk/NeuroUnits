@@ -31,21 +31,34 @@
 from .astobjects import ASTObject
 
 
-class EqnAssignmentPerRegime(ASTObject):
-    def accept_visitor(self, v, **kwargs):
-        return v.VisitEqnAssignmentPerRegime(self, **kwargs)
+#class EqnAssignmentPerRegime(ASTObject):
+#    def accept_visitor(self, v, **kwargs):
+#        return v.VisitEqnAssignmentPerRegime(self, **kwargs)
+#
+#    def __init__(self,lhs,rhs,regime_name,**kwargs):
+#        self.lhs = lhs
+#        self.rhs = rhs
+#        self.regime_name = regime_name
 
-    def __init__(self,lhs,rhs,regime_name,**kwargs):
-        self.lhs = lhs
-        self.rhs = rhs
-        self.regime_name = regime_name
-
-class EqnAssignmentByRegime(ASTObject):
+class EqnTimeDerivativeByRegime(ASTObject):
     def accept_visitor(self, v, **kwargs):
-        return v.VisitEqnAssignmentByRegime(self, **kwargs)
+        return v.VisitTimeDerivativeByRegime(self, **kwargs)
     def __init__(self,lhs,rhs_map,**kwargs):
         self.lhs = lhs
         self.rhs_map = rhs_map
+
+
+    def set_rhs_map(self, o):
+        assert o is not None
+        self._rhs_map = o
+
+    def get_rhs_map(self):
+        return self._rhs_map
+    rhs_map = property(get_rhs_map, set_rhs_map)
+
+
+
+
 
 
 

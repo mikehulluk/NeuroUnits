@@ -285,6 +285,16 @@ class BuildData(object):
 
 class AbstractBlockBuilder(object):
 
+
+    def set_current_regime(self, name):
+        if name is None:
+            assert self.current_regime is not None
+        else:
+            assert self.current_regime is None
+        
+        self.current_regime = name
+        self.regimes.add(name)
+
     def __init__(self, library_manager, block_type):
         self.library_manager = library_manager
         self.builddata = BuildData()
@@ -296,6 +306,7 @@ class AbstractBlockBuilder(object):
 
         # Current Regime:
         self.current_regime = None
+        self.regimes = set([None])
 
     def set_name(self, name):
         self.builddata.eqnset_name = name.strip()
@@ -466,12 +477,36 @@ class AbstractBlockBuilder(object):
         assert isinstance(self.library_manager, LibraryManager)
 
 
-        ## Resolve the EqnAssignments into a single object:
-        ##assignments = []
-        #maps_asses = defaultdict(dict)
-        #for regime_assignment in self.builddata._assigments_per_regime:
-        #    assert not regime_assignment.regime_name in maps_asses[regime_assignment.lhs]
-        #    maps_asses[regime_assignment.lhs][regime_assignment.regime_name] = regime_assignment.rhs
+        ## Resolve the TimeDerivatives into a single object:
+        time_derivatives = SingleSetDict()
+        maps_tds = defaultdict(SingleSetDict)
+        for regime_td in self.builddata._time_derivatives_per_regime:
+            maps_tds[regime_td.lhs][regime_td.regime_name] = regime_td.rhs
+
+        for sv in maps_tds:
+            print 'Resolving:', sv
+
+            statevar_obj = ast.StateVariable(sv)
+            self._resolve_global_symbol(sv, statevar_obj)
+
+            tds = maps_tds[sv]
+            mapping = dict([ (reg, rhs) for (reg,rhs) in tds.items()] )
+
+
+            rhs = ast.EqnTimeDerivativeByRegime(lhs=statevar_obj, rhs_map=mapping)
+            
+            time_derivatives[statevar_obj] = rhs
+
+        self.builddata.timederivatives = time_derivatives
+        del self.builddata._time_derivatives_per_regime
+
+
+
+
+
+
+
+        #self._resolve_global_symbol(lhs_state_name, statevar_obj)
 
         #for d
 
@@ -596,16 +631,27 @@ class EqnSetBuilder(AbstractBlockBuilder):
         self.builddata.onevents[ev.name] = ev
 
 
+    # OLD:
+    #def add_timederivative(self, lhs_state_name, rhs_ast):
+    #    statevar_obj = ast.StateVariable(lhs_state_name)
+    #    self._resolve_global_symbol(lhs_state_name, statevar_obj)
+
+    #    # Create the assignment object:
+    #    a = ast.EqnTimeDerivative(lhs=statevar_obj, rhs=rhs_ast)
+
+    #    assert not statevar_obj in self.builddata.timederivatives
+    #    self.builddata.timederivatives[statevar_obj] = a
+
     def add_timederivative(self, lhs_state_name, rhs_ast):
-        statevar_obj = ast.StateVariable(lhs_state_name)
-        self._resolve_global_symbol(lhs_state_name, statevar_obj)
+        #statevar_obj = ast.StateVariable(lhs_state_name)
+        #self._resolve_global_symbol(lhs_state_name, statevar_obj)
 
         # Create the assignment object:
-        a = ast.EqnTimeDerivative(lhs=statevar_obj, rhs=rhs_ast)
+        a = ast.EqnTimeDerivativePerRegime(lhs=lhs_state_name, rhs=rhs_ast, regime_name=self.current_regime)
+        self.builddata._time_derivatives_per_regime.append(a)
 
-        assert not statevar_obj in self.builddata.timederivatives
-        self.builddata.timederivatives[statevar_obj] = a
-
+        #assert not statevar_obj in self.builddata.timederivatives
+        #self.builddata.timederivatives[statevar_obj] = a
 
 
 

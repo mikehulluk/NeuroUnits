@@ -29,4 +29,5 @@
 from .astobjects import *
 from .astobjects_events import *
 from .eqnset import EqnSet, Library, NineMLComponent, NineMLModule
-from astobjects_nineml import EqnAssignmentPerRegime, EqnTimeDerivativePerRegime
+from astobjects_nineml import EqnTimeDerivativePerRegime
+from astobjects_nineml import EqnTimeDerivativeByRegime

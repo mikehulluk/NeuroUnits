@@ -42,17 +42,18 @@ module my_components {
 		regime init{
 			f'=0
 		}		
-
+		
+		a = f + 1
 		i' = 0
 		tswitch = 0
 		dur = 10 ms
-		#regime OFF {
-		#	f'=0
-		#	}
+		regime OFF {
+			f'=0
+			}
 
-		#regime ON {
-		#	g'=0
-		#	}
+		regime ON {
+			g'=0
+			}
 		
 	}
 

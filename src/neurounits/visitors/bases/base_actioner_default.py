@@ -58,7 +58,6 @@ class ASTActionerDefault(ASTActionerDepthFirst):
     def ActionBoolNot(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
-    # Function Definitions:
     def ActionFunctionDef(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
@@ -93,8 +92,11 @@ class ASTActionerDefault(ASTActionerDepthFirst):
     def ActionOnEventStateAssignment(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
-    # AST Objects:
-    def ActionEqnTimeDerivative(self, o, **kwargs):
+    ## AST Objects:
+    #def ActionEqnTimeDerivative(self, o, **kwargs):
+    #    return self.ActionNode(o, **kwargs)
+
+    def ActionEqnTimeDerivativeByRegime(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
     def ActionEqnAssignment(self, o, **kwargs):

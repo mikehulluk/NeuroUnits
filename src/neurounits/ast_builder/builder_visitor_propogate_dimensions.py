@@ -188,18 +188,33 @@ class DimensionResolver(ASTVisitorBase):
     def VisitSymbolicConstant(self, o, **kwargs):
         return []
 
-    # AST Objects:
-    def VisitEqnTimeDerivative(self, o, **kwargs):
-        if len( [True for i in (o.lhs, o.rhs) if i.is_dimension_known()] ) != 1:
+    ## AST Objects:
+    #def VisitEqnTimeDerivative(self, o, **kwargs):
+    #    if len( [True for i in (o.lhs, o.rhs) if i.is_dimension_known()] ) != 1:
+    #        return
+
+    #    one_sec = self.ast.library_manager.backend.Unit(second=1)
+    #    if o.lhs.is_dimension_known():
+    #        self.RegisterDimensionPropogation( o.rhs, new_dimension= o.lhs.get_dimension()/one_sec, reason='TimeDerivative')
+    #        return
+    #    if o.rhs.is_dimension_known():
+    #        self.RegisterDimensionPropogation( o.lhs, new_dimension= o.rhs.get_dimension()*one_sec, reason='TimeDerivative')
+    #        return
+    def VisitTimeDerivativeByRegime(self, o, **kwargs):
+
+        if len( [True for i in [o.lhs] +o.rhs_map.values() if i.is_dimension_known()] ) != 1:
             return
 
+
         one_sec = self.ast.library_manager.backend.Unit(second=1)
-        if o.lhs.is_dimension_known():
-            self.RegisterDimensionPropogation( o.rhs, new_dimension= o.lhs.get_dimension()/one_sec, reason='TimeDerivative')
-            return
-        if o.rhs.is_dimension_known():
-            self.RegisterDimensionPropogation( o.lhs, new_dimension= o.rhs.get_dimension()*one_sec, reason='TimeDerivative')
-            return
+
+        for rhs in o.rhs_map.values():
+            if o.lhs.is_dimension_known():
+                self.RegisterDimensionPropogation( rhs, new_dimension= o.lhs.get_dimension()/one_sec, reason='TimeDerivative')
+                continue
+            if rhs.is_dimension_known():
+                self.RegisterDimensionPropogation( o.lhs, new_dimension= rhs.get_dimension()*one_sec, reason='TimeDerivative')
+                continue
 
     def VisitEqnAssignment(self, o, **kwargs):
         return self.EnsureEqualDimensions([o.lhs, o.rhs],reason='EqnAssignment')

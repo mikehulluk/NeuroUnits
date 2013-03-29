@@ -181,7 +181,8 @@ class EqnTimeDerivative(ASTObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitEqnTimeDerivative(self, **kwargs)
 
-    def __init__(self,lhs,rhs,**kwargs):
+    def __init__(self,lhs, rhs,**kwargs):
+        assert False, 'Deprecated'
         self.lhs = lhs
         self.rhs = rhs
 

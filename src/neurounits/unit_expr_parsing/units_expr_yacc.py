@@ -167,11 +167,12 @@ def p_parse_componentline5(p):
 
 def p_parse_component_regimename(p):
     """regime_name : alphanumtoken"""
-    pass
+    p.parser.library_manager.get_current_block_builder().set_current_regime(p[1])
 
 def p_parse_component_regime_block(p):
     """regime_block : REGIME white_or_newline_slurp regime_name white_or_newline_slurp LCURLYBRACKET regimecontents white_or_newline_slurp RCURLYBRACKET"""
-    pass
+    p.parser.library_manager.get_current_block_builder().set_current_regime(None)
+    
 
 
 def p_parse_regimeline1(p):
@@ -923,7 +924,7 @@ class ParserMgr():
 
 
 def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
-    debug=True
+    # debug=True
 
 
     # Are a parsing a complex expression? Then we need a library manager:
