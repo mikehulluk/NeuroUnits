@@ -33,7 +33,6 @@ from neurounits.ast.astobjects import Parameter, StateVariable
 from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator
 
 
-import pylab
 import quantities as pq
 import numpy as np
 
@@ -275,6 +274,7 @@ def build_figures(eqnset):
                     fOut.append(vRes.magnitude)
             except ZeroDivisionError:
                 color = 'r'
+                import pylab
                 f = pylab.figure(figsize=(2, 2))
                 ax = f.add_subplot(1, 1, 1)
                 ax.plot(vVals, vVals, color=color)
@@ -287,6 +287,7 @@ def build_figures(eqnset):
             else:
 
                 color = 'b'
+                import pylab
                 f = pylab.figure(figsize=(2, 2))
                 ax = f.add_subplot(1, 1, 1)
                 ax.plot(vVals, fOut, color=color)

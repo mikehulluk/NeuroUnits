@@ -39,7 +39,6 @@ from neurounits import ast
 from neurounits.units_backends.mh import MHUnitBackend
 import neurounits
 
-import pylab
 import mredoc
 from functools import partial
 
@@ -130,6 +129,7 @@ class EqnSimulator(object):
                         phase_plots.append((r, s))
 
         def build_trace_plot(sym):
+            import pylab
             f = pylab.figure()
             pylab.plot(res['t'], res[sym])
             pylab.xlabel('Time (s)')
@@ -137,6 +137,7 @@ class EqnSimulator(object):
             return mredoc.Figure(f)
 
         def build_phase_plot(sym1, sym2):
+            import pylab
             f = pylab.figure()
             pylab.plot(res[sym1], res[sym2])
             pylab.xlabel('Symbol: %s' % sym1)
@@ -265,27 +266,6 @@ class EqnSimulator(object):
 
 
 
-#def SimulateEquations(ast,):
-#    evaluator = EqnSimulator(ast)
-#
-#    import pylab
-#
-#    nPlots = len(ast.summary_data)
-#    f = pylab.figure()
-#
-#    for i,s in enumerate(ast.summary_data):
-#
-#        res = evaluator(state0In=s.y0, params=s.params,time_data=s.t)
-#
-#        ax = f.add_subplot(nPlots,1,i)
-#        x,xunit = res[s.x]
-#        y,yunit = res[s.y]
-#
-#        ax.plot( x,y, 'r')
-#        FormatUnit
-#        ax.set_xlabel("%s (Unit: %s)"%(s.x, FormatUnit(xunit) ))
-#        ax.set_ylabel("%s (Unit: %s)"%(s.y, FormatUnit(yunit) ))
-#
 
 class FunctorGenerator(ASTVisitorBase):
 
