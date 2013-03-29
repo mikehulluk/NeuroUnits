@@ -590,30 +590,43 @@ def p_quantity_magnitude(p):
 
 
 
-# UNIT EXPRESSIONS:
+
+
+
+
+
+
+
+
+
+
+
+
+def p_unit_expr_0(p):
+    """unit_expr : unit_expr_divisible
+                | unit_expr_indivisible """
+    p[0] = p[1]
+
+
+
 def p_unit_expr_1(p):
-    """unit_expr : unit_term_grp"""
+    """unit_expr_divisible : unit_term_grp"""
     p[0] = p[1]
 
 def p_unit_expr_2(p):
-    """unit_expr : unit_term_grp SLASH unit_term_grp"""
+    """unit_expr_indivisible : unit_expr_divisible SLASH unit_expr_divisible"""
     p[0] = p[1] / p[3]
+
+
 
 def p_unit_expr_3(p):
-    """unit_expr : parenthesised_unit_term SLASH parenthesised_unit_term"""
-    p[0] = p[1] / p[3]
-
+    """unit_expr_divisible : LBRACKET unit_expr_indivisible RBRACKET"""
+    p[0] = p[2]
+    
 def p_unit_expr_4(p):
-    """unit_expr : unit_term_grp SLASH parenthesised_unit_term"""
-    p[0] = p[1] / p[3]
+    """unit_expr_divisible : LBRACKET unit_expr_divisible RBRACKET"""
+    p[0] = p[2]
 
-def p_unit_expr_5(p):
-    """unit_expr : parenthesised_unit_term SLASH unit_term_grp"""
-    p[0] = p[1] / p[3]
-
-def p_unit_expr_6(p):
-    """unit_expr : parenthesised_unit_term"""
-    p[0] = p[1]
 
 # Allow empty unit
 def p_unit_expr_7(p):
@@ -622,16 +635,18 @@ def p_unit_expr_7(p):
     p[0] = backend.Unit()
 
 
-#parenthesised Unit Term
-#########################
 
-def p_paramterised_unit_term_1(p):
-    """parenthesised_unit_term : LBRACKET unit_term_grp RBRACKET"""
-    p[0] = p[2]
 
-def p_paramterised_unit_term_2(p):
-    """parenthesised_unit_term : LBRACKET unit_term_grp SLASH unit_term_grp RBRACKET"""
-    p[0] = p[2] / p[4]
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -794,7 +809,7 @@ class ParserMgr():
 
 
 def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
-    debug=True
+    #debug=True
 
 
     # Are a parsing a complex expression? Then we need a library manager:
