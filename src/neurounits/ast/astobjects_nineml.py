@@ -78,15 +78,49 @@ class EqnRegimeDispatchMap(ASTExpressionObject):
     rhs_map = property(get_rhs_map, set_rhs_map)
 
 
+class Transition(ASTObject):
+    def __init__(self, src_regime, target_regime=None,  **kwargs):
+        super(Transition, self).__init__(self, **kwargs)
+        self.target_regime = target_regime
+        self.src_regime = src_regime
+        self.actions = []
+
+    def set_target_regime(self, target_regime):
+        self.target_regime = target_regime
+
+class OnTriggerTransition(Transition):
+    def __init__(self, trigger, **kwargs):
+        super(Transition, self).__init__(self, **kwargs)
+        self.trigger = trigger
+
+class OnEventTransition(Transition):
+    def __init__(self, event_name, parameters, **kwargs):
+        super(Transition, self).__init__(self, **kwargs)
+        self.event_name = event_name
+
+class OnEventDefParameter(ASTExpressionObject):
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitOnEventDefParameter(self, **kwargs)
+
+    def __init__(self, symbol=None, dimension=None, **kwargs):
+        ASTExpressionObject.__init__(self, **kwargs)
+        self.symbol=symbol
+        if dimension is not None:
+            self.set_dimensionality( dimension)
+
+    def __str__(self):
+        return "<FunctionDefParameter '%s'>" % self.symbol
 
 
 
-
+ # Temporary objects used only during building:
+ # ----------------------------------------------
 class EqnTimeDerivativePerRegime(ASTObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitEqnTimeDerivativePerRegime(self, **kwargs)
 
     def __init__(self,lhs,rhs, regime_name, **kwargs):
+        super(EqnTimeDerivativePerRegime, self).__init__()
         self.lhs = lhs
         self.rhs = rhs
         self.regime_name = regime_name
@@ -96,6 +130,11 @@ class EqnAssignmentPerRegime(ASTObject):
         return v.VisitEqnAssignmentPerRegime(self, **kwargs)
 
     def __init__(self,lhs,rhs, regime_name, **kwargs):
+        super(EqnAssignmentPerRegime, self).__init__()
         self.lhs = lhs
         self.rhs = rhs
         self.regime_name = regime_name
+
+
+
+

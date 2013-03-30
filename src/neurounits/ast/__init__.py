@@ -32,3 +32,5 @@ from .eqnset import EqnSet, Library, NineMLComponent, NineMLModule
 from astobjects_nineml import EqnTimeDerivativePerRegime, EqnAssignmentPerRegime
 from astobjects_nineml import EqnTimeDerivativeByRegime,  EqnAssignmentByRegime
 from astobjects_nineml import EqnRegimeDispatchMap
+
+from astobjects_nineml import *

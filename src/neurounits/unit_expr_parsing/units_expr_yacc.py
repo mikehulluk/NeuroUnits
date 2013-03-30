@@ -179,11 +179,13 @@ def p_parse_regimeline1(p):
     """regimecontents : white_or_newline_slurp
                       | complete_regimecontentsline
                       | regimecontents complete_regimecontentsline """
-    
+    pass
     
 def p_parse_regimeline2(p):
-    
-    """regimecontentsline : time_derivative"""
+    """regimecontentsline : time_derivative
+                          | assignment 
+                          | on_transition_trigger"""
+    pass
     
 def p_parse_regimeline3(p):
     """complete_regimecontentsline : white_or_newline_slurp regimecontentsline white_or_newline_slurp SEMICOLON """
@@ -191,7 +193,97 @@ def p_parse_regimeline3(p):
     
     
     
-    
+def p_parse_on_transition_trigger(p):    
+    """on_transition_trigger : ON white_or_newline_slurp LBRACKET white_or_newline_slurp bool_expr white_or_newline_slurp RBRACKET white_or_newline_slurp LCURLYBRACKET transition_actions  RCURLYBRACKET """
+    pass
+
+def p_parse_on_transition_event(p):    
+    """on_transition_trigger : ON white_or_newline_slurp alphanumtoken white_or_newline_slurp LBRACKET on_event_def_params RBRACKET white_or_newline_slurp  LCURLYBRACKET transition_actions  RCURLYBRACKET """
+    pass
+
+
+
+
+
+def p_on_transition_actions1(p):
+    """transition_actions : white_or_newline_slurp"""
+    p[0] = []
+def p_on_transition_actions2(p):
+    """transition_actions :  transition_actions transition_actionline"""
+    p[0] = p[1] + [p[2]]
+
+def p_on_transition_actions3(p):
+    """transition_actionline :  transition_action SEMICOLON white_or_newline_slurp"""
+    p[0] = None
+
+
+def p_on_transition_actions4(p):
+    """transition_action : alphanumtoken EQUALS rhs_term"""
+    lhs = p.parser.library_manager.get_current_block_builder().get_symbol_or_proxy(p[1])
+    p[0] = ast.OnEventStateAssignment(lhs=lhs,rhs=p[3])
+
+
+def p_on_transition_actions5(p):
+    """transition_action : EMIT whiteslurp alphanumtoken  whiteslurp LBRACKET func_call_params_l3 RBRACKET"""
+    pass
+
+def p_on_transition_actions6(p):
+    """transition_action : TRANSITION_TO whiteslurp alphanumtoken"""
+    pass
+
+
+
+
+
+
+def p_event_def_param(p):
+    """on_event_def_param : localsymbol
+                          | localsymbol COLON LCURLYBRACKET  RCURLYBRACKET
+                          | localsymbol COLON LCURLYBRACKET unit_expr RCURLYBRACKET"""
+    pass
+    #backend = p.parser.library_manager.backend
+#
+#    if len(p) == 2:
+#        dimension = None 
+#    elif len(p) == 5:
+#        dimension = backend.Unit()
+#    elif len(p) == 6:
+#        dimension = p[4]
+#    else:
+#        assert False, 'len(p):%s'%len(p)
+#    #assert not dimension
+#    p[0] = {p[1]:ast.FunctionDefParameter(symbol=p[1], dimension=dimension) }
+
+
+def p_event_def_param0(p):
+    """on_event_def_params : whiteslurp"""
+    p[0] = {}
+
+
+def p_event_def_param2(p):
+    """on_event_def_params : on_event_def_param whiteslurp"""
+    p[0] = p[1]
+
+def p_event_def_param3(p):
+    """on_event_def_params : on_event_def_params COMMA whiteslurp on_event_def_param whiteslurp"""
+    pass
+    #p[0] = safe_dict_merge( p[1], p[4] )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -433,7 +525,7 @@ def p_lhs_symbol(p):
 # Scope Control:
 def p_function_definition_scope_open(p):
     """open_funcdef_scope : """
-    p.parser.library_manager.get_current_block_builder().open_function_def_scope()
+    p.parser.library_manager.get_current_block_builder().open_new_scope()
 
 def p_function_definition(p):
     """function_def : lhs_symbol LBRACKET function_def_params RBRACKET EQUALS open_funcdef_scope rhs_generic """
@@ -924,7 +1016,7 @@ class ParserMgr():
 
 
 def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
-    # debug=True
+    debug=True
 
 
     # Are a parsing a complex expression? Then we need a library manager:

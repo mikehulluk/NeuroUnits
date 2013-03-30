@@ -362,7 +362,7 @@ class AbstractBlockBuilder(object):
 
     # Function Definitions:
     # #########################
-    def open_function_def_scope(self):
+    def open_new_scope(self):
         assert self.active_scope is None
         self.active_scope = Scope()
 
@@ -451,21 +451,11 @@ class AbstractBlockBuilder(object):
     # into symbolic constants later, so we allow for them both.
     def add_assignment(self, lhs_name, rhs_ast):
 
-        # Create the lhs object:
-        #assigned_obj = ast.AssignedVariable(lhs_name)
-        #self._resolve_global_symbol(lhs_name, assigned_obj)
-
         # Create the assignment object:
         assert self.active_scope == None
         a = ast.EqnAssignmentPerRegime(lhs=lhs_name, rhs=rhs_ast, regime_name=self.current_regime)
-        #a = ast.EqnAssignment(lhs=assigned_obj, rhs=rhs_ast)
-
-        #assert not assigned_obj in self.builddata.assignments
-        #self.builddata.assignments[assigned_obj] = a
         self.builddata._assigments_per_regime.append(a)
         
-        # Connect the assignment values to its rhs:
-        #assigned_obj.assignment_rhs = a.rhs
 
     def finalise(self):
 
@@ -484,6 +474,7 @@ class AbstractBlockBuilder(object):
             maps_tds[regime_td.lhs][regime_td.regime_name] = regime_td.rhs
 
         for sv, tds in maps_tds.items():
+            
 
             statevar_obj = ast.StateVariable(sv)
             self._resolve_global_symbol(sv, statevar_obj)

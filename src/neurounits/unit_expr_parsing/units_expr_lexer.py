@@ -46,6 +46,8 @@ class UnitExprLexer(object):
             'define_component': 'DEFINE_COMPONENT',
             'regime': 'REGIME',
             'transition_to': 'TRANSITION_TO',
+            'on': 'ON',
+            'emit': 'EMIT',
             
 
             }
@@ -64,6 +66,7 @@ class UnitExprLexer(object):
         "LCURLYBRACKET",
         "RCURLYBRACKET",
         "ALPHATOKEN",
+        
         "TIMES","PLUS", 
         'MINUS',
         "TILDE",
