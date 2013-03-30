@@ -136,10 +136,7 @@ class AssignedVariable(ASTExpressionObject):
         ASTExpressionObject.__init__(self, **kwargs)
         self.symbol = symbol
 
-
-
-
-    def __str__(self,):
+    def __repr__(self,):
         return "<AssignedVariable: '%s'>" % (self.symbol)
 
 class SuppliedValue(ASTExpressionObject):
@@ -157,6 +154,8 @@ class StateVariable(ASTExpressionObject):
     def __init__(self, symbol, **kwargs):
         ASTExpressionObject.__init__(self, **kwargs)
         self.symbol = symbol
+    def __repr__(self,):
+        return "<StateVariable: '%s'>" % (self.symbol)
 
 class Parameter(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):
@@ -165,6 +164,8 @@ class Parameter(ASTExpressionObject):
     def __init__(self, symbol, **kwargs):
         ASTExpressionObject.__init__(self, **kwargs)
         self.symbol = symbol
+    def __repr__(self,):
+        return "<Parameter: '%s'>" % (self.symbol)
 
 class ConstValue(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):
@@ -173,8 +174,9 @@ class ConstValue(ASTExpressionObject):
     def __init__(self, value, **kwargs):
         ASTExpressionObject.__init__(self, **kwargs)
         self.value = value
-        #self.set_unitMH(value.units)
         self.set_dimensionality( value.units.with_no_powerten() )
+    def __repr__(self,):
+        return "<Const: '%s'>" % (self.value)
 
 
 
@@ -197,6 +199,8 @@ class EqnAssignment(ASTObject):
         self.lhs = lhs
         self.rhs = rhs
         pass
+    def __repr__(self,):
+        return "<Assignment to: '%s'>" % (self.lhs.symbol)
 
 
 
@@ -245,7 +249,7 @@ class FunctionDefParameter(ASTExpressionObject):
         if dimension is not None:
             self.set_dimensionality( dimension)
 
-    def __str__(self):
+    def __repr__(self):
         return "<FunctionDefParameter '%s'>" % self.symbol
 
 

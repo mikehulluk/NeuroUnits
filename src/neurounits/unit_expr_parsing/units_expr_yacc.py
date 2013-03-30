@@ -136,7 +136,7 @@ def p_parse_componentline1(p):
     """componentcontents : white_or_newline_slurp
                       | complete_component_line
                       | componentcontents complete_component_line """
-    pass
+    pass # Do nothing
 
 def p_parse_componentline2(p):
     """componentlinecontents : IO_LINE"""
@@ -145,23 +145,23 @@ def p_parse_componentline2(p):
 
 def p_complete_component_line(p):
     """complete_component_line : white_or_newline_slurp componentlinecontents white_or_newline_slurp SEMICOLON """
-
+    pass # Do nothing
 
 def p_parse_componentline2b(p):
     """componentlinecontents   : ONEVENT_SYMBOL  event_def """
-    pass
+    pass # Do nothing
 
 def p_parse_componentline4(p):
     """componentlinecontents   : import
                                | function_def
                                | assignment
                                | time_derivative """
-    pass
+    pass # Do nothing
 
 
 def p_parse_componentline5(p):
     """componentlinecontents   : regime_block """
-    pass
+    pass # Do nothing
 
 
 
@@ -179,32 +179,51 @@ def p_parse_regimeline1(p):
     """regimecontents : white_or_newline_slurp
                       | complete_regimecontentsline
                       | regimecontents complete_regimecontentsline """
-    pass
+    pass # Do nothing
     
 def p_parse_regimeline2(p):
     """regimecontentsline : time_derivative
                           | assignment 
                           | on_transition_trigger"""
-    pass
+    pass # Do nothing
     
 def p_parse_regimeline3(p):
     """complete_regimecontentsline : white_or_newline_slurp regimecontentsline white_or_newline_slurp SEMICOLON """
+    pass # Do nothing
+    
+    
+    
 
-    
-    
+def p_open_new_scope(p):
+    """open_eventtransition_scope : empty"""
+    p.parser.library_manager.get_current_block_builder().open_new_scope()
     
 def p_parse_on_transition_trigger(p):    
-    """on_transition_trigger : ON white_or_newline_slurp LBRACKET white_or_newline_slurp bool_expr white_or_newline_slurp RBRACKET white_or_newline_slurp LCURLYBRACKET transition_actions  RCURLYBRACKET """
-    pass
+    """on_transition_trigger : ON  open_eventtransition_scope whiteslurp LBRACKET whiteslurp bool_expr white_or_newline_slurp RBRACKET white_or_newline_slurp LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
+                             
+    trigger = p[6]
+    actions = p[11]
+    target_regime = p[12]
+    p.parser.library_manager.get_current_block_builder().create_transition_trigger(trigger=trigger, actions=actions, target_regime=target_regime)
 
 def p_parse_on_transition_event(p):    
-    """on_transition_trigger : ON white_or_newline_slurp alphanumtoken white_or_newline_slurp LBRACKET on_event_def_params RBRACKET white_or_newline_slurp  LCURLYBRACKET transition_actions  RCURLYBRACKET """
-    pass
+    """on_transition_trigger :  ON  open_eventtransition_scope  whiteslurp ALPHATOKEN whiteslurp LBRACKET on_event_def_params RBRACKET white_or_newline_slurp  LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
+    event_name = p[4]
+    event_params = p[7]
+    actions = p[11]
+    target_regime = p[12]
+    p.parser.library_manager.get_current_block_builder().close_scope_and_create_transition_event(event_name=event_name, event_params=event_params, actions=actions, target_regime=target_regime)
 
 
-
-
-
+def p_transition_to1(p):
+    """transition_to : empty"""
+    p[0] = None
+def p_transition_to2(p):
+    """transition_to : TRANSITION_TO whiteslurp alphanumtoken whiteslurp SEMICOLON white_or_newline_slurp"""
+    p[0] = p[3]
+    
+    
+    
 def p_on_transition_actions1(p):
     """transition_actions : white_or_newline_slurp"""
     p[0] = []
@@ -214,7 +233,7 @@ def p_on_transition_actions2(p):
 
 def p_on_transition_actions3(p):
     """transition_actionline :  transition_action SEMICOLON white_or_newline_slurp"""
-    p[0] = None
+    p[0] = p[1]
 
 
 def p_on_transition_actions4(p):
@@ -225,10 +244,6 @@ def p_on_transition_actions4(p):
 
 def p_on_transition_actions5(p):
     """transition_action : EMIT whiteslurp alphanumtoken  whiteslurp LBRACKET func_call_params_l3 RBRACKET"""
-    pass
-
-def p_on_transition_actions6(p):
-    """transition_action : TRANSITION_TO whiteslurp alphanumtoken"""
     pass
 
 
@@ -266,7 +281,7 @@ def p_event_def_param2(p):
 
 def p_event_def_param3(p):
     """on_event_def_params : on_event_def_params COMMA whiteslurp on_event_def_param whiteslurp"""
-    pass
+    p[0] = {}
     #p[0] = safe_dict_merge( p[1], p[4] )
 
 
@@ -415,7 +430,7 @@ def p_parse_libraryline4(p):
 
 def p_on_event_open_scope(p):
     """ open_event_def_scope : empty"""
-    p.parser.library_manager.get_current_block_builder().open_event_def_scope()
+    p.parser.library_manager.get_current_block_builder().open_new_scope()
 
 def p_on_event_definition(p):
     """event_def : alphanumtoken LBRACKET function_def_params RBRACKET white_or_newline_slurp LCURLYBRACKET open_event_def_scope on_event_actions_blk RCURLYBRACKET """

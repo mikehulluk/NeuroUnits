@@ -270,14 +270,20 @@ class BuildData(object):
 
     def __init__(self):
         self.eqnset_name = None
-        #self.assignments = SingleSetDict()
+        self.regimes = set([ast.Regime(name=None)])
+
         self.onevents = SingleSetDict()
         self.timederivatives = SingleSetDict()
         self.funcdefs = SingleSetDict()
         self.symbolicconstants = SingleSetDict()
 
         self.io_data_lines = []
-        
+
+
+        self.transitions_triggers = []
+        self.transitions_events = []
+
+
         # Temporary lists, that will be resolved later:
         self._time_derivatives_per_regime = []
         self._assigments_per_regime = []
@@ -288,12 +294,11 @@ class AbstractBlockBuilder(object):
 
     def set_current_regime(self, name):
         if name is None:
-            assert self.current_regime is not None
+            assert self.current_regime.name is not None
         else:
-            assert self.current_regime is None
-        
-        self.current_regime = name
-        self.regimes.add(name)
+            assert self.current_regime.name is None
+
+        self.current_regime = self.get_regime_obj(name)
 
     def __init__(self, library_manager, block_type):
         self.library_manager = library_manager
@@ -305,8 +310,17 @@ class AbstractBlockBuilder(object):
         self.active_scope = None
 
         # Current Regime:
-        self.current_regime = None
-        self.regimes = set([None])
+        self.current_regime = list(self.builddata.regimes)[0] 
+
+    def get_regime_obj(self, name):
+        for r in self.builddata.regimes:
+            if r.name == name:
+                return r
+
+        # Make a new one:
+        r = ast.Regime(name=name)
+        self.builddata.regimes.add(r)
+        return r
 
     def set_name(self, name):
         self.builddata.eqnset_name = name.strip()
@@ -401,6 +415,51 @@ class AbstractBlockBuilder(object):
 
 
 
+    def close_scope_and_create_transition_event(self, event_name, event_params, actions, target_regime):
+        # Close up the scope:
+        assert self.active_scope is not None
+        scope = self.active_scope
+        self.active_scope = None
+
+        # Resolve the symbols in the namespace
+        for sym,obj in scope.iteritems():
+            # Resolve Symbol from the Event Parameters:
+            if sym in event_params:
+                obj.set_target(event_params[sym])
+
+            # Resolve at global scope:
+            else:
+                obj.set_target(self.global_scope.getSymbolOrProxy(sym) )
+
+
+        self.builddata.transitions_events.append(
+            ast.OnEventTransition( event_name=event_name, parameters=event_params, actions = actions, target_regime=target_regime, src_regime=self.current_regime)
+        )
+
+
+
+    def create_transition_trigger(self, trigger, actions, target_regime):
+        assert self.active_scope is not None
+        scope = self.active_scope
+        self.active_scope = None
+
+        # Resolve all symbols from the global namespace:
+        for sym,obj in scope.iteritems():
+            obj.set_target(self.global_scope.getSymbolOrProxy(sym) )
+
+
+        assert self.active_scope is None
+        self.builddata.transitions_triggers.append(
+            ast.OnTriggerTransition(trigger = trigger, actions = actions, target_regime=target_regime,src_regime=self.current_regime)
+        )
+
+
+
+
+
+
+
+
     def create_function_call(self, funcname, parameters):
 
         # BuiltInFunctions have __XX__
@@ -455,7 +514,7 @@ class AbstractBlockBuilder(object):
         assert self.active_scope == None
         a = ast.EqnAssignmentPerRegime(lhs=lhs_name, rhs=rhs_ast, regime_name=self.current_regime)
         self.builddata._assigments_per_regime.append(a)
-        
+
 
     def finalise(self):
 
@@ -474,14 +533,14 @@ class AbstractBlockBuilder(object):
             maps_tds[regime_td.lhs][regime_td.regime_name] = regime_td.rhs
 
         for sv, tds in maps_tds.items():
-            
+
 
             statevar_obj = ast.StateVariable(sv)
             self._resolve_global_symbol(sv, statevar_obj)
 
             mapping = dict([ (reg, rhs) for (reg,rhs) in tds.items()] )
             rhs = ast.EqnTimeDerivativeByRegime(
-                    lhs=statevar_obj, 
+                    lhs=statevar_obj,
                     rhs_map=ast.EqnRegimeDispatchMap(mapping)
                     )
             time_derivatives[statevar_obj] = rhs
@@ -502,7 +561,7 @@ class AbstractBlockBuilder(object):
 
             mapping = dict([ (reg, rhs) for (reg,rhs) in tds.items()] )
             rhs = ast.EqnAssignmentByRegime(
-                    lhs=assvar_obj, 
+                    lhs=assvar_obj,
                     rhs_map=ast.EqnRegimeDispatchMap(mapping)
                     )
             assignments[assvar_obj] = rhs
@@ -513,15 +572,10 @@ class AbstractBlockBuilder(object):
 
 
 
+        # Copy regimes into builddata
+        #self.builddata.regimes = self.regimes
 
 
-        #self._resolve_global_symbol(lhs_state_name, statevar_obj)
-
-        #for d
-
-
-
-        #assert False
 
 
 
@@ -616,10 +670,10 @@ class EqnSetBuilder(AbstractBlockBuilder):
     def add_io_data(self,l):
         self.builddata.io_data_lines.append(l)
 
-    # Event Definitions:
-    def open_event_def_scope(self):
-        assert self.active_scope is None
-        self.active_scope = Scope()
+    ## Event Definitions:
+    #def open_event_def_scope(self):
+    #    assert self.active_scope is None
+    #    self.active_scope = Scope()
 
     def close_scope_and_create_onevent(self, ev ):
         assert self.active_scope is not None

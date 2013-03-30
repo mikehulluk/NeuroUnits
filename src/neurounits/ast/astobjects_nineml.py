@@ -39,6 +39,8 @@ class EqnAssignmentByRegime(ASTObject):
         assert isinstance(rhs_map,EqnRegimeDispatchMap)
         self.lhs = lhs
         self.rhs_map = rhs_map
+    def __repr__(self):
+        return '<Assignment to: %s>' % (self.lhs.symbol)
 
 
 class EqnTimeDerivativeByRegime(ASTObject):
@@ -58,6 +60,9 @@ class EqnTimeDerivativeByRegime(ASTObject):
         return self._rhs_map
     rhs_map = property(get_rhs_map, set_rhs_map)
 
+    def __repr__(self):
+        return '<TimeDerivative of: %s>' % (self.lhs.symbol)
+
 
 
 class EqnRegimeDispatchMap(ASTExpressionObject):
@@ -67,6 +72,8 @@ class EqnRegimeDispatchMap(ASTExpressionObject):
     def __init__(self, rhs_map):
         super(EqnRegimeDispatchMap, self).__init__()
         assert isinstance(rhs_map, dict)
+        for key in rhs_map:
+            assert isinstance( key, Regime)
         self.rhs_map = rhs_map
 
     def set_rhs_map(self, o):
@@ -79,24 +86,28 @@ class EqnRegimeDispatchMap(ASTExpressionObject):
 
 
 class Transition(ASTObject):
-    def __init__(self, src_regime, target_regime=None,  **kwargs):
-        super(Transition, self).__init__(self, **kwargs)
+    def __init__(self, src_regime, actions, target_regime=None,  **kwargs):
+        print kwargs
+        super(Transition, self).__init__( **kwargs)
         self.target_regime = target_regime
         self.src_regime = src_regime
         self.actions = []
 
-    def set_target_regime(self, target_regime):
-        self.target_regime = target_regime
 
 class OnTriggerTransition(Transition):
     def __init__(self, trigger, **kwargs):
-        super(Transition, self).__init__(self, **kwargs)
+        super(OnTriggerTransition, self).__init__(**kwargs)
         self.trigger = trigger
+    def __repr__(self):
+        return "<Transition %s -> %s (%d actions)>" % (self.src_regime, self.target_regime, len(self.actions) )
 
 class OnEventTransition(Transition):
     def __init__(self, event_name, parameters, **kwargs):
-        super(Transition, self).__init__(self, **kwargs)
+        super(OnEventTransition, self).__init__(**kwargs)
         self.event_name = event_name
+        self.parameters = parameters
+    def __repr__(self):
+        return "<OnEventTransition [%s] %s -> %s (%d actions)>" % (self.event_name, self.src_regime, self.target_regime, len(self.actions) )
 
 class OnEventDefParameter(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):
@@ -108,8 +119,32 @@ class OnEventDefParameter(ASTExpressionObject):
         if dimension is not None:
             self.set_dimensionality( dimension)
 
-    def __str__(self):
-        return "<FunctionDefParameter '%s'>" % self.symbol
+    def __repr__(self):
+        return "<OnEventDefParameter '%s'>" % self.symbol
+
+
+
+
+class EmitEvent(ASTObject):
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitEmitEvent(self, **kwargs)
+    def __init__(self, event_name, parameter_map, **kwargs):
+        self.event_name = event_name
+        self.parameter_map = parameter_map
+    def __repr__(self,):
+        return "<EmitEvent: '%s'>" % (self.event_name)
+
+
+class Regime(ASTObject):
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitRegime(self)
+
+    def __init__(self, name):
+        super(Regime, self).__init__()
+        self.name = name
+    def __repr__(self):
+        return "<Regime: '%s'>" % (self.name)
+
 
 
 
@@ -134,6 +169,7 @@ class EqnAssignmentPerRegime(ASTObject):
         self.lhs = lhs
         self.rhs = rhs
         self.regime_name = regime_name
+
 
 
 
