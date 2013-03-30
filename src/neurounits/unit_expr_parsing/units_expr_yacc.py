@@ -244,7 +244,8 @@ def p_on_transition_actions4(p):
 
 def p_on_transition_actions5(p):
     """transition_action : EMIT whiteslurp alphanumtoken  whiteslurp LBRACKET func_call_params_l3 RBRACKET"""
-    pass
+    p[0] = ast.EmitEvent(event_name=p[3], parameter_map=p[6] )
+    
 
 
 
@@ -255,19 +256,20 @@ def p_event_def_param(p):
     """on_event_def_param : localsymbol
                           | localsymbol COLON LCURLYBRACKET  RCURLYBRACKET
                           | localsymbol COLON LCURLYBRACKET unit_expr RCURLYBRACKET"""
-    pass
-    #backend = p.parser.library_manager.backend
-#
-#    if len(p) == 2:
-#        dimension = None 
-#    elif len(p) == 5:
-#        dimension = backend.Unit()
-#    elif len(p) == 6:
-#        dimension = p[4]
-#    else:
-#        assert False, 'len(p):%s'%len(p)
-#    #assert not dimension
+    
+    backend = p.parser.library_manager.backend
+
+    if len(p) == 2:
+        dimension = None 
+    elif len(p) == 5:
+        dimension = backend.Unit()
+    elif len(p) == 6:
+        dimension = p[4]
+    else:
+        assert False, 'len(p):%s'%len(p)
+
 #    p[0] = {p[1]:ast.FunctionDefParameter(symbol=p[1], dimension=dimension) }
+    p[0] = {p[1]:ast.OnEventDefParameter(symbol=p[1], dimension=dimension) }
 
 
 def p_event_def_param0(p):
@@ -281,8 +283,8 @@ def p_event_def_param2(p):
 
 def p_event_def_param3(p):
     """on_event_def_params : on_event_def_params COMMA whiteslurp on_event_def_param whiteslurp"""
-    p[0] = {}
-    #p[0] = safe_dict_merge( p[1], p[4] )
+    #p[0] = {}
+    p[0] = safe_dict_merge( p[1], p[4] )
 
 
 

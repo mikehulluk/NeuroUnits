@@ -431,9 +431,14 @@ class AbstractBlockBuilder(object):
             else:
                 obj.set_target(self.global_scope.getSymbolOrProxy(sym) )
 
+        src_regime=self.current_regime
+        if target_regime is None:
+            target_regime = src_regime
+        else:
+            target_regime = self.get_regime_obj(target_regime)
 
         self.builddata.transitions_events.append(
-            ast.OnEventTransition( event_name=event_name, parameters=event_params, actions = actions, target_regime=target_regime, src_regime=self.current_regime)
+            ast.OnEventTransition( event_name=event_name, parameters=event_params, actions = actions, target_regime=target_regime, src_regime=src_regime)
         )
 
 
@@ -447,10 +452,15 @@ class AbstractBlockBuilder(object):
         for sym,obj in scope.iteritems():
             obj.set_target(self.global_scope.getSymbolOrProxy(sym) )
 
+        src_regime=self.current_regime
+        if target_regime is None:
+            target_regime = src_regime
+        else:
+            target_regime = self.get_regime_obj(target_regime)
 
         assert self.active_scope is None
         self.builddata.transitions_triggers.append(
-            ast.OnTriggerTransition(trigger = trigger, actions = actions, target_regime=target_regime,src_regime=self.current_regime)
+            ast.OnTriggerTransition(trigger = trigger, actions = actions, target_regime=target_regime,src_regime=src_regime)
         )
 
 

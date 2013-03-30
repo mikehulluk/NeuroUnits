@@ -91,7 +91,7 @@ class Transition(ASTObject):
         super(Transition, self).__init__( **kwargs)
         self.target_regime = target_regime
         self.src_regime = src_regime
-        self.actions = []
+        self.actions = actions
 
 
 class OnTriggerTransition(Transition):

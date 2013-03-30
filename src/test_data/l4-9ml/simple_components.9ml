@@ -70,8 +70,8 @@ module my_components {
              }
              
              
-             on recievemyevent(a,b,c){
-                f = -34
+             on recievemyevent(a,b,c,event_param){
+                f = -c + event_param
                 emit my_event(x=2,y=3,z=4)
                 transition_to OFF
              }

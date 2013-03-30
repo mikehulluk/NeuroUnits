@@ -303,6 +303,12 @@ class NineMLComponent(EqnSet):
     def local_regimes(self):
         return self._local_regimes
 
+    @property
+    def transitions(self):
+        return self._transitions_triggers + self._transitions_events
+
+    #def accept_visitor(self, visitor, **kwargs):
+    #    return visitor.VisitNineMLComponent(self, **kwargs)
 
 class NineMLModule(object):
     

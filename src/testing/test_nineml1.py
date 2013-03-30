@@ -29,8 +29,15 @@ def summarise_component(comp):
             print '  ', k
         except:
             pass
+            
+    for tr in comp.transitions:
+        print tr
+        for a in tr.actions:
+            
+            print ' ', a
     
 for comp in library_manager.components:
     print
     summarise_component(comp)
+    
 	
