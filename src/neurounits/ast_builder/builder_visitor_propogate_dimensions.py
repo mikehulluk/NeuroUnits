@@ -202,19 +202,38 @@ class DimensionResolver(ASTVisitorBase):
     #        return
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
 
-        if len( [True for i in [o.lhs] +o.rhs_map.values() if i.is_dimension_known()] ) != 1:
+        if o.lhs.is_dimension_known() and o.rhs_map.is_dimension_known():
+            return
+        if not o.lhs.is_dimension_known() and not o.rhs_map.is_dimension_known():
+            return
+        
+        one_sec = self.ast.library_manager.backend.Unit(second=1)
+        if o.lhs.is_dimension_known():
+            self.RegisterDimensionPropogation( o.rhs_map, new_dimension= o.lhs.get_dimension()/one_sec, reason='TimeDerivative')
+            return
+        if o.rhs_map.is_dimension_known():
+            self.RegisterDimensionPropogation( o.lhs, new_dimension= o.rhs_map.get_dimension()*one_sec, reason='TimeDerivative')
+            return
+
+    
+    def VisitRegimeDispatchMap(self, o, **kwargs):
+
+        if len( [True for i in [o] +o.rhs_map.values() if i.is_dimension_known()] ) == len(o.rhs_map) + 1:
+            return
+        if len( [True for i in [o] +o.rhs_map.values() if i.is_dimension_known()] ) == 0:
             return
 
 
-        one_sec = self.ast.library_manager.backend.Unit(second=1)
 
         for rhs in o.rhs_map.values():
-            if o.lhs.is_dimension_known():
-                self.RegisterDimensionPropogation( rhs, new_dimension= o.lhs.get_dimension()/one_sec, reason='TimeDerivative')
+            if o.is_dimension_known() and not rhs.is_dimension_known():
+                self.RegisterDimensionPropogation( rhs, new_dimension= o.get_dimension(), reason='TD-Regime') 
                 continue
-            if rhs.is_dimension_known():
-                self.RegisterDimensionPropogation( o.lhs, new_dimension= rhs.get_dimension()*one_sec, reason='TimeDerivative')
+            if rhs.is_dimension_known() and not o.is_dimension_known():
+                self.RegisterDimensionPropogation( o, new_dimension= rhs.get_dimension(), reason='TD-Regime' )
                 continue
+
+    
 
     def VisitEqnAssignment(self, o, **kwargs):
         return self.EnsureEqualDimensions([o.lhs, o.rhs],reason='EqnAssignment')

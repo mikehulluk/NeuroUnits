@@ -141,6 +141,11 @@ class ReplaceNode(ASTVisitorBase):
     # AST Objects:
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         o.lhs = self.replace_or_visit(o.lhs)
+        o.rhs_map = self.replace_or_visit(o.rhs_map)
+        #o.rhs_map = dict([ (reg, self.replace_or_visit(rhs)) for (reg,rhs) in o.rhs_map.items() ] )
+        return o
+
+    def VisitRegimeDispatchMap(self, o, **kwargs):
         o.rhs_map = dict([ (reg, self.replace_or_visit(rhs)) for (reg,rhs) in o.rhs_map.items() ] )
         return o
 

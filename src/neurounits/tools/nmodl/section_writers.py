@@ -59,7 +59,7 @@ class StateWriter(ASTActionerDefaultIgnoreMissing):
     def ActionStateVariable(self, n, modfilecontents,  build_parameters, **kwargs):
         modfilecontents.section_STATE.append( ModFileString.DeclareSymbol(n,build_parameters) )
 
-    def ActionEqnTimeDerivative(self, n, modfilecontents, build_parameters, **kwargs):
+    def ActionEqnTimeDerivativeByRegime (self, n, modfilecontents, build_parameters, **kwargs):
         s = CStringWriter.Build(n, build_parameters=build_parameters, expand_assignments=False)
         modfilecontents.section_DERIVATIVE.append( s )
 
@@ -344,6 +344,7 @@ class CStringWriter(ASTVisitorBase):
         return self.GetTerminal(o)
 
 
+
     def GetTerminal(self, n):
 
         symbol = n.symbol
@@ -387,8 +388,8 @@ class CStringWriter(ASTVisitorBase):
 
 
     # AST Objects:
-    def VisitEqnTimeDerivative(self, o, **kwargs):
-        rhs_si =  self.visit(o.rhs)
+    def VisitTimeDerivativeByRegime(self, o, **kwargs):
+        rhs_si =  self.visit(o.rhs_map)
         lhs =  o.lhs.symbol
 
         # Check for non-SI assignments to the lhs
@@ -398,6 +399,10 @@ class CStringWriter(ASTVisitorBase):
 
         # NEURON has a dt in 'ms', so we need to scale from SI.
         return "%s' = (0.001)* %s %s" %( lhs, multiplier, rhs_si )
+
+    def VisitRegimeDispatchMap(self, o, **kwargs):
+        assert len(o.rhs_map) == 1
+        return self.visit( o.rhs_map.values()[0] )
 
 
     def VisitEqnAssignment(self, o, **kwargs):

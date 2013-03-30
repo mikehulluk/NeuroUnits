@@ -83,6 +83,12 @@ class ASTVisitorBase(object):
     def VisitEqnTimeDerivative(self, o, **kwargs):
         raise NotImplementedError()
 
+    def VisitTimeDerivativeByRegime(self, o, **kwargs):
+        print self
+        raise NotImplementedError()
+    def VisitRegimeDispatchMap(self, o, **kwargs):
+        raise NotImplementedError()
+
     def VisitEqnAssignment(self, o, **kwargs):
         raise NotImplementedError()
 

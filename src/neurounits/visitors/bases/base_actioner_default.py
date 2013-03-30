@@ -98,6 +98,8 @@ class ASTActionerDefault(ASTActionerDepthFirst):
 
     def ActionEqnTimeDerivativeByRegime(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
+    def ActionRegimeDispatchMap(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
 
     def ActionEqnAssignment(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)

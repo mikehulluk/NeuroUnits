@@ -110,9 +110,24 @@ class LatexEqnWriterN(ASTVisitorBase):
         return Equation('%s&=%s' % (self.visit(o.lhs),
                         self.visit(o.rhs)))
 
-    def VisitEqnTimeDerivative(self, o, **kwargs):
-        return Equation(r"""\frac{d}{dt}%s &= %s"""
-                        % (self.visit(o.lhs), self.visit(o.rhs)))
+    
+    def VisitTimeDerivativeByRegime(self, o, **kwargs):
+        return Equation(r"""\frac{d}{dt}%s &= %s""" % (self.visit(o.lhs), self.visit(o.rhs_map)) )
+
+    def VisitRegimeDispatchMap(self, o, **kwargs):
+        if len(o.rhs_map) == 1:
+            return self.visit(o.rhs_map.values()[0])
+
+        else:
+            case_lines = [ '%s & if %s'%(reg, self.visit(rhs)) for (reg,rhs) in o.rhs_map ]
+            return r""" \begin{cases} %s \end{cases}""" % ( r'\\'.join(case_lines))
+
+
+
+
+
+
+
 
     def VisitOnEvent(self, o, **kwargs):
         ev_name = o.name.replace('_', '\\_')

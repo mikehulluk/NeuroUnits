@@ -145,9 +145,15 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     # AST Objects:
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
+        self.visit(o.rhs_map, **kwargs)
+        #for rhs in o.rhs_map.values():
+        #    self.visit(rhs, **kwargs)
+        self._ActionEqnTimeDerivativeByRegime(o, **kwargs)
+
+    def VisitRegimeDispatchMap(self, o, **kwargs):
         for rhs in o.rhs_map.values():
             self.visit(rhs, **kwargs)
-        self._ActionEqnTimeDerivativeByRegime(o, **kwargs)
+        self._ActionRegimeDispatchMap(o, **kwargs)
 
     def VisitEqnAssignment(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
@@ -269,6 +275,9 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def _ActionEqnTimeDerivativeByRegime(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionEqnTimeDerivativeByRegime(o, **kwargs)
+    def _ActionRegimeDispatchMap(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionRegimeDispatchMap(o, **kwargs)
 
     def _ActionEqnAssignment(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
@@ -354,6 +363,9 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def ActionEqnTimeDerivative(self, o, **kwargs):
         raise NotImplementedError()
     def ActionEqnTimeDerivativeByRegime(self, o, **kwargs):
+        raise NotImplementedError()
+    def ActionRegimeDispatchMap(self, o, **kwargs):
+        print 'In Type:',self
         raise NotImplementedError()
     def ActionEqnAssignment(self, o, **kwargs):
         raise NotImplementedError()

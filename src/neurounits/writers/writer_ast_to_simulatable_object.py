@@ -316,8 +316,12 @@ class FunctorGenerator(ASTVisitorBase):
     def VisitEqnAssignment(self, o, **kwargs):
         self.assignment_evaluators[o.lhs.symbol] = self.visit(o.rhs)
 
-    def VisitEqnTimeDerivative(self, o, **kwargs):
-        self.timederivative_evaluators[o.lhs.symbol]  = self.visit(o.rhs)
+    def VisitTimeDerivativeByRegime(self, o, **kwargs):
+        self.timederivative_evaluators[o.lhs.symbol]  = self.visit(o.rhs_map)
+
+    def VisitRegimeDispatchMap(self,o,**kwargs):
+        assert len(o.rhs_map) == 1
+        return self.visit(o.rhs_map.values()[0])
 
     def VisitIfThenElse(self, o, **kwargs):
         fpred = self.visit(o.predicate)

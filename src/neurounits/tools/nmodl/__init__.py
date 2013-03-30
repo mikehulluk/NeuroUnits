@@ -53,7 +53,7 @@ from .section_writers import OnEventWriter
 from .neuron_constants import NeuronSuppliedValues, NEURONMappings, MechanismType
 from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
 from neurounits.ast import EqnTimeDerivative, EqnAssignment, EqnSet,\
-    ConstValue, InEquality, OnEvent
+    ConstValue, InEquality, OnEvent, EqnTimeDerivativeByRegime
 
 
 
@@ -260,7 +260,7 @@ class MODLBuildParameters(object):
                     print 'Unknown supplied value:', t
                     assert False
             else:
-                if isinstance (s,( EqnTimeDerivative, EqnAssignment, EqnSet, ConstValue) ):
+                if isinstance (s,( EqnTimeDerivativeByRegime, EqnTimeDerivative, EqnAssignment, EqnSet, ConstValue) ):
                     continue
                 if isinstance (s,( InEquality, OnEvent) ):
                     continue
@@ -316,6 +316,12 @@ def WriteToNMODL(eqnset, buildparameters=None, initial_values=None, neuron_suffi
     #print len(eqnset.onevents)
 
     txt = m.to_text()
+
+
+    #print 
+    #print txt
+    #print
+    #assert False
 
     return (txt, buildparameters)
 

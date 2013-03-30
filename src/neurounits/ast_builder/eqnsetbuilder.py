@@ -493,7 +493,10 @@ class AbstractBlockBuilder(object):
             mapping = dict([ (reg, rhs) for (reg,rhs) in tds.items()] )
 
 
-            rhs = ast.EqnTimeDerivativeByRegime(lhs=statevar_obj, rhs_map=mapping)
+            rhs = ast.EqnTimeDerivativeByRegime(
+                    lhs=statevar_obj, 
+                    rhs_map=ast.EqnRegimeDispatchMap(mapping)
+                    )
             
             time_derivatives[statevar_obj] = rhs
 

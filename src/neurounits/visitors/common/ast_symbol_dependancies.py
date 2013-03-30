@@ -181,9 +181,18 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         return [o]
 
     # AST Objects:
-    def VisitEqnTimeDerivative(self, o, **kwargs):
-        return self.visit(o.rhs)
-        raise NotImplementedError()
+    def VisitTimeDerivativeByRegime(self, o, **kwargs):
+        return self.visit(o.rhs_map)
+
+    def VisitRegimeDispatchMap(self, o, **kwargs):
+        assert len(o.rhs_map.values())==1, 'Do we need to add the state as a dependancy?'
+        symbols = []
+        for rhs in o.rhs_map.values():
+            symbols.extend( self.visit(rhs, **kwargs) )
+        return symbols
+
+
+
 
     def VisitEqnAssignment(self, o, **kwargs):
         return self.visit(o.rhs)

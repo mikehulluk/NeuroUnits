@@ -90,21 +90,18 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         for p in o.parameters.values():
             self.visit(p)
 
-    ## AST Objects:
-    #def VisitEqnTimeDerivative(self, o, **kwargs):
-    #    o.lhs = self.followSymbolProxy(o.lhs)
-    #    o.rhs = self.followSymbolProxy(o.rhs)
-    #    self.visit(o.rhs)
-    # AST Objects:
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         print o
         print o.rhs_map
         o.lhs = self.followSymbolProxy(o.lhs)
+        o.rhs_map = self.followSymbolProxy(o.rhs_map)
+        self.visit(o.rhs_map)
+
+    def VisitRegimeDispatchMap(self, o, **kwargs):
         o.rhs_map = dict( [(reg, self.followSymbolProxy(rhs)) for (reg,rhs) in o.rhs_map.items()])
-        
         for rhs in o.rhs_map.values():
             self.visit(rhs) 
-        #self.visit(o.rhs)
+
 
     def VisitEqnAssignment(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)
