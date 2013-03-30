@@ -40,8 +40,7 @@ class ReduceConstants(ASTVisitorBase):
         return o.accept_visitor(self, **kwargs)
 
 
-    def VisitEqnSet(self, o, **kwargs):
-
+    def _res_assignments(self, o, **kwargs):
         removed = []
         for aKey in o._eqn_assignment.keys():
             a = o._eqn_assignment[aKey]
@@ -74,41 +73,80 @@ class ReduceConstants(ASTVisitorBase):
             nc.visit(o)
             assert not a in nc.all()
 
+    def VisitNineMLComponent(self, o, **kwargs):
+        self._res_assignments(o, **kwargs)
+    def VisitEqnSet(self, o, **kwargs):
+        self._res_assignments(o, **kwargs)
+
+        #removed = []
+        #for aKey in o._eqn_assignment.keys():
+        #    a = o._eqn_assignment[aKey]
+        #    alhs = a.lhs
+        #    fixed_value = self.visit(a.rhs_map)
+        #    if fixed_value:
+
+        #        sym_suffix = '_as_symconst'
+        #        sym_suffix = ''
+        #        s = ast.SymbolicConstant(symbol=aKey.symbol
+        #                + sym_suffix, value=fixed_value)
+
+        #        #assert False
+        #        #print 'Replacing Node:', a.lhs.symbol
+        #        ReplaceNode(a.lhs, s).visit(o)
+
+        #        o._cache_nodes()
+        #        #print 'Done replacing symbol'
+
+        #        o._symbolicconstants[aKey.symbol] = s
+        #        del o._eqn_assignment[aKey]
+
+        #        removed.append(alhs)
+
+
+        ## Double check they have gone:
+        #o._cache_nodes()
+        #for a in removed:
+        #    nc = EqnsetVisitorNodeCollector()
+        #    nc.visit(o)
+        #    assert not a in nc.all()
+
     def VisitLibrary(self, o, **kwargs):
+        self._res_assignments(o, **kwargs)
+        assert len(o._eqn_assignment) == 0
 
-        removed = []
-        for aKey in o._eqn_assignment.keys():
-            a = o._eqn_assignment[aKey]
-            alhs = a.lhs
-            fixed_value = self.visit(a.rhs_map)
-            if fixed_value:
+        #removed = []
+        #for aKey in o._eqn_assignment.keys():
+        #    a = o._eqn_assignment[aKey]
+        #    alhs = a.lhs
+        #    fixed_value = self.visit(a.rhs_map)
+        #    if fixed_value:
 
-                sym_suffix = '_as_symconst'
-                sym_suffix = ''
-                s = ast.SymbolicConstant(symbol=aKey.symbol
-                        + sym_suffix, value=fixed_value)
+        #        sym_suffix = '_as_symconst'
+        #        sym_suffix = ''
+        #        s = ast.SymbolicConstant(symbol=aKey.symbol
+        #                + sym_suffix, value=fixed_value)
 
-                #assert False
-                #print 'Replacing Node:', a.lhs.symbol
-                ReplaceNode(a.lhs, s).visit(o)
+        #        #assert False
+        #        #print 'Replacing Node:', a.lhs.symbol
+        #        ReplaceNode(a.lhs, s).visit(o)
 
-                #o._cache_nodes()
-                #print 'Done replacing symbol'
+        #        #o._cache_nodes()
+        #        #print 'Done replacing symbol'
 
-                o._symbolicconstants[aKey.symbol] = s
-                del o._eqn_assignment[aKey]
+        #        o._symbolicconstants[aKey.symbol] = s
+        #        del o._eqn_assignment[aKey]
 
-                removed.append(alhs)
+        #        removed.append(alhs)
 
 
-        # Double check they have gone:
-        for a in removed:
-            nc = EqnsetVisitorNodeCollector()
-            nc.visit(o)
-            assert not a in nc.all()
+        ## Double check they have gone:
+        #for a in removed:
+        #    nc = EqnsetVisitorNodeCollector()
+        #    nc.visit(o)
+        #    assert not a in nc.all()
 
         # Should be no more assignments:
-        assert len(o._eqn_assignment) == 0
+        #assert len(o._eqn_assignment) == 0
 
 
 

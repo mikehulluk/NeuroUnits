@@ -69,6 +69,20 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         self._ActionEqnSet(o, **kwargs)
 
 
+    def VisitNineMLComponent(self, o, **kwargs):
+
+        subnodes = itertools.chain( o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants, o.transitions)
+        for f in subnodes:
+            self.visit(f, **kwargs)
+
+        for onev in o.onevents:
+            self.visit(onev, **kwargs)
+
+        self._ActionNineMLComponent(o, **kwargs)
+
+
+
+
     def VisitOnEvent(self, o, **kwargs):
         for p in o.parameters.values():
             self.visit(p, **kwargs)
@@ -201,6 +215,31 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         self._ActionFunctionDefInstantiationParater(o, **kwargs)
 
 
+
+    def VisitOnTransitionTrigger(self, o, **kwargs):
+        self.visit(o.trigger, **kwargs)
+        for a in o.actions:
+            self.visit(a, **kwargs)
+        self._ActionOnTransitionTrigger(o, **kwargs)
+
+    def VisitOnTransitionEvent(self, o, **kwargs):
+        for a in o.parameters.values():
+            print a
+            self.visit(a, **kwargs)
+        for a in o.actions:
+            self.visit(a, **kwargs)
+        self._ActionOnTransitionEvent(o, **kwargs)
+
+    def VisitOnEventDefParameter(self, o, **kwargs):
+        self._ActionOnEventDefParameter(o, **kwargs)
+
+    def VisitEmitEvent(self, o, **kwargs):
+        for a in o.parameter_map.values():
+            self.visit(a, **kwargs)
+        self._ActionEmitEvent(o, **kwargs)
+
+
+
     def _ActionPredicate(self, o, **kwargs):
         for p in self.action_predicates:
             if not p(o, **kwargs):
@@ -217,6 +256,10 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def _ActionEqnSet(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionEqnSet(o, **kwargs)
+
+    def _ActionNineMLComponent(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionNineMLComponent(o, **kwargs)
 
     def _ActionIfThenElse(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
@@ -325,7 +368,21 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         if self._ActionPredicate(o,**kwargs):
             return self.ActionOnEventStateAssignment(o,**kwargs)
 
+    def _ActionOnTransitionTrigger(self, o, **kwargs):
+        if self._ActionPredicate(o,**kwargs):
+            return self.ActionOnEvent(o,**kwargs)
 
+    def _ActionOnTransitionEvent(self, o, **kwargs):
+        if self._ActionPredicate(o,**kwargs):
+            return self.ActionOnEvent(o,**kwargs)
+
+    def _ActionOnEventDefParameter(self, o, **kwargs):
+        if self._ActionPredicate(o,**kwargs):
+            return self.ActionOnEvent(o,**kwargs)
+
+    def _ActionEmitEvent(self, o, **kwargs):
+        if self._ActionPredicate(o,**kwargs):
+            return self.ActionEmitEvent(o,**kwargs)
 
 
 

@@ -105,6 +105,8 @@ class Library(Block):
 
 
 
+    def _cache_nodes(self):
+        pass
 
 
 
@@ -289,13 +291,14 @@ class NineMLComponent(EqnSet):
 
 
     def __init__(self,  library_manager, builder, builddata, io_data):
-        super(NineMLComponent,self).__init__(library_manager=library_manager, builder=builder,  builddata=builddata, io_data=io_data)
 
         # TODO: Move into 9ML component:
         self._transitions_triggers = builddata.transitions_triggers
         self._transitions_events = builddata.transitions_events
         
         self._local_regimes = builddata.regimes
+        
+        super(NineMLComponent,self).__init__(library_manager=library_manager, builder=builder,  builddata=builddata, io_data=io_data)
 
         self._cache_nodes()
 
@@ -307,8 +310,8 @@ class NineMLComponent(EqnSet):
     def transitions(self):
         return self._transitions_triggers + self._transitions_events
 
-    #def accept_visitor(self, visitor, **kwargs):
-    #    return visitor.VisitNineMLComponent(self, **kwargs)
+    def accept_visitor(self, visitor, **kwargs):
+        return visitor.VisitNineMLComponent(self, **kwargs)
 
 class NineMLModule(object):
     

@@ -437,6 +437,9 @@ class AbstractBlockBuilder(object):
         else:
             target_regime = self.get_regime_obj(target_regime)
 
+        #print event_params
+        #assert False
+
         self.builddata.transitions_events.append(
             ast.OnEventTransition( event_name=event_name, parameters=event_params, actions = actions, target_regime=target_regime, src_regime=src_regime)
         )

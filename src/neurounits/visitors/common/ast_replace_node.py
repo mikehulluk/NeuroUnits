@@ -60,6 +60,14 @@ class ReplaceNode(ASTVisitorBase):
             self.visit(f, **kwargs)
         return o
 
+    def VisitNineMLComponent(self, o, **kwargs):
+        subnodes = itertools.chain(o.assignments, o.timederivatives,
+                                   o.functiondefs, o.symbolicconstants,
+                                   o.onevents, o.transitions)
+        for f in subnodes:
+            self.visit(f, **kwargs)
+        return o
+
     def VisitLibrary(self, o, **kwargs):
         subnodes = itertools.chain(o.functiondefs, o.symbolicconstants)
         for f in subnodes:

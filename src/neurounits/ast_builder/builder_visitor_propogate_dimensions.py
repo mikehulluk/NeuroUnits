@@ -140,6 +140,8 @@ class DimensionResolver(ASTVisitorBase):
         pass
     def VisitLibrary(self, o, **kwargs):
         pass
+    def VisitNineMLComponent(self, o, **kwargs):
+        pass
 
 
     def VisitOnEvent(self, o, **kwargs):
@@ -412,6 +414,27 @@ class DimensionResolver(ASTVisitorBase):
         return
         raise NotImplementedError()
 
+
+    # AHH
+    def VisitOnTransitionTrigger(self, o, **kwargs):
+        for a in o.actions:
+            self.visit(a)
+        self.visit(o.trigger)
+    
+    def VisitOnTransitionEvent(self, o, **kwargs):
+        for p in o.parameters.values():
+            self.visit(p)
+
+    def VisitEmitEvent(self, o, **kwargs):
+        pass
+        #assert False
+        #o.parameter_map= dict( [(reg, self.followSymbolProxy(rhs)) for (reg,rhs) in o.parameter_map.items()])
+        #for p in o.parameter_map.values():
+        #    self.visit(p)
+
+    def VisitOnEventDefParameter(self, o, **kwargs):
+        #assert False
+        pass
 
 
 

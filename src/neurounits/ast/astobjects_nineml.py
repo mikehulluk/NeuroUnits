@@ -100,6 +100,8 @@ class OnTriggerTransition(Transition):
         self.trigger = trigger
     def __repr__(self):
         return "<Transition %s -> %s (%d actions)>" % (self.src_regime, self.target_regime, len(self.actions) )
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitOnTransitionTrigger(self, **kwargs)
 
 class OnEventTransition(Transition):
     def __init__(self, event_name, parameters, **kwargs):
@@ -108,6 +110,8 @@ class OnEventTransition(Transition):
         self.parameters = parameters
     def __repr__(self):
         return "<OnEventTransition [%s] %s -> %s (%d actions)>" % (self.event_name, self.src_regime, self.target_regime, len(self.actions) )
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitOnTransitionEvent(self, **kwargs)
 
 class OnEventDefParameter(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):
@@ -121,6 +125,8 @@ class OnEventDefParameter(ASTExpressionObject):
 
     def __repr__(self):
         return "<OnEventDefParameter '%s'>" % self.symbol
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitOnEventDefParameter(self, **kwargs)
 
 
 

@@ -47,13 +47,18 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         return node
 
     def VisitEqnSet(self, o, **kwargs):
-        for i in itertools.chain( o.timederivatives, o.assignments, o.functiondefs, o.symbolicconstants):
+        for i in itertools.chain( o.timederivatives, o.assignments, o.functiondefs, o.symbolicconstants, o.onevents):
             self.visit(i)
 
-        for onevent in o.onevents:
-            self.visit(onevent)
 
         o._cache_nodes()
+
+    def VisitNineMLComponent(self, o, **kwargs):
+        for i in itertools.chain( o.timederivatives, o.assignments, o.functiondefs, o.symbolicconstants, o.onevents, o.transitions):
+            self.visit(i)
+
+        o._cache_nodes()
+
 
     def VisitLibrary(self, o, **kwargs):
         for i in itertools.chain( o.functiondefs, o.symbolicconstants):
@@ -91,8 +96,6 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
             self.visit(p)
 
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
-        #print o
-        #print o.rhs_map
         o.lhs = self.followSymbolProxy(o.lhs)
         o.rhs_map = self.followSymbolProxy(o.rhs_map)
         self.visit(o.rhs_map)
@@ -102,10 +105,6 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         for rhs in o.rhs_map.values():
             self.visit(rhs) 
 
-	#def VisitEqnAssignment(self, o, **kwargs):
-    #    o.lhs = self.followSymbolProxy(o.lhs)
-    #    o.rhs = self.followSymbolProxy(o.rhs)
-    #    self.visit(o.rhs)
 
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
@@ -191,3 +190,22 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
 
     def VisitFunctionDefParameter(self, o, **kwargs):
         pass
+
+
+    def VisitOnTransitionTrigger(self, o, **kwargs):
+        for a in o.actions:
+            self.visit(a)
+        self.visit(o.trigger)
+    
+    def VisitOnTransitionEvent(self, o, **kwargs):
+        for p in o.parameters.values():
+            self.visit(p)
+
+    def VisitEmitEvent(self, o, **kwargs):
+        o.parameter_map= dict( [(reg, self.followSymbolProxy(rhs)) for (reg,rhs) in o.parameter_map.items()])
+        for p in o.parameter_map.values():
+            self.visit(p)
+
+    def VisitOnEventDefParameter(self, o, **kwargs):
+        pass
+

@@ -42,6 +42,9 @@ class ASTActionerDefault(ASTActionerDepthFirst):
         return self.ActionNode(o, **kwargs)
     def ActionLibrary(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
+    
+    def ActionNineMLComponent(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
 
     def ActionIfThenElse(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
@@ -126,6 +129,18 @@ class ASTActionerDefault(ASTActionerDepthFirst):
         return self.ActionNode(o, **kwargs)
 
     def ActionFunctionDefInstantiationParater(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
+
+
+    def ActionRegime(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
+    def ActionOnTransitionTrigger(self,o, **kwargs):
+        return self.ActionNode(o, **kwargs)
+    def ActionOnTransitionEvent(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
+    def ActionOnEventDefParameter(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
+    def ActionEmitEvent(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
 
