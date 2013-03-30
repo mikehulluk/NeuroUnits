@@ -53,7 +53,7 @@ from .section_writers import OnEventWriter
 from .neuron_constants import NeuronSuppliedValues, NEURONMappings, MechanismType
 from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
 from neurounits.ast import EqnTimeDerivative, EqnAssignment, EqnSet,\
-    ConstValue, InEquality, OnEvent, EqnTimeDerivativeByRegime
+    ConstValue, InEquality, OnEvent, EqnTimeDerivativeByRegime, EqnAssignmentByRegime
 
 
 

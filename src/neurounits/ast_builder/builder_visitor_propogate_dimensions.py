@@ -235,8 +235,8 @@ class DimensionResolver(ASTVisitorBase):
 
     
 
-    def VisitEqnAssignment(self, o, **kwargs):
-        return self.EnsureEqualDimensions([o.lhs, o.rhs],reason='EqnAssignment')
+    def VisitEqnAssignmentByRegime(self, o, **kwargs):
+        return self.EnsureEqualDimensions([o.lhs, o.rhs_map],reason='EqnAssignmentPerRegime')
 
 
 

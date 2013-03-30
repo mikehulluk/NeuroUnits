@@ -137,9 +137,13 @@ class ActionerFormatStringsAsIDs(ASTActionerDefault):
             % (self.IDs[o.lhs], self.IDs[o.rhs])
 
 
-    def ActionEqnAssignment(self, o, **kwargs):
+    #def ActionEqnAssignment(self, o, **kwargs):
+    #    self.format_strings[o] = "Assignment: '%s' = %s" \
+    #        % (self.IDs[o.lhs], self.IDs[o.rhs])
+
+    def ActionEqnAssignmentByRegime(self, o, **kwargs):
         self.format_strings[o] = "Assignment: '%s' = %s" \
-            % (self.IDs[o.lhs], self.IDs[o.rhs])
+            % (self.IDs[o.lhs], self.IDs[o.rhs_map])
 
     # AST Nodes:
     def ActionAddOp(self, o, **kwargs):

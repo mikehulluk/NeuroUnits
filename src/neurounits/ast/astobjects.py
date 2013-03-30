@@ -132,10 +132,12 @@ class AssignedVariable(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitAssignedVariable(self, **kwargs)
 
-    def __init__(self, symbol, **kwargs):
+    def __init__(self, symbol,  **kwargs):
         ASTExpressionObject.__init__(self, **kwargs)
         self.symbol = symbol
-        self.assignment_rhs = None
+
+
+
 
     def __str__(self,):
         return "<AssignedVariable: '%s'>" % (self.symbol)

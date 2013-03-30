@@ -31,9 +31,9 @@
 from .astobjects import ASTObject, ASTExpressionObject
 
 
-class EqnAssignmentPerRegime(ASTObject):
+class EqnAssignmentByRegime(ASTObject):
     def accept_visitor(self, v, **kwargs):
-        return v.VisitEqnAssignmentPerRegime(self, **kwargs)
+        return v.VisitEqnAssignmentByRegime(self, **kwargs)
 
     def __init__(self,lhs,rhs_map,**kwargs):
         assert isinstance(rhs_map,EqnRegimeDispatchMap)
@@ -85,6 +85,15 @@ class EqnRegimeDispatchMap(ASTExpressionObject):
 class EqnTimeDerivativePerRegime(ASTObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitEqnTimeDerivativePerRegime(self, **kwargs)
+
+    def __init__(self,lhs,rhs, regime_name, **kwargs):
+        self.lhs = lhs
+        self.rhs = rhs
+        self.regime_name = regime_name
+
+class EqnAssignmentPerRegime(ASTObject):
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitEqnAssignmentPerRegime(self, **kwargs)
 
     def __init__(self,lhs,rhs, regime_name, **kwargs):
         self.lhs = lhs

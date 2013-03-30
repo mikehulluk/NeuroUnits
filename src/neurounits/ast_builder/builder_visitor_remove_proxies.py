@@ -91,8 +91,8 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
             self.visit(p)
 
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
-        print o
-        print o.rhs_map
+        #print o
+        #print o.rhs_map
         o.lhs = self.followSymbolProxy(o.lhs)
         o.rhs_map = self.followSymbolProxy(o.rhs_map)
         self.visit(o.rhs_map)
@@ -102,11 +102,16 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         for rhs in o.rhs_map.values():
             self.visit(rhs) 
 
+	#def VisitEqnAssignment(self, o, **kwargs):
+    #    o.lhs = self.followSymbolProxy(o.lhs)
+    #    o.rhs = self.followSymbolProxy(o.rhs)
+    #    self.visit(o.rhs)
 
-    def VisitEqnAssignment(self, o, **kwargs):
+
+    def VisitEqnAssignmentByRegime(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)
-        o.rhs = self.followSymbolProxy(o.rhs)
-        self.visit(o.rhs)
+        o.rhs_map = self.followSymbolProxy(o.rhs_map)
+        self.visit(o.rhs_map)
 
     def VisitAddOp(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)

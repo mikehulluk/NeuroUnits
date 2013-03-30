@@ -106,9 +106,13 @@ class LatexEqnWriterN(ASTVisitorBase):
 
     # High Level Display:
 
-    def VisitEqnAssignment(self, o, **kwargs):
+    #def VisitEqnAssignment(self, o, **kwargs):
+    #    return Equation('%s&=%s' % (self.visit(o.lhs),
+    #                    self.visit(o.rhs)))
+
+    def VisitEqnAssignmentByRegime(self, o, **kwargs):
         return Equation('%s&=%s' % (self.visit(o.lhs),
-                        self.visit(o.rhs)))
+                        self.visit(o.rhs_map)))
 
     
     def VisitTimeDerivativeByRegime(self, o, **kwargs):

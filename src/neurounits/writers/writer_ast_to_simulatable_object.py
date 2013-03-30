@@ -313,8 +313,11 @@ class FunctorGenerator(ASTVisitorBase):
         for a in o.timederivatives:
             self.visit(a)
 
-    def VisitEqnAssignment(self, o, **kwargs):
-        self.assignment_evaluators[o.lhs.symbol] = self.visit(o.rhs)
+#    def VisitEqnAssignment(self, o, **kwargs):
+#        self.assignment_evaluators[o.lhs.symbol] = self.visit(o.rhs)
+
+    def VisitEqnAssignmentByRegime(self, o, **kwargs):
+        self.assignment_evaluators[o.lhs.symbol] = self.visit(o.rhs_map)
 
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         self.timederivative_evaluators[o.lhs.symbol]  = self.visit(o.rhs_map)

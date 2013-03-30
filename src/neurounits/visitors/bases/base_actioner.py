@@ -155,10 +155,16 @@ class ASTActionerDepthFirst(ASTVisitorBase):
             self.visit(rhs, **kwargs)
         self._ActionRegimeDispatchMap(o, **kwargs)
 
-    def VisitEqnAssignment(self, o, **kwargs):
+    #def VisitEqnAssignment(self, o, **kwargs):
+    #    self.visit(o.lhs, **kwargs)
+    #    self.visit(o.rhs, **kwargs)
+    #    self._ActionEqnAssignment(o, **kwargs)
+
+    def VisitEqnAssignmentByRegime(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
-        self.visit(o.rhs, **kwargs)
-        self._ActionEqnAssignment(o, **kwargs)
+        self.visit(o.rhs_map, **kwargs)
+        self._ActionEqnAssignmentByRegime(o, **kwargs)
+
 
     def VisitAddOp(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
@@ -279,9 +285,13 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionRegimeDispatchMap(o, **kwargs)
 
-    def _ActionEqnAssignment(self, o, **kwargs):
+    #def _ActionEqnAssignment(self, o, **kwargs):
+    #    if self._ActionPredicate(o, **kwargs):
+    #        return self.ActionEqnAssignment(o, **kwargs)
+
+    def _ActionEqnAssignmentByRegime(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
-            return self.ActionEqnAssignment(o, **kwargs)
+            return self.ActionEqnAssignmentByRegime(o, **kwargs)
 
     def _ActionAddOp(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
@@ -365,9 +375,10 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def ActionEqnTimeDerivativeByRegime(self, o, **kwargs):
         raise NotImplementedError()
     def ActionRegimeDispatchMap(self, o, **kwargs):
-        print 'In Type:',self
+        #print 'In Type:',self
         raise NotImplementedError()
-    def ActionEqnAssignment(self, o, **kwargs):
+    def ActionEqnAssignmentByRegime(self, o, **kwargs):
+        print 'In Type:',self
         raise NotImplementedError()
 
     def ActionAddOp(self, o, **kwargs):

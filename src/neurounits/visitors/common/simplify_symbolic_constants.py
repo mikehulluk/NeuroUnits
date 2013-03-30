@@ -46,7 +46,7 @@ class ReduceConstants(ASTVisitorBase):
         for aKey in o._eqn_assignment.keys():
             a = o._eqn_assignment[aKey]
             alhs = a.lhs
-            fixed_value = self.visit(a.rhs)
+            fixed_value = self.visit(a.rhs_map)
             if fixed_value:
 
                 sym_suffix = '_as_symconst'
@@ -80,7 +80,7 @@ class ReduceConstants(ASTVisitorBase):
         for aKey in o._eqn_assignment.keys():
             a = o._eqn_assignment[aKey]
             alhs = a.lhs
-            fixed_value = self.visit(a.rhs)
+            fixed_value = self.visit(a.rhs_map)
             if fixed_value:
 
                 sym_suffix = '_as_symconst'
@@ -161,15 +161,24 @@ class ReduceConstants(ASTVisitorBase):
         return None
 
     def VisitAssignedVariable(self, o, **kwargs):
+        return None
+        assert False, 'Deprecated'
         return self.visit(o.assignment_rhs)
+
+    def VisitRegimeDispatchMap(self, o, **kwargs):
+        if len(o.rhs_map) == 1:
+            return self.visit(o.rhs_map.values()[0])
+        return None
+
 
     # AST Objects:
     def VisitEqnTimeDerivative(self, o, **kwargs):
         raise NotImplementedError()
 
-    def VisitEqnAssignment(self, o, **kwargs):
+    #def VisitEqnAssignment(self, o, **kwargs):
+    #    raise NotImplementedError()
+    def VisitEqnAssignmentByRegime(self, o, **kwargs):
         raise NotImplementedError()
-
 
 
     def VisitAddOp(self, o, **kwargs):

@@ -191,7 +191,7 @@ class AssignmentWriter(ASTActionerDefaultIgnoreMissing):
 
 
 
-    def ActionEqnAssignment(self, n, modfilecontents,  build_parameters, **kwargs):
+    def ActionEqnAssignmentByRegime(self, n, modfilecontents,  build_parameters, **kwargs):
         s = CStringWriter.Build(n, build_parameters=build_parameters, expand_assignments=False)
         self.assigment_statements[n.lhs] = s
 
@@ -373,6 +373,7 @@ class CStringWriter(ASTVisitorBase):
         if not self.expand_assignments:
             return self.GetTerminal(o)
         else:
+            # TODO: Change this to look up the value
             return self.visit( o.assignment_rhs )
 
     def VisitSuppliedValue(self, o, **kwargs):
@@ -405,8 +406,8 @@ class CStringWriter(ASTVisitorBase):
         return self.visit( o.rhs_map.values()[0] )
 
 
-    def VisitEqnAssignment(self, o, **kwargs):
-        rhs_si =  self.visit(o.rhs)
+    def VisitEqnAssignmentByRegime(self, o, **kwargs):
+        rhs_si =  self.visit(o.rhs_map)
         lhs =  o.lhs.symbol
 
         # Check for non-SI assignments to the lhs

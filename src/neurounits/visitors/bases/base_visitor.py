@@ -89,8 +89,12 @@ class ASTVisitorBase(object):
     def VisitRegimeDispatchMap(self, o, **kwargs):
         raise NotImplementedError()
 
-    def VisitEqnAssignment(self, o, **kwargs):
+    #def VisitEqnAssignment(self, o, **kwargs):
+    #    raise NotImplementedError()
+
+    def VisitEqnAssignmentByRegime(self, o, **kwargs):
         raise NotImplementedError()
+
 
     def VisitAddOp(self, o, **kwargs):
         raise NotImplementedError()

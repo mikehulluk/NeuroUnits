@@ -194,9 +194,11 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
 
 
 
-    def VisitEqnAssignment(self, o, **kwargs):
-        return self.visit(o.rhs)
+#    def VisitEqnAssignment(self, o, **kwargs):
+#       return self.visit(o.rhs) 
 
+    def VisitEqnAssignmentByRegime(self, o, **kwargs):
+        return self.visit(o.rhs_map)
 
     def VisitAddOp(self, o, **kwargs):
         return self.visit(o.lhs) + self.visit(o.rhs)

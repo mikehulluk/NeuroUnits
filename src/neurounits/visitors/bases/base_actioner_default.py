@@ -101,7 +101,10 @@ class ASTActionerDefault(ASTActionerDepthFirst):
     def ActionRegimeDispatchMap(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
-    def ActionEqnAssignment(self, o, **kwargs):
+#    def ActionEqnAssignment(self, o, **kwargs):
+#        return self.ActionNode(o, **kwargs)
+
+    def ActionEqnAssignmentByRegime(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
     def ActionAddOp(self, o, **kwargs):

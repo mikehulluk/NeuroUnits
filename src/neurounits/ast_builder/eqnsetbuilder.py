@@ -270,7 +270,7 @@ class BuildData(object):
 
     def __init__(self):
         self.eqnset_name = None
-        self.assignments = SingleSetDict()
+        #self.assignments = SingleSetDict()
         self.onevents = SingleSetDict()
         self.timederivatives = SingleSetDict()
         self.funcdefs = SingleSetDict()
@@ -280,7 +280,7 @@ class BuildData(object):
         
         # Temporary lists, that will be resolved later:
         self._time_derivatives_per_regime = []
-        #self._assigments_per_regime = []
+        self._assigments_per_regime = []
 
 
 class AbstractBlockBuilder(object):
@@ -452,20 +452,20 @@ class AbstractBlockBuilder(object):
     def add_assignment(self, lhs_name, rhs_ast):
 
         # Create the lhs object:
-        assigned_obj = ast.AssignedVariable(lhs_name)
-        self._resolve_global_symbol(lhs_name, assigned_obj)
+        #assigned_obj = ast.AssignedVariable(lhs_name)
+        #self._resolve_global_symbol(lhs_name, assigned_obj)
 
         # Create the assignment object:
         assert self.active_scope == None
-        #a = ast.EqnAssignmentPerRegime(lhs=assigned_obj, rhs=rhs_ast, regime_name=self.current_regime)
-        a = ast.EqnAssignment(lhs=assigned_obj, rhs=rhs_ast)
+        a = ast.EqnAssignmentPerRegime(lhs=lhs_name, rhs=rhs_ast, regime_name=self.current_regime)
+        #a = ast.EqnAssignment(lhs=assigned_obj, rhs=rhs_ast)
 
         #assert not assigned_obj in self.builddata.assignments
-        self.builddata.assignments[assigned_obj] = a
-        #self.builddata._assigments_per_regime.append(a)
+        #self.builddata.assignments[assigned_obj] = a
+        self.builddata._assigments_per_regime.append(a)
         
         # Connect the assignment values to its rhs:
-        assigned_obj.assignment_rhs = a.rhs
+        #assigned_obj.assignment_rhs = a.rhs
 
     def finalise(self):
 
@@ -483,26 +483,41 @@ class AbstractBlockBuilder(object):
         for regime_td in self.builddata._time_derivatives_per_regime:
             maps_tds[regime_td.lhs][regime_td.regime_name] = regime_td.rhs
 
-        for sv in maps_tds:
-            print 'Resolving:', sv
+        for sv, tds in maps_tds.items():
 
             statevar_obj = ast.StateVariable(sv)
             self._resolve_global_symbol(sv, statevar_obj)
 
-            tds = maps_tds[sv]
             mapping = dict([ (reg, rhs) for (reg,rhs) in tds.items()] )
-
-
             rhs = ast.EqnTimeDerivativeByRegime(
                     lhs=statevar_obj, 
                     rhs_map=ast.EqnRegimeDispatchMap(mapping)
                     )
-            
             time_derivatives[statevar_obj] = rhs
 
         self.builddata.timederivatives = time_derivatives
         del self.builddata._time_derivatives_per_regime
 
+        ## Resolve the Assignments into a single object:
+        assignments = SingleSetDict()
+        maps_asses = defaultdict(SingleSetDict)
+        for reg_ass in self.builddata._assigments_per_regime:
+            maps_asses[reg_ass.lhs][reg_ass.regime_name] = reg_ass.rhs
+
+        for ass_var, tds in maps_asses.items():
+
+            assvar_obj = ast.AssignedVariable(ass_var)
+            self._resolve_global_symbol(ass_var, assvar_obj)
+
+            mapping = dict([ (reg, rhs) for (reg,rhs) in tds.items()] )
+            rhs = ast.EqnAssignmentByRegime(
+                    lhs=assvar_obj, 
+                    rhs_map=ast.EqnRegimeDispatchMap(mapping)
+                    )
+            assignments[assvar_obj] = rhs
+
+        self.builddata.assignments = assignments
+        del self.builddata._assigments_per_regime
 
 
 

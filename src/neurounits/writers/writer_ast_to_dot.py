@@ -70,7 +70,8 @@ class DotVisitor(ASTVisitorBase):
 
 
                 ast.EqnTimeDerivative:      lambda n: "d/dt",
-                ast.EqnAssignment:          lambda n: ":=",
+                #ast.EqnAssignment:          lambda n: ":=",
+                ast.EqnAssignmentByRegime:          lambda n: ":=",
 
                 ast.FunctionDefInstantiation: lambda n: "%s()"%(n.function_def.funcname),
 

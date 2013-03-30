@@ -236,6 +236,7 @@ class EqnSet(Block):
         assert sym in self.terminal_symbols
 
         if isinstance(sym, AssignedVariable):
+            assert False
             sym = sym.assignment_rhs
 
         d = VisitorFindDirectSymbolDependance()
