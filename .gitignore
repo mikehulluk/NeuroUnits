@@ -4,6 +4,7 @@
 *.swp
 *.swo
 *.pyc
+*~
 parser.out
 
 doc/_build/*
