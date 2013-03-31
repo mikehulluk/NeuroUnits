@@ -243,7 +243,7 @@ def p_on_transition_actions4(p):
 
 
 def p_on_transition_actions5(p):
-    """transition_action : EMIT whiteslurp alphanumtoken  whiteslurp LBRACKET func_call_params_l3 RBRACKET"""
+    """transition_action : EMIT whiteslurp alphanumtoken  whiteslurp LBRACKET event_call_params_l3 RBRACKET"""
     p[0] = ast.EmitEvent(event_name=p[3], parameter_map=p[6] )
     
 
@@ -289,6 +289,33 @@ def p_event_def_param3(p):
 
 
 
+# For function parameters, we create a dictionary mapping parameter name to value
+def p_quantity_event_params_l3a(p):
+    """event_call_params_l3 : rhs_term"""
+    symbol = p[1]
+    rhs_ast=p[3] 
+    p[0] = { symbol:rhs_ast }
+
+    #p[0] = { None: ast.FunctionDefParameterInstantiation( symbol = None, rhs_ast=p[1] ) }
+
+def p_quantity_event_params_l3b(p):
+    """event_call_params_l3 : event_call_param_l3 whiteslurp"""
+    p[0] = p[1]
+
+def p_quantity_event_params_l3c(p):
+    """event_call_params_l3 : event_call_params_l3 COMMA whiteslurp event_call_param_l3"""
+    param_dict = p[1]
+    new_param = p[4]
+    p[0] = safe_dict_merge( param_dict,new_param )
+    #assert not new_param.symbol in param_dict
+    #param_dict[new_param.symbol] = new_param
+    #p[0] = param_dict
+
+def p_quantity_event_params_term_l3(p):
+    """event_call_param_l3 : alphanumtoken EQUALS rhs_term"""
+    symbol = p[1]
+    rhs_ast=p[3] 
+    p[0] = { symbol:rhs_ast }
 
 
 

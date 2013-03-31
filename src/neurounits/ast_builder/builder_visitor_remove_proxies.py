@@ -198,6 +198,7 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         self.visit(o.trigger)
     
     def VisitOnTransitionEvent(self, o, **kwargs):
+        o.parameters = dict( [(sym, self.followSymbolProxy(rhs)) for (sym,rhs) in o.parameters.items()])
         for p in o.parameters.values():
             self.visit(p)
 

@@ -464,11 +464,12 @@ class PropogateDimensions(object):
             uR = DimensionResolver(ast=eqnset, obj_label_dict=labels)
 
             while True:
-                nUnresolvedPre = len([s for s in obj_with_dimension
-                        if not s.is_dimension_known()])
-                res_symbols = [uR.visit(s) for s in all_symbols]
-                nUnresolvedPost = len([s for s in obj_with_dimension
-                        if not s.is_dimension_known()])
+                nUnresolvedPre = len([s for s in obj_with_dimension if not s.is_dimension_known()])
+                #res_symbols = [uR.visit(s) for s in all_symbols]
+                for s in all_symbols:
+                    print s
+                    uR.visit(s)
+                nUnresolvedPost = len([s for s in obj_with_dimension if not s.is_dimension_known()])
 
                 if nUnresolvedPre == nUnresolvedPost:
                     break

@@ -125,8 +125,8 @@ class OnEventDefParameter(ASTExpressionObject):
 
     def __repr__(self):
         return "<OnEventDefParameter '%s'>" % self.symbol
-    def accept_visitor(self, v, **kwargs):
-        return v.VisitOnEventDefParameter(self, **kwargs)
+    #def accept_visitor(self, v, **kwargs):
+    #    return v.VisitOnEventDefParameter(self, **kwargs)
 
 
 

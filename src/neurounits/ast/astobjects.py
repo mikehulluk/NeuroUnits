@@ -284,6 +284,9 @@ class FunctionDefParameterInstantiation(ASTExpressionObject):
         assert self._function_def_parameter is not None
         return self._function_def_parameter
 
+    def __repr__(self):
+        return '<FunctionDefParameterInstantiation: %s >' % (self.symbol)
+
 
 
 
