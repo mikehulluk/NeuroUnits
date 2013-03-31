@@ -1,0 +1,82 @@
+
+
+
+module stimulation {
+
+    define_component i_fixed{
+        i = i_amp
+        <==> OUTPUT i:(A)
+        <==> PARAMETER i_amp:(A)
+    }
+
+    define_component step_current{
+        regime OFF{
+            i=0A
+            on (t>t_tstart) {transition_to ON;}
+            }
+            
+        regime ON{
+            i = i_amp
+        }
+        
+        <==> OUTPUT i:(A)
+        <==> PARAMETER i_amp:(A)
+    }
+    
+    define_component i_ramp{
+        regime OFF{
+            i=0A
+            on (t>t_tstart) {transition_to RAMP;}
+            }
+        regime RAMP{
+            i = (t-ramp_start)/ramp_dur * i_amp
+            on(t>ramp_start+ramp_dur){ transition_to ON }
+        }
+        regime ON{
+            i = i_amp
+        }
+        
+        <==> PARAMETER ramp_start, ramp_dur
+        <==> OUTPUT i:(A)
+        <==> PARAMETER i_amp:(A)
+    }
+    
+    
+    define_component i_squarewave{
+        regime init{
+            on(True){
+                t_last = t
+                transition_to OFF }
+        }
+        
+        regime OFF{
+            i=0A
+            on (t>t_last + t_off) {
+                t_last = t
+                transition_to ON;
+                }
+            }
+        
+        regime ON{
+            i = i_amp
+            on (t>t_last + t_on) {
+                t_last = t
+                transition_to OFF;
+                }
+        }
+        
+        <==> PARAMETER t_on, t_off 
+        <==> OUTPUT i:(A)
+        <==> PARAMETER i_amp:(A)
+    }
+    
+    
+    define_component i_sinwave{
+    }
+    
+    
+
+
+
+
+}
