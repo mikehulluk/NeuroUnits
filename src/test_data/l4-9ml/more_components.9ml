@@ -45,7 +45,7 @@ module stimulation {
     define_component i_squarewave{
         regime init{
             on(True){
-                t_last = t
+                t_last = 0s
                 transition_to OFF }
         }
         
@@ -72,11 +72,30 @@ module stimulation {
     
     
     define_component i_sinwave{
+    # TODO:
     }
     
+}
+
+
+
+module event_generators{
+
+    define_component fixed_interval{
+        regime init{
+            t_last = 0s
+            on(True){ transition_to std }
+        }
+        
+        regime std{
+            on( t>t_last +t_period){
+                t_last = t
+                emit spike()
+                }
+            
+        }
+    }
     
-
-
 
 
 }
