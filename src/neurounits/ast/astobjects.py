@@ -180,30 +180,6 @@ class ConstValue(ASTExpressionObject):
 
 
 
-
-#class EqnTimeDerivative(ASTObject):
-#    def accept_visitor(self, v, **kwargs):
-#        return v.VisitEqnTimeDerivative(self, **kwargs)
-#
-#    def __init__(self,lhs, rhs,**kwargs):
-#        assert False, 'Deprecated'
-#        self.lhs = lhs
-#        self.rhs = rhs
-
-class EqnAssignment(ASTObject):
-    def accept_visitor(self, v, **kwargs):
-        return v.VisitEqnAssignment(self, **kwargs)
-
-    def __init__(self,lhs,rhs,**kwargs):
-        assert False, 'Deprecated'
-        self.lhs = lhs
-        self.rhs = rhs
-        pass
-    def __repr__(self,):
-        return "<Assignment to: '%s'>" % (self.lhs.symbol)
-
-
-
 class SymbolicConstant(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitSymbolicConstant(self, **kwargs)

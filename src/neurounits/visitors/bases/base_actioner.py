@@ -151,28 +151,20 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def VisitSuppliedValue(self, o, **kwargs):
         self._ActionSuppliedValue(o, **kwargs)
 
-    ## AST Objects:
-    #def VisitEqnTimeDerivative(self, o, **kwargs):
-    #    self.visit(o.lhs, **kwargs)
-    #    self.visit(o.rhs, **kwargs)
-    #    self._ActionEqnTimeDerivative(o, **kwargs)
+
     # AST Objects:
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
         self.visit(o.rhs_map, **kwargs)
         #for rhs in o.rhs_map.values():
         #    self.visit(rhs, **kwargs)
-        self._ActionEqnTimeDerivativeByRegime(o, **kwargs)
+        self._ActionTimeDerivativeByRegime(o, **kwargs)
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
         for rhs in o.rhs_map.values():
             self.visit(rhs, **kwargs)
         self._ActionRegimeDispatchMap(o, **kwargs)
 
-    #def VisitEqnAssignment(self, o, **kwargs):
-    #    self.visit(o.lhs, **kwargs)
-    #    self.visit(o.rhs, **kwargs)
-    #    self._ActionEqnAssignment(o, **kwargs)
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
@@ -224,7 +216,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
     def VisitOnTransitionEvent(self, o, **kwargs):
         for a in o.parameters.values():
-            print a
+            #print a
             self.visit(a, **kwargs)
         for a in o.actions:
             self.visit(a, **kwargs)
@@ -317,20 +309,14 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionSuppliedValue(o, **kwargs)
 
-    # AST Objects:
-    #def _ActionEqnTimeDerivative(self, o, **kwargs):
-    #    if self._ActionPredicate(o, **kwargs):
-    #        return self.ActionEqnTimeDerivative(o, **kwargs)
-    def _ActionEqnTimeDerivativeByRegime(self, o, **kwargs):
+    def _ActionTimeDerivativeByRegime(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
-            return self.ActionEqnTimeDerivativeByRegime(o, **kwargs)
+            return self.ActionTimeDerivativeByRegime(o, **kwargs)
+
     def _ActionRegimeDispatchMap(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionRegimeDispatchMap(o, **kwargs)
 
-    #def _ActionEqnAssignment(self, o, **kwargs):
-    #    if self._ActionPredicate(o, **kwargs):
-    #        return self.ActionEqnAssignment(o, **kwargs)
 
     def _ActionEqnAssignmentByRegime(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
@@ -370,15 +356,15 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
     def _ActionOnTransitionTrigger(self, o, **kwargs):
         if self._ActionPredicate(o,**kwargs):
-            return self.ActionOnEvent(o,**kwargs)
+            return self.ActionOnTransitionTrigger(o,**kwargs)
 
     def _ActionOnTransitionEvent(self, o, **kwargs):
         if self._ActionPredicate(o,**kwargs):
-            return self.ActionOnEvent(o,**kwargs)
+            return self.ActionOnTransitionEvent(o,**kwargs)
 
     def _ActionOnEventDefParameter(self, o, **kwargs):
         if self._ActionPredicate(o,**kwargs):
-            return self.ActionOnEvent(o,**kwargs)
+            return self.ActionOnEventDefParameter(o,**kwargs)
 
     def _ActionEmitEvent(self, o, **kwargs):
         if self._ActionPredicate(o,**kwargs):
@@ -426,16 +412,11 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def ActionSuppliedValue(self, o, **kwargs):
         raise NotImplementedError()
 
-    # AST Objects:
-    def ActionEqnTimeDerivative(self, o, **kwargs):
-        raise NotImplementedError()
-    def ActionEqnTimeDerivativeByRegime(self, o, **kwargs):
+    def ActionTimeDerivativeByRegime(self, o, **kwargs):
         raise NotImplementedError()
     def ActionRegimeDispatchMap(self, o, **kwargs):
-        #print 'In Type:',self
         raise NotImplementedError()
     def ActionEqnAssignmentByRegime(self, o, **kwargs):
-        print 'In Type:',self
         raise NotImplementedError()
 
     def ActionAddOp(self, o, **kwargs):

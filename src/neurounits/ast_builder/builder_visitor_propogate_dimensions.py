@@ -148,6 +148,9 @@ class DimensionResolver(ASTVisitorBase):
         return
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
+        #print 'Resolving Dims in OnEventStateAssignemnt', id(o)
+        #print o.lhs
+        #print o.rhs
         self.EnsureEqualDimensions([o, o.lhs, o.rhs])
 
     def VisitIfThenElse(self, o, **kwargs):
@@ -190,18 +193,6 @@ class DimensionResolver(ASTVisitorBase):
     def VisitSymbolicConstant(self, o, **kwargs):
         return []
 
-    ## AST Objects:
-    #def VisitEqnTimeDerivative(self, o, **kwargs):
-    #    if len( [True for i in (o.lhs, o.rhs) if i.is_dimension_known()] ) != 1:
-    #        return
-
-    #    one_sec = self.ast.library_manager.backend.Unit(second=1)
-    #    if o.lhs.is_dimension_known():
-    #        self.RegisterDimensionPropogation( o.rhs, new_dimension= o.lhs.get_dimension()/one_sec, reason='TimeDerivative')
-    #        return
-    #    if o.rhs.is_dimension_known():
-    #        self.RegisterDimensionPropogation( o.lhs, new_dimension= o.rhs.get_dimension()*one_sec, reason='TimeDerivative')
-    #        return
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
 
         if o.lhs.is_dimension_known() and o.rhs_map.is_dimension_known():
@@ -293,9 +284,7 @@ class DimensionResolver(ASTVisitorBase):
     # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):
         self.EnsureEqualDimensions([o, o.rhs])
-        #print "Is func def rhs unit known", o.rhs.is_dimension_known()
-        #print "Is func def unit known", o.is_dimension_known()
-        #for p,v in self.parameters.iteritems():
+
 
 
 
@@ -467,7 +456,7 @@ class PropogateDimensions(object):
                 nUnresolvedPre = len([s for s in obj_with_dimension if not s.is_dimension_known()])
                 #res_symbols = [uR.visit(s) for s in all_symbols]
                 for s in all_symbols:
-                    print s
+                    #print s
                     uR.visit(s)
                 nUnresolvedPost = len([s for s in obj_with_dimension if not s.is_dimension_known()])
 

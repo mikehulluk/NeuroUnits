@@ -42,5 +42,9 @@ class OnEventStateAssignment(ASTExpressionObject):
         ASTExpressionObject.__init__(self,**kwargs)
         self.lhs = lhs
         self.rhs = rhs
+        print 'Created new OnEventStateAssignment: %s' % id(self)
     def accept_visitor(self, o, **kwargs):
         return o.VisitOnEventStateAssignment(self, **kwargs)
+
+    def __repr__(self):
+        return '<OnEventStateAssignment: %s>' % id(self)

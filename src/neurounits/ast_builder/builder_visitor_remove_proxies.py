@@ -85,10 +85,12 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
 
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
+        print 'Following proxies in OnEventStateAssignment (%s)' % id(self)
         o.lhs = self.followSymbolProxy(o.lhs)
         o.rhs = self.followSymbolProxy(o.rhs)
         self.visit(o.lhs)
         self.visit(o.rhs)
+
     def VisitOnEvent(self, o, **kwargs):
         for a in o.actions:
             self.visit(a)

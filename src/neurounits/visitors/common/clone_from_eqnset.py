@@ -80,11 +80,9 @@ class _CloneFuncDef(ASTVisitorBase):
     def VisitOnEventStateAssignment(self, o, **kwargs):
         panic()
             # AST Objects:
-    def VisitEqnTimeDerivative(self, o, **kwargs):
+    def VisitTimeDerivativeByRegime(self, o, **kwargs):
         panic()
 
-#    def VisitEqnAssignment(self, o, **kwargs):
-#        panic()
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         panic()

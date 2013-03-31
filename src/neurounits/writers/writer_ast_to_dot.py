@@ -145,7 +145,7 @@ class DotVisitor(ASTVisitorBase):
 
     # AST Objects:
 
-    def VisitEqnTimeDerivative(self, o, **kwargs):
+    def VisitTimeDerivativeByRegime(self, o, **kwargs):
         self.g.add_node(o)
         self.VisitAndAddEdge(o, o.lhs)
         self.VisitAndAddEdge(o, o.rhs)

@@ -61,7 +61,7 @@ class EqnTimeDerivativeByRegime(ASTObject):
     rhs_map = property(get_rhs_map, set_rhs_map)
 
     def __repr__(self):
-        return '<TimeDerivative of: %s>' % (self.lhs.symbol)
+        return '<TimeDerivative (new) of: %s>' % (self.lhs.symbol)
 
 
 
@@ -87,7 +87,7 @@ class EqnRegimeDispatchMap(ASTExpressionObject):
 
 class Transition(ASTObject):
     def __init__(self, src_regime, actions, target_regime=None,  **kwargs):
-        print kwargs
+        #print kwargs
         super(Transition, self).__init__( **kwargs)
         self.target_regime = target_regime
         self.src_regime = src_regime

@@ -68,7 +68,7 @@ def parse_string(s):
     # Trim the start:
     s = s[19:]
 
-    print 'parsing string', s
+    #print 'parsing string', s
 
     kw = read_json(s)
 

@@ -31,10 +31,7 @@ from neurounits.visitors import ASTVisitorBase
 class StringWriterVisitor(ASTVisitorBase):
 
     def VisitEqnSet(self, o, **kwargs):
-        print 'AST:'
-        print '----'
-
-
+        
         ass_str = [self.visit(a) for a in o.assignments]
         tds_str = [self.visit(a) for a in o.timederivatives]
         fnc_str = [self.visit(a) for a in o.functiondefs]
@@ -74,12 +71,6 @@ class StringWriterVisitor(ASTVisitorBase):
         return '<%s: %s %s>' % (o.__class__.__name__, o.symbol, o.value)
 
     # AST Objects:
-
-    def VisitEqnTimeDerivative(self, o, **kwargs):
-        return "%s' = %s" % (self.visit(o.lhs), self.visit(o.rhs))
-
-    #def VisitEqnAssignment(self, o, **kwargs):
-    #    return '%s = %s' % (self.visit(o.lhs), self.visit(o.rhs))
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         return '%s = %s' % (self.visit(o.lhs), self.visit(o.rhs_map))
 

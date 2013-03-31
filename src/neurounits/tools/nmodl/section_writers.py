@@ -59,7 +59,7 @@ class StateWriter(ASTActionerDefaultIgnoreMissing):
     def ActionStateVariable(self, n, modfilecontents,  build_parameters, **kwargs):
         modfilecontents.section_STATE.append( ModFileString.DeclareSymbol(n,build_parameters) )
 
-    def ActionEqnTimeDerivativeByRegime (self, n, modfilecontents, build_parameters, **kwargs):
+    def ActionTimeDerivativeByRegime (self, n, modfilecontents, build_parameters, **kwargs):
         s = CStringWriter.Build(n, build_parameters=build_parameters, expand_assignments=False)
         modfilecontents.section_DERIVATIVE.append( s )
 

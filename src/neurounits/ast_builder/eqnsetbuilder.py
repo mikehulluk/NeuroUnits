@@ -327,7 +327,7 @@ class AbstractBlockBuilder(object):
 
     # Internal symbol handling:
     def get_symbol_or_proxy(self, s):
-        print 'get_symbol_or_proxy:', s
+        #print 'get_symbol_or_proxy:', s
         # Are we in a function definition?
         if self.active_scope is not None:
             return self.active_scope.getSymbolOrProxy(s)
@@ -653,7 +653,7 @@ class AbstractBlockBuilder(object):
         # Lets build the Block Object!
         # ################################
         #self._astobject = ast.EqnSet(
-        print self.block_type
+        #print self.block_type
         self._astobject = self.block_type(
                     library_manager = self.library_manager,
                     builder = self,
@@ -665,8 +665,14 @@ class AbstractBlockBuilder(object):
         # The object exists, but is not complete and needs some polishing:
         # #################################################################
 
+        from neurounits.visitors.common.plot_networkx import ActionerPlotNetworkX
+        #ActionerPlotNetworkX(self._astobject)
+
+
         # 1. Resolve the SymbolProxies:
         RemoveAllSymbolProxy().visit(self._astobject)
+        
+        ActionerPlotNetworkX(self._astobject)
 
         # 2. Propagate the dimensionalities accross the system:
         PropogateDimensions.propogate_dimensions(self._astobject)

@@ -44,4 +44,7 @@ class SymbolProxy(object):
         assert self.is_resolved()
         return self.target.accept_visitor(v, **kwargs)
 
+    def __repr__(self):
+        return '<Symobl Proxy: >'
+
 

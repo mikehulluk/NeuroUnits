@@ -87,7 +87,7 @@ def p_whitespace_slurp3(p):
 def p_l4_module_def1(p):
     """nineml_file : empty"""
     pass
-    print 'Parsed Module file!'
+    #print 'Parsed Module file!'
     
 def p_l4_module_def2(p):
     """nineml_file : nineml_file white_or_newline_slurp module_def"""
@@ -1060,7 +1060,7 @@ class ParserMgr():
 
 
 def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
-    debug=True
+    #debug=True
 
 
     # Are a parsing a complex expression? Then we need a library manager:

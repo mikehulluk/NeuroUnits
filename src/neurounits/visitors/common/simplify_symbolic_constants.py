@@ -53,12 +53,9 @@ class ReduceConstants(ASTVisitorBase):
                 s = ast.SymbolicConstant(symbol=aKey.symbol
                         + sym_suffix, value=fixed_value)
 
-                #assert False
-                #print 'Replacing Node:', a.lhs.symbol
                 ReplaceNode(a.lhs, s).visit(o)
 
                 o._cache_nodes()
-                #print 'Done replacing symbol'
 
                 o._symbolicconstants[aKey.symbol] = s
                 del o._eqn_assignment[aKey]
@@ -78,66 +75,9 @@ class ReduceConstants(ASTVisitorBase):
     def VisitEqnSet(self, o, **kwargs):
         self._res_assignments(o, **kwargs)
 
-        #removed = []
-        #for aKey in o._eqn_assignment.keys():
-        #    a = o._eqn_assignment[aKey]
-        #    alhs = a.lhs
-        #    fixed_value = self.visit(a.rhs_map)
-        #    if fixed_value:
-
-        #        sym_suffix = '_as_symconst'
-        #        sym_suffix = ''
-        #        s = ast.SymbolicConstant(symbol=aKey.symbol
-        #                + sym_suffix, value=fixed_value)
-
-        #        #assert False
-        #        #print 'Replacing Node:', a.lhs.symbol
-        #        ReplaceNode(a.lhs, s).visit(o)
-
-        #        o._cache_nodes()
-        #        #print 'Done replacing symbol'
-
-        #        o._symbolicconstants[aKey.symbol] = s
-        #        del o._eqn_assignment[aKey]
-
-        #        removed.append(alhs)
-
-
-        ## Double check they have gone:
-        #o._cache_nodes()
-        #for a in removed:
-        #    nc = EqnsetVisitorNodeCollector()
-        #    nc.visit(o)
-        #    assert not a in nc.all()
-
     def VisitLibrary(self, o, **kwargs):
         self._res_assignments(o, **kwargs)
         assert len(o._eqn_assignment) == 0
-
-        #removed = []
-        #for aKey in o._eqn_assignment.keys():
-        #    a = o._eqn_assignment[aKey]
-        #    alhs = a.lhs
-        #    fixed_value = self.visit(a.rhs_map)
-        #    if fixed_value:
-
-        #        sym_suffix = '_as_symconst'
-        #        sym_suffix = ''
-        #        s = ast.SymbolicConstant(symbol=aKey.symbol
-        #                + sym_suffix, value=fixed_value)
-
-        #        #assert False
-        #        #print 'Replacing Node:', a.lhs.symbol
-        #        ReplaceNode(a.lhs, s).visit(o)
-
-        #        #o._cache_nodes()
-        #        #print 'Done replacing symbol'
-
-        #        o._symbolicconstants[aKey.symbol] = s
-        #        del o._eqn_assignment[aKey]
-
-        #        removed.append(alhs)
-
 
         ## Double check they have gone:
         #for a in removed:
@@ -210,11 +150,9 @@ class ReduceConstants(ASTVisitorBase):
 
 
     # AST Objects:
-    def VisitEqnTimeDerivative(self, o, **kwargs):
+    def VisitTimeDerivativeByRegime(self, o, **kwargs):
         raise NotImplementedError()
 
-    #def VisitEqnAssignment(self, o, **kwargs):
-    #    raise NotImplementedError()
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         raise NotImplementedError()
 

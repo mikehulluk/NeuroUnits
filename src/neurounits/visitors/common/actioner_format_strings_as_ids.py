@@ -132,14 +132,9 @@ class ActionerFormatStringsAsIDs(ASTActionerDefault):
             % (o.symbol, o.value)
 
     # AST Objects:
-    def ActionEqnTimeDerivative(self, o, **kwargs):
+    def ActionTimeDerivativeByRegime(self, o, **kwargs):
         self.format_strings[o] = 'Time Derivative: d/dt (%s) = %s' \
-            % (self.IDs[o.lhs], self.IDs[o.rhs])
-
-
-    #def ActionEqnAssignment(self, o, **kwargs):
-    #    self.format_strings[o] = "Assignment: '%s' = %s" \
-    #        % (self.IDs[o.lhs], self.IDs[o.rhs])
+            % (self.IDs[o.lhs], self.IDs[o.rhs_map])
 
     def ActionEqnAssignmentByRegime(self, o, **kwargs):
         self.format_strings[o] = "Assignment: '%s' = %s" \

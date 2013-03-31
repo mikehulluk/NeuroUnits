@@ -34,6 +34,8 @@ class ASTVisitorBase(object):
 
     def VisitEqnSet(self, o, **kwargs):
         raise NotImplementedError()
+    def VisitNineMLComponent(self, o, **kwargs):
+        raise NotImplementedError()
 
     def VisitOnEvent(self, o, **kwargs):
         raise NotImplementedError()
@@ -79,18 +81,11 @@ class ASTVisitorBase(object):
     def VisitSuppliedValue(self, o, **kwargs):
         raise NotImplementedError()
 
-    # AST Objects:
-    def VisitEqnTimeDerivative(self, o, **kwargs):
+    def VisitTimeDerivativeByRegime(self, o, **kwargs):
         raise NotImplementedError()
 
-    def VisitTimeDerivativeByRegime(self, o, **kwargs):
-        print self
-        raise NotImplementedError()
     def VisitRegimeDispatchMap(self, o, **kwargs):
         raise NotImplementedError()
-
-    #def VisitEqnAssignment(self, o, **kwargs):
-    #    raise NotImplementedError()
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         raise NotImplementedError()

@@ -92,6 +92,5 @@ def IterateDictValueByKeySorted(d):
 
 
 def read_json(s):
-    #print 'Reading JSON:', s
     x = json.loads(s)
     return x

@@ -95,17 +95,11 @@ class ASTActionerDefault(ASTActionerDepthFirst):
     def ActionOnEventStateAssignment(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
-    ## AST Objects:
-    #def ActionEqnTimeDerivative(self, o, **kwargs):
-    #    return self.ActionNode(o, **kwargs)
-
-    def ActionEqnTimeDerivativeByRegime(self, o, **kwargs):
+    def ActionTimeDerivativeByRegime(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
+
     def ActionRegimeDispatchMap(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
-
-#    def ActionEqnAssignment(self, o, **kwargs):
-#        return self.ActionNode(o, **kwargs)
 
     def ActionEqnAssignmentByRegime(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)

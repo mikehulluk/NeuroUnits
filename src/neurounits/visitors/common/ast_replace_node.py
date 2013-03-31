@@ -140,12 +140,6 @@ class ReplaceNode(ASTVisitorBase):
     def VisitSuppliedValue(self, o, **kwargs):
         return o
 
-    ## AST Objects:
-    #def VisitEqnTimeDerivative(self, o, **kwargs):
-    #    o.lhs = self.replace_or_visit(o.lhs)
-    #    o.rhs = self.replace_or_visit(o.rhs)
-    #    return o
-
     # AST Objects:
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         o.lhs = self.replace_or_visit(o.lhs)
@@ -157,10 +151,6 @@ class ReplaceNode(ASTVisitorBase):
         o.rhs_map = dict([ (reg, self.replace_or_visit(rhs)) for (reg,rhs) in o.rhs_map.items() ] )
         return o
 
-    #def VisitEqnAssignment(self, o, **kwargs):
-    #    o.lhs = self.replace_or_visit(o.lhs)
-    #    o.rhs = self.replace_or_visit(o.rhs)
-    #    return o
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         o.lhs = self.replace_or_visit(o.lhs)

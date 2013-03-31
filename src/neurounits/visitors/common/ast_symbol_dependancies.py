@@ -97,7 +97,7 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
 
             required_deps = required_deps | to_add
 
-        print 'Deps;', required_deps
+        #print 'Deps;', required_deps
         # Order them:
         op = [ o for o in cls.get_assignment_dependancy_ordering(eqnset) if o in required_deps ]
         return op

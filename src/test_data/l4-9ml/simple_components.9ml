@@ -47,46 +47,39 @@ module my_components {
         
         T' = {1}
         
-		a = f + 1
-		i'= {0 ms-1}
+	a = f + 1
+	i'= {0 ms-1}
         b = f+i
         l = 2mV
         x = [2] if [l>3mV] else[ 123]
-		tswitch = 0
-		dur = 10 ms
-		regime OFF {
-			f'={0 ms-1}
-            
-            on( k > {4mV} ) {
-                f = -1
-                
-                
-             }
-             
-             on( l > {4mV} ) {
-                f = -34
-                emit my_event(xsd=2,yas=3,zasd=4)
-                transition_to OFF
-             }
-             
-             
-             on recievemyevent(a,b,c,event_param){
-                f = -c + event_param
-                emit my_event(x=2,y=3,z=4)
-                transition_to OFF
-             }
-             
-            
-			}
-
-		regime ON {
-			g'=0; 
-            r = 5
-            
-            
-            #i=0
-			}
 		
+        tswitch = 0
+        dur = 10 ms
+        regime OFF {
+        	f'={0 ms-1}
+                on( k > {4mV} ) {
+                        f = -1
+                }
+             
+                on( l > {4mV} ) {
+                        f = -34
+                        emit my_event(xsd=2,yas=3,zasd=4)
+                        transition_to OFF
+                }
+             
+                on recievemyevent(a,b,c,event_param){
+                        f = -c + event_param
+                        emit my_event(x=2,y=3,z=4)
+                        transition_to OFF
+             }    
+	}
+
+	regime ON {
+		g'=0; 
+                r = 5
+    
+		}
+	
 	}
 
 
