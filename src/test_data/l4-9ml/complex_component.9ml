@@ -39,26 +39,30 @@ module my_components {
         }
 
         regime ON {
-            g'=0; 
+            g'=0
             r = 5
 		}
         
         
-        #rtgraph g1 {
-        #    
-        #    regime OFF {
-        #        s'=0; 
-        #        t = 5
-        #    }
-        #
-        #    regime ON {
-        #        s'=15; 
-        #        t = 5;
-        #        
-        #    }
-        #
-        #
-        #}
+        rtgraph g1 {
+            
+            regime OFF {
+                s'=0 
+                t = 5
+                on( k>5mV){
+                    transition_to  ON
+                }
+                
+            }
+        
+            regime ON {
+                s'=15 
+                t = 5
+                
+            }
+        
+        
+        }
         
         
         

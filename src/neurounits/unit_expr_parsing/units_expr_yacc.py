@@ -167,13 +167,11 @@ def p_parse_componentline5(p):
 
 def p_parse_component_regimename(p):
     """regime_name : alphanumtoken"""
-    #p.parser.library_manager.get_current_block_builder().set_current_regime(p[1])
     p.parser.library_manager.get_current_block_builder().open_regime( p[1] )
 
 def p_parse_component_regime_block(p):
     """regime_block : REGIME white_or_newline_slurp regime_name white_or_newline_slurp LCURLYBRACKET regimecontents white_or_newline_slurp RCURLYBRACKET"""
-    #p.parser.library_manager.get_current_block_builder().set_current_regime(None)
-    p.parser.library_manager.get_current_block_builder().open_close(  )
+    p.parser.library_manager.get_current_block_builder().close_regime(  )
     
 
 
@@ -298,7 +296,6 @@ def p_quantity_event_params_l3a(p):
     rhs_ast=p[3] 
     p[0] = { symbol:rhs_ast }
 
-    #p[0] = { None: ast.FunctionDefParameterInstantiation( symbol = None, rhs_ast=p[1] ) }
 
 def p_quantity_event_params_l3b(p):
     """event_call_params_l3 : event_call_param_l3 whiteslurp"""
@@ -309,9 +306,7 @@ def p_quantity_event_params_l3c(p):
     param_dict = p[1]
     new_param = p[4]
     p[0] = safe_dict_merge( param_dict,new_param )
-    #assert not new_param.symbol in param_dict
-    #param_dict[new_param.symbol] = new_param
-    #p[0] = param_dict
+
 
 def p_quantity_event_params_term_l3(p):
     """event_call_param_l3 : alphanumtoken EQUALS rhs_term"""
@@ -325,8 +320,26 @@ def p_quantity_event_params_term_l3(p):
 
 
 
+def p_additonal_rt_graph0(p):
+    """rt_name : alphanumtoken"""
+    p.parser.library_manager.get_current_block_builder().open_rt_graph(name=p[1])
 
+def p_additonal_rt_graph1(p):
+    """componentlinecontents : RTGRAPH white_or_newline_slurp rt_name white_or_newline_slurp LCURLYBRACKET rtgraph_contents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp """
+    p.parser.library_manager.get_current_block_builder().close_rt_graph()
 
+def p_additonal_rt_graph2(p):
+    """rtgraph_contents : empty"""
+    pass
+
+def p_opt_semicolon(p):
+    """optsemicolon : empty
+                    | SEMICOLON"""
+    pass
+
+def p_additonal_rt_graph4(p):
+    """rtgraph_contents : rtgraph_contents white_or_newline_slurp regime_block optsemicolon"""
+    pass
 
 
 
@@ -1062,7 +1075,7 @@ class ParserMgr():
 
 
 def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
-    #debug=True
+    debug=True
 
 
     # Are a parsing a complex expression? Then we need a library manager:

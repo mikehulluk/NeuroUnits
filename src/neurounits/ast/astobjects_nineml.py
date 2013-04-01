@@ -143,22 +143,21 @@ class Regime(ASTObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitRegime(self)
 
-    def __init__(self, name):
-        super(Regime, self).__init__()
+    def __init__(self, name,  parent_rt_graph):
+        super(Regime, self,).__init__()
         self.name = name
+        self.parent_rt_graph = parent_rt_graph
     def __repr__(self):
-        return "<Regime: '%s'>" % (self.name)
+        return "<Regime: '%s.%s'>" % (self.parent_rt_graph.ns_string(), self.name, )
 
 
 class RTBlock(ASTObject):
-    def __init__(self, name=None, regimes=None):
+    def __init__(self, name=None,):
         self.name = name
         self.regimes = {}
 
-        if regimes:
-            for r in regimes:
-                assert not r.name in self.regimes
-                self.regimes[r.name] = r
+    def ns_string(self):
+        return self.name if self.name is not None else ''
 
     def get_regime(self, name):
         return self.regimes[name]
@@ -166,7 +165,7 @@ class RTBlock(ASTObject):
 
     def get_or_create_regime(self, name):
         if not name in self.regimes:
-            self.regimes[name] =Regime(name)
+            self.regimes[name] =Regime(name=name, parent_rt_graph=self)
 
         return self.regimes[name]
 
@@ -178,21 +177,21 @@ class EqnTimeDerivativePerRegime(ASTObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitEqnTimeDerivativePerRegime(self, **kwargs)
 
-    def __init__(self,lhs,rhs, regime_name, **kwargs):
+    def __init__(self,lhs,rhs, regime, **kwargs):
         super(EqnTimeDerivativePerRegime, self).__init__()
         self.lhs = lhs
         self.rhs = rhs
-        self.regime_name = regime_name
+        self.regime = regime
 
 class EqnAssignmentPerRegime(ASTObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitEqnAssignmentPerRegime(self, **kwargs)
 
-    def __init__(self,lhs,rhs, regime_name, **kwargs):
+    def __init__(self,lhs,rhs, regime, **kwargs):
         super(EqnAssignmentPerRegime, self).__init__()
         self.lhs = lhs
         self.rhs = rhs
-        self.regime_name = regime_name
+        self.regime = regime
 
 
 

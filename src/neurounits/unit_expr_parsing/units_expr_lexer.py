@@ -48,6 +48,7 @@ class UnitExprLexer(object):
             'transition_to': 'TRANSITION_TO',
             'on': 'ON',
             'emit': 'EMIT',
+            'rtgraph':'RTGRAPH',
             
 
             }

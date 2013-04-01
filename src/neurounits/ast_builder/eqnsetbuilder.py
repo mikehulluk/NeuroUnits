@@ -306,48 +306,36 @@ class AbstractBlockBuilder(object):
 
 
         # Current Regime:
-        self.global_rt_block = RTBlock()
-        self.all_rt_blocks = set([self.global_rt_block])
+        #self.global_rt_graph = RTBlock()
+        self._all_rt_graphs = dict(  [(None, RTBlock()), ])
 
-        self._current_rt_block = self.global_rt_block
-        self._current_regime = self._current_rt_block.get_or_create_regime(None)
+        self._current_rt_graph = self._all_rt_graphs[None]
+        self._current_regime = self._current_rt_graph.get_or_create_regime(None)
         
 
 
     def open_regime(self, regime_name):
-        self._current_regime = self._current_rt_block.get_or_create_regime(regime_name)
+        self._current_regime = self._current_rt_graph.get_or_create_regime(regime_name)
 
     def close_regime(self):
-        self._current_regime = self._current_rt_block.get_or_create_regime(None)
+        self._current_regime = self._current_rt_graph.get_or_create_regime(None)
 
     def get_current_regime(self):
         return self._current_regime
 
 
+    def open_rt_graph(self, name):
+        assert self._current_rt_graph ==self._all_rt_graphs[None]
 
-    
+        if not name in self._all_rt_graphs:
+            self._all_rt_graphs[name] = RTBlock(name)
 
+        self._current_rt_graph = self._all_rt_graphs[name]
 
-    #def set_current_regime(self, name):
-    #    assert False
-    #    if name is None:
-    #        assert self.current_regime.name is not None
-    #    else:
-    #        assert self.current_regime.name is None
-
-    #    self.current_regime = self.get_regime_obj(name)
+    def close_rt_graph(self):
+        self._current_rt_graph = self._all_rt_graphs[None]
 
 
-    #def get_regime_obj(self, name):
-    #    assert False
-    #    for r in self.builddata.regimes:
-    #        if r.name == name:
-    #            return r
-
-    #    # Make a new one:
-    #    r = ast.Regime(name=name)
-    #    self.builddata.regimes.add(r)
-    #    return r
 
 
 
@@ -465,10 +453,8 @@ class AbstractBlockBuilder(object):
         if target_regime is None:
             target_regime = src_regime
         else:
-            target_regime = self.get_regime_obj(target_regime)
+            target_regime = self._current_rt_graph.get_or_create_regime(target_regime)
 
-        #print event_params
-        #assert False
 
         self.builddata.transitions_events.append(
             ast.OnEventTransition( event_name=event_name, parameters=event_params, actions = actions, target_regime=target_regime, src_regime=src_regime)
@@ -489,7 +475,7 @@ class AbstractBlockBuilder(object):
         if target_regime is None:
             target_regime = src_regime
         else:
-            target_regime = self.get_regime_obj(target_regime)
+            target_regime = self._current_rt_graph.get_or_create_regime(target_regime)
 
         assert self.active_scope is None
         self.builddata.transitions_triggers.append(
@@ -555,7 +541,7 @@ class AbstractBlockBuilder(object):
 
         # Create the assignment object:
         assert self.active_scope == None
-        a = ast.EqnAssignmentPerRegime(lhs=lhs_name, rhs=rhs_ast, regime_name=self.current_regime)
+        a = ast.EqnAssignmentPerRegime(lhs=lhs_name, rhs=rhs_ast, regime=self.get_current_regime() )
         self.builddata._assigments_per_regime.append(a)
 
 
@@ -573,7 +559,7 @@ class AbstractBlockBuilder(object):
         time_derivatives = SingleSetDict()
         maps_tds = defaultdict(SingleSetDict)
         for regime_td in self.builddata._time_derivatives_per_regime:
-            maps_tds[regime_td.lhs][regime_td.regime_name] = regime_td.rhs
+            maps_tds[regime_td.lhs][regime_td.regime] = regime_td.rhs
 
         for sv, tds in maps_tds.items():
 
@@ -595,7 +581,7 @@ class AbstractBlockBuilder(object):
         assignments = SingleSetDict()
         maps_asses = defaultdict(SingleSetDict)
         for reg_ass in self.builddata._assigments_per_regime:
-            maps_asses[reg_ass.lhs][reg_ass.regime_name] = reg_ass.rhs
+            maps_asses[reg_ass.lhs][reg_ass.regime] = reg_ass.rhs
 
         for ass_var, tds in maps_asses.items():
 
@@ -617,6 +603,7 @@ class AbstractBlockBuilder(object):
 
         # Copy regimes into builddata
         #self.builddata.regimes = self.regimes
+        self.builddata.rt_graphs = self._all_rt_graphs
 
 
 
@@ -759,7 +746,7 @@ class EqnSetBuilder(AbstractBlockBuilder):
         #self._resolve_global_symbol(lhs_state_name, statevar_obj)
 
         # Create the assignment object:
-        a = ast.EqnTimeDerivativePerRegime(lhs=lhs_state_name, rhs=rhs_ast, regime_name=self.current_regime)
+        a = ast.EqnTimeDerivativePerRegime(lhs=lhs_state_name, rhs=rhs_ast, regime=self.get_current_regime())
         self.builddata._time_derivatives_per_regime.append(a)
 
         #assert not statevar_obj in self.builddata.timederivatives

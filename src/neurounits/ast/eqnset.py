@@ -78,7 +78,6 @@ class Library(Block):
     def __init__(self,  library_manager, builder, builddata, io_data):
         super(Library,self).__init__(library_manager=library_manager, builder=builder, name=builddata.eqnset_name)
 
-        #Block.__init__(self, library_manager=library_manager, builder=builder, name=builddata.eqnset_name)
         # We have to read the _eqn_assignment, although they should be
         # reduced during the conversion to symbolic constants.
         self._eqn_assignment = builddata.assignments
@@ -289,7 +288,8 @@ class NineMLComponent(EqnSet):
         self._transitions_triggers = builddata.transitions_triggers
         self._transitions_events = builddata.transitions_events
         
-        self._local_regimes = builddata.regimes
+        #self._local_regimes = builddata.regimes
+        self.rt_graphs = builddata.rt_graphs
         
         super(NineMLComponent,self).__init__(library_manager=library_manager, builder=builder,  builddata=builddata, io_data=io_data)
 
