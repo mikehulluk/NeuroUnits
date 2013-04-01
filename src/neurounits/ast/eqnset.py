@@ -306,6 +306,9 @@ class NineMLComponent(EqnSet):
     def accept_visitor(self, visitor, **kwargs):
         return visitor.VisitNineMLComponent(self, **kwargs)
 
+    def __repr__(self):
+        return '<NineML Component: %s>' % ( self.name)
+
 class NineMLModule(object):
     
     def accept_visitor(self, visitor, **kwargs):

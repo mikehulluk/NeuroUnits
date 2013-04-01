@@ -203,6 +203,8 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         o.parameters = dict( [(sym, self.followSymbolProxy(rhs)) for (sym,rhs) in o.parameters.items()])
         for p in o.parameters.values():
             self.visit(p)
+        for a in o.actions:
+            self.visit(a)
 
     def VisitEmitEvent(self, o, **kwargs):
         o.parameter_map= dict( [(reg, self.followSymbolProxy(rhs)) for (reg,rhs) in o.parameter_map.items()])

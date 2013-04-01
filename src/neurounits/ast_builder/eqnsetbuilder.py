@@ -37,6 +37,7 @@ from .eqnsetbuilder_symbol_proxy import SymbolProxy
 from neurounits.visitors.common.clone_from_eqnset import CloneObject
 from neurounits.visitors.common.simplify_symbolic_constants import ReduceConstants
 from neurounits.ast.astobjects import SymbolicConstant
+from neurounits.ast.astobjects_nineml import RTBlock
 
 from collections import defaultdict
 
@@ -270,7 +271,6 @@ class BuildData(object):
 
     def __init__(self):
         self.eqnset_name = None
-        self.regimes = set([ast.Regime(name=None)])
 
         self.onevents = SingleSetDict()
         self.timederivatives = SingleSetDict()
@@ -284,6 +284,8 @@ class BuildData(object):
         self.transitions_events = []
 
 
+        #self.regimes = set([ast.Regime(name=None)])
+
         # Temporary lists, that will be resolved later:
         self._time_derivatives_per_regime = []
         self._assigments_per_regime = []
@@ -292,13 +294,6 @@ class BuildData(object):
 class AbstractBlockBuilder(object):
 
 
-    def set_current_regime(self, name):
-        if name is None:
-            assert self.current_regime.name is not None
-        else:
-            assert self.current_regime.name is None
-
-        self.current_regime = self.get_regime_obj(name)
 
     def __init__(self, library_manager, block_type):
         self.library_manager = library_manager
@@ -309,18 +304,53 @@ class AbstractBlockBuilder(object):
         self.global_scope = Scope(proxy_if_absent=True)
         self.active_scope = None
 
+
         # Current Regime:
-        self.current_regime = list(self.builddata.regimes)[0] 
+        self.global_rt_block = RTBlock()
+        self.all_rt_blocks = set([self.global_rt_block])
 
-    def get_regime_obj(self, name):
-        for r in self.builddata.regimes:
-            if r.name == name:
-                return r
+        self._current_rt_block = self.global_rt_block
+        self._current_regime = self._current_rt_block.get_or_create_regime(None)
+        
 
-        # Make a new one:
-        r = ast.Regime(name=name)
-        self.builddata.regimes.add(r)
-        return r
+
+    def open_regime(self, regime_name):
+        self._current_regime = self._current_rt_block.get_or_create_regime(regime_name)
+
+    def close_regime(self):
+        self._current_regime = self._current_rt_block.get_or_create_regime(None)
+
+    def get_current_regime(self):
+        return self._current_regime
+
+
+
+    
+
+
+    #def set_current_regime(self, name):
+    #    assert False
+    #    if name is None:
+    #        assert self.current_regime.name is not None
+    #    else:
+    #        assert self.current_regime.name is None
+
+    #    self.current_regime = self.get_regime_obj(name)
+
+
+    #def get_regime_obj(self, name):
+    #    assert False
+    #    for r in self.builddata.regimes:
+    #        if r.name == name:
+    #            return r
+
+    #    # Make a new one:
+    #    r = ast.Regime(name=name)
+    #    self.builddata.regimes.add(r)
+    #    return r
+
+
+
 
     def set_name(self, name):
         self.builddata.eqnset_name = name.strip()
@@ -431,7 +461,7 @@ class AbstractBlockBuilder(object):
             else:
                 obj.set_target(self.global_scope.getSymbolOrProxy(sym) )
 
-        src_regime=self.current_regime
+        src_regime=self.get_current_regime()
         if target_regime is None:
             target_regime = src_regime
         else:
@@ -455,7 +485,7 @@ class AbstractBlockBuilder(object):
         for sym,obj in scope.iteritems():
             obj.set_target(self.global_scope.getSymbolOrProxy(sym) )
 
-        src_regime=self.current_regime
+        src_regime=self.get_current_regime()
         if target_regime is None:
             target_regime = src_regime
         else:
@@ -671,8 +701,8 @@ class AbstractBlockBuilder(object):
 
         # 1. Resolve the SymbolProxies:
         RemoveAllSymbolProxy().visit(self._astobject)
-        
-        ActionerPlotNetworkX(self._astobject)
+
+        #ActionerPlotNetworkX(self._astobject)
 
         # 2. Propagate the dimensionalities accross the system:
         PropogateDimensions.propogate_dimensions(self._astobject)

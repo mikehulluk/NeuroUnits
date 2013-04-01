@@ -167,11 +167,13 @@ def p_parse_componentline5(p):
 
 def p_parse_component_regimename(p):
     """regime_name : alphanumtoken"""
-    p.parser.library_manager.get_current_block_builder().set_current_regime(p[1])
+    #p.parser.library_manager.get_current_block_builder().set_current_regime(p[1])
+    p.parser.library_manager.get_current_block_builder().open_regime( p[1] )
 
 def p_parse_component_regime_block(p):
     """regime_block : REGIME white_or_newline_slurp regime_name white_or_newline_slurp LCURLYBRACKET regimecontents white_or_newline_slurp RCURLYBRACKET"""
-    p.parser.library_manager.get_current_block_builder().set_current_regime(None)
+    #p.parser.library_manager.get_current_block_builder().set_current_regime(None)
+    p.parser.library_manager.get_current_block_builder().open_close(  )
     
 
 

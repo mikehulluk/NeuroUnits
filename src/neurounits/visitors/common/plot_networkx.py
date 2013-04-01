@@ -7,6 +7,7 @@ from neurounits.visitors import SingleVisitPredicate
 from neurounits.visitors import ASTVisitorBase
 from neurounits.ast_builder.eqnsetbuilder_symbol_proxy import SymbolProxy
 from neurounits.ast import OnEventStateAssignment
+import neurounits.ast as ast
 import itertools
 
 import collections
@@ -24,6 +25,12 @@ class NodeColor(ASTVisitorBase):
             return 'red'
         if isinstance(o, OnEventStateAssignment):
             return 'orange'
+        if isinstance(o, ast.NineMLComponent):
+            return 'yellow'
+        if isinstance(o, ast.OnEventTransition):
+            return 'pink'
+        if isinstance(o, ast.OnTriggerTransition):
+            return 'cyan'
 
         return 'blue'
 
@@ -51,8 +58,16 @@ class ActionerPlotNetworkX():
 
         nc = NodeColor()
         node_color=[nc.visit(v) for v in graph]
+
+        f = plt.figure()
         nx.draw_spring(graph, font_size=8, iteration=200, node_color=node_color,scale=2)
-        #nx.draw_spectral(graph, font_size=8, iteration=200, node_color=node_color)
+        #nx.draw_graphviz(graph, font_size=8, iteration=200, node_color=node_color,scale=2)
+        #plt.title(str(o) )
+        ax = plt.gca()
+        ax.text(0.5,0.5, 'Hello')
+        plt.show()
+        
+
 
         plt.show()
 

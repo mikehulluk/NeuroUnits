@@ -193,3 +193,20 @@ class ReplaceNode(ASTVisitorBase):
         o.rhs_ast = self.replace_or_visit(o.rhs_ast)
         return o
 
+
+    def VisitOnTransitionTrigger(self, o, **kwargs):
+        o.trigger= self.replace_or_visit(o.trigger)
+        o.actions = [self.replace_or_visit(a) for a in o.actions ]
+        return o
+    def VisitOnTransitionEvent(self, o, **kwargs):
+        o.parameters= dict([ (name, self.replace_or_visit(p)) for (name,p) in o.parameters.items() ])
+        o.actions = [self.replace_or_visit(a) for a in o.actions ]
+        return o
+
+    def VisitOnEventDefParameter(self, o, **kwargs):
+        return o
+    def VisitEmitEvent(self, o, **kwargs):
+        o.parameter_map= dict([ (name, self.replace_or_visit(p)) for (name,p) in o.parameter_map.items() ])
+        return o
+
+

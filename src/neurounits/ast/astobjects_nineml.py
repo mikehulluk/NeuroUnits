@@ -30,6 +30,7 @@
 
 from .astobjects import ASTObject, ASTExpressionObject
 
+from neurounits.misc import SeqUtils
 
 class EqnAssignmentByRegime(ASTObject):
     def accept_visitor(self, v, **kwargs):
@@ -87,7 +88,6 @@ class EqnRegimeDispatchMap(ASTExpressionObject):
 
 class Transition(ASTObject):
     def __init__(self, src_regime, actions, target_regime=None,  **kwargs):
-        #print kwargs
         super(Transition, self).__init__( **kwargs)
         self.target_regime = target_regime
         self.src_regime = src_regime
@@ -125,8 +125,6 @@ class OnEventDefParameter(ASTExpressionObject):
 
     def __repr__(self):
         return "<OnEventDefParameter '%s'>" % self.symbol
-    #def accept_visitor(self, v, **kwargs):
-    #    return v.VisitOnEventDefParameter(self, **kwargs)
 
 
 
@@ -151,6 +149,26 @@ class Regime(ASTObject):
     def __repr__(self):
         return "<Regime: '%s'>" % (self.name)
 
+
+class RTBlock(ASTObject):
+    def __init__(self, name=None, regimes=None):
+        self.name = name
+        self.regimes = {}
+
+        if regimes:
+            for r in regimes:
+                assert not r.name in self.regimes
+                self.regimes[r.name] = r
+
+    def get_regime(self, name):
+        return self.regimes[name]
+
+
+    def get_or_create_regime(self, name):
+        if not name in self.regimes:
+            self.regimes[name] =Regime(name)
+
+        return self.regimes[name]
 
 
 

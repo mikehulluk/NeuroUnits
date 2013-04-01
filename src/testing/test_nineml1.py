@@ -4,6 +4,7 @@ import inspect
 
 
 txt = open( "/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/simple_components.9ml" ).read()
+txt = open( "/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/complex_component.9ml" ).read()
 library_manager = neurounits.NeuroUnitParser.Parse9MLFile(txt)
 
 

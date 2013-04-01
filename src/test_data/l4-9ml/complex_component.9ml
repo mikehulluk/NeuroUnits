@@ -1,0 +1,69 @@
+module my_components {
+
+
+	define_component my_analog_stim_two {
+
+		regime init{
+			f'={0 ms-1}
+		}		
+		
+        k = {10mV } + {0.1 mV s-1} * T
+        
+        T' = {1}
+        
+	a = f + 1
+	i'= {0 ms-1}
+        b = f+i
+        l = 2mV
+        x = [2] if [l>3mV] else[ 123]
+		
+        tswitch = 0
+        dur = 10 ms
+        regime OFF {
+        	f'={0 ms-1}
+                on( k > {4mV} ) {
+                        f = -1
+                }
+             
+                on( l > {4mV} ) {
+                        f = -34
+                        emit my_event(xsd=2,yas=3,zasd=4)
+                        transition_to OFF
+                }
+             
+                on recievemyevent(a:{mV},b:{ms},c,event_param){
+                        f = -c + event_param
+                        emit my_event(x=2,y=3,z=4)
+                        transition_to OFF
+                }    
+        }
+
+        regime ON {
+            g'=0; 
+            r = 5
+		}
+        
+        
+        #rtgraph g1 {
+        #    
+        #    regime OFF {
+        #        s'=0; 
+        #        t = 5
+        #    }
+        #
+        #    regime ON {
+        #        s'=15; 
+        #        t = 5;
+        #        
+        #    }
+        #
+        #
+        #}
+        
+        
+        
+	
+	}
+
+
+}
