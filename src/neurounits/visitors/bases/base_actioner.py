@@ -150,6 +150,8 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         self._ActionAssignedVariable(o, **kwargs)
     def VisitSuppliedValue(self, o, **kwargs):
         self._ActionSuppliedValue(o, **kwargs)
+    def VisitAnalogReducePort(self, o, **kwargs):
+        self._ActionAnalogReducePort(o, **kwargs)
 
 
     # AST Objects:
@@ -216,7 +218,6 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
     def VisitOnTransitionEvent(self, o, **kwargs):
         for a in o.parameters.values():
-            #print a
             self.visit(a, **kwargs)
         for a in o.actions:
             self.visit(a, **kwargs)
@@ -308,6 +309,9 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def _ActionSuppliedValue(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionSuppliedValue(o, **kwargs)
+    def _ActionAnalogReducePort(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionAnalogReducePort(o, **kwargs)
 
     def _ActionTimeDerivativeByRegime(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
@@ -411,6 +415,9 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         raise NotImplementedError()
     def ActionSuppliedValue(self, o, **kwargs):
         raise NotImplementedError()
+    def ActionAnalogReducePort(self, o, **kwargs):
+        print 'self', self
+        raise NotImplementedError(self)
 
     def ActionTimeDerivativeByRegime(self, o, **kwargs):
         raise NotImplementedError()

@@ -31,6 +31,7 @@ from neurounits.units_misc import Chainmap
 from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
 from .base import ASTObject
 from neurounits.ast.astobjects import Parameter, SuppliedValue, AssignedVariable
+from neurounits.ast.astobjects_nineml import AnalogReducePort
 from neurounits.ast.astobjects_nineml import Regime
 from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
 from neurounits.io_types import IOType
@@ -117,14 +118,15 @@ class EqnSet(Block):
 
 
 
-    def __init__(self,  library_manager, builder, builddata, io_data):
+    def __init__(self,  library_manager, builder, builddata, io_data, name=None):
+        if name==None:
+            name = builddata.eqnset_name
         #Block.__init__(self, library_manager=library_manager, builder=builder, name=builddata.eqnset_name)
-        super(EqnSet, self).__init__(library_manager=library_manager, builder=builder, name=builddata.eqnset_name)
+        super(EqnSet, self).__init__(library_manager=library_manager, builder=builder,  name=name)
 
         # Metadata about the inputs and outputs:
         self.io_data = io_data
-        self.initial_conditions = [p for p in io_data if p.iotype
-                                   == IOType.InitialCondition]
+        self.initial_conditions = [p for p in io_data if p.iotype == IOType.InitialCondition]
 
         # Top-level objects:
         self._eqn_assignment = builddata.assignments
@@ -145,11 +147,14 @@ class EqnSet(Block):
 
 
 
+
+
     def _cache_nodes(self):
         t = EqnsetVisitorNodeCollector()
         t.visit(self)
         self._parameters = t.nodes[Parameter]
         self._supplied_values = t.nodes[SuppliedValue]
+        self._analog_reduce_ports = t.nodes[AnalogReducePort]
 
 
 
@@ -192,23 +197,34 @@ class EqnSet(Block):
     @property
     def suppliedvalues(self,):
         return self._supplied_values
+    @property
+    def analog_reduce_ports(self,):
+        return self._analog_reduce_ports
 
     @property
     def terminal_symbols(self):
         ts = list(self.states) + list(self.assignedvalues) \
             + list(self.parameters) + list(self.suppliedvalues) \
-            + list(self.symbolicconstants)
+            + list(self.symbolicconstants) + list(self.analog_reduce_ports)
         for t in ts:
             assert isinstance(t, ASTObject)
         return ts
 
 
-    def get_terminal_obj(self, symbol):
+
+    def get_terminal_obj_chainmap(self,):
         m = Chainmap( self._getParametersDict(),
                       self._getSuppliedValuesDict(),
+                      self._getAnalogPortsDict(),
                       self._getAssignedVariablesDict(),
                       self._getStateVariablesDict(),
-                      self._symbolicconstants  )
+                      self._symbolicconstants  
+                      )
+        return m
+    
+    def get_terminal_obj(self, symbol):
+        
+        m = self.get_terminal_obj_chainmap()
         return m[symbol]
 
     def has_terminal_obj(self, symbol):
@@ -222,6 +238,8 @@ class EqnSet(Block):
 
     def _getSuppliedValuesDict(self):
         return dict( [(s.symbol, s)  for s in self._supplied_values ])
+    def _getAnalogPortsDict(self):
+        return dict( [(s.symbol, s)  for s in self._analog_reduce_ports ])
     def _getParametersDict(self):
         return dict( [(s.symbol, s)  for s in self._parameters ])
     def _getAssignedVariablesDict(self):
@@ -282,19 +300,19 @@ class EqnSet(Block):
 class NineMLComponent(EqnSet):
 
 
-    def __init__(self,  library_manager, builder, builddata, io_data):
+    def __init__(self,  library_manager, builder, builddata, io_data, name=None):
 
         self._transitions_triggers = builddata.transitions_triggers
         self._transitions_events = builddata.transitions_events
         self.rt_graphs = builddata.rt_graphs
+
+        if name == None:
+            name = builddata.eqnset_name
         
-        super(NineMLComponent,self).__init__(library_manager=library_manager, builder=builder,  builddata=builddata, io_data=io_data)
+        super(NineMLComponent,self).__init__(library_manager=library_manager, builder=builder,  builddata=builddata, io_data=io_data, name=name)
 
         self._cache_nodes()
 
-    @property
-    def local_regimes(self):
-        return self._local_regimes
 
     @property
     def transitions(self):
@@ -306,13 +324,63 @@ class NineMLComponent(EqnSet):
     def __repr__(self):
         return '<NineML Component: %s>' % ( self.name)
 
+    def transitions_from_regime(self,regime):
+        #print self.transitions
+        assert isinstance(regime,Regime)
+        return [tr for tr in self.transitions if tr.src_regime==regime]
+
+
+    def summarise(self):
+        print
+        print '  Paramters: [%s]' %', '.join( "'%s (%s)'" %(p.symbol, p.get_dimension()) for p in self.parameters)
+        print '  StateVariables: [%s]' % ', '.join( "'%s'" %p.symbol for p in self.states)
+
+        print '  Inputs: [%s]'% ', '.join( "'%s'" %p.symbol for p in self.suppliedvalues)
+
+        print '  Outputs: [%s]'% ', '.join( "'%s (%s)'" %(p.symbol, p.get_dimension()) for p in self.assignedvalues)
+        print '  ReducePorts: [%s] '% ', '.join( "'%s (%s)'" %(p.symbol, p.get_dimension()) for p in self.analog_reduce_ports)
+
+        print 
+
+        print
+        print 'NineML Component: %s' % self.name
+        print '  Paramters: [%s]' %', '.join( "'%s'" %p.symbol for p in self.parameters)
+        print '  StateVariables: [%s]' % ', '.join( "'%s'" %p.symbol for p in self.states)
+
+        print '  Inputs: [%s]'% ', '.join( "'%s'" %p.symbol for p in self.suppliedvalues)
+
+        print '  Outputs: [%s]'% ', '.join( "'%s'" %p.symbol for p in self.assignedvalues)
+        print '  ReducePorts: [%s]'% ', '.join( "'%s'" %p.symbol for p in self.analog_reduce_ports)
+
+        
+        print '  Time Derivatives:'
+
+        for td in self.timederivatives:
+            print '    %s -> ' % td.lhs.symbol
+            for (regime, rhs) in td.rhs_map.rhs_map.items():
+                print '      [%s] -> %s' %(regime.ns_string(), rhs)
+
+        print '  Assignments:'
+        for td in self.assignments:
+            print '    %s -> ' % td.lhs.symbol
+            for (regime, rhs) in td.rhs_map.rhs_map.items():
+                print '      [In Regime:%s] -> %s' %(regime.ns_string(), rhs)
+
+        print '  RT Graphs'
+        for rt in self.rt_graphs.values():
+            print '     Graph:', rt
+            for regime in rt.regimes.values():
+                print '       Regime:', regime
+
+                for tr in self.transitions_from_regime(regime):
+                    print '          Transition:', tr
+
+
 class NineMLModule(object):
     
     def accept_visitor(self, visitor, **kwargs):
         return visitor.VisitNineMLModule(self, **kwargs)
 
     def __init__(self, **kwargs):
-        print 'building NineMLModule'
-        print kwargs
-    pass
+        pass
 

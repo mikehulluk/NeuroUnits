@@ -55,7 +55,7 @@ def parse_io_line(line):
     from neurounits import NeuroUnitParser
     from neurounits.unit_errors import ParsingError
     assert isinstance(line, basestring)
-    #print 'Line', line
+    
 
     metadata = {}
     if 'METADATA' in line:

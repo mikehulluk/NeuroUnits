@@ -40,12 +40,12 @@ import os
 
 
 class ComponentNamespace(object):
-    def __init__(self):
-        self.name = None
-
-    def set_name(self, name):
-        assert self.name is None
+    def __init__(self,name):
         self.name = name
+
+    #def set_name(self, name):
+    #    assert self.name is None
+    #    self.name = name
 
 class LibraryManager(object):
 
@@ -111,24 +111,24 @@ class LibraryManager(object):
             include_stdlibs = False
 
         if include_stdlibs:
-            srcs = chain(self.eqnsets, self.libraries,
+            srcs = chain(self.eqnsets, self.libraries, self.components,
                          self._stdlib_cache.libraries)
         else:
-            srcs = chain(self.eqnsets, self.libraries)
-        return SeqUtils.expect_single([l for l in srcs if l.name
-                == name])
+            srcs = chain(self.eqnsets, self.libraries, self.components)
+
+        srcs = list(srcs)
+        #print srcs
+        return SeqUtils.expect_single([l for l in srcs if l.name == name])
 
     def get_library(self, libname):
 
         # print 'Searching for library: ' % libname
 
-        lib = SeqUtils.expect_single([l for l in chain(self.libraries,
-                self._stdlib_cache.libraries) if l.name == libname])
+        lib = SeqUtils.expect_single([l for l in chain(self.libraries, self._stdlib_cache.libraries) if l.name == libname])
         return lib
 
     def get_eqnset(self, libname):
-        eqnset = SeqUtils.expect_single([l for l in self.eqnsets
-                if l.name == libname])
+        eqnset = SeqUtils.expect_single([l for l in self.eqnsets if l.name == libname])
         return eqnset
 
     def get_eqnset_names(self):
@@ -146,8 +146,8 @@ class LibraryManager(object):
         return self.block_stack.pop()
 
 
-    def start_eqnset_block(self):
-        self.open_block( EqnSetBuilder(library_manager=self) )
+    def start_eqnset_block(self,name):
+        self.open_block( EqnSetBuilder(library_manager=self,name=name) )
 
     def end_eqnset_block(self):
         eqnset = self.pop_block()
@@ -157,8 +157,8 @@ class LibraryManager(object):
 
 
 
-    def start_library_block(self):
-        self.open_block( LibraryBuilder(library_manager=self) )
+    def start_library_block(self,name):
+        self.open_block( LibraryBuilder(library_manager=self, name=name) )
 
     def end_library_block(self):
         lib = self.pop_block()
@@ -172,15 +172,15 @@ class LibraryManager(object):
 
 
 
-    def start_module_block(self):
-        self.open_block( ComponentNamespace() )
+    def start_module_block(self,name):
+        self.open_block( ComponentNamespace(name=name) )
 
     def end_module_block(self):
         self.pop_block()
 
 
-    def start_component_block(self):
-        self.open_block( NineMLComponentBuilder(library_manager=self) )
+    def start_component_block(self, name):
+        self.open_block( NineMLComponentBuilder(library_manager=self, name=name) )
 
     def end_component_block(self):
         component = self.pop_block()

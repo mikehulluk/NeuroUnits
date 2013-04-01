@@ -15,7 +15,9 @@ module stimulation {
     define_component step_current{
         regime OFF{
             i=0A
-            on (t>t_start) {transition_to ON;}
+            on (t>t_start) {
+                transition_to ON;
+            }
             }
             
         regime ON{
@@ -30,33 +32,43 @@ module stimulation {
     
     
     
+    #define_component i_ramp{
+    #    regime OFF{
+    #        i=0A
+    #        on (t>t_start) {
+    #        transition_to RAMP;
+    #        }
+    #        }
+    #    regime RAMP{
+    #        i = (t-ramp_start)/ramp_dur * i_amp
+    #        on(t>ramp_start+ramp_dur){ 
+    #        transition_to ON 
+    #        }
+    #    }
+    #    regime ON{
+    #        i = i_amp
+    #    }
+    #    
+    #    <=> PARAMETER ramp_start, ramp_dur, t_start
+    #    <=> OUTPUT i:(A)
+    #    <=> PARAMETER i_amp:(A)
+    #    <=> INPUT t:(ms)
+    #}
     
-    define_component i_ramp{
-        regime OFF{
-            i=0A
-            on (t>t_tstart) {transition_to RAMP;}
-            }
-        regime RAMP{
-            i = (t-ramp_start)/ramp_dur * i_amp
-            on(t>ramp_start+ramp_dur){ transition_to ON }
-        }
-        regime ON{
-            i = i_amp
-        }
-        
-        <=> PARAMETER ramp_start, ramp_dur
-        <=> OUTPUT i:(A)
-        <=> PARAMETER i_amp:(A)
-    }
     
     
+    
+      
     define_component i_squarewave{
-        regime init{
-            on(True){
-                t_last = 0s
-                transition_to OFF }
-        }
+        t_last'=0
         
+        regime init{
+            on(0<1){
+                t_last = 0s
+                transition_to OFF 
+                }
+        }
+        #t_last=0ms
         regime OFF{
             i=0A
             on (t>t_last + t_off) {
@@ -75,13 +87,18 @@ module stimulation {
         
         <=> PARAMETER t_on, t_off 
         <=> OUTPUT i:(A)
-        <=> PARAMETER i_amp:(A)
-    }
+        <=> PARAMETER i_amp:(A)        
+        <=> INPUT t:(ms)    
+        
+        }
     
     
     define_component i_sinwave{
-    # TODO:
+     #TODO:
     }
+    
+    
+  
     
 }
 
@@ -89,10 +106,13 @@ module stimulation {
 
 module event_generators{
 
+
     define_component fixed_interval{
         regime init{
             t_last = 0s
-            on(True){ transition_to std }
+            on(0<1){ 
+                transition_to std 
+            }
         }
         
         regime std{
@@ -102,7 +122,11 @@ module event_generators{
                 }
             
         }
+        a = t_period + t
+        <=> INPUT t:(ms)
+        <=> PARAMETER t_period
     }
+    
     
 
 

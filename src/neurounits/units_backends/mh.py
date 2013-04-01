@@ -132,7 +132,7 @@ class MMUnit(object):
         return '%s %s' % (s1, s2)
 
 
-    def __str__(self):
+    def __repr__(self):
         s =  "<MMUnit: " + self.detail_str() + ">"
         #assert False, s
         return s
@@ -206,11 +206,17 @@ class MMQuantity(object):
         self.magnitude = magnitude
         self.unit = unit
 
+
+    def __lt__(self, rhs):
+        self.check_compatible( rhs.get_units())
+        return self.float_in_si() < rhs.float_in_si()
+
+
     def get_units(self):
         return self.unit
     units = property(get_units)
 
-    def __str__(self):
+    def __repr__(self):
         if self.unit.is_dimensionless(allow_non_zero_power_of_ten=False):
             dim = ''
         else:
@@ -241,6 +247,13 @@ class MMQuantity(object):
         else:
             return MMQuantity(self.magnitude * rhs.magnitude, self.unit
                               * rhs.unit)
+    def __rmul__(self, lhs):
+        if isinstance(lhs, MMUnit):
+            lhs = MMQuantity(1.0, lhs)
+        elif isinstance(lhs, float):
+            return MMQuantity(self.magnitude * lhs, self.unit)
+        else:
+            return MMQuantity(self.magnitude * lhs.magnitude, self.unit * lhs.unit)
 
     def __div__(self, rhs):
         if isinstance(rhs, MMUnit):
@@ -248,14 +261,16 @@ class MMQuantity(object):
         elif isinstance(rhs, float):
             return MMQuantity(self.magnitude / rhs, self.unit)
         else:
-            return MMQuantity(self.magnitude / rhs.magnitude, self.unit
-                              / rhs.unit)
+            print 'RHS-mag', rhs.magnitude
+            return MMQuantity(self.magnitude / rhs.magnitude, self.unit / rhs.unit)
 
 
 
     def __add__(self, rhs):
         if isinstance(rhs, MMUnit):
             rhs = MMQuantity(1.0, rhs)
+        if not  isinstance(rhs,MMQuantity):
+            print rhs
         assert isinstance(rhs, MMQuantity)
         rhs_conv = rhs.rescale(self.unit)
         return MMQuantity( self.magnitude + rhs_conv.magnitude, self.unit)
@@ -277,9 +292,15 @@ class MMQuantity(object):
         return  self.unit.meter == u.meter and self.unit.kilogram == u.kilogram and self.unit.second == u.second and self.unit.ampere == u.ampere and self.unit.kelvin == u.kelvin and self.unit.mole == u.mole and self.unit.candela == u.candela
 
     def check_compatible(self, u):
-        assert self.is_compatible(u)
+        if not self.is_compatible(u):
+            s = 'Units not compatible:'
+            s+= '\n -- %s'% self
+            s+= '\n -- %s'% u
+            assert False, s
+
 
     def rescale(self, u):
+        
         self.check_compatible(u)
         mul_fac = u.powerTen - self.unit.powerTen
         return MMQuantity(self.magnitude / 10 ** mul_fac, u)

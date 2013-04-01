@@ -127,6 +127,15 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
 
         for a in o.timederivatives:
             self.dependancies[a] = self.visit(a)
+    
+    def VisitNineMLComponent(self, o, **kwargs):
+        for a in o.assignments:
+            self.dependancies[a.lhs] = self.visit(a)
+
+        for a in o.timederivatives:
+            self.dependancies[a] = self.visit(a)
+
+
 
 
     def VisitSymbolicConstant(self, o, **kwargs):
@@ -185,7 +194,7 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         return self.visit(o.rhs_map)
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
-        assert len(o.rhs_map.values())==1, 'Do we need to add the state as a dependancy?'
+        #assert len(o.rhs_map.values())==1, 'Do we need to add the state as a dependancy?'
         symbols = []
         for rhs in o.rhs_map.values():
             symbols.extend( self.visit(rhs, **kwargs) )

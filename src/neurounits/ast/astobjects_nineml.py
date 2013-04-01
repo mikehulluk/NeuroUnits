@@ -85,6 +85,17 @@ class EqnRegimeDispatchMap(ASTExpressionObject):
         return self._rhs_map
     rhs_map = property(get_rhs_map, set_rhs_map)
 
+    def get_rt_graph(self):
+        rts = list(set([regime.parent_rt_graph for regime in self.rhs_map ])) 
+        assert len(rts) == 1
+        return rts[0]
+
+    def get_rhs_for_regime(self,regime):
+        if regime in self.rhs_map:
+            return self.rhs_map[regime]
+        return self.rhs_map[None]
+        
+
 
 class Transition(ASTObject):
     def __init__(self, src_regime, actions, target_regime=None,  **kwargs):
@@ -148,13 +159,15 @@ class Regime(ASTObject):
         self.name = name
         self.parent_rt_graph = parent_rt_graph
     def __repr__(self):
-        return "<Regime: '%s.%s'>" % (self.parent_rt_graph.ns_string(), self.name, )
+        return "<Regime: '%s'>" % (self.ns_string() )
+    def ns_string(self):
+        return "%s.%s" % (self.parent_rt_graph.ns_string(), self.name, )
 
 
 class RTBlock(ASTObject):
     def __init__(self, name=None,):
         self.name = name
-        self.regimes = {}
+        self.regimes = {None:Regime(None, parent_rt_graph=self)}
 
     def ns_string(self):
         return self.name if self.name is not None else ''
@@ -169,6 +182,8 @@ class RTBlock(ASTObject):
 
         return self.regimes[name]
 
+    def __repr__(self,):
+        return '<RT Block: %s>' % self.name
 
 
  # Temporary objects used only during building:
@@ -192,6 +207,16 @@ class EqnAssignmentPerRegime(ASTObject):
         self.lhs = lhs
         self.rhs = rhs
         self.regime = regime
+
+
+class AnalogReducePort(ASTExpressionObject):
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitAnalogReducePort(self, **kwargs)
+    def __init__(self, symbol, **kwargs):
+        super(AnalogReducePort, self).__init__(**kwargs)
+        self.symbol=symbol
+        self.rhses = []
+
 
 
 

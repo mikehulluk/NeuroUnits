@@ -283,8 +283,8 @@ class BuildData(object):
         self.transitions_triggers = []
         self.transitions_events = []
 
-
-        #self.regimes = set([ast.Regime(name=None)])
+        self.timederivatives = None
+        self.assignments = None
 
         # Temporary lists, that will be resolved later:
         self._time_derivatives_per_regime = []
@@ -295,9 +295,10 @@ class AbstractBlockBuilder(object):
 
 
 
-    def __init__(self, library_manager, block_type):
+    def __init__(self, library_manager, block_type, name):
         self.library_manager = library_manager
         self.builddata = BuildData()
+        self.builddata.eqnset_name=name
         self.block_type = block_type
 
         # Scoping:
@@ -312,6 +313,7 @@ class AbstractBlockBuilder(object):
         self._current_rt_graph = self._all_rt_graphs[None]
         self._current_regime = self._current_rt_graph.get_or_create_regime(None)
         
+        self.builddata.eqnset_name = name.strip()
 
 
     def open_regime(self, regime_name):
@@ -340,8 +342,8 @@ class AbstractBlockBuilder(object):
 
 
 
-    def set_name(self, name):
-        self.builddata.eqnset_name = name.strip()
+    #def set_name(self, name):
+    #    self.builddata.eqnset_name = name.strip()
 
     # Internal symbol handling:
     def get_symbol_or_proxy(self, s):
@@ -469,9 +471,9 @@ class AbstractBlockBuilder(object):
 
         # Resolve all symbols from the global namespace:
         for sym,obj in scope.iteritems():
-            print 'Resolving:', sym
+            #print 'Resolving:', sym
             obj.set_target(self.global_scope.getSymbolOrProxy(sym) )
-            print self.global_scope.__dict__
+            #print self.global_scope.__dict__
 
         src_regime=self.get_current_regime()
         if target_regime is None:
@@ -603,8 +605,7 @@ class AbstractBlockBuilder(object):
 
 
 
-        # Copy regimes into builddata
-        #self.builddata.regimes = self.regimes
+        # Copy rt-grpahs into builddata
         self.builddata.rt_graphs = self._all_rt_graphs
 
 
@@ -622,7 +623,6 @@ class AbstractBlockBuilder(object):
             self.do_import(srclibrary=lib, tokens=[(token,symbol)])
 
 
-        print 'AAA', self.global_scope.symbol_dict
 
 
         # We inspect the io_data ('<=>' lines), and use it to:
@@ -641,7 +641,12 @@ class AbstractBlockBuilder(object):
             else:
                 self._resolve_global_symbol(p.symbol, p, expect_is_unresolved = True)
 
-        supplied_symbols = [ast.SuppliedValue(symbol=p.symbol,dimension=p.dimension) for p in io_data if p.iotype in (IOType.Input, IOType.AnalogReducePort) ]
+        reduce_ports = [ast.AnalogReducePort(symbol=p.symbol,dimension=p.dimension) for p in io_data if p.iotype is IOType.AnalogReducePort ]
+        for s in reduce_ports:
+            self._resolve_global_symbol(s.symbol, s, expect_is_unresolved = True)
+
+
+        supplied_symbols = [ast.SuppliedValue(symbol=p.symbol,dimension=p.dimension) for p in io_data if p.iotype is IOType.Input]
         for s in supplied_symbols:
             if self.library_manager.options.allow_unused_suppliedvalue_declarations:
                 self._resolve_global_symbol(s.symbol, s, expect_is_unresolved = False)
@@ -674,6 +679,7 @@ class AbstractBlockBuilder(object):
         # ################################
         #self._astobject = ast.EqnSet(
         #print self.block_type
+        print self.block_type
         self._astobject = self.block_type(
                     library_manager = self.library_manager,
                     builder = self,
@@ -703,8 +709,8 @@ class AbstractBlockBuilder(object):
 
 class EqnSetBuilder(AbstractBlockBuilder):
 
-    def __init__(self, library_manager, block_type=ast.EqnSet):
-        AbstractBlockBuilder.__init__(self,block_type=block_type, library_manager=library_manager)
+    def __init__(self, library_manager, name, block_type=ast.EqnSet, ):
+        AbstractBlockBuilder.__init__(self,block_type=block_type, library_manager=library_manager,name=name)
 
     def add_io_data(self,l):
         self.builddata.io_data_lines.append(l)
@@ -728,34 +734,19 @@ class EqnSetBuilder(AbstractBlockBuilder):
         self.builddata.onevents[ev.name] = ev
 
 
-    # OLD:
-    #def add_timederivative(self, lhs_state_name, rhs_ast):
-    #    statevar_obj = ast.StateVariable(lhs_state_name)
-    #    self._resolve_global_symbol(lhs_state_name, statevar_obj)
-
-    #    # Create the assignment object:
-    #    a = ast.EqnTimeDerivative(lhs=statevar_obj, rhs=rhs_ast)
-
-    #    assert not statevar_obj in self.builddata.timederivatives
-    #    self.builddata.timederivatives[statevar_obj] = a
 
     def add_timederivative(self, lhs_state_name, rhs_ast):
-        #statevar_obj = ast.StateVariable(lhs_state_name)
-        #self._resolve_global_symbol(lhs_state_name, statevar_obj)
-
         # Create the assignment object:
         a = ast.EqnTimeDerivativePerRegime(lhs=lhs_state_name, rhs=rhs_ast, regime=self.get_current_regime())
         self.builddata._time_derivatives_per_regime.append(a)
 
-        #assert not statevar_obj in self.builddata.timederivatives
-        #self.builddata.timederivatives[statevar_obj] = a
 
 
 
 class LibraryBuilder(AbstractBlockBuilder):
 
-    def __init__(self, library_manager):
-        AbstractBlockBuilder.__init__(self,block_type=ast.Library, library_manager=library_manager)
+    def __init__(self, library_manager,name):
+        AbstractBlockBuilder.__init__(self,block_type=ast.Library, library_manager=library_manager,name=name)
 
 
 
@@ -763,8 +754,8 @@ class LibraryBuilder(AbstractBlockBuilder):
 
 
 class NineMLComponentBuilder(EqnSetBuilder):
-    def __init__(self, library_manager):
-        EqnSetBuilder.__init__(self,block_type=ast.NineMLComponent, library_manager=library_manager)
+    def __init__(self, library_manager,name):
+        EqnSetBuilder.__init__(self,block_type=ast.NineMLComponent, library_manager=library_manager,name=name )
 
 
 

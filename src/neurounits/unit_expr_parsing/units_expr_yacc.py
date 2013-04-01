@@ -95,16 +95,16 @@ def p_l4_module_def2(p):
     
     
 def p_open_new_module(p):
-    """ open_module : empty """
-    p.parser.library_manager.start_module_block()
+    """ module_name : ALPHATOKEN """
+    p.parser.library_manager.start_module_block(name=p[1])
 
 def p_close_new_module(p):
     """module_def : module_def_internal"""
     p.parser.library_manager.end_module_block()
 
 def p_module_def1(p):
-    """module_def_internal : MODULE open_module WHITESPACE ALPHATOKEN LCURLYBRACKET modulecontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
-    p.parser.library_manager.get_current_block_builder().set_name(p[4])
+    """module_def_internal : MODULE WHITESPACE module_name white_or_newline_slurp LCURLYBRACKET modulecontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
+    #p.parser.library_manager.get_current_block_builder().set_name(p[4])
 
 
 
@@ -116,17 +116,25 @@ def p_module_def2(p):
 
 
 
+
+
+def p_open_new_component0(p):
+    """ component_name : alphanumtoken """
+    
+    p.parser.library_manager.start_component_block(name=p[1])
+
+
 def p_open_new_component(p):
     """ open_component : empty """
-    p.parser.library_manager.start_component_block()
+    #p.parser.library_manager.start_component_block()
 
 def p_close_new_component(p):
     """component_def : component_def_internal"""
     p.parser.library_manager.end_component_block()
 
 def p_component_def1(p):
-    """component_def_internal : DEFINE_COMPONENT open_component WHITESPACE ALPHATOKEN LCURLYBRACKET componentcontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
-    p.parser.library_manager.get_current_block_builder().set_name(p[4])
+    """component_def_internal : DEFINE_COMPONENT  WHITESPACE component_name LCURLYBRACKET componentcontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
+    #p.parser.library_manager.get_current_block_builder().set_name(p[4])
 
 
 
@@ -290,6 +298,10 @@ def p_event_def_param3(p):
 
 
 # For function parameters, we create a dictionary mapping parameter name to value
+def p_quantity_event_params_l3z(p):
+    """event_call_params_l3 : empty"""
+    p[0] = {}
+    
 def p_quantity_event_params_l3a(p):
     """event_call_params_l3 : rhs_term"""
     symbol = p[1]
@@ -374,16 +386,16 @@ def p_file_def2(p):
 
 
 def p_open_new_eqnset(p):
-    """ open_eqnset : empty """
-    p.parser.library_manager.start_eqnset_block()
+    """ eqnset_name : namespace """
+    p.parser.library_manager.start_eqnset_block(name=p[1])
 
 def p_close_new_eqnset(p):
     """eqnset_def : eqnset_def_internal"""
     p.parser.library_manager.end_eqnset_block()
 
 def p_eqnset_def1(p):
-    """eqnset_def_internal : EQNSET open_eqnset WHITESPACE namespace LCURLYBRACKET eqnsetcontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
-    p.parser.library_manager.get_current_block_builder().set_name(p[4])
+    """eqnset_def_internal : EQNSET WHITESPACE eqnset_name LCURLYBRACKET eqnsetcontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
+    #p.parser.library_manager.get_current_block_builder().set_name(p[4])
 
 def p_complete_eqnset_line(p):
     """complete_eqnset_line : white_or_newline_slurp eqnsetlinecontents white_or_newline_slurp SEMICOLON """
@@ -418,16 +430,16 @@ def p_parse_eqnsetline4(p):
 # ##########################
 
 def p_open_new_library(p):
-    """ open_library : empty """
-    p.parser.library_manager.start_library_block()
+    """ library_name : namespace """
+    p.parser.library_manager.start_library_block(name=p[1])
 
 def p_close_new_library(p):
     """library_def : library_def_internal"""
     p.parser.library_manager.end_library_block()
 
 def p_library_def1(p):
-    """library_def_internal : LIBRARY open_library WHITESPACE namespace LCURLYBRACKET librarycontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
-    p.parser.library_manager.get_current_block_builder().set_name(p[4])
+    """library_def_internal : LIBRARY  WHITESPACE library_name LCURLYBRACKET librarycontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
+    #p.parser.library_manager.get_current_block_builder().set_name(p[4])
 
 def p_complete_library_line(p):
     """complete_library_line : white_or_newline_slurp librarylinecontents white_or_newline_slurp SEMICOLON """
@@ -1092,8 +1104,8 @@ def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, w
         pRes, library_manager = parse_eqn_block(text, parse_type=parse_type, debug=debug, library_manager=library_manager)
     except:
         print 
-        #print 'Error Parsing: %s' % text
-        #print 'Parsing as', parse_type
+        print 'Error Parsing: %s' % text
+        print 'Parsing as', parse_type
         raise
 
 

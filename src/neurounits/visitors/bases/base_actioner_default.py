@@ -88,6 +88,8 @@ class ASTActionerDefault(ASTActionerDepthFirst):
 
     def ActionSuppliedValue(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
+    def ActionAnalogReducePort(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
 
     def ActionOnEvent(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
@@ -136,5 +138,9 @@ class ASTActionerDefault(ASTActionerDepthFirst):
         return self.ActionNode(o, **kwargs)
     def ActionEmitEvent(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
+
+    def ActionAnalogVisitor(self,o,**kwargs):
+        return self.ActionNode(o, **kwargs)
+
 
 

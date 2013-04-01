@@ -41,6 +41,7 @@ import neurounits
 
 import mredoc
 from functools import partial
+import traceback
 
 #class Mode:
 #
@@ -313,8 +314,51 @@ class FunctorGenerator(ASTVisitorBase):
         for a in o.timederivatives:
             self.visit(a)
 
+    def VisitNineMLComponent(self, o, **kwargs):
+        self.ast = o
+
+        deps = VisitorFindDirectSymbolDependance()
+        deps.visit(o)
+        self.assignee_to_assigment = {}
+        for a in o.assignments:
+            self.assignee_to_assigment[a.lhs] = a
+
+        assignment_deps = deps.dependancies
+        resolved = set()
+
+        def resolve(assignment):
+            if assignment in resolved:
+                return
+
+            if type(assignment) != ast.AssignedVariable:
+                return
+            for dep in assignment_deps[assignment]:
+                resolve(dep)
+            self.visit(self.assignee_to_assigment[assignment])
+            resolved.add(assignment)
+
+        for a in o.assignments:
+            resolve(a.lhs)
+
+        for a in o.assignments:
+            self.visit(a)
+
+        for a in o.timederivatives:
+            self.visit(a)
+
+
+        self.transition_triggers_evals = {}
+        for tr in o._transitions_triggers:
+            self.visit(tr)
+
+
+
+
 #    def VisitEqnAssignment(self, o, **kwargs):
 #        self.assignment_evaluators[o.lhs.symbol] = self.visit(o.rhs)
+
+    def VisitOnTransitionTrigger(self, o, **kwargs):
+        self.transition_triggers_evals[o] = self.visit(o.trigger, **kwargs)
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         self.assignment_evaluators[o.lhs.symbol] = self.visit(o.rhs_map)
@@ -323,6 +367,50 @@ class FunctorGenerator(ASTVisitorBase):
         self.timederivative_evaluators[o.lhs.symbol]  = self.visit(o.rhs_map)
 
     def VisitRegimeDispatchMap(self,o,**kwargs):
+        
+        #print 'Using state:' , o.rhs_map.keys()[0]
+        #return self.visit(o.rhs_map.values()[0])
+        
+        rt_graph = o.get_rt_graph()
+        print rt_graph
+        rhs_functors = dict( [(regime, self.visit(rhs)) for (regime,rhs) in o.rhs_map.items()] )
+        from neurounits.misc import SeqUtils
+        print [r.name for r in rhs_functors]
+        #try:
+        try:
+            default = SeqUtils.filter_expect_single( rhs_functors.keys(), lambda r:r.name==None)
+            assert not None in rhs_functors
+            rhs_functors[None] = rhs_functors[default]
+        except ValueError:
+            pass
+            #except ValueError:
+        #    pass
+        
+
+
+
+        def f(**kw):
+            #print traceback.print_stack(f=None, limit=None, file=None)
+
+            assert 'regime_states' in kw
+            regime_states = kw['regime_states']
+            print 'VisitRegimeDispatchMap'
+            
+            curr_state = regime_states[rt_graph]
+            print curr_state
+            print rhs_functors
+            #rhs_functor = rhs_functors.get( curr_state, rhs_functors[None] )
+            if curr_state in rhs_functors:
+                rhs_functor = rhs_functors[curr_state]
+            else:
+                rhs_functor = rhs_functors[None]
+            #if curr_state in rhs
+
+            return rhs_functor(**kw)
+
+        return f
+
+
         assert len(o.rhs_map) == 1
         return self.visit(o.rhs_map.values()[0])
 
@@ -343,7 +431,11 @@ class FunctorGenerator(ASTVisitorBase):
         lt = self.visit( o.less_than )
         gt = self.visit( o.greater_than )
         def f(**kw):
-            return lt(**kw) < gt(**kw)
+            lhs = lt(**kw) 
+            rhs = gt(**kw)
+            print 'lhs:',lhs
+            print 'rhs', rhs
+            return lhs < rhs
         return f
 
     def VisitBoolAnd(self, o, **kwargs):
@@ -414,14 +506,18 @@ class FunctorGenerator(ASTVisitorBase):
     # Terminals:
     def VisitStateVariable(self, o, **kwargs):
         def eFunc2(**kw):
-            return kw[o.symbol]
+            v= kw[o.symbol]
+            assert o.get_dimension().is_compatible(v.get_units())
+            return v
 
         return eFunc2
 
 
     def VisitParameter(self, o, **kwargs):
         def eFunc(**kw):
-            return kw[o.symbol]
+            v = kw[o.symbol]
+            assert o.get_dimension().is_compatible(v.get_units()), 'Param Units Err: %s [Expected:%s Found:%s]'%(o.symbol, o.get_dimension(), v.get_units())
+            return v
 
         return eFunc
 
@@ -445,11 +541,11 @@ class FunctorGenerator(ASTVisitorBase):
 
 
     def VisitAssignedVariable(self, o, **kwargs):
-        #print 'Visiting', o.symbol
         # We are at an assignment. We resolve this by looking up the
         # Right hand side of the assigned variable:
         assignment_rhs = self.assignment_evaluators[o.symbol]
         def eFunc(**kw):
+            print assignment_rhs
             return assignment_rhs(**kw)
         return eFunc
 
@@ -457,7 +553,11 @@ class FunctorGenerator(ASTVisitorBase):
         f_lhs = self.visit(o.lhs)
         f_rhs = self.visit(o.rhs)
         def eFunc(**kw):
-            return f_lhs(**kw) + f_rhs(**kw)
+            print 'Add-LHS', o.lhs
+            print 'Add-RHS', o.rhs
+            res = f_lhs(**kw) + f_rhs(**kw)
+            print 'Add-OK'
+            return res
         return eFunc
 
     def VisitSubOp(self, o, **kwargs):
@@ -478,7 +578,15 @@ class FunctorGenerator(ASTVisitorBase):
         f_lhs = self.visit(o.lhs)
         f_rhs = self.visit(o.rhs)
         def eFunc(**kw):
-            return f_lhs(**kw) / f_rhs(**kw)
+            v_l = f_lhs(**kw) 
+            v_r = f_rhs(**kw)
+            
+            #print 'Div: RHS', o.rhs, v_r
+            
+
+            res = v_l / v_r
+            #print 'Div-OK'
+            return res
         return eFunc
 
     def VisitExpOp(self, o, **kwargs):

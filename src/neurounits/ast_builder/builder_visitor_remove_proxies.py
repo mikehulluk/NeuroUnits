@@ -79,13 +79,14 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
 
     def VisitSuppliedValue(self, o, **kwargs):
         pass
+    def VisitAnalogReducePort(self, o, **kwargs):
+        pass
 
     def VisitSymbolicConstant(self, o, **kwargs):
         pass
 
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
-        print 'Following proxies in OnEventStateAssignment (%s)' % id(self)
         o.lhs = self.followSymbolProxy(o.lhs)
         o.rhs = self.followSymbolProxy(o.rhs)
         self.visit(o.lhs)

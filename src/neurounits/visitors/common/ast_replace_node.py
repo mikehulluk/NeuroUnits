@@ -58,6 +58,7 @@ class ReplaceNode(ASTVisitorBase):
                                    o.onevents)
         for f in subnodes:
             self.visit(f, **kwargs)
+
         return o
 
     def VisitNineMLComponent(self, o, **kwargs):
@@ -138,6 +139,9 @@ class ReplaceNode(ASTVisitorBase):
     def VisitAssignedVariable(self, o, **kwargs):
         return o
     def VisitSuppliedValue(self, o, **kwargs):
+        return o
+    def VisitAnalogReducePort(self, o, **kwargs):
+        o.rhses = [self.visit(rhs) for rhs in o.rhses]
         return o
 
     # AST Objects:

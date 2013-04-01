@@ -26,6 +26,7 @@
 # -------------------------------------------------------------------------------
 
 from neurounits.visitors import ASTVisitorBase,ASTActionerDefault
+from neurounits.visitors.bases.base_actioner import SingleVisitPredicate, ASTActionerDepthFirst
 from neurounits import ast
 from neurounits.visitors.common import ASTNodeLabels
 from neurounits.units_misc import EnsureExisits
@@ -43,6 +44,239 @@ class ASTVisitorCollectorAll(ASTActionerDefault):
 
     def ActionNode(self, o):
         self.objects.add(o)
+
+
+
+
+
+#class SingleVisitPredicate(object):
+#    def __init__(self):
+#        self.visited = set()
+#    def __call__(self, n, **kwargs):
+#        has_not_visited = n not in self.visited
+#        self.visited.add(n)
+#        return has_not_visited
+#
+#
+#
+#
+#
+#
+#class ASTActionerDepthFirst(ASTVisitorBase):
+#
+#
+#    def __init__(self, action_predicates=None):
+#        self.action_predicates = action_predicates or []
+
+
+
+
+
+
+
+
+
+
+class VerifyUnitsInTree(ASTActionerDepthFirst):
+    def __init__(self, obj, unknown_ok):
+        super(VerifyUnitsInTree, self).__init__(action_predicates=[SingleVisitPredicate()])
+        self.unknown_ok= unknown_ok
+
+        if unknown_ok:
+            return
+
+        self.visit(obj)
+
+
+    def verify_equal_units(self, objs):
+        from neurounits.units_backends.mh import MMUnit
+        from neurounits.ast import ASTExpressionObject
+        print 'Checking', objs
+        if len(objs) == 0:
+            return
+        o0 = objs[0]
+        for o in objs:
+            print o, o0
+            assert isinstance(o, ASTExpressionObject)
+            assert isinstance(o0, ASTExpressionObject)
+            if not (o.get_dimension().is_compatible(o0.get_dimension())  ):
+                print 'Units mismatch'
+                print o, o0
+                assert False,' %s, %s (%s %s)' %(o,o0, o.get_dimension(), o0.get_dimension())
+
+        
+
+    def ActionEqnSet(self, o, **kwargs):
+        pass
+    def ActionLibrary(self, o, **kwargs):
+        pass
+    def ActionNineMLComponent(self, o, **kwargs):
+        pass
+
+    def ActionIfThenElse(self, o, **kwargs):
+        self.verify_equal_units( [o, o.if_true_ast, o.if_false_ast])
+
+    def ActionInEquality(self, o, **kwargs):
+        pass
+    def ActionBoolAnd(self, o, **kwargs):
+        pass
+    def ActionBoolOr(self, o, **kwargs):
+        pass
+    def ActionBoolNot(self, o, **kwargs):
+        pass
+
+    # Function Definitions:
+    def ActionFunctionDef(self, o, **kwargs):
+        self.verify_equal_units( [o, o.rhs])
+
+    def ActionBuiltInFunction(self, o, **kwargs):
+        pass
+    def ActionFunctionDefParameter(self, o, **kwargs):
+        pass
+
+    # Terminals:
+    def ActionStateVariable(self, o, **kwargs):
+        pass
+    def ActionSymbolicConstant(self, o, **kwargs):
+        pass
+    def ActionParameter(self, o, **kwargs):
+        pass
+    def ActionConstant(self, o, **kwargs):
+        pass
+    def ActionAssignedVariable(self, o, **kwargs):
+        pass
+    def ActionSuppliedValue(self, o, **kwargs):
+        pass
+    def ActionAnalogReducePort(self, o, **kwargs):
+        self.verify_equal_units([o]+o.rhses)
+
+    def ActionTimeDerivativeByRegime(self, o, **kwargs):
+        #self.verify_equal_units([o,o.rhs_map])
+        print 'CHEEEEEEEEEEERKKKKKCKKK HERE!!!'
+        from neurounits.units_backends.mh import MMUnit
+        #(o.lhs.get_dimension()).check_compatible(o.get_dimension() * MMUnit(second=1))
+        (o.lhs.get_dimension()).check_compatible(o.rhs_map.get_dimension() * MMUnit(second=1))
+
+    def ActionEqnAssignmentByRegime(self, o, **kwargs):
+        self.verify_equal_units([o.lhs, o.rhs_map])
+    def ActionRegimeDispatchMap(self, o, **kwargs):
+        self.verify_equal_units( [o] + o.rhs_map.values() )
+
+
+    def ActionAddOp(self, o, **kwargs):
+        self.verify_equal_units([o,o.lhs, o.rhs])
+    def ActionSubOp(self, o, **kwargs):
+        self.verify_equal_units([o,o.lhs, o.rhs])
+
+    def ActionMulOp(self, o, **kwargs):
+        (o.lhs.get_dimension() * o.rhs.get_dimension()).check_compatible(o.get_dimension())
+        
+
+    def ActionDivOp(self, o, **kwargs):
+        (o.lhs.get_dimension() / o.rhs.get_dimension()).check_compatible(o.get_dimension())
+
+    def ActionExpOp(self, o, **kwargs):
+        assert o.is_dimensionless()
+        assert o.lhs.is_dimensionless()
+        assert o.rhs.is_dimensionless()
+
+
+    def ActionFunctionDefInstantiation(self, o, **kwargs):
+        self.verify_equal_units([o, o.function_def])
+
+
+    def ActionFunctionDefInstantiationParater(self, o, **kwargs):
+        self.verify_equal_units([o, o.rhs_ast, o._function_def_parameter])
+
+    def ActionOnEventStateAssignment(self, o, **kwargs):
+        self.verify_equal_units([o,o.lhs, o.rhs])
+
+    def ActionOnEvent(self, o, **kwargs):
+        pass
+    def ActionOnTransitionTrigger(self, o, **kwarg):
+        pass
+    def ActionOnTransitionEvent(self, o, **kwargs):
+        pass
+    def ActionEmitEvent(self, o, **kwargs):
+        pass
+
+    def ActionOnEventDefParameter(self, o , **kwargs):
+        #self.verify_equal_units([o,
+        pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -99,7 +333,7 @@ class DimensionResolver(ASTVisitorBase):
                 continue
 
             obj_dimensionality = (obj.get_dimensionality() if obj.is_dimensionality_known() else '<Dimension Unknown>')
-            obj_unit = None  
+            obj_unit = None
             self.history.append(' %s -> Dim: %s Unit: %s' % (name,
                                 obj_dimensionality, obj_unit))
 
@@ -189,6 +423,8 @@ class DimensionResolver(ASTVisitorBase):
 
     def VisitSuppliedValue(self, o, **kwargs):
         return []
+    def VisitAnalogReducePort(self, o, **kwargs):
+        return []
 
     def VisitSymbolicConstant(self, o, **kwargs):
         return []
@@ -199,7 +435,7 @@ class DimensionResolver(ASTVisitorBase):
             return
         if not o.lhs.is_dimension_known() and not o.rhs_map.is_dimension_known():
             return
-        
+
         one_sec = self.ast.library_manager.backend.Unit(second=1)
         if o.lhs.is_dimension_known():
             self.RegisterDimensionPropogation( o.rhs_map, new_dimension= o.lhs.get_dimension()/one_sec, reason='TimeDerivative')
@@ -208,7 +444,7 @@ class DimensionResolver(ASTVisitorBase):
             self.RegisterDimensionPropogation( o.lhs, new_dimension= o.rhs_map.get_dimension()*one_sec, reason='TimeDerivative')
             return
 
-    
+
     def VisitRegimeDispatchMap(self, o, **kwargs):
 
         if len( [True for i in [o] +o.rhs_map.values() if i.is_dimension_known()] ) == len(o.rhs_map) + 1:
@@ -220,13 +456,13 @@ class DimensionResolver(ASTVisitorBase):
 
         for rhs in o.rhs_map.values():
             if o.is_dimension_known() and not rhs.is_dimension_known():
-                self.RegisterDimensionPropogation( rhs, new_dimension= o.get_dimension(), reason='TD-Regime') 
+                self.RegisterDimensionPropogation( rhs, new_dimension= o.get_dimension(), reason='TD-Regime')
                 continue
             if rhs.is_dimension_known() and not o.is_dimension_known():
                 self.RegisterDimensionPropogation( o, new_dimension= rhs.get_dimension(), reason='TD-Regime' )
                 continue
 
-    
+
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         return self.EnsureEqualDimensions([o.lhs, o.rhs_map],reason='EqnAssignmentPerRegime')
@@ -409,7 +645,7 @@ class DimensionResolver(ASTVisitorBase):
         for a in o.actions:
             self.visit(a)
         self.visit(o.trigger)
-    
+
     def VisitOnTransitionEvent(self, o, **kwargs):
         for p in o.parameters.values():
             self.visit(p)
@@ -433,6 +669,7 @@ class PropogateDimensions(object):
     @classmethod
     def propogate_dimensions(cls, eqnset):
 
+        VerifyUnitsInTree(eqnset, unknown_ok=True)
 
         labels=None
         #labels = ASTNodeLabels()
@@ -501,5 +738,8 @@ class PropogateDimensions(object):
                     print
             print
             assert False
+
+        VerifyUnitsInTree(eqnset, unknown_ok=False)
+
 
 

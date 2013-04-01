@@ -83,7 +83,8 @@ class ActionerGetConnections(ASTActionerDefault):
         return self.connections
 
 
-
+    def ActionAnalogReducePort(self, o, **kwargs):
+        self.connections[o].extend( o.rhses)
 
     def ActionLibrary(self, o, **kwargs):
         self.connections[o].extend(o.functiondefs)
