@@ -42,7 +42,6 @@ class SeqUtils(object):
 
         filtered_seq = [s for s in seq if filter_func(s)]
         if len(filtered_seq) == 0:
-            #print seq
             raise ValueError('Unable to find any occurances')
         if len(filtered_seq) > 1:
             raise ValueError('Found too many occurances')

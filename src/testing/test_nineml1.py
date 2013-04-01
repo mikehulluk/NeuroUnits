@@ -4,8 +4,24 @@ import inspect
 
 
 txt = open( "/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/simple_components.9ml" ).read()
+txt = open( "/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/more_components.9ml" ).read()
 txt = open( "/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/complex_component.9ml" ).read()
-library_manager = neurounits.NeuroUnitParser.Parse9MLFile(txt)
+
+src_files = [
+    "/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/simple_components.9ml" ,
+    "/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/more_components.9ml" ,
+    "/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/complex_component.9ml" ,
+]
+
+
+
+library_manager = None
+for s in src_files:
+    text = open(s).read()
+    library_manager = neurounits.NeuroUnitParser.Parse9MLFile( text, library_manager=library_manager)
+
+
+
 
 
 

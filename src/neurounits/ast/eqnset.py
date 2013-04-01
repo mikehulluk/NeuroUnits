@@ -284,11 +284,8 @@ class NineMLComponent(EqnSet):
 
     def __init__(self,  library_manager, builder, builddata, io_data):
 
-        # TODO: Move into 9ML component:
         self._transitions_triggers = builddata.transitions_triggers
         self._transitions_events = builddata.transitions_events
-        
-        #self._local_regimes = builddata.regimes
         self.rt_graphs = builddata.rt_graphs
         
         super(NineMLComponent,self).__init__(library_manager=library_manager, builder=builder,  builddata=builddata, io_data=io_data)

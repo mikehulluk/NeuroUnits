@@ -5,23 +5,31 @@ module stimulation {
 
     define_component i_fixed{
         i = i_amp
-        <==> OUTPUT i:(A)
-        <==> PARAMETER i_amp:(A)
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A)
     }
+
+
+
 
     define_component step_current{
         regime OFF{
             i=0A
-            on (t>t_tstart) {transition_to ON;}
+            on (t>t_start) {transition_to ON;}
             }
             
         regime ON{
             i = i_amp
         }
         
-        <==> OUTPUT i:(A)
-        <==> PARAMETER i_amp:(A)
+        
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A), t_start
+        <=> INPUT t:(ms)
     }
+    
+    
+    
     
     define_component i_ramp{
         regime OFF{
@@ -36,9 +44,9 @@ module stimulation {
             i = i_amp
         }
         
-        <==> PARAMETER ramp_start, ramp_dur
-        <==> OUTPUT i:(A)
-        <==> PARAMETER i_amp:(A)
+        <=> PARAMETER ramp_start, ramp_dur
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A)
     }
     
     
@@ -65,9 +73,9 @@ module stimulation {
                 }
         }
         
-        <==> PARAMETER t_on, t_off 
-        <==> OUTPUT i:(A)
-        <==> PARAMETER i_amp:(A)
+        <=> PARAMETER t_on, t_off 
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A)
     }
     
     

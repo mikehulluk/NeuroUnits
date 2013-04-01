@@ -469,7 +469,9 @@ class AbstractBlockBuilder(object):
 
         # Resolve all symbols from the global namespace:
         for sym,obj in scope.iteritems():
+            print 'Resolving:', sym
             obj.set_target(self.global_scope.getSymbolOrProxy(sym) )
+            print self.global_scope.__dict__
 
         src_regime=self.get_current_regime()
         if target_regime is None:
@@ -620,6 +622,7 @@ class AbstractBlockBuilder(object):
             self.do_import(srclibrary=lib, tokens=[(token,symbol)])
 
 
+        print 'AAA', self.global_scope.symbol_dict
 
 
         # We inspect the io_data ('<=>' lines), and use it to:
@@ -705,11 +708,6 @@ class EqnSetBuilder(AbstractBlockBuilder):
 
     def add_io_data(self,l):
         self.builddata.io_data_lines.append(l)
-
-    ## Event Definitions:
-    #def open_event_def_scope(self):
-    #    assert self.active_scope is None
-    #    self.active_scope = Scope()
 
     def close_scope_and_create_onevent(self, ev ):
         assert self.active_scope is not None
