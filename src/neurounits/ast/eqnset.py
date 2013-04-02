@@ -181,6 +181,7 @@ class EqnSet(Block):
 
     @property
     def states(self):
+        # TODO => rename to state_variables
         return sorted( self._eqn_time_derivatives.keys(), key=lambda a:a.symbol )
 
     @property

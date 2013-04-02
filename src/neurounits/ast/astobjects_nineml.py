@@ -175,7 +175,6 @@ class RTBlock(ASTObject):
     def get_regime(self, name):
         return self.regimes[name]
 
-
     def get_or_create_regime(self, name):
         if not name in self.regimes:
             self.regimes[name] =Regime(name=name, parent_rt_graph=self)
@@ -184,6 +183,11 @@ class RTBlock(ASTObject):
 
     def __repr__(self,):
         return '<RT Block: %s>' % self.name
+
+    def has_regime(self, name):
+        for r_name, r in self.regimes.items():
+            assert r_name == r.name
+        return name in self.regimes
 
 
  # Temporary objects used only during building:

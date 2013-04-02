@@ -267,6 +267,31 @@ class EqnSimulator(object):
 
 
 
+class SimulationStateData(object):
+    def __init__(self, 
+            parameters,
+            suppliedvalues,
+            states_in,
+            states_out,
+            rt_regimes
+            ):
+        self.parameters = parameters
+        self.suppliedvalues = suppliedvalues
+        self.states_in = states_in
+        self.states_out = states_out
+        self.rt_regimes = rt_regimes
+
+    def copy(self):
+        return SimulationStateData(
+                parameters = self.parameters.copy(),
+                suppliedvalues = self.suppliedvalues.copy(),
+                states_in = self.states_in.copy(),
+                states_out = self.states_out.copy(),
+                rt_regimes = self.rt_regimes.copy() )
+
+
+
+
 
 class FunctorGenerator(ASTVisitorBase):
 
@@ -346,25 +371,74 @@ class FunctorGenerator(ASTVisitorBase):
         for a in o.timederivatives:
             self.visit(a)
 
-
+        # Build a dictionary of predicates which detect whether a 
+        # trigger is valid
         self.transition_triggers_evals = {}
-        for tr in o._transitions_triggers:
+        self.transitions_actions = {}
+        for tr in o.transitions:
             self.visit(tr)
 
+        # 
 
 
+
+    def VisitOnEventStateAssignment(self, o, **kwargs):
+
+        rhs = self.visit(o.rhs)
+
+        def f1(state_data,  **kw):
+            print 'Making State assingment!'
+            sv_name = o.lhs.symbol
+            print kw.keys()
+            new_value = rhs(state_data=state_data, **kw)
+            print 'Old Value',state_data.states_in[sv_name]
+            print 'New Value',new_value
+            state_data.states_out[sv_name] = new_value
+            #assert False
+            #return None
+
+        return f1
+        
 
 #    def VisitEqnAssignment(self, o, **kwargs):
 #        self.assignment_evaluators[o.lhs.symbol] = self.visit(o.rhs)
 
+    def _visit_trans(self, o, **kwargs):
+        callable_actions = [self.visit(a) for a in o.actions]
+
+
+        def f2(state_data, **kw):
+            # Do the effects:
+            for c in callable_actions:
+                c(state_data=state_data, **kw)
+
+            # Switch the state:
+            #current_regimes[rt_graph] = tr.target_regime
+
+
+        return f2
+
+
+
     def VisitOnTransitionTrigger(self, o, **kwargs):
+        # Trigger predicate functor:
         self.transition_triggers_evals[o] = self.visit(o.trigger, **kwargs)
+
+        # Action functor:
+        self.transitions_actions[o] = self._visit_trans(o, **kwargs)
+
+
+    def VisitOnTransitionEvent(self, o, **kwargs):
+        #self.transition_triggers_evals[o] = self.visit(o.trigger, **kwargs)
+        assert False
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         self.assignment_evaluators[o.lhs.symbol] = self.visit(o.rhs_map)
 
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         self.timederivative_evaluators[o.lhs.symbol]  = self.visit(o.rhs_map)
+
+
 
     def VisitRegimeDispatchMap(self,o,**kwargs):
         
@@ -389,12 +463,8 @@ class FunctorGenerator(ASTVisitorBase):
 
 
 
-        def f(**kw):
-            #print traceback.print_stack(f=None, limit=None, file=None)
-
-            assert 'regime_states' in kw
-            regime_states = kw['regime_states']
-            print 'VisitRegimeDispatchMap'
+        def f3(state_data, **kw):
+            regime_states = state_data.rt_regimes#['regime_states']
             
             curr_state = regime_states[rt_graph]
             print curr_state
@@ -404,11 +474,10 @@ class FunctorGenerator(ASTVisitorBase):
                 rhs_functor = rhs_functors[curr_state]
             else:
                 rhs_functor = rhs_functors[None]
-            #if curr_state in rhs
 
-            return rhs_functor(**kw)
+            return rhs_functor(state_data=state_data, **kw)
 
-        return f
+        return f3
 
 
         assert len(o.rhs_map) == 1
@@ -419,24 +488,24 @@ class FunctorGenerator(ASTVisitorBase):
         ftrue = self.visit(o.if_true_ast)
         ffalse = self.visit(o.if_false_ast)
 
-        def f(**kw):
+        def f4(**kw):
             if fpred(**kw):
                 return ftrue(**kw)
             else:
                 return ffalse(**kw)
-        return f
+        return f4
 
 
     def VisitInEquality(self, o ,**kwargs):
         lt = self.visit( o.less_than )
         gt = self.visit( o.greater_than )
-        def f(**kw):
+        def f5(**kw):
             lhs = lt(**kw) 
             rhs = gt(**kw)
             print 'lhs:',lhs
             print 'rhs', rhs
             return lhs < rhs
-        return f
+        return f5
 
     def VisitBoolAnd(self, o, **kwargs):
         s1 = self.visit( o.lhs )
@@ -461,7 +530,7 @@ class FunctorGenerator(ASTVisitorBase):
     def VisitBuiltInFunction(self, o, **kwargs):
         if not self.as_float_in_si:
 
-            def eFunc(**kw):
+            def eFunc(state_data,**kw):
                 if o.funcname == 'exp':
                     ParsingBackend = MHUnitBackend
                     assert len(kw) == 1
@@ -505,8 +574,9 @@ class FunctorGenerator(ASTVisitorBase):
 
     # Terminals:
     def VisitStateVariable(self, o, **kwargs):
-        def eFunc2(**kw):
-            v= kw[o.symbol]
+        def eFunc2(state_data,**kw):
+            v= state_data.states_in[o.symbol]
+            #kw[o.symbol]
             assert o.get_dimension().is_compatible(v.get_units())
             return v
 
@@ -514,8 +584,9 @@ class FunctorGenerator(ASTVisitorBase):
 
 
     def VisitParameter(self, o, **kwargs):
-        def eFunc(**kw):
-            v = kw[o.symbol]
+        def eFunc(state_data,**kw):
+            #v = kw[o.symbol]
+            v= state_data.parameters[o.symbol]
             assert o.get_dimension().is_compatible(v.get_units()), 'Param Units Err: %s [Expected:%s Found:%s]'%(o.symbol, o.get_dimension(), v.get_units())
             return v
 
@@ -535,8 +606,10 @@ class FunctorGenerator(ASTVisitorBase):
 
 
     def VisitSuppliedValue(self, o, **kwargs):
-        def eFunc(**kw):
-            return kw[ o.symbol]
+        def eFunc(state_data, **kw):
+            v= state_data.suppliedvalues[o.symbol]
+            return v
+            #return kw[ o.symbol]
         return eFunc
 
 
@@ -545,7 +618,6 @@ class FunctorGenerator(ASTVisitorBase):
         # Right hand side of the assigned variable:
         assignment_rhs = self.assignment_evaluators[o.symbol]
         def eFunc(**kw):
-            print assignment_rhs
             return assignment_rhs(**kw)
         return eFunc
 

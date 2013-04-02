@@ -146,6 +146,8 @@ class SuppliedValue(ASTExpressionObject):
     def __init__(self, symbol, **kwargs):
         ASTExpressionObject.__init__(self, **kwargs)
         self.symbol = symbol
+    def __repr__(self,):
+        return "<SuppliedValue: '%s'>" % (self.symbol)
 
 class StateVariable(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):
