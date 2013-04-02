@@ -106,9 +106,36 @@ module test {
         <=> INPUT t:(ms)
     }
 
-    define_component simpl_syn{
+    define_component simple_syn{
+        A' = -A/t_open
+        B' = -B/t_close
 
+        g = g_bar * (B-A)
+        i = g * (e_syn-V_post) 
+        regime init{
+            on(0<1){
+                transition_to sub
+            }
+        }
 
+        regime sub{
+            on(V_pre>0mV){
+                A = A + 1
+                B = B + 1
+                transition_to super
+            }
+        }
+
+        regime super{
+            on(V_pre<-10mV){
+                transition_to sub
+            }
+
+        }
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
+        <=> INPUT V_pre:(V), V_post:(V)
     }
 
 
@@ -149,6 +176,27 @@ module test {
         }
 
 
+	define_component std_neuron2 {
+
+
+        V' = i_sum / C
+
+	    <=> ANALOG_REDUCE_PORT i_sum
+	    <=> PARAMETER C:(uF)
+	    <=> OUTPUT     V: mV
+
+	}
+
+    define_component chlstd_leak2 {
+
+
+	    i = g * (erev-V) *a
+        a = 1000 um2
+	    <=> PARAMETER g:(S/m2), erev
+	    <=> OUTPUT    i:(mA)
+	    <=> INPUT     V: mV
+
+	}
 
 
 
@@ -198,7 +246,9 @@ library_manager = neurounits.NeuroUnitParser.Parse9MLFile( test_text )
 
 
 
-def build_compound_component(name, instantiate,  analog_connections, event_connections,  remap_ports, prefix='/', auto_remap_time=True):
+def build_compound_component(name, instantiate,  analog_connections, event_connections=None,  remap_ports=None, prefix='/', auto_remap_time=True):
+
+    
 
 
 
@@ -300,9 +350,10 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
 
 
     # 6. Map relevant ports externally:
-    for (src,dst) in remap_ports:
-        assert not dst in [ s.symbol for s in comp.terminal_symbols]
-        comp._cache_nodes()
+    if remap_ports:
+        for (src,dst) in remap_ports:
+            assert not dst in [ s.symbol for s in comp.terminal_symbols]
+            comp._cache_nodes()
 
     comp._cache_nodes()
 
@@ -333,21 +384,35 @@ class EventHandler(object):
 
 
 def close_analog_port(ap, comp):
+    new_node = None
+    if len(ap.rhses) == 1:
+        new_node = ap.rhses[0]
     if len(ap.rhses) == 2:
         new_node = ast.AddOp( ap.rhses[0], ap.rhses[1] )
-        ReplaceNode(srcObj=ap, dstObj = new_node).visit(comp)
-        comp._cache_nodes()
-        PropogateDimensions.propogate_dimensions(comp)
-        return
-
     if len(ap.rhses) == 3:
         new_node = ast.AddOp( ap.rhses[0], ast.AddOp(ap.rhses[1],ap.rhses[2] ) )
-        ReplaceNode(srcObj=ap, dstObj = new_node).visit(comp)
-        comp._cache_nodes()
-        PropogateDimensions.propogate_dimensions(comp)
-        return
 
-    assert False
+    assert new_node is not None
+    ReplaceNode(srcObj=ap, dstObj = new_node).visit(comp)
+    comp._cache_nodes()
+    PropogateDimensions.propogate_dimensions(comp)
+
+    #if len(ap.rhses) == 2:
+    #    new_node = ast.AddOp( ap.rhses[0], ap.rhses[1] )
+    #    ReplaceNode(srcObj=ap, dstObj = new_node).visit(comp)
+    #    comp._cache_nodes()
+    #    PropogateDimensions.propogate_dimensions(comp)
+    #    return
+
+    #if len(ap.rhses) == 3:
+    #    new_node = ast.AddOp( ap.rhses[0], ast.AddOp(ap.rhses[1],ap.rhses[2] ) )
+    #    ReplaceNode(srcObj=ap, dstObj = new_node).visit(comp)
+    #    comp._cache_nodes()
+    #    PropogateDimensions.propogate_dimensions(comp)
+    #    return
+    #print len(ap.rhses)
+
+    #assert False
 
 def close_all_analog_reduce_ports(component):
      for ap in component.analog_reduce_ports:
@@ -581,10 +646,14 @@ def test1():
     std_neuron = library_manager.get('std_neuron')
     step_current = library_manager.get('step_current')
     square_current = library_manager.get('i_squarewave')
+    simple_syn1 = library_manager.get('simple_syn')
+    simple_syn2 = library_manager.get('simple_syn')
 
+    chlstd_leak2 = library_manager.get('chlstd_leak2')
+    std_neuron2 = library_manager.get('std_neuron2')
 
-    c = build_compound_component(
-          name = 'Mikes new Neuron',
+    c1 = build_compound_component(
+          name = 'Neuron1',
           instantiate = { 'lk': chlstd_leak, 'nrn': std_neuron, 'i_inj':step_current, 'i_square':square_current },
           event_connections = [],
           analog_connections = [
@@ -593,49 +662,127 @@ def test1():
             ('i_square/i', 'nrn/i_sum'),
             ('nrn/V', 'lk/V'),
           ],
-          remap_ports = [] ,
     )
 
+
+    c2 = build_compound_component(
+          name = 'Neuron2',
+          instantiate = { 'lk': chlstd_leak2, 'nrn': std_neuron2,},
+          event_connections = [],
+          analog_connections = [
+            ('lk/i', 'nrn/i_sum'),
+            ('nrn/V', 'lk/V'),
+          ],
+    )
+
+    
+    c = build_compound_component(
+          name = 'network',
+          instantiate = { 'nrn1': c1, 'nrn2': c2, 'syn1':simple_syn1},
+          event_connections = [],
+          analog_connections = [
+            ('syn1/i','nrn2/nrn/i_sum'),
+            ('nrn1/nrn/V','syn1/V_pre'),
+            ('nrn2/nrn/V','syn1/V_post'),
+          ],
+          )
 
     res = simulate_component(component=c,
                         times = np.linspace(0,1,num=1000),
                         close_reduce_ports=True,
                         parameters={
-                            'i_inj/i_amp':'5pA',
-                            'lk/g': '0.1pS/um2',
-                            'nrn/C': '0.5pF',
-                            'lk/erev': '-60mV',
-                            'i_inj/t_start': '500ms',
-                            'i_square/t_on': '100ms',
-                            'i_square/t_off': '50ms',
-                            'i_square/i_amp': '2pA',
+                            'nrn1/i_inj/i_amp':'5pA',
+                            'nrn1/lk/g': '0.1pS/um2',
+                            'nrn1/nrn/C': '0.5pF',
+                            'nrn1/lk/erev': '-60mV',
+                            'nrn1/i_inj/t_start': '500ms',
+                            'nrn1/i_square/t_on': '100ms',
+                            'nrn1/i_square/t_off': '50ms',
+                            'nrn1/i_square/i_amp': '2pA',
 
+                            'nrn2/lk/g': '0.1pS/um2',
+                            'nrn2/nrn/C': '0.5pF',
+                            'nrn2/lk/erev': '-55mV',
+
+                            'syn1/t_open': '3ms',
+                            'syn1/t_close': '10ms',
+                            'syn1/g_bar': '100pS',
+                            'syn1/e_syn': '0mV',
 
                             },
                         initial_state_values={
-                            'nrn/V': '-50mV',
-                            'i_square/t_last': '0ms'
+                            'nrn1/nrn/V': '-50mV',
+                            'nrn2/nrn/V': '-60mV',
+                            'nrn1/i_square/t_last': '0ms',
+                            'syn1/A':'0',
+                            'syn1/B':'0',
                         },
                         initial_regimes={
-                            'i_inj/':'OFF',
-                            #'i_square/':'OFF'
+                            'nrn1/i_inj/':'OFF',
                         }
             )
-
 
     f = pylab.figure()
     ax1 = f.add_subplot(3,1,1)
     ax2 = f.add_subplot(3,1,2)
     ax3 = f.add_subplot(3,1,3)
     ax1.set_ylim((-70e-3,50e-3))
-    ax1.plot( res.get_time(), res.state_variables['nrn/V'] )
-    ax1.set_ylabel('nrn/V %s' %('??'))
-    ax2.plot( res.get_time(), res.state_variables['i_square/t_last'] )
-    ax3.plot( res.get_time(), res.rt_regimes['nrn/']+0.0 , label='nrn')
-    ax3.plot( res.get_time(), res.rt_regimes['i_inj/']+0.1, label='i_inj')
-    ax3.plot( res.get_time(), res.rt_regimes['i_square/']+0.2,label='i_square' )
+    ax1.plot( res.get_time(), res.state_variables['nrn1/nrn/V'] )
+    ax1.plot( res.get_time(), res.state_variables['nrn2/nrn/V'] )
+    ax1.set_ylabel('nrn1/nrn/V %s' %('??'))
+    ax2.plot( res.get_time(), res.state_variables['nrn1/i_square/t_last'] )
+    ax3.plot( res.get_time(), res.rt_regimes['nrn1/nrn/']+0.0 , label='nrn1/nrn')
+    ax3.plot( res.get_time(), res.rt_regimes['nrn1/i_inj/']+0.1, label='nrn1/i_inj')
+    ax3.plot( res.get_time(), res.rt_regimes['nrn1/i_square/']+0.2,label='nrn1/i_square' )
     ax3.legend()
     pylab.show()
+
+
+
+
+
+
+
+
+    #res = simulate_component(component=c,
+    #                    times = np.linspace(0,1,num=1000),
+    #                    close_reduce_ports=True,
+    #                    parameters={
+    #                        'i_inj/i_amp':'5pA',
+    #                        'lk/g': '0.1pS/um2',
+    #                        'nrn/C': '0.5pF',
+    #                        'lk/erev': '-60mV',
+    #                        'i_inj/t_start': '500ms',
+    #                        'i_square/t_on': '100ms',
+    #                        'i_square/t_off': '50ms',
+    #                        'i_square/i_amp': '2pA',
+
+
+    #                        },
+    #                    initial_state_values={
+    #                        'nrn/V': '-50mV',
+    #                        'i_square/t_last': '0ms'
+    #                    },
+    #                    initial_regimes={
+    #                        'i_inj/':'OFF',
+    #                        #'i_square/':'OFF'
+    #                    }
+    #        )
+
+
+    #f = pylab.figure()
+    #ax1 = f.add_subplot(3,1,1)
+    #ax2 = f.add_subplot(3,1,2)
+    #ax3 = f.add_subplot(3,1,3)
+    #ax1.set_ylim((-70e-3,50e-3))
+    #ax1.plot( res.get_time(), res.state_variables['nrn/V'] )
+    #ax1.set_ylabel('nrn/V %s' %('??'))
+    #ax2.plot( res.get_time(), res.state_variables['i_square/t_last'] )
+    #ax3.plot( res.get_time(), res.rt_regimes['nrn/']+0.0 , label='nrn')
+    #ax3.plot( res.get_time(), res.rt_regimes['i_inj/']+0.1, label='i_inj')
+    #ax3.plot( res.get_time(), res.rt_regimes['i_square/']+0.2,label='i_square' )
+    #ax3.legend()
+    #pylab.show()
 
 
 
