@@ -261,7 +261,6 @@ class MMQuantity(object):
         elif isinstance(rhs, float):
             return MMQuantity(self.magnitude / rhs, self.unit)
         else:
-            print 'RHS-mag', rhs.magnitude
             return MMQuantity(self.magnitude / rhs.magnitude, self.unit / rhs.unit)
 
 

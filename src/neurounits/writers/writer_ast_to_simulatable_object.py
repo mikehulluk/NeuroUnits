@@ -387,12 +387,12 @@ class FunctorGenerator(ASTVisitorBase):
         rhs = self.visit(o.rhs)
 
         def f1(state_data,  **kw):
-            print 'Making State assingment!'
+            #print 'Making State assingment!'
             sv_name = o.lhs.symbol
-            print kw.keys()
+            #print kw.keys()
             new_value = rhs(state_data=state_data, **kw)
-            print 'Old Value',state_data.states_in[sv_name]
-            print 'New Value',new_value
+            #print 'Old Value',state_data.states_in[sv_name]
+            #print 'New Value',new_value
             state_data.states_out[sv_name] = new_value
             #assert False
             #return None
@@ -446,10 +446,10 @@ class FunctorGenerator(ASTVisitorBase):
         #return self.visit(o.rhs_map.values()[0])
         
         rt_graph = o.get_rt_graph()
-        print rt_graph
+        #print rt_graph
         rhs_functors = dict( [(regime, self.visit(rhs)) for (regime,rhs) in o.rhs_map.items()] )
         from neurounits.misc import SeqUtils
-        print [r.name for r in rhs_functors]
+        #print [r.name for r in rhs_functors]
         #try:
         try:
             default = SeqUtils.filter_expect_single( rhs_functors.keys(), lambda r:r.name==None)
@@ -467,8 +467,8 @@ class FunctorGenerator(ASTVisitorBase):
             regime_states = state_data.rt_regimes#['regime_states']
             
             curr_state = regime_states[rt_graph]
-            print curr_state
-            print rhs_functors
+            #print curr_state
+            #print rhs_functors
             #rhs_functor = rhs_functors.get( curr_state, rhs_functors[None] )
             if curr_state in rhs_functors:
                 rhs_functor = rhs_functors[curr_state]
@@ -502,8 +502,8 @@ class FunctorGenerator(ASTVisitorBase):
         def f5(**kw):
             lhs = lt(**kw) 
             rhs = gt(**kw)
-            print 'lhs:',lhs
-            print 'rhs', rhs
+            #print 'lhs:',lhs
+            #print 'rhs', rhs
             return lhs < rhs
         return f5
 
@@ -625,10 +625,10 @@ class FunctorGenerator(ASTVisitorBase):
         f_lhs = self.visit(o.lhs)
         f_rhs = self.visit(o.rhs)
         def eFunc(**kw):
-            print 'Add-LHS', o.lhs
-            print 'Add-RHS', o.rhs
+            #print 'Add-LHS', o.lhs
+            #print 'Add-RHS', o.rhs
             res = f_lhs(**kw) + f_rhs(**kw)
-            print 'Add-OK'
+            #print 'Add-OK'
             return res
         return eFunc
 
