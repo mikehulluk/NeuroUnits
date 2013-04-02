@@ -532,7 +532,7 @@ def simulate_component(component, times, parameters,initial_state_values, initia
     # Build the results:
     # A. Times:
     #times = np.array( [t for (t,states) in reses] )
-    times = np.array( [time_pt_data.suppliedvalues['t'] for time_pt_data in reses_new] )
+    times = np.array( [time_pt_data.suppliedvalues['t'].float_in_si() for time_pt_data in reses_new] )
     
     # B. State variables:
     state_names = [ s.symbol for s in component.states]
