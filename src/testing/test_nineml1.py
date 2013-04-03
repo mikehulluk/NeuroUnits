@@ -29,7 +29,7 @@ src_files = [
     "/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/complex_component.9ml" ,
 ]
 
-src_files = [s.replace('libs/','') for s in src_files]
+#src_files = [s.replace('libs/','') for s in src_files]
 
 
 library_manager = None
@@ -397,22 +397,6 @@ def close_analog_port(ap, comp):
     comp._cache_nodes()
     PropogateDimensions.propogate_dimensions(comp)
 
-    #if len(ap.rhses) == 2:
-    #    new_node = ast.AddOp( ap.rhses[0], ap.rhses[1] )
-    #    ReplaceNode(srcObj=ap, dstObj = new_node).visit(comp)
-    #    comp._cache_nodes()
-    #    PropogateDimensions.propogate_dimensions(comp)
-    #    return
-
-    #if len(ap.rhses) == 3:
-    #    new_node = ast.AddOp( ap.rhses[0], ast.AddOp(ap.rhses[1],ap.rhses[2] ) )
-    #    ReplaceNode(srcObj=ap, dstObj = new_node).visit(comp)
-    #    comp._cache_nodes()
-    #    PropogateDimensions.propogate_dimensions(comp)
-    #    return
-    #print len(ap.rhses)
-
-    #assert False
 
 def close_all_analog_reduce_ports(component):
      for ap in component.analog_reduce_ports:
