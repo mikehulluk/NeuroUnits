@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 # -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
@@ -45,7 +46,6 @@ class ASTVisitorCollectorAll(ASTActionerDefault):
         self.objects.add(o)
 
 
-
 class VerifyUnitsInTree(ASTActionerDepthFirst):
 
     def __init__(self, obj, unknown_ok):
@@ -68,7 +68,7 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
             print o, o0
             assert isinstance(o, ASTExpressionObject)
             assert isinstance(o0, ASTExpressionObject)
-            if not (o.get_dimension().is_compatible(o0.get_dimension())):
+            if not o.get_dimension().is_compatible(o0.get_dimension()):
                 print 'Units mismatch'
                 print o, o0
                 assert False,' %s, %s (%s %s)' %(o,o0, o.get_dimension(), o0.get_dimension())
@@ -83,7 +83,7 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
         pass
 
     def ActionIfThenElse(self, o, **kwargs):
-        self.verify_equal_units( [o, o.if_true_ast, o.if_false_ast])
+        self.verify_equal_units([o, o.if_true_ast, o.if_false_ast])
 
     def ActionInEquality(self, o, **kwargs):
         pass
@@ -99,7 +99,7 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
 
     # Function Definitions:
     def ActionFunctionDef(self, o, **kwargs):
-        self.verify_equal_units( [o, o.rhs])
+        self.verify_equal_units([o, o.rhs])
 
     def ActionBuiltInFunction(self, o, **kwargs):
         pass
@@ -167,15 +167,18 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
 
     def ActionOnEvent(self, o, **kwargs):
         pass
+
     def ActionOnTransitionTrigger(self, o, **kwarg):
         pass
+
     def ActionOnTransitionEvent(self, o, **kwargs):
         pass
+
     def ActionEmitEvent(self, o, **kwargs):
         pass
 
-    def ActionOnEventDefParameter(self, o , **kwargs):
-        #self.verify_equal_units([o,
+    def ActionOnEventDefParameter(self, o, **kwargs):
+        # self.verify_equal_units([o,
         pass
 
 
@@ -253,7 +256,6 @@ class DimensionResolver(ASTVisitorBase):
     def RegisterDimensionPropogation(self, obj, new_dimension, reason):
         obj.set_dimension(new_dimension)
 
-
     def VisitEqnSet(self, o, **kwargs):
         pass
 
@@ -283,7 +285,6 @@ class DimensionResolver(ASTVisitorBase):
 
     def VisitBoolNot(self, o, **kwargs):
         pass
-
 
     # Terminals:
     def VisitStateVariable(self, o, **kwargs):
@@ -471,19 +472,14 @@ class DimensionResolver(ASTVisitorBase):
                     assert False
             else:
                 assert False
-
-
         else:
 
             self.EnsureEqualDimensions([o, o.function_def])
-
-
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         self.EnsureEqualDimensions([o, o.get_function_def_parameter(),
                                    o.rhs_ast],
                                    reason='Parameter Instantiation')
-
 
     def VisitBuiltInFunction(self, o, **kwargs):
         dimensionless_functions = [
@@ -503,7 +499,6 @@ class DimensionResolver(ASTVisitorBase):
         return
         raise NotImplementedError()
 
-
     def VisitOnTransitionTrigger(self, o, **kwargs):
         for a in o.actions:
             self.visit(a)
@@ -515,7 +510,7 @@ class DimensionResolver(ASTVisitorBase):
 
     def VisitEmitEvent(self, o, **kwargs):
         pass
-       
+
     def VisitOnEventDefParameter(self, o, **kwargs):
         pass
 
@@ -527,7 +522,7 @@ class PropogateDimensions(object):
 
         VerifyUnitsInTree(eqnset, unknown_ok=True)
 
-        labels=None
+        labels = None
 
         all_symbols = ASTVisitorCollectorAll(eqnset).objects
         obj_with_dimension = [s for s in all_symbols if isinstance(s, ast.ASTExpressionObject)]
@@ -541,7 +536,7 @@ class PropogateDimensions(object):
                 nUnresolvedPre = len([s for s in obj_with_dimension if not s.is_dimension_known()])
                 #res_symbols = [uR.visit(s) for s in all_symbols]
                 for s in all_symbols:
-                    #print s
+                    # print s
                     uR.visit(s)
                 nUnresolvedPost = len([s for s in obj_with_dimension if not s.is_dimension_known()])
 
@@ -551,19 +546,16 @@ class PropogateDimensions(object):
 
             raise
 
-            #print 'Error with: '
-            #print ' - ', labels[e.objA], "Unit:", e.objA.get_dimension()
-            #print ' - ', labels[e.objB], "Unit:", e.objB.get_dimension()
-            #print
-            #s1 = StringWriterVisitor().visit(e.objA)
-            #s2 = StringWriterVisitor().visit(e.objB)
-            #print 'S1:', s1
-            #print 'S2:',  s2
-            ##assert False
-            #raise
-
-
-
+            # print 'Error with: '
+            # print ' - ', labels[e.objA], "Unit:", e.objA.get_dimension()
+            # print ' - ', labels[e.objB], "Unit:", e.objB.get_dimension()
+            # print
+            # s1 = StringWriterVisitor().visit(e.objA)
+            # s2 = StringWriterVisitor().visit(e.objB)
+            # print 'S1:', s1
+            # print 'S2:',  s2
+            # #assert False
+            # raise
 
         # Look for unresolved symbols:
         symbols_without_dimension = [s for s in all_symbols if isinstance(s, ast.ASTExpressionObject) and not s.is_dimension_known()]
@@ -571,7 +563,7 @@ class PropogateDimensions(object):
             print 'Unable to resolve the dimensions of the following symbols:'
             for s in symbols_without_dimension:
                 try:
-                    print '\tObj:', type(s),s,
+                    print '\tObj:', type(s), s,
                     print '\t  -',
                     print '\t', s.symbol
                 except:

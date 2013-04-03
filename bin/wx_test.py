@@ -1,16 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import wx
 
-#!/usr/bin/python
-# splitterwindow.py
 import wx
 
 import neurounits
 import datetime
-
-
-
 
 
 class MyFrame(wx.Frame):
@@ -18,7 +12,6 @@ class MyFrame(wx.Frame):
     def EvtSrcText(self, *args, **kwargs):
         print 'Change to src text'
         pass
-
 
     def default_text(self):
         self.src_text.WriteText('''
@@ -37,7 +30,6 @@ class MyFrame(wx.Frame):
             b = 6
         }
         ''')
-
 
     def update_from_src(self, *args, **kwargs):
         src_text = self.src_text.GetValue()

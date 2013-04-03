@@ -2,14 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import neurounits
-import inspect
-import itertools
 import sys
 import numpy as np
 
 from neurounits.ast_builder.builder_visitor_propogate_dimensions import PropogateDimensions
 from neurounits.ast_builder.builder_visitor_propogate_dimensions import VerifyUnitsInTree
-from neurounits.units_misc import safe_dict_merge
 import neurounits.ast as ast
 from neurounits.ast_builder.eqnsetbuilder import BuildData
 from neurounits.ast_builder.eqnsetbuilder import SingleSetDict
@@ -19,9 +16,7 @@ from neurounits.ast.astobjects_nineml import AnalogReducePort
 from neurounits.visitors.common.ast_replace_node import ReplaceNode
 
 import pylab
-import numpy as np
 from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator, SimulationStateData
-from neurounits.visitors.common.ast_replace_node import ReplaceNode
 
 
 
@@ -178,51 +173,51 @@ module test {
         }
 
 
-	define_component std_neuron2 {
+    define_component std_neuron2 {
 
 
         V' = i_sum / C
 
-	    <=> ANALOG_REDUCE_PORT i_sum
-	    <=> PARAMETER C:(uF)
-	    <=> OUTPUT     V: mV
+        <=> ANALOG_REDUCE_PORT i_sum
+        <=> PARAMETER C:(uF)
+        <=> OUTPUT     V: mV
 
-	}
+    }
 
     define_component chlstd_leak2 {
 
 
-	    i = g * (erev-V) *a
+        i = g * (erev-V) *a
         a = 1000 um2
-	    <=> PARAMETER g:(S/m2), erev
-	    <=> OUTPUT    i:(mA)
-	    <=> INPUT     V: mV
+        <=> PARAMETER g:(S/m2), erev
+        <=> OUTPUT    i:(mA)
+        <=> INPUT     V: mV
 
-	}
+    }
 
 
 
-	define_component std_neuron {
+    define_component std_neuron {
 
 
         V' = i_sum / C
 
-	    <=> ANALOG_REDUCE_PORT i_sum
-	    <=> PARAMETER C:(uF)
-	    <=> OUTPUT     V: mV
+        <=> ANALOG_REDUCE_PORT i_sum
+        <=> PARAMETER C:(uF)
+        <=> OUTPUT     V: mV
 
-	}
+    }
 
     define_component chlstd_leak {
 
 
-	    i = g * (erev-V) *a
+        i = g * (erev-V) *a
         a = 1000 um2
-	    <=> PARAMETER g:(S/m2), erev
-	    <=> OUTPUT    i:(mA)
-	    <=> INPUT     V: mV
+        <=> PARAMETER g:(S/m2), erev
+        <=> OUTPUT    i:(mA)
+        <=> INPUT     V: mV
 
-	}
+    }
 
 
 }

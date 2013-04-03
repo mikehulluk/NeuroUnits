@@ -55,11 +55,9 @@ class Block(object):
     def has_terminal_obj(self, symbol):
         raise NotImplementedError()
 
-
     def to_redoc(self):
         from neurounits.writers import MRedocWriterVisitor
         return MRedocWriterVisitor.build(self)
-
 
 
 class Library(Block):
@@ -132,13 +130,6 @@ class EqnSet(Block):
         self._supplied_values = t.nodes[SuppliedValue]
         self._analog_reduce_ports = t.nodes[AnalogReducePort]
 
-
-
-
-
-
-
-
     @property
     def onevents(self):
         return self._on_events.values()
@@ -193,7 +184,7 @@ class EqnSet(Block):
 
     def get_terminal_obj_chainmap(self):
         m = Chainmap( self._getParametersDict(),
-		              self._getSuppliedValuesDict(),
+                      self._getSuppliedValuesDict(),
                       self._getAnalogPortsDict(),
                       self._getAssignedVariablesDict(),
                       self._getStateVariablesDict(),

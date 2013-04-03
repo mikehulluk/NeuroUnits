@@ -26,7 +26,6 @@
 # -------------------------------------------------------------------------------
 
 from neurounits import NeuroUnitParser
-import quantities as pq
 from neurounits.writers.writer_ast_to_simulatable_object import EqnSimulator
 
 

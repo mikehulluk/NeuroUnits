@@ -25,6 +25,9 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
+
+assert False
+
 from neurounits import ast
 from units_data_unitterms import UnitTermData
 

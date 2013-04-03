@@ -26,9 +26,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-
 from .base import ASTObject
-
 
 
 class ASTExpressionObject(ASTObject):
@@ -113,7 +111,9 @@ class BoolOr(ASTObject):
         self.lhs = lhs
         self.rhs = rhs
 
+
 class BoolNot(ASTObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitBoolNot(self, **kwargs)
 
@@ -226,7 +226,9 @@ class FunctionDef(ASTExpressionObject):
         self.parameters = parameters
         self.rhs = rhs
 
+
 class FunctionDefParameter(ASTExpressionObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitFunctionDefParameter(self, **kwargs)
 

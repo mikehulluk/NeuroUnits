@@ -1,4 +1,6 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 #
 # NeuroUnits documentation build configuration file, created by
 # sphinx-quickstart on Thu May 10 10:06:04 2012.
@@ -166,7 +168,6 @@ html_static_path = ['_static']
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'NeuroUnitsdoc'
-
 
 # -- Options for LaTeX output --------------------------------------------------
 

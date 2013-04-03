@@ -322,7 +322,6 @@ class AbstractBlockBuilder(object):
     def close_rt_graph(self):
         self._current_rt_graph = self._all_rt_graphs[None]
 
-
     # Internal symbol handling:
     def get_symbol_or_proxy(self, s):
         #print 'get_symbol_or_proxy:', s
@@ -421,10 +420,9 @@ class AbstractBlockBuilder(object):
             # Resolve Symbol from the Event Parameters:
             if sym in event_params:
                 obj.set_target(event_params[sym])
-            
-			else:
-            	# Resolve at global scope:
-                obj.set_target(self.global_scope.getSymbolOrProxy(sym))
+        else:
+            # Resolve at global scope:
+            obj.set_target(self.global_scope.getSymbolOrProxy(sym))
 
         src_regime = self.get_current_regime()
         if target_regime is None:
@@ -445,10 +443,10 @@ class AbstractBlockBuilder(object):
         self.active_scope = None
 
         # Resolve all symbols from the global namespace:
-        for sym,obj in scope.iteritems():
-            #print 'Resolving:', sym
-            obj.set_target(self.global_scope.getSymbolOrProxy(sym) )
-            #print self.global_scope.__dict__
+        for (sym, obj) in scope.iteritems():
+            # print 'Resolving:', sym
+            obj.set_target(self.global_scope.getSymbolOrProxy(sym))
+            # print self.global_scope.__dict__
 
         src_regime = self.get_current_regime()
         if target_regime is None:
@@ -521,13 +519,13 @@ class AbstractBlockBuilder(object):
         from neurounits.librarymanager import LibraryManager
         assert isinstance(self.library_manager, LibraryManager)
 
-        ## Resolve the TimeDerivatives into a single object:
+        # Resolve the TimeDerivatives into a single object:
         time_derivatives = SingleSetDict()
         maps_tds = defaultdict(SingleSetDict)
         for regime_td in self.builddata._time_derivatives_per_regime:
             maps_tds[regime_td.lhs][regime_td.regime] = regime_td.rhs
 
-        for sv, tds in maps_tds.items():
+        for (sv, tds) in maps_tds.items():
 
             statevar_obj = ast.StateVariable(sv)
             self._resolve_global_symbol(sv, statevar_obj)

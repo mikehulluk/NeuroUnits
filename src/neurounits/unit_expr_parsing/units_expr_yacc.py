@@ -98,7 +98,7 @@ def p_close_new_module(p):
 
 def p_module_def1(p):
     """module_def_internal : MODULE WHITESPACE module_name white_or_newline_slurp LCURLYBRACKET modulecontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
-	pass
+    pass
 
 
 def p_module_def2(p):
@@ -400,7 +400,7 @@ def p_close_new_library(p):
 
 def p_library_def1(p):
     """library_def_internal : LIBRARY  WHITESPACE library_name LCURLYBRACKET librarycontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
-	pass
+    pass
 
 def p_complete_library_line(p):
     """complete_library_line : white_or_newline_slurp librarylinecontents white_or_newline_slurp SEMICOLON """

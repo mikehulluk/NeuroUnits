@@ -43,8 +43,8 @@ def document_eqnsets(individual_reports=True):
         f_basename = os.path.splitext(os.path.basename(f))[0]
 
         # Load the EqnSet:
-		with open(f) as fd:
-	        library_manager = NeuroUnitParser.File(fd.read(), name=f_basename)
+        with open(f) as fd:
+            library_manager = NeuroUnitParser.File(fd.read(), name=f_basename)
 
         # Create the documentation:
         local_redoc = MRedocWriterVisitor.build(library_manager)
