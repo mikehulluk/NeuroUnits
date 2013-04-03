@@ -34,4 +34,7 @@ test_all:
 	./bin/neurounits --validate  src/test_data/valid_l1.nuts
 	./bin/neurounits --validate  src/test_data/thesis_l1.nuts
 
+lint:
+	rm -f pylint.html
+	pylint neurounits --output-format=html  --rcfile=/home/michael/.pylintrc --reports=n --include-ids=y > pylint.html
 
