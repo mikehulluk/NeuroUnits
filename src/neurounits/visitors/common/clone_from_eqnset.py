@@ -42,8 +42,6 @@ class CloneObject(object):
     def BuiltinFunction(cls, srcObj, dst_symbol=None):
         return srcObj
 
-
-
     @classmethod
     def FunctionDef(cls, srcObj, dst_symbol=None):
         fNew = _CloneFuncDef().visit(srcObj)
@@ -55,18 +53,9 @@ class CloneObject(object):
         assert isinstance(fNew, ast.FunctionDef)
         return fNew
 
-        #new_obj =
-
-
-
-
-
-
-
 
 
 class _CloneFuncDef(ASTVisitorBase):
-
 
     def __init__(self):
         self.func_param_map = {}
@@ -79,10 +68,9 @@ class _CloneFuncDef(ASTVisitorBase):
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
         panic()
-            # AST Objects:
+            
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         panic()
-
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         panic()
@@ -99,7 +87,6 @@ class _CloneFuncDef(ASTVisitorBase):
     def VisitSuppliedValue(self, o, **kwargs):
         panic()
 
-
     def VisitFunctionDef(self, o, **kwargs):
         params = {}
         for pName,pObj in o.parameters.iteritems():
@@ -111,24 +98,24 @@ class _CloneFuncDef(ASTVisitorBase):
 
     def VisitIfThenElse(self, o, **kwargs):
         return ast.IfThenElse(
-             predicate= self.visit(o.predicate,**kwargs),
+             predicate=self.visit(o.predicate,**kwargs),
              if_true_ast=self.visit(o.if_true_ast, **kwargs), 
-             if_false_ast=self.visit(o.if_false_ast, **kwargs),
+             if_false_ast=self.visit(o.if_false_ast, **kwargs)
                 )
 
     def VisitInEquality(self, o, **kwargs):
         return ast.InEquality(
-             less_than= self.visit(o.less_than,**kwargs),
-             greater_than=self.visit(o.greater_than,**kwargs), 
+             less_than=self.visit(o.less_than,**kwargs),
+             greater_than=self.visit(o.greater_than, **kwargs), 
                 )
     def VisitBoolAnd(self, o, **kwargs):
         raise NotImplementedError()
+
     def VisitBoolOr(self, o, **kwargs):
         raise NotImplementedError()
+
     def VisitBoolNot(self, o, **kwargs):
         raise NotImplementedError()
-
-
 
     def VisitAddOp(self, o, **kwargs):
         return ast.AddOp(self.visit(o.lhs), self.visit(o.rhs))
@@ -145,9 +132,9 @@ class _CloneFuncDef(ASTVisitorBase):
     def VisitExpOp(self, o, **kwargs):
         return ast.ExpOp(self.visit(o.lhs), o.rhs)
 
-
     def VisitBuiltInFunction(self, o, **kwargs):
         return o
+
     def VisitFunctionDefParameter(self, o, **kwargs):
         return self.func_param_map[o]
 
@@ -156,11 +143,6 @@ class _CloneFuncDef(ASTVisitorBase):
 
     def VisitConstant(self, o, **kwargs):
         return ast.ConstValue(value=o.value)
-
-
-
-
-
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
 
@@ -179,3 +161,5 @@ class _CloneFuncDef(ASTVisitorBase):
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         panic()
+
+

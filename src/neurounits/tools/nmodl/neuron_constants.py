@@ -30,15 +30,17 @@ from neurounits import NeuroUnitParser
 
 
 class MechanismType(object):
+
     Point = 'Point'
     Distributed = 'Distributed'
 
+
 class NeuronSuppliedValues(object):
 
-    Time = "Time"
-    MembraneVoltage = "MembraneVoltage"
-    Temperature = "Temperature"
-    All = [ Time, MembraneVoltage, Temperature ]
+    Time = 'Time'
+    MembraneVoltage = 'MembraneVoltage'
+    Temperature = 'Temperature'
+    All = [Time, MembraneVoltage, Temperature]
 
 
 class NEURONMappings(object):

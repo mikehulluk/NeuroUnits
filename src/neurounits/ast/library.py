@@ -26,8 +26,5 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-
-
 from ..units_misc import Chainmap
-
 

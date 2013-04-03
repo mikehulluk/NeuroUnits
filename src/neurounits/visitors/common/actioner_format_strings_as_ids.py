@@ -28,7 +28,9 @@
 
 from neurounits.visitors import ASTActionerDefault
 
+
 class ActionerFormatStringsAsIDs(ASTActionerDefault):
+
     def __init__(self, identifier_dict):
         ASTActionerDefault.__init__(self)
 
@@ -71,8 +73,6 @@ class ActionerFormatStringsAsIDs(ASTActionerDefault):
         s = '<EqnSet: FunctionDefs:[%s], SymbolicConstants:[%s]' % data
         self.format_strings[o] = s
 
-
-
     # Function Definitions:
     def ActionOnEvent(self, o, **kwargs):
         pStr = ','.join(['%s=%s' % (p, self.IDs[v]) for (p, v) in
@@ -81,25 +81,15 @@ class ActionerFormatStringsAsIDs(ASTActionerDefault):
         self.format_strings[o] = \
             'OnEvent: Name:%s Params:%s Actions: [%s]' % (o.name, pStr,
                 actions)
+
     def ActionOnEventStateAssignment(self, o, **kwargs):
         self.format_strings[o] = "OnEventStateAssignment: '%s' = %s" \
             % (self.IDs[o.lhs], self.IDs[o.rhs])
 
-
-
-
-    #def ActionInEquality(self, o, **kwargs):
-    #    self.format_strings[o] = "InEquality: '%s < %s"%(self.IDs[o.less_than], self.IDs[o.greater_than])
-
-
-
-
     # Function Definitions:
     def ActionFunctionDef(self, o, **kwargs):
-        pStr =",".join( ["%s=%s"%(p,self.IDs[v]) for p,v in o.parameters.iteritems() ] )
-        self.format_strings[o] = "FunctionDef: Name:%s Params:%s RHS: %s"%( o.funcname, pStr, self.IDs[o.rhs],)
-        #raise NotImplementedError()
-        #return '<FUNCDEF:%s => %s>'%( o.funcname, self.Action(o.rhs) )
+        pStr =','.join(['%s=%s' % (p,self.IDs[v]) for (p, v) in o.parameters.iteritems()])
+        self.format_strings[o] = 'FunctionDef: Name:%s Params:%s RHS: %s' % (o.funcname, pStr, self.IDs[o.rhs])
 
     def ActionFunctionDefParameter(self, o, **kwargs):
         self.format_strings[o] = "FunctionDefParam: '(%s)' " \
@@ -161,15 +151,14 @@ class ActionerFormatStringsAsIDs(ASTActionerDefault):
         self.format_strings[o] = "BinaryOp: '%s' ** %d" \
             % (self.IDs[o.lhs], o.rhs)
 
-
     def ActionBoolAnd(self, o, **kwargs):
         return '(%s && %s)' % (self.IDs[o.lhs], self.IDs[o.rhs])
+
     def ActionBoolOr(self, o, **kwargs):
         return '(%s || %s)' % (self.IDs[o.lhs], self.IDs[o.rhs])
 
     def ActionBoolNot(self, o, **kwargs):
         return '(! %s)' % self.IDs[o.lhs]
-
 
     def ActionFunctionDefInstantiation(self, o, **kwargs):
         pStr = ','.join(['%s=%s' % (p, self.IDs[v]) for (p, v) in
@@ -189,5 +178,5 @@ class ActionerFormatStringsAsIDs(ASTActionerDefault):
                                            self.IDs[o.predicate],
                                            self.IDs[o.if_false_ast] )
     def ActionInEquality(self, o, **kwargs):
-        return "[%s < %s]" %(self.IDs[o.less_than],self.IDs[o.greater_than] )
+        return '[%s < %s]' % (self.IDs[o.less_than],self.IDs[o.greater_than])
 

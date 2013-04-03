@@ -1,4 +1,7 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +24,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import mreorg
 
@@ -35,7 +38,6 @@ try:
     import test_neuroml_import
 except ImportError:
     print "Can't test test_neuroml_import; files not installed"
-
 
 import test_lorenz
 import test_van_depol

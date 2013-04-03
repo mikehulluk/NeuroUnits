@@ -30,6 +30,7 @@ from neurounits.units_wrapper import NeuroUnitParser
 
 import numpy as np
 
+
 class SummaryPlotData(object):
     def __init__(self, x, y, t_start, t_end, dt, params, y0, backend):
         self.x = x
@@ -57,10 +58,6 @@ class SummaryPlotData(object):
         self.y0 = {}
         for (k, v) in y0.iteritems():
             self.y0[k] = NeuroUnitParser.Expr(v)
-
-
-
-
 
 
 def parse_string(s):

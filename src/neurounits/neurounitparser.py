@@ -66,7 +66,7 @@ class NeuroUnitParser(object):
         assert False
         """ Should return a callable"""
         backend = backend or cls.get_defaultBackend()
-        return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L1_Unit, backend=backend )
+        return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L1_Unit, backend=backend)
 
 
     @classmethod
@@ -76,10 +76,9 @@ class NeuroUnitParser(object):
 
     @classmethod
     def EqnSet(cls, text, **kwargs):
-        library_manager = cls.File(text=text, **kwargs )
-        eqnset_name = SeqUtils.expect_single( library_manager.get_eqnset_names() )
+        library_manager = cls.File(text=text, **kwargs)
+        eqnset_name = SeqUtils.expect_single(library_manager.get_eqnset_names())
         return library_manager.get_eqnset(eqnset_name)
-
 
     @classmethod
     def Parse9MLFile(cls, text, debug=False, backend=None, working_dir=None, options=None, name=None, **kwargs):

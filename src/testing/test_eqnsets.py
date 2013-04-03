@@ -1,4 +1,7 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +24,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 import os
 from util_test_locations import TestLocations
@@ -29,9 +32,7 @@ from neurounits.neurounitparser import NeuroUnitParser
 from neurounits.writers.writer_ast_to_mredoc import MRedocWriterVisitor
 from mredoc import Document, TableOfContents
 
-
 from os.path import join as Join
-
 
 
 def document_eqnsets(individual_reports=True):
@@ -39,51 +40,54 @@ def document_eqnsets(individual_reports=True):
     all_redocs = []
 
     for f in TestLocations.getEqnSetFiles():
-        f_basename = os.path.splitext( os.path.basename(f))[0]
+        f_basename = os.path.splitext(os.path.basename(f))[0]
 
         # Load the EqnSet:
-        library_manager = NeuroUnitParser.File( open(f).read(), name=f_basename )
+		with open(f) as fd:
+	        library_manager = NeuroUnitParser.File(fd.read(), name=f_basename)
 
         # Create the documentation:
-        local_redoc = MRedocWriterVisitor.build( library_manager)
+        local_redoc = MRedocWriterVisitor.build(library_manager)
 
         # Create a local documentation file:
         if individual_reports:
             doc = Document(TableOfContents(), local_redoc)
-            doc.to_pdf( Join(TestLocations.getTestOutputDir(), 'eqnsets_%s.pdf' %f_basename  ) )
+            doc.to_pdf(Join(TestLocations.getTestOutputDir(), 'eqnsets_%s.pdf' %f_basename))
 
         # Add it to single large file:
-        all_redocs.append( local_redoc )
+        all_redocs.append(local_redoc)
 
     return all_redocs
 
 
-
-
-
-
-
 # Hook into automatic documentation:
 from test_base import ReportGenerator
+
+
 class EqnsetDoc(ReportGenerator):
+
     def __init__(self):
-        ReportGenerator.__init__(self, "ExampleEqnSets")
+        ReportGenerator.__init__(self, 'ExampleEqnSets')
+
     def __call__(self):
         return document_eqnsets(individual_reports=False)
+
+
 EqnsetDoc()
 
 
 # run individually:
-def main():
-    all_redocs = document_eqnsets(individual_reports = True)
-    d = Document( TableOfContents(), *all_redocs)
-    op_dir = TestLocations.getTestOutputDir()
-    op_loc = os.path.join( op_dir, 'eqnsets', "all.pdf" )
-    d.to_pdf(op_loc)
-    #HTMLWriter.BuildHTML(d, TestLocations.getTestOutputDir() + '/html/')
 
+def main():
+    all_redocs = document_eqnsets(individual_reports=True)
+    d = Document(TableOfContents(), *all_redocs)
+    op_dir = TestLocations.getTestOutputDir()
+    op_loc = os.path.join(op_dir, 'eqnsets', 'all.pdf')
+    d.to_pdf(op_loc)
+    # HTMLWriter.BuildHTML(d, TestLocations.getTestOutputDir() + '/html/')
 
     print d
 
-if __name__=="__main__":
+
+if __name__ == '__main__':
     main()

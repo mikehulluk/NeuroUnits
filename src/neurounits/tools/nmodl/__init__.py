@@ -25,18 +25,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-#import string
-#
-#from neurounits.visitors import ASTVisitorBase
 from neurounits.visitors import ASTActionerDefault
-#from neurounits.visitors import SingleVisitPredicate
-#
-#from neurounits.unit_errors import panic
-#from neurounits import ast
-#from neurounits.neurounitparser import NeuroUnitParser
 from neurounits.io_types import IOType
-
-
 from .section_writers import NeuronBlockWriter
 from .section_writers import NeuronInterfaceWriter
 
@@ -58,6 +48,7 @@ from neurounits.ast import EqnSet,\
 
 
 class ModFileContents(object):
+
     def __init__(self):
         self.section_NEURON = []
         self.section_UNITS_units = []
@@ -96,11 +87,7 @@ class ModFileContents(object):
             """
         self.section_FUNCTIONS.append(ifthenelse)
 
-
     def to_text(self):
-
-
-
 
         std_sects = [
         ( self.section_NEURON,   'NEURON' ),
@@ -146,20 +133,8 @@ class ASTActionerDefaultIgnoreMissing(ASTActionerDefault):
         pass
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 class NeuronMembraneCurrent(object):
+
     def __init__(self, symbol, obj):
         self.symbol = symbol
         self.obj = obj
@@ -177,11 +152,6 @@ class NeuronMembraneCurrent(object):
             assert False, 'Unknown type: %s' % self.obj.get_dimension()
 
 
-
-
-
-
-
 class MODLBuildParameters(object):
     def __init__(self,  mechanismtype, currents,   supplied_values,  suffix, symbol_units, event_function=None ):
         self.mechanismtype = mechanismtype
@@ -191,14 +161,13 @@ class MODLBuildParameters(object):
         self.event_function = event_function
         self.symbol_units = symbol_units
 
-
     @classmethod
     def InferFromEqnset(cls, eqnset):
 
         currents = {}
         supplied_values = {}
 
-        for io_info in [ io_info for io_info in eqnset.io_data if io_info.iotype in ( IOType.Output, IOType.Input)    ]:
+        for io_info in [io_info for io_info in eqnset.io_data if io_info.iotype in (IOType.Output, IOType.Input)]:
             if not io_info.metadata or not 'mf' in io_info.metadata:
                 continue
             role = io_info.metadata['mf'].get('role', None)
@@ -241,7 +210,6 @@ class MODLBuildParameters(object):
         # Work out the units of all the terminal symbols:
         symbol_units = {}
 
-
         objs = eqnset.terminal_symbols
         n = EqnsetVisitorNodeCollector()
         n.visit(eqnset)
@@ -250,19 +218,18 @@ class MODLBuildParameters(object):
 
             if s in currents:
                 symbol_units[s] = NEURONMappings.current_units[mech_type]
-
-
             elif s in supplied_values:
+
                 t = supplied_values[s]
                 if t in NeuronSuppliedValues.All:
-                    symbol_units[s] = NEURONMappings.supplied_value_units[ t ]  #NeuroUnitParser.Unit("mV")
+                    symbol_units[s] = NEURONMappings.supplied_value_units[t]  #NeuroUnitParser.Unit("mV")
                 else:
                     print 'Unknown supplied value:', t
                     assert False
             else:
-                if isinstance (s,( EqnTimeDerivativeByRegime, EqnAssignmentByRegime, EqnSet, ConstValue) ):
+                if isinstance(s,(EqnTimeDerivativeByRegime, EqnAssignmentByRegime, EqnSet, ConstValue)):
                     continue
-                if isinstance (s,( InEquality, OnEvent) ):
+                if isinstance(s,(InEquality, OnEvent)):
                     continue
 
                 symbol_units[s] = s.get_dimension()
@@ -272,14 +239,13 @@ class MODLBuildParameters(object):
 
 
         # Event Handling:
-        zero_arg_events = [ ev for ev in eqnset.onevents if len(ev.parameters) == 0 ]
+        zero_arg_events = [ev for ev in eqnset.onevents if len(ev.parameters) == 0]
         if len(zero_arg_events) == 0:
             event_function = None
         elif len(zero_arg_events) == 1:
             event_function= zero_arg_events[0]
-            #assert False, 'Not yet handled!'
         else:
-            raise ValueError("Multiple Zero-Param Events")
+            raise ValueError('Multiple Zero-Param Events')
 
         return MODLBuildParameters(mechanismtype=mech_type, currents=currents, supplied_values=supplied_values, suffix="nmmodl"+eqnset.name, symbol_units=symbol_units, event_function=event_function  )
 
@@ -288,7 +254,7 @@ class MODLBuildParameters(object):
 
 
 
-def WriteToNMODL(eqnset, buildparameters=None, initial_values=None, neuron_suffix=None ):
+def WriteToNMODL(eqnset, buildparameters=None, initial_values=None, neuron_suffix=None):
 
     if buildparameters is None:
         buildparameters = MODLBuildParameters.InferFromEqnset(eqnset)
@@ -296,7 +262,6 @@ def WriteToNMODL(eqnset, buildparameters=None, initial_values=None, neuron_suffi
     # Overloading the neuron-suffix:
     if neuron_suffix is not None:
         buildparameters.suffix = neuron_suffix
-
 
     m = ModFileContents()
 

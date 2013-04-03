@@ -32,14 +32,12 @@ from .base import ASTObject
 
 
 class ASTExpressionObject(ASTObject):
-    def __init__(self,  dimension=None):
 
-        self._dimension = None 
+    def __init__(self, dimension=None):
+        self._dimension = None
 
         if dimension:
             self.set_dimensionality(dimension)
-
-
 
     def is_dimension_known(self):
         return self.is_dimensionality_known()
@@ -49,9 +47,6 @@ class ASTExpressionObject(ASTObject):
 
     def set_dimension(self, dimension):
         return self.set_dimensionality(dimension)
-
-
-
 
     def is_dimensionality_known(self):
         return self._dimension is not None
@@ -63,7 +58,7 @@ class ASTExpressionObject(ASTObject):
     def set_dimensionality(self, dimension):
 
         import neurounits
-        assert isinstance( dimension, neurounits.units_backends.mh.MMUnit)
+        assert isinstance(dimension, neurounits.units_backends.mh.MMUnit)
 
         assert not self.is_dimensionality_known()
         dimension = dimension.with_no_powerten()
@@ -71,14 +66,10 @@ class ASTExpressionObject(ASTObject):
         self._dimension = dimension
 
 
-
-
-
-
-
-
 # Boolean Expressions:
+
 class IfThenElse(ASTExpressionObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitIfThenElse(self, **kwargs)
 
@@ -91,28 +82,34 @@ class IfThenElse(ASTExpressionObject):
 
 # Boolean Objects:
 ####################
+
 class InEquality(ASTObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitInEquality(self, **kwargs)
 
-    def __init__(self, less_than, greater_than,**kwargs):
-        ASTObject.__init__(self,**kwargs)
+    def __init__(self, less_than, greater_than, **kwargs):
+        ASTObject.__init__(self, **kwargs)
         self.less_than = less_than
         self.greater_than = greater_than
 
+
 class BoolAnd(ASTObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitBoolAnd(self, **kwargs)
 
-    def __init__(self, lhs, rhs,**kwargs):
+    def __init__(self, lhs, rhs, **kwargs):
         self.lhs = lhs
         self.rhs = rhs
 
+
 class BoolOr(ASTObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitBoolOr(self, **kwargs)
 
-    def __init__(self, lhs, rhs,**kwargs):
+    def __init__(self, lhs, rhs, **kwargs):
         self.lhs = lhs
         self.rhs = rhs
 
@@ -124,78 +121,89 @@ class BoolNot(ASTObject):
         self.lhs = lhs
 
 
-
-
-
-
 class AssignedVariable(ASTExpressionObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitAssignedVariable(self, **kwargs)
 
-    def __init__(self, symbol,  **kwargs):
+    def __init__(self, symbol, **kwargs):
         ASTExpressionObject.__init__(self, **kwargs)
         self.symbol = symbol
 
-    def __repr__(self,):
-        return "<AssignedVariable: '%s'>" % (self.symbol)
+    def __repr__(self):
+        return "<AssignedVariable: '%s'>" % self.symbol
+
 
 class SuppliedValue(ASTExpressionObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitSuppliedValue(self, **kwargs)
 
     def __init__(self, symbol, **kwargs):
         ASTExpressionObject.__init__(self, **kwargs)
         self.symbol = symbol
-    def __repr__(self,):
-        return "<SuppliedValue: '%s'>" % (self.symbol)
+
+    def __repr__(self):
+        return "<SuppliedValue: '%s'>" % self.symbol
+
 
 class StateVariable(ASTExpressionObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitStateVariable(self, **kwargs)
 
     def __init__(self, symbol, **kwargs):
         ASTExpressionObject.__init__(self, **kwargs)
         self.symbol = symbol
-    def __repr__(self,):
-        return "<StateVariable: '%s'>" % (self.symbol)
+
+    def __repr__(self):
+        return "<StateVariable: '%s'>" % self.symbol
+
 
 class Parameter(ASTExpressionObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitParameter(self, **kwargs)
 
     def __init__(self, symbol, **kwargs):
         ASTExpressionObject.__init__(self, **kwargs)
         self.symbol = symbol
-    def __repr__(self,):
-        return "<Parameter: '%s'>" % (self.symbol)
+
+    def __repr__(self):
+        return "<Parameter: '%s'>" % self.symbol
+
 
 class ConstValue(ASTExpressionObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitConstant(self, **kwargs)
 
     def __init__(self, value, **kwargs):
         ASTExpressionObject.__init__(self, **kwargs)
         self.value = value
-        self.set_dimensionality( value.units.with_no_powerten() )
-    def __repr__(self,):
-        return "<Const: '%s'>" % (self.value)
+        self.set_dimensionality(value.units.with_no_powerten())
 
+    def __repr__(self):
+        return "<Const: '%s'>" % self.value
 
 
 class SymbolicConstant(ASTExpressionObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitSymbolicConstant(self, **kwargs)
-    def __init__(self,symbol, value,**kwargs):
-        ASTExpressionObject.__init__(self,**kwargs)
+
+    def __init__(self, symbol, value, **kwargs):
+        ASTExpressionObject.__init__(self, **kwargs)
         self.symbol = symbol
         self.value = value
-        self.set_dimensionality( value.units.with_no_powerten() )
-    def __repr__(self):
-        return "<SymbolicConstant: %s = %s>" %(self.symbol, self.value)
+        self.set_dimensionality(value.units.with_no_powerten())
 
+    def __repr__(self):
+        return '<SymbolicConstant: %s = %s>' % (self.symbol, self.value)
 
 
 class BuiltInFunction(ASTExpressionObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitBuiltInFunction(self, **kwargs)
 
@@ -208,13 +216,14 @@ class BuiltInFunction(ASTExpressionObject):
 
 
 class FunctionDef(ASTExpressionObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitFunctionDef(self, **kwargs)
 
     def __init__(self, funcname, parameters, rhs, **kwargs):
         ASTExpressionObject.__init__(self,**kwargs)
         self.funcname = funcname
-        self.parameters=parameters
+        self.parameters = parameters
         self.rhs = rhs
 
 class FunctionDefParameter(ASTExpressionObject):
@@ -223,34 +232,33 @@ class FunctionDefParameter(ASTExpressionObject):
 
     def __init__(self, symbol=None, dimension=None, **kwargs):
         ASTExpressionObject.__init__(self, **kwargs)
-        self.symbol=symbol
+        self.symbol = symbol
         if dimension is not None:
-            self.set_dimensionality( dimension)
+            self.set_dimensionality(dimension)
 
     def __repr__(self):
         return "<FunctionDefParameter '%s'>" % self.symbol
 
 
-
-
-
-
-
 class FunctionDefInstantiation(ASTExpressionObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitFunctionDefInstantiation(self, **kwargs)
 
-    def __init__(self, parameters, function_def,**kwargs):
+    def __init__(self, parameters, function_def, **kwargs):
         ASTExpressionObject.__init__(self, **kwargs)
         self.function_def = function_def
         self.parameters = parameters
 
+
 class FunctionDefParameterInstantiation(ASTExpressionObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitFunctionDefInstantiationParater(self, **kwargs)
+
     def __init__(self, rhs_ast, symbol, **kwargs):
-        ASTExpressionObject.__init__(self,**kwargs)
-        self.symbol=symbol
+        ASTExpressionObject.__init__(self, **kwargs)
+        self.symbol = symbol
         self.rhs_ast = rhs_ast
         self._function_def_parameter = None
 
@@ -263,56 +271,44 @@ class FunctionDefParameterInstantiation(ASTExpressionObject):
         return self._function_def_parameter
 
     def __repr__(self):
-        return '<FunctionDefParameterInstantiation: %s >' % (self.symbol)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        return '<FunctionDefParameterInstantiation: %s >' % self.symbol
 
 
 class BinaryOp(ASTExpressionObject):
 
-    def __init__(self,lhs,rhs,**kwargs):
-        ASTExpressionObject.__init__(self,**kwargs)
+    def __init__(self, lhs, rhs, **kwargs):
+        ASTExpressionObject.__init__(self, **kwargs)
         self.lhs = lhs
         self.rhs = rhs
 
 
 class AddOp(BinaryOp):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitAddOp(self, **kwargs)
 
+
 class SubOp(BinaryOp):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitSubOp(self, **kwargs)
 
+
 class MulOp(BinaryOp):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitMulOp(self, **kwargs)
 
+
 class DivOp(BinaryOp):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitDivOp(self, **kwargs)
 
+
 class ExpOp(BinaryOp):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitExpOp(self, **kwargs)
-
 
 

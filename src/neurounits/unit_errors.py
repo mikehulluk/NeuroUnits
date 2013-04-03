@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 # -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
@@ -30,9 +31,12 @@ class UnitError(ValueError):
 
     pass
 
+
 class DuplicateKeyError(RuntimeError):
+
     def __init__(self, key):
         self.key = key
+
     def __repr__(self):
         return 'Duplicate Key Found: %s' % str(self.key)
 

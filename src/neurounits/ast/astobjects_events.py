@@ -30,21 +30,26 @@
 from .astobjects import ASTExpressionObject
 
 class OnEvent(object):
-    def __init__(self,name, parameters, actions,**kwargs):
+    def __init__(self, name, parameters, actions, **kwargs):
         self.name = name
         self.parameters = parameters
         self.actions = [a for a in actions if a]
+
     def accept_visitor(self, o, **kwargs):
         return o.VisitOnEvent(self, **kwargs)
 
+
 class OnEventStateAssignment(ASTExpressionObject):
+
     def __init__(self, lhs, rhs, **kwargs):
-        ASTExpressionObject.__init__(self,**kwargs)
+        ASTExpressionObject.__init__(self, **kwargs)
         self.lhs = lhs
         self.rhs = rhs
-        
+
     def accept_visitor(self, o, **kwargs):
         return o.VisitOnEventStateAssignment(self, **kwargs)
 
     def __repr__(self):
         return '<OnEventStateAssignment: %s>' % id(self)
+
+

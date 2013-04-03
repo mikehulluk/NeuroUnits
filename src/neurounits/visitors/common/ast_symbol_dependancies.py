@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 # -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
@@ -29,11 +30,6 @@ from neurounits.visitors import ASTVisitorBase
 import itertools
 
 
-
-
-
-
-
 class VisitorFindDirectSymbolDependance(ASTVisitorBase):
     """ Finds symbol dependance on one another, but does
         not recurse over assignments. I.e
@@ -43,11 +39,10 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         Then 'b' will not be reported as a dependancy on 'd'
     """
 
-
     @classmethod
     def get_assignment_dependancy_ordering(cls, eqnset):
         from neurounits.ast.astobjects import AssignedVariable
-        deps = dict( [ (ass, VisitorFindDirectSymbolDependance().visit( ass_eqn.rhs ) ) for ass, ass_eqn in eqnset._eqn_assignment.iteritems() ] )
+        deps = dict([(ass, VisitorFindDirectSymbolDependance().visit(ass_eqn.rhs)) for (ass, ass_eqn) in eqnset._eqn_assignment.iteritems()])
 
         ordered = []
         to_order = set(deps.keys())
@@ -55,19 +50,18 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         while to_order:
             found = False
             for o in to_order:
-                o_deps = [ d for d in deps[o] if type(d)==AssignedVariable]
-                o_deps_unsatisfied = [d for d in  o_deps if not d in ordered]
-                if len(o_deps_unsatisfied)==0:
+                o_deps = [d for d in deps[o] if type(d) == AssignedVariable]
+                o_deps_unsatisfied = [d for d in o_deps if not d in ordered]
+                if len(o_deps_unsatisfied) == 0:
                     ordered.append(o)
                     to_order.remove(o)
                     found = True
                     break
             # Prevent recursion:
-            assert found==True, """Can't find the dependencies for: %s"""%",".join( [o.symbol for o in to_order] )
+            assert found == True, """Can't find the dependencies for: %s"""%",".join( [o.symbol for o in to_order] )
 
-        assert len(ordered) == len( eqnset._eqn_assignment)
+        assert len(ordered) == len(eqnset._eqn_assignment)
         return ordered
-
 
     @classmethod
     def get_assignment_dependancy_ordering_recursive(cls, eqnset, ass):
@@ -75,9 +69,8 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         D = VisitorFindDirectSymbolDependance()
         D.visit(eqnset)
 
-
         def ass_deps(a):
-            return [ t for t in D.dependancies[a] if isinstance(t, AssignedVariable)]
+            return [t for t in D.dependancies[a] if isinstance(t, AssignedVariable)]
 
         # resolved_deps = set()
 
@@ -97,29 +90,11 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
 
             required_deps = required_deps | to_add
 
-        #print 'Deps;', required_deps
-        # Order them:
-        op = [ o for o in cls.get_assignment_dependancy_ordering(eqnset) if o in required_deps ]
+        op = [o for o in cls.get_assignment_dependancy_ordering(eqnset) if o in required_deps]
         return op
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def __init__(self):
         self.dependancies = {}
-
 
     def VisitEqnSet(self, o, **kwargs):
         for a in o.assignments:
@@ -127,7 +102,7 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
 
         for a in o.timederivatives:
             self.dependancies[a] = self.visit(a)
-    
+
     def VisitNineMLComponent(self, o, **kwargs):
         for a in o.assignments:
             self.dependancies[a.lhs] = self.visit(a)
@@ -135,11 +110,9 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         for a in o.timederivatives:
             self.dependancies[a] = self.visit(a)
 
-
-
-
     def VisitSymbolicConstant(self, o, **kwargs):
         return []
+
     def VisitIfThenElse(self, o, **kwargs):
         d1 = self.visit(o.predicate, **kwargs)
         d2 = self.visit(o.if_true_ast, **kwargs)
@@ -155,13 +128,15 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         d1 = self.visit(o.lhs, **kwargs)
         d2 = self.visit(o.rhs, **kwargs)
         return d1 + d2
+
     def VisitBoolOr(self, o, **kwargs):
         d1 = self.visit(o.lhs, **kwargs)
         d2 = self.visit(o.rhs, **kwargs)
         return d1 + d2
+
     def VisitBoolNot(self, o, **kwargs):
         d1 = self.visit(o.lhs, **kwargs)
-        return d1 
+        return d1
 
     # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):
@@ -169,13 +144,13 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
 
     def VisitBuiltInFunction(self, o, **kwargs):
         raise NotImplementedError()
+
     def VisitFunctionDefParameter(self, o, **kwargs):
         raise NotImplementedError()
 
     # Terminals:
     def VisitStateVariable(self, o, **kwargs):
         return [o]
-
 
     def VisitParameter(self, o, **kwargs):
         return [o]
@@ -194,17 +169,10 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         return self.visit(o.rhs_map)
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
-        #assert len(o.rhs_map.values())==1, 'Do we need to add the state as a dependancy?'
         symbols = []
         for rhs in o.rhs_map.values():
-            symbols.extend( self.visit(rhs, **kwargs) )
+            symbols.extend(self.visit(rhs, **kwargs))
         return symbols
-
-
-
-
-#    def VisitEqnAssignment(self, o, **kwargs):
-#       return self.visit(o.rhs) 
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         return self.visit(o.rhs_map)

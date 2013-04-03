@@ -13,11 +13,10 @@ import itertools
 import collections
 
 
-
 class NodeColor(ASTVisitorBase):
+
     def VisitLibrary(self, o, **kwargs):
         return 'green'
-
 
     def visit(self, o):
 
@@ -40,8 +39,7 @@ class NodeColor(ASTVisitorBase):
             return 'red'
 
 
-
-class ActionerPlotNetworkX():
+class ActionerPlotNetworkX(object):
     def __init__(self, o):
 
 
@@ -51,29 +49,26 @@ class ActionerPlotNetworkX():
         for node in connections.keys():
             graph.add_node(node, color='green')
 
-        for node, connections in connections.items():
+        for (node, connections) in connections.items():
             for c in connections:
-                graph.add_edge(node,c, color='blue')
-
+                graph.add_edge(node, c, color='blue')
 
         nc = NodeColor()
-        node_color=[nc.visit(v) for v in graph]
+        node_color = [nc.visit(v) for v in graph]
 
         f = plt.figure()
         nx.draw_spring(graph, font_size=8, iteration=200, node_color=node_color,scale=2)
         #nx.draw_graphviz(graph, font_size=8, iteration=200, node_color=node_color,scale=2)
         #plt.title(str(o) )
         ax = plt.gca()
-        ax.text(0.5,0.5, 'Hello')
-        plt.show()
-        
-
-
+        ax.text(0.5, 0.5, 'Hello')
         plt.show()
 
+        plt.show()
 
 
 class ActionerGetConnections(ASTActionerDefault):
+
     def __init__(self, o):
         ASTActionerDefault.__init__(self, action_predicates=[SingleVisitPredicate()])
         self.connections = collections.defaultdict(list)
@@ -82,9 +77,8 @@ class ActionerGetConnections(ASTActionerDefault):
     def get_connections(self):
         return self.connections
 
-
     def ActionAnalogReducePort(self, o, **kwargs):
-        self.connections[o].extend( o.rhses)
+        self.connections[o].extend(o.rhses)
 
     def ActionLibrary(self, o, **kwargs):
         self.connections[o].extend(o.functiondefs)
@@ -147,14 +141,19 @@ class ActionerGetConnections(ASTActionerDefault):
     # Terminals:
     def ActionStateVariable(self, o, **kwargs):
         pass
+
     def ActionSymbolicConstant(self, o, **kwargs):
         pass
+
     def ActionParameter(self, o, **kwargs):
         pass
+
     def ActionConstant(self, o, **kwargs):
         pass
+
     def ActionAssignedVariable(self, o, **kwargs):
         pass
+
     def ActionSuppliedValue(self, o, **kwargs):
         pass
 
@@ -169,7 +168,6 @@ class ActionerGetConnections(ASTActionerDefault):
     def ActionEqnAssignmentByRegime(self, o, **kwargs):
         self.connections[o].append(o.lhs)
         self.connections[o].append(o.rhs_map)
-
 
     def ActionAddOp(self, o, **kwargs):
         self.connections[o].append(o.lhs)
@@ -197,8 +195,6 @@ class ActionerGetConnections(ASTActionerDefault):
     def ActionFunctionDefInstantiationParater(self, o, **kwargs):
         self.connections[o].append(o.rhs_ast)
 
-
-
     def ActionOnTransitionTrigger(self, o, **kwargs):
         self.connections[o].append(o.trigger)
         self.connections[o].extend(o.actions)
@@ -212,8 +208,5 @@ class ActionerGetConnections(ASTActionerDefault):
 
     def ActionEmitEvent(self, o, **kwargs):
         self.connections[o].extend(o.parameter_map.values())
-
-
-
 
 

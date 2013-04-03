@@ -32,12 +32,9 @@ from neurounits.ast.astobjects import SuppliedValue
 from neurounits.ast.astobjects import Parameter, StateVariable
 from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator
 
-
 import quantities as pq
 import numpy as np
 
-
-#from mredoc import *
 from neurounits.ast import BuiltInFunction
 
 
@@ -49,21 +46,18 @@ from neurounits.ast import BuiltInFunction
 def get_prefered_dimensions():
     from .. import NeuroUnitParser
     prefered_dimension_dims = [
-                 (NeuroUnitParser.Unit("S"), 'S'),
-                 (NeuroUnitParser.Unit("V"), 'V'),
-                 (NeuroUnitParser.Unit("A"), 'A'),
-                 (NeuroUnitParser.Unit("S/m2"), 'S/m2'),
-                 (NeuroUnitParser.Unit("A/m2"), 'A/m2'),
+        (NeuroUnitParser.Unit('S'), 'S'),
+        (NeuroUnitParser.Unit('V'), 'V'),
+        (NeuroUnitParser.Unit('A'), 'A'),
+        (NeuroUnitParser.Unit('S/m2'), 'S/m2'),
+        (NeuroUnitParser.Unit('A/m2'), 'A/m2'),
+        (NeuroUnitParser.Unit('mV'), 'mV'),
+        (NeuroUnitParser.Unit('ms'), 'ms'),
+        (NeuroUnitParser.Unit('ms-1'), 'ms^{-1}'),
+        (NeuroUnitParser.Unit('K'), 'K'),
+        ]
 
-                 (NeuroUnitParser.Unit("mV"), 'mV'),
-                 (NeuroUnitParser.Unit("ms"), 'ms'),
-                 (NeuroUnitParser.Unit("ms-1"), 'ms^{-1}'),
-                 (NeuroUnitParser.Unit("K"), 'K'),
-
-                 ]
     return prefered_dimension_dims
-
-
 
 
 def FormatDimensionality(dim):
@@ -71,11 +65,6 @@ def FormatDimensionality(dim):
         if dim == unit:
             return symbol
     return dim.FormatLatex()
-
-
-
-
-
 
 
 class LatexEqnWriterN(ASTVisitorBase):
@@ -106,22 +95,17 @@ class LatexEqnWriterN(ASTVisitorBase):
 
     # High Level Display:
 
-    #def VisitEqnAssignment(self, o, **kwargs):
-    #    return Equation('%s&=%s' % (self.visit(o.lhs),
-    #                    self.visit(o.rhs)))
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         return Equation('%s&=%s' % (self.visit(o.lhs),
                         self.visit(o.rhs_map)))
 
-    
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         return Equation(r"""\frac{d}{dt}%s &= %s""" % (self.visit(o.lhs), self.visit(o.rhs_map)) )
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
         if len(o.rhs_map) == 1:
             return self.visit(o.rhs_map.values()[0])
-
         else:
             case_lines = [ '%s & if %s'%(reg, self.visit(rhs)) for (reg,rhs) in o.rhs_map ]
             return r""" \begin{cases} %s \end{cases}""" % ( r'\\'.join(case_lines))
@@ -138,7 +122,7 @@ class LatexEqnWriterN(ASTVisitorBase):
 
         tr = '%s(%s) \\rightarrow ' % (ev_name,
                 ','.join(o.parameters.keys()))  #
-        evts = '\\begin{cases}' + r"\\".join([self.visit(a) for a in
+        evts = '\\begin{cases}' + '\\\\'.join([self.visit(a) for a in
                 o.actions]) + '\\end{cases}'
         return Equation(tr + evts)
 
@@ -174,7 +158,6 @@ class LatexEqnWriterN(ASTVisitorBase):
 
     def VisitSymbolicConstant(self, o, **kwargs):
         return self.FormatTerminalSymbol(o.symbol)
-
 
     # AST Nodes:
 
@@ -275,7 +258,6 @@ def build_figures(eqnset):
 
             f = F.assignment_evaluators[a.symbol]
 
-
             try:
                 #print f
                 vVals = [-80, -70, -60, -40, -20, 0, 20, 40]
@@ -302,7 +284,6 @@ def build_figures(eqnset):
                 ax.set_ylabel('%s (%s)' % (a.symbol, oUnit))
                 ax.grid('on')
                 plots[a.symbol] = f
-
             else:
 
                 color = 'b'
@@ -316,7 +297,6 @@ def build_figures(eqnset):
                 ax.set_ylabel('%s (%s)' % (a.symbol, '$%s$'%dim if dim.strip() else ''))
                 ax.grid('on')
                 plots[a.symbol] = f
-
 
     # Build figure groups based on the first term:
 
@@ -369,9 +349,7 @@ class MRedocWriterVisitor(ASTVisitorBase):
                         VerbatimBlock(library_manager.src_text))
             local_redocs = [p] + local_redocs
 
-        #print local_redocs
-        #assert False
-
+        
         # Check here;
         d = Section(title, local_redocs)
         return d
@@ -429,13 +407,12 @@ class MRedocWriterVisitor(ASTVisitorBase):
 
         format_dim = lambda o: "$%s$"%FormatDimensionality( o.get_dimension() ) if not o.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False) else  "-"
 
-        #symbol_format = lambda s:s
+        # symbol_format = lambda s:s
 
-        #dep_string_indir = lambda s: ",".join( [symbol_format(o.symbol) for o in sorted( set(eqnset.getSymbolDependancicesIndirect(s, include_ass_in_output=False)), key=lambda s:s.symbol ) ] )
+        # dep_string_indir = lambda s: ",".join( [symbol_format(o.symbol) for o in sorted( set(eqnset.getSymbolDependancicesIndirect(s, include_ass_in_output=False)), key=lambda s:s.symbol ) ] )
 
-        #meta_format = lambda s: eqnset.getSymbolMetadata(s) or "-"
-        #plts = build_figures( eqnset)
-
+        # meta_format = lambda s: eqnset.getSymbolMetadata(s) or "-"
+        # plts = build_figures( eqnset)
 
         return SectionNewPage('Library Summary: %s' % library.name,
                               Section('Imports'),

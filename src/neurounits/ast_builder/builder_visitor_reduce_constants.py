@@ -26,6 +26,10 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
+
 class Visitor_ReplaceSymbol(object):
+
     def __init__(self, src_symbol, previous_symbol):
         pass
+
+

@@ -31,17 +31,15 @@ from neurounits.visitors import ASTVisitorBase
 class StringWriterVisitor(ASTVisitorBase):
 
     def VisitEqnSet(self, o, **kwargs):
-        
+
         ass_str = [self.visit(a) for a in o.assignments]
         tds_str = [self.visit(a) for a in o.timederivatives]
         fnc_str = [self.visit(a) for a in o.functiondefs]
 
-
         details = 'Eqnset: %s' % o.name
-        actions =  '\n'.join( ass_str + tds_str + fnc_str )
+        actions = '\n'.join(ass_str + tds_str + fnc_str)
 
-        return '\n'.join([details,actions])
-
+        return '\n'.join([details, actions])
 
     def VisitFunctionDef(self, o, **kwargs):
         return '<FUNCDEF: %s => %s>' % (o.funcname, self.visit(o.rhs))
@@ -96,8 +94,7 @@ class StringWriterVisitor(ASTVisitorBase):
         return '(%s || %s)' % (self.visit(o.lhs), self.visit(o.rhs))
 
     def VisitBoolNot(self, o, **kwargs):
-        return '(! %s)'%( self.visit(o.lhs) )
-
+        return '(! %s)' % self.visit(o.lhs)
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
         p = [self.visit(p) for p in o.parameters.values()]
@@ -107,11 +104,10 @@ class StringWriterVisitor(ASTVisitorBase):
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         return '<%s: %s>' % (o.__class__.__name__, o.symbol)
 
-
     def VisitIfThenElse(self, o, **kwargs):
-        return "[%s] if [%s] else [%s]" % (self.visit(o.if_true_ast),
+        return '[%s] if [%s] else [%s]' % (self.visit(o.if_true_ast),
                                            self.visit(o.predicate),
-                                           self.visit(o.if_false_ast) )
+                                           self.visit(o.if_false_ast))
     def VisitInEquality(self, o, **kwargs):
-        return "[%s < %s]" % (self.visit(o.less_than),self.visit(o.greater_than) )
+        return '[%s < %s]' % (self.visit(o.less_than),self.visit(o.greater_than))
 

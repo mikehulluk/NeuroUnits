@@ -28,6 +28,7 @@
 
 
 class SymbolProxy(object):
+
     def __init__(self):
         self.target = None
 
@@ -38,7 +39,6 @@ class SymbolProxy(object):
 
     def is_resolved(self):
         return self.target is not None
-
 
     def accept_visitor(self, v, **kwargs):
         assert self.is_resolved()

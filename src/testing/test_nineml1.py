@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 import neurounits
 import inspect
@@ -267,19 +269,18 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
 
     symbols_not_to_rename = []
     if auto_remap_time:
-        time_node = SuppliedValue(symbol = 't')
+        time_node = SuppliedValue(symbol='t')
         symbols_not_to_rename.append(time_node)
 
-        for component_name, component in instantiate.items():
+        for (component_name, component) in instantiate.items():
             print component.terminal_symbols
             if component.has_terminal_obj('t'):
-                ReplaceNode(srcObj=component.get_terminal_obj('t'), dstObj = time_node).visit(component)
+                ReplaceNode(srcObj=component.get_terminal_obj('t'), dstObj=time_node).visit(component)
 
                 component._cache_nodes()
 
-
     # 2. Rename all the internal names of the objects:
-    for component_name, component in instantiate.items():
+    for (component_name, component) in instantiate.items():
         # Symbols:
         for obj in component.terminal_symbols:
             if obj in symbols_not_to_rename:
@@ -317,13 +318,8 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
         for rt_graph in c.rt_graphs.values():
             builddata.rt_graphs[rt_graph.name] = rt_graph
 
-
-        builddata.transitions_triggers.extend( c._transitions_triggers)
-        builddata.transitions_events.extend( c._transitions_events)
-
-
-
-
+        builddata.transitions_triggers.extend(c._transitions_triggers)
+        builddata.transitions_events.extend(c._transitions_events)
 
     # 4. Build the object:
     comp = NineMLComponent(library_manager = lib_mgr,
@@ -335,7 +331,7 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
 
 
     # 5. Connect the relevant ports internally:
-    for (src,dst) in analog_connections:
+    for (src, dst) in analog_connections:
 
         src_obj = comp.get_terminal_obj(src)
         dst_obj = comp.get_terminal_obj(dst)
@@ -343,16 +339,15 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
         if isinstance(dst_obj, AnalogReducePort):
             dst_obj.rhses.append(src_obj)
         elif isinstance(dst_obj, SuppliedValue):
-            ReplaceNode(srcObj=dst_obj, dstObj = src_obj).visit(comp)
+            ReplaceNode(srcObj=dst_obj, dstObj=src_obj).visit(comp)
         else:
             assert False, 'Unexpected node type: %s' % dst_obj
         comp._cache_nodes()
 
-
     # 6. Map relevant ports externally:
     if remap_ports:
-        for (src,dst) in remap_ports:
-            assert not dst in [ s.symbol for s in comp.terminal_symbols]
+        for (src, dst) in remap_ports:
+            assert not dst in [s.symbol for s in comp.terminal_symbols]
             comp._cache_nodes()
 
     comp._cache_nodes()
@@ -362,21 +357,9 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
     PropogateDimensions.propogate_dimensions(comp)
     VerifyUnitsInTree(comp, unknown_ok=False)
 
-
-
-
     # Return the new component:
     return comp
 
-
-
-
-
-
-
-class EventHandler(object):
-    def emit_event(self, ):
-        pass
 
 
 
@@ -388,25 +371,21 @@ def close_analog_port(ap, comp):
     if len(ap.rhses) == 1:
         new_node = ap.rhses[0]
     if len(ap.rhses) == 2:
-        new_node = ast.AddOp( ap.rhses[0], ap.rhses[1] )
+        new_node = ast.AddOp(ap.rhses[0], ap.rhses[1])
     if len(ap.rhses) == 3:
-        new_node = ast.AddOp( ap.rhses[0], ast.AddOp(ap.rhses[1],ap.rhses[2] ) )
+        new_node = ast.AddOp(ap.rhses[0], ast.AddOp(ap.rhses[1],
+                             ap.rhses[2]))
 
     assert new_node is not None
-    ReplaceNode(srcObj=ap, dstObj = new_node).visit(comp)
+    ReplaceNode(srcObj=ap, dstObj=new_node).visit(comp)
     comp._cache_nodes()
     PropogateDimensions.propogate_dimensions(comp)
 
 
 def close_all_analog_reduce_ports(component):
-     for ap in component.analog_reduce_ports:
-            print 'Closing', ap
-            close_analog_port(ap, component)
-
-
-
-
-
+    for ap in component.analog_reduce_ports:
+        print 'Closing', ap
+        close_analog_port(ap, component)
 
 
 class SimulationResultsData(object):
@@ -417,17 +396,15 @@ class SimulationResultsData(object):
         self.transitions = transitions
         self.rt_regimes = rt_regimes
 
-    def get_time(self,):
+    def get_time(self):
         return self.times
 
 
-
-
-def do_transition_change(tr,state_data, functor_gen):
+def do_transition_change(tr, state_data, functor_gen):
     print 'Transition Triggered!',
     # State assignments & events:
     functor = functor_gen.transitions_actions[tr]
-    functor( state_data=state_data)
+    functor(state_data=state_data)
 
     # Copy the changes
     return (state_data.states_out, tr.target_regime)
@@ -439,13 +416,9 @@ def simulate_component(component, times, parameters,initial_state_values, initia
     # Before we start, check the dimensions of the AST tree
     VerifyUnitsInTree(component, unknown_ok=False)
 
-
-
-
     # Close all the open analog ports:
     if close_reduce_ports:
         close_all_analog_reduce_ports(component)
-
 
     # Sort out the parameters and initial_state_variables:
     # =====================================================
@@ -454,13 +427,11 @@ def simulate_component(component, times, parameters,initial_state_values, initia
     initial_state_values = dict( (k, neurounits.Q1(v)) for (k,v) in initial_state_values.items() )
 
     # Sanity check, are the parameters and initial state_variable values in teh right units:
-    for (k,v) in parameters.items() + initial_state_values.items():
-        print k,v
+    for (k, v) in parameters.items() + initial_state_values.items():
+        print k, v
         terminal_obj = component.get_terminal_obj(k)
-        assert terminal_obj.get_dimension().is_compatible( v.get_units() )
+        assert terminal_obj.get_dimension().is_compatible(v.get_units())
     # =======================================================
-
-
 
     # Resolve initial regimes:
     # ========================
@@ -468,7 +439,7 @@ def simulate_component(component, times, parameters,initial_state_values, initia
     current_regimes = dict( [ (rt, None) for rt in component.rt_graphs.values()] )
 
     # ii. Is there just a single regime?
-    for rt_graph, regime in current_regimes.items():
+    for (rt_graph, regime) in current_regimes.items():
         if len(rt_graph.regimes) == 1:
             current_regimes[rt_graph] = rt_graph.regimes.values()[0]
 
@@ -504,40 +475,37 @@ def simulate_component(component, times, parameters,initial_state_values, initia
     f = FunctorGenerator(component)
 
     reses_new = []
-    #reses = []
     print 'Running Simulation:'
     print
 
     state_values = initial_state_values.copy()
-    for i in range(len(times)-1):
+    for i in range(len(times) - 1):
 
         t = times[i]
         if verbose:
             print 'Time:', t
             print '---------'
-            print  state_values
-        print '\rTime: %s'%str('%2.2f'%t).ljust(5),
+            print state_values
+        print '\rTime: %s' % str('%2.2f' % t).ljust(5),
         sys.stdout.flush()
 
 
-        #reses.append( (t,state_values.copy()))
+
 
         t_unit = t * neurounits.NeuroUnitParser.QuantitySimple('1s')
-        supplied_values = {'t' : t_unit }
-
+        supplied_values = {'t': t_unit}
 
         # Build the data for this loop:
         state_data = SimulationStateData(
-            parameters = parameters,
-            suppliedvalues = supplied_values,
-            states_in = state_values,
-            states_out = {},
-            rt_regimes =current_regimes,
+            parameters=parameters,
+            suppliedvalues=supplied_values,
+            states_in=state_values,
+            states_out={},
+            rt_regimes=current_regimes,
         )
 
         # Save the state data:
         reses_new.append(state_data.copy())
-
 
         # Compute the derivatives at each point:
         deltas = {}
@@ -547,13 +515,11 @@ def simulate_component(component, times, parameters,initial_state_values, initia
             deltas[td.lhs.symbol] = res
 
         # Update the states:
-        for d, dS in deltas.items():
-            #print d
-            #print state_values
+        for (d, dS) in deltas.items():
             assert d in state_values
             state_values[d] += dS * (times[i+1] - times[i] ) * neurounits.NeuroUnitParser.QuantitySimple('1s')
 
-        #state_vars_orig = state_values.copy()
+       
         # Check for transitions:
         #print 'Checking for transitions:'
         for rt_graph in component.rt_graphs.values():
@@ -580,7 +546,7 @@ def simulate_component(component, times, parameters,initial_state_values, initia
     times = np.array( [time_pt_data.suppliedvalues['t'].float_in_si() for time_pt_data in reses_new] )
 
     # B. State variables:
-    state_names = [ s.symbol for s in component.states]
+    state_names = [s.symbol for s in component.states]
 
     state_data_dict = {}
     for state_name in state_names:
@@ -591,7 +557,7 @@ def simulate_component(component, times, parameters,initial_state_values, initia
     # C. Assigned Values:
     # TODO:
 
-    #D. RT-gragh Regimes:
+    # D. RT-gragh Regimes:
     # Build a dictionary mapping regimes -> Regimes, to make plotting easier:
     regimes_to_ints_map = {}
     for rt_graph in component.rt_graphs.values():
@@ -601,26 +567,19 @@ def simulate_component(component, times, parameters,initial_state_values, initia
     for rt_graph in component.rt_graphs.values():
         regimes = [ time_pt_data.rt_regimes[rt_graph] for time_pt_data in reses_new]
         regimes_ints = np.array([ regimes_to_ints_map[rt_graph][r] for r in regimes])
-        rt_graph_data[rt_graph.name] = (regimes_ints) #, regimes_to_ints_map[rt_graph])
+        rt_graph_data[rt_graph.name] = (regimes_ints) 
 
 
 
 
 
     # Hook it all up:
-    res = SimulationResultsData(
-        times=times,
-        state_variables=state_data_dict,
-        rt_regimes = rt_graph_data,
-        assignments={},
-        transitions=[],
-    )
+    res = SimulationResultsData(times=times,
+                                state_variables=state_data_dict,
+                                rt_regimes=rt_graph_data,
+                                assignments={}, transitions=[])
 
     return res
-
-
-
-
 
 
 def test1():

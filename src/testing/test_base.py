@@ -1,4 +1,7 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.
 # All rights reserved.
 #
@@ -23,32 +26,31 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
-
+# -------------------------------------------------------------------------------
 
 from util_test_locations import TestLocations
 from mredoc import Document, TableOfContents, SectionNewPage
 from os.path import join as Join
 
 
-
 class ReportGenerator(object):
 
     subclasses = []
 
-    def __init__(self, title, ):
+    def __init__(self, title):
         self.title = title
         ReportGenerator.subclasses.append(self)
 
-    def __call__(self,):
+    def __call__(self):
         raise NotImplementedError()
 
     @classmethod
-    def report_all(cls, output_loc="/tmp/neurtestout/"):
-        op = [ SectionNewPage( s.title, *s()) for s in ReportGenerator.subclasses ]
+    def report_all(cls, output_loc='/tmp/neurtestout/'):
+        op = [SectionNewPage(s.title, *s()) for s in ReportGenerator.subclasses]
 
-        d = Document( TableOfContents(), *op)
+        d = Document(TableOfContents(), *op)
         op_dir = TestLocations.getTestOutputDir()
-        op_loc = Join( op_dir, 'everything.pdf' )
+        op_loc = Join(op_dir, 'everything.pdf')
         d.to_pdf(op_loc)
+
 

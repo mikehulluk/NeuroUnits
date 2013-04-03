@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 # -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
@@ -28,17 +29,18 @@
 
 class ASTVisitorBase(object):
 
-
     def visit(self, o, **kwargs):
         return o.accept_visitor(self, **kwargs)
 
     def VisitEqnSet(self, o, **kwargs):
         raise NotImplementedError()
+
     def VisitNineMLComponent(self, o, **kwargs):
         raise NotImplementedError(self)
 
     def VisitOnEvent(self, o, **kwargs):
         raise NotImplementedError()
+
     def VisitOnEventStateAssignment(self, o, **kwargs):
         raise NotImplementedError()
 
@@ -50,10 +52,13 @@ class ASTVisitorBase(object):
 
     def VisitInEquality(self, o, **kwargs):
         raise NotImplementedError()
+
     def VisitBoolAnd(self, o, **kwargs):
         raise NotImplementedError()
+
     def VisitBoolOr(self, o, **kwargs):
         raise NotImplementedError()
+
     def VisitBoolNot(self, o, **kwargs):
         raise NotImplementedError()
 
@@ -63,6 +68,7 @@ class ASTVisitorBase(object):
 
     def VisitBuiltInFunction(self, o, **kwargs):
         raise NotImplementedError()
+
     def VisitFunctionDefParameter(self, o, **kwargs):
         raise NotImplementedError()
 
@@ -78,6 +84,7 @@ class ASTVisitorBase(object):
 
     def VisitAssignedVariable(self, o, **kwargs):
         raise NotImplementedError()
+
     def VisitSuppliedValue(self, o, **kwargs):
         raise NotImplementedError()
 
@@ -89,7 +96,6 @@ class ASTVisitorBase(object):
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         raise NotImplementedError()
-
 
     def VisitAddOp(self, o, **kwargs):
         raise NotImplementedError()

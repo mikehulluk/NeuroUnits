@@ -26,36 +26,36 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-
 import re
 from neurounits.io_types import IOType
 from neurounits.units_misc import read_json
 
 
 class IOData(object):
+
     def __init__(self, symbol, iotype, metadata={}):
         self.symbol = symbol
         self.iotype = iotype
         self.metadata = metadata
 
+
 class IODataDimensionSpec(IOData):
+
     def __init__(self, symbol, iotype, dimension=None, **kwargs):
         IOData.__init__(self, symbol=symbol, iotype=iotype, **kwargs)
         self.dimension = dimension
 
 
 class IODataInitialCondition(IOData):
-    def __init__(self, symbol,  value, **kwargs):
+    def __init__(self, symbol, value, **kwargs):
         IOData.__init__(self, symbol=symbol, iotype=IOType.InitialCondition, **kwargs)
         self.value = value
-
 
 
 def parse_io_line(line):
     from neurounits import NeuroUnitParser
     from neurounits.unit_errors import ParsingError
     assert isinstance(line, basestring)
-    
 
     metadata = {}
     if 'METADATA' in line:
@@ -63,15 +63,14 @@ def parse_io_line(line):
         metadata = read_json(metadata)
 
 
-    r = re.compile( r"""<=> \s* (?P<MODE>[a-zA-Z][a-zA-Z_]*) \s* (?P<DEFS>.*) $""", re.VERBOSE)
+    r = re.compile(r"""<=> \s* (?P<MODE>[a-zA-Z][a-zA-Z_]*) \s* (?P<DEFS>.*) $""", re.VERBOSE)
     m = r.match(line)
 
     if not m:
-        raise ParsingError('Unable to parse line: "%s"'%line)
+        raise ParsingError('Unable to parse line: "%s"' % line)
     g = m.groupdict()
 
     mode = g['MODE']
-
 
     if mode in ('INPUT', 'OUTPUT', 'PARAMETER', 'ANALOG_REDUCE_PORT'):
         defs = []
@@ -104,7 +103,7 @@ def parse_io_line(line):
             defs.append(io_data)
         return defs
 
-    elif mode == "INITIAL":
+    elif mode == 'INITIAL':
         defs = []
         data = g['DEFS']
         for d in data.split(','):

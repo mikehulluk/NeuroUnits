@@ -27,7 +27,6 @@
 # -------------------------------------------------------------------------------
 
 
-
 class NeuroUnitsImportNeuroMLNotImplementedException(Exception):
 
     pass
@@ -41,6 +40,5 @@ class NeuroMLFileContainsNoChannels(Exception):
 class NeuroMLFileContainsMultipleChannels(Exception):
 
     pass
-
 
 

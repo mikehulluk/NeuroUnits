@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 # -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
@@ -25,7 +26,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-
 import os
 import UserDict
 
@@ -50,7 +50,6 @@ def safe_dict_merge(*args):
     return out_dct
 
 
-
 class SingleSetDict(dict):
 
     def __setitem__(self, key, val):
@@ -60,8 +59,8 @@ class SingleSetDict(dict):
         dict.__setitem__(self, key, val)
 
 
-
 # http://code.activestate.com/recipes/305268-chained-map-lookups/
+
 class Chainmap(UserDict.DictMixin):
 
     """Combine multiple mappings for sequential lookup.
@@ -84,8 +83,6 @@ class Chainmap(UserDict.DictMixin):
         raise KeyError(key)
 
 
-
-
 def IterateDictValueByKeySorted(d):
     keys = sorted(d.keys())
     for k in keys:
@@ -96,3 +93,5 @@ def IterateDictValueByKeySorted(d):
 def read_json(s):
     x = json.loads(s)
     return x
+
+

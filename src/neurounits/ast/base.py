@@ -26,6 +26,10 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
+
 class ASTObject(object):
+
     def is_resolved(self):
         return True
+
+

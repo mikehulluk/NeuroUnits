@@ -33,70 +33,62 @@ from neurounits.unit_errors import UnitError
 
 class UnitExprLexer(object):
     reserved = {
-            'if':   'IF',
-            'else': 'ELSE',
+        'if': 'IF',
+        'else': 'ELSE',
 
-            'from': 'FROM',
-            'import':'IMPORT',
-            'as':'AS',
-            'library':'LIBRARY',
-            'eqnset': 'EQNSET',
+        'from': 'FROM',
+        'import': 'IMPORT',
+        'as': 'AS',
 
-            'module': 'MODULE',
-            'define_component': 'DEFINE_COMPONENT',
-            'regime': 'REGIME',
-            'transition_to': 'TRANSITION_TO',
-            'on': 'ON',
-            'emit': 'EMIT',
-            'rtgraph':'RTGRAPH',
-            
+        'library': 'LIBRARY',
+        'eqnset': 'EQNSET',
 
-            }
-
+        'module': 'MODULE',
+        'define_component': 'DEFINE_COMPONENT',
+        'regime': 'REGIME',
+        'transition_to': 'TRANSITION_TO',
+        'on': 'ON',
+        'emit': 'EMIT',
+        'rtgraph': 'RTGRAPH',
+        }
 
     tokens = [
-        "IO_LINE",
-        "ONEVENT_SYMBOL",
-
-        "INTEGER",
-        "FLOAT",
-        "SLASH",
-        "WHITESPACE",
-        "LBRACKET",
-        "RBRACKET",
-        "LCURLYBRACKET",
-        "RCURLYBRACKET",
-        "ALPHATOKEN",
-        
-        "TIMES","PLUS", 
+        'IO_LINE',
+        'ONEVENT_SYMBOL',
+        'INTEGER',
+        'FLOAT',
+        'SLASH',
+        'WHITESPACE',
+        'LBRACKET',
+        'RBRACKET',
+        'LCURLYBRACKET',
+        'RCURLYBRACKET',
+        'ALPHATOKEN',
+        'TIMES',
+        'PLUS',
         'MINUS',
-        "TILDE",
-        "COMMA",
-        "EQUALS",
-        "COLON",
-        "NO_UNIT",
-        "TIMESTIMES",
-        "NEWLINE",
-        "PRIME",
-        "LSQUAREBRACKET",
-        "RSQUAREBRACKET",
-        "SEMICOLON",
-
-        "DOT",
-
-        "LESSTHAN",
-        "GREATERTHAN",
+        'TILDE',
+        'COMMA',
+        'EQUALS',
+        'COLON',
+        r"""NO_UNIT""",
+        'TIMESTIMES',
+        'NEWLINE',
+        'PRIME',
+        'LSQUAREBRACKET',
+        'RSQUAREBRACKET',
+        'SEMICOLON',
+        'DOT',
+        'LESSTHAN',
+        'GREATERTHAN',
         'AND',
         'OR',
         'NOT',
-
-
-
         ] + list(reserved.values())
-
 
     def t_NO_UNIT(self, t):
         r"""NO_UNIT"""
+
         return t
 
     def t_FLOAT(self, t):
@@ -113,7 +105,6 @@ class UnitExprLexer(object):
         r"""[a-zA-Z_]+"""
         t.type = UnitExprLexer.reserved.get(t.value, t.type)
         return t
-
 
     def t_NEWLINE(self, t):
         r"""\n+"""
@@ -144,7 +135,6 @@ class UnitExprLexer(object):
     t_TIMES = r"""\*"""
     t_PLUS = r"""\+"""
 
-
     t_COMMA = r""","""
     t_COLON = r""":"""
     t_EQUALS = r"""="""
@@ -154,11 +144,8 @@ class UnitExprLexer(object):
     t_OR = r"""\|"""
 
 
-    # {~xyz} units
-
     def t_error(self, t):
         raise UnitError("Illegal character '%s'" % t.value[0])
-
 
     def __init__(self):
         self.lexer = ply.lex.lex(module=self)
@@ -171,4 +158,5 @@ class UnitExprLexer(object):
 
         # print 'TOKEN:',t
         return t
+
 

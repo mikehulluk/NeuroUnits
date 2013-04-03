@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 # -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
@@ -87,21 +88,18 @@ class DotVisitor(ASTVisitorBase):
             return labeller[type(o)](o)
 
         color_scheme = {
-                ast.FunctionDef :           'b',
-                ast.FunctionDefParameter :  'r',
-                ast.AddOp :                 'orange',
-                ast.SubOp :                 'orange',
-                ast.MulOp :                 'orange',
-                ast.DivOp :                 'orange',
-
-                ast.SuppliedValue :         'green',
-                ast.ConstValue :            'green',
-                ast.Parameter :             'green',
-
-                ast.AssignedVariable :             'purple',
-                ast.StateVariable :             'purple',
-                }
-
+            ast.FunctionDef: 'b',
+            ast.FunctionDefParameter: 'r',
+            ast.AddOp: 'orange',
+            ast.SubOp: 'orange',
+            ast.MulOp: 'orange',
+            ast.DivOp: 'orange',
+            ast.SuppliedValue: 'green',
+            ast.ConstValue: 'green',
+            ast.Parameter: 'green',
+            ast.AssignedVariable: 'purple',
+            ast.StateVariable: 'purple',
+            }
 
         # P.show()
 
@@ -121,7 +119,6 @@ class DotVisitor(ASTVisitorBase):
 
         # RHS:
         self.VisitAndAddEdge(o, o.rhs)
-
 
     def VisitFunctionDefParameter(self, o, **kwargs):
         self.g.add_node(o)

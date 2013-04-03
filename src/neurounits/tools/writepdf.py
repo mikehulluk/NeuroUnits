@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 # -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
@@ -25,12 +26,16 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-
 from neurounits.writers import LatexWriterVisitor
+
+
 class WriteToPDF(object):
     def __init__(self, eqnset, filename, additional_verbatim=None):
 
-       latex_working_dir = EnsureExisits(eqnset.get_working_dir() + "latex")
+        latex_working_dir = EnsureExisits(eqnset.get_working_dir() + 'latex')
 
-       LatexWriterVisitor().visit(eqnset, working_dir=latex_working_dir,output_filename=filename, additional_verbatim = additional_verbatim)
-       #assert False
+        LatexWriterVisitor().visit(eqnset,
+                                   working_dir=latex_working_dir,
+                                   output_filename=filename,
+                                   additional_verbatim=additional_verbatim)
+

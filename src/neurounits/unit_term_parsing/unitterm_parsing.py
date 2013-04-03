@@ -25,7 +25,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-
 import ply
 
 from ..unit_errors import UnitError, InvalidUnitTermError
@@ -38,8 +37,6 @@ from ..units_misc import EnsureExisits
 
 # Import the tokens:
 tokens = UnitTermLexer().tokens
-
-
 
 
 # YACC'ing
@@ -94,7 +91,7 @@ def p_long_basic_multiplier(p):
 
 
 def p_error(p):
-    raise UnitError( "Parsing Error %s" % p)
+    raise UnitError('Parsing Error %s' % p)
 
 
 
@@ -105,10 +102,10 @@ def p_error(p):
 
 
 import os
-#username = os.getusername()
+
 username = 'tmp_%d' % os.getuid()
-tables_loc = EnsureExisits("/tmp/%s/nu/yacc/parse_term" % username)
-unit_expr_parser = ply.yacc.yacc(  start='unit_term_unpowered',  tabmodule="neurounits_parsing_parse_eqn_term", outputdir=tables_loc,errorlog=ply.yacc.NullLogger() )
+tables_loc = EnsureExisits('/tmp/%s/nu/yacc/parse_term' % username)
+unit_expr_parser = ply.yacc.yacc(start='unit_term_unpowered',  tabmodule='neurounits_parsing_parse_eqn_term', outputdir=tables_loc,errorlog=ply.yacc.NullLogger() )
 
 
 
@@ -133,20 +130,20 @@ def _parse_double_letter(text,backend):
     #  prefix:
     lut_prefix = UnitTermData.getMultiplierLUTShort(backend=backend)
     if not str_prefix in lut_prefix:
-        raise InvalidUnitTermError('Unknown prefix: "%s" while parsing: %s' % (str_prefix,text) )
-    prefix_term  = lut_prefix[str_prefix]
+        raise InvalidUnitTermError('Unknown prefix: "%s" while parsing: %s' % (str_prefix,text))
+    prefix_term = lut_prefix[str_prefix]
 
     #  unit:
     lut_unit = UnitTermData.getUnitLUTShort(backend=backend)
     if not str_unit in lut_unit:
-        raise InvalidUnitTermError('Unknown unit: "%s" while parsing: %s' % (str_unit,text) )
-    unit_term  = lut_unit[str_unit]
+        raise InvalidUnitTermError('Unknown unit: "%s" while parsing: %s' % (str_unit,text))
+    unit_term = lut_unit[str_unit]
 
-    return prefix_term * unit_term 
-    #raise NotImplementedError()
+    return prefix_term * unit_term
 
 
-def parse_term( text, backend ):
+
+def parse_term(text, backend):
 
     text = text.strip()
 
@@ -165,25 +162,24 @@ def parse_term( text, backend ):
 
     # If its only one letter long, we have a problem:
     if len(text) == 1:
-        raise InvalidUnitTermError('Unknown unit: "%s" ' % (text) )
+        raise InvalidUnitTermError('Unknown unit: "%s" ' % text)
 
     # What about if we ignore the first letter, then is is in? e.g. 'MHz'
     if text[1:] in lut_unit_short:
         if text[0] not in lut_prefix_short:
-            raise InvalidUnitTermError('Unknown prefix: "%s" while parsing: %s' % (text[0],text) )
+            raise InvalidUnitTermError('Unknown prefix: "%s" while parsing: %s' % (text[0],text))
 
-        prefix_term  = lut_prefix_short[text[0]]
+        prefix_term = lut_prefix_short[text[0]]
         unit_term = lut_unit_short[text[1:]]
         return prefix_term * unit_term
 
 
-    ## No luck so far? Its probably a long-unit:
+    # No luck so far? Its probably a long-unit:
     unit_expr_parser.backend = backend
 
     lexer = UnitTermLexer()
     res = unit_expr_parser.parse(text, lexer=lexer)
 
     return res
-
 
 

@@ -31,20 +31,17 @@ from .base_visitor import ASTVisitorBase
 
 
 class SingleVisitPredicate(object):
+
     def __init__(self):
         self.visited = set()
+
     def __call__(self, n, **kwargs):
         has_not_visited = n not in self.visited
         self.visited.add(n)
         return has_not_visited
 
 
-
-
-
-
 class ASTActionerDepthFirst(ASTVisitorBase):
-
 
     def __init__(self, action_predicates=None):
         self.action_predicates = action_predicates or []
@@ -59,7 +56,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
     def VisitEqnSet(self, o, **kwargs):
 
-        subnodes = itertools.chain( o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants)
+        subnodes = itertools.chain(o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants)
         for f in subnodes:
             self.visit(f, **kwargs)
 
@@ -68,10 +65,9 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
         self._ActionEqnSet(o, **kwargs)
 
-
     def VisitNineMLComponent(self, o, **kwargs):
 
-        subnodes = itertools.chain( o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants, o.transitions)
+        subnodes = itertools.chain(o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants, o.transitions)
         for f in subnodes:
             self.visit(f, **kwargs)
 
@@ -79,9 +75,6 @@ class ASTActionerDepthFirst(ASTVisitorBase):
             self.visit(onev, **kwargs)
 
         self._ActionNineMLComponent(o, **kwargs)
-
-
-
 
     def VisitOnEvent(self, o, **kwargs):
         for p in o.parameters.values():
@@ -94,8 +87,6 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         self.visit(o.lhs, **kwargs)
         self.visit(o.rhs, **kwargs)
         self._ActionOnEventStateAssignment(o, **kwargs)
-
-
 
     def VisitIfThenElse(self, o, **kwargs):
         self.visit(o.predicate, **kwargs)
@@ -140,26 +131,28 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     # Terminals:
     def VisitStateVariable(self, o, **kwargs):
         self._ActionStateVariable(o, **kwargs)
+
     def VisitSymbolicConstant(self, o, **kwargs):
         self._ActionSymbolicConstant(o, **kwargs)
+
     def VisitParameter(self, o, **kwargs):
         self._ActionParameter(o, **kwargs)
+
     def VisitConstant(self, o, **kwargs):
         self._ActionConstant(o, **kwargs)
+
     def VisitAssignedVariable(self, o, **kwargs):
         self._ActionAssignedVariable(o, **kwargs)
+
     def VisitSuppliedValue(self, o, **kwargs):
         self._ActionSuppliedValue(o, **kwargs)
+
     def VisitAnalogReducePort(self, o, **kwargs):
         self._ActionAnalogReducePort(o, **kwargs)
 
-
-    # AST Objects:
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
         self.visit(o.rhs_map, **kwargs)
-        #for rhs in o.rhs_map.values():
-        #    self.visit(rhs, **kwargs)
         self._ActionTimeDerivativeByRegime(o, **kwargs)
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
@@ -167,12 +160,10 @@ class ASTActionerDepthFirst(ASTVisitorBase):
             self.visit(rhs, **kwargs)
         self._ActionRegimeDispatchMap(o, **kwargs)
 
-
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
         self.visit(o.rhs_map, **kwargs)
         self._ActionEqnAssignmentByRegime(o, **kwargs)
-
 
     def VisitAddOp(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
@@ -208,8 +199,6 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         self.visit(o.rhs_ast, **kwargs)
         self._ActionFunctionDefInstantiationParater(o, **kwargs)
 
-
-
     def VisitOnTransitionTrigger(self, o, **kwargs):
         self.visit(o.trigger, **kwargs)
         for a in o.actions:
@@ -231,20 +220,15 @@ class ASTActionerDepthFirst(ASTVisitorBase):
             self.visit(a, **kwargs)
         self._ActionEmitEvent(o, **kwargs)
 
-
-
     def _ActionPredicate(self, o, **kwargs):
         for p in self.action_predicates:
             if not p(o, **kwargs):
                 return False
         return True
 
-
-
     def _ActionLibrary(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionLibrary(o, **kwargs)
-
 
     def _ActionEqnSet(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
@@ -274,13 +258,15 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionBoolNot(o, **kwargs)
 
-    # Function Definitions:
+
     def _ActionFunctionDef(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionFunctionDef(o, **kwargs)
+
     def _ActionBuiltInFunction(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionBuiltInFunction(o, **kwargs)
+
     def _ActionFunctionDefParameter(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionFunctionDefParameter(o, **kwargs)
@@ -309,6 +295,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def _ActionSuppliedValue(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionSuppliedValue(o, **kwargs)
+
     def _ActionAnalogReducePort(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionAnalogReducePort(o, **kwargs)
@@ -321,7 +308,6 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionRegimeDispatchMap(o, **kwargs)
 
-
     def _ActionEqnAssignmentByRegime(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionEqnAssignmentByRegime(o, **kwargs)
@@ -329,15 +315,19 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def _ActionAddOp(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionAddOp(o, **kwargs)
+
     def _ActionSubOp(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionSubOp(o, **kwargs)
+
     def _ActionMulOp(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionMulOp(o, **kwargs)
+
     def _ActionDivOp(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionDivOp(o, **kwargs)
+
     def _ActionExpOp(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionExpOp(o, **kwargs)
@@ -345,95 +335,107 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def _ActionFunctionDefInstantiation(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionFunctionDefInstantiation(o, **kwargs)
+
     def _ActionFunctionDefInstantiationParater(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionFunctionDefInstantiationParater(o, **kwargs)
 
+    def _ActionOnEvent(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionOnEvent(o, **kwargs)
 
-
-    def _ActionOnEvent(self, o,**kwargs):
-        if self._ActionPredicate(o,**kwargs):
-            return self.ActionOnEvent(o,**kwargs)
-    def _ActionOnEventStateAssignment(self, o,**kwargs):
-        if self._ActionPredicate(o,**kwargs):
-            return self.ActionOnEventStateAssignment(o,**kwargs)
+    def _ActionOnEventStateAssignment(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionOnEventStateAssignment(o, **kwargs)
 
     def _ActionOnTransitionTrigger(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
-            return self.ActionOnTransitionTrigger(o,**kwargs)
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionOnTransitionTrigger(o, **kwargs)
 
     def _ActionOnTransitionEvent(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
-            return self.ActionOnTransitionEvent(o,**kwargs)
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionOnTransitionEvent(o, **kwargs)
 
     def _ActionOnEventDefParameter(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
-            return self.ActionOnEventDefParameter(o,**kwargs)
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionOnEventDefParameter(o, **kwargs)
 
     def _ActionEmitEvent(self, o, **kwargs):
-        if self._ActionPredicate(o,**kwargs):
-            return self.ActionEmitEvent(o,**kwargs)
-
-
-
-
-
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionEmitEvent(o, **kwargs)
 
     def ActionEqnSet(self, o, **kwargs):
         raise NotImplementedError()
 
-
     def ActionIfThenElse(self, o, **kwargs):
         raise NotImplementedError()
+
     def ActionInEquality(self, o, **kwargs):
         raise NotImplementedError()
+
     def ActionBoolAnd(self, o, **kwargs):
         raise NotImplementedError()
+
     def ActionBoolOr(self, o, **kwargs):
         raise NotImplementedError()
+
     def ActionBoolNot(self, o, **kwargs):
         raise NotImplementedError()
 
     # Function Definitions:
     def ActionFunctionDef(self, o, **kwargs):
         raise NotImplementedError()
+
     def ActionBuiltInFunction(self, o, **kwargs):
         raise NotImplementedError()
+
     def ActionFunctionDefParameter(self, o, **kwargs):
         raise NotImplementedError()
 
     # Terminals:
     def ActionStateVariable(self, o, **kwargs):
         raise NotImplementedError()
+
     def ActionSymbolicConstant(self, o, **kwargs):
         raise NotImplementedError()
+
     def ActionParameter(self, o, **kwargs):
         raise NotImplementedError()
+
     def ActionConstant(self, o, **kwargs):
         raise NotImplementedError()
+
     def ActionAssignedVariable(self, o, **kwargs):
         raise NotImplementedError()
+
     def ActionSuppliedValue(self, o, **kwargs):
         raise NotImplementedError()
+
     def ActionAnalogReducePort(self, o, **kwargs):
         print 'self', self
         raise NotImplementedError(self)
 
     def ActionTimeDerivativeByRegime(self, o, **kwargs):
         raise NotImplementedError()
+
     def ActionRegimeDispatchMap(self, o, **kwargs):
         raise NotImplementedError()
+
     def ActionEqnAssignmentByRegime(self, o, **kwargs):
         raise NotImplementedError()
 
     def ActionAddOp(self, o, **kwargs):
         raise NotImplementedError()
+
     def ActionSubOp(self, o, **kwargs):
         raise NotImplementedError()
+
     def ActionMulOp(self, o, **kwargs):
         raise NotImplementedError()
+
     def ActionDivOp(self, o, **kwargs):
         raise NotImplementedError()
+
     def ActionExpOp(self, o, **kwargs):
         raise NotImplementedError()
 
@@ -441,5 +443,6 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         raise NotImplementedError()
 
     def ActionFunctionDefInstantiationParater(self, o, **kwargs):
-       raise NotImplementedError()
+        raise NotImplementedError()
+
 

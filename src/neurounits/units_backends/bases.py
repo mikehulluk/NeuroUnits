@@ -27,12 +27,11 @@
 # -------------------------------------------------------------------------------
 
 
-
 class ParsingBackendBase(object):
 
     def __init__(self):
         pass
-        #self.astresolver = EqnSetBuilder(backend=self)
+        
 
     @classmethod
     def Quantity(cls, *args, **kwargs):
@@ -45,4 +44,5 @@ class ParsingBackendBase(object):
     @classmethod
     def unit_as_dimensionless(cls, *args, **kwargs):
         raise NotImplementedError()
+
 

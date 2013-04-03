@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,8 +23,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
-
+# -------------------------------------------------------------------------------
 
 import subprocess
 import os
@@ -30,9 +31,7 @@ import os
 from neurounits import NeuroUnitParser
 from mredoc import Document, Table
 
-
 from util_test_locations import TestLocations
-
 
 
 # Missing Tests:
@@ -42,31 +41,27 @@ from util_test_locations import TestLocations
 # * meters vs milli (m)
 # * Check nested functions:
 
-
-
 # TODO: Simple Systems:
 #  - FitzHugh Nagumo ()
 #  - Morris Leccar
 #  - Van de Pol
 
-
-
-
-def apply_reps(s,reps):
-    for (a,b) in reps:
-        s = s.replace(a,b)
+def apply_reps(s, reps):
+    for (a, b) in reps:
+        s = s.replace(a, b)
     return s
 
 
 # General Functions:
-# ###################
-def verify_equivalence_with_gnuunits(a,b):
+####################
+
+def verify_equivalence_with_gnuunits(a, b):
 
     # Some replaces:
-    reps = [('um','microm'), ('uF','micro-F')]
+    reps = [('um', 'microm'), ('uF', 'micro-F')]
 
-    a = apply_reps(a,reps)
-    b = apply_reps(b,reps)
+    a = apply_reps(a, reps)
+    b = apply_reps(b, reps)
 
     cmd = ('units', '-1', '-s','--compact',"%s" % a,"%s" % b)
     cmd_str = " ".join(cmd)
@@ -119,18 +114,25 @@ valid_quantitysimple= [
 def test_quantitysimple():
     data = []
 
-    for (a,b, check_with_gnu) in valid_quantitysimple:
+    for (a, b, check_with_gnu) in valid_quantitysimple:
         A = NeuroUnitParser.QuantitySimple(a)
         B = NeuroUnitParser.QuantitySimple(b)
 
         if check_with_gnu:
-            verify_equivalence_with_gnuunits(a,b)
+            verify_equivalence_with_gnuunits(a, b)
 
-        pcA =  ((A-B)/A).dimensionless()
-        pcB =  ((A-B)/B).dimensionless()
-        assert pcA==0
-        assert pcB==0
-        data.append ( [a,b, str(A), str(B), str(pcA), str(pcB)] )
+        pcA = ((A - B) / A).dimensionless()
+        pcB = ((A - B) / B).dimensionless()
+        assert pcA == 0
+        assert pcB == 0
+        data.append([
+            a,
+            b,
+            str(A),
+            str(B),
+            str(pcA),
+            str(pcB),
+            ])
 
     header = "A|B|Parsed(A)|Parsed(B)|PC(A)|PC(B)".split("|")
     return  Table( header=header, data=data)
@@ -289,9 +291,6 @@ def test_invalid_units():
 def run_tests():
     r1 = test_quantitysimple()
     r2 = test_quantityexpr()
-
-    #test_function()
-    #test_invalid_units()
 
     #doc = Document( r1,r2 )
     return [r1,r2]#,r2]

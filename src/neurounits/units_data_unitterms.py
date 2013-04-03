@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 # -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
@@ -74,8 +75,7 @@ class UnitTermData(object):
     def _getUnits(cls):
         units = (
             ('meter', 'm', lambda backend: backend.Unit(meter=1)),
-            ('gram', 'g', lambda backend: backend.Unit(kilogram=1,
-             powerTen=-3)),
+            ('gram', 'g', lambda backend: backend.Unit(kilogram=1, powerTen=-3)),
             ('second', 's', lambda backend: backend.Unit(second=1)),
             ('amp', 'A', lambda backend: backend.Unit(ampere=1)),
             ('kelvin', 'K', lambda backend: backend.Unit(kelvin=1)),
@@ -118,22 +118,4 @@ class UnitTermData(object):
         return safe_dict_merge(cls.getUnitLUTShort(backend=backend),
                                cls.getUnitLUTLong(backend=backend))
 
-    #@classmethod
-    #def getSpecialCaseShortForms(cls, backend):
-    #    special_unit_abbrs = (
-    #        ('m', backend.Unit(meter=1)),
-    #        ('cm', backend.Unit(meter=1, powerTen=-2)),
-    #        ('mm', backend.Unit(meter=1, powerTen=-3)),
-    #        ('um', backend.Unit(meter=1, powerTen=-6)),
-    #        ('nm', backend.Unit(meter=1, powerTen=-9)),
-    #        ('pm', backend.Unit(meter=1, powerTen=-12)),
-    #        ('M', backend.Unit(mole=1, meter=-3, powerTen=-3)),
-    #        ('mM', backend.Unit(mole=1, meter=-3, powerTen=-6)),
-    #        ('uM', backend.Unit(mole=1, meter=-3, powerTen=-9)),
-    #        ('nM', backend.Unit(mole=1, meter=-3, powerTen=-12)),
-    #        ('pM', backend.Unit(mole=1, meter=-3, powerTen=-15)),
-    #        )
-
-    #    return special_unit_abbrs
-
-
+   

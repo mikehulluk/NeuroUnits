@@ -26,19 +26,16 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-
 from neurounits import ast
 from neurounits.visitors.common.ast_replace_node import ReplaceNode
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
 
 
-
 class ReduceConstants(ASTVisitorBase):
 
     def visit(self, o, **kwargs):
         return o.accept_visitor(self, **kwargs)
-
 
     def _res_assignments(self, o, **kwargs):
         removed = []
@@ -62,7 +59,6 @@ class ReduceConstants(ASTVisitorBase):
 
                 removed.append(alhs)
 
-
         # Double check they have gone:
         o._cache_nodes()
         for a in removed:
@@ -72,6 +68,7 @@ class ReduceConstants(ASTVisitorBase):
 
     def VisitNineMLComponent(self, o, **kwargs):
         self._res_assignments(o, **kwargs)
+
     def VisitEqnSet(self, o, **kwargs):
         self._res_assignments(o, **kwargs)
 
@@ -79,22 +76,9 @@ class ReduceConstants(ASTVisitorBase):
         self._res_assignments(o, **kwargs)
         assert len(o._eqn_assignment) == 0
 
-        ## Double check they have gone:
-        #for a in removed:
-        #    nc = EqnsetVisitorNodeCollector()
-        #    nc.visit(o)
-        #    assert not a in nc.all()
-
-        # Should be no more assignments:
-        #assert len(o._eqn_assignment) == 0
-
-
-
-
-
-
     def VisitOnEvent(self, o, **kwargs):
         raise NotImplementedError()
+
     def VisitOnEventStateAssignment(self, o, **kwargs):
         raise NotImplementedError()
 
@@ -108,13 +92,15 @@ class ReduceConstants(ASTVisitorBase):
 
     def VisitInEquality(self, o, **kwargs):
         raise NotImplementedError()
+
     def VisitBoolAnd(self, o, **kwargs):
         raise NotImplementedError()
+
     def VisitBoolOr(self, o, **kwargs):
         raise NotImplementedError()
+
     def VisitBoolNot(self, o, **kwargs):
         raise NotImplementedError()
-
 
     # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):
@@ -122,6 +108,7 @@ class ReduceConstants(ASTVisitorBase):
 
     def VisitBuiltInFunction(self, o, **kwargs):
         raise NotImplementedError()
+
     def VisitFunctionDefParameter(self, o, **kwargs):
         raise NotImplementedError()
 
@@ -137,6 +124,7 @@ class ReduceConstants(ASTVisitorBase):
 
     def VisitSuppliedValue(self, o, **kwargs):
         return None
+
     def VisitAnalogReducePort(self, o, **kwargs):
         return None
 
@@ -150,14 +138,12 @@ class ReduceConstants(ASTVisitorBase):
             return self.visit(o.rhs_map.values()[0])
         return None
 
-
     # AST Objects:
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         raise NotImplementedError()
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         raise NotImplementedError()
-
 
     def VisitAddOp(self, o, **kwargs):
         (t1, t2) = (self.visit(o.lhs), self.visit(o.rhs))
@@ -189,11 +175,7 @@ class ReduceConstants(ASTVisitorBase):
             return None
         return t1 ** o.rhs
 
-
-
     def VisitFunctionDefInstantiation(self, o, **kwargs):
-        #return self.visit( o.rhs_ast, **kwargs)
-        #assert False
         # Check if the parameters are constant
         params = {}
         for p in o.parameters.values():
@@ -202,9 +184,6 @@ class ReduceConstants(ASTVisitorBase):
                 return None
             params[p] = pres
 
-        #self.visit
-
-        #return self.visit( o.rhs_ast)
 
         # Not Implmented how to calculate it yet!
         print 'We can evalute function:' , o.function_def.funcname
@@ -215,3 +194,5 @@ class ReduceConstants(ASTVisitorBase):
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         raise NotImplementedError()
+
+

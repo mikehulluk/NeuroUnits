@@ -26,7 +26,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-
 from neurounits.importers.neuroml.neuroml_xml_data import _parse_channelml_file
 from neurounits.importers.neuroml.neuroml_xml_to_eqnset import build_eqnset
 
@@ -34,9 +33,8 @@ from .errors import NeuroMLFileContainsNoChannels
 from .errors import NeuroMLFileContainsMultipleChannels
 
 
-
-
 class ChannelMLReader:
+
     @classmethod
     def LoadChlsRaw(self, filename):
         return _parse_channelml_file(filename)
@@ -55,4 +53,5 @@ class ChannelMLReader:
         chl_info = cls.LoadChlRaw(filename)
         (eqnset, default_params) = build_eqnset(chl_info)
         return (eqnset, chl_info, default_params)
+
 

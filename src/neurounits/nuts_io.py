@@ -1,15 +1,14 @@
 
-
-
 import json
 import neurounits
 import copy
 import math
 
 
-
 class NutsIOValidationError(Exception):
+
     pass
+
 
 class NutsIO(object):
 
@@ -18,7 +17,7 @@ class NutsIO(object):
         options = NutsOptions()
         nuts_lines = []
         with open(filename) as f:
-            for lineno,line in enumerate(f.readlines()):
+            for (lineno, line) in enumerate(f.readlines()):
                 line = line.strip()
                 if not line:
                     continue
@@ -28,7 +27,7 @@ class NutsIO(object):
                 elif line.startswith('#'):
                     pass
                 else:
-                    nuts_lines.append( NutsIOLine(line=line, lineno=lineno, options=options) )
+                    nuts_lines.append(NutsIOLine(line=line, lineno=lineno, options=options))
         return nuts_lines
 
     @classmethod
@@ -60,15 +59,15 @@ class NutsOptions():
         }
 
     def __init__(self):
-        for k,v in NutsOptions.valid_attrs.items():
-            setattr(self,k,v)
+        for (k, v) in NutsOptions.valid_attrs.items():
+            setattr(self, k, v)
 
     def update(self, line):
-        line = line.replace("'",'"')
+        line = line.replace("'", '"')
         new_options = json.loads(line)
-        for k,v in new_options.items():
-            assert k in NutsOptions.valid_attrs, 'Invalid option: %s'%k
-            setattr(self,k,v)
+        for (k, v) in new_options.items():
+            assert k in NutsOptions.valid_attrs, 'Invalid option: %s' % k
+            setattr(self, k, v)
 
 
 
@@ -114,21 +113,19 @@ class NutsIOLine(object):
 
         if line.startswith('!!'):
             self.line = line[2:]
-            self.is_valid=False
+            self.is_valid = False
         else:
             self.line = line
-            self.is_valid=True
+            self.is_valid = True
         self.lineno = lineno
-        self.options=options
+        self.options = options
 
-
-    def validate(self,):
+    def validate(self):
 
         if self.is_valid:
             return self.test_valid()
         else:
             return self.test_invalid()
-
 
     def test_valid(self):
         parse_func = parse_func_lut[self.options.type]
@@ -137,12 +134,12 @@ class NutsIOLine(object):
             toks = self.line.split('==')
 
             for t in toks[1:]:
-                print ' -- Checking: %s == %s' % tuple([toks[0],t])
+                print ' -- Checking: %s == %s' % tuple([toks[0], t])
                 print self.options.__dict__
                 are_equal = comp_func(
                         parse_func(toks[0]),
                         parse_func(t),
-                        eps = self.options.eps
+                        eps=self.options.eps
                         )
                 if not are_equal:
                     return False
@@ -156,21 +153,16 @@ class NutsIOLine(object):
                     parse_func(toks[0]),
                     parse_func(toks[1])
                     )
-            if are_equal: 
+            if are_equal:
                 return False
             return True
 
-
-
         else:
             # Make sure all the tokens (separated by commas) can be parsed'
-            tokens = self.line.split(",")
+            tokens = self.line.split(',')
             for t in tokens:
                 parse_func(t)
             return True
-
-
-            #raise NotImplementedError()
 
 
     def test_invalid(self):
@@ -186,12 +178,5 @@ class NutsIOLine(object):
                 print ' -- Exception raised (OK)!', e
                 pass
         return True
-
-
-
-
-
-
-
 
 

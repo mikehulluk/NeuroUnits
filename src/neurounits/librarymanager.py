@@ -37,15 +37,11 @@ import glob
 import os
 
 
-
-
 class ComponentNamespace(object):
-    def __init__(self,name):
+
+    def __init__(self, name):
         self.name = name
 
-    #def set_name(self, name):
-    #    assert self.name is None
-    #    self.name = name
 
 class LibraryManager(object):
 
@@ -53,18 +49,14 @@ class LibraryManager(object):
     _stdlib_cache_loading = False
 
     # Find the location of the standard library, relative to this directory
-    _stdlibdir = os.path.join( os.path.dirname(__file__), '../stdlib/' )
-
+    _stdlibdir = os.path.join(os.path.dirname(__file__), '../stdlib/')
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitLibraryManager(self, **kwargs)
 
-
-
-
     @property
     def currentblock(self):
-        if len( self.block_stack ) == 0:
+        if len(self.block_stack) == 0:
             return None
         else:
             return self.block_stack[-1]
@@ -78,7 +70,7 @@ class LibraryManager(object):
         self.name = name
         self.src_text = src_text
 
-        self.block_stack=[]
+        self.block_stack = []
 
         self.backend = backend
 
@@ -86,16 +78,14 @@ class LibraryManager(object):
         self.eqnsets = []
         self.components = []
 
-
-
         if is_stdlib_cache:
             # Load in the standard libraries:
             from neurounits.unit_expr_parsing.units_expr_yacc import parse_expr, ParseTypes
             LibraryManager._stdlib_cache_loading = True
-            for f in glob.glob(self._stdlibdir+"/*.eqn"):
+            for f in glob.glob(self._stdlibdir + '/*.eqn'):
                 with open(f) as l:
                     print 'Loading StdLib file:', f
-                    parse_expr( l.read(), parse_type=ParseTypes.L6_TextBlock, library_manager=self)
+                    parse_expr(l.read(), parse_type=ParseTypes.L6_TextBlock, library_manager=self)
 
             LibraryManager._stdlib_cache_loading = False
             LibraryManager._stdlib_cache = self
@@ -103,7 +93,6 @@ class LibraryManager(object):
         # Ensure the cache is setup:
         if not LibraryManager._stdlib_cache and not is_stdlib_cache:
             LibraryManager(backend=backend, is_stdlib_cache=True)
-
 
     def get(self, name, include_stdlibs=True):
 
@@ -117,7 +106,6 @@ class LibraryManager(object):
             srcs = chain(self.eqnsets, self.libraries, self.components)
 
         srcs = list(srcs)
-        #print srcs
         return SeqUtils.expect_single([l for l in srcs if l.name == name])
 
     def get_library(self, libname):
@@ -138,16 +126,14 @@ class LibraryManager(object):
     def get_library_names(self, include_stdlibs=True):
         return [l.name for l in self.libraries]
 
-
     def open_block(self, block):
         self.block_stack.append(block)
 
     def pop_block(self):
         return self.block_stack.pop()
 
-
-    def start_eqnset_block(self,name):
-        self.open_block( EqnSetBuilder(library_manager=self,name=name) )
+    def start_eqnset_block(self, name):
+        self.open_block(EqnSetBuilder(library_manager=self, name=name))
 
     def end_eqnset_block(self):
         eqnset = self.pop_block()
@@ -155,10 +141,8 @@ class LibraryManager(object):
         self.eqnsets.append(eqnset._astobject)
         self.get_eqnset_names()
 
-
-
-    def start_library_block(self,name):
-        self.open_block( LibraryBuilder(library_manager=self, name=name) )
+    def start_library_block(self, name):
+        self.open_block(LibraryBuilder(library_manager=self, name=name))
 
     def end_library_block(self):
         lib = self.pop_block()
@@ -170,30 +154,25 @@ class LibraryManager(object):
     def get_current_block_builder(self):
         return self.currentblock
 
-
-
-    def start_module_block(self,name):
-        self.open_block( ComponentNamespace(name=name) )
+    def start_module_block(self, name):
+        self.open_block(ComponentNamespace(name=name))
 
     def end_module_block(self):
         self.pop_block()
 
-
     def start_component_block(self, name):
-        self.open_block( NineMLComponentBuilder(library_manager=self, name=name) )
+        self.open_block(NineMLComponentBuilder(library_manager=self, name=name))
 
     def end_component_block(self):
         component = self.pop_block()
         component.finalise()
 
-        
         self.components.append(component._astobject)
-
-
 
     def summary(self, details=True):
         name = self.name if self.name else ''
         simple = '<LibraryManager: %s EqnSets:%d Libraries:%d>' % (name, len(self.eqnsets), len(self.libraries))
 
         return simple
+
 

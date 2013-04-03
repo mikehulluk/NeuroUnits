@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 # -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
@@ -30,12 +31,12 @@ from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 import itertools
 from neurounits.ast.astobjects import ASTObject
 
+
 class ReplaceNode(ASTVisitorBase):
 
     def __init__(self, srcObj, dstObj):
         self.srcObj = srcObj
         self.dstObj = dstObj
-
 
     def replace_or_visit(self, o):
         assert isinstance(o, ASTObject)
@@ -47,7 +48,6 @@ class ReplaceNode(ASTVisitorBase):
                 assert not o.symbol == self.srcObj.symbol
 
             return self.visit(o)
-
 
     def visit(self, o, **kwargs):
         return o.accept_visitor(self, **kwargs)
@@ -125,21 +125,25 @@ class ReplaceNode(ASTVisitorBase):
     def VisitBuiltInFunction(self, o, **kwargs):
         return o
 
-
     def VisitFunctionDefParameter(self, o, **kwargs):
         return o
 
     # Terminals:
     def VisitStateVariable(self, o, **kwargs):
         return o
+
     def VisitParameter(self, o, **kwargs):
         return o
+
     def VisitConstant(self, o, **kwargs):
         return o
+
     def VisitAssignedVariable(self, o, **kwargs):
         return o
+
     def VisitSuppliedValue(self, o, **kwargs):
         return o
+
     def VisitAnalogReducePort(self, o, **kwargs):
         o.rhses = [self.visit(rhs) for rhs in o.rhses]
         return o
@@ -148,13 +152,11 @@ class ReplaceNode(ASTVisitorBase):
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         o.lhs = self.replace_or_visit(o.lhs)
         o.rhs_map = self.replace_or_visit(o.rhs_map)
-        #o.rhs_map = dict([ (reg, self.replace_or_visit(rhs)) for (reg,rhs) in o.rhs_map.items() ] )
         return o
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
-        o.rhs_map = dict([ (reg, self.replace_or_visit(rhs)) for (reg,rhs) in o.rhs_map.items() ] )
+        o.rhs_map = dict([(reg, self.replace_or_visit(rhs)) for (reg,rhs) in o.rhs_map.items()])
         return o
-
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         o.lhs = self.replace_or_visit(o.lhs)
@@ -197,20 +199,19 @@ class ReplaceNode(ASTVisitorBase):
         o.rhs_ast = self.replace_or_visit(o.rhs_ast)
         return o
 
-
     def VisitOnTransitionTrigger(self, o, **kwargs):
-        o.trigger= self.replace_or_visit(o.trigger)
-        o.actions = [self.replace_or_visit(a) for a in o.actions ]
+        o.trigger = self.replace_or_visit(o.trigger)
+        o.actions = [self.replace_or_visit(a) for a in o.actions]
         return o
     def VisitOnTransitionEvent(self, o, **kwargs):
-        o.parameters= dict([ (name, self.replace_or_visit(p)) for (name,p) in o.parameters.items() ])
-        o.actions = [self.replace_or_visit(a) for a in o.actions ]
+        o.parameters= dict([(name, self.replace_or_visit(p)) for (name,p) in o.parameters.items()])
+        o.actions = [self.replace_or_visit(a) for a in o.actions]
         return o
 
     def VisitOnEventDefParameter(self, o, **kwargs):
         return o
     def VisitEmitEvent(self, o, **kwargs):
-        o.parameter_map= dict([ (name, self.replace_or_visit(p)) for (name,p) in o.parameter_map.items() ])
+        o.parameter_map= dict([(name, self.replace_or_visit(p)) for (name,p) in o.parameter_map.items()])
         return o
 
 

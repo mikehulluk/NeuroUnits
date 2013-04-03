@@ -28,11 +28,12 @@
 
 from neurounits.visitors import ASTActionerDefault, SingleVisitPredicate
 
+
 class ASTNodeLabels(ASTActionerDefault):
+
     def __init__(self):
-        ASTActionerDefault.__init__(self, action_predicates=[SingleVisitPredicate() ])
+        ASTActionerDefault.__init__(self, action_predicates=[SingleVisitPredicate()])
         self.id_dict = {}
 
-
-    def ActionNode(self,n):
-        self.id_dict[n] = "ID%03d" % len(self.id_dict)
+    def ActionNode(self, n):
+        self.id_dict[n] = 'ID%03d' % len(self.id_dict)

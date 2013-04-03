@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,8 +23,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
-
+# -------------------------------------------------------------------------------
 
 import os
 from mhlibs.test_data.neuroml import NeuroMLDataLibrary
@@ -40,34 +41,30 @@ from util_test_locations import TestLocations
 from os.path import join as Join
 
 
-
-
 def load_neuroml():
-
 
     redocs = []
 
-    for i,xmlfile in enumerate(NeuroMLDataLibrary.get_channelMLV1FilesWithSingleChannel()):
+    for (i, xmlfile) in enumerate(NeuroMLDataLibrary.get_channelMLV1FilesWithSingleChannel()):
 
         try:
-            print "XMLFILE:", xmlfile
-            eqnset, chl_info, default_filename = ChannelMLReader.BuildEqnset(xmlfile)
+            print 'XMLFILE:', xmlfile
+            (eqnset, chl_info, default_filename) = ChannelMLReader.BuildEqnset(xmlfile)
 
             # Build the pdf for the channel:
             eqnset_redoc = MRedocWriterVisitor.build(eqnset)
 
-            #Build the NModl for the channel:
-            txt, buildparameters = nmodl.WriteToNMODL(eqnset)
+            # Build the NModl for the channel:
+            (txt, buildparameters) = nmodl.WriteToNMODL(eqnset)
 
             section = SectionNewPage("Import from: %s"% "/".join(xmlfile.split('/')[-3:]),
                         Section("Original XML:", VerbatimBlock(open(xmlfile).read() ) ),
                         eqnset_redoc,
                         Section("Generated Modfile",VerbatimBlock(txt) ) )
 
-            redocs.append( section )
-
-
+            redocs.append(section)
         except NeuroUnitsImportNeuroMLNotImplementedException, e:
+
             pass
 
         if i > 1:
@@ -78,20 +75,27 @@ def load_neuroml():
 
 # Hook into automatic documentation:
 from test_base import ReportGenerator
+
+
 class NeuroMLDocGen(ReportGenerator):
+
     def __init__(self):
-        ReportGenerator.__init__(self, "Importing from NeuroML")
+        ReportGenerator.__init__(self, 'Importing from NeuroML')
+
     def __call__(self):
         return load_neuroml()
+
+
 NeuroMLDocGen()
+
 
 def main():
     redocs = load_neuroml()
-    doc =  Document( TableOfContents(), *redocs)
+    doc = Document(TableOfContents(), *redocs)
 
-    opdir = os.path.join( TestLocations.getTestOutputDir(), 'neuroml' )
-    doc.to_html(Join(opdir, 'html') )
-    doc.to_pdf( Join(opdir, 'all.pdf') )
+    opdir = os.path.join(TestLocations.getTestOutputDir(), 'neuroml')
+    doc.to_html(Join(opdir, 'html'))
+    doc.to_pdf(Join(opdir, 'all.pdf'))
 
 
 main()

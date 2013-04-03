@@ -30,7 +30,7 @@ from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 from neurounits.unit_errors import panic
 from neurounits.tools.nmodl.neuron_constants import NeuronSuppliedValues
 from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
-from neurounits.ast.astobjects import AssignedVariable, StateVariable,\
+from neurounits.ast.astobjects import AssignedVariable, StateVariable, \
     SymbolicConstant, SuppliedValue, InEquality, Parameter
 import string
 
@@ -71,15 +71,10 @@ class StateWriter(ASTActionerDefaultIgnoreMissing):
         for ic in n.initial_conditions:
             o1 = n.get_terminal_obj(ic.symbol)
             o2 = n.get_terminal_obj(ic.value)
-            #print "o1", ic.symbol, build_parameters.symbol_units[o1]
-            #print "o2", ic.value, build_parameters.symbol_units[o2]
             assert build_parameters.symbol_units[o1] == build_parameters.symbol_units[o2]
 
-            s = "%s = %s"%(ic.symbol, ic.value)
-            modfilecontents.section_INITIAL.append( s )
-
-
-
+            s = '%s = %s' % (ic.symbol, ic.value)
+            modfilecontents.section_INITIAL.append(s)
 
 
 class SuppliedValuesWriter(ASTActionerDefaultIgnoreMissing):
@@ -90,7 +85,6 @@ class SuppliedValuesWriter(ASTActionerDefaultIgnoreMissing):
         ASTActionerDefaultIgnoreMissing.__init__(self,action_predicates=[ SingleVisitPredicate() ])
 
     def ActionSuppliedValue(self, n, modfilecontents, build_parameters,  **kwargs):
-        #from neuron_constants import NeuronSuppliedValues
 
         # Sanity Check;
         assert n in build_parameters.supplied_values,  " Can't find %s in supplied values[%s]" % (n.symbol,  ",".join([s.symbol for s in build_parameters.supplied_values]) )
@@ -98,31 +92,25 @@ class SuppliedValuesWriter(ASTActionerDefaultIgnoreMissing):
         what = build_parameters.supplied_values[n]
 
         if what == NeuronSuppliedValues.MembraneVoltage:
-            modfilecontents.section_ASSIGNED.append( 'v (millivolt)')
+            modfilecontents.section_ASSIGNED.append('v (millivolt)')
         elif what == NeuronSuppliedValues.Temperature:
-            modfilecontents.section_ASSIGNED.append( 'celsius (degC)')
+            modfilecontents.section_ASSIGNED.append('celsius (degC)')
         else:
             assert False
 
 
-
-
-
 class ConstantWriter(ASTActionerDefaultIgnoreMissing):
 
-    def __init__(self, ):
-        ASTActionerDefaultIgnoreMissing.__init__(self,action_predicates=[ SingleVisitPredicate() ])
+    def __init__(self):
+        ASTActionerDefaultIgnoreMissing.__init__(self,action_predicates=[SingleVisitPredicate()])
 
 
-
-
-def unique( seq ):
+def unique(seq):
     seen = set()
     for item in seq:
         if item not in seen:
-            seen.add( item )
+            seen.add(item)
             yield item
-
 
 
 class AssignmentWriter(ASTActionerDefaultIgnoreMissing):
@@ -183,9 +171,8 @@ class AssignmentWriter(ASTActionerDefaultIgnoreMissing):
             all_deps.extend(a)
             all_deps.append(c)
 
-
         for ass in unique(all_deps):
-            modfilecontents.section_BREAKPOINT_post_solve.append( self.assigment_statements[ass] )
+            modfilecontents.section_BREAKPOINT_post_solve.append(self.assigment_statements[ass])
 
 
 
@@ -198,7 +185,7 @@ class AssignmentWriter(ASTActionerDefaultIgnoreMissing):
 
 
     def ActionAssignedVariable(self, n, modfilecontents, build_parameters,  **kwargs):
-        modfilecontents.section_ASSIGNED.append( ModFileString.DeclareSymbol(n,build_parameters)   )
+        modfilecontents.section_ASSIGNED.append(ModFileString.DeclareSymbol(n,build_parameters))
 
 
 
@@ -226,8 +213,6 @@ class FunctionWriter(ASTActionerDefaultIgnoreMissing):
                                                                'func_unit' : "",
                                                                 }  )
         modfilecontents.section_FUNCTIONS.append(func_def)
-
-
 
 
 class OnEventWriter(ASTActionerDefaultIgnoreMissing):

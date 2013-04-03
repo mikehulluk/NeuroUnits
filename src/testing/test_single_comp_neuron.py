@@ -103,49 +103,33 @@ eqnset my_din {
 
 '''
 
-
-
-
-
-
 import neurounits
 import numpy as np
 import pylab
 from neurounits.writers.writer_ast_to_simulatable_object import EqnSimulator
 
-
-
-
 library_manager = neurounits.NeuroUnitParser.File(neuron_def)
 from neurounits import NeuroUnitParser as P
 
-
 print library_manager
 
-
-
-evaluator = EqnSimulator( library_manager.eqnsets[0] )
-res = evaluator(
-        time_data = np.linspace(0.0, 0.100, 1000),
-        params={
-            },
-        state0In={
-            'V':P.QuantityExpr('-52mV'),
-            'm':P.QuantityExpr('0'),
-            'h':P.QuantityExpr('0'),
-            'kf':P.QuantityExpr('0'),
-            'ks':P.QuantityExpr('0'),
-            'ca_m':P.QuantityExpr('0'),
-            }
-        )
+evaluator = EqnSimulator(library_manager.eqnsets[0])
+res = evaluator(time_data=np.linspace(0.0, 0.100, 1000), params={},
+                state0In={
+    'V': P.QuantityExpr('-52mV'),
+    'm': P.QuantityExpr('0'),
+    'h': P.QuantityExpr('0'),
+    'kf': P.QuantityExpr('0'),
+    'ks': P.QuantityExpr('0'),
+    'ca_m': P.QuantityExpr('0'),
+    })
 
 print 'Done Simulating'
 print res
 print res.keys()
 
-
-#pylab.figure()
-#pylab.plot(res['x'], res['y'])
+# pylab.figure()
+# pylab.plot(res['x'], res['y'])
 
 fig = pylab.figure()
 
@@ -156,44 +140,35 @@ ax4 = fig.add_subplot(614)
 ax5 = fig.add_subplot(615)
 ax6 = fig.add_subplot(616)
 
-ax1.plot(res['t'], res['V'],'x-')
+ax1.plot(res['t'], res['V'], 'x-')
 
 ax2.plot(res['t'], res['i_na_bar'])
-#ax2.plot(res['t'], res['i_lk_bar'])
-#ax2.plot(res['t'], res['i_ks_bar'])
-#ax2.plot(res['t'], res['i_kf_bar'])
+# ax2.plot(res['t'], res['i_lk_bar'])
+# ax2.plot(res['t'], res['i_ks_bar'])
+# ax2.plot(res['t'], res['i_kf_bar'])
 ax2.plot(res['t'], res['i_ca_bar'])
-#ax5.plot(res['t'], res['i_ca_bar'])
+# ax5.plot(res['t'], res['i_ca_bar'])
 
+# ax3.plot(res['t'], res['m'], 'b')
+# ax3.plot(res['t'], res['h'], 'g')
+# ax3.plot(res['t'], res['ks'], 'm')
+# ax3.plot(res['t'], res['kf'], 'm')
+ax3.plot(res['t'], res['ca_m'], 'r')
 
-
-#ax3.plot(res['t'], res['m'], 'b')
-#ax3.plot(res['t'], res['h'], 'g')
-#ax3.plot(res['t'], res['ks'], 'm')
-#ax3.plot(res['t'], res['kf'], 'm')
-ax3.plot(res['t'], res['ca_m'],'r')
-
-
-ax4.plot(res['t'], res['i_na']  ,label='na')
-#ax4.plot(res['t'], res['i_lk']  ,label='lk')
-#ax4.plot(res['t'], res['i_ks']  ,label='ks')
-#ax4.plot(res['t'], res['i_kf']  ,label='kf')
-ax4.plot(res['t'], res['i_ca']  ,label='ca')
-ax6.plot(res['t'], res['i_ca']  ,label='ca')
-#ax4.plot(res['t'], res['i_Inj'] ,label='iinj')
+ax4.plot(res['t'], res['i_na'], label='na')
+# ax4.plot(res['t'], res['i_lk']  ,label='lk')
+# ax4.plot(res['t'], res['i_ks']  ,label='ks')
+# ax4.plot(res['t'], res['i_kf']  ,label='kf')
+ax4.plot(res['t'], res['i_ca'], label='ca')
+ax6.plot(res['t'], res['i_ca'], label='ca')
+# ax4.plot(res['t'], res['i_Inj'] ,label='iinj')
 
 ax4.legend()
 
-
-
-
-
-
-#ax1.plot(res['t'], res['i_Inj'])
-ax1.margins( 0.1)
-ax2.margins( 0.1)
-ax3.margins( 0.1)
-ax4.margins( 0.1)
-
+# ax1.plot(res['t'], res['i_Inj'])
+ax1.margins(0.100)
+ax2.margins(0.100)
+ax3.margins(0.100)
+ax4.margins(0.100)
 
 pylab.show()

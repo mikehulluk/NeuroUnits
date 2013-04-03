@@ -34,15 +34,15 @@ class ASTActionerDefault(ASTActionerDepthFirst):
     def __init__(self, **kwargs):
         ASTActionerDepthFirst.__init__(self, **kwargs)
 
-
     def ActionNode(self, n, **kwargs):
         assert False, 'Action node in %s %s' % (type(self), type(n))
 
     def ActionEqnSet(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
+
     def ActionLibrary(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
-    
+
     def ActionNineMLComponent(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
@@ -88,6 +88,7 @@ class ASTActionerDefault(ASTActionerDepthFirst):
 
     def ActionSuppliedValue(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
+
     def ActionAnalogReducePort(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
@@ -127,20 +128,22 @@ class ASTActionerDefault(ASTActionerDepthFirst):
     def ActionFunctionDefInstantiationParater(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
-
     def ActionRegime(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
-    def ActionOnTransitionTrigger(self,o, **kwargs):
+
+    def ActionOnTransitionTrigger(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
+
     def ActionOnTransitionEvent(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
+
     def ActionOnEventDefParameter(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
+
     def ActionEmitEvent(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
-    def ActionAnalogVisitor(self,o,**kwargs):
+    def ActionAnalogVisitor(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
-
 
 

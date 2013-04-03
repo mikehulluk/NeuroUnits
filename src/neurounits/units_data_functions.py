@@ -44,9 +44,9 @@ class StdLibrary(object):
             'exp' : ast.BuiltInFunction(funcname='exp',
                                         parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
                                         dimension=backend.Unit() ),
+            }
 
-        return ast.Library('std.math', constants=constants,
-                           functiondefs=functiondefs)
+        return ast.Library('std.math', constants=constants, functiondefs=functiondefs)
 
     @classmethod
     def getPhysics(cls, backend):
@@ -68,13 +68,5 @@ class StdLibrary(object):
     @classmethod
     def get_default(cls, backend):
         return []
-        return [cls.getMath(backend=backend), cls.getPhysics(backend=backend) ]
-
-
-
-
-
-
-
 
 

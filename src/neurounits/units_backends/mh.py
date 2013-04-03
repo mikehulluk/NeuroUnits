@@ -31,6 +31,7 @@ from neurounits.unit_errors import UnitMismatchError
 
 
 class MHUnitBackend(ParsingBackendBase):
+
     @classmethod
     def Quantity(cls, magnitude, unit):
         return MMQuantity(magnitude=magnitude, unit=unit)
@@ -53,7 +54,7 @@ class MMUnit(object):
     Bases = """meter kilogram second ampere kelvin mole candela """.split()
     BasesShort = """m kg s A K mol cd""".split()
 
-    def __init__(self, meter=0, kilogram=0, second=0, ampere=0, kelvin=0 , mole=0, candela=0, powerTen =0):
+    def __init__(self, meter=0, kilogram=0, second=0, ampere=0, kelvin=0, mole=0, candela=0, powerTen=0):
         self.meter = meter
         self.kilogram = kilogram
         self.second = second
@@ -64,7 +65,7 @@ class MMUnit(object):
         self.powerTen = powerTen
 
     def __mul__(self, rhs):
-        assert isinstance( rhs, MMUnit)
+        assert isinstance(rhs, MMUnit)
 
         return MMUnit(
             meter=self.meter + rhs.meter,
@@ -108,7 +109,6 @@ class MMUnit(object):
             powerTen=self.powerTen * p,
             )
 
-
     def with_no_powerten(self):
         return MMUnit(
             meter=self.meter,
@@ -133,14 +133,13 @@ class MMUnit(object):
 
 
     def __repr__(self):
-        s =  "<MMUnit: " + self.detail_str() + ">"
-        #assert False, s
+        s = '<MMUnit: ' + self.detail_str() + '>'
         return s
 
 
 
     def __eq__(self, rhs):
-        return (self/rhs).is_dimensionless(allow_non_zero_power_of_ten=False)
+        return (self / rhs).is_dimensionless(allow_non_zero_power_of_ten=False)
 
     def is_dimensionless(self, allow_non_zero_power_of_ten):
 
@@ -150,11 +149,9 @@ class MMUnit(object):
         else:
             return dimensionless and (self.powerTen == 0)
 
-
     def check_compatible(self, u1):
         if not self.is_compatible(u1):
             raise UnitMismatchError(self, u1)
-
 
     def is_compatible(self, u1):
         u = self / u1
@@ -174,10 +171,7 @@ class MMUnit(object):
         terms = ['%s^{%d}' % (basis_short_LUT[b], basisCounts[b])
                  for b in MMUnit.Bases if basisCounts[b]]
         s2 = '\cdot '.join(terms)
-        return "%s %s"%(s1,s2)
-
-
-
+        return '%s %s' % (s1, s2)
 
     def as_quantities_unit(self):
         import quantities as pq
@@ -198,22 +192,19 @@ class MMUnit(object):
         return res * 10 ** self.powerTen
 
 
-
-
-
 class MMQuantity(object):
+
     def __init__(self, magnitude, unit):
         self.magnitude = magnitude
         self.unit = unit
 
-
     def __lt__(self, rhs):
-        self.check_compatible( rhs.get_units())
+        self.check_compatible(rhs.get_units())
         return self.float_in_si() < rhs.float_in_si()
-
 
     def get_units(self):
         return self.unit
+
     units = property(get_units)
 
     def __repr__(self):
@@ -247,6 +238,7 @@ class MMQuantity(object):
         else:
             return MMQuantity(self.magnitude * rhs.magnitude, self.unit
                               * rhs.unit)
+
     def __rmul__(self, lhs):
         if isinstance(lhs, MMUnit):
             lhs = MMQuantity(1.0, lhs)
@@ -263,23 +255,21 @@ class MMQuantity(object):
         else:
             return MMQuantity(self.magnitude / rhs.magnitude, self.unit / rhs.unit)
 
-
-
     def __add__(self, rhs):
         if isinstance(rhs, MMUnit):
             rhs = MMQuantity(1.0, rhs)
-        if not  isinstance(rhs,MMQuantity):
+        if not isinstance(rhs, MMQuantity):
             print rhs
         assert isinstance(rhs, MMQuantity)
         rhs_conv = rhs.rescale(self.unit)
-        return MMQuantity( self.magnitude + rhs_conv.magnitude, self.unit)
+        return MMQuantity(self.magnitude + rhs_conv.magnitude, self.unit)
 
     def __sub__(self, rhs):
         if isinstance(rhs, MMUnit):
             rhs = MMQuantity(1.0, rhs)
         assert isinstance(rhs, MMQuantity)
         rhs_conv = rhs.rescale(self.unit)
-        return MMQuantity( self.magnitude - rhs_conv.magnitude, self.unit)
+        return MMQuantity(self.magnitude - rhs_conv.magnitude, self.unit)
 
     def __pow__(self, rhs):
         assert type(rhs) == int
@@ -288,7 +278,7 @@ class MMQuantity(object):
 
 
     def is_compatible(self,u):
-        return  self.unit.meter == u.meter and self.unit.kilogram == u.kilogram and self.unit.second == u.second and self.unit.ampere == u.ampere and self.unit.kelvin == u.kelvin and self.unit.mole == u.mole and self.unit.candela == u.candela
+        return self.unit.meter == u.meter and self.unit.kilogram == u.kilogram and self.unit.second == u.second and self.unit.ampere == u.ampere and self.unit.kelvin == u.kelvin and self.unit.mole == u.mole and self.unit.candela == u.candela
 
     def check_compatible(self, u):
         if not self.is_compatible(u):
@@ -297,9 +287,7 @@ class MMQuantity(object):
             s+= '\n -- %s'% u
             assert False, s
 
-
     def rescale(self, u):
-        
         self.check_compatible(u)
         mul_fac = u.powerTen - self.unit.powerTen
         return MMQuantity(self.magnitude / 10 ** mul_fac, u)
@@ -311,10 +299,8 @@ class MMQuantity(object):
     def is_dimensionless(self, allow_non_zero_power_of_ten):
         return self.unit.is_dimensionless(allow_non_zero_power_of_ten=allow_non_zero_power_of_ten)
 
-
     def float_in_si(self):
         return self.magnitude * 10 ** self.unit.powerTen
-
 
     def FormatLatex(self):
         pre = '%1.3f' % self.magnitude
@@ -327,8 +313,5 @@ class MMQuantity(object):
 
     def as_quantities_quantity(self):
         return self.magnitude * self.unit.as_quantities_unit()
-
-
-
 
 

@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +23,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 
 from neurounits import NeuroUnitParser
@@ -40,31 +42,33 @@ es = NeuroUnitParser.EqnSet("""
         }
         """)
 
-#SimulateEquations(es)
+# SimulateEquations(es)
 
-#es.to_redoc().to_pdf(filename="/home/michael/Desktop//out1.pdf")
+# es.to_redoc().to_pdf(filename="/home/michael/Desktop//out1.pdf")
 
 import numpy as np
-evaluator = EqnSimulator(es, )
+evaluator = EqnSimulator(es)
 
-
-one = es.library_manager.backend.Quantity( 1.0, es.library_manager.backend.Unit() )
-six = es.library_manager.backend.Quantity( 6.0, es.library_manager.backend.Unit() )
+one = es.library_manager.backend.Quantity(1.0,
+        es.library_manager.backend.Unit())
+six = es.library_manager.backend.Quantity(6.0,
+        es.library_manager.backend.Unit())
 print 'Simulating'
-res = evaluator(time_data = np.linspace(0.0,0.0200, 1000), params={'mu':4.0}, state0In={'x':1.0, 'y':six} )
+res = evaluator(time_data=np.linspace(0.0, 0.0200, 1000),
+                params={'mu': 4.0}, state0In={'x': 1.0, 'y': six})
 print 'Done Simulating'
 print res
 print res.keys()
-#res = evaluator(state0In=(), params=()s.params,time_data=s.t)
+# res = evaluator(state0In=(), params=()s.params,time_data=s.t)
 import pylab
 print res['t'].shape
-#print res['m'].shape
-#pylab.plot(res['t'], res['m'])
+# print res['m'].shape
+# pylab.plot(res['t'], res['m'])
 pylab.figure()
 pylab.plot(res['x'], res['y'])
 
 pylab.figure()
 pylab.plot(res['t'], res['x'])
 pylab.plot(res['t'], res['y'])
-#pylab.plot(res['t'], res['n'])
+# pylab.plot(res['t'], res['n'])
 pylab.show()

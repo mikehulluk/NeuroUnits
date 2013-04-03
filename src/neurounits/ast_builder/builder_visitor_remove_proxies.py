@@ -28,8 +28,8 @@
 import itertools
 
 from .eqnsetbuilder_symbol_proxy import SymbolProxy
-
 from ..visitors import ASTVisitorBase
+
 
 class RemoveAllSymbolProxy(ASTVisitorBase):
 
@@ -47,9 +47,8 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         return node
 
     def VisitEqnSet(self, o, **kwargs):
-        for i in itertools.chain( o.timederivatives, o.assignments, o.functiondefs, o.symbolicconstants, o.onevents):
+        for i in itertools.chain(o.timederivatives, o.assignments, o.functiondefs, o.symbolicconstants, o.onevents):
             self.visit(i)
-
 
         o._cache_nodes()
 
@@ -59,11 +58,9 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
 
         o._cache_nodes()
 
-
     def VisitLibrary(self, o, **kwargs):
-        for i in itertools.chain( o.functiondefs, o.symbolicconstants):
+        for i in itertools.chain(o.functiondefs, o.symbolicconstants):
             self.visit(i)
-
 
     def VisitStateVariable(self, o, **kwargs):
         pass
@@ -79,12 +76,12 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
 
     def VisitSuppliedValue(self, o, **kwargs):
         pass
+
     def VisitAnalogReducePort(self, o, **kwargs):
         pass
 
     def VisitSymbolicConstant(self, o, **kwargs):
         pass
-
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)
@@ -104,11 +101,9 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         self.visit(o.rhs_map)
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
-        o.rhs_map = dict( [(reg, self.followSymbolProxy(rhs)) for (reg,rhs) in o.rhs_map.items()])
+        o.rhs_map = dict([(reg, self.followSymbolProxy(rhs)) for (reg,rhs) in o.rhs_map.items()])
         for rhs in o.rhs_map.values():
-            self.visit(rhs) 
-
-
+            self.visit(rhs)
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)
@@ -153,7 +148,6 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         self.visit(o.less_than)
         self.visit(o.greater_than)
 
-
     def VisitBoolAnd(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)
         o.rhs = self.followSymbolProxy(o.rhs)
@@ -194,21 +188,20 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
     def VisitFunctionDefParameter(self, o, **kwargs):
         pass
 
-
     def VisitOnTransitionTrigger(self, o, **kwargs):
         for a in o.actions:
             self.visit(a)
         self.visit(o.trigger)
-    
+
     def VisitOnTransitionEvent(self, o, **kwargs):
-        o.parameters = dict( [(sym, self.followSymbolProxy(rhs)) for (sym,rhs) in o.parameters.items()])
+        o.parameters = dict([(sym, self.followSymbolProxy(rhs)) for (sym, rhs) in o.parameters.items()])
         for p in o.parameters.values():
             self.visit(p)
         for a in o.actions:
             self.visit(a)
 
     def VisitEmitEvent(self, o, **kwargs):
-        o.parameter_map= dict( [(reg, self.followSymbolProxy(rhs)) for (reg,rhs) in o.parameter_map.items()])
+        o.parameter_map= dict([(reg, self.followSymbolProxy(rhs)) for (reg, rhs) in o.parameter_map.items()])
         for p in o.parameter_map.values():
             self.visit(p)
 

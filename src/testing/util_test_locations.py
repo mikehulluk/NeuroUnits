@@ -1,4 +1,6 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,7 +23,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 import os
 import glob
@@ -36,26 +38,25 @@ def EnsureDir(l):
     return d
 
 
-
 class TestLocations(object):
 
-    _package_root_dir = os.path.normpath(os.path.join(os.path.dirname( __file__), '../../'))
+    _package_root_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), '../../'))
 
     @classmethod
     def getPackageRoot(cls):
         return cls._package_root_dir
-        #return "/home/michael/hw_to_come//libs/NeuroUnits"
 
 
     @classmethod
     def getEqnSetFiles(cls):
-        loc = Join(cls.getPackageRoot(), "src/test_data/eqnsets/" )
+        loc = Join(cls.getPackageRoot(), 'src/test_data/eqnsets/')
         print loc
-        files = glob.glob( loc+"/*.eqn" )
+        files = glob.glob(loc + '/*.eqn')
         return files
 
-
     @classmethod
-    def getTestOutputDir(cls,):
+    def getTestOutputDir(cls):
 
-        return EnsureDir("/tmp/neurounits_test/")
+        return EnsureDir('/tmp/neurounits_test/')
+
+
