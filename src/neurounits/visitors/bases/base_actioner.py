@@ -366,6 +366,11 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
     def ActionEqnSet(self, o, **kwargs):
         raise NotImplementedError()
+    def ActionLibrary(self,o, **kwargs):
+        raise NotImplementedError()
+    def ActionNineMLComponent(self, o, **kwargs):
+        raise NotImplementedError()
+
 
     def ActionIfThenElse(self, o, **kwargs):
         raise NotImplementedError()
@@ -445,4 +450,14 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def ActionFunctionDefInstantiationParater(self, o, **kwargs):
         raise NotImplementedError()
 
+    def ActionOnTransitionTrigger(self, o, **kwargs):
+        raise NotImplementedError()
+
+    def ActionOnTransitionEvent(self, o, **kwargs):
+        raise NotImplementedError()
+
+
+
+    def ActionOnEventStateAssignment(self, o, **kwargs):
+        raise NotImplementedError()
 
