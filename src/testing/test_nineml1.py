@@ -226,6 +226,14 @@ module test {
 
 library_manager = neurounits.NeuroUnitParser.Parse9MLFile( test_text )
 
+c = library_manager.get( 'i_squarewave')
+d = c.clone()
+
+c_ast = set(c.all_ast_nodes())
+d_ast = set(d.all_ast_nodes())
+
+print 'Overlapping components', c_ast & d_ast
+assert c_ast & d_ast == set()
 #for component in library_manager.components:
 #    print component
 

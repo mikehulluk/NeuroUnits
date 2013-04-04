@@ -258,11 +258,11 @@ class FunctionDefParameterInstantiation(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitFunctionDefInstantiationParater(self, **kwargs)
 
-    def __init__(self, rhs_ast, symbol, **kwargs):
+    def __init__(self, rhs_ast, symbol, function_def_parameter=None, **kwargs):
         ASTExpressionObject.__init__(self, **kwargs)
         self.symbol = symbol
         self.rhs_ast = rhs_ast
-        self._function_def_parameter = None
+        self._function_def_parameter = function_def_parameter
 
     def set_function_def_parameter(self, param):
         assert self._function_def_parameter is None

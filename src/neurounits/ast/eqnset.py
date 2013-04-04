@@ -36,6 +36,9 @@ from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirect
 from neurounits.io_types import IOType
 
 
+import itertools
+
+
 class Block(object):
 
     def __init__(self, name, library_manager, builder):
@@ -336,6 +339,16 @@ class NineMLComponent(EqnSet):
                 for tr in self.transitions_from_regime(regime):
                     print '          Transition:', tr
 
+
+
+    def all_ast_nodes(self):
+        c = EqnsetVisitorNodeCollector()
+        c.visit(self)
+        return itertools.chain( *c.nodes.values() ) 
+
+    def clone(self, ):
+        from neurounits.visitors.common.ast_cloning import ASTClone
+        return ASTClone().clone_root(self)
 
 
 

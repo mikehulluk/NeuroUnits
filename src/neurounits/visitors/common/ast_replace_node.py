@@ -30,6 +30,7 @@ from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 
 import itertools
 from neurounits.ast.astobjects import ASTObject
+from neurounits.ast.eqnset import Block
 
 
 class ReplaceNode(ASTVisitorBase):
@@ -39,12 +40,13 @@ class ReplaceNode(ASTVisitorBase):
         self.dstObj = dstObj
 
     def replace_or_visit(self, o):
-        assert isinstance(o, ASTObject)
-        assert isinstance(self.srcObj, ASTObject)
+        assert isinstance(o, (ASTObject,Block)), 'Not replacing with an ASTObject!: [%s] %s' % (o, type(o) )
+        assert isinstance(self.srcObj, (ASTObject, Block)), 'Not replacing with an existing ASTObject!: [%s] %s' % (self.srcObj, type(self.srcObj) )
+
         if o == self.srcObj:
             return self.dstObj
         else:
-            if 'symbol' in o.__dict__:
+            if 'symbol' in o.__dict__ and hasattr(self.srcObj,'symbol'):
                 assert not o.symbol == self.srcObj.symbol
 
             return self.visit(o)
@@ -52,7 +54,11 @@ class ReplaceNode(ASTVisitorBase):
     def visit(self, o, **kwargs):
         return o.accept_visitor(self, **kwargs)
 
+
+
+
     def VisitEqnSet(self, o, **kwargs):
+        assert False
         subnodes = itertools.chain(o.assignments, o.timederivatives,
                                    o.functiondefs, o.symbolicconstants,
                                    o.onevents)
@@ -61,19 +67,115 @@ class ReplaceNode(ASTVisitorBase):
 
         return o
 
-    def VisitNineMLComponent(self, o, **kwargs):
-        subnodes = itertools.chain(o.assignments, o.timederivatives,
-                                   o.functiondefs, o.symbolicconstants,
-                                   o.onevents, o.transitions)
-        for f in subnodes:
-            self.visit(f, **kwargs)
-        return o
+
+    def _replace_name_to_obj_map(self, old_dict):
+        new_objs =  [self.replace_or_visit(v) for v in old_dict.values() ]
+        print new_objs
+        new_dict = dict( [(o.name, o) for o in new_objs] )
+        assert set(old_dict.keys()) == set(new_dict.keys() )
+        return new_dict
 
     def VisitLibrary(self, o, **kwargs):
-        subnodes = itertools.chain(o.functiondefs, o.symbolicconstants)
-        for f in subnodes:
-            self.visit(f, **kwargs)
+        _function_defs_new = {}
+        for (k,v) in o._function_defs.items():
+            k = k #self.replace_or_visit(k)
+            v = self.replace_or_visit(v)
+            _function_defs_new[k] =v
+        o._function_defs = _function_defs_new
+
+
+        _symbolicconstants_new = {}
+        for (k,v) in o._symbolicconstants.items():
+            k = k #self.replace_or_visit(k)
+            v = self.replace_or_visit(v)
+            _symbolicconstants_new[k] =v
+        o._symbolicconstants = _symbolicconstants_new
+
+        o._cache_nodes()
+
         return o
+
+
+    def VisitNineMLComponent(self, o, **kwargs):
+        o._transitions_triggers = [self.replace_or_visit(so) for so in o._transitions_triggers]
+        o._transitions_events = [self.replace_or_visit(so) for so in o._transitions_events]
+        o.rt_graphs = self._replace_name_to_obj_map(o.rt_graphs) 
+
+
+        #print 'Before'
+        #print o._eqn_assignment
+        #print o._function_defs
+        #print o._eqn_time_derivatives
+        #print o._symbolicconstants
+
+
+
+        _eqn_assignment_new = {}
+        for (k,v) in o._eqn_assignment.items():
+            k = self.replace_or_visit(k)
+            v = self.replace_or_visit(v)
+            _eqn_assignment_new[k] =v
+        o._eqn_assignment = _eqn_assignment_new 
+
+        _eqn_time_derivatives_new = {}
+        for (k,v) in o._eqn_time_derivatives.items():
+            k = self.replace_or_visit(k)
+            v = self.replace_or_visit(v)
+            _eqn_time_derivatives_new[k] =v
+        o._eqn_time_derivatives = _eqn_time_derivatives_new
+
+
+        #o._function_defs  = [ self.replace_or_visit(so) for so in o._function_defs  ]
+        _function_defs_new = {}
+        for (k,v) in o._function_defs.items():
+            k = k #self.replace_or_visit(k)
+            v = self.replace_or_visit(v)
+            _function_defs_new[k] =v
+        o._function_defs = _function_defs_new
+
+
+        _symbolicconstants_new = {}
+        for (k,v) in o._symbolicconstants.items():
+            k = k #self.replace_or_visit(k)
+            v = self.replace_or_visit(v)
+            _symbolicconstants_new[k] =v
+        o._symbolicconstants = _symbolicconstants_new
+
+
+        #print 'Afeter'
+        #print o._eqn_assignment
+        #print o._function_defs
+        #print o._eqn_time_derivatives
+        #print o._symbolicconstants
+
+        #o._eqn_assignment = [self.replace_or_visit(so) for so in o._eqn_assignment]
+        #o._eqn_assignment = self._replace_name_to_obj_map(o._eqn_assignment) #[self.replace_or_visit(so) for so in o._eqn_assignment]
+        #o._function_defs  = [ self.replace_or_visit(so) for so in o._function_defs  ]
+        #o._function_defs  = self._replace_name_to_obj_map(o._function_defs)
+        #o._eqn_time_derivatives  = [self.replace_or_visit(so) for so in o._eqn_time_derivatives ]
+        #o._symbolicconstants  = [self.replace_or_visit(so) for so in o._symbolicconstants ]
+
+
+        #o._on_events  = self._replace_name_to_obj_map(o._on_events) #[self.replace_or_visit(so) for so in o._on_events ]
+
+        o._cache_nodes()
+
+
+        return o
+
+    def VisitRTGraph(self, o, **kwargs):
+        print o.regimes
+        o.regimes = self._replace_name_to_obj_map(o.regimes)
+        return o
+
+
+    def VisitRegime(self, o, **kwargs):
+        # This is not a parent, so lets prevenmt recursion:
+        if o.parent_rt_graph == self.srcObj:
+            o.parent_rt_graph = self.dstObj
+        return o
+
+
 
     def VisitOnEvent(self, o, **kwargs):
         o.parameters = dict([(pName, self.replace_or_visit(p))

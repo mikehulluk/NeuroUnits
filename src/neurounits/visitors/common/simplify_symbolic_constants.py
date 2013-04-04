@@ -55,7 +55,12 @@ class ReduceConstants(ASTVisitorBase):
                 o._cache_nodes()
 
                 o._symbolicconstants[aKey.symbol] = s
-                del o._eqn_assignment[aKey]
+
+                from neurounits.misc import SeqUtils
+                old_ass = SeqUtils.filter_expect_single( o._eqn_assignment, lambda o:o.symbol == aKey.symbol )
+                del o._eqn_assignment[ old_ass ] #o.get_terminal_obj(aKey.symbol) ]
+
+                #del o._eqn_assignment[ o.get_terminal_obj(aKey.symbol) ]
 
                 removed.append(alhs)
 

@@ -182,7 +182,11 @@ class Regime(ASTObject):
 
 class RTBlock(ASTObject):
 
-    def __init__(self, name=None):
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitRTGraph(self)
+
+
+    def __init__(self, name=None,):
         self.name = name
         self.regimes = {None: Regime(None, parent_rt_graph=self)}
 
