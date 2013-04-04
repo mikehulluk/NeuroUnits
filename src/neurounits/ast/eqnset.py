@@ -65,7 +65,7 @@ class Library(Block):
     def accept_visitor(self, v, **kwargs):
         return v.VisitLibrary(self, **kwargs)
 
-    def __init__(self,  library_manager, builder, builddata, io_data):
+    def __init__(self,  library_manager, builder, builddata):
         super(Library,self).__init__(library_manager=library_manager, builder=builder, name=builddata.eqnset_name)
 
         # We have to read the _eqn_assignment, although they should be
@@ -98,15 +98,15 @@ class EqnSet(Block):
     def accept_visitor(self, v, **kwargs):
         return v.VisitEqnSet(self, **kwargs)
 
-    def __init__(self,  library_manager, builder, builddata, io_data, name=None):
+    def __init__(self,  library_manager, builder, builddata, name=None):
         if name == None:
             name = builddata.eqnset_name
 
         super(EqnSet, self).__init__(library_manager=library_manager, builder=builder, name=name)
 
         # Metadata about the inputs and outputs:
-        self.io_data = io_data
-        self.initial_conditions = [p for p in io_data if p.iotype == IOType.InitialCondition]
+        #self.io_data = io_data
+        #self.initial_conditions = [p for p in io_data if p.iotype == IOType.InitialCondition]
 
         # Top-level objects:
         self._eqn_assignment = builddata.assignments
@@ -148,7 +148,6 @@ class EqnSet(Block):
 
     @property
     def states(self):
-        # TODO => rename to state_variables
         return sorted(self._eqn_time_derivatives.keys(), key=lambda a:a.symbol)
 
     @property
@@ -256,16 +255,19 @@ class EqnSet(Block):
 
     def getSymbolMetadata(self, sym):
         assert sym in self.terminal_symbols
-        for io in self.io_data:
-            if io.symbol == sym.symbol:
-                return io.metadata
-        return None
+        return self.get_terimal_symbol_obj(sym)._metadata._metadata
+        #for io in self.io_data:
+        #    if io.symbol == sym.symbol:
+        #        return io.metadata
+        #return None
 
 
 class NineMLComponent(EqnSet):
+    def accept_visitor(self, visitor, **kwargs):
+        return visitor.VisitNineMLComponent(self, **kwargs)
 
 
-    def __init__(self,  library_manager, builder, builddata, io_data, name=None):
+    def __init__(self,  library_manager, builder, builddata, name=None):
 
         self._transitions_triggers = builddata.transitions_triggers
         self._transitions_events = builddata.transitions_events
@@ -274,7 +276,7 @@ class NineMLComponent(EqnSet):
         if name == None:
             name = builddata.eqnset_name
 
-        super(NineMLComponent,self).__init__(library_manager=library_manager, builder=builder, builddata=builddata, io_data=io_data, name=name)
+        super(NineMLComponent,self).__init__(library_manager=library_manager, builder=builder, builddata=builddata, name=name)
 
         self._cache_nodes()
 
@@ -282,8 +284,6 @@ class NineMLComponent(EqnSet):
     def transitions(self):
         return self._transitions_triggers + self._transitions_events
 
-    def accept_visitor(self, visitor, **kwargs):
-        return visitor.VisitNineMLComponent(self, **kwargs)
 
     def __repr__(self):
         return '<NineML Component: %s>' % self.name
@@ -335,6 +335,9 @@ class NineMLComponent(EqnSet):
 
                 for tr in self.transitions_from_regime(regime):
                     print '          Transition:', tr
+
+
+
 
 
 class NineMLModule(object):

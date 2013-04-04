@@ -112,7 +112,7 @@ class LibraryManager(object):
         from neurounits.visitors.common.ast_node_connections import ASTAllConnections
         from neurounits.visitors.common.ast_node_connections import ASTAllConnectionsCheck
         ASTAllConnectionsCheck().visit(l)
-        assert False
+        #assert False
         return l
 
     def get_library(self, libname):

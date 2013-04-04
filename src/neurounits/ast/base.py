@@ -32,4 +32,10 @@ class ASTObject(object):
     def is_resolved(self):
         return True
 
+    def __init__(self):
+        self._metadata = None
+
+    def set_metadata(self, md):
+        self._metadata = md
+
 

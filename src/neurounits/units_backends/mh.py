@@ -215,8 +215,8 @@ class MMQuantity(object):
 
         # return
 
-        return '%s %s' % (self.magnitude, dim)
-        return '<Quantity: %s %s>' % (self.magnitude, self.unit)
+        return '<MMQuantity:%s %s>' % (self.magnitude, dim)
+        #return '<Quantity: %s %s>' % (self.magnitude, self.unit)
 
     def __eq__(self, rhs):
         lhs_mag = self.magnitude * 10**self.unit.powerTen

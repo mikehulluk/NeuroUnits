@@ -62,7 +62,6 @@ class ASTVisitorBase(object):
     def VisitBoolNot(self, o, **kwargs):
         raise NotImplementedError()
 
-    # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):
         raise NotImplementedError()
 
@@ -72,7 +71,6 @@ class ASTVisitorBase(object):
     def VisitFunctionDefParameter(self, o, **kwargs):
         raise NotImplementedError()
 
-    # Terminals:
     def VisitStateVariable(self, o, **kwargs):
         raise NotImplementedError()
 

@@ -7,6 +7,9 @@ from neurounits.visitors.bases.base_actioner_default import ASTActionerDefault
 
 
 def subnodes_on_obj(obj, recurse_builtins=True):
+    if isinstance(obj, set):
+        obj = list(obj)
+
     if isinstance(obj, list):
         return list(chain(*[subnodes_on_obj(o) for o in obj]))
     if isinstance(obj, dict):
@@ -15,7 +18,7 @@ def subnodes_on_obj(obj, recurse_builtins=True):
         return ks + vs
     if isinstance(obj, (int, float, basestring, NoneType)):
         return []
-    
+
     return [obj]
 
 def nodes_on_obj(obj, recurse_builtins=True):
@@ -27,38 +30,38 @@ def nodes_on_obj(obj, recurse_builtins=True):
 
 class ASTAllConnectionsCheck(ASTActionerDefault):
     def ActionNode(self,n):
-        ASTAllConnections().visit(n)
+        self.check_node(n)
 
+    def check_node(self, obj, **kwargs):
+        connections = ASTAllConnections()
 
-
-class ASTAllConnections(ASTActionerDepthFirst):
-
-    def visit(self, obj):
-
+        print
         print 'Visiting:', obj
-        nodes_told = obj.accept_visitor(self)
+        nodes_told = obj.accept_visitor(connections)
         nodes_found = nodes_on_obj(obj)
 
         if nodes_told is None:
             assert False, 'None found (told) %s'% obj
-            
+
         if nodes_found is None:
             assert False, 'None found (found) %s'% obj
 
         print 'Nodes told', nodes_told
         print 'Nodes found', nodes_found
 
-        
+
 
         # Ignore LibraryBuilder and LibraryManager
 
         from neurounits.librarymanager import LibraryManager
         from neurounits.ast_builder.eqnsetbuilder import LibraryBuilder
-        from neurounits.units_backends.mh import MMUnit
-        clses = (LibraryBuilder, LibraryManager, MMUnit)
+        from neurounits.units_backends.mh import MMUnit, MMQuantity
+        from neurounits.ast_builder.eqnsetbuilder import NineMLComponentBuilder
+        from neurounits.ast_builder.eqnsetbuilder_io.io_str_parser import IODataDimensionSpec
+        clses = (LibraryBuilder, LibraryManager, MMUnit, MMQuantity, IODataDimensionSpec, NineMLComponentBuilder)
         nodes_found = [n for n in nodes_found if not isinstance(n, clses)]
 
-        nt = set(nodes_told) 
+        nt = set(nodes_told)
         nf = set(nodes_found)
 
         if nf != nt:
@@ -67,31 +70,62 @@ class ASTAllConnections(ASTActionerDepthFirst):
             print 'Told not found:'
             print nt-nf
             assert False
-        
+
+
+    
+
+
+class ASTAllConnections(ASTActionerDepthFirst):
+
 
     def VisitEqnSet(self, o, **kwargs):
         return [
-            self._eqn_assignment.values(),
-            self._function_defs.values(),
-            self._eqn_time_derivatives.values(),
-            self._symbolicconstants.values(),
-            self._on_events.values() 
+            o._eqn_assignment.values(),
+            o._function_defs.values(),
+            o._eqn_time_derivatives.values(),
+            o._symbolicconstants.values(),
+            o._on_events.values()
         ]
 
+    def VisitLibrary(self,o, **kwargs):
+        return list(chain(
+            o._eqn_assignment.values(),
+            o._function_defs.values() ,
+            o._symbolicconstants.values(),
+        ))
+    def VisitNineMLComponent(self, o, **kwargs):
+        return list(chain(
+            o._eqn_assignment.values(),
+            o._function_defs.values(),
+            o._eqn_time_derivatives.values(),
+            o._symbolicconstants.values(),
+            o._parameters,
+            o._supplied_values,
+            o.assignedvalues,
+            o.states,
+            o.analog_reduce_ports,
+            o._on_events.values(),
+            o._transitions_triggers,
+            o._transitions_events,
+            o.rt_graphs.values(),
+        ))
+
+
+
     def VisitIfThenElse(self, o, **kwargs):
-        pass
+        return [o.predicate, o.if_true_ast, o.if_false_ast]
 
     def VisitInEquality(self, o, **kwargs):
-        pass
+        return [o.less_than, o.greater_than]
 
     def VisitBoolAnd(self, o, **kwargs):
-        pass
+        return [o.lhs, o.rhs]
 
     def VisitBoolOr(self, o, **kwargs):
-        pass
+        return [o.lhs, o.rhs]
 
     def VisitBoolNot(self, o, **kwargs):
-        pass
+        return [o.lhs]
 
     # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):
@@ -99,7 +133,7 @@ class ASTAllConnections(ASTActionerDepthFirst):
             o.parameters.values(),
             [o.rhs]
             ))
-        
+
 
     def VisitBuiltInFunction(self, o, **kwargs):
         return o.parameters.values()
@@ -109,72 +143,70 @@ class ASTAllConnections(ASTActionerDepthFirst):
 
     # Terminals:
     def VisitStateVariable(self, o, **kwargs):
-        pass
+        return []
 
     def VisitSymbolicConstant(self, o, **kwargs):
-        pass
+        return []
 
     def VisitParameter(self, o, **kwargs):
-        pass
+        return []
 
     def VisitConstant(self, o, **kwargs):
-        pass
+        return []
 
     def VisitAssignedVariable(self, o, **kwargs):
-        pass
+        return []
 
     def VisitSuppliedValue(self, o, **kwargs):
-        pass
+        return []
 
     def VisitAnalogReducePort(self, o, **kwargs):
-        print 'self', self
-        pass
-
-    def VisitTimeDerivativeByRegime(self, o, **kwargs):
-        pass
+        return o.rhses
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
-        pass
+        return list(o.rhs_map.keys()) + list( o.rhs_map.values() )
+
+    def VisitTimeDerivativeByRegime(self, o, **kwargs):
+        return [o.lhs, o.rhs_map]
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
-        pass
+        return [o.lhs, o.rhs_map]
 
     def VisitAddOp(self, o, **kwargs):
-        pass
+        return [o.lhs, o.rhs]
 
     def VisitSubOp(self, o, **kwargs):
-        pass
+        return [o.lhs, o.rhs]
+
 
     def VisitMulOp(self, o, **kwargs):
-        pass
+        return [o.lhs, o.rhs]
+
 
     def VisitDivOp(self, o, **kwargs):
-        pass
+        return [o.lhs, o.rhs]
+
 
     def VisitExpOp(self, o, **kwargs):
-        pass
+        assert isinstance( o.rhs, (float,int) )
+        return [o.lhs]
+
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
         return list(chain([o.function_def], o.parameters.values() ))
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         return [o.rhs_ast, o._function_def_parameter]
-        
-    def VisitLibrary(self,o, **kwargs):
-        return list(chain(
-            o._eqn_assignment.values(),
-            o._function_defs.values() ,
-            o._symbolicconstants.values(),
-        ))
-        
-    def VisitNineMLComponent(self, o, **kwargs):
-        pass
+
     def VisitOnTransitionTrigger(self, o, **kwargs):
-        pass
+        return [o.trigger, o.src_regime, o.target_regime ] + list(o.actions)
+
     def VisitOnTransitionEvent(self, o, **kwargs):
-        pass
+        return [ o.src_regime, o.target_regime ] + list(o.actions)
 
 
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
-        pass
+        return [o.lhs, o.rhs]
+
+

@@ -220,6 +220,9 @@ class ASTActionerDepthFirst(ASTVisitorBase):
             self.visit(a, **kwargs)
         self._ActionEmitEvent(o, **kwargs)
 
+
+
+
     def _ActionPredicate(self, o, **kwargs):
         for p in self.action_predicates:
             if not p(o, **kwargs):

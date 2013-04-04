@@ -613,6 +613,9 @@ class AbstractBlockBuilder(object):
                 os_obj.set_dimensionality(o.dimension)
 
 
+
+
+
         # OK, everything in our namespace should be resoved.  If not, then
         # something has gone wrong.  Look for remaining unresolved symbols:
         # ########################################
@@ -633,7 +636,7 @@ class AbstractBlockBuilder(object):
                     library_manager=self.library_manager,
                     builder=self,
                     builddata=self.builddata,
-                    io_data=io_data,
+                    #io_data=io_data,
                 )
 
 
@@ -648,10 +651,16 @@ class AbstractBlockBuilder(object):
 
         # ActionerPlotNetworkX(self._astobject)
 
-        # 2. Propagate the dimensionalities accross the system:
+
+        # 2. Setup the meta-data in each node from IO lines
+        for io_data in io_data:
+            self._astobject.get_terminal_obj(io_data.symbol).set_metadata(io_data)
+
+
+        # 3. Propagate the dimensionalities accross the system:
         PropogateDimensions.propogate_dimensions(self._astobject)
 
-        # 3. Reduce simple assignments to symbolic constants:
+        # 4. Reduce simple assignments to symbolic constants:
         ReduceConstants().visit(self._astobject)
 
 

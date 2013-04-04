@@ -1076,9 +1076,9 @@ def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, w
     try:
         pRes, library_manager = parse_eqn_block(text, parse_type=parse_type, debug=debug, library_manager=library_manager)
     except:
-        print
-        print 'Error Parsing: %s' % text
-        print 'Parsing as', parse_type
+        #print
+        #print 'Error Parsing: %s' % text
+        #print 'Parsing as', parse_type
         raise
 
     # If its a level-3 expression, we need to evaluate it:

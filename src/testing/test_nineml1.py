@@ -26,7 +26,7 @@ src_files = [
     "/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/complex_component.9ml" ,
 ]
 
-src_files = [s.replace('libs/','') for s in src_files]
+#src_files = [s.replace('libs/','') for s in src_files]
 
 
 library_manager = None
@@ -320,7 +320,7 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
     comp = NineMLComponent(library_manager = lib_mgr,
                     builder = None,
                     builddata = builddata,
-                    io_data = [],
+                    #io_data = [],
                     )
 
 

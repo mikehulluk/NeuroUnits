@@ -245,3 +245,9 @@ class AnalogReducePort(ASTExpressionObject):
         self.rhses = []
 
 
+# TODO:
+class OutEventPortParameter(ASTObject):
+    pass
+
+class OutEventPort(ASTObject):
+    pass
