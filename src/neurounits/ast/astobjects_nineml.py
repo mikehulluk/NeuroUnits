@@ -180,6 +180,7 @@ class Regime(ASTObject):
         return '%s.%s' % (self.parent_rt_graph.ns_string(), self.name)
 
 
+from neurounits.units_misc import LookUpDict
 class RTBlock(ASTObject):
 
     def accept_visitor(self, v, **kwargs):
@@ -188,27 +189,33 @@ class RTBlock(ASTObject):
 
     def __init__(self, name=None,):
         self.name = name
-        self.regimes = {None: Regime(None, parent_rt_graph=self)}
+        self.regimes = LookUpDict([Regime(None, parent_rt_graph=self)])
 
     def ns_string(self):
         return (self.name if self.name is not None else '')
 
     def get_regime(self, name):
-        return self.regimes[name]
+        return self.regimes.get_single_obj_by(name=name)
+        #return self.regimes[name]
 
     def get_or_create_regime(self, name):
-        if not name in self.regimes:
-            self.regimes[name] = Regime(name=name, parent_rt_graph=self)
+        if not self.regimes.has_obj(name=name):
+            self.regimes._add_item( Regime(name=name, parent_rt_graph=self) )
+        return self.regimes.get_single_obj_by(name=name)
 
-        return self.regimes[name]
+        #if not name in self.regimes:
+        #    self.regimes[name] = Regime(name=name, parent_rt_graph=self)
+
+        #return self.regimes[name]
 
     def __repr__(self):
         return '<RT Block: %s>' % self.name
 
     def has_regime(self, name):
-        for (r_name, r) in self.regimes.items():
-            assert r_name == r.name
-        return name in self.regimes
+        return self.regimes.has_obj(name=name)
+        #for (r_name, r) in self.regimesitems():
+        #    assert r_name == r.name
+        #rreturn name in self.regimes
 
 
  # Temporary objects used only during building:

@@ -95,3 +95,78 @@ def read_json(s):
     return x
 
 
+
+
+
+class LookUpDict(object):
+    def __init__(self, objs = None, unique_attrs=None, accepted_obj_types=None):
+        self.unique_attrs = unique_attrs if unique_attrs is not None else []
+        self.accepted_obj_types = accepted_obj_types
+
+        self._objs = set([])
+        if objs:
+            for obj in objs:
+                self._add_item(obj)
+
+
+    def get_attr_value(self, obj, attr):
+        res =  getattr(obj, attr)
+        print 'Finding attr: %s on:%s -> %s' %(attr,obj,res)
+        return res
+
+
+    def _add_item(self, obj, expect_existing=False):
+
+        if self.accepted_obj_types:
+            assert isinstance(obj, self.accepted_obj_types), 'Adding item of type: %s but I expected %s' %(type(obj), self.accepted_obj_types)
+
+        # Some error checking:
+        # Check we are not adding an object with an existing name:
+        for unique_attr in self.unique_attrs:
+            new_attr = self.get_attr_value(obj, unique_attr)
+            existing_attrs = [ self.get_attr_value(o, unique_attr) for o in self._objs ]
+            assert not new_attr in existing_attrs
+
+        self._objs.add(obj)
+
+    def get_objs_by(self, **kwargs):
+        possible_objs = list( self._objs )
+        for attr, value in kwargs.items():
+            possible_objs = [ p for p in possible_objs if self.get_attr_value(p, attr) == value]
+        return possible_objs
+
+
+
+    def get_single_obj_by(self, **kwargs):
+        possible_objs = self.get_objs_by(**kwargs)
+        assert len(possible_objs) == 1
+        return possible_objs[0]
+
+    def get_objects_attibutes(self, attr=None, **kwargs):
+        assert attr is not None
+        
+        possible_objs = self.get_objs_by(**kwargs)
+        return [ getattr(p, attr) for p in possible_objs]
+
+    def __iter__(self):
+        return iter(self._objs)
+
+    def __len__(self):
+        return len(self._objs)
+
+    def has_obj(self, **kwargs):
+        r = self.get_objs_by(**kwargs)
+        assert len(r) in (0,1)
+        if len(r) == 0:
+            return False
+        else:
+            return True
+
+
+
+    def copy(self):
+        return LookUpDict( objs = self._objs, unique_attrs=self.unique_attrs, accepted_obj_types=self.accepted_obj_types)
+
+
+
+

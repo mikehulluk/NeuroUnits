@@ -226,14 +226,16 @@ module test {
 
 library_manager = neurounits.NeuroUnitParser.Parse9MLFile( test_text )
 
-c = library_manager.get( 'i_squarewave')
-d = c.clone()
+test_clone = False
+if test_clone:
+    c = library_manager.get( 'i_squarewave')
+    d = c.clone()
 
-c_ast = set(c.all_ast_nodes())
-d_ast = set(d.all_ast_nodes())
+    c_ast = set(c.all_ast_nodes())
+    d_ast = set(d.all_ast_nodes())
 
-print 'Overlapping components', c_ast & d_ast
-assert c_ast & d_ast == set()
+    print 'Overlapping components', c_ast & d_ast
+    assert c_ast & d_ast == set()
 #for component in library_manager.components:
 #    print component
 
@@ -292,8 +294,8 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
 
 
         # RT Graphs names (not the names of the regimes!):
-        for rtname, obj in component.rt_graphs.items():
-            obj.name = component_name + prefix + (obj.name if obj.name else '')
+        for rt_graph in component.rt_graphs:
+            rt_graph.name = component_name + prefix + (rt_graph.name if rt_graph.name else '')
 
 
 
@@ -305,21 +307,22 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
     builddata = BuildData()
     builddata.eqnset_name = name
 
-    builddata.timederivatives = SingleSetDict()
-    builddata.assignments = SingleSetDict()
-    builddata.rt_graphs = SingleSetDict()
+    builddata.timederivatives = []
+    builddata.assignments = []
+    builddata.rt_graphs = []
+    builddata.symbolicconstants = []
 
     for c in instantiate.values():
         for td in c.timederivatives:
-            builddata.timederivatives[td.lhs] = td
+            builddata.timederivatives.append( td )
         for ass in c.assignments:
-            builddata.assignments[ass.lhs] = ass
+            builddata.assignments.append(ass)
 
         for symconst in c.symbolicconstants:
-            builddata.symbolicconstants[symconst.symbol] = symconst
+            builddata.symbolicconstants.append(symconst)
 
-        for rt_graph in c.rt_graphs.values():
-            builddata.rt_graphs[rt_graph.name] = rt_graph
+        for rt_graph in c.rt_graphs:
+            builddata.rt_graphs.append(rt_graph)
 
         builddata.transitions_triggers.extend(c._transitions_triggers)
         builddata.transitions_events.extend(c._transitions_events)
@@ -439,28 +442,28 @@ def simulate_component(component, times, parameters,initial_state_values, initia
     # Resolve initial regimes:
     # ========================
     # i. Initial, make initial regimes 'None', then lets try and work it out:
-    current_regimes = dict( [ (rt, None) for rt in component.rt_graphs.values()] )
+    current_regimes = dict( [ (rt, None) for rt in component.rt_graphs] )
 
     # ii. Is there just a single regime?
     for (rt_graph, regime) in current_regimes.items():
         if len(rt_graph.regimes) == 1:
-            current_regimes[rt_graph] = rt_graph.regimes.values()[0]
+            current_regimes[rt_graph] = rt_graph.regimes.get_single_obj_by()
 
     # iii. Do the transion graphs have a 'init' block?
-    for rt_graph in component.rt_graphs.values():
+    for rt_graph in component.rt_graphs:
         if rt_graph.has_regime(name='init'):
             current_regimes[rt_graph] = rt_graph.get_regime(name='init')
 
     # iv. Explicitly provided:
     for (rt_name, regime_name) in initial_regimes.items():
-        rt_graph = component.rt_graphs[rt_name]
+        rt_graph = component.rt_graphs.get_single_obj_by(name=rt_name)
         assert current_regimes[rt_graph] is None, "Initial state for '%s' set twice " % rt_graph.name
         current_regimes[rt_graph]  = rt_graph.get_regime( name=regime_name )
 
     # v. Check everything is hooked up OK:
     for rt_graph, regime in current_regimes.items():
         assert regime is not None, " Start regime for '%s' not set! " % (rt_graph.name)
-        assert regime in rt_graph.regimes.values()
+        assert regime in rt_graph.regimes
 
     print 'Initial_regimes', current_regimes
 
@@ -525,7 +528,7 @@ def simulate_component(component, times, parameters,initial_state_values, initia
        
         # Check for transitions:
         #print 'Checking for transitions:'
-        for rt_graph in component.rt_graphs.values():
+        for rt_graph in component.rt_graphs:
             current_regime = current_regimes[rt_graph]
             #print '  ', rt_graph, '(in %s)' % current_regime
             for transition in component.transitions_from_regime(current_regime):
@@ -563,11 +566,11 @@ def simulate_component(component, times, parameters,initial_state_values, initia
     # D. RT-gragh Regimes:
     # Build a dictionary mapping regimes -> Regimes, to make plotting easier:
     regimes_to_ints_map = {}
-    for rt_graph in component.rt_graphs.values():
-        regimes_to_ints_map[rt_graph] = dict( zip(  rt_graph.regimes.values(),range(len(rt_graph.regimes)),) )
+    for rt_graph in component.rt_graphs:
+        regimes_to_ints_map[rt_graph] = dict( zip(  iter(rt_graph.regimes),range(len(rt_graph.regimes)),) )
 
     rt_graph_data = {}
-    for rt_graph in component.rt_graphs.values():
+    for rt_graph in component.rt_graphs:
         regimes = [ time_pt_data.rt_regimes[rt_graph] for time_pt_data in reses_new]
         regimes_ints = np.array([ regimes_to_ints_map[rt_graph][r] for r in regimes])
         rt_graph_data[rt_graph.name] = (regimes_ints) 

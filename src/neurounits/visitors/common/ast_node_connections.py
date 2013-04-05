@@ -5,10 +5,14 @@ from types import NoneType
 from neurounits.visitors.bases.base_actioner import ASTActionerDepthFirst
 from neurounits.visitors.bases.base_actioner_default import ASTActionerDefault
 
+from neurounits.units_misc import LookUpDict
 
 def subnodes_on_obj(obj, recurse_builtins=True):
     if isinstance(obj, set):
         obj = list(obj)
+
+    if isinstance(obj, LookUpDict):
+        return list(obj._objs)
 
     if isinstance(obj, list):
         return list(chain(*[subnodes_on_obj(o) for o in obj]))
@@ -35,6 +39,7 @@ class ASTAllConnectionsCheck(ASTActionerDefault):
     def check_node(self, obj, **kwargs):
         connections = ASTAllConnections()
 
+        print 
         print
         print 'Visiting:', obj
         nodes_told = obj.accept_visitor(connections)
@@ -79,6 +84,7 @@ class ASTAllConnections(ASTActionerDepthFirst):
 
 
     def VisitEqnSet(self, o, **kwargs):
+        assert False
         return [
             o._eqn_assignment.values(),
             o._function_defs.values(),
@@ -95,19 +101,19 @@ class ASTAllConnections(ASTActionerDepthFirst):
         ))
     def VisitNineMLComponent(self, o, **kwargs):
         return list(chain(
-            o._eqn_assignment.values(),
-            o._function_defs.values(),
-            o._eqn_time_derivatives.values(),
-            o._symbolicconstants.values(),
-            o._parameters,
-            o._supplied_values,
-            o.assignedvalues,
-            o.states,
-            o.analog_reduce_ports,
-            o._on_events.values(),
-            o._transitions_triggers,
-            o._transitions_events,
-            o.rt_graphs.values(),
+            iter(o._eqn_assignment),
+            iter(o._function_defs),
+            iter(o._eqn_time_derivatives),
+            iter(o._symbolicconstants),
+            #iter(o._parameters_lut),
+            #iter(o._supplied_lut),
+            #iter(o.assignedvalues),
+            #iter(o.state_variables),
+            #iter(o._analog_reduce_ports_lut),
+            iter(o._on_events.values()),
+            iter(o._transitions_triggers),
+            iter(o._transitions_events),
+            iter(o.rt_graphs),
         ))
 
 

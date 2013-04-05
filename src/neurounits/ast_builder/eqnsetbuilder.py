@@ -537,7 +537,7 @@ class AbstractBlockBuilder(object):
                     )
             time_derivatives[statevar_obj] = rhs
 
-        self.builddata.timederivatives = time_derivatives
+        self.builddata.timederivatives = time_derivatives.values()
         del self.builddata._time_derivatives_per_regime
 
         ## Resolve the Assignments into a single object:
@@ -558,11 +558,11 @@ class AbstractBlockBuilder(object):
                     )
             assignments[assvar_obj] = rhs
 
-        self.builddata.assignments = assignments
+        self.builddata.assignments = assignments.values()
         del self.builddata._assigments_per_regime
 
         # Copy rt-grpahs into builddata
-        self.builddata.rt_graphs = self._all_rt_graphs
+        self.builddata.rt_graphs = self._all_rt_graphs.values()
 
         # OK, perhaps we used some functions or constants from standard libraries,
         # and we didn't import them. Lets let this slide and automatically import them:
@@ -636,8 +636,16 @@ class AbstractBlockBuilder(object):
                     library_manager=self.library_manager,
                     builder=self,
                     builddata=self.builddata,
-                    #io_data=io_data,
                 )
+
+        from neurounits.ast.eqnset import NineMLComponent
+        if isinstance(self.block_type, NineMLComponent):
+            print 'a---------------------------'
+            print 'a---------------------------'
+            
+            x =  self._astobject._supplied_lut
+            print x
+
 
 
         # The object exists, but is not complete and needs some polishing:

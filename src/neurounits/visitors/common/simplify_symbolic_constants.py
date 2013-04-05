@@ -71,8 +71,38 @@ class ReduceConstants(ASTVisitorBase):
             nc.visit(o)
             assert not a in nc.all()
 
+
+
+    def _res_assignments_new(self, o, **kwargs):
+
+        removed = []
+
+        for assignment in list(o.assignments):
+            fixed_value = self.visit(assignment.rhs_map)
+            if fixed_value:
+
+
+                removed.extend([assignment, assignment.lhs])
+
+                # Replace the 'Assigned' object with a 'SymbolicConst' in the tree:
+                sym_node = ast.SymbolicConstant(symbol=assignment.lhs.symbol, value=fixed_value)
+                ReplaceNode(assignment.lhs, sym_node).visit(o)
+
+                # Remove the Assignment equation:
+                o._eqn_assignment._objs.remove(assignment)
+                o._symbolicconstants._add_item(sym_node)
+
+                
+
+        for a in removed:
+            nc = EqnsetVisitorNodeCollector(o)
+            assert not a in nc.all(), 'Did not fully remove: %s' % a
+
+
+
+
     def VisitNineMLComponent(self, o, **kwargs):
-        self._res_assignments(o, **kwargs)
+        self._res_assignments_new(o, **kwargs)
 
     def VisitEqnSet(self, o, **kwargs):
         self._res_assignments(o, **kwargs)

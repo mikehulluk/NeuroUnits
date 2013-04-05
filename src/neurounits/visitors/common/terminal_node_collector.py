@@ -33,10 +33,17 @@ import itertools
 
 class EqnsetVisitorNodeCollector(ASTActionerDefault):
 
-    def __init__(self):
+    def __init__(self, obj=None):
         self.nodes = defaultdict(set)
         ASTActionerDefault.__init__(self,
                                     action_predicates=[SingleVisitPredicate()])
+        if obj is not None:
+            self.visit(obj)
+
+            print 'Nodes found: in ', obj.name
+            for k, vals in self.nodes.items():
+                print k, vals
+
 
     def all(self):
         return itertools.chain(*self.nodes.values())

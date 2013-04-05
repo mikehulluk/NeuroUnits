@@ -69,11 +69,28 @@ class ReplaceNode(ASTVisitorBase):
 
 
     def _replace_name_to_obj_map(self, old_dict):
+
         new_objs =  [self.replace_or_visit(v) for v in old_dict.values() ]
         print new_objs
         new_dict = dict( [(o.name, o) for o in new_objs] )
         assert set(old_dict.keys()) == set(new_dict.keys() )
         return new_dict
+
+
+    def _replace_within_new_lut(self, lut):
+        from neurounits.units_misc import LookUpDict
+
+        new_lut = LookUpDict()
+        new_lut.unique_attrs =  lut.unique_attrs
+        new_lut.accepted_obj_types =  lut.accepted_obj_types
+        for o in lut:
+            print 'Resolving', o
+            new_lut._add_item( self.replace_or_visit(o)  )
+        return new_lut
+
+        
+
+
 
     def VisitLibrary(self, o, **kwargs):
         _function_defs_new = {}
@@ -99,7 +116,8 @@ class ReplaceNode(ASTVisitorBase):
     def VisitNineMLComponent(self, o, **kwargs):
         o._transitions_triggers = [self.replace_or_visit(so) for so in o._transitions_triggers]
         o._transitions_events = [self.replace_or_visit(so) for so in o._transitions_events]
-        o.rt_graphs = self._replace_name_to_obj_map(o.rt_graphs) 
+        #o.rt_graphs = self._replace_name_to_obj_map(o.rt_graphs) 
+        o.rt_graphs = self._replace_within_new_lut(o.rt_graphs)
 
 
         #print 'Before'
@@ -109,37 +127,40 @@ class ReplaceNode(ASTVisitorBase):
         #print o._symbolicconstants
 
 
+        o._eqn_assignment = self._replace_within_new_lut(o._eqn_assignment)
+        #_eqn_assignment_new = {}
+        #for (k,v) in o._eqn_assignment.items():
+        #    k = self.replace_or_visit(k)
+        #    v = self.replace_or_visit(v)
+        #    _eqn_assignment_new[k] =v
+        #o._eqn_assignment = _eqn_assignment_new 
 
-        _eqn_assignment_new = {}
-        for (k,v) in o._eqn_assignment.items():
-            k = self.replace_or_visit(k)
-            v = self.replace_or_visit(v)
-            _eqn_assignment_new[k] =v
-        o._eqn_assignment = _eqn_assignment_new 
-
-        _eqn_time_derivatives_new = {}
-        for (k,v) in o._eqn_time_derivatives.items():
-            k = self.replace_or_visit(k)
-            v = self.replace_or_visit(v)
-            _eqn_time_derivatives_new[k] =v
-        o._eqn_time_derivatives = _eqn_time_derivatives_new
+        o._eqn_time_derivatives = self._replace_within_new_lut(o._eqn_time_derivatives)
+        #_eqn_time_derivatives_new = {}
+        #for (k,v) in o._eqn_time_derivatives.items():
+        #    k = self.replace_or_visit(k)
+        #    v = self.replace_or_visit(v)
+        #    _eqn_time_derivatives_new[k] =v
+        #o._eqn_time_derivatives = _eqn_time_derivatives_new
 
 
         #o._function_defs  = [ self.replace_or_visit(so) for so in o._function_defs  ]
-        _function_defs_new = {}
-        for (k,v) in o._function_defs.items():
-            k = k #self.replace_or_visit(k)
-            v = self.replace_or_visit(v)
-            _function_defs_new[k] =v
-        o._function_defs = _function_defs_new
+        #_function_defs_new = {}
+        o._function_defs = self._replace_within_new_lut(o._function_defs)
+        #for (k,v) in o._function_defs.items():
+        #    k = k #self.replace_or_visit(k)
+        #    v = self.replace_or_visit(v)
+        #    _function_defs_new[k] =v
+        #o._function_defs = _function_defs_new
 
 
-        _symbolicconstants_new = {}
-        for (k,v) in o._symbolicconstants.items():
-            k = k #self.replace_or_visit(k)
-            v = self.replace_or_visit(v)
-            _symbolicconstants_new[k] =v
-        o._symbolicconstants = _symbolicconstants_new
+        #_symbolicconstants_new = {}
+        o._symbolicconstants = self._replace_within_new_lut(o._symbolicconstants)
+        #for (k,v) in o._symbolicconstants.items():
+        #    k = k #self.replace_or_visit(k)
+        #    v = self.replace_or_visit(v)
+        #    _symbolicconstants_new[k] =v
+        #o._symbolicconstants = _symbolicconstants_new
 
 
         #print 'Afeter'
@@ -165,7 +186,7 @@ class ReplaceNode(ASTVisitorBase):
 
     def VisitRTGraph(self, o, **kwargs):
         print o.regimes
-        o.regimes = self._replace_name_to_obj_map(o.regimes)
+        o.regimes = self._replace_within_new_lut(o.regimes)
         return o
 
 
