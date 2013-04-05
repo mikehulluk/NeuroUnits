@@ -53,7 +53,7 @@ class ReduceConstants(ASTVisitorBase):
                 #ReplaceNode(a.lhs, s).visit(o)
                 ReplaceNode.replace_and_check(srcObj=a.lhs, dstObj=s, root = o)
 
-                o._cache_nodes()
+
 
                 o._symbolicconstants[aKey.symbol] = s
 
@@ -66,7 +66,6 @@ class ReduceConstants(ASTVisitorBase):
                 removed.append(alhs)
 
         # Double check they have gone:
-        o._cache_nodes()
         for a in removed:
             nc = EqnsetVisitorNodeCollector()
             nc.visit(o)

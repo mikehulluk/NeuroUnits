@@ -139,15 +139,16 @@ def p_complete_component_line(p):
     """complete_component_line : white_or_newline_slurp componentlinecontents white_or_newline_slurp SEMICOLON """
     pass 
 
-def p_parse_componentline2b(p):
-    """componentlinecontents   : ONEVENT_SYMBOL  event_def """
-    pass 
+#def p_parse_componentline2b(p):
+#    """componentlinecontents   : ONEVENT_SYMBOL  event_def """
+#    pass 
 
 def p_parse_componentline4(p):
     """componentlinecontents   : import
                                | function_def
                                | assignment
-                               | time_derivative """
+                               | time_derivative 
+                               | on_transition_trigger"""
     pass 
 
 
@@ -371,16 +372,18 @@ def p_parse_eqnsetline2(p):
     p.parser.library_manager.get_current_block_builder().add_io_data(p[1])
 
 
-def p_parse_eqnsetline2b(p):
-    """eqnsetlinecontents   : ONEVENT_SYMBOL  event_def """
-    pass
+#def p_parse_eqnsetline2b(p):
+#    """eqnsetlinecontents   : ONEVENT_SYMBOL  event_def """
+#    pass
 
 
 def p_parse_eqnsetline4(p):
     """eqnsetlinecontents   : import
                             | function_def
                             | assignment
-                            | time_derivative """
+                            | time_derivative 
+                            | 
+                            """
     pass
 
 

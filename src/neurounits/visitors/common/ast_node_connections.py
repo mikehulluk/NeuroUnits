@@ -90,10 +90,10 @@ class ASTAllConnections(ASTActionerDepthFirst):
             o._function_defs.values(),
             o._eqn_time_derivatives.values(),
             o._symbolicconstants.values(),
-            o._on_events.values()
         ]
 
     def VisitLibrary(self,o, **kwargs):
+        #assert False
         return list(chain(
             o._eqn_assignment.values(),
             o._function_defs.values() ,
@@ -105,12 +105,6 @@ class ASTAllConnections(ASTActionerDepthFirst):
             iter(o._function_defs),
             iter(o._eqn_time_derivatives),
             iter(o._symbolicconstants),
-            #iter(o._parameters_lut),
-            #iter(o._supplied_lut),
-            #iter(o.assignedvalues),
-            #iter(o.state_variables),
-            #iter(o._analog_reduce_ports_lut),
-            iter(o._on_events.values()),
             iter(o._transitions_triggers),
             iter(o._transitions_events),
             iter(o.rt_graphs),

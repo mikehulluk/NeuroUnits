@@ -48,16 +48,14 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         return node
 
     def VisitEqnSet(self, o, **kwargs):
-        for i in itertools.chain(o.timederivatives, o.assignments, o.functiondefs, o.symbolicconstants, o.onevents):
+        for i in itertools.chain(o.timederivatives, o.assignments, o.functiondefs, o.symbolicconstants):
             self.visit(i)
 
-        o._cache_nodes()
 
     def VisitNineMLComponent(self, o, **kwargs):
-        for i in itertools.chain( o.timederivatives, o.assignments, o.functiondefs, o.symbolicconstants, o.onevents, o.transitions):
+        for i in itertools.chain( o.timederivatives, o.assignments, o.functiondefs, o.symbolicconstants, o.transitions):
             self.visit(i)
 
-        o._cache_nodes()
 
     def VisitLibrary(self, o, **kwargs):
         for i in itertools.chain(o.functiondefs, o.symbolicconstants):

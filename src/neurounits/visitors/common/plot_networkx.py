@@ -89,14 +89,14 @@ class ActionerGetConnections(ASTActionerDefault):
         self.connections[o].extend(o.timederivatives)
         self.connections[o].extend(o.functiondefs)
         self.connections[o].extend(o.symbolicconstants)
-        self.connections[o].extend(o.onevents)
+        #self.connections[o].extend(o.onevents)
 
     def ActionNineMLComponent(self, o, **kwargs):
         self.connections[o].extend(o.assignments)
         self.connections[o].extend(o.timederivatives)
         self.connections[o].extend(o.functiondefs)
         self.connections[o].extend(o.symbolicconstants)
-        self.connections[o].extend(o.onevents)
+        #self.connections[o].extend(o.onevents)
         self.connections[o].extend(o.transitions)
 
     def ActionOnEvent(self, o, **kwargs):

@@ -265,7 +265,6 @@ class BuildData(object):
     def __init__(self):
         self.eqnset_name = None
 
-        self.onevents = SingleSetDict()
         self.timederivatives = SingleSetDict()
         self.funcdefs = SingleSetDict()
         self.symbolicconstants = SingleSetDict()
@@ -638,13 +637,13 @@ class AbstractBlockBuilder(object):
                     builddata=self.builddata,
                 )
 
-        from neurounits.ast.eqnset import NineMLComponent
-        if isinstance(self.block_type, NineMLComponent):
-            print 'a---------------------------'
-            print 'a---------------------------'
-            
-            x =  self._astobject._supplied_lut
-            print x
+        #from neurounits.ast.eqnset import NineMLComponent
+        #if isinstance(self.block_type, NineMLComponent):
+        #    print 'a---------------------------'
+        #    print 'a---------------------------'
+        #    
+        #    x =  self._astobject._supplied_lut
+        #    print x
 
 
 
@@ -680,21 +679,6 @@ class EqnSetBuilder(AbstractBlockBuilder):
     def add_io_data(self, l):
         self.builddata.io_data_lines.append(l)
 
-    def close_scope_and_create_onevent(self, ev):
-        assert self.active_scope is not None
-        scope = self.active_scope
-        self.active_scope = None
-
-        # Resolve the symbols in the namespace
-        for (sym, obj) in scope.iteritems():
-            # Resolve Symbol from the Event Parameters:
-            if sym in ev.parameters:
-                obj.set_target(ev.parameters[sym])
-            else:
-                obj.set_target(self.global_scope.getSymbolOrProxy(sym))
-
-        # Save this event
-        self.builddata.onevents[ev.name] = ev
 
     def add_timederivative(self, lhs_state_name, rhs_ast):
         # Create the assignment object:

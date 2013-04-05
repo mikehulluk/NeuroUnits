@@ -91,7 +91,7 @@ class ReplaceNode(ASTVisitorBase):
         assert False
         subnodes = itertools.chain(o.assignments, o.timederivatives,
                                    o.functiondefs, o.symbolicconstants,
-                                   o.onevents)
+                                   )
         for f in subnodes:
             self.visit(f, **kwargs)
 
@@ -131,8 +131,6 @@ class ReplaceNode(ASTVisitorBase):
             _symbolicconstants_new[k] =v
         o._symbolicconstants = _symbolicconstants_new
 
-        o._cache_nodes()
-
         return o
 
 
@@ -146,7 +144,7 @@ class ReplaceNode(ASTVisitorBase):
         o._eqn_time_derivatives = self._replace_within_new_lut(o._eqn_time_derivatives)
         o._function_defs = self._replace_within_new_lut(o._function_defs)
         o._symbolicconstants = self._replace_within_new_lut(o._symbolicconstants)
-        o._cache_nodes()
+
 
         if o is self.srcObj:
             return self.dstObj

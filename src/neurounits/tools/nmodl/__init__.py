@@ -239,6 +239,7 @@ class MODLBuildParameters(object):
 
 
         # Event Handling:
+		assert False, 'Deprecated, needs rewrite'
         zero_arg_events = [ev for ev in eqnset.onevents if len(ev.parameters) == 0]
         if len(zero_arg_events) == 0:
             event_function = None

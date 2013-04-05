@@ -378,7 +378,7 @@ class MRedocWriterVisitor(ASTVisitorBase):
                                             ["$%s$     | Supp  | -     | %s         | -            | %s  " % (symbol_format(s.symbol), format_dim(s),meta_format(s) )  for s in eqnset.suppliedvalues] +
                                             ["$%s$     | Const | %s    | %s         | -            | -   " % (symbol_format(s.symbol), s.value, format_dim(s),    ) for s in eqnset.symbolicconstants] +
                                             ["$%s$     | Assd  | -     | %s         | $\{%s\}$     | %s  " % (symbol_format(a.symbol), format_dim(a), dep_string_indir(a), meta_format(a)   ) for a in eqnset.assignedvalues] +
-                                            ["$%s$     | State | -     | %s         | $\{%s\}$     | %s  " % (symbol_format(s.symbol), format_dim(s), dep_string_indir(s), meta_format(s)  ) for s in eqnset.states]
+                                            ["$%s$     | State | -     | %s         | $\{%s\}$     | %s  " % (symbol_format(s.symbol), format_dim(s), dep_string_indir(s), meta_format(s)  ) for s in eqnset.state_variables]
                                             )
 
         plts = build_figures( eqnset)
@@ -397,9 +397,9 @@ class MRedocWriterVisitor(ASTVisitorBase):
                     BuiltInFunction)])),
             Section('Symbols', terminal_symbols),
             Section('Imports'),
-            Section('Events',
-                    EquationBlock(*[LatexEqnWriterN().visit(a) for a in
-                    eqnset.onevents])),
+            #Section('Events',
+            #        EquationBlock(*[LatexEqnWriterN().visit(a) for a in
+            #        eqnset.onevents])),
             Section('Plots', *plts),
             )
 

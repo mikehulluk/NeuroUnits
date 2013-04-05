@@ -9,7 +9,6 @@ from neurounits.ast_builder.builder_visitor_propogate_dimensions import Propogat
 from neurounits.ast_builder.builder_visitor_propogate_dimensions import VerifyUnitsInTree
 import neurounits.ast as ast
 from neurounits.ast_builder.eqnsetbuilder import BuildData
-from neurounits.ast_builder.eqnsetbuilder import SingleSetDict
 from neurounits.ast import NineMLComponent
 from neurounits.ast import SuppliedValue
 from neurounits.ast.astobjects_nineml import AnalogReducePort
@@ -26,7 +25,7 @@ src_files = [
     "/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/complex_component.9ml" ,
 ]
 
-#src_files = [s.replace('libs/','') for s in src_files]
+src_files = [s.replace('libs/','') for s in src_files]
 
 
 library_manager = None
@@ -283,10 +282,8 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
         for (component_name, component) in instantiate.items():
             print component.terminal_symbols
             if component.has_terminal_obj('t'):
-                #ReplaceNode(srcObj=component.get_terminal_obj('t'), dstObj=time_node).visit(component)
                 ReplaceNode.replace_and_check(srcObj=component.get_terminal_obj('t'), dstObj=time_node, root=component)
 
-                component._cache_nodes()
 
     # 2. Rename all the internal names of the objects:
     for (component_name, component) in instantiate.items():
@@ -335,7 +332,6 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
     comp = NineMLComponent(library_manager = lib_mgr,
                     builder = None,
                     builddata = builddata,
-                    #io_data = [],
                     )
 
 
@@ -349,20 +345,19 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
         if isinstance(dst_obj, AnalogReducePort):
             dst_obj.rhses.append(src_obj)
         elif isinstance(dst_obj, SuppliedValue):
-            #ReplaceNode(srcObj=dst_obj, dstObj=src_obj).visit(comp)
             ReplaceNode.replace_and_check(srcObj=dst_obj, dstObj=src_obj, root=comp)
             
         else:
             assert False, 'Unexpected node type: %s' % dst_obj
-        comp._cache_nodes()
+        
 
     # 6. Map relevant ports externally:
     if remap_ports:
         for (src, dst) in remap_ports:
+            assert False
             assert not dst in [s.symbol for s in comp.terminal_symbols]
-            comp._cache_nodes()
+            
 
-    comp._cache_nodes()
 
     # Ensure all the units are propogated ok, because we might have added new
     # nodes:
@@ -391,7 +386,7 @@ def close_analog_port(ap, comp):
     assert new_node is not None
     #ReplaceNode(srcObj=ap, dstObj=new_node).visit(comp)
     ReplaceNode.replace_and_check(srcObj=ap, dstObj=new_node, root=comp)
-    comp._cache_nodes()
+    
     PropogateDimensions.propogate_dimensions(comp)
 
 
@@ -482,8 +477,6 @@ def simulate_component(component, times, parameters,initial_state_values, initia
 
 
 
-    #state = safe_dict_merge( parameters, initial_state_values, current_regimes)
-    #event_handler = EventHandler()
 
     f = FunctorGenerator(component)
 
@@ -559,7 +552,7 @@ def simulate_component(component, times, parameters,initial_state_values, initia
     times = np.array( [time_pt_data.suppliedvalues['t'].float_in_si() for time_pt_data in reses_new] )
 
     # B. State variables:
-    state_names = [s.symbol for s in component.states]
+    state_names = [s.symbol for s in component.state_variables]
 
     state_data_dict = {}
     for state_name in state_names:
@@ -700,48 +693,7 @@ def test1():
 
 
 
-    #res = simulate_component(component=c,
-    #                    times = np.linspace(0,1,num=1000),
-    #                    close_reduce_ports=True,
-    #                    parameters={
-    #                        'i_inj/i_amp':'5pA',
-    #                        'lk/g': '0.1pS/um2',
-    #                        'nrn/C': '0.5pF',
-    #                        'lk/erev': '-60mV',
-    #                        'i_inj/t_start': '500ms',
-    #                        'i_square/t_on': '100ms',
-    #                        'i_square/t_off': '50ms',
-    #                        'i_square/i_amp': '2pA',
 
 
-    #                        },
-    #                    initial_state_values={
-    #                        'nrn/V': '-50mV',
-    #                        'i_square/t_last': '0ms'
-    #                    },
-    #                    initial_regimes={
-    #                        'i_inj/':'OFF',
-    #                        #'i_square/':'OFF'
-    #                    }
-    #        )
-
-
-    #f = pylab.figure()
-    #ax1 = f.add_subplot(3,1,1)
-    #ax2 = f.add_subplot(3,1,2)
-    #ax3 = f.add_subplot(3,1,3)
-    #ax1.set_ylim((-70e-3,50e-3))
-    #ax1.plot( res.get_time(), res.state_variables['nrn/V'] )
-    #ax1.set_ylabel('nrn/V %s' %('??'))
-    #ax2.plot( res.get_time(), res.state_variables['i_square/t_last'] )
-    #ax3.plot( res.get_time(), res.rt_regimes['nrn/']+0.0 , label='nrn')
-    #ax3.plot( res.get_time(), res.rt_regimes['i_inj/']+0.1, label='i_inj')
-    #ax3.plot( res.get_time(), res.rt_regimes['i_square/']+0.2,label='i_square' )
-    #ax3.legend()
-    #pylab.show()
-
-
-
-#test2()
 test1()
 

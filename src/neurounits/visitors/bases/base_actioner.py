@@ -60,8 +60,8 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         for f in subnodes:
             self.visit(f, **kwargs)
 
-        for onev in o.onevents:
-            self.visit(onev, **kwargs)
+        #for onev in o.onevents:
+        #    self.visit(onev, **kwargs)
 
         self._ActionEqnSet(o, **kwargs)
 
@@ -71,8 +71,8 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         for f in subnodes:
             self.visit(f, **kwargs)
 
-        for onev in o.onevents:
-            self.visit(onev, **kwargs)
+        #for onev in o.onevents:
+        #    self.visit(onev, **kwargs)
 
         self._ActionNineMLComponent(o, **kwargs)
 
