@@ -144,7 +144,7 @@ class LookUpDict(object):
 
     def get_objects_attibutes(self, attr=None, **kwargs):
         assert attr is not None
-        
+
         possible_objs = self.get_objs_by(**kwargs)
         return [ getattr(p, attr) for p in possible_objs]
 

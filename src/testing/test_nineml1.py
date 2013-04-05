@@ -173,27 +173,27 @@ module test {
         }
 
 
-    define_component std_neuron2 {
-
-
-        V' = i_sum / C
-
-        <=> ANALOG_REDUCE_PORT i_sum
-        <=> PARAMETER C:(uF)
-        <=> OUTPUT     V: mV
-
-    }
-
-    define_component chlstd_leak2 {
-
-
-        i = g * (erev-V) *a
-        a = 1000 um2
-        <=> PARAMETER g:(S/m2), erev
-        <=> OUTPUT    i:(mA)
-        <=> INPUT     V: mV
-
-    }
+    #define_component std_neuron2 {
+#
+#
+#        V' = i_sum / C
+#
+#        <=> ANALOG_REDUCE_PORT i_sum
+#        <=> PARAMETER C:(uF)
+#        <=> OUTPUT     V: mV
+#
+#    }
+#
+#    define_component chlstd_leak2 {
+#
+#
+#        i = g * (erev-V) *a
+#        a = 1000 um2
+#        <=> PARAMETER g:(S/m2), erev
+#        <=> OUTPUT    i:(mA)
+#        <=> INPUT     V: mV
+#
+#    }
 
 
 
@@ -226,7 +226,9 @@ module test {
 
 library_manager = neurounits.NeuroUnitParser.Parse9MLFile( test_text )
 
-test_clone = False
+
+test_clone = True
+#test_clone = False
 if test_clone:
     c = library_manager.get( 'i_squarewave')
     d = c.clone()
@@ -234,10 +236,12 @@ if test_clone:
     c_ast = set(c.all_ast_nodes())
     d_ast = set(d.all_ast_nodes())
 
-    print 'Overlapping components', c_ast & d_ast
+    overlapping = c_ast & d_ast
+    print 'Overlapping components'
+    for o in overlapping:
+        print '  ', o
     assert c_ast & d_ast == set()
-#for component in library_manager.components:
-#    print component
+
 
 
 
@@ -266,10 +270,9 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
     lib_mgr = lib_mgrs[0]
 
 
-    #First step, lets build a new component, by cloning all the components:
-    # Cloned Components:
-    #for (name, component) in instantiate.items():
-    #    c = CloneObject().visit(
+    # 1. Lets cloning all the subcomponents:
+    instantiate = dict([(name, component.clone()) for (name, component) in instantiate.items()])
+        
 
 
     symbols_not_to_rename = []
@@ -280,7 +283,8 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
         for (component_name, component) in instantiate.items():
             print component.terminal_symbols
             if component.has_terminal_obj('t'):
-                ReplaceNode(srcObj=component.get_terminal_obj('t'), dstObj=time_node).visit(component)
+                #ReplaceNode(srcObj=component.get_terminal_obj('t'), dstObj=time_node).visit(component)
+                ReplaceNode.replace_and_check(srcObj=component.get_terminal_obj('t'), dstObj=time_node, root=component)
 
                 component._cache_nodes()
 
@@ -345,7 +349,9 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
         if isinstance(dst_obj, AnalogReducePort):
             dst_obj.rhses.append(src_obj)
         elif isinstance(dst_obj, SuppliedValue):
-            ReplaceNode(srcObj=dst_obj, dstObj=src_obj).visit(comp)
+            #ReplaceNode(srcObj=dst_obj, dstObj=src_obj).visit(comp)
+            ReplaceNode.replace_and_check(srcObj=dst_obj, dstObj=src_obj, root=comp)
+            
         else:
             assert False, 'Unexpected node type: %s' % dst_obj
         comp._cache_nodes()
@@ -383,7 +389,8 @@ def close_analog_port(ap, comp):
                              ap.rhses[2]))
 
     assert new_node is not None
-    ReplaceNode(srcObj=ap, dstObj=new_node).visit(comp)
+    #ReplaceNode(srcObj=ap, dstObj=new_node).visit(comp)
+    ReplaceNode.replace_and_check(srcObj=ap, dstObj=new_node, root=comp)
     comp._cache_nodes()
     PropogateDimensions.propogate_dimensions(comp)
 
@@ -598,8 +605,8 @@ def test1():
     simple_syn1 = library_manager.get('simple_syn')
     simple_syn2 = library_manager.get('simple_syn')
 
-    chlstd_leak2 = library_manager.get('chlstd_leak2')
-    std_neuron2 = library_manager.get('std_neuron2')
+    #chlstd_leak2 = library_manager.get('chlstd_leak2')
+    #std_neuron2 = library_manager.get('std_neuron2')
 
     c1 = build_compound_component(
           name = 'Neuron1',
@@ -616,7 +623,7 @@ def test1():
 
     c2 = build_compound_component(
           name = 'Neuron2',
-          instantiate = { 'lk': chlstd_leak2, 'nrn': std_neuron2,},
+          instantiate = { 'lk': chlstd_leak, 'nrn': std_neuron,},
           event_connections = [],
           analog_connections = [
             ('lk/i', 'nrn/i_sum'),

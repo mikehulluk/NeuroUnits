@@ -32,8 +32,37 @@ import itertools
 from neurounits.ast.astobjects import ASTObject
 from neurounits.ast.eqnset import Block
 
+from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
 
 class ReplaceNode(ASTVisitorBase):
+
+    @classmethod
+    def replace_and_check(cls, srcObj, dstObj, root):
+        root = ReplaceNode(srcObj, dstObj).visit(root)
+
+
+
+
+        if srcObj in EqnsetVisitorNodeCollector(root).all():
+
+            from .ast_node_connections import ASTAllConnections
+            print 'A node has not been completely removed: %s' % srcObj
+            print 'The floowing are still connected:'
+            for node in EqnsetVisitorNodeCollector(root).all():
+                conns = ASTAllConnections().visit(node)
+                if srcObj in conns:
+                    print '    node:', node
+
+            print 'OK'
+
+
+
+        # Lets make sure its completely gone:
+        assert not srcObj in EqnsetVisitorNodeCollector(root).all()
+
+
+
+
 
     def __init__(self, srcObj, dstObj):
         self.srcObj = srcObj
@@ -50,6 +79,7 @@ class ReplaceNode(ASTVisitorBase):
                 assert not o.symbol == self.srcObj.symbol
 
             return self.visit(o)
+
 
     def visit(self, o, **kwargs):
         return o.accept_visitor(self, **kwargs)
@@ -68,13 +98,6 @@ class ReplaceNode(ASTVisitorBase):
         return o
 
 
-    def _replace_name_to_obj_map(self, old_dict):
-
-        new_objs =  [self.replace_or_visit(v) for v in old_dict.values() ]
-        print new_objs
-        new_dict = dict( [(o.name, o) for o in new_objs] )
-        assert set(old_dict.keys()) == set(new_dict.keys() )
-        return new_dict
 
 
     def _replace_within_new_lut(self, lut):
@@ -88,14 +111,14 @@ class ReplaceNode(ASTVisitorBase):
             new_lut._add_item( self.replace_or_visit(o)  )
         return new_lut
 
-        
+
 
 
 
     def VisitLibrary(self, o, **kwargs):
         _function_defs_new = {}
         for (k,v) in o._function_defs.items():
-            k = k #self.replace_or_visit(k)
+            k = k
             v = self.replace_or_visit(v)
             _function_defs_new[k] =v
         o._function_defs = _function_defs_new
@@ -103,7 +126,7 @@ class ReplaceNode(ASTVisitorBase):
 
         _symbolicconstants_new = {}
         for (k,v) in o._symbolicconstants.items():
-            k = k #self.replace_or_visit(k)
+            k = k
             v = self.replace_or_visit(v)
             _symbolicconstants_new[k] =v
         o._symbolicconstants = _symbolicconstants_new
@@ -114,73 +137,19 @@ class ReplaceNode(ASTVisitorBase):
 
 
     def VisitNineMLComponent(self, o, **kwargs):
-        o._transitions_triggers = [self.replace_or_visit(so) for so in o._transitions_triggers]
-        o._transitions_events = [self.replace_or_visit(so) for so in o._transitions_events]
-        #o.rt_graphs = self._replace_name_to_obj_map(o.rt_graphs) 
+
+
+        o._transitions_events = self._replace_within_new_lut(o._transitions_events)
+        o._transitions_triggers = self._replace_within_new_lut(o._transitions_triggers)
         o.rt_graphs = self._replace_within_new_lut(o.rt_graphs)
-
-
-        #print 'Before'
-        #print o._eqn_assignment
-        #print o._function_defs
-        #print o._eqn_time_derivatives
-        #print o._symbolicconstants
-
-
         o._eqn_assignment = self._replace_within_new_lut(o._eqn_assignment)
-        #_eqn_assignment_new = {}
-        #for (k,v) in o._eqn_assignment.items():
-        #    k = self.replace_or_visit(k)
-        #    v = self.replace_or_visit(v)
-        #    _eqn_assignment_new[k] =v
-        #o._eqn_assignment = _eqn_assignment_new 
-
         o._eqn_time_derivatives = self._replace_within_new_lut(o._eqn_time_derivatives)
-        #_eqn_time_derivatives_new = {}
-        #for (k,v) in o._eqn_time_derivatives.items():
-        #    k = self.replace_or_visit(k)
-        #    v = self.replace_or_visit(v)
-        #    _eqn_time_derivatives_new[k] =v
-        #o._eqn_time_derivatives = _eqn_time_derivatives_new
-
-
-        #o._function_defs  = [ self.replace_or_visit(so) for so in o._function_defs  ]
-        #_function_defs_new = {}
         o._function_defs = self._replace_within_new_lut(o._function_defs)
-        #for (k,v) in o._function_defs.items():
-        #    k = k #self.replace_or_visit(k)
-        #    v = self.replace_or_visit(v)
-        #    _function_defs_new[k] =v
-        #o._function_defs = _function_defs_new
-
-
-        #_symbolicconstants_new = {}
         o._symbolicconstants = self._replace_within_new_lut(o._symbolicconstants)
-        #for (k,v) in o._symbolicconstants.items():
-        #    k = k #self.replace_or_visit(k)
-        #    v = self.replace_or_visit(v)
-        #    _symbolicconstants_new[k] =v
-        #o._symbolicconstants = _symbolicconstants_new
-
-
-        #print 'Afeter'
-        #print o._eqn_assignment
-        #print o._function_defs
-        #print o._eqn_time_derivatives
-        #print o._symbolicconstants
-
-        #o._eqn_assignment = [self.replace_or_visit(so) for so in o._eqn_assignment]
-        #o._eqn_assignment = self._replace_name_to_obj_map(o._eqn_assignment) #[self.replace_or_visit(so) for so in o._eqn_assignment]
-        #o._function_defs  = [ self.replace_or_visit(so) for so in o._function_defs  ]
-        #o._function_defs  = self._replace_name_to_obj_map(o._function_defs)
-        #o._eqn_time_derivatives  = [self.replace_or_visit(so) for so in o._eqn_time_derivatives ]
-        #o._symbolicconstants  = [self.replace_or_visit(so) for so in o._symbolicconstants ]
-
-
-        #o._on_events  = self._replace_name_to_obj_map(o._on_events) #[self.replace_or_visit(so) for so in o._on_events ]
-
         o._cache_nodes()
 
+        if o is self.srcObj:
+            return self.dstObj
 
         return o
 

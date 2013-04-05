@@ -40,7 +40,7 @@ class ASTClone(object):
             new_node = ASTClone().visit(old_node)
             if old_node == obj:
                 new_obj = new_node
-            ReplaceNode(srcObj=old_node, dstObj=new_node).visit(obj)
+            ReplaceNode.replace_and_check(srcObj=old_node, dstObj=new_node, root = obj)
             obj._cache_nodes()
             print ' Replaced:', old_node
 
@@ -62,8 +62,8 @@ class ASTClone(object):
     def VisitNineMLComponent(self, o, **kwargs):
         builddata = BuildDataDummy()
 
-        builddata.transitions_triggers = o._transitions_triggers[:]
-        builddata.transitions_events =  o._transitions_events[:]
+        builddata.transitions_triggers = o._transitions_triggers.copy()
+        builddata.transitions_events =  o._transitions_events.copy()
         builddata.rt_graphs = o.rt_graphs.copy()
         
         # Top-level objects:

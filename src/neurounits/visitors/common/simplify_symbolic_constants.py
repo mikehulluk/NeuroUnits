@@ -50,7 +50,8 @@ class ReduceConstants(ASTVisitorBase):
                 s = ast.SymbolicConstant(symbol=aKey.symbol
                         + sym_suffix, value=fixed_value)
 
-                ReplaceNode(a.lhs, s).visit(o)
+                #ReplaceNode(a.lhs, s).visit(o)
+                ReplaceNode.replace_and_check(srcObj=a.lhs, dstObj=s, root = o)
 
                 o._cache_nodes()
 
@@ -86,7 +87,8 @@ class ReduceConstants(ASTVisitorBase):
 
                 # Replace the 'Assigned' object with a 'SymbolicConst' in the tree:
                 sym_node = ast.SymbolicConstant(symbol=assignment.lhs.symbol, value=fixed_value)
-                ReplaceNode(assignment.lhs, sym_node).visit(o)
+                #ReplaceNode(assignment.lhs, sym_node).visit(o)
+                ReplaceNode.replace_and_check(srcObj=assignment.lhs, dstObj=sym_node, root = o)
 
                 # Remove the Assignment equation:
                 o._eqn_assignment._objs.remove(assignment)

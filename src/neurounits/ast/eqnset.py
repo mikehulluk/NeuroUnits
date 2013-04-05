@@ -108,18 +108,10 @@ class EqnSet(Block):
 
         super(EqnSet, self).__init__(library_manager=library_manager, builder=builder, name=name)
 
-        # Metadata about the inputs and outputs:
-        #self.io_data = io_data
-        #self.initial_conditions = [p for p in io_data if p.iotype == IOType.InitialCondition]
         import neurounits.ast as ast
 
         # Top-level objects:
-        print 'Getting assignments:'
-        print builddata.assignments
         self._eqn_assignment = LookUpDict( builddata.assignments, accepted_obj_types=(ast.EqnAssignmentByRegime,) )
-        print 'DONE!'
-
-
         self._function_defs = LookUpDict( builddata.funcdefs, accepted_obj_types=(ast.FunctionDef) )
         self._eqn_time_derivatives = LookUpDict( builddata.timederivatives, accepted_obj_types=(ast.EqnTimeDerivativeByRegime,) )
         self._symbolicconstants = LookUpDict( builddata.symbolicconstants, accepted_obj_types=(ast.SymbolicConstant, ) )
@@ -394,6 +386,19 @@ class NineMLComponent(EqnSet):
         return itertools.chain( *c.nodes.values() )
 
     def clone(self, ):
+
+
+        # Nasty Hack - serialise and unserialse to clone the object
+
+        import pickle
+        import cStringIO
+        c = cStringIO.StringIO()
+        pickle.dump(self, c)
+
+        new = pickle.load(cStringIO.StringIO(c.getvalue()))
+        return new
+
+
         from neurounits.visitors.common.ast_cloning import ASTClone
         return ASTClone().clone_root(self)
 

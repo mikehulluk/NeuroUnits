@@ -40,9 +40,9 @@ class EqnsetVisitorNodeCollector(ASTActionerDefault):
         if obj is not None:
             self.visit(obj)
 
-            print 'Nodes found: in ', obj.name
-            for k, vals in self.nodes.items():
-                print k, vals
+            #print 'Nodes found: in ', obj.name
+            #for k, vals in self.nodes.items():
+            #    print k, vals
 
 
     def all(self):

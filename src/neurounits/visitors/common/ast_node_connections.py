@@ -39,9 +39,9 @@ class ASTAllConnectionsCheck(ASTActionerDefault):
     def check_node(self, obj, **kwargs):
         connections = ASTAllConnections()
 
-        print 
-        print
-        print 'Visiting:', obj
+        #print 
+        #print
+        #print 'Visiting:', obj
         nodes_told = obj.accept_visitor(connections)
         nodes_found = nodes_on_obj(obj)
 
@@ -51,8 +51,8 @@ class ASTAllConnectionsCheck(ASTActionerDefault):
         if nodes_found is None:
             assert False, 'None found (found) %s'% obj
 
-        print 'Nodes told', nodes_told
-        print 'Nodes found', nodes_found
+        #print 'Nodes told', nodes_told
+        #print 'Nodes found', nodes_found
 
 
 
