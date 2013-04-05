@@ -105,11 +105,11 @@ class ReduceConstants(ASTVisitorBase):
     def VisitNineMLComponent(self, o, **kwargs):
         self._res_assignments_new(o, **kwargs)
 
-    def VisitEqnSet(self, o, **kwargs):
-        self._res_assignments(o, **kwargs)
+    #def VisitEqnSet(self, o, **kwargs):
+    #    self._res_assignments(o, **kwargs)
 
     def VisitLibrary(self, o, **kwargs):
-        self._res_assignments(o, **kwargs)
+        self._res_assignments_new(o, **kwargs)
         assert len(o._eqn_assignment) == 0
 
     def VisitOnEvent(self, o, **kwargs):

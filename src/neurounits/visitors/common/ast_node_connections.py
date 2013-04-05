@@ -95,9 +95,13 @@ class ASTAllConnections(ASTActionerDepthFirst):
     def VisitLibrary(self,o, **kwargs):
         #assert False
         return list(chain(
-            o._eqn_assignment.values(),
-            o._function_defs.values() ,
-            o._symbolicconstants.values(),
+            iter(o._eqn_assignment),
+            iter(o._function_defs),
+            #iter(o._eqn_time_derivatives),
+            iter(o._symbolicconstants),
+            #o._eqn_assignment.values(),
+            #o._function_defs.values() ,
+            #o._symbolicconstants.values(),
         ))
     def VisitNineMLComponent(self, o, **kwargs):
         return list(chain(

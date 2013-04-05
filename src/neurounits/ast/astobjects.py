@@ -213,6 +213,8 @@ class BuiltInFunction(ASTExpressionObject):
         self.parameters = parameters
         if dimension is not None:
             self.set_dimensionality(dimension)
+    def __repr__(self,):
+        return '<FunctionDef: %s>' % (self.funcname)
 
 
 class FunctionDef(ASTExpressionObject):
@@ -225,7 +227,12 @@ class FunctionDef(ASTExpressionObject):
         self.funcname = funcname
         self.parameters = parameters
         self.rhs = rhs
+    
+    def __repr__(self,):
+        return '<FunctionDef: %s>' % (self.funcname)
 
+    def __repr__(self,):
+        return '<BuiltinFunction: %s>' % (self.funcname)
 
 class FunctionDefParameter(ASTExpressionObject):
 

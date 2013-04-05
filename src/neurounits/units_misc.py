@@ -108,6 +108,8 @@ class LookUpDict(object):
             for obj in objs:
                 self._add_item(obj)
 
+    def __repr__(self,):
+        return '<LUD: %s>'% repr(self._objs)
 
     def get_attr_value(self, obj, attr):
         res =  getattr(obj, attr)

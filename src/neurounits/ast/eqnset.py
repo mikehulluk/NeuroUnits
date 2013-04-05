@@ -44,7 +44,6 @@ class Block(object):
 
     def __init__(self, name, library_manager, builder):
         super(Block, self).__init__()
-        # General info, and connected objects:
         self.name = name
         self.library_manager = library_manager
         self._builder = builder
@@ -64,35 +63,52 @@ class Block(object):
         return MRedocWriterVisitor.build(self)
 
 
+
+
 class Library(Block):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitLibrary(self, **kwargs)
 
-    def __init__(self,  library_manager, builder, builddata):
-        super(Library,self).__init__(library_manager=library_manager, builder=builder, name=builddata.eqnset_name)
+    def __init__(self,  library_manager, builder, builddata,name):
+        super(Library,self).__init__(library_manager=library_manager, builder=builder, name=name)
+        import neurounits.ast as ast
 
-        # We have to read the _eqn_assignment, although they should be
-        # reduced during the conversion to symbolic constants.
-        self._eqn_assignment = dict( [(o.lhs, o) for o in builddata.assignments ] )
-        self._function_defs = builddata.funcdefs
-        self._symbolicconstants = builddata.symbolicconstants
 
-    def get_terminal_obj(self, sym):
-        if sym in self._symbolicconstants:
-            return self._symbolicconstants[sym]
-        if sym in self._function_defs:
-            return self._function_defs[sym]
-        assert False, "Can't find Symbol: %s in: %s" % (sym, self.name)
+        # Top-level objects:
+        self._function_defs = LookUpDict( builddata.funcdefs, accepted_obj_types=(ast.FunctionDef, ast.BuiltInFunction) )
+        self._symbolicconstants = LookUpDict( builddata.symbolicconstants, accepted_obj_types=(ast.SymbolicConstant, ) )
+        self._eqn_assignment = LookUpDict( builddata.assignments, accepted_obj_types=(ast.EqnAssignmentByRegime,) )
+
+    def get_terminal_obj(self, symbol):
+        print self.functiondefs
+        possible_objs = LookUpDict(self.assignedvalues).get_objs_by(symbol=symbol)+ \
+                        LookUpDict(self.symbolicconstants).get_objs_by(symbol=symbol)+ \
+                        LookUpDict(self.functiondefs).get_objs_by(funcname=symbol)
+
+        print 'Looking for:', symbol
+        print possible_objs
+        if not len(possible_objs) == 1:
+            raise KeyError("Can't find terminal: %s" % symbol)
+
+        return possible_objs[0]
+
 
     @property
     def functiondefs(self):
-        return self._function_defs.values()
+        return self._function_defs
 
     @property
     def symbolicconstants(self):
-        return sorted(self._symbolicconstants.values(), key=lambda a: a.symbol)
+        return sorted(self._symbolicconstants, key=lambda a: a.symbol)
 
+    @property
+    def assignments(self):
+        return list( iter(self._eqn_assignment) )
+
+    @property
+    def assignedvalues(self):
+        return sorted(list(self._eqn_assignment.get_objects_attibutes('lhs')), key=lambda a:a.symbol)
 
 
 class EqnSet(Block):
@@ -100,10 +116,7 @@ class EqnSet(Block):
     def accept_visitor(self, v, **kwargs):
         return v.VisitEqnSet(self, **kwargs)
 
-    def __init__(self,  library_manager, builder, builddata, name=None):
-        if name == None:
-            name = builddata.eqnset_name
-
+    def __init__(self,  library_manager, builder, builddata, name):
         super(EqnSet, self).__init__(library_manager=library_manager, builder=builder, name=name)
 
         import neurounits.ast as ast
@@ -199,11 +212,9 @@ class EqnSet(Block):
     def _parameters_lut(self):
         t = EqnsetVisitorNodeCollector(obj=self)
         return LookUpDict(t.nodes[Parameter] )
-
     @property
     def _supplied_lut(self):
         t = EqnsetVisitorNodeCollector(obj=self)
-
         return LookUpDict(t.nodes[SuppliedValue] )
     @property
     def _analog_reduce_ports_lut(self):
@@ -220,20 +231,6 @@ class EqnSet(Block):
         except:
             raise
 
-    #def _getSuppliedValuesDict(self):
-    #    return dict([(s.symbol, s) for s in self._supplied_values])
-
-    #def _getAnalogPortsDict(self):
-    #    return dict([(s.symbol, s) for s in self._analog_reduce_ports])
-
-    #def _getParametersDict(self):
-    #    return dict([(s.symbol, s) for s in self._parameters])
-
-    #def _getAssignedVariablesDict(self):
-    #    return dict([(ass.lhs.symbol, ass.lhs) for ass in self._eqn_assignment.values()])
-
-    #def _getStateVariablesDict(self):
-    #    return dict([(td.lhs.symbol, td.lhs) for td in self._eqn_time_derivatives.values()])
 
 
     # These should be tidied up:
@@ -279,25 +276,23 @@ class NineMLComponent(EqnSet):
 
 
     def __init__(self,  library_manager, builder, builddata, name=None):
+        super(NineMLComponent,self).__init__(library_manager=library_manager, builder=builder, builddata=builddata, name=name)
 
         self._transitions_triggers = LookUpDict( builddata.transitions_triggers )
         self._transitions_events = LookUpDict( builddata.transitions_events )
-        self.rt_graphs = LookUpDict( builddata.rt_graphs)
-
-        if name == None:
-            name = builddata.eqnset_name
-
-        super(NineMLComponent,self).__init__(library_manager=library_manager, builder=builder, builddata=builddata, name=name)
-
-
-
-    @property
-    def transitions(self):
-        return itertools.chain( self._transitions_triggers, self._transitions_events)
+        self._rt_graphs = LookUpDict( builddata.rt_graphs)
 
 
     def __repr__(self):
         return '<NineML Component: %s>' % self.name
+
+    @property
+    def rt_graphs(self):
+        return self._rt_graphs
+
+    @property
+    def transitions(self):
+        return itertools.chain( self._transitions_triggers, self._transitions_events)
 
     def transitions_from_regime(self, regime):
         assert isinstance(regime,Regime)
@@ -339,9 +334,9 @@ class NineMLComponent(EqnSet):
                 print '      [In Regime:%s] -> %s' % (regime.ns_string(), rhs)
 
         print '  RT Graphs'
-        for rt in self.rt_graphs.values():
+        for rt in self.rt_graphs:
             print '     Graph:', rt
-            for regime in rt.regimes.values():
+            for regime in rt.regimes:
                 print '       Regime:', regime
 
                 for tr in self.transitions_from_regime(regime):

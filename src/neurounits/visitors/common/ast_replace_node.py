@@ -116,30 +116,16 @@ class ReplaceNode(ASTVisitorBase):
 
 
     def VisitLibrary(self, o, **kwargs):
-        _function_defs_new = {}
-        for (k,v) in o._function_defs.items():
-            k = k
-            v = self.replace_or_visit(v)
-            _function_defs_new[k] =v
-        o._function_defs = _function_defs_new
-
-
-        _symbolicconstants_new = {}
-        for (k,v) in o._symbolicconstants.items():
-            k = k
-            v = self.replace_or_visit(v)
-            _symbolicconstants_new[k] =v
-        o._symbolicconstants = _symbolicconstants_new
-
+        o._eqn_assignment = self._replace_within_new_lut(o._eqn_assignment)
+        o._function_defs = self._replace_within_new_lut(o._function_defs)
+        o._symbolicconstants = self._replace_within_new_lut(o._symbolicconstants)
         return o
 
 
     def VisitNineMLComponent(self, o, **kwargs):
-
-
         o._transitions_events = self._replace_within_new_lut(o._transitions_events)
         o._transitions_triggers = self._replace_within_new_lut(o._transitions_triggers)
-        o.rt_graphs = self._replace_within_new_lut(o.rt_graphs)
+        o._rt_graphs = self._replace_within_new_lut(o.rt_graphs)
         o._eqn_assignment = self._replace_within_new_lut(o._eqn_assignment)
         o._eqn_time_derivatives = self._replace_within_new_lut(o._eqn_time_derivatives)
         o._function_defs = self._replace_within_new_lut(o._function_defs)
