@@ -24,7 +24,7 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
         symbols_not_to_rename.append(time_node)
 
         for (component_name, component) in instantiate.items():
-            print component.terminal_symbols
+            #print component.terminal_symbols
             if component.has_terminal_obj('t'):
                 ReplaceNode.replace_and_check(srcObj=component.get_terminal_obj('t'), dstObj=time_node, root=component)
 

@@ -113,7 +113,7 @@ class LookUpDict(object):
 
     def get_attr_value(self, obj, attr):
         res =  getattr(obj, attr)
-        print 'Finding attr: %s on:%s -> %s' %(attr,obj,res)
+        #print 'Finding attr: %s on:%s -> %s' %(attr,obj,res)
         return res
 
 

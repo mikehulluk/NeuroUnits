@@ -47,7 +47,7 @@ class ReplaceNode(ASTVisitorBase):
 
             from .ast_node_connections import ASTAllConnections
             print 'A node has not been completely removed: %s' % srcObj
-            print 'The floowing are still connected:'
+            print 'The following are still connected:'
             for node in EqnsetVisitorNodeCollector(root).all():
                 conns = ASTAllConnections().visit(node)
                 if srcObj in conns:
@@ -107,7 +107,7 @@ class ReplaceNode(ASTVisitorBase):
         new_lut.unique_attrs =  lut.unique_attrs
         new_lut.accepted_obj_types =  lut.accepted_obj_types
         for o in lut:
-            print 'Resolving', o
+            #print 'Resolving', o
             new_lut._add_item( self.replace_or_visit(o)  )
         return new_lut
 
@@ -138,7 +138,7 @@ class ReplaceNode(ASTVisitorBase):
         return o
 
     def VisitRTGraph(self, o, **kwargs):
-        print o.regimes
+        #print o.regimes
         o.regimes = self._replace_within_new_lut(o.regimes)
         return o
 

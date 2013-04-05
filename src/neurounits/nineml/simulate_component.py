@@ -34,7 +34,7 @@ def close_analog_port(ap, comp):
 
 def close_all_analog_reduce_ports(component):
     for ap in component.analog_reduce_ports:
-        print 'Closing', ap
+        #print 'Closing', ap
         close_analog_port(ap, component)
 
 
@@ -51,7 +51,7 @@ class SimulationResultsData(object):
 
 
 def do_transition_change(tr, state_data, functor_gen):
-    print 'Transition Triggered!',
+    #print 'Transition Triggered!',
     # State assignments & events:
     functor = functor_gen.transitions_actions[tr]
     functor(state_data=state_data)
@@ -83,7 +83,7 @@ def simulate_component(component, times, parameters,initial_state_values, initia
 
     # Sanity check, are the parameters and initial state_variable values in teh right units:
     for (k, v) in parameters.items() + initial_state_values.items():
-        print k, v
+        #print k, v
         terminal_obj = component.get_terminal_obj(k)
         assert terminal_obj.get_dimension().is_compatible(v.get_units())
     # =======================================================
@@ -114,7 +114,7 @@ def simulate_component(component, times, parameters,initial_state_values, initia
         assert regime is not None, " Start regime for '%s' not set! " % (rt_graph.name)
         assert regime in rt_graph.regimes
 
-    print 'Initial_regimes', current_regimes
+    #print 'Initial_regimes', current_regimes
 
 
 

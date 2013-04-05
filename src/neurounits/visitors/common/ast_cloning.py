@@ -41,7 +41,7 @@ class ASTClone(object):
             if old_node == obj:
                 new_obj = new_node
             ReplaceNode.replace_and_check(srcObj=old_node, dstObj=new_node, root = obj)
-            print ' Replaced:', old_node
+            #print ' Replaced:', old_node
 
 
         assert new_obj is not None

@@ -631,7 +631,7 @@ class AbstractBlockBuilder(object):
 
         # Lets build the Block Object!
         # ################################
-        print self.block_type
+        #print self.block_type
         self._astobject = self.block_type(
                     library_manager=self.library_manager,
                     builder=self,

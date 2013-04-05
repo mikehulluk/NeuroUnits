@@ -60,12 +60,12 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
     def verify_equal_units(self, objs):
         from neurounits.units_backends.mh import MMUnit
         from neurounits.ast import ASTExpressionObject
-        print 'Checking', objs
+        #print 'Checking', objs
         if len(objs) == 0:
             return
         o0 = objs[0]
         for o in objs:
-            print o, o0
+            #print o, o0
             assert isinstance(o, ASTExpressionObject)
             assert isinstance(o0, ASTExpressionObject)
             if not o.get_dimension().is_compatible(o0.get_dimension()):
