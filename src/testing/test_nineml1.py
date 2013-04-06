@@ -89,10 +89,9 @@ module test {
         regime OFF{
             i=0A
             on (t>t_start) {
-
                 transition_to ON;
             }
-            }
+        }
 
         regime ON{
             i = i_amp
@@ -174,30 +173,6 @@ module test {
         }
 
 
-    #define_component std_neuron2 {
-#
-#
-#        V' = i_sum / C
-#
-#        <=> ANALOG_REDUCE_PORT i_sum
-#        <=> PARAMETER C:(uF)
-#        <=> OUTPUT     V: mV
-#
-#    }
-#
-#    define_component chlstd_leak2 {
-#
-#
-#        i = g * (erev-V) *a
-#        a = 1000 um2
-#        <=> PARAMETER g:(S/m2), erev
-#        <=> OUTPUT    i:(mA)
-#        <=> INPUT     V: mV
-#
-#    }
-
-
-
     define_component std_neuron {
 
 
@@ -240,15 +215,7 @@ module test {
             }
         }
         <=> INPUT t:(ms)
-
-
-
     }
-
-
-
-
-
 
 
     define_component evt_syn{
@@ -381,8 +348,6 @@ def test1():
             
             ('syn2/syn/i','nrn2/nrn/i_sum'),
             ('nrn2/nrn/V','syn2/syn/V_post'),
-            
-            
           ],
           )
 

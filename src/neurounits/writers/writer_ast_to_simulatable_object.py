@@ -421,11 +421,13 @@ class FunctorGenerator(ASTVisitorBase):
             if len(evt.parameter_values)==1:
                 return list( evt.parameter_values.values() )[0]
             # Resolve from among many parameters:
+            else:
+                return evt.parameter_values[o.port_parameter_obj.symbol]
 
-            print 'Getting value of:', o.symbol
-            print evt
-            print
-            assert False
+            #print 'Getting value of:', o.symbol
+            #print evt
+            #print
+            #assert False
         return f
 
 
