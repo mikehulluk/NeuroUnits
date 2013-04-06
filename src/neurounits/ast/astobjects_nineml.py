@@ -285,6 +285,8 @@ class InEventPort(ASTObject):
         self.parameters = parameters
         assert isinstance(self.name, basestring)
         assert isinstance(self.parameters, LookUpDict)
+    def __repr__(self,):
+        return '<InPort: %s>' % self.name
 
     
 
@@ -296,7 +298,8 @@ class InEventPortParameter(ASTExpressionObject):
         super(InEventPortParameter, self).__init__(**kwargs)
         self.symbol = symbol
     def __repr__(self,):
-        return '<InPort: %s>' % self.name
+        return '<InPortparameter: %s>' % self.symbol
+    
 
 
 
@@ -327,6 +330,8 @@ class OutEventPortParameter(ASTExpressionObject):
     
 
 class EventPortConnection(ASTObject):
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitEventPortConnection(self, **kwargs)
     def __init__(self, src_port, dst_port, delay):
         super(EventPortConnection, self).__init__()
         self.dst_port = dst_port

@@ -67,7 +67,7 @@ module my_components {
                         transition_to OFF
                 }
              
-                on recievemyevent(a:{ms},b:{mV},c,event_param){
+                on recievemyevent(a:{ms},b:{mV},c:{},event_param:{}){
                         f = -c + event_param
                         emit my_event(x=2,y=3,z=4)
                         transition_to OFF

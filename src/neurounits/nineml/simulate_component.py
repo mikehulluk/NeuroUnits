@@ -28,7 +28,7 @@ def close_analog_port(ap, comp):
     assert new_node is not None
     #ReplaceNode(srcObj=ap, dstObj=new_node).visit(comp)
     ReplaceNode.replace_and_check(srcObj=ap, dstObj=new_node, root=comp)
-    
+
     PropogateDimensions.propogate_dimensions(comp)
 
 
@@ -51,7 +51,7 @@ class SimulationResultsData(object):
 
 
 def do_transition_change(tr, state_data, functor_gen):
-    print 'Doing transition change', tr
+    #print 'Doing transition change', tr
     #print 'Transition Triggered!',
     # State assignments & events:
     functor = functor_gen.transitions_actions[tr]
@@ -72,15 +72,38 @@ class Event(object):
         return '<Event at %s on Port:%s (Parameters: %s)>' % (self.time, self.port, self.parameter_values)
 
 
+
 class EventManager(object):
     def __init__(self, ):
-        self.event_list = []
+        self.previous_time = None
         self.current_time = None
 
+        self.outstanding_event_list = []
+        self.processed_event_list = []
+
     def emit_event(self, port, parameter_values):
-        self.event_list.append( Event( port=port, parameter_values=parameter_values, time=self.current_time) )
+
+        submit_time = self.current_time + neurounits.NeuroUnitParser.QuantitySimple('10ms')
+        self.outstanding_event_list.append( Event( port=port, parameter_values=parameter_values, time=submit_time) )
+
     def set_time(self, t):
+        self.previous_time = self.current_time
         self.current_time = t
+
+
+    def get_events_for_delivery(self):
+        events = [ evt for evt in self.outstanding_event_list if evt.time > self.previous_time and evt.time <= self.current_time ]
+        return events
+
+    def marked_event_as_processed(self, event):
+        assert event in self.outstanding_event_list
+        assert not event in self.processed_event_list
+        self.outstanding_event_list.remove(event)
+        self.processed_event_list.append(event)
+
+
+    
+
 
 
 
@@ -162,7 +185,7 @@ def simulate_component(component, times, parameters,initial_state_values, initia
             print 'Time:', t
             print '---------'
             print state_values
-        print '\rTime: %s' % str('%2.2f' % t).ljust(5),
+        print '\rTime: %s' % str('%2.3f' % t).ljust(5),
         sys.stdout.flush()
 
 
@@ -197,7 +220,14 @@ def simulate_component(component, times, parameters,initial_state_values, initia
             assert d in state_values, "Found unexpected delta: %s (%s)" %( d )
             state_values[d] += dS * (times[i+1] - times[i] ) * neurounits.NeuroUnitParser.QuantitySimple('1s')
 
-       
+
+        active_events = evt_manager.get_events_for_delivery()
+        print '\nEvents:', active_events
+        #for evt in active_events:
+        #    evt_manager.marked_event_as_processed(evt)
+
+
+
         # Check for transitions:
         #print 'Checking for transitions:'
         for rt_graph in component.rt_graphs:
@@ -207,20 +237,31 @@ def simulate_component(component, times, parameters,initial_state_values, initia
             triggered_transitions = []
             for transition in component.transitions_from_regime(current_regime):
                 #print '       Checking',  transition
-                
+
                 if isinstance(transition, ast.OnTriggerTransition):
                     res = f.transition_triggers_evals[transition]( state_data=state_data)
                     if res:
                         triggered_transitions.append(transition)
+                elif isinstance(transition, ast.OnEventTransition):
+                    for evt in active_events:
+                        #handlers = 
+                        if transition in f.transition_event_handlers[evt.port]:
+                            triggered_transitions.append(transition)
+                            assert False
+                else:
+                    assert False
 
             assert len(triggered_transitions) in (0,1)
             if triggered_transitions:
                 tr = triggered_transitions[0]
 
-                (state_changes, new_regime) = do_transition_change(tr=transition, state_data=state_data, functor_gen = f)
+                (state_changes, new_regime) = do_transition_change(tr=tr, state_data=state_data, functor_gen = f)
                 state_values.update(state_changes)
                 current_regimes[rt_graph] = new_regime
 
+        # Mark the events as done
+        for evt in active_events:
+            evt_manager.marked_event_as_processed(evt)
 
 
 
@@ -254,11 +295,11 @@ def simulate_component(component, times, parameters,initial_state_values, initia
     for rt_graph in component.rt_graphs:
         regimes = [ time_pt_data.rt_regimes[rt_graph] for time_pt_data in reses_new]
         regimes_ints = np.array([ regimes_to_ints_map[rt_graph][r] for r in regimes])
-        rt_graph_data[rt_graph.name] = (regimes_ints) 
+        rt_graph_data[rt_graph.name] = (regimes_ints)
 
 
     # Print the events:
-    for evt in evt_manager.event_list:
+    for evt in evt_manager.processed_event_list:
         print evt
 
 

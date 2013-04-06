@@ -76,8 +76,12 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
     comp = ast.NineMLComponent(library_manager = lib_mgr,
                     builder = None,
                     builddata = builddata,
+                    name=name,
                     )
-
+    # Copy across the existing event port connnections
+    for subcomponent in instantiate.values():
+        for conn in subcomponent._event_port_connections:
+            comp.add_event_port_connection(conn)
 
 
     # 5. Connect the relevant ports internally:
@@ -93,6 +97,18 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
             
         else:
             assert False, 'Unexpected node type: %s' % dst_obj
+
+    print comp.name
+    print comp.output_event_port_lut
+    print comp.input_event_port_lut
+    for (src, dst) in event_connections:
+        src_port = comp.output_event_port_lut.get_single_obj_by(name=src), 
+        dst_port = comp.input_event_port_lut.get_single_obj_by(name=dst) 
+        ast.EventPortConnection( 
+                src_port = src_port, dst_port = dst_port
+                )
+        
+
         
 
     # 6. Map relevant ports externally:

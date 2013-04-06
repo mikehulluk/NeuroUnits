@@ -68,7 +68,9 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def VisitNineMLComponent(self, o, **kwargs):
 
         # TODO: Add o.rt_graphs
-        subnodes = itertools.chain(o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants, o.transitions, )
+        print 'VISITING;'
+        print o._event_port_connections
+        subnodes = itertools.chain(o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants, o.transitions, o._event_port_connections)
         for f in subnodes:
             self.visit(f, **kwargs)
 
@@ -211,6 +213,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
             self.visit(a, **kwargs)
         for a in o.actions:
             self.visit(a, **kwargs)
+        self.visit(o.port)
         self._ActionOnTransitionEvent(o, **kwargs)
 
     def VisitOnEventDefParameter(self, o, **kwargs):
@@ -219,6 +222,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def VisitEmitEvent(self, o, **kwargs):
         for a in o.parameters:
             self.visit(a, **kwargs)
+        self.visit(o.port)
         self._ActionEmitEvent(o, **kwargs)
 
     def VisitEmitEventParameter(self, o, **kwargs):

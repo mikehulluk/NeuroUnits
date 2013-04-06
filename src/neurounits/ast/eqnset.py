@@ -220,6 +220,16 @@ class EqnSet(Block):
     def _analog_reduce_ports_lut(self):
         t = EqnsetVisitorNodeCollector(obj=self)
         return LookUpDict(t.nodes[AnalogReducePort] )
+    @property
+    def input_event_port_lut(self):
+        import neurounits.ast as ast
+        t = EqnsetVisitorNodeCollector(obj=self)
+        return LookUpDict(t.nodes[ast.InEventPort] )
+    @property
+    def output_event_port_lut(self):
+        import neurounits.ast as ast
+        t = EqnsetVisitorNodeCollector(obj=self)
+        return LookUpDict(t.nodes[ast.OutEventPort] )
 
 
     def has_terminal_obj(self, symbol):
@@ -287,6 +297,13 @@ class NineMLComponent(EqnSet):
         self._transitions_triggers = LookUpDict( builddata.transitions_triggers )
         self._transitions_events = LookUpDict( builddata.transitions_events )
         self._rt_graphs = LookUpDict( builddata.rt_graphs)
+
+        self._event_port_connections = LookUpDict()
+
+    def add_event_port_connection(self, conn):
+        assert conn.dst_port in self.input_event_port_lut
+        assert conn.src_port in self.output_event_port_lut
+        self._event_port_connections.append(conn)
 
 
     def __repr__(self):
