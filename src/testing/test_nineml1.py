@@ -115,6 +115,12 @@ module test {
             }
         }
 
+        #init_with {
+        #    A = 0
+        #    B = 0
+        #    transition_to sub
+        #}
+
         regime sub{
             on(V_pre>0mV){
                 A = A + 1
