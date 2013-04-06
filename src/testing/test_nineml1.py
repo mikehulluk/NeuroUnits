@@ -233,7 +233,7 @@ module test {
 
         regime std{
             t_last'=0
-            on(t > t_last + {5ms}){
+            on(t > t_last + {15ms}){
                 t_last = t
                 emit myevent(5pS)
                 emit myotherevent(x=5pS, y=6pA)

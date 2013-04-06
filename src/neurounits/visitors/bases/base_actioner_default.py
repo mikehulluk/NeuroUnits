@@ -160,3 +160,8 @@ class ASTActionerDefault(ASTActionerDepthFirst):
     def ActionInEventPortParameter(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
+    def ActionRTGraph(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
+    def ActionEventPortConnection(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
+

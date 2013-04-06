@@ -193,6 +193,34 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
     def VisitOutEventPort(self, o):
         pass
 
+    def VisitRegime(self,o):
+        pass
+    def VisitRTGraph(self, o):
+        pass
+    
+    def VisitEventPortConnection(self, o):
+        assert len( o.src_port.parameters) == len( o.dst_port.parameters )
+
+        # Multiple params: check by name:
+        if len( o.src_port.parameters) > 1:
+            assert set(o.src_port.parameters.get_objects_attibutes(attr='symbol')) == set(o.dst_port.parameters.get_objects_attibutes(attr='symbol')) 
+            for sp in o.src_port.parameters:
+                dp = o.dst_port.parameters.get_single_obj_by(symbol=sp.symbol)
+                self.verify_equal_units([sp,dp])
+
+        # Single param: don't worry about name:
+        elif len(o.src_port.parameters) == 1:
+            sp = o.src_port.parameters.get_single_obj_by()   
+            dp = o.dst_port.parameters.get_single_obj_by()   
+            self.verify_equal_units([sp,dp])
+        else:
+            return 
+
+        
+        #assert set(o.src_port.parameters.get_objects_attibutes(attr='symbol')) == set(o.dst_port.parameters.get_objects_attibutes(attr='symbol')) 
+        #self.verify_equal_units([o, o.rhs, o.port_parameter_obj])
+        
+
 
 class DimensionResolver(ASTVisitorBase):
 
@@ -279,6 +307,11 @@ class DimensionResolver(ASTVisitorBase):
 
     def VisitOnEvent(self, o, **kwargs):
         return
+
+    def VisitRTGraph(self, o, **kwargs):
+        return 
+    def VisitRegime(self, o, **kwargs):
+        return 
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
         self.EnsureEqualDimensions([o, o.lhs, o.rhs])
@@ -546,6 +579,9 @@ class DimensionResolver(ASTVisitorBase):
         pass
     #def VisitOutEventPortParameter(self, o):
     #    pass
+
+    def VisitEventPortConnection(self, o):
+        pass
 
 
 class PropogateDimensions(object):

@@ -332,12 +332,20 @@ class OutEventPortParameter(ASTExpressionObject):
 class EventPortConnection(ASTObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitEventPortConnection(self, **kwargs)
-    def __init__(self, src_port, dst_port, delay):
+    def __init__(self, src_port, dst_port, delay=None):
         super(EventPortConnection, self).__init__()
         self.dst_port = dst_port
         self.src_port = src_port
         self.delay = delay
         assert isinstance( dst_port, InEventPort)
-        assert isinstance( src_port, InEventPort)
+        print src_port, type(src_port)
+        assert isinstance( src_port, OutEventPort)
+
+        
+        print set(src_port.parameters.get_objects_attibutes(attr='symbol')) 
+        print set(dst_port.parameters.get_objects_attibutes(attr='symbol')) 
+        assert len( src_port.parameters) == len( dst_port.parameters )
+        if len( src_port.parameters) > 1:
+            assert set(src_port.parameters.get_objects_attibutes(attr='symbol')) == set(dst_port.parameters.get_objects_attibutes(attr='symbol')) 
 
 

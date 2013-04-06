@@ -31,16 +31,22 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
 
     # 2. Rename all the internal names of the objects:
     for (component_name, component) in instantiate.items():
+        ns_prefix = component_name + prefix
         # Symbols:
         for obj in component.terminal_symbols:
             if obj in symbols_not_to_rename:
                 continue
-            obj.symbol = component_name + prefix + obj.symbol
+            obj.symbol = ns_prefix + obj.symbol
 
 
         # RT Graphs names (not the names of the regimes!):
         for rt_graph in component.rt_graphs:
-            rt_graph.name = component_name + prefix + (rt_graph.name if rt_graph.name else '')
+            rt_graph.name = ns_prefix + (rt_graph.name if rt_graph.name else '')
+
+        #Event Ports:
+        import itertools
+        for port in itertools.chain( component.output_event_port_lut,  component.input_event_port_lut):
+            port.name = ns_prefix + port.name
 
 
 
@@ -99,14 +105,14 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
             assert False, 'Unexpected node type: %s' % dst_obj
 
     print comp.name
-    print comp.output_event_port_lut
-    print comp.input_event_port_lut
+    print 'Outports:', comp.output_event_port_lut
+    print 'Inports:', comp.input_event_port_lut
     for (src, dst) in event_connections:
-        src_port = comp.output_event_port_lut.get_single_obj_by(name=src), 
+        print src, dst
+        src_port = comp.output_event_port_lut.get_single_obj_by(name=src) 
         dst_port = comp.input_event_port_lut.get_single_obj_by(name=dst) 
-        ast.EventPortConnection( 
-                src_port = src_port, dst_port = dst_port
-                )
+        conn = ast.EventPortConnection( src_port = src_port, dst_port = dst_port)
+        comp.add_event_port_connection(conn)
         
 
         

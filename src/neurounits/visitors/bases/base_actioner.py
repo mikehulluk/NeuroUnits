@@ -70,7 +70,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         # TODO: Add o.rt_graphs
         print 'VISITING;'
         print o._event_port_connections
-        subnodes = itertools.chain(o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants, o.transitions, o._event_port_connections)
+        subnodes = itertools.chain(o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants, o.transitions, o._event_port_connections, o.rt_graphs)
         for f in subnodes:
             self.visit(f, **kwargs)
 
@@ -115,6 +115,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def VisitBoolNot(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
         self._ActionBoolNot(o, **kwargs)
+
 
     # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):
@@ -245,6 +246,16 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def  VisitOutEventPortParameter(self, o,  **kwargs):
         self._ActionOutEventPortParameter(o, **kwargs)
 
+    def VisitRTGraph(self, o, **kwargs):
+        for r in o.regimes:
+            self.visit(r, **kwargs)
+        self._ActionRTGraph(o, **kwargs)
+    
+    def VisitRegime(self, o, **kwargs):
+        self._ActionRegime(o, **kwargs)
+
+    def VisitEventPortConnection(self, o, **kwargs):
+        self._ActionEventPortConnection(o, **kwargs)
 
 
 
@@ -413,6 +424,16 @@ class ASTActionerDepthFirst(ASTVisitorBase):
             self.ActionOutEventPortParameter(o, **kwargs)
 
 
+    def _ActionRTGraph(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            self.ActionRTGraph(o, **kwargs)
+    def _ActionRegime(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            self.ActionRegime(o, **kwargs)
+
+    def _ActionEventPortConnection(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            self.ActionEventPortConnection(o, **kwargs)
 
 
 
@@ -423,7 +444,13 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
 
 
+    def ActionEventPortConnection(self, o, **kwargs):
+        print self
+        raise NotImplementedError()
 
+
+    def ActionRTGraph(self, o, **kwargs):
+        raise NotImplementedError()
 
 
     def ActionEqnSet(self, o, **kwargs):

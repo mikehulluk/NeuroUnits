@@ -115,6 +115,11 @@ class ASTAllConnections(ASTActionerDepthFirst):
             iter(o.rt_graphs),
         ))
 
+    def VisitRegime(self, o, **kwargs):
+        return [o.parent_rt_graph]
+    def VisitRTGraph(self, o, **kwargs):
+        return list(o.regimes)
+
 
 
     def VisitIfThenElse(self, o, **kwargs):

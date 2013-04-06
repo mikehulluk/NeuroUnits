@@ -354,8 +354,12 @@ class FunctorGenerator(ASTVisitorBase):
         # trigger is valid
         self.transition_triggers_evals = {}
         self.transitions_actions = {}
-        self.transition_event_handlers = defaultdict(list)
+        self.transition_event_forwarding = defaultdict(list)
+        self.transition_port_handlers = defaultdict(list)
 
+        assert o._event_port_connections, 'No event connecitons found!'
+        for conn in o._event_port_connections:
+            self.visit(conn)
 
         for tr in o.transitions:
             self.visit(tr)
@@ -406,7 +410,7 @@ class FunctorGenerator(ASTVisitorBase):
         self.transitions_actions[o] = self._visit_trans(o, **kwargs)
 
     def VisitOnTransitionEvent(self, o, **kwargs):
-        self.transition_event_handlers[o.port].append( o )
+        self.transition_port_handlers[o.port].append( o )
         self.transitions_actions[o] = self._visit_trans(o, **kwargs)
         
     def VisitOnEventDefParameter(self, o):
@@ -416,6 +420,9 @@ class FunctorGenerator(ASTVisitorBase):
             assert False
         return f
 
+
+    def VisitEventPortConnection(self, o):
+        self.transition_event_forwarding[o.src_port].append(o.dst_port)
 
 
 

@@ -50,10 +50,13 @@ class SimulationResultsData(object):
         return self.times
 
 
-def do_transition_change(tr, state_data, functor_gen):
+def do_transition_change(tr, evt, state_data, functor_gen):
     #print 'Doing transition change', tr
     #print 'Transition Triggered!',
     # State assignments & events:
+    assert evt==None
+
+
     functor = functor_gen.transitions_actions[tr]
     functor(state_data=state_data)
 
@@ -221,8 +224,18 @@ def simulate_component(component, times, parameters,initial_state_values, initia
             state_values[d] += dS * (times[i+1] - times[i] ) * neurounits.NeuroUnitParser.QuantitySimple('1s')
 
 
+        # Get all the events, and forward them to the approprate input ports:
         active_events = evt_manager.get_events_for_delivery()
         print '\nEvents:', active_events
+
+        ports_with_events = {}
+        for evt in active_events:
+            if evt.port in f.transition_event_forwarding:
+                for input_port in f.transition_event_forwarding[evt.port]:
+                    ports_with_events[input_port] = evt
+
+        print ports_with_events
+        #assert not ports_with_events
         #for evt in active_events:
         #    evt_manager.marked_event_as_processed(evt)
 
@@ -241,21 +254,20 @@ def simulate_component(component, times, parameters,initial_state_values, initia
                 if isinstance(transition, ast.OnTriggerTransition):
                     res = f.transition_triggers_evals[transition]( state_data=state_data)
                     if res:
-                        triggered_transitions.append(transition)
+                        triggered_transitions.append((transition,None))
                 elif isinstance(transition, ast.OnEventTransition):
-                    for evt in active_events:
-                        #handlers = 
-                        if transition in f.transition_event_handlers[evt.port]:
-                            triggered_transitions.append(transition)
-                            assert False
+                    for (port,evt) in ports_with_events.items():
+                        if transition in f.transition_port_handlers[port]:
+                            triggered_transitions.append((transition,evt))
+                            #assert False
                 else:
                     assert False
 
             assert len(triggered_transitions) in (0,1)
             if triggered_transitions:
-                tr = triggered_transitions[0]
+                tr, evt = triggered_transitions[0]
 
-                (state_changes, new_regime) = do_transition_change(tr=tr, state_data=state_data, functor_gen = f)
+                (state_changes, new_regime) = do_transition_change(tr=tr, evt=evt, state_data=state_data, functor_gen = f)
                 state_values.update(state_changes)
                 current_regimes[rt_graph] = new_regime
 

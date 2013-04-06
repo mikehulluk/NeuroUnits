@@ -303,7 +303,7 @@ class NineMLComponent(EqnSet):
     def add_event_port_connection(self, conn):
         assert conn.dst_port in self.input_event_port_lut
         assert conn.src_port in self.output_event_port_lut
-        self._event_port_connections.append(conn)
+        self._event_port_connections._add_item(conn)
 
 
     def __repr__(self):
