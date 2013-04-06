@@ -251,20 +251,25 @@ class SimulationStateData(object):
             suppliedvalues,
             states_in,
             states_out,
-            rt_regimes
+            rt_regimes,
+            event_manager,
             ):
         self.parameters = parameters
         self.suppliedvalues = suppliedvalues
         self.states_in = states_in
         self.states_out = states_out
         self.rt_regimes = rt_regimes
+        self.event_manager = event_manager
 
     def copy(self):
         return SimulationStateData(parameters=self.parameters.copy(),
                                    suppliedvalues=self.suppliedvalues.copy(),
                                    states_in=self.states_in.copy(),
                                    states_out=self.states_out.copy(),
-                                   rt_regimes=self.rt_regimes.copy())
+                                   rt_regimes=self.rt_regimes.copy(),
+                                   event_manager = None
+                                   
+                                   )
 
 
 class FunctorGenerator(ASTVisitorBase):
@@ -406,6 +411,8 @@ class FunctorGenerator(ASTVisitorBase):
         
     def VisitOnEventDefParameter(self, o):
         def f(**kw):
+            print 'Getting value of:', o.symbol
+            print
             assert False
         return f
 
@@ -667,8 +674,8 @@ class FunctorGenerator(ASTVisitorBase):
         return eFunc
 
     def VisitEmitEvent(self, o, **kwargs):
-        def f(**kw):
-            assert False
+        def f(state_data,**kw):
+            state_data.event_manager.emit_event( port=o.port, parameter_values={} )
         return f
 
 

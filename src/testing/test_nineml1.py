@@ -224,6 +224,7 @@ module test {
         t_last'=0
 
         regime init{
+            t_last'=0
             on(0<1){
                 t_last = 0s
             transition_to std
@@ -231,6 +232,7 @@ module test {
         }
 
         regime std{
+            t_last'=0
             on(t > t_last + {5ms}){
                 t_last = t
                 emit myevent(5pS)
@@ -414,6 +416,7 @@ def test1():
                             
                             'syn2/syn/A':'0',
                             'syn2/syn/B':'0',
+                            'syn2/spike_gen/t_last':'0ms',
                         },
                         initial_regimes={
                             'nrn1/i_inj/':'OFF',

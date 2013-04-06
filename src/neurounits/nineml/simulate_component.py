@@ -51,6 +51,7 @@ class SimulationResultsData(object):
 
 
 def do_transition_change(tr, state_data, functor_gen):
+    print 'Doing transition change', tr
     #print 'Transition Triggered!',
     # State assignments & events:
     functor = functor_gen.transitions_actions[tr]
@@ -61,6 +62,25 @@ def do_transition_change(tr, state_data, functor_gen):
 
 
 
+class Event(object):
+    def __init__(self, port, parameter_values, time):
+        self.port = port
+        self.parameter_values = parameter_values
+        self.time = time
+
+    def __repr__(self):
+        return '<Event at %s on Port:%s (Parameters: %s)>' % (self.time, self.port, self.parameter_values)
+
+
+class EventManager(object):
+    def __init__(self, ):
+        self.event_list = []
+        self.current_time = None
+
+    def emit_event(self, port, parameter_values):
+        self.event_list.append( Event( port=port, parameter_values=parameter_values, time=self.current_time) )
+    def set_time(self, t):
+        self.current_time = t
 
 
 
@@ -128,6 +148,8 @@ def simulate_component(component, times, parameters,initial_state_values, initia
 
     f = FunctorGenerator(component)
 
+    evt_manager = EventManager()
+
     reses_new = []
     print 'Running Simulation:'
     print
@@ -148,6 +170,7 @@ def simulate_component(component, times, parameters,initial_state_values, initia
 
         t_unit = t * neurounits.NeuroUnitParser.QuantitySimple('1s')
         supplied_values = {'t': t_unit}
+        evt_manager.set_time(t_unit)
 
         # Build the data for this loop:
         state_data = SimulationStateData(
@@ -156,6 +179,7 @@ def simulate_component(component, times, parameters,initial_state_values, initia
             states_in=state_values,
             states_out={},
             rt_regimes=current_regimes,
+            event_manager = evt_manager,
         )
 
         # Save the state data:
@@ -170,7 +194,7 @@ def simulate_component(component, times, parameters,initial_state_values, initia
 
         # Update the states:
         for (d, dS) in deltas.items():
-            assert d in state_values
+            assert d in state_values, "Found unexpected delta: %s (%s)" %( d )
             state_values[d] += dS * (times[i+1] - times[i] ) * neurounits.NeuroUnitParser.QuantitySimple('1s')
 
        
@@ -179,14 +203,23 @@ def simulate_component(component, times, parameters,initial_state_values, initia
         for rt_graph in component.rt_graphs:
             current_regime = current_regimes[rt_graph]
             #print '  ', rt_graph, '(in %s)' % current_regime
+
+            triggered_transitions = []
             for transition in component.transitions_from_regime(current_regime):
                 #print '       Checking',  transition
-                res = f.transition_triggers_evals[transition]( state_data=state_data)
+                
+                if isinstance(transition, ast.OnTriggerTransition):
+                    res = f.transition_triggers_evals[transition]( state_data=state_data)
+                    if res:
+                        triggered_transitions.append(transition)
 
-                if res:
-                    (state_changes, new_regime) = do_transition_change(tr=transition, state_data=state_data, functor_gen = f)
-                    state_values.update(state_changes)
-                    current_regimes[rt_graph] = new_regime
+            assert len(triggered_transitions) in (0,1)
+            if triggered_transitions:
+                tr = triggered_transitions[0]
+
+                (state_changes, new_regime) = do_transition_change(tr=transition, state_data=state_data, functor_gen = f)
+                state_values.update(state_changes)
+                current_regimes[rt_graph] = new_regime
 
 
 
@@ -224,6 +257,9 @@ def simulate_component(component, times, parameters,initial_state_values, initia
         rt_graph_data[rt_graph.name] = (regimes_ints) 
 
 
+    # Print the events:
+    for evt in evt_manager.event_list:
+        print evt
 
 
 
