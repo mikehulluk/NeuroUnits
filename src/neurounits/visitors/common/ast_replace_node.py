@@ -281,7 +281,6 @@ class ReplaceNode(ASTVisitorBase):
         return o
     def VisitOnTransitionEvent(self, o, **kwargs):
         o.parameters = self._replace_within_new_lut(o.parameters)
-        #o.parameters= dict([(name, self.replace_or_visit(p)) for (name,p) in o.parameters.items()])
         o.actions = [self.replace_or_visit(a) for a in o.actions]
         return o
 
@@ -290,7 +289,6 @@ class ReplaceNode(ASTVisitorBase):
     def VisitEmitEvent(self, o, **kwargs):
         o.parameters = self._replace_within_new_lut(o.parameters)
         o.port = self.replace_or_visit(o.port)
-        #o.parameter_map= dict([(name, self.replace_or_visit(p)) for (name,p) in o.parameter_map.items()])
         return o
 
 

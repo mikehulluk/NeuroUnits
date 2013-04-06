@@ -521,6 +521,14 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
 
 
+    def ActionOutEventPort(self, o, **kwargs):
+        raise NotImplementedError()
+    def ActionOutEventPortParameter(self, o, **kwargs):
+        raise NotImplementedError()
+    def ActionInEventPort(self, o, **kwargs):
+        raise NotImplementedError()
+    def ActionInEventPortParameter(self, o, **kwargs):
+        raise NotImplementedError()
 
 
 

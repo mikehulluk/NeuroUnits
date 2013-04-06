@@ -131,7 +131,7 @@ class OnEventTransition(Transition):
         assert isinstance( self.parameters, LookUpDict)
 
     def __repr__(self):
-        return '<OnEventTransition [%s] %s -> %s (%d actions)>' % (self.event_name, self.src_regime, self.target_regime, len(self.actions))
+        return '<OnEventTransition [%s] %s -> %s (%d actions)>' % (self.port, self.src_regime, self.target_regime, len(self.actions))
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitOnTransitionEvent(self, **kwargs)
@@ -163,7 +163,7 @@ class EmitEvent(ASTObject):
         assert isinstance( self.parameters, LookUpDict)
 
     def __repr__(self):
-        return "<EmitEvent: '%s'>" % self.event_name
+        return "<EmitEvent: '%s'>" % self.port
 
 class EmitEventParameter(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):
@@ -320,3 +320,14 @@ class OutEventPortParameter(ASTExpressionObject):
         super(OutEventPortParameter, self).__init__(**kwargs)
         self.symbol = symbol
     
+
+class EventPortConnection(ASTObject):
+    def __init__(self, src_port, dst_port, delay):
+        super(EventPortConnection, self).__init__()
+        self.dst_port = dst_port
+        self.src_port = src_port
+        self.delay = delay
+        assert isinstance( dst_port, InEventPort)
+        assert isinstance( src_port, InEventPort)
+
+

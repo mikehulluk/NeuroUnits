@@ -70,6 +70,7 @@ class ASTAllConnectionsCheck(ASTActionerDefault):
         nf = set(nodes_found)
 
         if nf != nt:
+            print 'Visiting:', obj
             print 'Found not told:'
             print nf-nt
             print 'Told not found:'
@@ -206,11 +207,31 @@ class ASTAllConnections(ASTActionerDepthFirst):
         return [o.trigger, o.src_regime, o.target_regime ] + list(o.actions)
 
     def VisitOnTransitionEvent(self, o, **kwargs):
-        return [ o.src_regime, o.target_regime ] + list(o.actions)
+        return [ o.src_regime, o.target_regime, o.port] + list(o.actions) + list(o.parameters)
 
 
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
         return [o.lhs, o.rhs]
+
+
+    def VisitInEventPort(self, o, **kwargs):
+        return list(o.parameters)
+    def VisitInEventPortParameter(self, o, **kwargs):
+        return []
+
+    def VisitOutEventPort(self, o, **kwargs):
+        return list(o.parameters)
+    def VisitOutEventPortParameter(self, o, **kwargs):
+        return []
+
+
+    def VisitEmitEventParameter(self, o, **kwargs):
+        return [o.rhs, o.port_parameter_obj]
+    def VisitEmitEvent(self, o, **kwargs):
+        return [o.port] + list(o.parameters)
+
+    def VisitOnEventDefParameter(self, o, **kwargs):
+        return []
 
 

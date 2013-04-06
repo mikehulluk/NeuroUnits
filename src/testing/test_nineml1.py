@@ -325,8 +325,10 @@ def test1():
     simple_syn1 = library_manager.get('simple_syn')
     simple_syn2 = library_manager.get('simple_syn')
 
-    #chlstd_leak2 = library_manager.get('chlstd_leak2')
-    #std_neuron2 = library_manager.get('std_neuron2')
+    evt_gen = library_manager.get('evt_gen')
+    evt_syn = library_manager.get('evt_syn')
+    
+    
 
     c1 = build_compound_component(
           name = 'Neuron1',
@@ -351,10 +353,24 @@ def test1():
           ],
     )
 
+
+    c3 = build_compound_component(
+          name = 'driven_synapse',
+          instantiate = { 'spike_gen': evt_gen, 'syn': evt_syn,},
+          event_connections = [
+            ('spike_gen/myevent', 'syn/myevent' ), 
+            ],
+          analog_connections = [
+            #('lk/i', 'nrn/i_sum'),
+            #('nrn/V', 'lk/V'),
+          ],
+    )
+
+
     
     c = build_compound_component(
           name = 'network',
-          instantiate = { 'nrn1': c1, 'nrn2': c2, 'syn1':simple_syn1},
+          instantiate = { 'nrn1': c1, 'nrn2': c2, 'syn1':simple_syn1, 'syn2':c3},
           event_connections = [],
           analog_connections = [
             ('syn1/i','nrn2/nrn/i_sum'),
@@ -384,6 +400,9 @@ def test1():
                             'syn1/t_close': '10ms',
                             'syn1/g_bar': '100pS',
                             'syn1/e_syn': '0mV',
+                            
+                            'syn2/syn/t_close':'80ms',
+                            'syn2/syn/t_open':'4ms',
 
                             },
                         initial_state_values={
@@ -392,6 +411,9 @@ def test1():
                             'nrn1/i_square/t_last': '0ms',
                             'syn1/A':'0',
                             'syn1/B':'0',
+                            
+                            'syn2/syn/A':'0',
+                            'syn2/syn/B':'0',
                         },
                         initial_regimes={
                             'nrn1/i_inj/':'OFF',

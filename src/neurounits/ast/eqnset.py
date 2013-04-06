@@ -271,6 +271,12 @@ class EqnSet(Block):
 
 
 class NineMLComponent(EqnSet):
+
+    def propagate_and_check_dimensions(self):
+        from .builder_visitor_propogate_dimensions import PropogateDimensions
+        PropogateDimensions.propogate_dimensions(self)
+
+
     def accept_visitor(self, visitor, **kwargs):
         return visitor.VisitNineMLComponent(self, **kwargs)
 

@@ -70,6 +70,7 @@ def simulate_component(component, times, parameters,initial_state_values, initia
 
     # Before we start, check the dimensions of the AST tree
     VerifyUnitsInTree(component, unknown_ok=False)
+    component.propagate_and_check_dimensions()
 
     # Close all the open analog ports:
     if close_reduce_ports:

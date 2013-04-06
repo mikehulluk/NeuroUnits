@@ -47,8 +47,8 @@ module my_components {
         
         T' = {1}
         
-	a = f + 1
-	i'= {0 ms-1}
+        a = f + 1
+        i'= {0 ms-1}
         b = f+i
         l = 2mV
         x = [2] if [l>3mV] else[ 123]

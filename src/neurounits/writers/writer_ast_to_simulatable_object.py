@@ -42,6 +42,7 @@ import neurounits
 import mredoc
 from functools import partial
 import traceback
+from collections import defaultdict
 
 
 def get_as_si(o):
@@ -348,6 +349,9 @@ class FunctorGenerator(ASTVisitorBase):
         # trigger is valid
         self.transition_triggers_evals = {}
         self.transitions_actions = {}
+        self.transition_event_handlers = defaultdict(list)
+
+
         for tr in o.transitions:
             self.visit(tr)
 
@@ -397,7 +401,18 @@ class FunctorGenerator(ASTVisitorBase):
         self.transitions_actions[o] = self._visit_trans(o, **kwargs)
 
     def VisitOnTransitionEvent(self, o, **kwargs):
-        assert False
+        self.transition_event_handlers[o.port].append( o )
+        self.transitions_actions[o] = self._visit_trans(o, **kwargs)
+        
+    def VisitOnEventDefParameter(self, o):
+        def f(**kw):
+            assert False
+        return f
+
+
+
+
+
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         self.assignment_evaluators[o.lhs.symbol] = self.visit(o.rhs_map)
@@ -650,3 +665,12 @@ class FunctorGenerator(ASTVisitorBase):
                 print "Couldn't find %s in %s" % (o.symbol, kw.keys())
             return kw[o.symbol]
         return eFunc
+
+    def VisitEmitEvent(self, o, **kwargs):
+        def f(**kw):
+            assert False
+        return f
+
+
+
+
