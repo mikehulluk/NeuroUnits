@@ -233,7 +233,7 @@ module test {
 
         regime std{
             t_last'=0
-            on(t > t_last + {15ms}){
+            on(t > t_last + {100ms}){
                 t_last = t
                 emit myevent(5pS)
                 emit myotherevent(x=5pS, y=6pA)
@@ -378,6 +378,11 @@ def test1():
             ('syn1/i','nrn2/nrn/i_sum'),
             ('nrn1/nrn/V','syn1/V_pre'),
             ('nrn2/nrn/V','syn1/V_post'),
+            
+            ('syn2/syn/i','nrn2/nrn/i_sum'),
+            ('nrn2/nrn/V','syn2/syn/V_post'),
+            
+            
           ],
           )
 
@@ -405,6 +410,8 @@ def test1():
                             
                             'syn2/syn/t_close':'80ms',
                             'syn2/syn/t_open':'4ms',
+                            'syn2/syn/g_bar': '10pS',
+                            'syn2/syn/e_syn': '0mV',
 
                             },
                         initial_state_values={

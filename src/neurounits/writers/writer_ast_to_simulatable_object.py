@@ -414,8 +414,16 @@ class FunctorGenerator(ASTVisitorBase):
         self.transitions_actions[o] = self._visit_trans(o, **kwargs)
         
     def VisitOnEventDefParameter(self, o):
-        def f(**kw):
+        def f(evt,**kw):
             print 'Getting value of:', o.symbol
+            
+            # Single parameter:
+            if len(evt.parameter_values)==1:
+                return list( evt.parameter_values.values() )[0]
+            # Resolve from among many parameters:
+
+            print 'Getting value of:', o.symbol
+            print evt
             print
             assert False
         return f
@@ -681,8 +689,19 @@ class FunctorGenerator(ASTVisitorBase):
         return eFunc
 
     def VisitEmitEvent(self, o, **kwargs):
+
+
+        param_evals = {}
+        for param in o.parameters:
+            param_evals[param] = self.visit(param.rhs)
+
         def f(state_data,**kw):
-            state_data.event_manager.emit_event( port=o.port, parameter_values={} )
+            parameter_values = {}
+            for p in o.parameters:
+                val = param_evals[p](state_data=state_data, **kw)
+                parameter_values[p.port_parameter_obj.symbol] = val
+            # Emit the event!:
+            state_data.event_manager.emit_event(  port=o.port, parameter_values=parameter_values )
         return f
 
 

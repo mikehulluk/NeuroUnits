@@ -178,7 +178,9 @@ class EmitEventParameter(ASTExpressionObject):
     def set_port_parameter_obj(self, p_obj):
         assert isinstance (p_obj, OutEventPortParameter )
         self.port_parameter_obj = p_obj
+        self._dbg_symbol=self._symbol
         del self._symbol
+
 
 
 class Regime(ASTObject):

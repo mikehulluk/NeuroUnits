@@ -54,11 +54,11 @@ def do_transition_change(tr, evt, state_data, functor_gen):
     #print 'Doing transition change', tr
     #print 'Transition Triggered!',
     # State assignments & events:
-    assert evt==None
+    #assert evt==None
 
 
     functor = functor_gen.transitions_actions[tr]
-    functor(state_data=state_data)
+    functor(state_data=state_data, evt=evt)
 
     # Copy the changes
     return (state_data.states_out, tr.target_regime)
