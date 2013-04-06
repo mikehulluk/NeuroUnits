@@ -41,6 +41,8 @@ from neurounits.ast.astobjects_nineml import RTBlock
 
 from collections import defaultdict
 
+from neurounits.units_misc import LookUpDict
+
 
 class StdFuncs(object):
 
@@ -298,8 +300,87 @@ class AbstractBlockBuilder(object):
         self._all_rt_graphs = dict([(None, RTBlock())])
         self._current_rt_graph = self._all_rt_graphs[None]
         self._current_regime = self._current_rt_graph.get_or_create_regime(None)
-        
+
         self.builddata.eqnset_name = name.strip()
+
+
+        # Event ports:
+        self._output_event_ports = LookUpDict( accepted_obj_types=(ast.OutEventPort) )
+        self._input_event_ports = LookUpDict( accepted_obj_types=(ast.InEventPort) )
+
+    def get_input_event_port(self, port_name,  expected_parameter_names):
+        if not self._input_event_ports.has_obj(name=port_name):
+            # Create the parameter objects:
+            param_dict = LookUpDict(accepted_obj_types=(ast.InEventPortParameter), unique_attrs=['symbol'])
+            for param_name in expected_parameter_names:
+                param_dict._add_item( ast.InEventPortParameter(symbol=param_name) )
+
+            # Create the port object:
+            port = ast.InEventPort(name=port_name, parameters=param_dict)
+
+            self._input_event_ports._add_item(port)
+
+
+        # Get the event port, and check that the parameters match up:
+        print 'Getting input port:', port_name
+        p = self._input_event_ports.get_single_obj_by(name=port_name)
+        assert len(p.parameters) == len(expected_parameter_names), 'Parameter length mismatch'
+        assert set(p.parameters.get_objects_attibutes(attr='symbol'))==set(expected_parameter_names)
+
+        return p
+
+
+
+
+    def get_output_event_port(self, port_name,  expected_parameter_names):
+
+        if not self._output_event_ports.has_obj(name=port_name):
+            print 'Creating port'
+
+            # Create the parameter objects:
+            param_dict = LookUpDict(accepted_obj_types=(ast.OutEventPortParameter), unique_attrs=['symbol'])
+            for param_name in expected_parameter_names:
+                param_dict._add_item( ast.OutEventPortParameter(symbol=param_name) )
+
+            # Create the port object:
+            port = ast.OutEventPort(name=port_name, parameters=param_dict)
+
+            self._output_event_ports._add_item(port)
+
+
+        # Get the event port, and check that the parameters match up:
+        p = self._output_event_ports.get_single_obj_by(name=port_name)
+        assert len(p.parameters) == len(expected_parameter_names), 'Parameter length mismatch'
+
+        print 'Getting output port:', port_name
+        print 'Do params match?:'
+        print 'Existing:', set(p.parameters.get_objects_attibutes(attr='symbol'))
+        print 'Expected:', set(expected_parameter_names)
+        assert set(p.parameters.get_objects_attibutes(attr='symbol'))==set(expected_parameter_names)
+
+        return p
+
+
+
+
+    def create_emit_event(self, port_name, parameters):
+        port = self.get_output_event_port(port_name=port_name, expected_parameter_names=parameters.get_objects_attibutes('_symbol'))
+
+        #print parameters
+        #assert False
+
+        # Connect up the parameters:
+        for p in parameters:
+            p.set_port_parameter_obj( port.parameters.get_single_obj_by(symbol=p._symbol) )
+
+        emit_event = ast.EmitEvent(port=port, parameters=parameters )
+
+        return emit_event
+
+
+
+
+
 
     def open_regime(self, regime_name):
         self._current_regime = self._current_rt_graph.get_or_create_regime(regime_name)
@@ -417,11 +498,14 @@ class AbstractBlockBuilder(object):
         # Resolve the symbols in the namespace
         for (sym, obj) in scope.iteritems():
             # Resolve Symbol from the Event Parameters:
-            if sym in event_params:
-                obj.set_target(event_params[sym])
-        else:
-            # Resolve at global scope:
-            obj.set_target(self.global_scope.getSymbolOrProxy(sym))
+            #print event_params
+            #print 'sym',sym
+            #assert len(event_params) ==0
+            if sym in event_params.get_objects_attibutes(attr='symbol'):
+                obj.set_target( event_params.get_single_obj_by(symbol=sym) ) #event_params[sym])
+            else:
+                # Resolve at global scope:
+                obj.set_target(self.global_scope.getSymbolOrProxy(sym))
 
         src_regime = self.get_current_regime()
         if target_regime is None:
@@ -430,9 +514,13 @@ class AbstractBlockBuilder(object):
             target_regime = self._current_rt_graph.get_or_create_regime(target_regime)
 
 
+        port = self.get_input_event_port(port_name=event_name, expected_parameter_names=event_params.get_objects_attibutes('symbol'))
+
         self.builddata.transitions_events.append(
-            ast.OnEventTransition(event_name=event_name, parameters=event_params, actions= actions, target_regime=target_regime, src_regime=src_regime)
+            #ast.OnEventTransition(event_name=event_name, parameters=event_params, actions= actions, target_regime=target_regime, src_regime=src_regime)
+            ast.OnEventTransition(port=port, parameters=event_params, actions= actions, target_regime=target_regime, src_regime=src_regime)
         )
+
 
 
 
@@ -659,6 +747,7 @@ class AbstractBlockBuilder(object):
         for io_data in io_data:
             ast_object.get_terminal_obj(io_data.symbol).set_metadata(io_data)
 
+        # 3. Sort out the connections between paramters for emit/recv events
 
         # 3. Propagate the dimensionalities accross the system:
         PropogateDimensions.propogate_dimensions(ast_object)

@@ -63,7 +63,7 @@ module my_components {
              
                 on( l > {4mV} ) {
                         f = -34
-                        emit my_event(xsd=2,yas=3,zasd=4)
+                        emit my_event(x=2,y=3,z=4)
                         transition_to OFF
                 }
              

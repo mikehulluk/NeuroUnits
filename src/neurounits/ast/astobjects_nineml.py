@@ -123,10 +123,12 @@ class OnTriggerTransition(Transition):
 
 class OnEventTransition(Transition):
 
-    def __init__(self, event_name, parameters, **kwargs):
+    def __init__(self, port, parameters, **kwargs):
         super(OnEventTransition, self).__init__(**kwargs)
-        self.event_name = event_name
+        self.port = port
         self.parameters = parameters
+        print self.parameters
+        assert isinstance( self.parameters, LookUpDict)
 
     def __repr__(self):
         return '<OnEventTransition [%s] %s -> %s (%d actions)>' % (self.event_name, self.src_regime, self.target_regime, len(self.actions))
@@ -155,12 +157,28 @@ class EmitEvent(ASTObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitEmitEvent(self, **kwargs)
 
-    def __init__(self, event_name, parameter_map, **kwargs):
-        self.event_name = event_name
-        self.parameter_map = parameter_map
+    def __init__(self, port, parameters, **kwargs):
+        self.port = port
+        self.parameters = parameters
+        assert isinstance( self.parameters, LookUpDict)
 
     def __repr__(self):
         return "<EmitEvent: '%s'>" % self.event_name
+
+class EmitEventParameter(ASTExpressionObject):
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitEmitEventParameter(self, **kwargs)
+    def __init__(self, _symbol, rhs, port_parameter_obj=None, **kwargs):
+        super(EmitEventParameter, self).__init__(**kwargs)
+        self._symbol = _symbol
+        self.port_parameter_obj = None
+        if port_parameter_obj:
+            self.set_port_parameter_obj(port_parameter_obj)
+        self.rhs = rhs
+    def set_port_parameter_obj(self, p_obj):
+        assert isinstance (p_obj, OutEventPortParameter )
+        self.port_parameter_obj = p_obj
+        del self._symbol
 
 
 class Regime(ASTObject):
@@ -256,9 +274,49 @@ class AnalogReducePort(ASTExpressionObject):
         self.rhses = []
 
 
-# TODO:
-class OutEventPortParameter(ASTObject):
-    pass
+
+class InEventPort(ASTObject):
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitInEventPort(self, **kwargs)
+
+    def __init__(self, name, parameters, **kwargs):
+        super(InEventPort, self).__init__(**kwargs)
+        self.name = name
+        self.parameters = parameters
+        assert isinstance(self.name, basestring)
+        assert isinstance(self.parameters, LookUpDict)
+
+    
+
+class InEventPortParameter(ASTExpressionObject):
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitInEventPortParameter(self, **kwargs)
+
+    def __init__(self, symbol, **kwargs):
+        super(InEventPortParameter, self).__init__(**kwargs)
+        self.symbol = symbol
+
+
+
 
 class OutEventPort(ASTObject):
-    pass
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitOutEventPort(self, **kwargs)
+
+    def __init__(self, name, parameters, **kwargs):
+        super(OutEventPort, self).__init__(**kwargs)
+        self.name = name
+        self.parameters = parameters
+        assert isinstance(self.name, basestring)
+        assert isinstance(self.parameters, LookUpDict)
+
+    
+
+class OutEventPortParameter(ASTExpressionObject):
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitOutEventPortParameter(self, **kwargs)
+
+    def __init__(self, symbol, **kwargs):
+        super(OutEventPortParameter, self).__init__(**kwargs)
+        self.symbol = symbol
+    

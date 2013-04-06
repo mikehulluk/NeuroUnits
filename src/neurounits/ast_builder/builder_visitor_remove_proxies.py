@@ -31,6 +31,8 @@ import itertools
 from .eqnsetbuilder_symbol_proxy import SymbolProxy
 from ..visitors import ASTVisitorBase
 
+from neurounits.units_misc import LookUpDict
+
 
 class RemoveAllSymbolProxy(ASTVisitorBase):
 
@@ -193,18 +195,34 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         self.visit(o.trigger)
 
     def VisitOnTransitionEvent(self, o, **kwargs):
-        o.parameters = dict([(sym, self.followSymbolProxy(rhs)) for (sym, rhs) in o.parameters.items()])
-        for p in o.parameters.values():
+        #o.parameters = dict([(sym, self.followSymbolProxy(rhs)) for (sym, rhs) in o.parameters.items()])
+        o.parameters = LookUpDict( 
+                [self.followSymbolProxy(rhs) for rhs in o.parameters], 
+                accepted_obj_types=o.parameters.accepted_obj_types, 
+                unique_attrs=o.parameters.unique_attrs ) 
+        for p in o.parameters:
             self.visit(p)
         for a in o.actions:
             self.visit(a)
 
     def VisitEmitEvent(self, o, **kwargs):
-        o.parameter_map= dict([(reg, self.followSymbolProxy(rhs)) for (reg, rhs) in o.parameter_map.items()])
-        for p in o.parameter_map.values():
+        o.parameters = LookUpDict( 
+                [self.followSymbolProxy(rhs) for rhs in o.parameters], 
+                accepted_obj_types=o.parameters.accepted_obj_types, 
+                unique_attrs=o.parameters.unique_attrs ) 
+        #o.parameter_map= dict([(reg, self.followSymbolProxy(rhs)) for (reg, rhs) in o.parameter_map.items()])
+        for p in o.parameters:
             self.visit(p)
+
+    def VisitEmitEventParameter(self, o, **kwargs):
+        o.rhs = self.followSymbolProxy(o.rhs)
+        self.visit( o.rhs )
+        self.visit( o.port_parameter_obj )
+
 
     def VisitOnEventDefParameter(self, o, **kwargs):
         pass
 
+    def VisitOutEventPortParameter(self, o, **kwargs):
+        pass
 

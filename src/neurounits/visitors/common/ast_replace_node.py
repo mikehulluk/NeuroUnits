@@ -280,14 +280,34 @@ class ReplaceNode(ASTVisitorBase):
         o.actions = [self.replace_or_visit(a) for a in o.actions]
         return o
     def VisitOnTransitionEvent(self, o, **kwargs):
-        o.parameters= dict([(name, self.replace_or_visit(p)) for (name,p) in o.parameters.items()])
+        o.parameters = self._replace_within_new_lut(o.parameters)
+        #o.parameters= dict([(name, self.replace_or_visit(p)) for (name,p) in o.parameters.items()])
         o.actions = [self.replace_or_visit(a) for a in o.actions]
         return o
 
     def VisitOnEventDefParameter(self, o, **kwargs):
         return o
     def VisitEmitEvent(self, o, **kwargs):
-        o.parameter_map= dict([(name, self.replace_or_visit(p)) for (name,p) in o.parameter_map.items()])
+        o.parameters = self._replace_within_new_lut(o.parameters)
+        o.port = self.replace_or_visit(o.port)
+        #o.parameter_map= dict([(name, self.replace_or_visit(p)) for (name,p) in o.parameter_map.items()])
         return o
 
 
+    def VisitEmitEventParameter(self, o, **kwargs):
+        o.port_parameter_obj = self.replace_or_visit(o.port_parameter_obj)
+        o.rhs = self.replace_or_visit(o.rhs)
+        return o
+
+
+
+    def VisitInEventPort(self, o, **kwargs):
+        o.parameters = self._replace_within_new_lut(o.parameters)
+        return o
+    def VisitInEventPortParameter(self, o, **kwargs):
+        return o
+    def VisitOutEventPort(self, o, **kwargs):
+        o.parameters = self._replace_within_new_lut(o.parameters)
+        return o
+    def VisitOutEventPortParameter(self, o, **kwargs):
+        return o

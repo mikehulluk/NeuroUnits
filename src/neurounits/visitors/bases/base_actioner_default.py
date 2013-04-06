@@ -146,4 +146,17 @@ class ASTActionerDefault(ASTActionerDepthFirst):
     def ActionAnalogVisitor(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
+    def ActionEmitEventParameter(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
+
+
+
+    def ActionOutEventPort(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
+    def ActionInEventPort(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
+    def ActionOutEventPortParameter(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
+    def ActionInEventPortParameter(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
 

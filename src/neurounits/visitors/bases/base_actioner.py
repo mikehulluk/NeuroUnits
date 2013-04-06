@@ -67,7 +67,8 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
     def VisitNineMLComponent(self, o, **kwargs):
 
-        subnodes = itertools.chain(o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants, o.transitions)
+        # TODO: Add o.rt_graphs
+        subnodes = itertools.chain(o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants, o.transitions, )
         for f in subnodes:
             self.visit(f, **kwargs)
 
@@ -206,7 +207,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         self._ActionOnTransitionTrigger(o, **kwargs)
 
     def VisitOnTransitionEvent(self, o, **kwargs):
-        for a in o.parameters.values():
+        for a in o.parameters:
             self.visit(a, **kwargs)
         for a in o.actions:
             self.visit(a, **kwargs)
@@ -216,9 +217,31 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         self._ActionOnEventDefParameter(o, **kwargs)
 
     def VisitEmitEvent(self, o, **kwargs):
-        for a in o.parameter_map.values():
+        for a in o.parameters:
             self.visit(a, **kwargs)
         self._ActionEmitEvent(o, **kwargs)
+
+    def VisitEmitEventParameter(self, o, **kwargs):
+        self.visit(o.port_parameter_obj, **kwargs)
+        self.visit(o.rhs, **kwargs)
+        self._ActionEmitEventParameter(o, **kwargs)
+
+
+
+    def  VisitInEventPort(self, o, **kwargs):
+        for a in o.parameters:
+            self.visit(a, **kwargs)
+        self._ActionInEventPort(o, **kwargs)
+    def  VisitInEventPortParameter(self, o, **kwargs):
+        self._ActionInEventPortParameter(o, **kwargs)
+    def  VisitOutEventPort(self, o, **kwargs):
+        for a in o.parameters:
+            self.visit(a, **kwargs)
+        self._ActionOutEventPort(o, **kwargs)
+    def  VisitOutEventPortParameter(self, o,  **kwargs):
+        self._ActionOutEventPortParameter(o, **kwargs)
+
+
 
 
 
@@ -367,6 +390,38 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionEmitEvent(o, **kwargs)
 
+    def _ActionEmitEventParameter(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionEmitEventParameter(o, **kwargs)
+
+
+    def  _ActionInEventPort(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            self.ActionInEventPort(o, **kwargs)
+    def  _ActionInEventPortParameter(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            self.ActionInEventPortParameter(o, **kwargs)
+    def  _ActionOutEventPort(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            self.ActionOutEventPort(o, **kwargs)
+    def  _ActionOutEventPortParameter(self, o,  **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            self.ActionOutEventPortParameter(o, **kwargs)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     def ActionEqnSet(self, o, **kwargs):
         raise NotImplementedError()
     def ActionLibrary(self,o, **kwargs):
@@ -463,4 +518,20 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
     def ActionOnEventStateAssignment(self, o, **kwargs):
         raise NotImplementedError()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

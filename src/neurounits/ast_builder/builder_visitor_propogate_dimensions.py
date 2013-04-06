@@ -181,6 +181,12 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
         # self.verify_equal_units([o,
         pass
 
+    def ActionOutEventPortParameter(self, o, **kwargs):
+        pass
+
+    def ActionEmitEventParameter(self, o, **kwargs):
+        self.verify_equal_units([o, o.rhs, o.port_parameter_obj])
+
 
 class DimensionResolver(ASTVisitorBase):
 
@@ -505,7 +511,7 @@ class DimensionResolver(ASTVisitorBase):
         self.visit(o.trigger)
 
     def VisitOnTransitionEvent(self, o, **kwargs):
-        for p in o.parameters.values():
+        for p in o.parameters:
             self.visit(p)
 
     def VisitEmitEvent(self, o, **kwargs):
@@ -513,6 +519,13 @@ class DimensionResolver(ASTVisitorBase):
 
     def VisitOnEventDefParameter(self, o, **kwargs):
         pass
+
+
+    def VisitOutEventPortParameter(self, o):
+        pass
+
+    def VisitEmitEventParameter(self, o):
+        self.EnsureEqualDimensions([o, o.port_parameter_obj, o.rhs],)
 
 
 class PropogateDimensions(object):

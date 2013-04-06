@@ -43,6 +43,8 @@ from neurounits.units_data_unitterms import UnitTermData
 
 import os
 
+from neurounits.units_misc import LookUpDict
+
 tokens = UnitExprLexer.tokens
 
 
@@ -201,7 +203,8 @@ def p_parse_on_transition_trigger(p):
 def p_parse_on_transition_event(p):
     """on_transition_trigger :  ON  open_eventtransition_scope  whiteslurp ALPHATOKEN whiteslurp LBRACKET on_event_def_params RBRACKET white_or_newline_slurp  LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
     event_name = p[4]
-    event_params = p[7]
+    print p[7]
+    event_params = LookUpDict( p[7], accepted_obj_types=(ast.OnEventDefParameter) )
     actions = p[11]
     target_regime = p[12]
     p.parser.library_manager.get_current_block_builder().close_scope_and_create_transition_event(event_name=event_name, event_params=event_params, actions=actions, target_regime=target_regime)
@@ -237,7 +240,8 @@ def p_on_transition_actions4(p):
 
 def p_on_transition_actions5(p):
     """transition_action : EMIT whiteslurp alphanumtoken  whiteslurp LBRACKET event_call_params_l3 RBRACKET"""
-    p[0] = ast.EmitEvent(event_name=p[3], parameter_map=p[6] )
+    #p[0] = ast.EmitEvent(event_name=p[3], parameter_map=p[6] )
+    p[0] = p.parser.library_manager.get_current_block_builder().create_emit_event(port_name=p[3], parameters=LookUpDict(p[6], accepted_obj_types=ast.EmitEventParameter))
 
 
 
@@ -258,12 +262,13 @@ def p_event_def_param(p):
     else:
         assert False, 'len(p):%s' % len(p)
 
-    p[0] = {p[1]:ast.OnEventDefParameter(symbol=p[1], dimension=dimension)}
+    #p[0] = {p[1]:ast.OnEventDefParameter(symbol=p[1], dimension=dimension)}
+    p[0] = [ast.OnEventDefParameter(symbol=p[1], dimension=dimension)]
 
 
 def p_event_def_param0(p):
     """on_event_def_params : whiteslurp"""
-    p[0] = {}
+    p[0] = []
 
 
 def p_event_def_param2(p):
@@ -272,21 +277,30 @@ def p_event_def_param2(p):
 
 def p_event_def_param3(p):
     """on_event_def_params : on_event_def_params COMMA whiteslurp on_event_def_param whiteslurp"""
-    p[0] = safe_dict_merge( p[1], p[4] )
+    #p[0] = safe_dict_merge( p[1], p[4] )/home/michael/hw_to_come/libs/NeuroUnits/src/neurounits/unit_expr_parsing/units_expr_yacc.py
+    #TODO: I THINK WE SHOUDLREMOVE TRAILING whitesleurp here because it conflicts with above
+    p[0] = p[1] + p[4]
 
 
 
 # For function parameters, we create a dictionary mapping parameter name to value
 def p_quantity_event_params_l3z(p):
     """event_call_params_l3 : empty"""
-    p[0] = {}
+    p[0] = []
 
 def p_quantity_event_params_l3a(p):
     """event_call_params_l3 : rhs_term"""
-    symbol = None
-    rhs_ast = p[1]
-    p[0] = {symbol:rhs_ast}
+    p[0] = [ast.EmitEventParameter(_symbol = None, rhs=p[1])]
+    #symbol = None
+    #rhs_ast = p[1]
+    #p[0] = {symbol:rhs_ast}
 
+def p_quantity_event_params_term_l3(p):
+    """event_call_param_l3 : alphanumtoken EQUALS rhs_term"""
+    p[0] = [ast.EmitEventParameter(_symbol = p[1], rhs=p[3])]
+    #symbol = p[1]
+    #rhs_ast = p[3]
+    #p[0] = {symbol:rhs_ast}
 
 def p_quantity_event_params_l3b(p):
     """event_call_params_l3 : event_call_param_l3 whiteslurp"""
@@ -294,16 +308,12 @@ def p_quantity_event_params_l3b(p):
 
 def p_quantity_event_params_l3c(p):
     """event_call_params_l3 : event_call_params_l3 COMMA whiteslurp event_call_param_l3"""
-    param_dict = p[1]
-    new_param = p[4]
-    p[0] = safe_dict_merge(param_dict, new_param)
+    p[0] = p[1] + p[4]
+    #param_dict = p[1]
+    #new_param = p[4]
+    #p[0] = safe_dict_merge(param_dict, new_param)
 
 
-def p_quantity_event_params_term_l3(p):
-    """event_call_param_l3 : alphanumtoken EQUALS rhs_term"""
-    symbol = p[1]
-    rhs_ast = p[3]
-    p[0] = {symbol:rhs_ast}
 
 
 
@@ -372,9 +382,6 @@ def p_parse_eqnsetline2(p):
     p.parser.library_manager.get_current_block_builder().add_io_data(p[1])
 
 
-#def p_parse_eqnsetline2b(p):
-#    """eqnsetlinecontents   : ONEVENT_SYMBOL  event_def """
-#    pass
 
 
 def p_parse_eqnsetline4(p):
@@ -382,7 +389,6 @@ def p_parse_eqnsetline4(p):
                             | function_def
                             | assignment
                             | time_derivative 
-                            | 
                             """
     pass
 
