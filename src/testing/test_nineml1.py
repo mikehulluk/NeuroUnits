@@ -220,6 +220,54 @@ module test {
 
     }
 
+    define_component evt_gen {
+        t_last'=0
+
+        regime init{
+            on(0<1){
+                t_last = 0s
+            transition_to std
+            }
+        }
+
+        regime std{
+            on(t > t_last + {5ms}){
+                t_last = t
+                emit myevent(5pS)
+                emit myotherevent(x=5pS, y=6pA)
+            }
+        }
+        <=> INPUT t:(ms)
+
+
+
+    }
+
+
+
+
+
+
+
+    define_component evt_syn{
+        A' = -A/t_open
+        B' = -B/t_close
+
+        g = g_bar * (B-A)
+        i = g * (e_syn-V_post) 
+
+
+        on myevent(amp:{S}){
+            A = A + 1 + amp/{1mS}
+            B = B + 1 + amp/{1mS}
+        }
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
+        <=> INPUT  V_post:(V)
+    }
+
+
 
 }
 """

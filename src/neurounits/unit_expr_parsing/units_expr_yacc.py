@@ -283,8 +283,8 @@ def p_quantity_event_params_l3z(p):
 
 def p_quantity_event_params_l3a(p):
     """event_call_params_l3 : rhs_term"""
-    symbol = p[1]
-    rhs_ast = p[3]
+    symbol = None
+    rhs_ast = p[1]
     p[0] = {symbol:rhs_ast}
 
 
