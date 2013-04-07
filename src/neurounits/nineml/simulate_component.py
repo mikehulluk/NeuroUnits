@@ -228,7 +228,7 @@ def simulate_component(component, times, parameters,initial_state_values, initia
 
         # Get all the events, and forward them to the approprate input ports:
         active_events = evt_manager.get_events_for_delivery()
-        print '\nEvents:', active_events
+        #print '\nEvents:', active_events
         ports_with_events = {}
         for evt in active_events:
             if evt.port in f.transition_event_forwarding:
@@ -299,11 +299,13 @@ def simulate_component(component, times, parameters,initial_state_values, initia
     assignments ={}
     for ass in component.assignedvalues:
         ass_res = []
+        print
         for time_pt_data in reses_new:
+            print "\r%s %2.3f" % (ass.symbol, time_pt_data.suppliedvalues['t'].float_in_si()),
             td_eval = f.assignment_evaluators[ass.symbol]
             res = td_eval(state_data=time_pt_data)
             ass_res.append(res.float_in_si())
-        print ass_res
+        #print ass_res
         assignments[ass.symbol] = np.array(ass_res)
 
     # D. RT-gragh Regimes:

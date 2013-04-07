@@ -414,7 +414,7 @@ class FunctorGenerator(ASTVisitorBase):
         
     def VisitOnEventDefParameter(self, o):
         def f(evt,**kw):
-            print 'Getting value of:', o.symbol
+            #print 'Getting value of:', o.symbol
             
             # Single parameter:
             if len(evt.parameter_values)==1:
@@ -643,8 +643,8 @@ class FunctorGenerator(ASTVisitorBase):
         f_lhs = self.visit(o.lhs)
         f_rhs = self.visit(o.rhs)
         def eFunc(**kw):
-            print o.lhs
-            print o.rhs
+            #print o.lhs
+            #print o.rhs
             return f_lhs(**kw) * f_rhs(**kw)
         return eFunc
 
@@ -672,8 +672,8 @@ class FunctorGenerator(ASTVisitorBase):
             param_functors[p] = self.visit(o.parameters[p])
         func_call_functor = self.visit(o.function_def)
         def eFunc(**kw):
-            print 'kw', kw
-            print o
+            #print 'kw', kw
+            #print o
             func_params_new = dict([(p, func( **kw)) for (p, func) in param_functors.iteritems()])
             if 'func_params' in kw:
                 del kw['func_params']
@@ -696,7 +696,7 @@ class FunctorGenerator(ASTVisitorBase):
 
     def VisitFunctionDefParameter(self, o, **kwargs):
         def eFunc(func_params,**kw):
-            print 'Param:', kw
+            #print 'Param:', kw
             if not o.symbol in func_params:
                 print "Couldn't find %s in %s" % (o.symbol, func_params.keys())
             return func_params[o.symbol]

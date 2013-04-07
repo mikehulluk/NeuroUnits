@@ -68,8 +68,8 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def VisitNineMLComponent(self, o, **kwargs):
 
         # TODO: Add o.rt_graphs
-        print 'VISITING;'
-        print o._event_port_connections
+        #print 'VISITING;'
+        #print o._event_port_connections
         subnodes = itertools.chain(o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants, o.transitions, o._event_port_connections, o.rt_graphs)
         for f in subnodes:
             self.visit(f, **kwargs)
