@@ -227,6 +227,10 @@ def p_on_transition_actions2(p):
     """transition_actions :  transition_actions transition_actionline"""
     p[0] = p[1] + [p[2]]
 
+def p_on_transition_actions2b(p):
+    """transition_actions :  transition_action"""
+    p[0] = [p[1]]
+
 def p_on_transition_actions3(p):
     """transition_actionline :  transition_action SEMICOLON white_or_newline_slurp"""
     p[0] = p[1]

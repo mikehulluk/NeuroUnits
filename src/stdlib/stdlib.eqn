@@ -23,6 +23,10 @@ library std.math {
     log2(x) = __log2__(x)
     log10(x) = __log10__(x)
 
+    abs(x) = __abs__(x)
+    #sqrt(x) = __sqrt__(x)
+
+
     # Expected to be dimensionless:
     pow(base,exp) = __pow__(base=base,exp=exp)
 

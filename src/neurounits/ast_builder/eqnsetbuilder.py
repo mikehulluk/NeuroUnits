@@ -192,6 +192,12 @@ class StdFuncs(object):
                                    parameters={'x': ast.FunctionDefParameter(symbol='x'
                                    , dimension=backend.Unit())},
                                    dimension=backend.Unit())
+    @classmethod
+    def get_abs(cls, backend):
+        return ast.BuiltInFunction(funcname='__abs__',
+                                   parameters={'x': ast.FunctionDefParameter(symbol='x'
+                                   , dimension=backend.Unit())},
+                                   dimension=backend.Unit())
 
    # @classmethod
    # def get_max(cls, backend):
@@ -225,6 +231,7 @@ class StdFuncs(object):
             '__ceil__': cls.get_ceil,
             '__fabs__': cls.get_fabs,
             '__floor__': cls.get_floor,
+            '__abs__': cls.get_abs,
             }
         return lut[name](backend=backend)
 

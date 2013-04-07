@@ -357,7 +357,6 @@ class FunctorGenerator(ASTVisitorBase):
         self.transition_event_forwarding = defaultdict(list)
         self.transition_port_handlers = defaultdict(list)
 
-        assert o._event_port_connections, 'No event connecitons found!'
         for conn in o._event_port_connections:
             self.visit(conn)
 
@@ -531,21 +530,25 @@ class FunctorGenerator(ASTVisitorBase):
     def VisitBuiltInFunction(self, o, **kwargs):
         if not self.as_float_in_si:
 
-            def eFunc(state_data, **kw):
+            def eFunc(state_data, func_params, **kw):
+                if o.funcname == '__abs__':
+                    ParsingBackend = MHUnitBackend
+                    assert len(func_params) == 1
+                    return ParsingBackend.Quantity( float( np.abs( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
                 if o.funcname == 'exp':
                     ParsingBackend = MHUnitBackend
-                    assert len(kw) == 1
-                    return ParsingBackend.Quantity( float( np.exp( ( kw.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
+                    assert len(func_params) == 1
+                    return ParsingBackend.Quantity( float( np.exp( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
                 if o.funcname == 'sin':
-                    assert len(kw) == 1
+                    assert len(func_params) == 1
                     ParsingBackend = MHUnitBackend
-                    return ParsingBackend.Quantity( float( np.sin( ( kw.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
-                if o.funcname == 'pow':
-                    assert len(kw) == 2
+                    return ParsingBackend.Quantity( float( np.sin( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
+                if o.funcname == '__pow__':
+                    assert len(func_params) == 2
                     ParsingBackend = MHUnitBackend
-                    return ParsingBackend.Quantity( float( np.power( ( kw['base'] ).dimensionless() ,( kw['exp'] ).dimensionless() )  ), ParsingBackend.Unit() )
+                    return ParsingBackend.Quantity( float( np.power( ( func_params['base'] ).dimensionless() ,( func_params['exp'] ).dimensionless() )  ), ParsingBackend.Unit() )
                 else:
-                    assert False
+                    assert False, "Sim can't handle function: %s" % o.funcname
         else:
             def eFunc(**kw):
                 if o.funcname == 'exp':
@@ -640,6 +643,8 @@ class FunctorGenerator(ASTVisitorBase):
         f_lhs = self.visit(o.lhs)
         f_rhs = self.visit(o.rhs)
         def eFunc(**kw):
+            print o.lhs
+            print o.rhs
             return f_lhs(**kw) * f_rhs(**kw)
         return eFunc
 
@@ -667,8 +672,14 @@ class FunctorGenerator(ASTVisitorBase):
             param_functors[p] = self.visit(o.parameters[p])
         func_call_functor = self.visit(o.function_def)
         def eFunc(**kw):
-            func_params = dict([(p, func(**kw)) for (p, func) in param_functors.iteritems()])
-            return func_call_functor(**func_params)
+            print 'kw', kw
+            print o
+            func_params_new = dict([(p, func( **kw)) for (p, func) in param_functors.iteritems()])
+            if 'func_params' in kw:
+                del kw['func_params']
+            res = func_call_functor(func_params=func_params_new,**kw)
+            return res
+
         return eFunc
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
@@ -684,10 +695,11 @@ class FunctorGenerator(ASTVisitorBase):
         return eFunc
 
     def VisitFunctionDefParameter(self, o, **kwargs):
-        def eFunc(**kw):
-            if not o.symbol in kw:
-                print "Couldn't find %s in %s" % (o.symbol, kw.keys())
-            return kw[o.symbol]
+        def eFunc(func_params,**kw):
+            print 'Param:', kw
+            if not o.symbol in func_params:
+                print "Couldn't find %s in %s" % (o.symbol, func_params.keys())
+            return func_params[o.symbol]
         return eFunc
 
     def VisitEmitEvent(self, o, **kwargs):

@@ -454,6 +454,7 @@ class DimensionResolver(ASTVisitorBase):
         # powint and sqrt need to  be handled differently, since thier
         # dimensions depend on the input and output:
         if isinstance(o.function_def, ast.BuiltInFunction) and o.function_def.funcname in ['powint','sqrt']:
+        #if isinstance(o.function_def, ast.BuiltInFunction) and o.function_def.funcname in ['sqrt']:
 
             if o.function_def.funcname == 'powint':
                 #assert False

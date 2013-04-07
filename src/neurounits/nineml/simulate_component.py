@@ -39,12 +39,14 @@ def close_all_analog_reduce_ports(component):
 
 
 class SimulationResultsData(object):
-    def __init__(self, times, state_variables, assignments, transitions, rt_regimes):
+    def __init__(self, times, state_variables, assignments, transitions, rt_regimes, events):
         self.times = times
         self.state_variables = state_variables
         self.assignments = assignments
         self.transitions = transitions
         self.rt_regimes = rt_regimes
+
+        self.events = events
 
     def get_time(self):
         return self.times
@@ -111,7 +113,7 @@ class EventManager(object):
 
 
 
-def simulate_component(component, times, parameters,initial_state_values, initial_regimes, close_reduce_ports):
+def simulate_component(component, times, parameters,initial_state_values, initial_regimes, close_reduce_ports=True):
     verbose=False
 
     # Before we start, check the dimensions of the AST tree
@@ -227,17 +229,12 @@ def simulate_component(component, times, parameters,initial_state_values, initia
         # Get all the events, and forward them to the approprate input ports:
         active_events = evt_manager.get_events_for_delivery()
         print '\nEvents:', active_events
-
         ports_with_events = {}
         for evt in active_events:
             if evt.port in f.transition_event_forwarding:
                 for input_port in f.transition_event_forwarding[evt.port]:
                     ports_with_events[input_port] = evt
 
-        print ports_with_events
-        #assert not ports_with_events
-        #for evt in active_events:
-        #    evt_manager.marked_event_as_processed(evt)
 
 
 
@@ -263,7 +260,9 @@ def simulate_component(component, times, parameters,initial_state_values, initia
                 else:
                     assert False
 
-            assert len(triggered_transitions) in (0,1)
+            allow_double_transition_only_action_first = True
+            if not allow_double_transition_only_action_first:
+                assert len(triggered_transitions) in (0,1)
             if triggered_transitions:
                 tr, evt = triggered_transitions[0]
 
@@ -295,7 +294,17 @@ def simulate_component(component, times, parameters,initial_state_values, initia
         state_data_dict[state_name] = states_data
 
     # C. Assigned Values:
+
     # TODO:
+    assignments ={}
+    for ass in component.assignedvalues:
+        ass_res = []
+        for time_pt_data in reses_new:
+            td_eval = f.assignment_evaluators[ass.symbol]
+            res = td_eval(state_data=time_pt_data)
+            ass_res.append(res.float_in_si())
+        print ass_res
+        assignments[ass.symbol] = np.array(ass_res)
 
     # D. RT-gragh Regimes:
     # Build a dictionary mapping regimes -> Regimes, to make plotting easier:
@@ -320,7 +329,8 @@ def simulate_component(component, times, parameters,initial_state_values, initia
     res = SimulationResultsData(times=times,
                                 state_variables=state_data_dict,
                                 rt_regimes=rt_graph_data,
-                                assignments={}, transitions=[])
+                                assignments=assignments, transitions=[],
+                                events = evt_manager.processed_event_list[:])
 
     return res
 
