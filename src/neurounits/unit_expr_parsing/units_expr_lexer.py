@@ -66,7 +66,7 @@ class UnitExprLexer(object):
         'TIMES',
         'PLUS',
         'MINUS',
-        'TILDE',
+        #'TILDE',
         'COMMA',
         'EQUALS',
         'COLON',
@@ -132,7 +132,7 @@ class UnitExprLexer(object):
     t_PRIME = r"""'""" + WS 
     t_SEMICOLON = r""";""" + WS 
 
-    t_TILDE = r"""~""" + WS
+    #t_TILDE = r"""~""" + WS
     t_DOT = r"""\.""" + WS
     t_TIMES = r"""\*""" + WS 
     t_PLUS = r"""\+""" + WS
