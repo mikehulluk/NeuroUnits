@@ -5,78 +5,33 @@ import neurounits
 import sys
 import numpy as np
 
-#from neurounits.ast_builder.builder_visitor_propogate_dimensions import PropogateDimensions
-#from neurounits.ast_builder.builder_visitor_propogate_dimensions import VerifyUnitsInTree
-#import neurounits.ast as ast
-#from neurounits.ast_builder.eqnsetbuilder import BuildData
-#from neurounits.ast import NineMLComponent
-#from neurounits.ast import SuppliedValue
-#from neurounits.ast.astobjects_nineml import AnalogReducePort
-#from neurounits.visitors.common.ast_replace_node import ReplaceNode
 
 import pylab
-#from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator, SimulationStateData
 from neurounits.nineml import build_compound_component
 from neurounits.nineml import simulate_component
 
 
 
-src_files = [
-    "/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/simple_components.9ml" ,
-    "/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/more_components.9ml" ,
-    "/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/complex_component.9ml" ,
-]
-
-src_files = [s.replace('libs/','') for s in src_files]
 
 
-library_manager = None
-for s in src_files:
-    text = open(s).read()
-    library_manager = neurounits.NeuroUnitParser.Parse9MLFile( text, library_manager=library_manager)
-    #print library_manager
+def test0():
+    src_files = [
+        "/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/simple_components.9ml" ,
+        "/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/more_components.9ml" ,
+        "/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/complex_component.9ml" ,
+    ]
+
+    #src_files = [s.replace('libs/','') for s in src_files]
 
 
-
-
-
-#print library_manager.components
+    library_manager = None
+    for s in src_files:
+        text = open(s).read()
+        library_manager = neurounits.NeuroUnitParser.Parse9MLFile( text, library_manager=library_manager)
 
 
 
-#def summarise_component(comp):
-#    print comp
-#    for k,v in comp.__dict__.items():
-#        if k[0] == '_':
-#            #continue
-#            pass
-#        print '  ', k,v
-#    print comp.__dict__
-#
-#    params = inspect.getmembers(comp)
-#    for k in params:
-#        if k[0][0] == '_':
-#            continue
-#        try:
-#            print '  ', k
-#        except:
-#            pass
-#
-#    for tr in comp.transitions:
-#        print tr
-#        for a in tr.actions:
-#
-#            print ' ', a
-#
-#for comp in library_manager.components:
-#    print
-#    summarise_component(comp)
 
-
-
-#print 'Components Loaded:'
-#for comp in library_manager.components:
-#    print comp.name
 
 
 
@@ -419,11 +374,14 @@ def test1():
 
 
 
+from logbook import FileHandler
+log_handler = FileHandler('application.log')
+log_handler.push_application()
 
+from neurounits.logging import logbook as lb
 
-
-
-
-
-test1()
+def main():
+    test0()
+    test1()
+main()
 

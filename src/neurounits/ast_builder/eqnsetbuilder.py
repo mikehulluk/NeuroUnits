@@ -329,7 +329,7 @@ class AbstractBlockBuilder(object):
 
 
         # Get the event port, and check that the parameters match up:
-        print 'Getting input port:', port_name
+        #print 'Getting input port:', port_name
         p = self._input_event_ports.get_single_obj_by(name=port_name)
         assert len(p.parameters) == len(expected_parameter_names), 'Parameter length mismatch'
         assert set(p.parameters.get_objects_attibutes(attr='symbol'))==set(expected_parameter_names)
@@ -342,7 +342,7 @@ class AbstractBlockBuilder(object):
     def get_output_event_port(self, port_name,  expected_parameter_names):
 
         if not self._output_event_ports.has_obj(name=port_name):
-            print 'Creating port'
+            #print 'Creating port'
 
             # Create the parameter objects:
             param_dict = LookUpDict(accepted_obj_types=(ast.OutEventPortParameter), unique_attrs=['symbol'])
@@ -359,10 +359,10 @@ class AbstractBlockBuilder(object):
         p = self._output_event_ports.get_single_obj_by(name=port_name)
         assert len(p.parameters) == len(expected_parameter_names), 'Parameter length mismatch'
 
-        print 'Getting output port:', port_name
-        print 'Do params match?:'
-        print 'Existing:', set(p.parameters.get_objects_attibutes(attr='symbol'))
-        print 'Expected:', set(expected_parameter_names)
+        #print 'Getting output port:', port_name
+        #print 'Do params match?:'
+        #print 'Existing:', set(p.parameters.get_objects_attibutes(attr='symbol'))
+        #print 'Expected:', set(expected_parameter_names)
         assert set(p.parameters.get_objects_attibutes(attr='symbol'))==set(expected_parameter_names)
 
         return p

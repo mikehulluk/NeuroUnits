@@ -973,27 +973,21 @@ def p_unit_term_unpowered_token(p):
 
 
 
+from neurounits.unit_errors import NeuroUnitParsingErrorEOF
+from neurounits.unit_errors import NeuroUnitParsingErrorUnexpectedToken
+
 
 
 def p_error(p):
 
-
+    # Did we unexpectedly hit the end of the file?
     if p is None:
-        raise NeuroUnitParsingError('Unexpected end of file encountered')
-    else:
-        pass
-    try:
-        line = p.lexer.lexer.lexdata.split('\n')[p.lexer.lexer.lineno]
+        raise NeuroUnitParsingErrorEOF()
 
-        o = p.lexer.lexer.lexpos
-        line1 = p.lexer.lexer.lexdata[o - 10:o + 10]
-        line2 = p.lexer.lexer.lexdata[o - 3:o + 3]
+    # Or did we get an unexpected symbol??
+    raise NeuroUnitParsingErrorUnexpectedToken(bad_token=p)
+    
 
-        print 'Offending Line:', line1
-        print 'Offending Line:', line2
-    except:
-        pass
-    raise UnitError('Parsing Error %s' % p)
 
 
 # Low to high: (WHITESPACE needs highest priority, 
@@ -1036,16 +1030,16 @@ class ParserMgr(object):
     @classmethod
     def build_parser(cls, start_symbol, debug):
 
-        import logging
-        if not os.path.exists('/tmp/mflog'):
-            os.makedirs('/tmp/mflog')
-        logging.basicConfig(level=logging.DEBUG,
-                            filename='/tmp/mflog/parselog.txt',
-                            filemode='w',
-                            format='%(filename)10s:%(lineno)4d:%(message)s'
-                            )
-        log = logging.getLogger()
-
+        #import logging
+        #if not os.path.exists('/tmp/mflog'):
+        #    os.makedirs('/tmp/mflog')
+        #logging.basicConfig(level=logging.DEBUG,
+        #                    filename='/tmp/mflog/parselog.txt',
+        #                    filemode='w',
+        #                    format='%(filename)10s:%(lineno)4d:%(message)s'
+        #                    )
+        #log = logging.getLogger()
+        from neurounits.logging import log_neurounits
 
 
         username = 'tmp_%d' % os.getuid()
@@ -1054,7 +1048,8 @@ class ParserMgr(object):
         if debug:
             parser = yacc.yacc(debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1  )
         else:
-            parser = yacc.yacc(debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1, errorlog=ply.yacc.NullLogger()  )
+            #parser = yacc.yacc(debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1, errorlog=ply.yacc.NullLogger()  )
+            parser = yacc.yacc(debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1, errorlog=log_neurounits  )
 
 
 
@@ -1072,26 +1067,38 @@ class ParserMgr(object):
 
 
 
+import neurounits.logging as logging
+from neurounits.logging import MLine 
 
-def parse_expr(text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
-    #debug=True
+def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
+    
+    logging.log_neurounits.info('In parse_expr()')    
 
 
     # Are a parsing a complex expression? Then we need a library manager:
     if library_manager is None and ParseTypes is not ParseTypes.L1_Unit:
-        library_manager = LibraryManager(backend=backend, working_dir=working_dir, options=options, name=name, src_text=text )
+        logging.log_neurounits.info('Creating library manager')    
+        library_manager = LibraryManager(backend=backend, working_dir=working_dir, options=options, name=name, src_text=orig_text )
 
 
     #First, let preprocess the text:
-    text = preprocess_string(text, parse_type=parse_type)
+    logging.log_neurounits.info('Text before preprocessing: %s' % MLine(orig_text))
+    text = preprocess_string(orig_text, parse_type=parse_type)
+    logging.log_neurounits.info('Text after preprocessing: %s' % MLine(text))
+
+
+    # Diff:
+
+
 
     # Now, we can parse the expression using PLY:
     try:
+        logging.log_neurounits.info('Parsing with PLY: %s' % MLine(text))
         pRes, library_manager = parse_eqn_block(text, parse_type=parse_type, debug=debug, library_manager=library_manager)
-    except:
-        #print
-        #print 'Error Parsing: %s' % text
-        #print 'Parsing as', parse_type
+    except NeuroUnitParsingErrorUnexpectedToken, e:
+        # Catch the exception, so that we can add more error handling to it:
+        e.original_text = orig_text
+        e.parsed_text = text
         raise
 
     # If its a level-3 expression, we need to evaluate it:

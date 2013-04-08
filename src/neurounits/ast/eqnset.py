@@ -81,13 +81,13 @@ class Library(Block):
         self._eqn_assignment = LookUpDict( builddata.assignments, accepted_obj_types=(ast.EqnAssignmentByRegime,) )
 
     def get_terminal_obj(self, symbol):
-        #print self.functiondefs
+        ##print self.functiondefs
         possible_objs = LookUpDict(self.assignedvalues).get_objs_by(symbol=symbol)+ \
                         LookUpDict(self.symbolicconstants).get_objs_by(symbol=symbol)+ \
                         LookUpDict(self.functiondefs).get_objs_by(funcname=symbol)
 
-        #print 'Looking for:', symbol
-        #print possible_objs
+        ##print 'Looking for:', symbol
+        ##print possible_objs
         if not len(possible_objs) == 1:
             raise KeyError("Can't find terminal: %s" % symbol)
 

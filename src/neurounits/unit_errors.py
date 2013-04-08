@@ -41,10 +41,6 @@ class DuplicateKeyError(RuntimeError):
         return 'Duplicate Key Found: %s' % str(self.key)
 
 
-class ParsingError(RuntimeError):
-
-    pass
-
 
 class InternalError(RuntimeError):
 
@@ -69,9 +65,68 @@ class UnitMismatchError(ValueError):
         return 'Unit Imcompatibility: (%s) <-> (%s) [%s %s]' % (self.unitA, self.unitB, objA_name, objB_name)
 
 
+
+
+
+
+
+
+class ParsingError(RuntimeError):
+
+    pass
+
+
 class NeuroUnitParsingError(ValueError):
 
     pass
+
+class NeuroUnitParsingErrorEOF(NeuroUnitParsingError):
+
+    def __repr__(self, ):
+        return '<NeuroUnitParsingErrorEOF: ** Unexpected end-of-file found>'
+
+
+class NeuroUnitParsingErrorUnexpectedToken(NeuroUnitParsingError):
+    def __init__(self, bad_token ):
+        self.bad_token = bad_token
+
+        # These get set after construction, higher up the exception stack:
+        self.original_text = None
+        self.parsed_text = None
+
+    def __str__(self,):
+        d1 = 'NeuroUnitParsingErrorUnexpectedToken: ** Unexpcted token found'
+        d2 = '\n\nOriginal text:\n==================\n%s\n=====================\n'  % self.original_text
+        d3 = 'Preprocessed text:\n==================\n%s\n=====================\n'  % self.parsed_text
+
+        d4 = 'Unexpected Token Found:  %s' % (self.bad_token)
+
+        lines_context = 3
+        lines = self.parsed_text.split('\n')
+        bad_line_no = self.bad_token.lineno
+
+
+        pre_parsed_lines = lines[ max(bad_line_no-lines_context,0): bad_line_no ]
+        post_parsed_lines = lines[ bad_line_no : min(bad_line_no+lines_context,len(lines)-1) ]
+        parsed_line = lines[self.bad_token.lineno]
+
+
+        D6 = '\nError here'
+        D7 = '\n================='
+        D9 =  ''.join(['\n    |%s' %l for l in pre_parsed_lines])
+        D10 = '\n -> |' + parsed_line
+        D12 =  ''.join(['\n    |%s' %l for l in post_parsed_lines])
+        D13 = '\n================='
+
+
+        print self.bad_token.__dict__
+
+
+
+        'OK!'
+
+        return d1 + d2 + d3 + d4 + '\n\n\n' + ''.join([D6,D7,D9,D10,D12, D13])  + '\nOVER'
+
 
 
 class InvalidUnitTermError(ValueError):

@@ -104,11 +104,11 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
         else:
             assert False, 'Unexpected node type: %s' % dst_obj
 
-    print comp.name
-    print 'Outports:', comp.output_event_port_lut
-    print 'Inports:', comp.input_event_port_lut
+    #print comp.name
+    #print 'Outports:', comp.output_event_port_lut
+    #print 'Inports:', comp.input_event_port_lut
     for (src, dst) in event_connections:
-        print src, dst
+        #print src, dst
         src_port = comp.output_event_port_lut.get_single_obj_by(name=src) 
         dst_port = comp.input_event_port_lut.get_single_obj_by(name=dst) 
         conn = ast.EventPortConnection( src_port = src_port, dst_port = dst_port)
