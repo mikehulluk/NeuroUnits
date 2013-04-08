@@ -41,7 +41,7 @@ class UnitExprLexer(object):
         'as': 'AS',
 
         'library': 'LIBRARY',
-        'eqnset': 'EQNSET',
+        #'eqnset': 'EQNSET',
 
         'namespace': 'NAMESPACE',
         'define_component': 'DEFINE_COMPONENT',
@@ -72,7 +72,7 @@ class UnitExprLexer(object):
         'COLON',
         #r"""NO_UNIT""",
         'TIMESTIMES',
-        'NEWLINE',
+        #'NEWLINE',
         'PRIME',
         'LSQUAREBRACKET',
         'RSQUAREBRACKET',
@@ -108,12 +108,14 @@ class UnitExprLexer(object):
         t.type = UnitExprLexer.reserved.get(t.value, t.type)
         return t
 
-    def t_NEWLINE(self, t):
-        r"""\n+\s*"""
-        t.lexer.lineno += len(t.value)
-        return t
+    #def t_NEWLINE(self, t):
+    #    r"""\n+\s*"""
+    #    t.lexer.lineno += len(t.value)
+    #    return t
 
     WS = '\s*'
+
+    # Automatically slurp up trailing whitespace:
     t_IO_LINE = r"""<=> [^;]*"""  + WS
     t_MINUS = r"""-""" + WS
 
@@ -163,7 +165,7 @@ class UnitExprLexer(object):
 
 
 
-        print 'TOKEN:',t
+        #print 'TOKEN:',t
 
         return t
 

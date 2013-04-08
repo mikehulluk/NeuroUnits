@@ -53,26 +53,6 @@ def p_empty(p):
     pass
 
 
-def p_whitespace_slurp2(p):
-    """whiteslurp : empty"""
-    pass
-
-
-def p_whitespace_slurp3(p):
-    """white_or_newline_slurp : empty
-                             | NEWLINE
-                             | white_or_newline_slurp NEWLINE
-                             """
-
-    pass
-
-
-
-
-
-
-
-
 
 
 def p_nineml_file_def1(p):
@@ -80,141 +60,124 @@ def p_nineml_file_def1(p):
     pass
 
 def p_nineml_file_def2(p):
-    """nineml_file : nineml_file namespace_def"""
+    """nineml_file : nineml_file top_level_block"""
     pass
 
+def p_major_blocks(p):
+    """top_level_block : component_def
+                       | namespace_def
+                       | library_def"""
 
 
 
-
-
-
+# Namespaces:
+# ===========
 def p_open_new_namespace(p):
     """ namespace_name : ALPHATOKEN """
     p.parser.library_manager.start_namespace_block(name=p[1])
 
 
-def p_close_new_namespace(p):
-    """namespace_def : namespace_def_internal"""
-    p.parser.library_manager.end_namespace_block()
-
-
 def p_namespace_def1(p):
-    """namespace_def_internal : NAMESPACE namespace_name LCURLYBRACKET namespacecontents RCURLYBRACKET SEMICOLON """
+    """namespace_def : NAMESPACE namespace_name LCURLYBRACKET namespaceblocks RCURLYBRACKET SEMICOLON """
+    p.parser.library_manager.end_namespace_block()
     pass
 
 
 def p_namespace_def2(p):
-    """namespacecontents : empty
-                         | white_or_newline_slurp component_def
-                         | namespacecontents white_or_newline_slurp component_def"""
+    """namespaceblocks : empty
+                       | namespaceblocks top_level_block"""
     pass
 
+
+
+
+
+# Component Definitions:
+# ======================
 
 def p_open_new_component0(p):
     """ component_name : alphanumtoken """
     p.parser.library_manager.start_component_block(name=p[1])
 
-
-def p_close_new_component(p):
-    """component_def : component_def_internal"""
+def p_component_def1(p):
+    """component_def : DEFINE_COMPONENT component_name LCURLYBRACKET componentcontents RCURLYBRACKET SEMICOLON"""
     p.parser.library_manager.end_component_block()
 
-
-def p_component_def1(p):
-    """component_def_internal : DEFINE_COMPONENT  component_name LCURLYBRACKET componentcontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
-    #p.parser.library_manager.get_current_block_builder().set_name(p[4])
-
-
-
 def p_parse_componentline1(p):
-    """componentcontents : white_or_newline_slurp
-                      | complete_component_line
-                      | componentcontents complete_component_line """
+    """componentcontents : empty
+                         | componentcontents componentlinecontents SEMICOLON"""
     pass
-
-def p_parse_componentline2(p):
-    """componentlinecontents : IO_LINE"""
-    p.parser.library_manager.get_current_block_builder().add_io_data(p[1])
-
-
-def p_complete_component_line(p):
-    """complete_component_line : white_or_newline_slurp componentlinecontents white_or_newline_slurp SEMICOLON """
-    pass
-
-#def p_parse_componentline2b(p):
-#    """componentlinecontents   : ONEVENT_SYMBOL  event_def """
-#    pass
 
 def p_parse_componentline4(p):
     """componentlinecontents   : import
                                | function_def
                                | assignment
                                | time_derivative
-                               | on_transition_trigger"""
+                               | on_transition_trigger
+                               | regime_block"""
     pass
+def p_parse_componentline2(p):
+    """componentlinecontents : IO_LINE"""
+    p.parser.library_manager.get_current_block_builder().add_io_data(p[1])
 
 
-def p_parse_componentline5(p):
-    """componentlinecontents   : regime_block """
-    pass
 
 
 
+
+# Regime Definitions:
+# ===================
 def p_parse_component_regimename(p):
     """regime_name : alphanumtoken"""
     p.parser.library_manager.get_current_block_builder().open_regime(p[1])
 
 
 def p_parse_component_regime_block(p):
-    """regime_block : REGIME white_or_newline_slurp regime_name white_or_newline_slurp LCURLYBRACKET regimecontents white_or_newline_slurp RCURLYBRACKET"""
+    """regime_block : REGIME regime_name LCURLYBRACKET regimecontents RCURLYBRACKET"""
     p.parser.library_manager.get_current_block_builder().close_regime()
 
 
 def p_parse_regimeline1(p):
-    """regimecontents : white_or_newline_slurp
-                      | complete_regimecontentsline
-                      | regimecontents complete_regimecontentsline """
+    """regimecontents : empty
+                      | regimecontents regimecontentsline SEMICOLON"""
     pass
 
 def p_parse_regimeline2(p):
     """regimecontentsline : time_derivative
                           | assignment
-                          | on_transition_trigger"""
+                          | on_transition_trigger
+                          """
     pass
 
-def p_parse_regimeline3(p):
-    """complete_regimecontentsline : white_or_newline_slurp regimecontentsline white_or_newline_slurp SEMICOLON """
-    pass
 
+
+# Transitions:
+# ============
 
 def p_open_new_scope(p):
     """open_eventtransition_scope : empty"""
     p.parser.library_manager.get_current_block_builder().open_new_scope()
 
 def p_parse_on_transition_trigger(p):
-    """on_transition_trigger : ON  open_eventtransition_scope whiteslurp LBRACKET whiteslurp bool_expr white_or_newline_slurp RBRACKET white_or_newline_slurp LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
-
-    trigger = p[6]
-    actions = p[11]
-    target_regime = p[12]
+    """on_transition_trigger : ON  open_eventtransition_scope  LBRACKET  bool_expr  RBRACKET  LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
+    trigger = p[4]
+    actions = p[7]
+    target_regime = p[8]
     p.parser.library_manager.get_current_block_builder().create_transition_trigger(trigger=trigger, actions=actions, target_regime=target_regime)
 
 
 def p_parse_on_transition_event(p):
-    """on_transition_trigger :  ON  open_eventtransition_scope  whiteslurp ALPHATOKEN whiteslurp LBRACKET on_event_def_params RBRACKET white_or_newline_slurp  LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
-    event_name = p[4]
-    print p[7]
-    event_params = LookUpDict( p[7], accepted_obj_types=(ast.OnEventDefParameter) )
-    actions = p[11]
-    target_regime = p[12]
+    """on_transition_trigger :  ON  open_eventtransition_scope   ALPHATOKEN  LBRACKET on_event_def_params RBRACKET   LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
+    event_name = p[3]
+    event_params = LookUpDict( p[5], accepted_obj_types=(ast.OnEventDefParameter) )
+    actions = p[8]
+    target_regime = p[9]
     p.parser.library_manager.get_current_block_builder().close_scope_and_create_transition_event(event_name=event_name, event_params=event_params, actions=actions, target_regime=target_regime)
 
 
 def p_transition_to1(p):
     """transition_to : empty"""
     p[0] = None
-
 
 def p_transition_to2(p):
     """transition_to : TRANSITION_TO alphanumtoken SEMICOLON """
@@ -259,28 +222,24 @@ def p_event_def_param(p):
     else:
         assert False, 'len(p):%s' % len(p)
 
-    #p[0] = {p[1]:ast.OnEventDefParameter(symbol=p[1], dimension=dimension)}
     p[0] = [ast.OnEventDefParameter(symbol=p[1], dimension=dimension)]
 
 
 def p_event_def_param0(p):
-    """on_event_def_params : whiteslurp"""
+    """on_event_def_params : empty"""
     p[0] = []
 
 
 def p_event_def_param2(p):
-    """on_event_def_params : on_event_def_param whiteslurp"""
+    """on_event_def_params : on_event_def_param"""
     p[0] = p[1]
 
 def p_event_def_param3(p):
-    """on_event_def_params : on_event_def_params COMMA whiteslurp on_event_def_param whiteslurp"""
-    #p[0] = safe_dict_merge( p[1], p[4] )/home/michael/hw_to_come/libs/NeuroUnits/src/neurounits/unit_expr_parsing/units_expr_yacc.py
-    #TODO: I THINK WE SHOUDLREMOVE TRAILING whitesleurp here because it conflicts with above
-    p[0] = p[1] + p[4]
+    """on_event_def_params : on_event_def_params COMMA on_event_def_param """
+    p[0] = p[1] + p[3]
 
 
 
-# For function parameters, we create a dictionary mapping parameter name to value
 def p_quantity_event_params_l3z(p):
     """event_call_params_l3 : empty"""
     p[0] = []
@@ -288,27 +247,18 @@ def p_quantity_event_params_l3z(p):
 def p_quantity_event_params_l3a(p):
     """event_call_params_l3 : rhs_term"""
     p[0] = [ast.EmitEventParameter(_symbol = None, rhs=p[1])]
-    #symbol = None
-    #rhs_ast = p[1]
-    #p[0] = {symbol:rhs_ast}
 
 def p_quantity_event_params_term_l3(p):
     """event_call_param_l3 : alphanumtoken EQUALS rhs_term"""
     p[0] = [ast.EmitEventParameter(_symbol = p[1], rhs=p[3])]
-    #symbol = p[1]
-    #rhs_ast = p[3]
-    #p[0] = {symbol:rhs_ast}
 
 def p_quantity_event_params_l3b(p):
-    """event_call_params_l3 : event_call_param_l3 whiteslurp"""
+    """event_call_params_l3 : event_call_param_l3"""
     p[0] = p[1]
 
 def p_quantity_event_params_l3c(p):
-    """event_call_params_l3 : event_call_params_l3 COMMA whiteslurp event_call_param_l3"""
-    p[0] = p[1] + p[4]
-    #param_dict = p[1]
-    #new_param = p[4]
-    #p[0] = safe_dict_merge(param_dict, new_param)
+    """event_call_params_l3 : event_call_params_l3 COMMA event_call_param_l3"""
+    p[0] = p[1] + p[3]
 
 
 
@@ -320,7 +270,7 @@ def p_additonal_rt_graph0(p):
 
 
 def p_additonal_rt_graph1(p):
-    """componentlinecontents : RTGRAPH white_or_newline_slurp rt_name white_or_newline_slurp LCURLYBRACKET rtgraph_contents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp """
+    """componentlinecontents : RTGRAPH rt_name LCURLYBRACKET rtgraph_contents RCURLYBRACKET """
     p.parser.library_manager.get_current_block_builder().close_rt_graph()
 
 
@@ -329,100 +279,68 @@ def p_additonal_rt_graph2(p):
     pass
 
 
-def p_opt_semicolon(p):
-    """optsemicolon : empty
-                    | SEMICOLON"""
-    pass
+#def p_opt_semicolon(p):
+#    """optsemicolon : empty
+#                    | SEMICOLON"""
+#    pass
 
 
 def p_additonal_rt_graph4(p):
-    """rtgraph_contents : rtgraph_contents white_or_newline_slurp regime_block optsemicolon"""
-    pass
-
-
-def p_file_def1(p):
-    """text_block : white_or_newline_slurp
-                  | text_block block_type"""
-    pass
-
-
-def p_file_def2(p):
-    """ block_type : eqnset_def
-                   | library_def"""
-    pass
-
-
-def p_open_new_eqnset(p):
-    """ eqnset_name : namespace """
-    p.parser.library_manager.start_eqnset_block(name=p[1])
-
-def p_close_new_eqnset(p):
-    """eqnset_def : eqnset_def_internal"""
-    p.parser.library_manager.end_eqnset_block()
-
-def p_eqnset_def1(p):
-    """eqnset_def_internal : EQNSET eqnset_name LCURLYBRACKET eqnsetcontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
-
-
-def p_complete_eqnset_line(p):
-    """complete_eqnset_line : white_or_newline_slurp eqnsetlinecontents white_or_newline_slurp SEMICOLON """
-
-def p_parse_eqnsetline1(p):
-    """eqnsetcontents : white_or_newline_slurp
-                      | complete_eqnset_line
-                      | eqnsetcontents complete_eqnset_line """
-    pass
-
-
-def p_parse_eqnsetline2(p):
-    """eqnsetlinecontents : IO_LINE"""
-    p.parser.library_manager.get_current_block_builder().add_io_data(p[1])
-
-
-
-
-def p_parse_eqnsetline4(p):
-    """eqnsetlinecontents   : import
-                            | function_def
-                            | assignment
-                            | time_derivative
-                            """
+    """rtgraph_contents : rtgraph_contents regime_block SEMICOLON"""
     pass
 
 
 
-# LIBRARY DEFINITIONS:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#def p_file_def1(p):
+#    """text_block : empty
+#                   | text_block block_type"""
+#    pass
+#
+#
+#def p_file_def2(p):
+#    """ block_type : library_def"""
+#    pass
+
+
+
+
+
+# Library Definition:
 # --------------------
 
 def p_open_new_library(p):
     """ library_name : namespace """
     p.parser.library_manager.start_library_block(name=p[1])
 
-
-def p_close_new_library(p):
-    """library_def : library_def_internal"""
+def p_library_def1(p):
+    """library_def : LIBRARY library_name LCURLYBRACKET librarycontents RCURLYBRACKET SEMICOLON"""
     p.parser.library_manager.end_library_block()
 
-
-def p_library_def1(p):
-    """library_def_internal : LIBRARY library_name LCURLYBRACKET librarycontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
-    pass
-
-def p_complete_library_line(p):
-    """complete_library_line : white_or_newline_slurp librarylinecontents white_or_newline_slurp SEMICOLON """
-
-
 def p_parse_libraryline1(p):
-    """librarycontents : white_or_newline_slurp
-                      | complete_library_line
-                      | librarycontents complete_library_line """
+    """librarycontents : empty
+                      | librarycontents libraryline SEMICOLON"""
     pass
 
 
 def p_parse_libraryline4(p):
-    """librarylinecontents  : import
-                            | function_def
-                            | assignment """
+    """libraryline : import
+                   | function_def
+                   | assignment """
     pass
 
 
@@ -452,40 +370,28 @@ def p_parse_libraryline4(p):
 
 
 
-#def p_on_event_open_scope(p):
-#    """ open_event_def_scope : empty"""
-#    p.parser.library_manager.get_current_block_builder().open_new_scope()
-
-#def p_on_event_definition(p):
-#    """event_def : alphanumtoken LBRACKET function_def_params RBRACKET white_or_newline_slurp LCURLYBRACKET open_event_def_scope on_event_actions_blk RCURLYBRACKET """
-#    e = ast.OnEvent(name=p[1], parameters=p[3], actions=p[8])
-#    p.parser.library_manager.get_current_block_builder().close_scope_and_create_onevent(e)
-
-#def p_on_event_actionsblk(p):
-#    """on_event_actions_blk : white_or_newline_slurp on_event_actions"""
-#    p[0] = p[2]
 
 
 
-def p_on_event_actions1(p):
-    """on_event_actions : empty"""
-    p[0] = []
-def p_on_event_actions2(p):
-    """on_event_actions :  on_event_action"""
-    p[0] = [p[1]]
-def p_on_event_actions3(p):
-    """on_event_actions :  on_event_actions on_event_action"""
-    p[0] = p[1] + [p[2]]
+#def p_on_event_actions1(p):
+#    """on_event_actions : empty"""
+#    p[0] = []
+#def p_on_event_actions2(p):
+#    """on_event_actions :  on_event_action"""
+#    p[0] = [p[1]]
+#def p_on_event_actions3(p):
+#    """on_event_actions :  on_event_actions on_event_action"""
+#    p[0] = p[1] + [p[2]]
 
 
-def p_on_event_action0(p):
-    """on_event_action : empty NEWLINE"""
-    p[0] = None
-
-def p_on_event_action1(p):
-    """on_event_action : alphanumtoken  EQUALS rhs_term whiteslurp SEMICOLON"""
-    lhs = p.parser.library_manager.get_current_block_builder().get_symbol_or_proxy(p[1])
-    p[0] = ast.OnEventStateAssignment(lhs=lhs,rhs=p[3])
+#def p_on_event_action0(p):
+#    """on_event_action : empty NEWLINE"""
+#    p[0] = None
+#
+#def p_on_event_action1(p):
+#    """on_event_action : alphanumtoken  EQUALS rhs_term SEMICOLON"""
+#    lhs = p.parser.library_manager.get_current_block_builder().get_symbol_or_proxy(p[1])
+#    p[0] = ast.OnEventStateAssignment(lhs=lhs,rhs=p[3])
 
 
 # Importing:
@@ -500,12 +406,12 @@ def p_import_statement2(p):
 
 
 def p_import_target_list1(p):
-    """import_target_list : localsymbol whiteslurp"""
+    """import_target_list : localsymbol"""
     p[0] = [p[1]]
 
 def p_import_target_list2(p):
-    """import_target_list : import_target_list COMMA whiteslurp localsymbol whiteslurp"""
-    p[0] = p[1] + [p[4]]
+    """import_target_list : import_target_list COMMA localsymbol"""
+    p[0] = p[1] + [p[3]]
 
 
 
@@ -595,18 +501,18 @@ def p_function_def_param(p):
 
 
 def p_function_def_params0(p):
-    """function_def_params : whiteslurp"""
+    """function_def_params : empty"""
     p[0] = {}
 
 
 def p_function_def_params1(p):
-    """function_def_params : function_def_param whiteslurp"""
+    """function_def_params : function_def_param"""
     p[0] = p[1]
 
 
 def p_function_def_params2(p):
-    """function_def_params : function_def_params COMMA whiteslurp function_def_param whiteslurp"""
-    p[0] = safe_dict_merge( p[1], p[4] )
+    """function_def_params : function_def_params COMMA  function_def_param """
+    p[0] = safe_dict_merge( p[1], p[3] )
 
 
 
@@ -629,14 +535,14 @@ def p_quantity_func_params_l3a(p):
     p[0] = {None: ast.FunctionDefParameterInstantiation(symbol=None, rhs_ast=p[1])}
 
 def p_quantity_func_params_l3b(p):
-    """func_call_params_l3 : func_call_param_l3 whiteslurp"""
+    """func_call_params_l3 : func_call_param_l3"""
     p[0] = {p[1].symbol: p[1]}
 
 
 def p_quantity_func_params_l3c(p):
-    """func_call_params_l3 : func_call_params_l3 COMMA whiteslurp func_call_param_l3"""
+    """func_call_params_l3 : func_call_params_l3 COMMA  func_call_param_l3"""
     param_dict = p[1]
-    new_param = p[4]
+    new_param = p[3]
     assert not new_param.symbol in param_dict
     param_dict[new_param.symbol] = new_param
     p[0] = param_dict
@@ -1006,9 +912,9 @@ class ParseDetails(object):
         ParseTypes.L1_Unit: 'unit_expr',
         ParseTypes.L2_QuantitySimple: 'quantity_expr',
         ParseTypes.L3_QuantityExpr: 'rhs_generic',
-        ParseTypes.L4_EqnSet: 'eqnset',
-        ParseTypes.L5_Library: 'library_set',
-        ParseTypes.L6_TextBlock: 'text_block',
+        #ParseTypes.L4_EqnSet: 'eqnset',
+        #ParseTypes.L5_Library: 'library_set',
+        #ParseTypes.L6_TextBlock: 'text_block',
         ParseTypes.N6_9MLFile: 'nineml_file',
         }
 
@@ -1090,9 +996,9 @@ def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=No
     ret = { ParseTypes.L1_Unit:             lambda: pRes,
             ParseTypes.L2_QuantitySimple:   lambda: pRes,
             ParseTypes.L3_QuantityExpr:     lambda: pRes,
-            ParseTypes.L4_EqnSet:           lambda: SeqUtils.expect_single(library_manager.eqnsets),
-            ParseTypes.L5_Library:          lambda: SeqUtils.expect_single(library_manager.libraries),
-            ParseTypes.L6_TextBlock:        lambda: library_manager,
+            #ParseTypes.L4_EqnSet:           lambda: SeqUtils.expect_single(library_manager.eqnsets),
+            #ParseTypes.L5_Library:          lambda: SeqUtils.expect_single(library_manager.libraries),
+            #ParseTypes.L6_TextBlock:        lambda: library_manager,
             ParseTypes.N6_9MLFile:        lambda: library_manager,
     }
 
@@ -1111,7 +1017,7 @@ def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=No
 
 
 def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
-    debug=True
+    #debug=True
     start_symbol = ParseDetails.start_symbols[parse_type]
 
     # Build the lexer and the parser:

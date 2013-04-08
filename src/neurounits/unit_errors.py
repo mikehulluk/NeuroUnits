@@ -150,7 +150,7 @@ class NeuroUnitParsingErrorUnexpectedToken(NeuroUnitParsingError):
         D = ''.join([D6,D7,D9,D10,D12, D13])
         E = ''.join(['\n%s'%s for s in (E1,E2,E3,E4)])
 
-        return d1 + d2 + d3 + d4 + '\n\n\n' + D +'\n' + E  + '\nOVER' + ','.join( self.bad_token.__dict__.keys())
+        return d1 + d2 + d3 + d4 + '\n\n\n' + D +'\n' + E  + '\nOVER' + ','.join( self.bad_token.__dict__.keys() )
 
 
 
