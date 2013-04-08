@@ -1,4 +1,4 @@
-module my_components {
+namespace my_components {
 
 
 	define_component my_analog_stim_two {

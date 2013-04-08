@@ -42,6 +42,15 @@ def join_lines_and_add_semicolons(text):
 
     text = '\n'.join(lines)
 
+    # Remove all joining whitespace:
+    text = ''.join(lines)
+
+    #while ';;' in text:
+    #    text = text.replace(";;",";")
+
+    #if ';;' in text:
+    #    assert False
+
     return text
 
 
@@ -71,6 +80,16 @@ def preprocess_string(src_text, parse_type):
     text = text.replace(' ', '')
     text = text.replace(r'''$$''', ' ')
 
+    ## Remove double semicolons:
+    #while ';;' in text:
+    #    text = text.replace(";;",";")
+
+    #m = re.search(';;', text)
+    #assert not m
+    #assert not ';;' in text
+    ##print text
+    ##assert False
+        
     return text
 
 

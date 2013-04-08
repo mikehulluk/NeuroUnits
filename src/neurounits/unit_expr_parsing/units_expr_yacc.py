@@ -78,35 +78,39 @@ def p_whitespace_slurp3(p):
 
 
 
-def p_l4_module_def1(p):
+def p_nineml_file_def1(p):
     """nineml_file : empty"""
     pass
-    #print 'Parsed Module file!'
-    
-def p_l4_module_def2(p):
-    """nineml_file : nineml_file white_or_newline_slurp module_def"""
-    
-    
-    
-def p_open_new_module(p):
-    """ module_name : ALPHATOKEN """
-    p.parser.library_manager.start_module_block(name=p[1])
 
-
-def p_close_new_module(p):
-    """module_def : module_def_internal"""
-    p.parser.library_manager.end_module_block()
-
-
-def p_module_def1(p):
-    """module_def_internal : MODULE WHITESPACE module_name white_or_newline_slurp LCURLYBRACKET modulecontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
+def p_nineml_file_def2(p):
+    """nineml_file : nineml_file white_or_newline_slurp namespace_def"""
     pass
 
 
-def p_module_def2(p):
-    """modulecontents : empty
+
+
+
+
+
+def p_open_new_namespace(p):
+    """ namespace_name : ALPHATOKEN """
+    p.parser.library_manager.start_namespace_block(name=p[1])
+
+
+def p_close_new_namespace(p):
+    """namespace_def : namespace_def_internal"""
+    p.parser.library_manager.end_namespace_block()
+
+
+def p_namespace_def1(p):
+    """namespace_def_internal : NAMESPACE WHITESPACE namespace_name white_or_newline_slurp LCURLYBRACKET namespacecontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
+    pass
+
+
+def p_namespace_def2(p):
+    """namespacecontents : empty
                          | white_or_newline_slurp component_def
-                         | modulecontents white_or_newline_slurp component_def"""
+                         | namespacecontents white_or_newline_slurp component_def"""
     pass
 
 
@@ -130,7 +134,7 @@ def p_parse_componentline1(p):
     """componentcontents : white_or_newline_slurp
                       | complete_component_line
                       | componentcontents complete_component_line """
-    pass 
+    pass
 
 def p_parse_componentline2(p):
     """componentlinecontents : IO_LINE"""
@@ -139,24 +143,24 @@ def p_parse_componentline2(p):
 
 def p_complete_component_line(p):
     """complete_component_line : white_or_newline_slurp componentlinecontents white_or_newline_slurp SEMICOLON """
-    pass 
+    pass
 
 #def p_parse_componentline2b(p):
 #    """componentlinecontents   : ONEVENT_SYMBOL  event_def """
-#    pass 
+#    pass
 
 def p_parse_componentline4(p):
     """componentlinecontents   : import
                                | function_def
                                | assignment
-                               | time_derivative 
+                               | time_derivative
                                | on_transition_trigger"""
-    pass 
+    pass
 
 
 def p_parse_componentline5(p):
     """componentlinecontents   : regime_block """
-    pass 
+    pass
 
 
 
@@ -174,17 +178,17 @@ def p_parse_regimeline1(p):
     """regimecontents : white_or_newline_slurp
                       | complete_regimecontentsline
                       | regimecontents complete_regimecontentsline """
-    pass 
+    pass
 
 def p_parse_regimeline2(p):
     """regimecontentsline : time_derivative
-                          | assignment 
+                          | assignment
                           | on_transition_trigger"""
-    pass 
+    pass
 
 def p_parse_regimeline3(p):
     """complete_regimecontentsline : white_or_newline_slurp regimecontentsline white_or_newline_slurp SEMICOLON """
-    pass 
+    pass
 
 
 def p_open_new_scope(p):
@@ -193,7 +197,7 @@ def p_open_new_scope(p):
 
 def p_parse_on_transition_trigger(p):
     """on_transition_trigger : ON  open_eventtransition_scope whiteslurp LBRACKET whiteslurp bool_expr white_or_newline_slurp RBRACKET white_or_newline_slurp LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
-                             
+
     trigger = p[6]
     actions = p[11]
     target_regime = p[12]
@@ -254,7 +258,7 @@ def p_event_def_param(p):
     """on_event_def_param : localsymbol
                           | localsymbol COLON LCURLYBRACKET  RCURLYBRACKET
                           | localsymbol COLON LCURLYBRACKET unit_expr RCURLYBRACKET"""
-    
+
     backend = p.parser.library_manager.backend
 
     if len(p) == 2:
@@ -392,7 +396,7 @@ def p_parse_eqnsetline4(p):
     """eqnsetlinecontents   : import
                             | function_def
                             | assignment
-                            | time_derivative 
+                            | time_derivative
                             """
     pass
 
@@ -459,18 +463,18 @@ def p_parse_libraryline4(p):
 
 
 
-def p_on_event_open_scope(p):
-    """ open_event_def_scope : empty"""
-    p.parser.library_manager.get_current_block_builder().open_new_scope()
+#def p_on_event_open_scope(p):
+#    """ open_event_def_scope : empty"""
+#    p.parser.library_manager.get_current_block_builder().open_new_scope()
 
-def p_on_event_definition(p):
-    """event_def : alphanumtoken LBRACKET function_def_params RBRACKET white_or_newline_slurp LCURLYBRACKET open_event_def_scope on_event_actions_blk RCURLYBRACKET """
-    e = ast.OnEvent(name=p[1], parameters=p[3], actions=p[8])
-    p.parser.library_manager.get_current_block_builder().close_scope_and_create_onevent(e)
+#def p_on_event_definition(p):
+#    """event_def : alphanumtoken LBRACKET function_def_params RBRACKET white_or_newline_slurp LCURLYBRACKET open_event_def_scope on_event_actions_blk RCURLYBRACKET """
+#    e = ast.OnEvent(name=p[1], parameters=p[3], actions=p[8])
+#    p.parser.library_manager.get_current_block_builder().close_scope_and_create_onevent(e)
 
-def p_on_event_actionsblk(p):
-    """on_event_actions_blk : white_or_newline_slurp on_event_actions"""
-    p[0] = p[2]
+#def p_on_event_actionsblk(p):
+#    """on_event_actions_blk : white_or_newline_slurp on_event_actions"""
+#    p[0] = p[2]
 
 
 
@@ -591,7 +595,7 @@ def p_function_def_param(p):
     backend = p.parser.library_manager.backend
 
     if len(p) == 2:
-        dimension = None 
+        dimension = None
     elif len(p) == 5:
         dimension = backend.Unit()
     elif len(p) == 6:
@@ -829,10 +833,6 @@ def p_quantity_factor_2(p):
     p[0] = p[2]
 
 
-def p_quantity_nounits(p):
-    """ quantity : NO_UNIT LCURLYBRACKET quantity_expr COLON unit_expr RCURLYBRACKET """
-    p[0] = p[3]
-    print 'ERROR, not implemented yet'
 
 
 
@@ -986,12 +986,12 @@ def p_error(p):
 
     # Or did we get an unexpected symbol??
     raise NeuroUnitParsingErrorUnexpectedToken(bad_token=p)
-    
 
 
 
-# Low to high: (WHITESPACE needs highest priority, 
-# so that multipluication of units happens before division 
+
+# Low to high: (WHITESPACE needs highest priority,
+# so that multipluication of units happens before division
 # ( e.g. {2 m/ s s} )
 precedence = (
 
@@ -1030,27 +1030,13 @@ class ParserMgr(object):
     @classmethod
     def build_parser(cls, start_symbol, debug):
 
-        #import logging
-        #if not os.path.exists('/tmp/mflog'):
-        #    os.makedirs('/tmp/mflog')
-        #logging.basicConfig(level=logging.DEBUG,
-        #                    filename='/tmp/mflog/parselog.txt',
-        #                    filemode='w',
-        #                    format='%(filename)10s:%(lineno)4d:%(message)s'
-        #                    )
-        #log = logging.getLogger()
         from neurounits.logging import log_neurounits
+        log_neurounits.info('Building Parser for: %s' % start_symbol)
 
 
         username = 'tmp_%d' % os.getuid()
         tables_loc = EnsureExisits('/tmp/%s/nu/yacc/parse_eqn_block' % username)
-
-        if debug:
-            parser = yacc.yacc(debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1  )
-        else:
-            #parser = yacc.yacc(debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1, errorlog=ply.yacc.NullLogger()  )
-            parser = yacc.yacc(debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1, errorlog=log_neurounits  )
-
+        parser = yacc.yacc(debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1, errorlog=log_neurounits  )
 
 
         return parser
@@ -1068,16 +1054,16 @@ class ParserMgr(object):
 
 
 import neurounits.logging as logging
-from neurounits.logging import MLine 
+from neurounits.logging import MLine
 
 def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
-    
-    logging.log_neurounits.info('In parse_expr()')    
+
+    logging.log_neurounits.info('In parse_expr()')
 
 
     # Are a parsing a complex expression? Then we need a library manager:
     if library_manager is None and ParseTypes is not ParseTypes.L1_Unit:
-        logging.log_neurounits.info('Creating library manager')    
+        logging.log_neurounits.info('Creating library manager')
         library_manager = LibraryManager(backend=backend, working_dir=working_dir, options=options, name=name, src_text=orig_text )
 
 
@@ -1099,6 +1085,7 @@ def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=No
         # Catch the exception, so that we can add more error handling to it:
         e.original_text = orig_text
         e.parsed_text = text
+        print str(e)
         raise
 
     # If its a level-3 expression, we need to evaluate it:

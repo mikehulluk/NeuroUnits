@@ -1,7 +1,7 @@
 
 
 
-module stimulation {
+namespace stimulation {
 
     define_component i_fixed{
         i = i_amp
@@ -104,7 +104,7 @@ module stimulation {
 
 
 
-module event_generators{
+namespace event_generators{
 
 
     define_component fixed_interval{

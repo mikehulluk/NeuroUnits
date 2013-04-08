@@ -10,7 +10,7 @@ import numpy as np
 
 ball_arena_text = """
 
-module m {
+namespace m {
     define_component ball_arena {
         from std.math import abs
         from std.math import pow

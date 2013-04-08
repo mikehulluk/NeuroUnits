@@ -161,10 +161,10 @@ class LibraryManager(object):
     def get_current_block_builder(self):
         return self.currentblock
 
-    def start_module_block(self, name):
+    def start_namespace_block(self, name):
         self.open_block(ComponentNamespace(name=name))
 
-    def end_module_block(self):
+    def end_namespace_block(self):
         self.pop_block()
 
     def start_component_block(self, name):

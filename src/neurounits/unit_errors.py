@@ -103,12 +103,16 @@ class NeuroUnitParsingErrorUnexpectedToken(NeuroUnitParsingError):
 
         lines_context = 3
         lines = self.parsed_text.split('\n')
-        bad_line_no = self.bad_token.lineno
+        bad_line_no = self.bad_token.lineno -1
 
 
         pre_parsed_lines = lines[ max(bad_line_no-lines_context,0): bad_line_no ]
         post_parsed_lines = lines[ bad_line_no : min(bad_line_no+lines_context,len(lines)-1) ]
-        parsed_line = lines[self.bad_token.lineno]
+        print self.bad_token.lineno
+        print self.bad_token.__dict__
+        print self.bad_token.lexer.lexer.__dict__.keys()
+        #assert False
+        parsed_line = lines[bad_line_no]
 
 
         D6 = '\nError here'
@@ -119,13 +123,34 @@ class NeuroUnitParsingErrorUnexpectedToken(NeuroUnitParsingError):
         D13 = '\n================='
 
 
+
+        col_pos = self.bad_token.lexpos
+        char_str = self.parsed_text
+        def clip_to_str(k):
+            return min( max(k,0), len(char_str)-1)
+        line_char_context = 10
+        col_pos_pre_start = clip_to_str( col_pos-line_char_context )
+        col_pos_post_end = clip_to_str( col_pos+line_char_context )
+
+        pre_str = '...' + char_str[col_pos_pre_start:col_pos]
+        post_str = char_str[col_pos+1:col_pos_post_end] + '...'
+
+        E1 = 'Specifically:'
+        E2 = 'Chars: %d' % col_pos
+        E3 = pre_str + char_str[col_pos] + post_str
+        E4 = ' ' * len(pre_str) + '^' + ' ' * len(post_str)
+        #E2 = '
+
+
         print self.bad_token.__dict__
 
 
 
         'OK!'
+        D = ''.join([D6,D7,D9,D10,D12, D13])
+        E = ''.join(['\n%s'%s for s in (E1,E2,E3,E4)])
 
-        return d1 + d2 + d3 + d4 + '\n\n\n' + ''.join([D6,D7,D9,D10,D12, D13])  + '\nOVER'
+        return d1 + d2 + d3 + d4 + '\n\n\n' + D +'\n' + E  + '\nOVER'
 
 
 

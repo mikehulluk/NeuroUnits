@@ -39,7 +39,7 @@ def test0():
 
 
 test_text = """
-module test {
+namespace test {
     define_component step_current{
         regime OFF{
             i=0A
@@ -369,7 +369,6 @@ def test1():
     ax3.plot( res.get_time(), res.rt_regimes['nrn1/i_inj/']+0.1, label='nrn1/i_inj')
     ax3.plot( res.get_time(), res.rt_regimes['nrn1/i_square/']+0.2,label='nrn1/i_square' )
     ax3.legend()
-    pylab.show()
 
 
 
@@ -383,5 +382,6 @@ from neurounits.logging import logbook as lb
 def main():
     test0()
     test1()
+    #pylab.show()
 main()
 

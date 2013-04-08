@@ -43,7 +43,7 @@ class UnitExprLexer(object):
         'library': 'LIBRARY',
         'eqnset': 'EQNSET',
 
-        'module': 'MODULE',
+        'namespace': 'NAMESPACE',
         'define_component': 'DEFINE_COMPONENT',
         'regime': 'REGIME',
         'transition_to': 'TRANSITION_TO',
@@ -54,7 +54,6 @@ class UnitExprLexer(object):
 
     tokens = [
         'IO_LINE',
-        'ONEVENT_SYMBOL',
         'INTEGER',
         'FLOAT',
         'SLASH',
@@ -71,7 +70,7 @@ class UnitExprLexer(object):
         'COMMA',
         'EQUALS',
         'COLON',
-        r"""NO_UNIT""",
+        #r"""NO_UNIT""",
         'TIMESTIMES',
         'NEWLINE',
         'PRIME',
@@ -86,10 +85,6 @@ class UnitExprLexer(object):
         'NOT',
         ] + list(reserved.values())
 
-    def t_NO_UNIT(self, t):
-        r"""NO_UNIT"""
-
-        return t
 
     def t_FLOAT(self, t):
         r"""([-]?[0-9]+\.[0-9]*([eE][+-]?[0-9]+)?)|([-]?[0-9]+([eE][+-]?[0-9]+))"""
@@ -113,8 +108,6 @@ class UnitExprLexer(object):
 
     t_IO_LINE = r"""<=> [^;]*"""
     t_MINUS = r"""-"""
-
-    t_ONEVENT_SYMBOL = r"""==>>"""
 
     t_LESSTHAN = r"""<"""
     t_GREATERTHAN = r""">"""
@@ -156,7 +149,10 @@ class UnitExprLexer(object):
     def token(self, *args, **kwargs):
         t = self.lexer.token(*args, **kwargs)
 
-        # print 'TOKEN:',t
+
+
+        print 'TOKEN:',t
+
         return t
 
 
