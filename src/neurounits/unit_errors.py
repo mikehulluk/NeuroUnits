@@ -108,9 +108,9 @@ class NeuroUnitParsingErrorUnexpectedToken(NeuroUnitParsingError):
 
         pre_parsed_lines = lines[ max(bad_line_no-lines_context,0): bad_line_no ]
         post_parsed_lines = lines[ bad_line_no : min(bad_line_no+lines_context,len(lines)-1) ]
-        print self.bad_token.lineno
-        print self.bad_token.__dict__
-        print self.bad_token.lexer.lexer.__dict__.keys()
+        #print self.bad_token.lineno
+        #print self.bad_token.__dict__
+        #print self.bad_token.lexer.lexer.__dict__.keys()
         #assert False
         parsed_line = lines[bad_line_no]
 
@@ -150,7 +150,7 @@ class NeuroUnitParsingErrorUnexpectedToken(NeuroUnitParsingError):
         D = ''.join([D6,D7,D9,D10,D12, D13])
         E = ''.join(['\n%s'%s for s in (E1,E2,E3,E4)])
 
-        return d1 + d2 + d3 + d4 + '\n\n\n' + D +'\n' + E  + '\nOVER'
+        return d1 + d2 + d3 + d4 + '\n\n\n' + D +'\n' + E  + '\nOVER' + ','.join( self.bad_token.__dict__.keys())
 
 
 

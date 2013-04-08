@@ -43,7 +43,7 @@ def join_lines_and_add_semicolons(text):
     text = '\n'.join(lines)
 
     # Remove all joining whitespace:
-    text = ''.join(lines)
+    #text = ''.join(lines)
 
     #while ';;' in text:
     #    text = text.replace(";;",";")

@@ -382,6 +382,6 @@ from neurounits.logging import logbook as lb
 def main():
     test0()
     test1()
-    #pylab.show()
+    pylab.show()
 main()
 

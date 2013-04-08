@@ -57,7 +57,7 @@ class UnitExprLexer(object):
         'INTEGER',
         'FLOAT',
         'SLASH',
-        'WHITESPACE',
+        #'WHITESPACERAW',
         'LBRACKET',
         'RBRACKET',
         'LCURLYBRACKET',
@@ -87,54 +87,66 @@ class UnitExprLexer(object):
 
 
     def t_FLOAT(self, t):
-        r"""([-]?[0-9]+\.[0-9]*([eE][+-]?[0-9]+)?)|([-]?[0-9]+([eE][+-]?[0-9]+))"""
-        t.value = float(t.value)
+        r"""(([-]?[0-9]+\.[0-9]*([eE][+-]?[0-9]+)?)|([-]?[0-9]+([eE][+-]?[0-9]+)))\s*"""
+        t.value = float(t.value.strip())
         return t
 
     def t_INTEGER(self, t):
-        r"""[-]?[0-9]+"""
-        t.value = int(t.value)
+        r"""[-]?[0-9]+\s*"""
+        t.value = int(t.value.strip())
         return t
 
+    #def t_ALPHATOKENSPACE(self, t):
+    #    r"""[a-zA-Z_]+\s+"""
+    #    t.value = t.value.strip()
+    #    t.type = UnitExprLexer.reserved.get(t.value, t.type)
+    #    return t
+
     def t_ALPHATOKEN(self, t):
-        r"""[a-zA-Z_]+"""
+        r"""[a-zA-Z_]+\s*"""
+        t.value = t.value.strip()
         t.type = UnitExprLexer.reserved.get(t.value, t.type)
         return t
 
     def t_NEWLINE(self, t):
-        r"""\n+"""
+        r"""\n+\s*"""
         t.lexer.lineno += len(t.value)
         return t
 
-    t_IO_LINE = r"""<=> [^;]*"""
-    t_MINUS = r"""-"""
+    WS = '\s*'
+    t_IO_LINE = r"""<=> [^;]*"""  + WS
+    t_MINUS = r"""-""" + WS
 
-    t_LESSTHAN = r"""<"""
-    t_GREATERTHAN = r""">"""
-    t_SLASH = r"""/"""
-    t_WHITESPACE = r"""[ \t]+"""
-    t_LBRACKET = r"""\("""
-    t_RBRACKET = r"""\)"""
-    t_LCURLYBRACKET = r"""\{"""
-    t_RCURLYBRACKET = r"""\}"""
-    t_LSQUAREBRACKET = r"""\["""
-    t_RSQUAREBRACKET = r"""\]"""
-    t_TIMESTIMES = r"""\*\*"""
-    t_PRIME = r"""'"""
-    t_SEMICOLON = r""";"""
+    t_LESSTHAN = r"""<""" + WS
+    t_GREATERTHAN = r""">""" + WS
+    t_SLASH = r"""/""" + WS
+    t_LBRACKET = r"""\(""" + WS
+    t_RBRACKET = r"""\)""" + WS
+    t_LCURLYBRACKET = r"""\{""" + WS
+    t_RCURLYBRACKET = r"""\}""" + WS
+    t_LSQUAREBRACKET = r"""\[""" + WS
+    t_RSQUAREBRACKET = r"""\]""" + WS
+    t_TIMESTIMES = r"""\*\*""" + WS
+    t_PRIME = r"""'""" + WS 
+    t_SEMICOLON = r""";""" + WS 
 
-    t_TILDE = r"""~"""
-    t_DOT = r"""\."""
-    t_TIMES = r"""\*"""
-    t_PLUS = r"""\+"""
+    t_TILDE = r"""~""" + WS
+    t_DOT = r"""\.""" + WS
+    t_TIMES = r"""\*""" + WS 
+    t_PLUS = r"""\+""" + WS
 
-    t_COMMA = r""","""
-    t_COLON = r""":"""
-    t_EQUALS = r"""="""
+    t_COMMA = r""",""" + WS
+    t_COLON = r""":""" + WS
+    t_EQUALS = r"""=""" + WS
 
-    t_NOT = r"""!"""
-    t_AND = r"""&"""
-    t_OR = r"""\|"""
+    t_NOT = r"""!""" + WS
+    t_AND = r"""&""" + WS
+    t_OR = r"""\|""" + WS
+
+
+
+
+
 
 
     def t_error(self, t):

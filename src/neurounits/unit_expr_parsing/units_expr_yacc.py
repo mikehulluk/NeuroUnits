@@ -54,16 +54,13 @@ def p_empty(p):
 
 
 def p_whitespace_slurp2(p):
-    """whiteslurp : empty
-                  | WHITESPACE"""
+    """whiteslurp : empty"""
     pass
 
 
 def p_whitespace_slurp3(p):
     """white_or_newline_slurp : empty
-                             | WHITESPACE
                              | NEWLINE
-                             | white_or_newline_slurp WHITESPACE
                              | white_or_newline_slurp NEWLINE
                              """
 
@@ -83,7 +80,7 @@ def p_nineml_file_def1(p):
     pass
 
 def p_nineml_file_def2(p):
-    """nineml_file : nineml_file white_or_newline_slurp namespace_def"""
+    """nineml_file : nineml_file namespace_def"""
     pass
 
 
@@ -103,7 +100,7 @@ def p_close_new_namespace(p):
 
 
 def p_namespace_def1(p):
-    """namespace_def_internal : NAMESPACE WHITESPACE namespace_name white_or_newline_slurp LCURLYBRACKET namespacecontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
+    """namespace_def_internal : NAMESPACE namespace_name LCURLYBRACKET namespacecontents RCURLYBRACKET SEMICOLON """
     pass
 
 
@@ -125,7 +122,7 @@ def p_close_new_component(p):
 
 
 def p_component_def1(p):
-    """component_def_internal : DEFINE_COMPONENT  WHITESPACE component_name LCURLYBRACKET componentcontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
+    """component_def_internal : DEFINE_COMPONENT  component_name LCURLYBRACKET componentcontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
     #p.parser.library_manager.get_current_block_builder().set_name(p[4])
 
 
@@ -220,36 +217,28 @@ def p_transition_to1(p):
 
 
 def p_transition_to2(p):
-    """transition_to : TRANSITION_TO whiteslurp alphanumtoken whiteslurp SEMICOLON white_or_newline_slurp"""
-    p[0] = p[3]
+    """transition_to : TRANSITION_TO alphanumtoken SEMICOLON """
+    p[0] = p[2]
 
 
 def p_on_transition_actions1(p):
-    """transition_actions : white_or_newline_slurp"""
+    """transition_actions : empty"""
     p[0] = []
 def p_on_transition_actions2(p):
-    """transition_actions :  transition_actions transition_actionline"""
+    """transition_actions :  transition_actions transition_action"""
     p[0] = p[1] + [p[2]]
 
-def p_on_transition_actions2b(p):
-    """transition_actions :  transition_action"""
-    p[0] = [p[1]]
-
-def p_on_transition_actions3(p):
-    """transition_actionline :  transition_action SEMICOLON white_or_newline_slurp"""
-    p[0] = p[1]
 
 
 def p_on_transition_actions4(p):
-    """transition_action : alphanumtoken EQUALS rhs_term"""
+    """transition_action : alphanumtoken EQUALS rhs_term SEMICOLON"""
     lhs = p.parser.library_manager.get_current_block_builder().get_symbol_or_proxy(p[1])
     p[0] = ast.OnEventStateAssignment(lhs=lhs,rhs=p[3])
 
 
 def p_on_transition_actions5(p):
-    """transition_action : EMIT whiteslurp alphanumtoken  whiteslurp LBRACKET event_call_params_l3 RBRACKET"""
-    #p[0] = ast.EmitEvent(event_name=p[3], parameter_map=p[6] )
-    p[0] = p.parser.library_manager.get_current_block_builder().create_emit_event(port_name=p[3], parameters=LookUpDict(p[6], accepted_obj_types=ast.EmitEventParameter))
+    """transition_action : EMIT alphanumtoken  LBRACKET event_call_params_l3 RBRACKET SEMICOLON"""
+    p[0] = p.parser.library_manager.get_current_block_builder().create_emit_event(port_name=p[2], parameters=LookUpDict(p[4], accepted_obj_types=ast.EmitEventParameter))
 
 
 
@@ -372,7 +361,7 @@ def p_close_new_eqnset(p):
     p.parser.library_manager.end_eqnset_block()
 
 def p_eqnset_def1(p):
-    """eqnset_def_internal : EQNSET WHITESPACE eqnset_name LCURLYBRACKET eqnsetcontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
+    """eqnset_def_internal : EQNSET eqnset_name LCURLYBRACKET eqnsetcontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
 
 
 def p_complete_eqnset_line(p):
@@ -416,7 +405,7 @@ def p_close_new_library(p):
 
 
 def p_library_def1(p):
-    """library_def_internal : LIBRARY  WHITESPACE library_name LCURLYBRACKET librarycontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
+    """library_def_internal : LIBRARY library_name LCURLYBRACKET librarycontents white_or_newline_slurp RCURLYBRACKET white_or_newline_slurp SEMICOLON white_or_newline_slurp"""
     pass
 
 def p_complete_library_line(p):
@@ -501,12 +490,12 @@ def p_on_event_action1(p):
 
 # Importing:
 def p_import_statement1(p):
-    """import : FROM WHITESPACE namespace WHITESPACE IMPORT WHITESPACE import_target_list"""
-    p.parser.library_manager.get_current_block_builder().do_import(srclibrary=p[3], tokens=[(t,None) for t in p[7]])
+    """import : FROM namespace IMPORT import_target_list"""
+    p.parser.library_manager.get_current_block_builder().do_import(srclibrary=p[2], tokens=[(t,None) for t in p[4]])
 
 def p_import_statement2(p):
-    """import : FROM WHITESPACE namespace WHITESPACE IMPORT WHITESPACE localsymbol WHITESPACE AS WHITESPACE  localsymbol"""
-    p.parser.library_manager.get_current_block_builder().do_import(srclibrary = p[3], tokens=[(p[7],p[11])])
+    """import : FROM namespace IMPORT localsymbol AS localsymbol"""
+    p.parser.library_manager.get_current_block_builder().do_import(srclibrary = p[2], tokens=[(p[4],p[6])])
 
 
 
@@ -852,16 +841,17 @@ def p_quantity_1(p):
     backend = p.parser.library_manager.backend
     p[0] = backend.Quantity(p[1], p[2])
 
-def p_quantity_2(p):
-    """quantity : magnitude WHITESPACE unit_expr"""
-    backend = p.parser.library_manager.backend
-    p[0] = backend.Quantity(p[1], p[3])
+#def p_quantity_2(p):
+#    """quantity : magnitude unit_expr"""
+#    backend = p.parser.library_manager.backend
+#    p[0] = backend.Quantity(p[1], p[3])
 
 
 def p_quantity_magnitude(p):
     """magnitude : FLOAT
                  | INTEGER"""
     p[0] = float(p[1])
+
 
 
 
@@ -935,8 +925,8 @@ def p_unit_term_grp_1(p):
     p[0] = p[1]
 
 def p_unit_term_grp_2(p):
-    """unit_term_grp : unit_term_grp WHITESPACE unit_term"""
-    p[0] = p[1] * p[3]
+    """unit_term_grp : unit_term_grp  unit_term"""
+    p[0] = p[1] * p[2]
 
 
 
@@ -990,7 +980,7 @@ def p_error(p):
 
 
 
-# Low to high: (WHITESPACE needs highest priority,
+# Low to high: 
 # so that multipluication of units happens before division
 # ( e.g. {2 m/ s s} )
 precedence = (
@@ -1003,7 +993,7 @@ precedence = (
     ('left', 'PLUS', 'MINUS'),
     ('left', 'TIMES', 'SLASH'),
     ('left', 'TIMESTIMES'),
-    ('left', 'WHITESPACE'),
+    ('left', 'ALPHATOKEN'),
 )
 
 from units_expr_parsetypes import ParseTypes
@@ -1030,13 +1020,15 @@ class ParserMgr(object):
     @classmethod
     def build_parser(cls, start_symbol, debug):
 
+        debug=True
+
         from neurounits.logging import log_neurounits
         log_neurounits.info('Building Parser for: %s' % start_symbol)
 
 
         username = 'tmp_%d' % os.getuid()
         tables_loc = EnsureExisits('/tmp/%s/nu/yacc/parse_eqn_block' % username)
-        parser = yacc.yacc(debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1, errorlog=log_neurounits  )
+        parser = yacc.yacc(debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1, errorlog=log_neurounits,  )
 
 
         return parser
@@ -1119,7 +1111,7 @@ def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=No
 
 
 def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
-
+    debug=True
     start_symbol = ParseDetails.start_symbols[parse_type]
 
     # Build the lexer and the parser:

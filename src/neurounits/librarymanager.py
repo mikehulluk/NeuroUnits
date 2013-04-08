@@ -106,6 +106,9 @@ class LibraryManager(object):
             srcs = chain(self.eqnsets, self.libraries, self.components)
 
         srcs = list(srcs)
+        print srcs
+        print [s.name for s in srcs]
+        print '"%s"' % name
         l = SeqUtils.expect_single([l for l in srcs if l.name == name])
 
         # Testing: make sure all nodes accounted for:
