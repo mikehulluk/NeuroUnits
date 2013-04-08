@@ -1,3 +1,69 @@
+
+
+namespace my_new_components{
+
+    define_interface stdnrn{
+        provides  V:(V)
+        accepts  I:(V)
+    }
+
+    define_interface coba_syn{
+        accepts  V:(V)
+        accepts  in(amp:(S))
+        provides I:(V)
+
+    }
+
+    define_interface stdnrn2syn{
+
+        provides V:(V)
+        accepts inhib_event(amp:S) 
+        accepts excit_event(amp:S) 
+    }
+
+    define_interface_connection{
+        stdnrn <=> coba_syn
+        stdnrn.V <==> coba_syn.V
+        stdnrn.I <==> coba_syn.I
+    }
+
+    
+
+    define_component mysyn{
+        v' = (1/C) * I_in
+        
+        supports interface stdnrn{
+            v ==> stdnrn.V
+            I_in ==> stdnrn.V
+        }
+    }
+    define_component mynrn{
+        i = (E-V) * ...
+
+        supports coba_syn
+    }
+
+
+    define_compound mymeganeuron {
+        instantiate mynrn as N
+        instantiate mysyn as S1
+        instantiate mysyn as S2
+
+        connect interfaces N <=> S1
+        connect interfaces N <=> S2
+
+        supports interface stdnrn2syn{
+            
+        }
+
+        
+    }
+
+
+
+}
+
+
 namespace my_components {
 
 
