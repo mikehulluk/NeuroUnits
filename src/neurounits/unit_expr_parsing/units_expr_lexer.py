@@ -44,28 +44,34 @@ class UnitExprLexer(object):
 
         'namespace': 'NAMESPACE',
         'define_component': 'DEFINE_COMPONENT',
-        'define_compound': 'DEFINE_COMPOUND',
         'regime': 'REGIME',
         'transition_to': 'TRANSITION_TO',
         'on': 'ON',
         'emit': 'EMIT',
         'rtgraph': 'RTGRAPH',
 
+        'define_compound': 'DEFINE_COMPOUND',
         'instantiate' : 'INSTANTIATE',
         'connect' : 'CONNECT',
         'merge':'MERGE',
         'rename':'RENAME',
         'to':'TO',
 
+        'define_compoundport': 'DEFINE_COMPOUNDPORT',
+        'compoundport': 'COMPOUNDPORT',
         }
 
     tokens = [
+        'COMPOUNDPORT_IN',
+        'COMPOUNDPORT_OUT',
+        'COMPOUNDPORT_IN_OPT',
+        'COMPOUNDPORT_OUT_OPT',
+
         'CONNECTION_SYMBOL',
         'IO_LINE',
         'INTEGER',
         'FLOAT',
         'SLASH',
-        #'WHITESPACERAW',
         'LBRACKET',
         'RBRACKET',
         'LCURLYBRACKET',
@@ -74,13 +80,10 @@ class UnitExprLexer(object):
         'TIMES',
         'PLUS',
         'MINUS',
-        #'TILDE',
         'COMMA',
         'EQUALS',
         'COLON',
-        #r"""NO_UNIT""",
         'TIMESTIMES',
-        #'NEWLINE',
         'PRIME',
         'LSQUAREBRACKET',
         'RSQUAREBRACKET',
@@ -124,6 +127,14 @@ class UnitExprLexer(object):
     WS = '\s*'
 
     # Automatically slurp up trailing whitespace:
+
+    t_COMPOUNDPORT_IN = r"""==>>""" + WS
+    t_COMPOUNDPORT_OUT = r"""<<==""" + WS
+    t_COMPOUNDPORT_IN_OPT = r"""==\?>""" + WS
+    t_COMPOUNDPORT_OUT_OPT = r"""<\?==""" + WS
+
+
+
     t_IO_LINE = r"""<=> [^;]*"""  + WS
     t_MINUS = r"""-""" + WS
 
@@ -175,7 +186,7 @@ class UnitExprLexer(object):
 
 
 
-        #print 'TOKEN:',t
+        print 'TOKEN:',t
 
         return t
 

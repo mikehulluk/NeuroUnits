@@ -37,6 +37,13 @@ class ASTAllConnectionsCheck(ASTActionerDefault):
         self.check_node(n)
 
     def check_node(self, obj, **kwargs):
+
+
+        from neurounits.ast import CompoundPortDef
+        if isinstance(obj, CompoundPortDef):
+            return 
+
+
         connections = ASTAllConnections()
 
         #print 
@@ -82,6 +89,9 @@ class ASTAllConnectionsCheck(ASTActionerDefault):
 
 
 class ASTAllConnections(ASTActionerDepthFirst):
+
+    def VisitCompoundPort(self, o, **kwargs):
+        []
 
 
     def VisitEqnSet(self, o, **kwargs):

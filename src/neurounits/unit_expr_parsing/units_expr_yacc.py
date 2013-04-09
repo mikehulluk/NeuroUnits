@@ -67,7 +67,8 @@ def p_major_blocks(p):
     """top_level_block : component_def
                        | compound_component_def
                        | namespace_def
-                       | library_def"""
+                       | library_def
+                       | compound_port_def"""
 
 
 
@@ -94,6 +95,76 @@ def p_namespace_def2(p):
 
 
 
+
+
+
+
+
+
+
+# CompoundPort Defintions:
+# ==============
+
+def p_compoundport_1(p):
+    """ compound_port_def : DEFINE_COMPOUNDPORT alphanumtoken LCURLYBRACKET compound_port_def_contents RCURLYBRACKET SEMICOLON"""
+    compound_port = ast.CompoundPortDef( name=p[2], connections = p[4] )
+    p.parser.library_manager.add_compoundportdef(compound_port)
+
+def p_compoundport_2(p):
+    """ compound_port_def_contents : empty
+                                   | compound_port_def_contents compound_port_def_line SEMICOLON """
+    if len(p) == 2:
+        p[0] = []
+    else:
+        p[0] = p[1] + [p[2]]
+
+
+def p_compoundport_3a(p):
+    """ compound_port_def_direction_arrow : COMPOUNDPORT_IN"""
+    p[0] = (ast.CompoundPortDefWire.DirRight, False)
+
+def p_compoundport_3b(p):
+    """ compound_port_def_direction_arrow : COMPOUNDPORT_IN_OPT"""
+    p[0] = (ast.CompoundPortDefWire.DirRight, True)
+
+def p_compoundport_3c(p):
+    """ compound_port_def_direction_arrow : COMPOUNDPORT_OUT"""
+    p[0] = (ast.CompoundPortDefWire.DirLeft, False)
+
+def p_compoundport_3d(p):
+    """ compound_port_def_direction_arrow : COMPOUNDPORT_OUT_OPT"""
+    p[0] = (ast.CompoundPortDefWire.DirLeft, True)
+
+
+# Analog port:
+def p_compoundport_7(p):
+    """compound_port_def_line : compound_port_def_direction_arrow alphanumtoken COLON LBRACKET unit_expr RBRACKET """
+    direction, optional = p[1]
+    p[0] = ast.CompoundPortDefWireContinuous( symbol=p[2], direction=direction, unit=5, optional=optional)
+
+# Events:
+def p_compoundport_8(p):
+    """compound_port_def_line : compound_port_def_direction_arrow alphanumtoken LBRACKET compoundport_event_param_list RBRACKET"""
+    direction, optional = p[1]
+    p[0] = ast.CompoundPortDefWireEvent( symbol=p[2], direction=direction, parameters=p[4], optional=optional)
+
+
+def p_compoundport_event_param_list_1(p):
+    """compoundport_event_param_list : empty"""
+    p[0] = []
+def p_compoundport_event_param_list_2(p):
+    """compoundport_event_param_list : compoundport_event_param"""
+    p[0] = [p[1]]
+def p_compoundport_event_param_list_3(p):
+    """compoundport_event_param_list : compoundport_event_param_list COMMA compoundport_event_param   """
+    p[0] = p[1] + [p[3]]
+def p_compoundport_event_param_1(p):
+    """compoundport_event_param : alphanumtoken COLON LBRACKET RBRACKET   """
+    backend = p.parser.library_manager.backend
+    p[0] = ( p[1], backend.Unit() )
+def p_compoundport_event_param_2(p):
+    """compoundport_event_param : alphanumtoken COLON unit_expr  """
+    p[0] = ( p[1], p[3] )
 
 
 # Compound component:
@@ -160,6 +231,20 @@ def p_compound_component7(p):
 def p_compound_component8(p):
     """ns_name_list :  ns_name_list COMMA ns_name"""
     p[0] = p[1] + [p[3]]
+
+
+
+
+
+
+
+
+
+
+# Compound Component Port Instantiation
+# =======================================
+
+
 
 
 
@@ -1092,7 +1177,7 @@ def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=No
 
 
 def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
-    #debug=True
+    debug=True
     start_symbol = ParseDetails.start_symbols[parse_type]
 
     # Build the lexer and the parser:

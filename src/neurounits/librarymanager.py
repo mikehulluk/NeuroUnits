@@ -83,6 +83,7 @@ class LibraryManager(object):
 
         self.libraries = []
         self.components = []
+        self.compound_port_defs = []
 
         if is_stdlib_cache:
             # Load in the standard libraries:
@@ -92,7 +93,6 @@ class LibraryManager(object):
                 with open(f) as l:
                     print 'Loading StdLib file:', f
                     parse_expr(l.read(), parse_type=ParseTypes.N6_9MLFile, library_manager=self)
-                    #parse_expr(l.read(), parse_type=ParseTypes.L6_TextBlock, library_manager=self)
 
             LibraryManager._stdlib_cache_loading = False
             LibraryManager._stdlib_cache = self
@@ -109,8 +109,16 @@ class LibraryManager(object):
             raise DuplicateNameError('Name already exists: %s' % component.name)
         except NoSuchObjectError:
             pass
-        
+
         self.components.append(component)
+
+    def add_compoundportdef(self, compoundportdef):
+        try:
+            self.get(compoundportdef.name)
+            raise DuplicateNameError('Name already exists: %s' % compoundportdef.name)
+        except NoSuchObjectError:
+            pass
+        self.compound_port_defs.append(compoundportdef)
 
 
 
@@ -120,9 +128,9 @@ class LibraryManager(object):
             include_stdlibs = False
 
         if include_stdlibs:
-            srcs = chain(self.libraries, self.components, self._stdlib_cache.libraries)
+            srcs = chain(self.libraries, self.components, self.compound_port_defs, self._stdlib_cache.libraries)
         else:
-            srcs = chain(self.libraries, self.components)
+            srcs = chain(self.libraries, self.components, self.compound_port_defs)
 
         srcs = list(srcs)
         print srcs

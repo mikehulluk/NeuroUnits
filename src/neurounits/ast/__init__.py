@@ -34,3 +34,4 @@ from astobjects_nineml import EqnTimeDerivativeByRegime,  EqnAssignmentByRegime
 from astobjects_nineml import EqnRegimeDispatchMap
 
 from astobjects_nineml import *
+from compoundports import *

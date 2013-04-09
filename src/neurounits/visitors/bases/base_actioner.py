@@ -46,6 +46,11 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def __init__(self, action_predicates=None):
         self.action_predicates = action_predicates or []
 
+
+
+    def VisitCompoundPortDef(self, o, **kwargs):
+        self._ActionCompoundPortDef( o, **kwargs)
+
     def VisitLibrary(self, o, **kwargs):
 
         subnodes = itertools.chain(o.functiondefs, o.symbolicconstants)
@@ -54,16 +59,14 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
         self._ActionLibrary(o, **kwargs)
 
-    def VisitEqnSet(self, o, **kwargs):
+    #def VisitEqnSet(self, o, **kwargs):
 
-        subnodes = itertools.chain(o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants)
-        for f in subnodes:
-            self.visit(f, **kwargs)
+    #    subnodes = itertools.chain(o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants)
+    #    for f in subnodes:
+    #        self.visit(f, **kwargs)
 
-        #for onev in o.onevents:
-        #    self.visit(onev, **kwargs)
 
-        self._ActionEqnSet(o, **kwargs)
+    #    self._ActionEqnSet(o, **kwargs)
 
     def VisitNineMLComponent(self, o, **kwargs):
 
@@ -437,7 +440,9 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
 
 
-
+    def _ActionCompoundPortDef(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            self.ActionCompoundPortDef(o, **kwargs)
 
 
 

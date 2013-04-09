@@ -199,6 +199,14 @@ namespace test {
 
 
 
+        define_compoundport std_pt_process {
+                ==>> V : (V)
+                <<== I : (A)
+                ==?> events_in (V:S)
+                <?== events_out( a:(),b:() )
+        }
+
+
 
         define_compound mymeganeuron {
                 instantiate chlstd_leak as lk
@@ -218,7 +226,16 @@ namespace test {
 
                 merge [ i_square1/t_on, i_square1/t_off, i_square2/t_on, i_square2/t_off] as t_in
 
+
+                #compoundport my_connection {
+                #       V <==> V
+                #       I_in <==> I
+                #}
+
+
         }
+
+
 
 
 
@@ -234,6 +251,9 @@ namespace test {
 
 library_manager = neurounits.NeuroUnitParser.Parse9MLFile( test_text )
 
+s = library_manager.get('std_pt_process')
+
+s.summarise()
 
 
 assert False

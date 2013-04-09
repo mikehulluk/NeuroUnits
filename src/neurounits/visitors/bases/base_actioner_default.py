@@ -149,6 +149,8 @@ class ASTActionerDefault(ASTActionerDepthFirst):
     def ActionEmitEventParameter(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
+    def ActionCompoundPortDef(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
 
 
     def ActionOutEventPort(self, o, **kwargs):
