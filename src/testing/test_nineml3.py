@@ -254,7 +254,7 @@ namespace test {
         
 
         define_compound mymeganeuron_hubby {
-                #instantiate mymeganeuron as nrn
+                instantiate mymeganeuron as nrn
                 instantiate synwrap as synin
         
                 #connect nrn/IO_pt_proc <==> synin/IO_post
