@@ -59,6 +59,7 @@ class UnitExprLexer(object):
 
         'define_compoundport': 'DEFINE_COMPOUNDPORT',
         'compoundport': 'COMPOUNDPORT',
+        'of_type': 'OFTYPE',
         }
 
     tokens = [
@@ -186,7 +187,7 @@ class UnitExprLexer(object):
 
 
 
-        print 'TOKEN:',t
+        #print 'TOKEN:',t
 
         return t
 

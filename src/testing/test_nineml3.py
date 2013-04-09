@@ -227,15 +227,39 @@ namespace test {
                 merge [ i_square1/t_on, i_square1/t_off, i_square2/t_on, i_square2/t_off] as t_in
 
 
-                #compoundport my_connection {
-                #       V <==> V
-                #       I_in <==> I
-                #}
-
-
+                compoundport IO_pt_proc of_type std_pt_process  {
+                       V <==> V
+                       I_in <==> I
+                }
         }
 
 
+
+        define_compound synwrap {
+
+                instantiate evt_gen as evts
+                instantiate evt_syn as psm
+
+                connect evts/myevent <==> psm/myevent
+
+                compoundport IO_post of_type std_pt_process  {
+                       # Local <==> Coumpound-Port name
+                       psm/V_post <==> V
+                       psm/i <==> I
+                }
+
+                
+
+        }
+        
+
+        define_compound mymeganeuron_hubby {
+                #instantiate mymeganeuron as nrn
+                instantiate synwrap as synin
+        
+                #connect nrn/IO_pt_proc <==> synin/IO_post
+
+        }
 
 
 

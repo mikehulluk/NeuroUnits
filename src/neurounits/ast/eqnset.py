@@ -86,11 +86,11 @@ class Library(Block):
                         LookUpDict(self.symbolicconstants).get_objs_by(symbol=symbol)+ \
                         LookUpDict(self.functiondefs).get_objs_by(funcname=symbol)
 
-        print'Looking for:'
-        print self.functiondefs.get_objects_attibutes(attr='funcname')
-        print 'Symbol:', '"%s"' % symbol
-        ##print 'Looking for:', symbol
-        ##print possible_objs
+        #print'Looking for:'
+        #print self.functiondefs.get_objects_attibutes(attr='funcname')
+        #print 'Symbol:', '"%s"' % symbol
+        ###print 'Looking for:', symbol
+        ###print possible_objs
         if not len(possible_objs) == 1:
             raise KeyError("Can't find terminal: %s" % symbol)
 
@@ -202,6 +202,23 @@ class EqnSet(Block):
 
 
 
+    def get_terminal_obj_or_port(self, symbol):
+        possible_objs = self._parameters_lut.get_objs_by(symbol=symbol) + \
+                        self._supplied_lut.get_objs_by(symbol=symbol) + \
+                        self._analog_reduce_ports_lut.get_objs_by(symbol=symbol)+ \
+                        LookUpDict(self.assignedvalues).get_objs_by(symbol=symbol)+ \
+                        LookUpDict(self.state_variables).get_objs_by(symbol=symbol)+ \
+                        LookUpDict(self.symbolicconstants).get_objs_by(symbol=symbol) + \
+                        self.input_event_port_lut.get_objs_by(name=symbol) + \
+                        self.output_event_port_lut.get_objs_by(name=symbol) 
+
+
+        
+        if not len(possible_objs) == 1:
+            all_syms = [ p.symbol for p in self.all_terminal_objs() ]
+            raise KeyError("Can't find terminal/EventPort: '%s' \n (Terminals/EntPorts found: %s)" % (symbol, ','.join(all_syms) ) )
+
+        return possible_objs[0]
 
 
 
@@ -314,6 +331,12 @@ class NineMLComponent(EqnSet):
         self._rt_graphs = LookUpDict( builddata.rt_graphs)
 
         self._event_port_connections = LookUpDict()
+        
+        from neurounits.ast import CompoundPortConnector
+        self._compound_ports_connectors = LookUpDict( accepted_obj_types=(CompoundPortConnector,), unique_attrs=('name',))
+
+    def define_compound_port(self, compoundportconnector ):
+        self._compound_ports_connectors._add_item(compoundportconnector)
 
     def add_event_port_connection(self, conn):
         assert conn.dst_port in self.input_event_port_lut
@@ -398,6 +421,7 @@ class NineMLComponent(EqnSet):
         pickle.dump(self, c)
 
         new = pickle.load(cStringIO.StringIO(c.getvalue()))
+        new.library_manager = self.library_manager
         return new
 
 

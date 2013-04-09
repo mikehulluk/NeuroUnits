@@ -450,7 +450,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
 
     def ActionEventPortConnection(self, o, **kwargs):
-        print self
+        #print self
         raise NotImplementedError()
 
 

@@ -50,17 +50,21 @@ class CompoundPortDef(base.ASTObject):
             conn._summarise()
         print
 
+    def get_wire(self, wire_name):
+        return self.connections.get_single_obj_by(symbol=wire_name)
+
 
 class CompoundPortConnectorWireMapping(base.ASTObject):
-    def __init__(self, component_port_name, compound_port_name):
+    def __init__(self, component_port, compound_port):
         super(CompoundPortConnectorWireMapping,self).__init__()
-        self.component_port_name = component_port_name 
-        self.compound_port_name = compound_port_name
+        self.component_port = component_port
+        self.compound_port = compound_port
 
 
 class CompoundPortConnector(base.ASTObject):
-    def __init__(self, name, compound_port, wire_mappings):
+    def __init__(self, name, compound_port_def, wire_mappings):
         super(CompoundPortConnector, self).__init__()
         
         self.name = name
+        self.compound_port_def =  compound_port_def
         self.wire_mappings = LookUpDict(wire_mappings, accepted_obj_types=(CompoundPortConnectorWireMapping,) )

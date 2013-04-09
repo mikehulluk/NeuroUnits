@@ -110,6 +110,8 @@ class LibraryManager(object):
         except NoSuchObjectError:
             pass
 
+        print 'Adding component: "%s" '% component.name
+        #assert component.name in ['nrn','psm',]
         self.components.append(component)
 
     def add_compoundportdef(self, compoundportdef):
@@ -133,9 +135,9 @@ class LibraryManager(object):
             srcs = chain(self.libraries, self.components, self.compound_port_defs)
 
         srcs = list(srcs)
-        print srcs
-        print [s.name for s in srcs]
-        print '"%s"' % name
+        #print srcs
+        #print [s.name for s in srcs]
+        #print '"%s"' % name
         ls = [l for l in srcs if l.name == name]
 
         if len(ls) != 1:

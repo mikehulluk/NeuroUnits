@@ -180,7 +180,8 @@ def p_ns_name(p):
 
 def p_compound_component(p):
     """compound_component_def : DEFINE_COMPOUND alphanumtoken LCURLYBRACKET compoundcontents RCURLYBRACKET SEMICOLON"""
-    print 'Building Compound component:'
+    #print 'Building Compound component:'
+    print 'IN compoung componet'
     lib_mgr = p.parser.library_manager
     name = p[2]
     actions = p[4]
@@ -188,17 +189,25 @@ def p_compound_component(p):
     connections = [ d['what'] for d in actions if d['action']=='CONNECT']
     renames = [ d['what'] for d in actions if d['action']=='RENAME']
     merge_nodes = [ d['what'] for d in actions if d['action']=='MERGE']
+
+    compound_ports = [ d['port_instance'] for d in actions if d['action']=='COMPOUNDPORT'] 
    
      
     from neurounits.nineml import build_compound_component
     component = build_compound_component(
-            name=name,
+            component_name=name,
             instantiate = dict( instantiations ),   
             connections = connections,
             renames = renames,
             merge_nodes = merge_nodes,
+            compound_ports = compound_ports,
             )
     lib_mgr = p.parser.library_manager.add_component(component)
+
+    print component.name
+    print name
+    assert component.name == name
+    print 'Created compound component:', name
     
 
 
@@ -232,7 +241,9 @@ def p_compound_component8(p):
     """ns_name_list :  ns_name_list COMMA ns_name"""
     p[0] = p[1] + [p[3]]
 
-
+def p_compound_component9(p):
+    """compound_line : compound_port_inst"""
+    p[0] = {'action':'COMPOUNDPORT', 'port_instance':p[1] }
 
 
 
@@ -244,6 +255,20 @@ def p_compound_component8(p):
 # Compound Component Port Instantiation
 # =======================================
 
+def p_compound_port_inst_1(p):
+    """compound_port_inst : COMPOUNDPORT alphanumtoken OFTYPE alphanumtoken LCURLYBRACKET compound_port_inst_constents RCURLYBRACKET """
+    p[0] = (p[2],p[4], p[6])
+
+def p_compound_port_inst_2(p):
+    """compound_port_inst_constents : empty"""
+    p[0] = []
+
+def p_compound_port_inst_3(p):
+    """compound_port_inst_constents : compound_port_inst_constents compondport_inst_line SEMICOLON"""
+    p[0] = p[1]  + [p[2]]
+def p_compound_port_inst_4(p):
+    """compondport_inst_line : ns_name CONNECTION_SYMBOL ns_name"""
+    p[0] = (p[1], p[3])
 
 
 
@@ -1089,7 +1114,7 @@ class ParserMgr(object):
     @classmethod
     def build_parser(cls, start_symbol, debug):
 
-        debug=True
+        #debug=True
 
         from neurounits.logging import log_neurounits
         log_neurounits.info('Building Parser for: %s' % start_symbol)
@@ -1129,9 +1154,9 @@ def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=No
 
 
     #First, let preprocess the text:
-    logging.log_neurounits.info('Text before preprocessing: %s' % MLine(orig_text))
+    #logging.log_neurounits.info('Text before preprocessing: %s' % MLine(orig_text))
     text = preprocess_string(orig_text, parse_type=parse_type)
-    logging.log_neurounits.info('Text after preprocessing: %s' % MLine(text))
+    #logging.log_neurounits.info('Text after preprocessing: %s' % MLine(text))
 
 
     # Diff:
@@ -1177,7 +1202,7 @@ def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=No
 
 
 def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
-    debug=True
+    #debug=True
     start_symbol = ParseDetails.start_symbols[parse_type]
 
     # Build the lexer and the parser:
