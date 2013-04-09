@@ -86,6 +86,9 @@ class Library(Block):
                         LookUpDict(self.symbolicconstants).get_objs_by(symbol=symbol)+ \
                         LookUpDict(self.functiondefs).get_objs_by(funcname=symbol)
 
+        print'Looking for:'
+        print self.functiondefs.get_objects_attibutes(attr='funcname')
+        print 'Symbol:', '"%s"' % symbol
         ##print 'Looking for:', symbol
         ##print possible_objs
         if not len(possible_objs) == 1:
@@ -187,6 +190,17 @@ class EqnSet(Block):
 
 
 
+    def all_terminal_objs(self):
+        possible_objs = self._parameters_lut.get_objs_by() + \
+                        self._supplied_lut.get_objs_by() + \
+                        self._analog_reduce_ports_lut.get_objs_by()+ \
+                        LookUpDict(self.assignedvalues).get_objs_by()+ \
+                        LookUpDict(self.state_variables).get_objs_by()+ \
+                        LookUpDict(self.symbolicconstants).get_objs_by()
+
+        return possible_objs
+
+
 
 
 
@@ -199,10 +213,11 @@ class EqnSet(Block):
                         LookUpDict(self.state_variables).get_objs_by(symbol=symbol)+ \
                         LookUpDict(self.symbolicconstants).get_objs_by(symbol=symbol)
 
-        #print 'Looking for:', symbol
-        #print possible_objs
+
+        
         if not len(possible_objs) == 1:
-            raise KeyError("Can't find terminal: %s" % symbol)
+            all_syms = [ p.symbol for p in self.all_terminal_objs() ]
+            raise KeyError("Can't find terminal: '%s' \n (Terminals found: %s)" % (symbol, ','.join(all_syms) ) )
 
         return possible_objs[0]
 

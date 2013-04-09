@@ -65,6 +65,7 @@ def p_nineml_file_def2(p):
 
 def p_major_blocks(p):
     """top_level_block : component_def
+                       | compound_component_def
                        | namespace_def
                        | library_def"""
 
@@ -87,6 +88,82 @@ def p_namespace_def2(p):
     """namespaceblocks : empty
                        | namespaceblocks top_level_block"""
     pass
+
+
+
+
+
+
+
+
+# Compound component:
+# ====================
+def p_ns_name(p):
+    """ns_name : alphanumtoken
+               | ns_name SLASH alphanumtoken """
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        p[0] = p[1] + '/' + p[3]
+
+
+def p_compound_component(p):
+    """compound_component_def : DEFINE_COMPOUND alphanumtoken LCURLYBRACKET compoundcontents RCURLYBRACKET SEMICOLON"""
+    print 'Building Compound component:'
+    lib_mgr = p.parser.library_manager
+    name = p[2]
+    actions = p[4]
+    instantiations = [ (d['as'], lib_mgr.get(d['what'])) for d in actions if d['action']=='INSTANTIATE']
+    connections = [ d['what'] for d in actions if d['action']=='CONNECT']
+    renames = [ d['what'] for d in actions if d['action']=='RENAME']
+    merge_nodes = [ d['what'] for d in actions if d['action']=='MERGE']
+   
+     
+    from neurounits.nineml import build_compound_component
+    component = build_compound_component(
+            name=name,
+            instantiate = dict( instantiations ),   
+            connections = connections,
+            renames = renames,
+            merge_nodes = merge_nodes,
+            )
+    lib_mgr = p.parser.library_manager.add_component(component)
+    
+
+
+def p_compound_component2(p):
+    """compoundcontents : empty 
+                        | compoundcontents compound_line SEMICOLON """
+    if len(p) == 2:
+        p[0] = []
+    else:
+        p[0] = p[1] + [p[2]]
+
+def p_compound_component3(p):
+    """compound_line : INSTANTIATE alphanumtoken AS alphanumtoken"""
+    p[0] = {'action': 'INSTANTIATE' , 'what':p[2], 'as':p[4] }
+    
+def p_compound_component4(p):
+    """compound_line : CONNECT ns_name CONNECTION_SYMBOL ns_name"""
+    p[0] = {'action': 'CONNECT', 'what':(p[2],p[4])}
+def p_compound_component5(p):
+    """compound_line : RENAME ns_name TO ns_name"""
+    p[0] = {'action': 'RENAME', 'what':(p[2],p[4])}
+
+def p_compound_component6(p):
+    """compound_line : MERGE LSQUAREBRACKET ns_name_list  RSQUAREBRACKET AS ns_name"""
+    p[0] = {'action': 'MERGE', 'what':(p[3],p[6])}
+
+def p_compound_component7(p):
+    """ns_name_list :  ns_name"""
+    p[0] = [p[1]]
+def p_compound_component8(p):
+    """ns_name_list :  ns_name_list COMMA ns_name"""
+    p[0] = p[1] + [p[3]]
+
+
+
+
 
 
 
@@ -997,9 +1074,6 @@ def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=No
     ret = { ParseTypes.L1_Unit:             lambda: pRes,
             ParseTypes.L2_QuantitySimple:   lambda: pRes,
             ParseTypes.L3_QuantityExpr:     lambda: pRes,
-            #ParseTypes.L4_EqnSet:           lambda: SeqUtils.expect_single(library_manager.eqnsets),
-            #ParseTypes.L5_Library:          lambda: SeqUtils.expect_single(library_manager.libraries),
-            #ParseTypes.L6_TextBlock:        lambda: library_manager,
             ParseTypes.N6_9MLFile:        lambda: library_manager,
     }
 

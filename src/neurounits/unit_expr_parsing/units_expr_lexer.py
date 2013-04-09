@@ -41,18 +41,26 @@ class UnitExprLexer(object):
         'as': 'AS',
 
         'library': 'LIBRARY',
-        #'eqnset': 'EQNSET',
 
         'namespace': 'NAMESPACE',
         'define_component': 'DEFINE_COMPONENT',
+        'define_compound': 'DEFINE_COMPOUND',
         'regime': 'REGIME',
         'transition_to': 'TRANSITION_TO',
         'on': 'ON',
         'emit': 'EMIT',
         'rtgraph': 'RTGRAPH',
+
+        'instantiate' : 'INSTANTIATE',
+        'connect' : 'CONNECT',
+        'merge':'MERGE',
+        'rename':'RENAME',
+        'to':'TO',
+
         }
 
     tokens = [
+        'CONNECTION_SYMBOL',
         'IO_LINE',
         'INTEGER',
         'FLOAT',
@@ -118,6 +126,8 @@ class UnitExprLexer(object):
     # Automatically slurp up trailing whitespace:
     t_IO_LINE = r"""<=> [^;]*"""  + WS
     t_MINUS = r"""-""" + WS
+
+    t_CONNECTION_SYMBOL = r"""<==>""" + WS
 
     t_LESSTHAN = r"""<""" + WS
     t_GREATERTHAN = r""">""" + WS

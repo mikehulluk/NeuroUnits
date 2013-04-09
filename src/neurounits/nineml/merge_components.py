@@ -6,7 +6,30 @@ from neurounits.ast_builder.builder_visitor_propogate_dimensions import Propogat
 from neurounits.ast_builder.builder_visitor_propogate_dimensions import VerifyUnitsInTree
 from neurounits.visitors.common.ast_replace_node import ReplaceNode
 
-def build_compound_component(name, instantiate,  analog_connections, event_connections=None,  remap_ports=None, prefix='/', auto_remap_time=True):
+
+
+
+
+def _is_node_output(n):
+    if isinstance( n, (ast.AssignedVariable, ast.StateVariable)):
+        return True
+    if isinstance( n, (ast.AnalogReducePort, ast.SuppliedValue)):
+        return False
+    assert False, "I don't know the direction of: %s" % n
+
+def _is_node_analog(n):
+    if isinstance( n, (ast.AssignedVariable, ast.StateVariable, ast.AnalogReducePort, ast.SuppliedValue)):
+        return True
+    if isinstance( n (ast.OutEventPort, ast.InEventPort)):
+        return False
+    assert False, "I don't know the direction of: %s" % n
+
+
+def build_compound_component(name, instantiate,  analog_connections=None, event_connections=None,  renames=None, connections=None, prefix='/', auto_remap_time=True, merge_nodes=None):
+
+    
+    # TODO: check that merge nodes are:
+    # parameters
 
 
     lib_mgrs = list(set( [comp.library_manager for comp in instantiate.values()]) )
@@ -90,6 +113,75 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
             comp.add_event_port_connection(conn)
 
 
+
+
+    # 5.A Resolve more general syntax for connections:
+    if analog_connections is None:
+        analog_connections = []
+    if event_connections is None:
+        event_connections = []
+
+    if connections is not None:
+        for c1,c2 in connections:
+            print c1,c2
+            t1 = comp.get_terminal_obj(c1)
+            t2 = comp.get_terminal_obj(c2)
+            
+            # Analog Ports:
+            if _is_node_analog(t1):
+                assert _is_node_analog(t2) == True
+                if _is_node_output(t1):
+                    assert not _is_node_output(t2)
+                    analog_connections.append( (c1,c2))
+                else:
+                    assert _is_node_output(t2)
+                    analog_connections.append( (c2,c1))
+
+            # Event Ports:
+            else:
+                assert _is_node_analog(t2) == False
+                if _is_node_output(t1):
+                    assert not _is_node_output(t2)
+                    event_connections.append( (c1,c2))
+                else:
+                    assert _is_node_output(t2)
+                    event_connections.append( (c2,c1))
+
+
+            print t1,t2
+
+    #assert False
+
+
+    mergeable_node_types = (ast.SuppliedValue, ast.Parameter, ast.InEventPort, )
+    print merge_nodes
+    if merge_nodes:
+        for srcs, new_name in merge_nodes:
+            if not srcs:
+                assert False, 'No sources found'
+
+            # Sanity check:
+            src_objs = [comp.get_terminal_obj(s) for s in srcs]
+            node_types = list( set( [ type(s) for s in src_objs ] ) )
+            assert len(node_types) == 1, 'Different types of nodes found in merge'
+            assert node_types[0] in mergeable_node_types
+
+            # OK, so they are all off the same type, and the type is mergable:
+            # So, lets remap everything to first obj
+            dst_obj = src_objs[0]
+            for s in src_objs[1:]:
+                ReplaceNode.replace_and_check(srcObj=s, dstObj=dst_obj, root=comp)
+
+            # And now, we can rename the first obj:
+            dst_obj.symbol = new_name
+
+
+
+    #assert False
+
+
+
+
     # 5. Connect the relevant ports internally:
     for (src, dst) in analog_connections:
 
@@ -100,7 +192,6 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
             dst_obj.rhses.append(src_obj)
         elif isinstance(dst_obj, ast.SuppliedValue):
             ReplaceNode.replace_and_check(srcObj=dst_obj, dstObj=src_obj, root=comp)
-            
         else:
             assert False, 'Unexpected node type: %s' % dst_obj
 
@@ -108,7 +199,6 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
     #print 'Outports:', comp.output_event_port_lut
     #print 'Inports:', comp.input_event_port_lut
     for (src, dst) in event_connections:
-        #print src, dst
         src_port = comp.output_event_port_lut.get_single_obj_by(name=src) 
         dst_port = comp.input_event_port_lut.get_single_obj_by(name=dst) 
         conn = ast.EventPortConnection( src_port = src_port, dst_port = dst_port)
@@ -118,10 +208,13 @@ def build_compound_component(name, instantiate,  analog_connections, event_conne
         
 
     # 6. Map relevant ports externally:
-    if remap_ports:
-        for (src, dst) in remap_ports:
-            assert False
+    if renames:
+        for (src, dst) in renames:
             assert not dst in [s.symbol for s in comp.terminal_symbols]
+            s_obj = comp.get_terminal_obj(src)
+            s_obj.symbol = dst
+            assert not src in [s.symbol for s in comp.terminal_symbols]
+
             
 
 

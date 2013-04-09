@@ -37,6 +37,13 @@ import glob
 import os
 
 
+
+class DuplicateNameError(RuntimeError):
+    pass
+
+class NoSuchObjectError(RuntimeError):
+    pass
+
 class ComponentNamespace(object):
 
     def __init__(self, name):
@@ -75,7 +82,6 @@ class LibraryManager(object):
         self.backend = backend
 
         self.libraries = []
-        self.eqnsets = []
         self.components = []
 
         if is_stdlib_cache:
@@ -95,29 +101,49 @@ class LibraryManager(object):
         if not LibraryManager._stdlib_cache and not is_stdlib_cache:
             LibraryManager(backend=backend, is_stdlib_cache=True)
 
+
+
+    def add_component(self, component):
+        try:
+            self.get(component.name)
+            raise DuplicateNameError('Name already exists: %s' % component.name)
+        except NoSuchObjectError:
+            pass
+        
+        self.components.append(component)
+
+
+
     def get(self, name, include_stdlibs=True):
 
         if LibraryManager._stdlib_cache_loading:
             include_stdlibs = False
 
         if include_stdlibs:
-            srcs = chain(self.eqnsets, self.libraries, self.components,
-                         self._stdlib_cache.libraries)
+            srcs = chain(self.libraries, self.components, self._stdlib_cache.libraries)
         else:
-            srcs = chain(self.eqnsets, self.libraries, self.components)
+            srcs = chain(self.libraries, self.components)
 
         srcs = list(srcs)
         print srcs
         print [s.name for s in srcs]
         print '"%s"' % name
-        l = SeqUtils.expect_single([l for l in srcs if l.name == name])
+        ls = [l for l in srcs if l.name == name]
+
+        if len(ls) != 1:
+            print 'Did not find item in Library Manager!'
+            print 'Looking for: %s' % name
+            print 'Found:', [l.name for l in ls]
+            print
+            raise NoSuchObjectError()
+
 
         # Testing: make sure all nodes accounted for:
         from neurounits.visitors.common.ast_node_connections import ASTAllConnections
         from neurounits.visitors.common.ast_node_connections import ASTAllConnectionsCheck
-        ASTAllConnectionsCheck().visit(l)
+        ASTAllConnectionsCheck().visit(ls[0])
         #assert False
-        return l
+        return ls[0]
 
     def get_library(self, libname):
 
@@ -126,13 +152,13 @@ class LibraryManager(object):
         lib = SeqUtils.expect_single([l for l in chain(self.libraries, self._stdlib_cache.libraries) if l.name == libname])
         return lib
 
-    def get_eqnset(self, libname):
-        eqnset = SeqUtils.expect_single([l for l in self.eqnsets if l.name == libname])
-        return eqnset
+    #def get_eqnset(self, libname):
+    #    eqnset = SeqUtils.expect_single([l for l in self.eqnsets if l.name == libname])
+    #    return eqnset
 
-    def get_eqnset_names(self):
-        names = [l.name for l in self.eqnsets]
-        return names
+    #def get_eqnset_names(self):
+    #    names = [l.name for l in self.eqnsets]
+    #    return names
 
     def get_library_names(self, include_stdlibs=True):
         return [l.name for l in self.libraries]
@@ -143,14 +169,14 @@ class LibraryManager(object):
     def pop_block(self):
         return self.block_stack.pop()
 
-    def start_eqnset_block(self, name):
-        self.open_block(EqnSetBuilder(library_manager=self, name=name))
+    #def start_eqnset_block(self, name):
+    #    self.open_block(EqnSetBuilder(library_manager=self, name=name))
 
-    def end_eqnset_block(self):
-        eqnset = self.pop_block()
-        eqnset.finalise()
-        self.eqnsets.append(eqnset._astobject)
-        self.get_eqnset_names()
+    #def end_eqnset_block(self):
+    #    eqnset = self.pop_block()
+    #    eqnset.finalise()
+    #    self.eqnsets.append(eqnset._astobject)
+    #    self.get_eqnset_names()
 
     def start_library_block(self, name):
         self.open_block(LibraryBuilder(library_manager=self, name=name))
@@ -182,7 +208,7 @@ class LibraryManager(object):
 
     def summary(self, details=True):
         name = self.name if self.name else ''
-        simple = '<LibraryManager: %s EqnSets:%d Libraries:%d>' % (name, len(self.eqnsets), len(self.libraries))
+        simple = '<LibraryManager: %s Components: %d Libraries:%d>' % (name, len(self.components), len(self.libraries))
 
         return simple
 
