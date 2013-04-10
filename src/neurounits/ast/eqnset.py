@@ -330,12 +330,14 @@ class NineMLComponent(EqnSet):
         self._transitions_events = LookUpDict( builddata.transitions_events )
         self._rt_graphs = LookUpDict( builddata.rt_graphs)
 
+        # This is a list of internal event port connections:
         self._event_port_connections = LookUpDict()
         
         from neurounits.ast import CompoundPortConnector
+        # This is a list of the available connectors from this component
         self._compound_ports_connectors = LookUpDict( accepted_obj_types=(CompoundPortConnector,), unique_attrs=('name',))
 
-    def define_compound_port(self, compoundportconnector ):
+    def add_compound_port(self, compoundportconnector ):
         self._compound_ports_connectors._add_item(compoundportconnector)
 
     def add_event_port_connection(self, conn):
@@ -361,10 +363,11 @@ class NineMLComponent(EqnSet):
 
     def summarise(self):
         print
-        print '  Paramters: [%s]' %', '.join("'%s (%s)'" %(p.symbol, p.get_dimension()) for p in self.parameters)
+        print 'NineML Component: %s' % self.name
+        print '  Paramters: [%s]' %', '.join("'%s (%s)'" %(p.symbol, p.get_dimension()) for p in self._parameters_lut)
         print '  StateVariables: [%s]' % ', '.join("'%s'" %p.symbol for p in self.state_variables)
 
-        print '  Inputs: [%s]'% ', '.join("'%s'" %p.symbol for p in self.suppliedvalues)
+        print '  Inputs: [%s]'% ', '.join("'%s'" %p.symbol for p in self._supplied_lut)
 
         print '  Outputs: [%s]'% ', '.join("'%s (%s)'" %(p.symbol, p.get_dimension()) for p in self.assignedvalues)
         print '  ReducePorts: [%s] '% ', '.join("'%s (%s)'" % (p.symbol, p.get_dimension()) for p in self.analog_reduce_ports)
@@ -372,14 +375,6 @@ class NineMLComponent(EqnSet):
         print
 
         print
-        print 'NineML Component: %s' % self.name
-        print '  Paramters: [%s]' %', '.join("'%s'" %p.symbol for p in self.parameters)
-        print '  StateVariables: [%s]' % ', '.join("'%s'" %p.symbol for p in self.state_variables)
-
-        print '  Inputs: [%s]'% ', '.join("'%s'" %p.symbol for p in self.suppliedvalues)
-
-        print '  Outputs: [%s]'% ', '.join("'%s'" %p.symbol for p in self.assignedvalues)
-        print '  ReducePorts: [%s]'% ', '.join("'%s'" %p.symbol for p in self.analog_reduce_ports)
 
         print '  Time Derivatives:'
 

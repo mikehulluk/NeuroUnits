@@ -257,6 +257,8 @@ namespace test {
                 instantiate mymeganeuron as nrn
                 instantiate synwrap as synin
         
+                connect synin/psm/V_post <==> nrn/V
+                connect synin/psm/i <==> nrn/I_in
                 #connect nrn/IO_pt_proc <==> synin/IO_post
 
         }
@@ -275,9 +277,72 @@ namespace test {
 
 library_manager = neurounits.NeuroUnitParser.Parse9MLFile( test_text )
 
-s = library_manager.get('std_pt_process')
+s_IO = library_manager.get('std_pt_process')
+s_IO.summarise()
 
-s.summarise()
+
+
+s_nrn = library_manager.get('mymeganeuron_hubby')
+s_nrn.summarise()
+
+
+c = library_manager.get('mymeganeuron_hubby')
+
+res = simulate_component(component=c,
+                times = np.linspace(0,1,num=1000),
+                close_reduce_ports=True,
+                parameters={
+                        'nrn/i_inj/t_start' : '5ms',
+                        'synin/psm/e_syn': '0mV',
+                        'nrn/lk/g': '0.1pS/um2',
+                        'nrn/i_inj/i_amp': '5pA',
+                        'synin/psm/t_close':'10ms',
+                        'nrn/lk/erev': '-55mV',
+                        'synin/psm/t_open': '3ms',
+                        'synin/psm/g_bar': '100pS',
+                        'nrn/i_square2/i_amp': '2pA',
+                        'nrn/i_square1/i_amp': '2pA',
+                        'nrn/nrn/C':  '0.5pF',
+                        'nrn/t_in': '300ms',
+                    },
+                initial_state_values={
+
+
+                         'nrn/V':'-50mV',
+                         'nrn/i_square1/t_last':'0ms',
+                         'nrn/i_square2/t_last':'0ms',
+                         'synin/evts/t_last':'0ms',
+                         'synin/psm/A':'0',
+                         'synin/psm/B':'0',
+
+                },
+                initial_regimes={
+                    'nrn/i_inj/':'OFF',
+                }
+    )
+
+
+
+f = pylab.figure()
+ax1 = f.add_subplot(3,1,1)
+ax2 = f.add_subplot(3,1,2)
+ax3 = f.add_subplot(3,1,3)
+ax1.set_ylim((-70e-3,50e-3))
+ax1.plot( res.get_time(), res.state_variables['nrn/V'] )
+ax1.set_ylabel('nrn1/nrn/V %s' %('??'))
+
+ax2.plot( res.get_time(), res.assignments['synin/psm/i'] )
+ax3.plot( res.get_time(), res.assignments['synin/psm/g'] )
+#synin/psm/i
+#ax2.plot( res.get_time(), res.state_variables['nrn1/i_square/t_last'] )
+#ax3.plot( res.get_time(), res.rt_regimes['nrn1/nrn/']+0.0 , label='nrn1/nrn')
+#ax3.plot( res.get_time(), res.rt_regimes['nrn1/i_inj/']+0.1, label='nrn1/i_inj')
+#ax3.plot( res.get_time(), res.rt_regimes['nrn1/i_square/']+0.2,label='nrn1/i_square' )
+ax3.legend()
+pylab.show()
+
+
+
 
 
 assert False

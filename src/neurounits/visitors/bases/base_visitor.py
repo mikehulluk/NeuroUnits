@@ -32,6 +32,10 @@ class ASTVisitorBase(object):
     def visit(self, o, **kwargs):
         return o.accept_visitor(self, **kwargs)
 
+
+    def VisitEventPortConnection(self, o, **kwargs):
+        raise NotImplementedError()
+
     def VisitEqnSet(self, o, **kwargs):
         raise NotImplementedError()
 

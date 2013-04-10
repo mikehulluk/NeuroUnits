@@ -15,15 +15,30 @@ import neurounits
 import sys
 import numpy as np
 
+
+def _build_ADD_ast(nodes):
+    assert len(nodes) > 0
+    if len(nodes) == 1:
+        return nodes[0]
+    if len(nodes) == 2:
+        return ast.AddOp( nodes[0], nodes[1] )
+    else:
+        return ast.AddOp( nodes[0], _build_ADD_ast(nodes[1:]))
+
 def close_analog_port(ap, comp):
     new_node = None
-    if len(ap.rhses) == 1:
-        new_node = ap.rhses[0]
-    if len(ap.rhses) == 2:
-        new_node = ast.AddOp(ap.rhses[0], ap.rhses[1])
-    if len(ap.rhses) == 3:
-        new_node = ast.AddOp(ap.rhses[0], ast.AddOp(ap.rhses[1],
-                             ap.rhses[2]))
+    if len(ap.rhses) == 0:
+        assert False, 'No input found for reduce port? (maybe this is OK!)'
+
+    new_node = _build_ADD_ast(ap.rhses)
+    #if len(ap.rhses) == 1:
+    #    
+    #    new_node = ap.rhses[0]
+    #if len(ap.rhses) == 2:
+    #    new_node = ast.AddOp(ap.rhses[0], ap.rhses[1])
+    #if len(ap.rhses) == 3:
+    #    new_node = ast.AddOp(ap.rhses[0], ast.AddOp(ap.rhses[1],
+    #                         ap.rhses[2]))
 
     assert new_node is not None
     #ReplaceNode(srcObj=ap, dstObj=new_node).visit(comp)
@@ -34,7 +49,6 @@ def close_analog_port(ap, comp):
 
 def close_all_analog_reduce_ports(component):
     for ap in component.analog_reduce_ports:
-        #print 'Closing', ap
         close_analog_port(ap, component)
 
 

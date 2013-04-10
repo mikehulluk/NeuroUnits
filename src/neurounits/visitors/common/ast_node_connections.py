@@ -40,26 +40,25 @@ class ASTAllConnectionsCheck(ASTActionerDefault):
 
 
         from neurounits.ast import CompoundPortDef
+        from neurounits.ast import EventPortConnection
         if isinstance(obj, CompoundPortDef):
+            return 
+        if isinstance(obj, EventPortConnection):
             return 
 
 
         connections = ASTAllConnections()
 
-        #print 
-        #print
-        #print 'Visiting:', obj
         nodes_told = obj.accept_visitor(connections)
         nodes_found = nodes_on_obj(obj)
 
         if nodes_told is None:
+            print 'When visiting: %s' % obj
             assert False, 'None found (told) %s'% obj
 
         if nodes_found is None:
+            print 'When visiting: %s' % obj
             assert False, 'None found (found) %s'% obj
-
-        #print 'Nodes told', nodes_told
-        #print 'Nodes found', nodes_found
 
 
 
@@ -77,6 +76,8 @@ class ASTAllConnectionsCheck(ASTActionerDefault):
         nf = set(nodes_found)
 
         if nf != nt:
+            print 'ERROR!:'
+            print '======='
             print 'Visiting:', obj
             print 'Found not told:'
             print nf-nt
@@ -94,25 +95,15 @@ class ASTAllConnections(ASTActionerDepthFirst):
         []
 
 
-    def VisitEqnSet(self, o, **kwargs):
-        assert False
-        return [
-            o._eqn_assignment.values(),
-            o._function_defs.values(),
-            o._eqn_time_derivatives.values(),
-            o._symbolicconstants.values(),
-        ]
+    def ActionEventPortConnection(self, o, **kwargs):
+        return [o.src_port, o.dst_port]
+
 
     def VisitLibrary(self,o, **kwargs):
-        #assert False
         return list(chain(
             iter(o._eqn_assignment),
             iter(o._function_defs),
-            #iter(o._eqn_time_derivatives),
             iter(o._symbolicconstants),
-            #o._eqn_assignment.values(),
-            #o._function_defs.values() ,
-            #o._symbolicconstants.values(),
         ))
     def VisitNineMLComponent(self, o, **kwargs):
         return list(chain(
@@ -123,6 +114,8 @@ class ASTAllConnections(ASTActionerDepthFirst):
             iter(o._transitions_triggers),
             iter(o._transitions_events),
             iter(o.rt_graphs),
+            iter(o._compound_ports_connectors),
+            iter(o._event_port_connections),
         ))
 
     def VisitRegime(self, o, **kwargs):

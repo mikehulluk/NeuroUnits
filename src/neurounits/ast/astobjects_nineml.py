@@ -340,7 +340,6 @@ class EventPortConnection(ASTObject):
         self.src_port = src_port
         self.delay = delay
         assert isinstance( dst_port, InEventPort)
-        #print src_port, type(src_port)
         assert isinstance( src_port, OutEventPort)
 
         

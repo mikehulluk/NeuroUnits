@@ -415,34 +415,34 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
     def  _ActionInEventPort(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
-            self.ActionInEventPort(o, **kwargs)
+            return self.ActionInEventPort(o, **kwargs)
     def  _ActionInEventPortParameter(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
-            self.ActionInEventPortParameter(o, **kwargs)
+            return self.ActionInEventPortParameter(o, **kwargs)
     def  _ActionOutEventPort(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
-            self.ActionOutEventPort(o, **kwargs)
+            return self.ActionOutEventPort(o, **kwargs)
     def  _ActionOutEventPortParameter(self, o,  **kwargs):
         if self._ActionPredicate(o, **kwargs):
-            self.ActionOutEventPortParameter(o, **kwargs)
+            return self.ActionOutEventPortParameter(o, **kwargs)
 
 
     def _ActionRTGraph(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
-            self.ActionRTGraph(o, **kwargs)
+            return self.ActionRTGraph(o, **kwargs)
     def _ActionRegime(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
-            self.ActionRegime(o, **kwargs)
+            return self.ActionRegime(o, **kwargs)
 
     def _ActionEventPortConnection(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
-            self.ActionEventPortConnection(o, **kwargs)
+            return self.ActionEventPortConnection(o, **kwargs)
 
 
 
     def _ActionCompoundPortDef(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
-            self.ActionCompoundPortDef(o, **kwargs)
+            return self.ActionCompoundPortDef(o, **kwargs)
 
 
 

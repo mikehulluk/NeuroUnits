@@ -112,9 +112,11 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
             comp.add_event_port_connection(conn)
 
 
-    # TODO: Copy accross existing compound ports:
+    # Copy accross existing compound ports:
     for component in instantiate.values():
-        assert len( component._compound_ports_connectors) == 0
+        for compoundport in component._compound_ports_connectors:
+            comp.add_compound_port(compoundport)
+        #assert len( component._compound_ports_connectors) == 0
 
 
 
@@ -238,7 +240,7 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
                 wire_mappings.append(wire_map)
 
             conn = ast.CompoundPortConnector(name=local_name, compound_port_def = compound_port_def, wire_mappings=wire_mappings)
-            comp.define_compound_port(conn)
+            comp.add_compound_port(conn)
 
 
 
