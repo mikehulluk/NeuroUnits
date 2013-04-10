@@ -42,9 +42,9 @@ class ASTAllConnectionsCheck(ASTActionerDefault):
         from neurounits.ast import CompoundPortDef
         from neurounits.ast import EventPortConnection
         if isinstance(obj, CompoundPortDef):
-            return 
+            return
         if isinstance(obj, EventPortConnection):
-            return 
+            return
 
 
         connections = ASTAllConnections()
@@ -86,13 +86,13 @@ class ASTAllConnectionsCheck(ASTActionerDefault):
             assert False
 
 
-    
+
 
 
 class ASTAllConnections(ASTActionerDepthFirst):
 
-    def VisitCompoundPort(self, o, **kwargs):
-        []
+    #def VisitCompoundPort(self, o, **kwargs):
+    #    return []
 
 
     def ActionEventPortConnection(self, o, **kwargs):
@@ -241,5 +241,18 @@ class ASTAllConnections(ASTActionerDepthFirst):
 
     def VisitOnEventDefParameter(self, o, **kwargs):
         return []
+
+
+    def VisitCompoundPortConnectorWireMapping(self, o, **kwargs):
+        return [o.compound_port, o.component_port]
+
+    def VisitCompoundPortDef(self, o, **kwargs):
+        return list(o.connections)
+
+    def VisitCompoundPortConnector(self, o, **kwargs):
+        return list(o.wire_mappings) + [o.compound_port_def]
+
+
+
 
 

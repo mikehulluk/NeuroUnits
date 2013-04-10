@@ -10,7 +10,7 @@ import pylab
 from neurounits.nineml import build_compound_component
 from neurounits.nineml import simulate_component
 
-
+#pylab.ion()
 
 
 
@@ -227,7 +227,7 @@ namespace test {
                 merge [ i_square1/t_on, i_square1/t_off, i_square2/t_on, i_square2/t_off] as t_in
 
 
-                compoundport IO_pt_proc of_type std_pt_process  {
+                compoundport IO_pt_proc of_type std_pt_process  <out> {
                        V <==> V
                        I_in <==> I
                 }
@@ -242,7 +242,9 @@ namespace test {
 
                 connect evts/myevent <==> psm/myevent
 
-                compoundport IO_post of_type std_pt_process  {
+
+                
+                compoundport IO_post of_type std_pt_process <in> {
                        # Local <==> Coumpound-Port name
                        psm/V_post <==> V
                        psm/i <==> I
@@ -259,7 +261,7 @@ namespace test {
         
                 connect synin/psm/V_post <==> nrn/V
                 connect synin/psm/i <==> nrn/I_in
-                #connect nrn/IO_pt_proc <==> synin/IO_post
+                multiconnect nrn/IO_pt_proc <==> synin/IO_post
 
         }
 

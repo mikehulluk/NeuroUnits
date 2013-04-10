@@ -261,7 +261,7 @@ def test1():
     
 
     c1 = build_compound_component(
-          name = 'Neuron1',
+          component_name = 'Neuron1',
           instantiate = { 'lk': chlstd_leak, 'nrn': std_neuron, 'i_inj':step_current, 'i_square':square_current },
           event_connections = [],
           analog_connections = [
@@ -274,7 +274,7 @@ def test1():
 
 
     c2 = build_compound_component(
-          name = 'Neuron2',
+          component_name = 'Neuron2',
           instantiate = { 'lk': chlstd_leak, 'nrn': std_neuron,},
           event_connections = [],
           analog_connections = [
@@ -285,7 +285,7 @@ def test1():
 
 
     c3 = build_compound_component(
-          name = 'driven_synapse',
+          component_name = 'driven_synapse',
           instantiate = { 'spike_gen': evt_gen, 'syn': evt_syn,},
           event_connections = [
             ('spike_gen/myevent', 'syn/myevent' ), 
@@ -299,7 +299,7 @@ def test1():
 
     
     c = build_compound_component(
-          name = 'network',
+          component_name = 'network',
           instantiate = { 'nrn1': c1, 'nrn2': c2, 'syn1':simple_syn1, 'syn2':c3},
           event_connections = [],
           analog_connections = [

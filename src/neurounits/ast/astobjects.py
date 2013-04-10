@@ -295,24 +295,32 @@ class AddOp(BinaryOp):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitAddOp(self, **kwargs)
+    def __repr__(self, ):
+        return '+'
 
 
 class SubOp(BinaryOp):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitSubOp(self, **kwargs)
+    def __repr__(self, ):
+        return '-'
 
 
 class MulOp(BinaryOp):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitMulOp(self, **kwargs)
+    def __repr__(self, ):
+        return '*'
 
 
 class DivOp(BinaryOp):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitDivOp(self, **kwargs)
+    def __repr__(self, ):
+        return '/'
 
 
 class ExpOp(BinaryOp):

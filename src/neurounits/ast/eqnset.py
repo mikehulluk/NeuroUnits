@@ -40,7 +40,7 @@ from neurounits.units_misc import LookUpDict
 import itertools
 
 
-class Block(object):
+class Block(ASTObject):
 
     def __init__(self, name, library_manager, builder):
         super(Block, self).__init__()
@@ -408,20 +408,97 @@ class NineMLComponent(EqnSet):
     def clone(self, ):
 
 
+        import gc
+        import collections
+
+
+        print 'Refs to library manager:'
+        lib_man_refs =  gc.get_referrers( self.library_manager)
+        for ref in lib_man_refs:
+            print type(ref)
+            print ref
+        print 'Len', len(lib_man_refs)
+
+        assert False
+
+
+
+        from neurounits.librarymanager import LibraryManager
+
+        gc.collect()
+        prev_objs = list( gc.get_objects() )
+        type_count_before  = collections.Counter( [type(obj) for obj in prev_objs])
+
+        print type_count_before
+
+
+
         # Nasty Hack - serialise and unserialse to clone the object
 
         import pickle
         import cStringIO
         c = cStringIO.StringIO()
+
+
+        old_lib_man = self.library_manager
+
+        self.library_manager = None
         pickle.dump(self, c)
 
         new = pickle.load(cStringIO.StringIO(c.getvalue()))
-        new.library_manager = self.library_manager
+        new.library_manager =  old_lib_man
+        self.library_manager = old_lib_man
+
+
+
+
+
+        # When we clone, however, we shouldn't also clone CompundPortDefintions amd sub components, since otherwise we
+        # can't maintain mapping between objects:
+        for compound_port_conn_orig in self._compound_ports_connectors:
+            assert False
+
+            # Change the wire mappings, 
+            # TODO!
+
+
+            # Change the compund-port-definition:
+            from neurounits.visitors.common.ast_replace_node import ReplaceNode
+            compound_port_conn_cloned = new._compound_ports_connectors.get_single_obj_by(name=compound_port_conn_orig.name)
+            comp_port_src = compound_port_conn_cloned.compound_port_def
+            comp_port_dst = compound_port_conn_orig.compound_port_def
+            ReplaceNode.replace_and_check(srcObj=comp_port_src, dstObj = comp_port_dst, root=self)
+            
+
+
+
+        gc.collect()
+        next_objs = list( gc.get_objects() )
+        type_count_after  = collections.Counter( [type(obj) for obj in next_objs])
+        count_change = type_count_after - type_count_before
+        print 'Changes:'
+        #print count_change
+        for obj, count in sorted(count_change.items(), key=lambda s:s[1]):
+            print count, obj
+
+        #new_objs = [ o for o in next_objs if not o in prev_objs] 
+
+        print 'Pointing at the new library manager:'
+        lib_mans = [o for o in next_objs if isinstance(o, (LibraryManager))] 
+        print lib_mans
+
+
+        #refs = gc.get_referrers(*lib_mans)
+        #print refs
+
+        #assert False
+
+
+
+
         return new
 
 
-        from neurounits.visitors.common.ast_cloning import ASTClone
-        return ASTClone().clone_root(self)
 
 
 

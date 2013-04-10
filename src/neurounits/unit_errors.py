@@ -128,7 +128,7 @@ class NeuroUnitParsingErrorUnexpectedToken(NeuroUnitParsingError):
         char_str = self.parsed_text
         def clip_to_str(k):
             return min( max(k,0), len(char_str)-1)
-        line_char_context = 10
+        line_char_context = 30
         col_pos_pre_start = clip_to_str( col_pos-line_char_context )
         col_pos_post_end = clip_to_str( col_pos+line_char_context )
 

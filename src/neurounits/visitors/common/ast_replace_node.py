@@ -87,15 +87,6 @@ class ReplaceNode(ASTVisitorBase):
 
 
 
-    def VisitEqnSet(self, o, **kwargs):
-        assert False
-        subnodes = itertools.chain(o.assignments, o.timederivatives,
-                                   o.functiondefs, o.symbolicconstants,
-                                   )
-        for f in subnodes:
-            self.visit(f, **kwargs)
-
-        return o
 
 
 
@@ -112,7 +103,38 @@ class ReplaceNode(ASTVisitorBase):
         return new_lut
 
 
+    def VisitEventPortConnection(self, o, **kwargs):
+        o.dst_port = self.replace_or_visit(o.dst_port)
+        o.src_port = self.replace_or_visit(o.src_port)
 
+        return o
+
+
+
+
+    def VisitCompoundPortConnectorWireMapping(self, o, **kwargs):
+        o.compound_port = self.replace_or_visit(o.compound_port)
+        o.component_port = self.replace_or_visit(o.component_port)
+        return o
+        
+
+    def VisitCompoundPortDefWireContinuous(self, o, **kwargs):
+        return o
+    def VisitCompoundPortDefWireEvent(self, o, **kwargs):
+        return o
+
+    def VisitCompoundPortDef(self, o, **kwarg):
+        o.connections = self._replace_within_new_lut(o.connections)
+        return o
+
+
+
+    def VisitCompoundPortConnector(self, o, **kwargs):
+        o.wire_mappings = self._replace_within_new_lut(o.wire_mappings)
+        o.compound_port_def = self.replace_or_visit(o.compound_port_def)
+        return o
+
+        assert False
 
 
     def VisitLibrary(self, o, **kwargs):
@@ -130,6 +152,11 @@ class ReplaceNode(ASTVisitorBase):
         o._eqn_time_derivatives = self._replace_within_new_lut(o._eqn_time_derivatives)
         o._function_defs = self._replace_within_new_lut(o._function_defs)
         o._symbolicconstants = self._replace_within_new_lut(o._symbolicconstants)
+        o._compound_ports_connectors = self._replace_within_new_lut(o._compound_ports_connectors)
+
+        #if len(o._event_port_connections):
+        #    assert False, 'TOADD!'
+        o._event_port_connections = self._replace_within_new_lut(o._event_port_connections)
 
 
         if o is self.srcObj:

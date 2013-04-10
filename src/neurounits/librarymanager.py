@@ -111,7 +111,6 @@ class LibraryManager(object):
             pass
 
         print 'Adding component: "%s" '% component.name
-        #assert component.name in ['nrn','psm',]
         self.components.append(component)
 
     def add_compoundportdef(self, compoundportdef):
@@ -145,7 +144,7 @@ class LibraryManager(object):
             print 'Looking for: %s' % name
             print 'Found:', [l.name for l in ls]
             print
-            raise NoSuchObjectError()
+            raise NoSuchObjectError('Cant find: %s in [%s]' % (name, ','.join([l.name for l in srcs] ) ) )
 
 
         # Testing: make sure all nodes accounted for:

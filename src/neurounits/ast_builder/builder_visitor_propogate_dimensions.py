@@ -216,10 +216,29 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
         else:
             return 
 
-        
-        #assert set(o.src_port.parameters.get_objects_attibutes(attr='symbol')) == set(o.dst_port.parameters.get_objects_attibutes(attr='symbol')) 
-        #self.verify_equal_units([o, o.rhs, o.port_parameter_obj])
-        
+
+
+
+    def VisitCompoundPortDefWireContinuous(self, o):
+        pass
+
+    def VisitCompoundPortDefWireEvent(self, o):
+        pass
+
+
+
+    def VisitCompoundPortConnectorWireMapping(self, o):
+        pass
+    def VisitCompoundPortDef(self, o):
+        pass
+    def VisitCompoundPortConnector(self, o):
+        pass
+
+
+
+
+
+
 
 
 class DimensionResolver(ASTVisitorBase):
@@ -578,10 +597,20 @@ class DimensionResolver(ASTVisitorBase):
 
     def VisitOutEventPort(self, o):
         pass
-    #def VisitOutEventPortParameter(self, o):
-    #    pass
 
     def VisitEventPortConnection(self, o):
+        pass
+
+    def VisitCompoundPortDefWireContinuous(self, o):
+        pass
+
+
+
+    def VisitCompoundPortConnectorWireMapping(self, o):
+        pass
+    def VisitCompoundPortDef(self, o):
+        pass
+    def VisitCompoundPortConnector(self, o):
         pass
 
 

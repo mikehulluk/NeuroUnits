@@ -180,19 +180,24 @@ def p_ns_name(p):
 
 def p_compound_component(p):
     """compound_component_def : DEFINE_COMPOUND alphanumtoken LCURLYBRACKET compoundcontents RCURLYBRACKET SEMICOLON"""
+
     #print 'Building Compound component:'
     print 'IN compoung componet'
     lib_mgr = p.parser.library_manager
     name = p[2]
     actions = p[4]
+    print 'Buidling:', name
     instantiations = [ (d['as'], lib_mgr.get(d['what'])) for d in actions if d['action']=='INSTANTIATE']
+    print '  - Got instantiations'
     connections = [ d['what'] for d in actions if d['action']=='CONNECT']
+    multiconnections = [ d['what'] for d in actions if d['action']=='MULTICONNECT']
     renames = [ d['what'] for d in actions if d['action']=='RENAME']
     merge_nodes = [ d['what'] for d in actions if d['action']=='MERGE']
 
     compound_ports = [ d['port_instance'] for d in actions if d['action']=='COMPOUNDPORT'] 
    
      
+    #assert False
     from neurounits.nineml import build_compound_component
     component = build_compound_component(
             component_name=name,
@@ -201,14 +206,17 @@ def p_compound_component(p):
             renames = renames,
             merge_nodes = merge_nodes,
             compound_ports = compound_ports,
+            multiconnections=multiconnections,
             )
+    #assert False
     lib_mgr = p.parser.library_manager.add_component(component)
 
     print component.name
     print name
     assert component.name == name
     print 'Created compound component:', name
-    
+    #assert False
+    #
 
 
 def p_compound_component2(p):
@@ -226,6 +234,11 @@ def p_compound_component3(p):
 def p_compound_component4(p):
     """compound_line : CONNECT ns_name CONNECTION_SYMBOL ns_name"""
     p[0] = {'action': 'CONNECT', 'what':(p[2],p[4])}
+
+def p_compound_component4b(p):
+    """compound_line : MULTICONNECT ns_name CONNECTION_SYMBOL ns_name"""
+    p[0] = {'action': 'MULTICONNECT', 'what':(p[2],p[4])}
+
 def p_compound_component5(p):
     """compound_line : RENAME ns_name TO ns_name"""
     p[0] = {'action': 'RENAME', 'what':(p[2],p[4])}
@@ -256,8 +269,17 @@ def p_compound_component9(p):
 # =======================================
 
 def p_compound_port_inst_1(p):
-    """compound_port_inst : COMPOUNDPORT alphanumtoken OFTYPE alphanumtoken LCURLYBRACKET compound_port_inst_constents RCURLYBRACKET """
-    p[0] = (p[2],p[4], p[6])
+    """compound_port_inst : COMPOUNDPORT alphanumtoken OFTYPE alphanumtoken  multiport_direction LCURLYBRACKET compound_port_inst_constents RCURLYBRACKET """
+    p[0] = (p[2],p[4],p[5], p[7])
+
+def p_compound_port_inst_1a(p):
+    """multiport_direction : MULTIPORT_IN """
+    p[0] = 'in'
+
+def p_compound_port_inst_1b(p):
+    """multiport_direction : MULTIPORT_OUT """
+    p[0] = 'out'
+
 
 def p_compound_port_inst_2(p):
     """compound_port_inst_constents : empty"""
@@ -1226,6 +1248,8 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
     if parse_type in [ParseTypes.L3_QuantityExpr]:
         parser.library_manager.end_eqnset_block()
 
-    return (pRes, parser.library_manager)
+    parser.library_manager = None
+
+    return (pRes, library_manager)
 
 

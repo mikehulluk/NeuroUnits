@@ -47,38 +47,44 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         self.action_predicates = action_predicates or []
 
 
+    def VisitLibraryManager(self, o, **kwargs):
+        for c in itertools.chain(o.components, o.libraries):
+            self.visit(c)
+        self._ActionLibraryManager( o, **kwargs)
 
     def VisitCompoundPortDef(self, o, **kwargs):
         self._ActionCompoundPortDef( o, **kwargs)
 
-    def VisitLibrary(self, o, **kwargs):
+    def VisitCompoundPortConnector(self, o, **kwargs):
+        self.visit(o.compound_port_def)
+        for wire in o.wire_mappings:
+            self.visit(wire)
+        self._ActionCompoundPortConnector(o, **kwargs)
+        
+    def VisitCompoundPortConnectorWireMapping(self, o, **kwargs):
+        self.visit(o.component_port)
+        self.visit(o.compound_port)
+        self._ActionCompoundPortConnectorWireMapping(o, **kwargs)
 
+    def VisitCompoundPortDefWireContinuous(self, o, **kwargs):
+        pass
+    def VisitCompoundPortDefWireEvent(self, o, **kwargs):
+        pass
+
+
+    def VisitLibrary(self, o, **kwargs):
         subnodes = itertools.chain(o.functiondefs, o.symbolicconstants)
         for f in subnodes:
             self.visit(f, **kwargs)
 
         self._ActionLibrary(o, **kwargs)
 
-    #def VisitEqnSet(self, o, **kwargs):
-
-    #    subnodes = itertools.chain(o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants)
-    #    for f in subnodes:
-    #        self.visit(f, **kwargs)
-
-
-    #    self._ActionEqnSet(o, **kwargs)
 
     def VisitNineMLComponent(self, o, **kwargs):
 
-        # TODO: Add o.rt_graphs
-        #print 'VISITING;'
-        #print o._event_port_connections
-        subnodes = itertools.chain(o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants, o.transitions, o._event_port_connections, o.rt_graphs)
+        subnodes = itertools.chain(o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants, o.transitions, o._event_port_connections, o.rt_graphs, o._compound_ports_connectors)
         for f in subnodes:
             self.visit(f, **kwargs)
-
-        #for onev in o.onevents:
-        #    self.visit(onev, **kwargs)
 
         self._ActionNineMLComponent(o, **kwargs)
 
@@ -270,6 +276,10 @@ class ASTActionerDepthFirst(ASTVisitorBase):
                 return False
         return True
 
+    def _ActionLibraryManager(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionLibraryManager(o, **kwargs)
+
     def _ActionLibrary(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionLibrary(o, **kwargs)
@@ -445,6 +455,14 @@ class ASTActionerDepthFirst(ASTVisitorBase):
             return self.ActionCompoundPortDef(o, **kwargs)
 
 
+    def _ActionCompoundPortConnectorWireMapping(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionCompoundPortConnectorWireMapping(o, **kwargs)
+    def _ActionCompoundPortConnector(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionCompoundPortConnector(o, **kwargs)
+
+
 
 
 
@@ -569,6 +587,9 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
 
 
+    def ActionCompoundPortConnectorWireMapping(self, o, **kwargs):
+        print self
+        raise NotImplementedError()
 
 
 

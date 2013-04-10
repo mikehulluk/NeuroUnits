@@ -25,7 +25,7 @@ def _is_node_analog(n):
     assert False, "I don't know the direction of: %s" % n
 
 
-def build_compound_component(component_name, instantiate,  analog_connections=None, event_connections=None,  renames=None, connections=None, prefix='/', auto_remap_time=True, merge_nodes=None, compound_ports=None):
+def build_compound_component(component_name, instantiate,  analog_connections=None, event_connections=None,  renames=None, connections=None, prefix='/', auto_remap_time=True, merge_nodes=None, compound_ports=None, multiconnections=None):
 
 
 
@@ -68,6 +68,9 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
         import itertools
         for port in itertools.chain( component.output_event_port_lut,  component.input_event_port_lut):
             port.name = ns_prefix + port.name
+
+        for connector in itertools.chain( component._compound_ports_connectors):
+            connector.name = ns_prefix + connector.name
 
 
 
@@ -127,6 +130,43 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
     if event_connections is None:
         event_connections = []
 
+
+
+
+    from neurounits.visitors.common.plot_networkx import ActionerPlotNetworkX
+    #ActionerPlotNetworkX(comp)
+    ActionerPlotNetworkX(lib_mgr)
+
+
+    if multiconnections:
+        for m in multiconnections:
+            io1_name, io2_name = m
+            print 'Multicnnecitons;', m
+            print comp._compound_ports_connectors
+            conn1 = comp._compound_ports_connectors.get_single_obj_by(name=io1_name)
+            conn2 = comp._compound_ports_connectors.get_single_obj_by(name=io2_name)
+            print 'Connecting connectors:,', conn1, conn2
+
+            # sort out the direction:
+            if  (conn1.get_direction()=='in' and conn2.get_direction()=='out'):
+                conn1,conn2 = conn2, conn1
+            assert (conn1.get_direction()=='out' and conn2.get_direction()=='in') 
+            compound_ports = list(set([conn1.compound_port_def, conn2.compound_port_def] ) )
+            print compound_ports
+            assert len(compound_ports) == 1
+            compound_port = compound_ports[0]
+
+            # Make the connections:
+            for wire in compound_port:
+                print "Connecting:", wire
+
+
+
+
+
+        assert False
+
+    # Ok, and single connections ('helper parameter')
     if connections is not None:
         for c1,c2 in connections:
             #print c1,c2
@@ -201,9 +241,6 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
         else:
             assert False, 'Unexpected node type: %s' % dst_obj
 
-    #print comp.name
-    #print 'Outports:', comp.output_event_port_lut
-    #print 'Inports:', comp.input_event_port_lut
     for (src, dst) in event_connections:
         src_port = comp.output_event_port_lut.get_single_obj_by(name=src)
         dst_port = comp.input_event_port_lut.get_single_obj_by(name=dst)
@@ -228,7 +265,7 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
     if compound_ports:
         for compound_port in compound_ports:
             #print 'Compound port:', compound_port
-            local_name, porttype, wire_mapping_txts = compound_port
+            local_name, porttype, direction, wire_mapping_txts = compound_port
             compound_port_def = lib_mgr.get(porttype)
             #print compound_port_def
             wire_mappings = []
@@ -239,7 +276,7 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
                                 )
                 wire_mappings.append(wire_map)
 
-            conn = ast.CompoundPortConnector(name=local_name, compound_port_def = compound_port_def, wire_mappings=wire_mappings)
+            conn = ast.CompoundPortConnector(name=local_name, compound_port_def = compound_port_def, wire_mappings=wire_mappings, direction=direction)
             comp.add_compound_port(conn)
 
 

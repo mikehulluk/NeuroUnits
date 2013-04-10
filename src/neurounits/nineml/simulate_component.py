@@ -31,17 +31,8 @@ def close_analog_port(ap, comp):
         assert False, 'No input found for reduce port? (maybe this is OK!)'
 
     new_node = _build_ADD_ast(ap.rhses)
-    #if len(ap.rhses) == 1:
-    #    
-    #    new_node = ap.rhses[0]
-    #if len(ap.rhses) == 2:
-    #    new_node = ast.AddOp(ap.rhses[0], ap.rhses[1])
-    #if len(ap.rhses) == 3:
-    #    new_node = ast.AddOp(ap.rhses[0], ast.AddOp(ap.rhses[1],
-    #                         ap.rhses[2]))
 
     assert new_node is not None
-    #ReplaceNode(srcObj=ap, dstObj=new_node).visit(comp)
     ReplaceNode.replace_and_check(srcObj=ap, dstObj=new_node, root=comp)
 
     PropogateDimensions.propogate_dimensions(comp)

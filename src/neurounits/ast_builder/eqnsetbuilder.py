@@ -735,6 +735,7 @@ class AbstractBlockBuilder(object):
                 )
 
         self.post_construction_finalisation(self._astobject, io_data=io_data)
+        self.library_manager = None
 
         # The object exists, but is not complete and needs some polishing:
         # #################################################################

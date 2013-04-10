@@ -99,6 +99,9 @@ class EqnRegimeDispatchMap(ASTExpressionObject):
             return self.rhs_map[regime]
         return self.rhs_map[None]
 
+    def __repr__(self,):
+        return '<DispatchMap>'
+
 
 class Transition(ASTObject):
     def __init__(self, src_regime, actions, target_regime=None,  **kwargs):
@@ -115,7 +118,7 @@ class OnTriggerTransition(Transition):
         self.trigger = trigger
 
     def __repr__(self):
-        return '<Transition %s -> %s (%d actions)>' % (self.src_regime, self.target_regime, len(self.actions))
+        return '<Transition %s -> %s (%d actions)>' % (repr(self.src_regime), repr(self.target_regime), len(self.actions))
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitOnTransitionTrigger(self, **kwargs)
@@ -131,7 +134,7 @@ class OnEventTransition(Transition):
         assert isinstance( self.parameters, LookUpDict)
 
     def __repr__(self):
-        return '<OnEventTransition [%s] %s -> %s (%d actions)>' % (self.port, self.src_regime, self.target_regime, len(self.actions))
+        return '<OnEventTransition [%s] %s -> %s (%d actions)>' % (repr(self.port), repr(self.src_regime), repr(self.target_regime), len(self.actions))
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitOnTransitionEvent(self, **kwargs)

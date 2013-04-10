@@ -30,6 +30,8 @@ class NodeColor(ASTVisitorBase):
             return 'pink'
         if isinstance(o, ast.OnTriggerTransition):
             return 'cyan'
+        if isinstance(o, ast.CompoundPortConnector):
+            return 'red'
 
         return 'blue'
 
@@ -47,7 +49,7 @@ class ActionerPlotNetworkX(object):
 
         connections = ActionerGetConnections(o).get_connections()
         for node in connections.keys():
-            graph.add_node(node, color='green')
+            graph.add_node(node, color='green', label='"%s"' % repr(node) )
 
         for (node, connections) in connections.items():
             for c in connections:
@@ -56,15 +58,26 @@ class ActionerPlotNetworkX(object):
         nc = NodeColor()
         node_color = [nc.visit(v) for v in graph]
 
+
+
+
+        for n, nodedata in graph.nodes_iter( data=True):
+            print n, nodedata
+
         f = plt.figure()
-        nx.draw_spring(graph, font_size=8, iteration=200, node_color=node_color,scale=2)
-        #nx.draw_graphviz(graph, font_size=8, iteration=200, node_color=node_color,scale=2)
+        #nx.draw_spring(graph, font_size=8, iteration=200, node_color=node_color,scale=2)
+        nx.draw_graphviz(graph, font_size=8, iteration=200, node_color=node_color,scale=2, labels=dict( (s, repr(s)) for s in graph.nodes_iter( ) ) )
+
+
+
+
         #plt.title(str(o) )
         ax = plt.gca()
         ax.text(0.5, 0.5, 'Hello')
+        
         plt.show()
 
-        plt.show()
+        #plt.show()
 
 
 class ActionerGetConnections(ASTActionerDefault):
@@ -80,24 +93,48 @@ class ActionerGetConnections(ASTActionerDefault):
     def ActionAnalogReducePort(self, o, **kwargs):
         self.connections[o].extend(o.rhses)
 
+
+    def ActionLibraryManager(self, o, **kwargs):
+        self.connections[o].extend(o.libraries)
+        self.connections[o].extend(o.components)
+        self.connections[o].extend(o.compound_port_defs)
+
+
     def ActionLibrary(self, o, **kwargs):
         self.connections[o].extend(o.functiondefs)
         self.connections[o].extend(o.symbolicconstants)
 
-    def ActionEqnSet(self, o, **kwargs):
-        self.connections[o].extend(o.assignments)
-        self.connections[o].extend(o.timederivatives)
-        self.connections[o].extend(o.functiondefs)
-        self.connections[o].extend(o.symbolicconstants)
-        #self.connections[o].extend(o.onevents)
+    #def ActionEqnSet(self, o, **kwargs):
+    #    self.connections[o].extend(o.assignments)
+    #    self.connections[o].extend(o.timederivatives)
+    #    self.connections[o].extend(o.functiondefs)
+    #    self.connections[o].extend(o.symbolicconstants)
 
     def ActionNineMLComponent(self, o, **kwargs):
         self.connections[o].extend(o.assignments)
         self.connections[o].extend(o.timederivatives)
         self.connections[o].extend(o.functiondefs)
         self.connections[o].extend(o.symbolicconstants)
-        #self.connections[o].extend(o.onevents)
         self.connections[o].extend(o.transitions)
+        self.connections[o].extend(list(o._event_port_connections) )
+        self.connections[o].extend(list(o._compound_ports_connectors) )
+
+
+    def ActionRegime(self, o, **kwargs):
+        pass
+    def ActionRTGraph(self, o, **kwargs):
+        pass
+    def ActionOutEventPortParameter(self, o, **kwargs):
+        pass
+    def ActionEmitEventParameter(self, o, **kwargs):
+        self.connections[o].extend([o.rhs, o.port_parameter_obj])
+        
+    def ActionOutEventPort(self, o, **kwargs):
+        self.connections[o].extend( list(o.parameters))
+        
+
+
+
 
     def ActionOnEvent(self, o, **kwargs):
         self.connections[o].extend(o.parameters.values())
@@ -200,13 +237,31 @@ class ActionerGetConnections(ASTActionerDefault):
         self.connections[o].extend(o.actions)
 
     def ActionOnTransitionEvent(self, o, **kwargs):
-        self.connections[o].extend(o.parameters.values())
+        self.connections[o].extend(list(o.parameters))
         self.connections[o].extend(o.actions)
 
     def ActionOnEventDefParameter(self, o, **kwargs):
         pass
 
     def ActionEmitEvent(self, o, **kwargs):
-        self.connections[o].extend(o.parameter_map.values())
+        self.connections[o].extend(list(o.parameters))
 
+    def ActionInEventPortParameter(self, o, **kwargs):
+        pass
+    def ActionInEventPort (self, o, **kwargs):
+        self.connections[o].extend(list(o.parameters))
+
+    def ActionEventPortConnection(self, o, **kwargs):
+        self.connections[o].extend([o.src_port, o.dst_port])
+
+
+    def ActionCompoundPortDef(self, o, **kwargs):
+        self.connections[o].extend(list(o.connections))
+
+    def ActionCompoundPortConnectorWireMapping(self, o, **kwargs):
+        self.connections[o].extend([o.compound_port, o.component_port])
+
+
+    def ActionCompoundPortConnector(self, o, **kwargs):
+        self.connections[o].extend([o.compound_port_def] + list(o.wire_mappings))
 

@@ -38,4 +38,7 @@ class ASTObject(object):
     def set_metadata(self, md):
         self._metadata = md
 
+    def __str__(self,):
+        return 'ASTObject_%s_%s' %( id(self), type(self).__name__.split('.')[-1] )
+
 

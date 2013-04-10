@@ -28,19 +28,19 @@ namespace m {
         B1Y' = B1VY
 
         # And make the ball bounce off the walls:
-        on(B1X<0m){    B1VX = abs_ms(B1VX) }
-        on(B1X>{10m}){ B1VX = -abs_ms(B1VX) }
-        on(B1Y<0m){ B1VY = abs_ms(B1VY) }
-        on(B1Y>{10m}){ B1VY = -abs_ms(B1VY) }
+        on(B1X<0m){    B1VX = abs_ms(B1VX); }
+        on(B1X>{10m}){ B1VX = -abs_ms(B1VX); }
+        on(B1Y<0m){ B1VY = abs_ms(B1VY); }
+        on(B1Y>{10m}){ B1VY = -abs_ms(B1VY); }
 
         B2VX' = 0 m/s2
         B2VY'=  0 m/s2
         B2X' = B2VX
         B2Y' = B2VY
-        on(B2X<0m){    B2VX = abs_ms(B2VX) }
-        on(B2X>{10m}){ B2VX = -abs_ms(B2VX) }
-        on(B2Y<0m){ B2VY = abs_ms(B2VY) }
-        on(B2Y>{10m}){ B2VY = -abs_ms(B2VY) }
+        on(B2X<0m){    B2VX = abs_ms(B2VX); }
+        on(B2X>{10m}){ B2VX = -abs_ms(B2VX); }
+        on(B2Y<0m){ B2VY = abs_ms(B2VY); }
+        on(B2Y>{10m}){ B2VY = -abs_ms(B2VY); }
 
         rad = 0.5m
 
@@ -69,7 +69,7 @@ namespace m {
 
 
         t_last'=0
-        on( dist_sq < rad*rad and t-t_last > 0.1s ){
+        on( dist_sq < rad*rad and t-t_last > 0.1s ) {
             t_last=t
 
             # Simply add the two components, but flip the sign of the 

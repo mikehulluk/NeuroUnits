@@ -60,9 +60,15 @@ class UnitExprLexer(object):
         'define_compoundport': 'DEFINE_COMPOUNDPORT',
         'compoundport': 'COMPOUNDPORT',
         'of_type': 'OFTYPE',
+
+        'multiconnect':'MULTICONNECT',
         }
 
     tokens = [
+
+
+        'MULTIPORT_IN',
+        'MULTIPORT_OUT',
         'COMPOUNDPORT_IN',
         'COMPOUNDPORT_OUT',
         'COMPOUNDPORT_IN_OPT',
@@ -134,6 +140,8 @@ class UnitExprLexer(object):
     t_COMPOUNDPORT_IN_OPT = r"""==\?>""" + WS
     t_COMPOUNDPORT_OUT_OPT = r"""<\?==""" + WS
 
+    t_MULTIPORT_IN =  r'<in>' + WS
+    t_MULTIPORT_OUT =  r'<out>' + WS
 
 
     t_IO_LINE = r"""<=> [^;]*"""  + WS

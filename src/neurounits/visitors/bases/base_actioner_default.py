@@ -167,3 +167,17 @@ class ASTActionerDefault(ASTActionerDepthFirst):
     def ActionEventPortConnection(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
+    def ActionCompoundPortDefWireContinuous(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
+    def ActionCompoundPortDefWireEvent(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
+
+    def ActionCompoundPortConnector(self, o,**kwargs):
+        return self.ActionNode(o, **kwargs)
+
+    def ActionCompoundPortConnectorWireMapping(self, o,**kwargs):
+        return self.ActionNode(o, **kwargs)
+
+    def ActionLibraryManager(self, o,**kwargs):
+        return self.ActionNode(o, **kwargs)
+
