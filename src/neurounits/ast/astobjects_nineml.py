@@ -273,10 +273,13 @@ class AnalogReducePort(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitAnalogReducePort(self, **kwargs)
 
-    def __init__(self, symbol, **kwargs):
+    def __init__(self, symbol, rhses = None, **kwargs):
         super(AnalogReducePort, self).__init__(**kwargs)
         self.symbol = symbol
-        self.rhses = []
+        if rhses is None:
+            self.rhses = LookUpDict() 
+        else :
+            self.rhses = LookUpDict(rhses) 
 
 
 

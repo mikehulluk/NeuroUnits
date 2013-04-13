@@ -202,8 +202,8 @@ namespace test {
         define_compoundport std_pt_process {
                 ==>> V : (V)
                 <<== I : (A)
-                ==?> events_in (V:S)
-                <?== events_out( a:(),b:() )
+                #==?> events_in (V:S)
+                #<?== events_out( a:(),b:() )
         }
 
 
@@ -259,9 +259,14 @@ namespace test {
                 instantiate mymeganeuron as nrn
                 instantiate synwrap as synin
         
-                connect synin/psm/V_post <==> nrn/V
-                connect synin/psm/i <==> nrn/I_in
+                # New way!:
                 multiconnect nrn/IO_pt_proc <==> synin/IO_post
+                
+                # Old way:
+                #connect synin/psm/V_post <==> nrn/V
+                #connect synin/psm/i <==> nrn/I_in
+                
+                
 
         }
 
@@ -289,6 +294,81 @@ s_nrn.summarise()
 
 
 c = library_manager.get('mymeganeuron_hubby')
+
+c.summarise()
+
+#assert False
+
+
+parameters = {
+        'synin/psm/t_close':'80ms',      #(<MMUnit: (10e0) s 1>)',
+        'nrn/i_square2/i_amp':'5pA',    #(<MMUnit: (10e0) A 1>)', 
+        'nrn/nrn/C':'0.5pF',               #(<MMUnit: (10e0) m -2 kg -1 s 4 A 2>)',
+        'synin/psm/e_syn':'0mV',        #(<MMUnit: (10e0) m 2 kg 1 s -3 A -1>)',
+        'nrn/lk/g':'0.1pS/um2',               #(<MMUnit: (10e0) m -4 kg -1 s 3 A 2>)', 
+        'synin/psm/t_open':'4ms',       #(<MMUnit: (10e0) s 1>)',
+        'nrn/i_square1/i_amp':'5pA',    #(<MMUnit: (10e0) A 1>)',
+        'nrn/i_inj/i_amp':'5pA',        #(<MMUnit: (10e0) A 1>)', 
+        'nrn/t_in':'300ms',               #(<MMUnit: (10e0) s 1>)', 
+        'nrn/lk/erev':'-60mV',            #(<MMUnit: (10e0) m 2 kg 1 s -3 A -1>)',
+        'nrn/i_inj/t_start':'5ms',      #(<MMUnit: (10e0) s 1>)',
+        'synin/psm/g_bar':'100pS',        #(<MMUnit: (10e0) m -2 kg -1 s 3 A 2>)'
+           }
+           
+initial_states = {
+    'nrn/V':'0mV', 
+    'nrn/i_square1/t_last':'0ms', 
+    'nrn/i_square2/t_last':'0ms', 
+    'synin/evts/t_last':'0ms', 
+    'synin/psm/A':'0', 
+    'synin/psm/B':'0'
+    }
+#Inputs: ['t']
+#  Outputs: ['nrn/i_inj/i (<MMUnit: (10e0) A 1>)', 'nrn/i_square1/i (<MMUnit: (10e0) A 1>)', 'nrn/i_square2/i (<MMUnit: (10e0) A 1>)', 'nrn/lk/i (<MMUnit: (10e0) A 1>)', 'synin/psm/g (<MMUnit: (10e0) m -2 kg -1 s 3 A 2>)', 'synin/psm/i (<MMUnit: (10e0) A 1>)']
+#  ReducePorts: ['nrn/I_in (<MMUnit: (10e0) A 1>)'] 
+
+
+res = simulate_component(component=c,
+                times = np.linspace(0,1,num=1000),
+                close_reduce_ports=True,
+                parameters=parameters,
+                initial_state_values=initial_states,
+                initial_regimes={
+                'nrn/i_inj/':'OFF',
+                
+                }
+                
+                )
+
+
+
+f = pylab.figure()
+ax1 = f.add_subplot(3,1,1)
+ax2 = f.add_subplot(3,1,2)
+ax3 = f.add_subplot(3,1,3)
+ax1.set_ylim((-70e-3,50e-3))
+ax1.plot( res.get_time(), res.state_variables['nrn/V'] )
+ax1.set_ylabel('nrn1/V %s' %('??'))
+
+ax2.plot( res.get_time(), res.assignments['synin/psm/i'] )
+ax3.plot( res.get_time(), res.assignments['synin/psm/g'] )
+#synin/psm/i
+#ax2.plot( res.get_time(), res.state_variables['nrn1/i_square/t_last'] )
+#ax3.plot( res.get_time(), res.rt_regimes['nrn1/nrn/']+0.0 , label='nrn1/nrn')
+#ax3.plot( res.get_time(), res.rt_regimes['nrn1/i_inj/']+0.1, label='nrn1/i_inj')
+#ax3.plot( res.get_time(), res.rt_regimes['nrn1/i_square/']+0.2,label='nrn1/i_square' )
+ax3.legend()
+pylab.show()
+
+
+
+
+
+
+
+
+
+
 
 res = simulate_component(component=c,
                 times = np.linspace(0,1,num=1000),

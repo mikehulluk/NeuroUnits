@@ -98,7 +98,6 @@ class ReplaceNode(ASTVisitorBase):
         new_lut.unique_attrs =  lut.unique_attrs
         new_lut.accepted_obj_types =  lut.accepted_obj_types
         for o in lut:
-            #print 'Resolving', o
             new_lut._add_item( self.replace_or_visit(o)  )
         return new_lut
 
@@ -116,7 +115,7 @@ class ReplaceNode(ASTVisitorBase):
         o.compound_port = self.replace_or_visit(o.compound_port)
         o.component_port = self.replace_or_visit(o.component_port)
         return o
-        
+
 
     def VisitCompoundPortDefWireContinuous(self, o, **kwargs):
         return o
@@ -307,6 +306,7 @@ class ReplaceNode(ASTVisitorBase):
         o.actions = [self.replace_or_visit(a) for a in o.actions]
         return o
     def VisitOnTransitionEvent(self, o, **kwargs):
+        o.port = self.replace_or_visit(o.port)
         o.parameters = self._replace_within_new_lut(o.parameters)
         o.actions = [self.replace_or_visit(a) for a in o.actions]
         return o

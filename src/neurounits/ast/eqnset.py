@@ -210,10 +210,10 @@ class EqnSet(Block):
                         LookUpDict(self.state_variables).get_objs_by(symbol=symbol)+ \
                         LookUpDict(self.symbolicconstants).get_objs_by(symbol=symbol) + \
                         self.input_event_port_lut.get_objs_by(name=symbol) + \
-                        self.output_event_port_lut.get_objs_by(name=symbol) 
+                        self.output_event_port_lut.get_objs_by(name=symbol)
 
 
-        
+
         if not len(possible_objs) == 1:
             all_syms = [ p.symbol for p in self.all_terminal_objs() ]
             raise KeyError("Can't find terminal/EventPort: '%s' \n (Terminals/EntPorts found: %s)" % (symbol, ','.join(all_syms) ) )
@@ -231,10 +231,10 @@ class EqnSet(Block):
                         LookUpDict(self.symbolicconstants).get_objs_by(symbol=symbol)
 
 
-        
+
         if not len(possible_objs) == 1:
             all_syms = [ p.symbol for p in self.all_terminal_objs() ]
-            raise KeyError("Can't find terminal: '%s' \n (Terminals found: %s)" % (symbol, ','.join(all_syms) ) )
+            raise KeyError("Can't find terminal: '%s' \n (Terminals found: %s)" % (symbol, ','.join(sorted(all_syms)) ) )
 
         return possible_objs[0]
 
@@ -332,7 +332,7 @@ class NineMLComponent(EqnSet):
 
         # This is a list of internal event port connections:
         self._event_port_connections = LookUpDict()
-        
+
         from neurounits.ast import CompoundPortConnector
         # This is a list of the available connectors from this component
         self._compound_ports_connectors = LookUpDict( accepted_obj_types=(CompoundPortConnector,), unique_attrs=('name',))
@@ -408,28 +408,134 @@ class NineMLComponent(EqnSet):
     def clone(self, ):
 
 
-        import gc
-        import collections
-
-
-        print 'Refs to library manager:'
-        lib_man_refs =  gc.get_referrers( self.library_manager)
-        for ref in lib_man_refs:
-            print type(ref)
-            print ref
-        print 'Len', len(lib_man_refs)
-
-        assert False
+        #import gc
+        #import collections
+        #from neurounits.librarymanager import LibraryManager
+        from neurounits.visitors.common.ast_replace_node import ReplaceNode
+        from neurounits.visitors.common.ast_node_connections import ASTAllConnections
 
 
 
-        from neurounits.librarymanager import LibraryManager
+        class ReplaceNodeHack(ReplaceNode):
+            def replace_or_visit(self, o):
+                if o == self.srcObj:
+                    print '    Replacing', self.srcObj, ' -> ', self.dstObj
+                    return self.dstObj
+                else:
+                    return o
 
-        gc.collect()
-        prev_objs = list( gc.get_objects() )
-        type_count_before  = collections.Counter( [type(obj) for obj in prev_objs])
+        #print 'Refs to library manager:'
+        #lib_man_refs =  gc.get_referrers( self.library_manager)
+        #for ref in lib_man_refs:
+        #    print type(ref)
+        #    print ref
+        #print 'Len', len(lib_man_refs)
 
-        print type_count_before
+        #assert False
+        #gc.collect()
+        #prev_objs = list( gc.get_objects() )
+        #type_count_before  = collections.Counter( [type(obj) for obj in prev_objs])
+
+        #print type_count_before
+
+
+        from neurounits.visitors.common.ast_cloning import ASTClone
+        from collections import defaultdict
+
+        import neurounits.ast as ast
+
+
+        # CONCEPTUALLY THIS IS VERY SIMPLE< BUT THE CODE
+        # IS A HORRIBLE HACK!
+
+        no_remap = (ast.CompoundPortDef, ast.CompoundPortDefWireContinuous, ast.CompoundPortDefWireEvent)
+        # First, lets clone each and every node:
+        print
+        print 'Remapping nodes:'
+        old_nodes = list( EqnsetVisitorNodeCollector(self).all() )
+        old_to_new_dict = {}
+        for old_node in old_nodes:
+
+            if not isinstance(old_node, no_remap):
+                new_node = ASTClone().visit(old_node)
+            else:
+                new_node = old_node
+            
+
+            print old_node, '-->', new_node
+            assert type(old_node) == type(new_node)
+            old_to_new_dict[old_node] = new_node
+
+        # Clone self:
+        old_to_new_dict[self] = ASTClone().visit(self)
+
+        # Check that all the nodes hav been replaced:
+        overlap = ( set(old_to_new_dict.keys()) & set(old_to_new_dict.values() )  )
+        for o in overlap:
+            assert isinstance(o, no_remap)
+
+        # Now, lets visit each of the new nodes, and replace (old->new) on it:
+        print 
+        print 'Replacing Nodes:'
+        for new_node in old_to_new_dict.values():
+            print 'Replacing nodes on:', new_node
+
+            for old_repl, new_repl in old_to_new_dict.items():
+                if new_repl == new_node:
+                    continue
+                #print ' -- Replacing:',old_repl, new_repl
+                replacer = ReplaceNodeHack(srcObj=old_repl, dstObj=new_repl)
+                new_node.accept_visitor(replacer)
+
+
+        # ok, so the clone should now be all clear:
+        new_obj = old_to_new_dict[self]
+
+        new_nodes = list( EqnsetVisitorNodeCollector(new_obj).all()  )
+
+
+        # Who points to what!?
+        connections_map_obj_to_conns = {}
+        connections_map_conns_to_objs = defaultdict(list)
+        for node in new_nodes:
+            print 'Node', node
+            print
+            conns = list( node.accept_visitor( ASTAllConnections() ) )
+            #print node, len(conns)
+            connections_map_obj_to_conns[node] = conns
+
+            for c in conns:
+                connections_map_conns_to_objs[c].append(node)
+
+
+
+
+
+        shared_nodes = set(new_nodes) & set(old_nodes)
+        shared_nodes_invalid = [sn for sn in shared_nodes if not isinstance(sn, no_remap)]
+        print 
+        print 'Shared Nodes:'
+        #print shared_nodes
+        for s in shared_nodes_invalid:
+            print  ' ', s, s in old_to_new_dict
+            print  '  Referenced by:'
+            for c in connections_map_conns_to_objs[s]:
+                print '    *', c 
+            print
+        assert len(shared_nodes_invalid) == 0
+        #assert len(new_nodes) == len(old_nodes)
+
+        return new_obj
+
+
+
+
+
+
+
+        #assert False
+
+
 
 
 
@@ -441,51 +547,48 @@ class NineMLComponent(EqnSet):
 
 
         old_lib_man = self.library_manager
-
         self.library_manager = None
         pickle.dump(self, c)
-
         new = pickle.load(cStringIO.StringIO(c.getvalue()))
         new.library_manager =  old_lib_man
-        self.library_manager = old_lib_man
 
 
 
 
 
-        # When we clone, however, we shouldn't also clone CompundPortDefintions amd sub components, since otherwise we
-        # can't maintain mapping between objects:
-        for compound_port_conn_orig in self._compound_ports_connectors:
-            assert False
+        ## When we clone, however, we shouldn't also clone CompundPortDefintions amd sub components, since otherwise we
+        ## can't maintain mapping between objects:
+        #for compound_port_conn_orig in self._compound_ports_connectors:
+        #    assert False
 
-            # Change the wire mappings, 
-            # TODO!
-
-
-            # Change the compund-port-definition:
-            from neurounits.visitors.common.ast_replace_node import ReplaceNode
-            compound_port_conn_cloned = new._compound_ports_connectors.get_single_obj_by(name=compound_port_conn_orig.name)
-            comp_port_src = compound_port_conn_cloned.compound_port_def
-            comp_port_dst = compound_port_conn_orig.compound_port_def
-            ReplaceNode.replace_and_check(srcObj=comp_port_src, dstObj = comp_port_dst, root=self)
-            
+        #    # Change the wire mappings,
+        #    # TODO!
 
 
+        #    # Change the compund-port-definition:
+        #    from neurounits.visitors.common.ast_replace_node import ReplaceNode
+        #    compound_port_conn_cloned = new._compound_ports_connectors.get_single_obj_by(name=compound_port_conn_orig.name)
+        #    comp_port_src = compound_port_conn_cloned.compound_port_def
+        #    comp_port_dst = compound_port_conn_orig.compound_port_def
+        #    ReplaceNode.replace_and_check(srcObj=comp_port_src, dstObj = comp_port_dst, root=self)
+        #
 
-        gc.collect()
-        next_objs = list( gc.get_objects() )
-        type_count_after  = collections.Counter( [type(obj) for obj in next_objs])
-        count_change = type_count_after - type_count_before
-        print 'Changes:'
-        #print count_change
-        for obj, count in sorted(count_change.items(), key=lambda s:s[1]):
-            print count, obj
 
-        #new_objs = [ o for o in next_objs if not o in prev_objs] 
 
-        print 'Pointing at the new library manager:'
-        lib_mans = [o for o in next_objs if isinstance(o, (LibraryManager))] 
-        print lib_mans
+        #gc.collect()
+        #next_objs = list( gc.get_objects() )
+        #type_count_after  = collections.Counter( [type(obj) for obj in next_objs])
+        #count_change = type_count_after - type_count_before
+        #print 'Changes:'
+        ##print count_change
+        #for obj, count in sorted(count_change.items(), key=lambda s:s[1]):
+        #    print count, obj
+
+        ##new_objs = [ o for o in next_objs if not o in prev_objs]
+
+        #print 'Pointing at the new library manager:'
+        #lib_mans = [o for o in next_objs if isinstance(o, (LibraryManager))]
+        #print lib_mans
 
 
         #refs = gc.get_referrers(*lib_mans)

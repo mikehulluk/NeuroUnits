@@ -58,6 +58,20 @@ class ASTClone(object):
 
         raise NotImplementedError()
 
+    def VisitRTGraph(self, o, **kwargs):
+        new = ast.RTBlock(name = o.name)
+        new.regimes = o.regimes.copy()
+        return new
+
+    def VisitRegime(self, o, **kwargs):
+        new = ast.Regime(name=o.name, parent_rt_graph = o.parent_rt_graph)
+        return new
+
+        #self.parent_rt_graph = parent_rt_graph
+
+
+
+
     def VisitNineMLComponent(self, o, **kwargs):
         builddata = BuildDataDummy()
 
@@ -79,6 +93,9 @@ class ASTClone(object):
                 name = o.name
 
                 )
+
+        new._event_port_connections = o._event_port_connections.copy()
+        new._compound_ports_connectors = o._compound_ports_connectors.copy()
         return copy_std(o, new, )
 
 
@@ -86,7 +103,7 @@ class ASTClone(object):
 
 
     def VisitSymbolicConstant(self, o, **kwargs):
-        new = ast.SuppliedValue(
+        new = ast.SymbolicConstant(
                 symbol = o.symbol,
                 value = o.value)
         return copy_std(o, new, )
@@ -258,10 +275,79 @@ class ASTClone(object):
                 src_regime = o.src_regime,
                 target_regime = o.target_regime,
                 actions = o.actions[:],
-                event_name = o.event_name,
+                port = o.port,
                 parameters = o.parameters.copy()
                 )
         return copy_std(o, new, )
+
+
+    def VisitAnalogReducePort(self, o, **kwagrs):
+        return ast.AnalogReducePort( 
+                symbol = o.symbol, 
+                rhses = list(o.rhses)
+                )
+
+    def VisitEmitEventParameter(self, o, **kwargs):
+        return ast.EmitEventParameter(
+                _symbol='(from_clone)', 
+                rhs= o.rhs,
+                port_parameter_obj=o.port_parameter_obj)
+        
+    def VisitOutEventPortParameter(self, o, **kwargs):
+        return ast.OutEventPortParameter(symbol = o.symbol)
+
+    def VisitOutEventPort(self, o, **kwargs):
+        return ast.OutEventPort(
+                name = o.name,
+                parameters = o.parameters.copy()
+                )
+    def VisitEmitEvent(self, o, **kwargs):
+        return ast.EmitEvent(
+                port = o.port,
+                parameters = o.parameters.copy()
+                )
+
+    def VisitInEventPort(self,o, **kwargs):
+        return ast.InEventPort(
+                name = o.name,
+                parameters = o.parameters.copy()
+                )
+        
+    def VisitInEventPortParameter(self, o, **kwargs):
+        return ast.InEventPortParameter(
+                symbol = o.symbol
+                )
+
+    def VisitOnEventDefParameter(self, o, **kwargs):
+        return ast.OnEventDefParameter(
+                symbol = o.symbol, 
+                dimension = o.get_dimension() 
+                )
+
+
+    def VisitCompoundPortConnector(self, o, **kwaargs):
+        return ast.CompoundPortConnector(
+                name = o.name, 
+                compound_port_def = o.compound_port_def,
+                wire_mappings = o.wire_mappings.copy(),
+                direction = o.direction
+                )
+
+    def VisitCompoundPortConnectorWireMapping(self, o, **kwargs):
+        return ast.CompoundPortConnectorWireMapping(
+                component_port = o.component_port,
+                compound_port =  o.compound_port,
+                )
+
+    def VisitEventPortConnection(self, o, **kwargs ):
+        assert o.delay is None
+        return ast.EventPortConnection(
+            dst_port = o.dst_port,
+            src_port = o.src_port,
+        )
+
+
+
 
 
 

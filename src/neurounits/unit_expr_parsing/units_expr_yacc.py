@@ -205,7 +205,7 @@ def p_compound_component(p):
             connections = connections,
             renames = renames,
             merge_nodes = merge_nodes,
-            compound_ports = compound_ports,
+            compound_ports_in = compound_ports,
             multiconnections=multiconnections,
             )
     #assert False

@@ -22,10 +22,10 @@ def _is_node_analog(n):
         return True
     if isinstance( n, (ast.OutEventPort, ast.InEventPort)):
         return False
-    assert False, "I don't know the direction of: %s" % n
+    assert False, "I don't know the direction of: %s %s" % (n, type(n))
 
 
-def build_compound_component(component_name, instantiate,  analog_connections=None, event_connections=None,  renames=None, connections=None, prefix='/', auto_remap_time=True, merge_nodes=None, compound_ports=None, multiconnections=None):
+def build_compound_component(component_name, instantiate,  analog_connections=None, event_connections=None,  renames=None, connections=None, prefix='/', auto_remap_time=True, merge_nodes=None, compound_ports_in=None, multiconnections=None):
 
 
 
@@ -135,9 +135,11 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
 
     from neurounits.visitors.common.plot_networkx import ActionerPlotNetworkX
     #ActionerPlotNetworkX(comp)
-    ActionerPlotNetworkX(lib_mgr)
+    #ActionerPlotNetworkX(lib_mgr)
 
 
+    # Resolve the multiconnections, which involves adding pairs to either the 
+    # analog or event connection lists:
     if multiconnections:
         for m in multiconnections:
             io1_name, io2_name = m
@@ -157,14 +159,48 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
             compound_port = compound_ports[0]
 
             # Make the connections:
-            for wire in compound_port:
-                print "Connecting:", wire
+            print 'Resolving connections:'
+            for wire in compound_port.connections:
+                print "Connecting:", repr(wire)
+                print conn1.wire_mappings
+                pre = conn1.wire_mappings.get_single_obj_by(compound_port=wire)
+                post = conn2.wire_mappings.get_single_obj_by(compound_port=wire)
+
+                # Resolve the direction again!:
+                if wire.direction  =='DirRight':
+                    pass
+                elif wire.direction == 'DirLeft':
+                    pre,post = post,pre
+                else:
+                    assert False
+
+                print 'Pre: in/Out?:', _is_node_output(pre.component_port)
+                print 'Pre: in/Out?:', _is_node_output(post.component_port)
+
+
+                assert _is_node_output(pre.component_port)
+                assert not _is_node_output(post.component_port)
+                assert _is_node_analog(pre.component_port) == _is_node_analog(post.component_port)
+
+                if _is_node_analog(pre.component_port):
+                    analog_connections.append( (pre.component_port, post.component_port))
+                else:
+                    event_connections.append( (pre.component_port, post.component_port))
+
+                
+
+
+
+                print wire.direction
+
+                print pre, post
+                print
 
 
 
 
 
-        assert False
+        #assert False
 
     # Ok, and single connections ('helper parameter')
     if connections is not None:
@@ -230,9 +266,26 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
 
     # 5. Connect the relevant ports internally:
     for (src, dst) in analog_connections:
+        if isinstance(src, basestring):
+            src_obj = comp.get_terminal_obj(src)
+        else:
+            assert src in comp.all_terminal_objs()
+            src_obj = src
+        if isinstance(dst, basestring):
+            dst_obj = comp.get_terminal_obj(dst)
+        else:
+            assert dst in comp.all_terminal_objs(), 'Dest is not a terminal_symbols: %s' % dst
+            dst_obj = dst
+        
+        #dst_obj = comp.get_terminal_obj(dst)
+        del src, dst
 
-        src_obj = comp.get_terminal_obj(src)
-        dst_obj = comp.get_terminal_obj(dst)
+        # Sanity Checking:
+        assert _is_node_analog(src_obj)
+        assert _is_node_analog(dst_obj)
+        assert _is_node_output(src_obj)
+        assert not _is_node_output(dst_obj)
+
 
         if isinstance(dst_obj, ast.AnalogReducePort):
             dst_obj.rhses.append(src_obj)
@@ -240,6 +293,7 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
             ReplaceNode.replace_and_check(srcObj=dst_obj, dstObj=src_obj, root=comp)
         else:
             assert False, 'Unexpected node type: %s' % dst_obj
+
 
     for (src, dst) in event_connections:
         src_port = comp.output_event_port_lut.get_single_obj_by(name=src)
@@ -262,8 +316,8 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
 
     # 7. Create any new compound ports:
     #print
-    if compound_ports:
-        for compound_port in compound_ports:
+    if compound_ports_in:
+        for compound_port in compound_ports_in:
             #print 'Compound port:', compound_port
             local_name, porttype, direction, wire_mapping_txts = compound_port
             compound_port_def = lib_mgr.get(porttype)

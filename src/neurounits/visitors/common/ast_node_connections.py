@@ -95,7 +95,7 @@ class ASTAllConnections(ASTActionerDepthFirst):
     #    return []
 
 
-    def ActionEventPortConnection(self, o, **kwargs):
+    def VisitEventPortConnection(self, o, **kwargs):
         return [o.src_port, o.dst_port]
 
 

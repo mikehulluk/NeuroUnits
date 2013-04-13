@@ -286,37 +286,37 @@ class FunctorGenerator(ASTVisitorBase):
             assert isinstance(eqnset, ast.EqnSet)
             self.visit(eqnset)
 
-    def VisitEqnSet(self, o, **kwargs):
-        self.ast = o
+    #def VisitEqnSet(self, o, **kwargs):
+    #    self.ast = o
 
-        deps = VisitorFindDirectSymbolDependance()
-        deps.visit(o)
-        self.assignee_to_assigment = {}
-        for a in o.assignments:
-            self.assignee_to_assigment[a.lhs] = a
+    #    deps = VisitorFindDirectSymbolDependance()
+    #    deps.visit(o)
+    #    self.assignee_to_assigment = {}
+    #    for a in o.assignments:
+    #        self.assignee_to_assigment[a.lhs] = a
 
-        assignment_deps = deps.dependancies
-        resolved = set()
+    #    assignment_deps = deps.dependancies
+    #    resolved = set()
 
-        def resolve(assignment):
-            if assignment in resolved:
-                return
+    #    def resolve(assignment):
+    #        if assignment in resolved:
+    #            return
 
-            if type(assignment) != ast.AssignedVariable:
-                return
-            for dep in assignment_deps[assignment]:
-                resolve(dep)
-            self.visit(self.assignee_to_assigment[assignment])
-            resolved.add(assignment)
+    #        if type(assignment) != ast.AssignedVariable:
+    #            return
+    #        for dep in assignment_deps[assignment]:
+    #            resolve(dep)
+    #        self.visit(self.assignee_to_assigment[assignment])
+    #        resolved.add(assignment)
 
-        for a in o.assignments:
-            resolve(a.lhs)
+    #    for a in o.assignments:
+    #        resolve(a.lhs)
 
-        for a in o.assignments:
-            self.visit(a)
+    #    for a in o.assignments:
+    #        self.visit(a)
 
-        for a in o.timederivatives:
-            self.visit(a)
+    #    for a in o.timederivatives:
+    #        self.visit(a)
 
     def VisitNineMLComponent(self, o, **kwargs):
         self.ast = o
@@ -329,6 +329,15 @@ class FunctorGenerator(ASTVisitorBase):
 
         assignment_deps = deps.dependancies
         resolved = set()
+
+
+
+        print
+        print 'Assignments:'
+        for ass in o.assignments:
+            print ass.lhs.symbol, ass.lhs
+
+
 
         def resolve(assignment):
             if assignment in resolved:
@@ -619,6 +628,9 @@ class FunctorGenerator(ASTVisitorBase):
     def VisitAssignedVariable(self, o, **kwargs):
         # We are at an assignment. We resolve this by looking up the
         # Right hand side of the assigned variable:
+        print self.assignment_evaluators.keys()
+        print 'Assigned Var:', o, o.symbol
+        
         assignment_rhs = self.assignment_evaluators[o.symbol]
         def eFunc(**kw):
             return assignment_rhs(**kw)

@@ -43,6 +43,9 @@ class CompoundPortDefWireEvent(CompoundPortDefWire):
     def accept_visitor(self, visitor, **kwargs):
         return visitor.VisitCompoundPortDefWireEvent(self, **kwargs)
 
+    def __repr__(self,):
+        return '<CompoundPortDefWireEvent: %s (Optional:%s, Direction:%s)>' %( self.symbol, self.optional, self.direction)
+
 
 
 class CompoundPortDef(base.ASTObject):
@@ -77,9 +80,19 @@ class CompoundPortConnectorWireMapping(base.ASTObject):
         self.component_port = component_port
         self.compound_port = compound_port
 
+        import neurounits.ast as ast
+        print 'component_port', type(component_port)
+        print 'compound_port', type(compound_port)
+
+        assert isinstance(component_port, (ast.SuppliedValue, ast.AssignedVariable, ast.StateVariable, ast.AnalogReducePort) )
+        assert isinstance(compound_port, (CompoundPortDefWireContinuous, CompoundPortDefWireEvent) )
+
     def accept_visitor(self, visitor, **kwargs):
         return visitor.VisitCompoundPortConnectorWireMapping(self, **kwargs)
 
+
+    def __repr__(self,):
+        return "<CompoundPortConnectorWireMapping: Component: %s to Compound: %s>" % (self.component_port.symbol, self.compound_port.symbol)
 
 
 

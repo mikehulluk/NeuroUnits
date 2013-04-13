@@ -127,7 +127,7 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
         pass
 
     def ActionAnalogReducePort(self, o, **kwargs):
-        self.verify_equal_units([o] + o.rhses)
+        self.verify_equal_units([o] + list(o.rhses))
 
     def ActionTimeDerivativeByRegime(self, o, **kwargs):
         from neurounits.units_backends.mh import MMUnit
