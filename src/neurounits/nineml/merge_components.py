@@ -143,26 +143,26 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
     if multiconnections:
         for m in multiconnections:
             io1_name, io2_name = m
-            print 'Multicnnecitons;', m
-            print comp._compound_ports_connectors
+            #print 'Multicnnecitons;', m
+            #print comp._compound_ports_connectors
             conn1 = comp._compound_ports_connectors.get_single_obj_by(name=io1_name)
             conn2 = comp._compound_ports_connectors.get_single_obj_by(name=io2_name)
-            print 'Connecting connectors:,', conn1, conn2
+            #print 'Connecting connectors:,', conn1, conn2
 
             # sort out the direction:
             if  (conn1.get_direction()=='in' and conn2.get_direction()=='out'):
                 conn1,conn2 = conn2, conn1
             assert (conn1.get_direction()=='out' and conn2.get_direction()=='in') 
             compound_ports = list(set([conn1.compound_port_def, conn2.compound_port_def] ) )
-            print compound_ports
+            #print compound_ports
             assert len(compound_ports) == 1
             compound_port = compound_ports[0]
 
             # Make the connections:
-            print 'Resolving connections:'
+            #print 'Resolving connections:'
             for wire in compound_port.connections:
-                print "Connecting:", repr(wire)
-                print conn1.wire_mappings
+                #print "Connecting:", repr(wire)
+                #print conn1.wire_mappings
                 pre = conn1.wire_mappings.get_single_obj_by(compound_port=wire)
                 post = conn2.wire_mappings.get_single_obj_by(compound_port=wire)
 
@@ -174,8 +174,8 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
                 else:
                     assert False
 
-                print 'Pre: in/Out?:', _is_node_output(pre.component_port)
-                print 'Pre: in/Out?:', _is_node_output(post.component_port)
+                #print 'Pre: in/Out?:', _is_node_output(pre.component_port)
+                #print 'Pre: in/Out?:', _is_node_output(post.component_port)
 
 
                 assert _is_node_output(pre.component_port)
@@ -191,10 +191,10 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
 
 
 
-                print wire.direction
+                #print wire.direction
 
-                print pre, post
-                print
+                #print pre, post
+                #print
 
 
 

@@ -450,8 +450,8 @@ class NineMLComponent(EqnSet):
 
         no_remap = (ast.CompoundPortDef, ast.CompoundPortDefWireContinuous, ast.CompoundPortDefWireEvent)
         # First, lets clone each and every node:
-        print
-        print 'Remapping nodes:'
+        #print
+        #print 'Remapping nodes:'
         old_nodes = list( EqnsetVisitorNodeCollector(self).all() )
         old_to_new_dict = {}
         for old_node in old_nodes:
@@ -462,7 +462,7 @@ class NineMLComponent(EqnSet):
                 new_node = old_node
             
 
-            print old_node, '-->', new_node
+            #print old_node, '-->', new_node
             assert type(old_node) == type(new_node)
             old_to_new_dict[old_node] = new_node
 
@@ -475,10 +475,10 @@ class NineMLComponent(EqnSet):
             assert isinstance(o, no_remap)
 
         # Now, lets visit each of the new nodes, and replace (old->new) on it:
-        print 
-        print 'Replacing Nodes:'
+        #print 
+        #print 'Replacing Nodes:'
         for new_node in old_to_new_dict.values():
-            print 'Replacing nodes on:', new_node
+            #print 'Replacing nodes on:', new_node
 
             for old_repl, new_repl in old_to_new_dict.items():
                 if new_repl == new_node:
@@ -498,8 +498,8 @@ class NineMLComponent(EqnSet):
         connections_map_obj_to_conns = {}
         connections_map_conns_to_objs = defaultdict(list)
         for node in new_nodes:
-            print 'Node', node
-            print
+            #print 'Node', node
+            #print
             conns = list( node.accept_visitor( ASTAllConnections() ) )
             #print node, len(conns)
             connections_map_obj_to_conns[node] = conns
@@ -513,15 +513,15 @@ class NineMLComponent(EqnSet):
 
         shared_nodes = set(new_nodes) & set(old_nodes)
         shared_nodes_invalid = [sn for sn in shared_nodes if not isinstance(sn, no_remap)]
-        print 
-        print 'Shared Nodes:'
+        #print 
+        #print 'Shared Nodes:'
         #print shared_nodes
-        for s in shared_nodes_invalid:
-            print  ' ', s, s in old_to_new_dict
-            print  '  Referenced by:'
-            for c in connections_map_conns_to_objs[s]:
-                print '    *', c 
-            print
+        #for s in shared_nodes_invalid:
+            #print  ' ', s, s in old_to_new_dict
+            #print  '  Referenced by:'
+            #for c in connections_map_conns_to_objs[s]:
+            #    print '    *', c 
+            #print
         assert len(shared_nodes_invalid) == 0
         #assert len(new_nodes) == len(old_nodes)
 

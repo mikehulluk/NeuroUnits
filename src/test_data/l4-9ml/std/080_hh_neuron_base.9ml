@@ -1,0 +1,24 @@
+
+
+namespace hh_neuron {
+
+
+    define_component hh_neuron_base {
+        <=> ANALOG_REDUCE_PORT i_sum
+        <=> PARAMETER C:(uF)
+        <=> OUTPUT     V: mV
+        
+        V' = i_sum / C
+
+        
+        compoundport process_mount of_type neuron_membrane_point_process <out> {
+            # Local <==> Compound-port name
+            V <==> V
+            i_sum <==> I
+            }
+        
+        
+
+    }
+}
+

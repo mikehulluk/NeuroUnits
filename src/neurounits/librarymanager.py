@@ -110,7 +110,7 @@ class LibraryManager(object):
         except NoSuchObjectError:
             pass
 
-        print 'Adding component: "%s" '% component.name
+        #print 'Adding component: "%s" '% component.name
         self.components.append(component)
 
     def add_compoundportdef(self, compoundportdef):

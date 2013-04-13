@@ -1,0 +1,17 @@
+
+
+
+define_compoundport neuron_membrane_point_process {
+    ==>> V:(V)
+    <<== I:(A)
+}
+
+
+define_compoundport synapse_input_event {
+
+
+
+}
+
+
+

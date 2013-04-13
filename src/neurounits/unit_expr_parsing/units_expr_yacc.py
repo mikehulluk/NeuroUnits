@@ -182,13 +182,13 @@ def p_compound_component(p):
     """compound_component_def : DEFINE_COMPOUND alphanumtoken LCURLYBRACKET compoundcontents RCURLYBRACKET SEMICOLON"""
 
     #print 'Building Compound component:'
-    print 'IN compoung componet'
+    #print 'IN compoung componet'
     lib_mgr = p.parser.library_manager
     name = p[2]
     actions = p[4]
-    print 'Buidling:', name
+    #print 'Buidling:', name
     instantiations = [ (d['as'], lib_mgr.get(d['what'])) for d in actions if d['action']=='INSTANTIATE']
-    print '  - Got instantiations'
+    #print '  - Got instantiations'
     connections = [ d['what'] for d in actions if d['action']=='CONNECT']
     multiconnections = [ d['what'] for d in actions if d['action']=='MULTICONNECT']
     renames = [ d['what'] for d in actions if d['action']=='RENAME']
@@ -211,10 +211,10 @@ def p_compound_component(p):
     #assert False
     lib_mgr = p.parser.library_manager.add_component(component)
 
-    print component.name
-    print name
+    #print component.name
+    #print name
     assert component.name == name
-    print 'Created compound component:', name
+    #print 'Created compound component:', name
     #assert False
     #
 
@@ -329,6 +329,10 @@ def p_parse_componentline2(p):
     """componentlinecontents : IO_LINE"""
     p.parser.library_manager.get_current_block_builder().add_io_data(p[1])
 
+def p_parse_componentline3(p):
+    """componentlinecontents : compound_port_inst"""
+    assert False
+    #p.parser.library_manager.get_current_block_builder().add_io_data(p[1])
 
 
 
@@ -1193,7 +1197,7 @@ def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=No
         # Catch the exception, so that we can add more error handling to it:
         e.original_text = orig_text
         e.parsed_text = text
-        print str(e)
+        #print str(e)
         raise
 
     # If its a level-3 expression, we need to evaluate it:

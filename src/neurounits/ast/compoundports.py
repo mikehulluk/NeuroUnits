@@ -81,8 +81,8 @@ class CompoundPortConnectorWireMapping(base.ASTObject):
         self.compound_port = compound_port
 
         import neurounits.ast as ast
-        print 'component_port', type(component_port)
-        print 'compound_port', type(compound_port)
+        #print 'component_port', type(component_port)
+        #print 'compound_port', type(compound_port)
 
         assert isinstance(component_port, (ast.SuppliedValue, ast.AssignedVariable, ast.StateVariable, ast.AnalogReducePort) )
         assert isinstance(compound_port, (CompoundPortDefWireContinuous, CompoundPortDefWireEvent) )

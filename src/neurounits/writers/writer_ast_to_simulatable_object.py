@@ -363,10 +363,10 @@ class FunctorGenerator(ASTVisitorBase):
 
 
 
-        print
-        print 'Assignments:'
-        for ass in o.assignments:
-            print ass.lhs.symbol, ass.lhs
+        #print
+        #print 'Assignments:'
+        #for ass in o.assignments:
+            #print ass.lhs.symbol, ass.lhs
 
 
 
@@ -388,7 +388,7 @@ class FunctorGenerator(ASTVisitorBase):
             self.visit(a)
 
         for a in o.timederivatives:
-            print 'Time Derivative:', a, a.lhs.symbol
+            #print 'Time Derivative:', a, a.lhs.symbol
             self.visit(a)
 
         # Build a dictionary of predicates which detect whether a
@@ -660,8 +660,8 @@ class FunctorGenerator(ASTVisitorBase):
     def VisitAssignedVariable(self, o, **kwargs):
         # We are at an assignment. We resolve this by looking up the
         # Right hand side of the assigned variable:
-        print self.assignment_evaluators.keys()
-        print 'Assigned Var:', o, o.symbol
+        #print self.assignment_evaluators.keys()
+        #print 'Assigned Var:', o, o.symbol
 
         assignment_rhs = self.assignment_evaluators[o.symbol]
         def eFunc(**kw):
