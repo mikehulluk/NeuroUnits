@@ -304,11 +304,15 @@ class ReplaceNode(ASTVisitorBase):
     def VisitOnTransitionTrigger(self, o, **kwargs):
         o.trigger = self.replace_or_visit(o.trigger)
         o.actions = [self.replace_or_visit(a) for a in o.actions]
+        o.src_regime = self.replace_or_visit(o.src_regime)
+        o.target_regime = self.replace_or_visit(o.target_regime)
         return o
     def VisitOnTransitionEvent(self, o, **kwargs):
         o.port = self.replace_or_visit(o.port)
         o.parameters = self._replace_within_new_lut(o.parameters)
         o.actions = [self.replace_or_visit(a) for a in o.actions]
+        o.src_regime = self.replace_or_visit(o.src_regime)
+        o.target_regime = self.replace_or_visit(o.target_regime)
         return o
 
     def VisitOnEventDefParameter(self, o, **kwargs):

@@ -250,6 +250,7 @@ def simulate_component(component, times, parameters,initial_state_values, initia
         #print '\nEvents:', active_events
         ports_with_events = {}
         for evt in active_events:
+            print 'Evt!', evt
             if evt.port in f.transition_event_forwarding:
                 for input_port in f.transition_event_forwarding[evt.port]:
                     ports_with_events[input_port] = evt
@@ -261,11 +262,11 @@ def simulate_component(component, times, parameters,initial_state_values, initia
         #print 'Checking for transitions:'
         for rt_graph in component.rt_graphs:
             current_regime = current_regimes[rt_graph]
-            #print '  ', rt_graph, '(in %s)' % current_regime
+            print '  ', rt_graph, '(in %s)' % current_regime
 
             triggered_transitions = []
             for transition in component.transitions_from_regime(current_regime):
-                #print '       Checking',  transition
+                print '       Checking',  transition
 
                 if isinstance(transition, ast.OnTriggerTransition):
                     res = f.transition_triggers_evals[transition]( state_data=state_data)
@@ -292,6 +293,8 @@ def simulate_component(component, times, parameters,initial_state_values, initia
         # Mark the events as done
         for evt in active_events:
             evt_manager.marked_event_as_processed(evt)
+
+        #assert False
 
 
 

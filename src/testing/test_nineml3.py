@@ -329,7 +329,7 @@ initial_states = {
 
 
 res = simulate_component(component=c,
-                times = np.linspace(0,1,num=1000),
+                times = np.linspace(0, 1,num=1000),
                 close_reduce_ports=True,
                 parameters=parameters,
                 initial_state_values=initial_states,
