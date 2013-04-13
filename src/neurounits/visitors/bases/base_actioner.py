@@ -171,6 +171,10 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def VisitRegimeDispatchMap(self, o, **kwargs):
         for rhs in o.rhs_map.values():
             self.visit(rhs, **kwargs)
+
+        for rhs in o.rhs_map.keys():
+            self.visit(rhs, **kwargs)
+
         self._ActionRegimeDispatchMap(o, **kwargs)
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):

@@ -168,13 +168,27 @@ def simulate_component(component, times, parameters,initial_state_values, initia
         assert regime is not None, " Start regime for '%s' not set! " % (rt_graph.name)
         assert regime in rt_graph.regimes
 
-    #print 'Initial_regimes', current_regimes
+    print
+    print 'Initial_regimes'
+    for k,v in current_regimes.items():
+        print repr(k), repr(v)
+    print
+
+    # Check we have all the nodes:
+    from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
+    nodes = EqnsetVisitorNodeCollector(component).nodes
+    for n in nodes[ast.RTBlock]:
+        print repr(n)
+    #assert False
+    
 
 
 
     # ======================
 
 
+
+    one_second =  neurounits.NeuroUnitParser.QuantitySimple('1s')
 
 
 
@@ -201,7 +215,7 @@ def simulate_component(component, times, parameters,initial_state_values, initia
 
 
 
-        t_unit = t * neurounits.NeuroUnitParser.QuantitySimple('1s')
+        t_unit = t * one_second
         supplied_values = {'t': t_unit}
         evt_manager.set_time(t_unit)
 
@@ -228,7 +242,7 @@ def simulate_component(component, times, parameters,initial_state_values, initia
         # Update the states:
         for (d, dS) in deltas.items():
             assert d in state_values, "Found unexpected delta: %s (%s)" %( d )
-            state_values[d] += dS * (times[i+1] - times[i] ) * neurounits.NeuroUnitParser.QuantitySimple('1s')
+            state_values[d] += dS * (times[i+1] - times[i] ) * one_second
 
 
         # Get all the events, and forward them to the approprate input ports:

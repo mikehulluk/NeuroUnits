@@ -247,7 +247,7 @@ class ReplaceNode(ASTVisitorBase):
         return o
 
     def VisitAnalogReducePort(self, o, **kwargs):
-        o.rhses = [self.visit(rhs) for rhs in o.rhses]
+        o.rhses = [self.replace_or_visit(rhs) for rhs in o.rhses]
         return o
 
     # AST Objects:
@@ -257,7 +257,7 @@ class ReplaceNode(ASTVisitorBase):
         return o
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
-        o.rhs_map = dict([(reg, self.replace_or_visit(rhs)) for (reg,rhs) in o.rhs_map.items()])
+        o.rhs_map = dict([(self.replace_or_visit(reg), self.replace_or_visit(rhs)) for (reg,rhs) in o.rhs_map.items()])
         return o
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):

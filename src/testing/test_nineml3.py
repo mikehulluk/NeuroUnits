@@ -4,7 +4,7 @@
 import neurounits
 import sys
 import numpy as np
-
+import itertools
 
 import pylab
 from neurounits.nineml import build_compound_component
@@ -342,6 +342,53 @@ res = simulate_component(component=c,
 
 
 
+
+def auto_plot(res):
+    plot_objs = list( itertools.chain( res.state_variables.items(), res.assignments.items(), res.rt_regimes.items() ) )
+    n_axes = len(plot_objs)
+    f = pylab.figure()    
+    axes = [f.add_subplot(n_axes, 1, i+1) for i in range(len(plot_objs))]
+    
+    
+    for (plot_name,plot_obj), ax in zip( plot_objs, axes):
+        #print ax, plot_obj
+        ax.plot(res.get_time(), plot_obj)
+        ax.set_ylabel(plot_name + '   ',rotation=0, horizontalalignment='right' )
+        ax.set_yticks([])
+        ax.set_yticklabels([])
+
+    print 
+    print 'Transitions:'
+    for tr in res.transitions:
+        print tr
+    #f.tight_layout()
+    pylab.show()
+    assert False
+
+
+auto_plot(res)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 f = pylab.figure()
 ax1 = f.add_subplot(3,1,1)
 ax2 = f.add_subplot(3,1,2)
@@ -364,6 +411,7 @@ pylab.show()
 
 
 
+assert False
 
 
 

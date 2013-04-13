@@ -43,6 +43,37 @@ import mredoc
 from functools import partial
 import traceback
 from collections import defaultdict
+import sys
+
+
+
+class DebugScope(object):
+
+    nesting_depth = 0
+
+    def __init__(self, s ):
+        self.s = s
+    def __enter__(self):
+        print 'Entering Scope: %s' % self.s
+        DebugScope.nesting_depth = DebugScope.nesting_depth + 1
+
+    def __exit__(self, *args):
+        DebugScope.nesting_depth = DebugScope.nesting_depth - 1
+        #print 'Exiti Scope: %s' % self.s, args
+
+
+std_out_orig = sys.stdout
+
+class MyWriter(object):
+    def write(self, s):
+        s1 = '  '  * DebugScope.nesting_depth
+        std_out_orig.write(s1)
+        return std_out_orig.write(s)
+#sys.stdout = MyWriter()
+
+
+
+
 
 
 def get_as_si(o):
@@ -246,7 +277,7 @@ class EqnSimulator(object):
 
 
 class SimulationStateData(object):
-    def __init__(self, 
+    def __init__(self,
             parameters,
             suppliedvalues,
             states_in,
@@ -268,7 +299,7 @@ class SimulationStateData(object):
                                    states_out=self.states_out.copy(),
                                    rt_regimes=self.rt_regimes.copy(),
                                    event_manager = None
-                                   
+
                                    )
 
 
@@ -357,6 +388,7 @@ class FunctorGenerator(ASTVisitorBase):
             self.visit(a)
 
         for a in o.timederivatives:
+            print 'Time Derivative:', a, a.lhs.symbol
             self.visit(a)
 
         # Build a dictionary of predicates which detect whether a
@@ -420,11 +452,11 @@ class FunctorGenerator(ASTVisitorBase):
     def VisitOnTransitionEvent(self, o, **kwargs):
         self.transition_port_handlers[o.port].append( o )
         self.transitions_actions[o] = self._visit_trans(o, **kwargs)
-        
+
     def VisitOnEventDefParameter(self, o):
         def f(evt,**kw):
             #print 'Getting value of:', o.symbol
-            
+
             # Single parameter:
             if len(evt.parameter_values)==1:
                 return list( evt.parameter_values.values() )[0]
@@ -450,15 +482,14 @@ class FunctorGenerator(ASTVisitorBase):
         self.assignment_evaluators[o.lhs.symbol] = self.visit(o.rhs_map)
 
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
-        self.timederivative_evaluators[o.lhs.symbol] = self.visit(o.rhs_map)
+        with DebugScope('VisitTimeDerivativeByRegime (%s)' % o.lhs.symbol):
+            self.timederivative_evaluators[o.lhs.symbol] = self.visit(o.rhs_map)
 
 
 
     def VisitRegimeDispatchMap(self,o,**kwargs):
-        
-        #print 'Using state:' , o.rhs_map.keys()[0]
-        #return self.visit(o.rhs_map.values()[0])
-        
+
+
         rt_graph = o.get_rt_graph()
 
         rhs_functors = dict([(regime, self.visit(rhs)) for (regime,rhs) in o.rhs_map.items()])
@@ -470,12 +501,13 @@ class FunctorGenerator(ASTVisitorBase):
         except ValueError:
             pass
 
-        
+
 
 
 
         def f3(state_data, **kw):
             regime_states = state_data.rt_regimes
+            #print 'Getting regime_state for RT graph:', repr(rt_graph)
 
             curr_state = regime_states[rt_graph]
             if curr_state in rhs_functors:
@@ -630,7 +662,7 @@ class FunctorGenerator(ASTVisitorBase):
         # Right hand side of the assigned variable:
         print self.assignment_evaluators.keys()
         print 'Assigned Var:', o, o.symbol
-        
+
         assignment_rhs = self.assignment_evaluators[o.symbol]
         def eFunc(**kw):
             return assignment_rhs(**kw)
@@ -655,8 +687,6 @@ class FunctorGenerator(ASTVisitorBase):
         f_lhs = self.visit(o.lhs)
         f_rhs = self.visit(o.rhs)
         def eFunc(**kw):
-            #print o.lhs
-            #print o.rhs
             return f_lhs(**kw) * f_rhs(**kw)
         return eFunc
 
