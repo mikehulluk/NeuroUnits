@@ -119,7 +119,6 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
     for component in instantiate.values():
         for compoundport in component._compound_ports_connectors:
             comp.add_compound_port(compoundport)
-        #assert len( component._compound_ports_connectors) == 0
 
 
 
@@ -315,23 +314,27 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
 
 
     # 7. Create any new compound ports:
-    #print
+    # TODO: shouldn't this go higher up? before connections??
     if compound_ports_in:
         for compound_port in compound_ports_in:
             #print 'Compound port:', compound_port
             local_name, porttype, direction, wire_mapping_txts = compound_port
-            compound_port_def = lib_mgr.get(porttype)
-            #print compound_port_def
-            wire_mappings = []
-            for wire_mapping_txt in wire_mapping_txts:
-                wire_map = ast.CompoundPortConnectorWireMapping(
-                                component_port = comp.get_terminal_obj(wire_mapping_txt[0]),
-                                compound_port = compound_port_def.get_wire(wire_mapping_txt[1]),
-                                )
-                wire_mappings.append(wire_map)
+            comp.build_compound_port(local_name=local_name, porttype=porttype, direction=direction, wire_mapping_txts=wire_mapping_txts)
+            
+            
 
-            conn = ast.CompoundPortConnector(name=local_name, compound_port_def = compound_port_def, wire_mappings=wire_mappings, direction=direction)
-            comp.add_compound_port(conn)
+            #compound_port_def = lib_mgr.get(porttype)
+            ##print compound_port_def
+            #wire_mappings = []
+            #for wire_mapping_txt in wire_mapping_txts:
+            #    wire_map = ast.CompoundPortConnectorWireMapping(
+            #                    component_port = comp.get_terminal_obj(wire_mapping_txt[0]),
+            #                    compound_port = compound_port_def.get_wire(wire_mapping_txt[1]),
+            #                    )
+            #    wire_mappings.append(wire_map)
+
+            #conn = ast.CompoundPortConnector(name=local_name, compound_port_def = compound_port_def, wire_mappings=wire_mappings, direction=direction)
+            #comp.add_compound_port(conn)
 
 
 

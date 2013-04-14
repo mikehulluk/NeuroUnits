@@ -331,8 +331,7 @@ def p_parse_componentline2(p):
 
 def p_parse_componentline3(p):
     """componentlinecontents : compound_port_inst"""
-    assert False
-    #p.parser.library_manager.get_current_block_builder().add_io_data(p[1])
+    p.parser.library_manager.get_current_block_builder().add_compoundport_def_data(p[1])
 
 
 

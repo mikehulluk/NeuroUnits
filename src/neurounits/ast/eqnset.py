@@ -340,6 +340,35 @@ class NineMLComponent(EqnSet):
     def add_compound_port(self, compoundportconnector ):
         self._compound_ports_connectors._add_item(compoundportconnector)
 
+
+
+    def build_compound_port(self, local_name, porttype, direction, wire_mapping_txts):
+        assert isinstance(local_name, basestring)
+        assert isinstance(porttype, basestring)
+        assert isinstance(direction, basestring)
+        for src,dst in wire_mapping_txts:
+            assert isinstance(src, basestring)
+            assert isinstance(dst, basestring)
+
+
+        import neurounits.ast as ast
+        compound_port_def = self.library_manager.get(porttype)
+        wire_mappings = []
+        for wire_mapping_txt in wire_mapping_txts:
+            wire_map = ast.CompoundPortConnectorWireMapping(
+                            component_port = self.get_terminal_obj(wire_mapping_txt[0]),
+                            compound_port = compound_port_def.get_wire(wire_mapping_txt[1]),
+                            )
+            wire_mappings.append(wire_map)
+
+        conn = ast.CompoundPortConnector(name=local_name, compound_port_def = compound_port_def, wire_mappings=wire_mappings, direction=direction)
+        self.add_compound_port(conn)
+
+
+
+
+
+
     def add_event_port_connection(self, conn):
         assert conn.dst_port in self.input_event_port_lut
         assert conn.src_port in self.output_event_port_lut
