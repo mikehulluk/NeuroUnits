@@ -113,7 +113,7 @@ class ASTClone(object):
         new = ast.FunctionDef(
                 funcname=o.funcname,
                 parameters=o.parameters.copy(),
-                rhs = self.rhs
+                rhs = o.rhs
                 )
         return copy_std(o, new, )
 

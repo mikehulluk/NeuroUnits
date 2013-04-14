@@ -60,6 +60,7 @@ class UnitExprLexer(object):
         'define_compoundport': 'DEFINE_COMPOUNDPORT',
         'compoundport': 'COMPOUNDPORT',
         'of_type': 'OFTYPE',
+        'set':'SET',
 
         'multiconnect':'MULTICONNECT',
         }

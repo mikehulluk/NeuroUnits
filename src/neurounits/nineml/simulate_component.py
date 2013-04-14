@@ -114,6 +114,31 @@ class EventManager(object):
 
     
 
+import itertools
+import pylab
+    
+def auto_plot(res):
+    plot_objs = list( itertools.chain( res.state_variables.items(), res.assignments.items(),) )# res.rt_regimes.items() ) )
+    n_axes = len(plot_objs)
+    f = pylab.figure()    
+    axes = [f.add_subplot(n_axes, 1, i+1) for i in range(len(plot_objs))]
+    
+    
+    for (plot_name,plot_obj), ax in zip( plot_objs, axes):
+        #print ax, plot_obj
+        ax.plot(res.get_time(), plot_obj)
+        ax.set_ylabel(plot_name + '   ',rotation=0, horizontalalignment='right' )
+        #ax.set_yticks([])
+        #ax.set_yticklabels([])
+
+    print 
+    print 'Transitions:'
+    for tr in res.transitions:
+        print tr
+    #f.tight_layout()
+    pylab.show()
+    assert False
+
 
 
 
@@ -235,13 +260,15 @@ def simulate_component(component, times, parameters,initial_state_values, initia
         # Compute the derivatives at each point:
         deltas = {}
         for td in component.timederivatives:
+            print 'Evaluating:', td.lhs.symbol
             td_eval = f.timederivative_evaluators[td.lhs.symbol]
             res = td_eval(state_data=state_data)
             deltas[td.lhs.symbol] = res
 
         # Update the states:
         for (d, dS) in deltas.items():
-            assert d in state_values, "Found unexpected delta: %s (%s)" %( d )
+            assert d in state_values, "Found unexpected delta: %s " %( d )
+            print 'State Var:', d,state_values[d], dS
             state_values[d] += dS * (times[i+1] - times[i] ) * one_second
 
 
@@ -314,6 +341,8 @@ def simulate_component(component, times, parameters,initial_state_values, initia
         states_data = [time_pt_data.states_in[state_name].float_in_si() for time_pt_data in reses_new]
         states_data = np.array(states_data)
         state_data_dict[state_name] = states_data
+        print 'State:', state_name
+        print '  (Min:', np.min( states_data), ', Max:', np.max( states_data), ')'
 
     # C. Assigned Values:
 
@@ -321,7 +350,6 @@ def simulate_component(component, times, parameters,initial_state_values, initia
     assignments ={}
     for ass in component.assignedvalues:
         ass_res = []
-        print
         for time_pt_data in reses_new:
             print "\r%s %2.3f" % (ass.symbol, time_pt_data.suppliedvalues['t'].float_in_si()),
             td_eval = f.assignment_evaluators[ass.symbol]
@@ -329,6 +357,9 @@ def simulate_component(component, times, parameters,initial_state_values, initia
             ass_res.append(res.float_in_si())
         #print ass_res
         assignments[ass.symbol] = np.array(ass_res)
+        print
+        print '  (Min:', np.min( assignments[ass.symbol]), ', Max:', np.max( assignments[ass.symbol]), ')'
+
 
     # D. RT-gragh Regimes:
     # Build a dictionary mapping regimes -> Regimes, to make plotting easier:

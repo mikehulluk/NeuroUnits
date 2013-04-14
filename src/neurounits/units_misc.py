@@ -141,7 +141,7 @@ class LookUpDict(object):
 
     def get_single_obj_by(self, **kwargs):
         possible_objs = self.get_objs_by(**kwargs)
-        assert len(possible_objs) == 1
+        assert len(possible_objs) == 1, 'Can;t find object: %s [Found:%s]' % ( kwargs, possible_objs)
         return possible_objs[0]
 
     def get_objects_attibutes(self, attr=None, **kwargs):

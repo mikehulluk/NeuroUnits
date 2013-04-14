@@ -16,9 +16,8 @@ namespace hh_neuron {
             V <==> V
             i_sum <==> I
             }
-        
-        
-
     }
+    
+    
 }
 

@@ -1,0 +1,184 @@
+
+
+
+
+define_component gating_particle {
+    from std.math import exp
+    s_alpha = (r1A + (r1B * V)) * ( r1C  + exp( (V+r1D)/r1E) ) / 1000.
+    s_beta =  (r2A + (r2B * V)) * ( r2C  + exp( (V+r2D)/r2E) ) / 1000.
+    
+    s_inf = s_alpha / (s_alpha + s_beta)
+    s_tau = 1. / (s_alpha + s_beta) 
+
+    s' = (s_inf - s)/s_tau
+
+
+    s4 = s*s*s*s
+    #s3 = s*s*s
+
+        <=> PARAMETER r1A, r1B, r1C, r1D, r1E
+        <=> PARAMETER r2A, r2B, r2C, r2D, r2E
+        <=> OUTPUT    s:()
+        <=> INPUT     V:mV
+        
+
+}
+
+
+
+
+
+
+
+define_component gating_particle_hh_k {
+    from std.math import exp
+    vrel = V - -60mV
+    s_alpha = ( ({10mV} - vrel) / ( 100*( exp( ({10mV}-vrel)/{10mV})  -{1.}) ) ) *(1/{1 ms mV})
+    s_beta = 0.125 * exp(-vrel/{80mV}) * (1/{1ms})
+    
+    s_inf = s_alpha / (s_alpha + s_beta)
+    s_tau = 1. / (s_alpha + s_beta) 
+
+    s' = (s_inf - s)/s_tau
+
+    s4 = s*s*s*s
+    
+    <=> OUTPUT    s:()
+    <=> INPUT     V:mV
+}
+
+
+
+define_component gating_particle_hh_na {
+
+    from std.math import exp, abs
+
+    
+    
+
+   
+    vrel = V - {-60mV}
+    
+    SF = (1/{1 ms})
+    
+    
+    
+    s_alpha_m = ( ({25mV} - vrel)/(10 * ( exp( ({25mV}-vrel)/{10mV}) -{1.} )  ) ) *               (1/{1mV}) * SF
+    s_beta_m =  4 * exp( -vrel/{18mV} ) * SF
+    
+    s_alpha_h = 0.07 * exp(-vrel/{20mV}) * SF
+    s_beta_h = (1/ (exp(({30mV}-vrel)/{10mV}) + 1) ) *SF
+    
+    s_inf_m2 = 0.001
+    s_tau_m2 = 0.1ms
+    
+    s_inf_m = s_alpha_m / (s_alpha_m + s_beta_m)
+    s_tau_m = 1. / (s_alpha_m + s_beta_m) 
+    
+    s_inf_h = s_alpha_h / (s_alpha_h + s_beta_h)
+    s_tau_h = 1. / (s_alpha_h + s_beta_h) 
+    
+
+    s_m' = (s_inf_m - s_m)/s_tau_m
+    s_h' = (s_inf_h - s_h)/s_tau_h
+
+    s_out = s_m * s_m * s_m * s_h
+    
+    <=> OUTPUT    s_out:()
+    <=> INPUT     V:mV
+}
+
+
+
+
+
+
+
+
+
+
+
+
+define_component chl_base {
+
+    i = g * (erev-V) * s_in 
+
+    <=> PARAMETER g:(S), erev
+    <=> OUTPUT    i:(mA)
+    <=> INPUT     V: mV    
+    <=> ANALOG_REDUCE_PORT s_in:()
+
+}
+
+
+
+define_compound chl_kf {
+    #instantiate gating_particle as kf
+    instantiate gating_particle_hh_k as kf
+    
+    instantiate chl_base as X
+
+    connect kf/s4 <==> X/s_in
+
+    merge [X/V, kf/V] as V 
+    
+    rename X/g to g 
+    rename X/erev to erev
+
+    
+    
+    compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+            # Local <==> Compound-port name
+            V <==> V
+            X/i <==> I
+            }
+    
+    
+}
+
+
+
+
+
+define_compound chl_na {
+    instantiate gating_particle_hh_na as na
+    
+    instantiate chl_base as X
+
+    connect na/s_out <==> X/s_in
+
+    merge [X/V, na/V] as V 
+    
+    rename X/g to g 
+    rename X/erev to erev
+
+    
+    
+    compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+            # Local <==> Compound-port name
+            V <==> V
+            X/i <==> I
+            }
+    
+    
+}
+
+
+
+
+
+define_component chl_lk {
+
+        <=> PARAMETER g:(S), erev
+        <=> OUTPUT    i:(mA)
+        <=> INPUT     V: mV
+
+        i = g * (erev-V)
+        
+        compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+            # Local <==> Compound-port name
+            V <==> V
+            i <==> I
+            } 
+
+}

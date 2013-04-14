@@ -56,7 +56,7 @@ class CompoundPortDef(base.ASTObject):
 
     def __init__(self, name, connections):
         super(CompoundPortDef, self).__init__()
-        print 'Creating CompoundPortDef:', id(self)
+        #print 'Creating CompoundPortDef:', id(self)
         self.name = name
         self.connections = LookUpDict(connections, accepted_obj_types=(CompoundPortDefWire,))
 

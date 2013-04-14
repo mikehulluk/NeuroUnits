@@ -344,14 +344,14 @@ res = simulate_component(component=c,
 
 
 def auto_plot(res):
-    plot_objs = list( itertools.chain( res.state_variables.items(), res.assignments.items(), res.rt_regimes.items() ) )
+    plot_objs = sorted( list( itertools.chain( res.state_variables.items(), res.assignments.items(), res.rt_regimes.items() ) ), key=lambda s:s[0] )
     n_axes = len(plot_objs)
     f = pylab.figure()    
     axes = [f.add_subplot(n_axes, 1, i+1) for i in range(len(plot_objs))]
     
     
     for (plot_name,plot_obj), ax in zip( plot_objs, axes):
-        #print ax, plot_obj
+
         ax.plot(res.get_time(), plot_obj)
         ax.set_ylabel(plot_name + '   ',rotation=0, horizontalalignment='right' )
         ax.set_yticks([])

@@ -25,7 +25,8 @@ def _is_node_analog(n):
     assert False, "I don't know the direction of: %s %s" % (n, type(n))
 
 
-def build_compound_component(component_name, instantiate,  analog_connections=None, event_connections=None,  renames=None, connections=None, prefix='/', auto_remap_time=True, merge_nodes=None, compound_ports_in=None, multiconnections=None):
+def build_compound_component(component_name, instantiate,  analog_connections=None, event_connections=None,  renames=None, connections=None, prefix='/', auto_remap_time=True, merge_nodes=None, compound_ports_in=None, multiconnections=None, set_parameters=None):
+    print 'Building Compund Componet:', component_name
 
 
 
@@ -88,7 +89,9 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
     builddata.symbolicconstants = []
 
     for c in instantiate.values():
+        print 'merging component:', repr(c)
         for td in c.timederivatives:
+            print 'Merging in ', repr(td)
             builddata.timederivatives.append( td )
         for ass in c.assignments:
             builddata.assignments.append(ass)
@@ -335,6 +338,19 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
 
             #conn = ast.CompoundPortConnector(name=local_name, compound_port_def = compound_port_def, wire_mappings=wire_mappings, direction=direction)
             #comp.add_compound_port(conn)
+
+
+    #8. Set parameters:
+    if set_parameters:
+        for lhs, rhs in set_parameters:
+            print 'Set', lhs, rhs
+            old_node = comp._parameters_lut.get_single_obj_by(symbol=lhs)
+            new_node = ast.ConstValue(value=rhs)
+
+            ReplaceNode.replace_and_check( srcObj=old_node, dstObj=new_node, root=comp)
+
+            #assert False
+
 
 
 

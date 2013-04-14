@@ -1,0 +1,75 @@
+
+namespace tadpole{
+
+
+
+
+define_compound general_neuron {
+    instantiate hh_neuron_base as nrn
+    instantiate chl_lk as chl_lk
+    instantiate chl_kf as chl_kf
+    instantiate chl_na as chl_na
+    
+    
+    multiconnect nrn/process_mount <==> chl_lk/process_mount_in
+    multiconnect nrn/process_mount <==> chl_kf/process_mount_in
+    #multiconnect nrn/process_mount <==> chl_na/process_mount_in
+    
+    connect nrn/V <==> chl_na/V
+    
+    
+    # Kinetics:
+    # ==========
+    # Kf
+    #set chl_kf/kf/r1A = 5.06 ms-1
+    #set chl_kf/kf/r1B = 0.0666 ms-1 mV-1
+    #set chl_kf/kf/r1C = 5.12
+    #set chl_kf/kf/r1D = -18.396 mV
+    #set chl_kf/kf/r1E = -25.42 mV
+    
+    #set chl_kf/kf/r2A =  0.505 ms-1
+    #set chl_kf/kf/r2B =  0 ms-1 mV-1
+    #set chl_kf/kf/r2C =  0
+    #set chl_kf/kf/r2D =  28.7 mV
+    #set chl_kf/kf/r2E =  34.6 mV
+    
+    
+    
+    
+    
+    # Conductance densities and reversal potentials:
+    set chl_kf/erev = -81mV
+    set chl_kf/g = 12nS
+    #set chl_kf/g = 0 nS
+    
+    set chl_lk/erev = -52mV
+    set chl_lk/g = 1.4nS
+    
+    set chl_na/erev =  50mV
+    set chl_na/g = 10nS #
+    #set chl_na/g = 0nS #
+    
+    
+    
+    set nrn/C = 10 pF
+
+    rename nrn/i_sum to i_sum
+
+    }
+
+
+}
+
+
+define_compound general_neuron_with_step_inj {
+
+    instantiate general_neuron as nrn
+    instantiate i_squarewave as stim 
+    
+    connect nrn/i_sum <==> stim/i
+    
+    set stim/t_on = 100ms
+    set stim/t_off = 30ms        
+    set stim/i_amp = -60pA
+
+}

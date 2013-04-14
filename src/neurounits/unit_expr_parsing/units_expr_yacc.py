@@ -195,6 +195,7 @@ def p_compound_component(p):
     merge_nodes = [ d['what'] for d in actions if d['action']=='MERGE']
 
     compound_ports = [ d['port_instance'] for d in actions if d['action']=='COMPOUNDPORT'] 
+    set_parameters = [ (d['lhs'], d['rhs']) for d in actions if d['action']=='SET'] 
    
      
     #assert False
@@ -207,6 +208,7 @@ def p_compound_component(p):
             merge_nodes = merge_nodes,
             compound_ports_in = compound_ports,
             multiconnections=multiconnections,
+            set_parameters = set_parameters,
             )
     #assert False
     lib_mgr = p.parser.library_manager.add_component(component)
@@ -258,6 +260,9 @@ def p_compound_component9(p):
     """compound_line : compound_port_inst"""
     p[0] = {'action':'COMPOUNDPORT', 'port_instance':p[1] }
 
+def p_compound_component10(p):
+    """compound_line : SET ns_name EQUALS quantity_expr """
+    p[0] = {'action':'SET', 'lhs':p[2], 'rhs':p[4] }
 
 
 

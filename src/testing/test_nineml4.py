@@ -7,15 +7,23 @@ import numpy as np
 import itertools
 
 import pylab
-from neurounits.nineml import build_compound_component
+from neurounits.nineml import build_compound_component, auto_plot
 from neurounits.nineml import simulate_component
 import glob
 #pylab.ion()
 
+import warnings
+
+warnings.simplefilter('error', UserWarning)
+warnings.simplefilter('error', Warning)
 
 
 
+level='WARNING'
+from logbook import FileHandler, StreamHandler
 
+log_handler1 = FileHandler('application.log')
+log_handler1.push_application()
 
 
 def test0():
@@ -26,7 +34,7 @@ def test0():
 
     library_manager = None
     for s in src_files:
-        print 'Loading from:', s
+        #print 'Loading from:', s
         text = open(s).read()
         library_manager = neurounits.NeuroUnitParser.Parse9MLFile( text, library_manager=library_manager)
 
@@ -43,4 +51,42 @@ def test0():
         print '  ', repr(comp)
     print
 
+
+
+
+    general_neuron = library_manager.get('general_neuron')
+    general_neuron.summarise()
+
+    general_neuron_with_step_inj = library_manager.get('general_neuron_with_step_inj')
+    #general_neuron_with_step_inj = 
+    #chl_kf = library_manager.get('chl_kf')
+    #chl_kf.summarise()
+    
+    
+    res = simulate_component(
+                #component=general_neuron,
+                component=general_neuron_with_step_inj,
+                
+                times = np.linspace(0, 0.2,num=10000),
+                close_reduce_ports=True,
+                parameters={}, 
+                initial_state_values=   {
+                    'nrn/nrn/V':'-51mV',
+                    'nrn/chl_kf/kf/s':'0',
+                    'nrn/chl_na/na/s_h':'0',
+                    'nrn/chl_na/na/s_m':'0',
+                    'stim/t_last':'0ms',
+                },
+                
+                initial_regimes = {
+                
+                },
+                
+                )
+
+    
+    auto_plot(res)
+    pylab.show()
+    
+    
 test0()

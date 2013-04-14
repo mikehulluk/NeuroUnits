@@ -140,10 +140,10 @@ class LibraryManager(object):
         ls = [l for l in srcs if l.name == name]
 
         if len(ls) != 1:
-            print 'Did not find item in Library Manager!'
-            print 'Looking for: %s' % name
-            print 'Found:', [l.name for l in ls]
-            print
+            #print 'Did not find item in Library Manager!'
+            #print 'Looking for: %s' % name
+            #print 'Found:', [l.name for l in ls]
+            #print
             raise NoSuchObjectError('Cant find: %s in [%s]' % (name, ','.join([l.name for l in srcs] ) ) )
 
 

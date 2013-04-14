@@ -376,7 +376,7 @@ class NineMLComponent(EqnSet):
 
 
     def __repr__(self):
-        return '<NineML Component: %s>' % self.name
+        return '<NineML Component: %s [Supports interfaces: %s ]>' % (self.name, ','.join([ "'%s'" % conn.compound_port_def.name for conn in  self._compound_ports_connectors]))
 
     @property
     def rt_graphs(self):
@@ -448,7 +448,7 @@ class NineMLComponent(EqnSet):
         class ReplaceNodeHack(ReplaceNode):
             def replace_or_visit(self, o):
                 if o == self.srcObj:
-                    print '    Replacing', self.srcObj, ' -> ', self.dstObj
+                    #print '    Replacing', self.srcObj, ' -> ', self.dstObj
                     return self.dstObj
                 else:
                     return o
@@ -477,7 +477,7 @@ class NineMLComponent(EqnSet):
         # CONCEPTUALLY THIS IS VERY SIMPLE< BUT THE CODE
         # IS A HORRIBLE HACK!
 
-        no_remap = (ast.CompoundPortDef, ast.CompoundPortDefWireContinuous, ast.CompoundPortDefWireEvent)
+        no_remap = (ast.CompoundPortDef, ast.CompoundPortDefWireContinuous, ast.CompoundPortDefWireEvent, ast.BuiltInFunction, ast.FunctionDefParameter)
         # First, lets clone each and every node:
         #print
         #print 'Remapping nodes:'
@@ -513,6 +513,10 @@ class NineMLComponent(EqnSet):
                 if new_repl == new_node:
                     continue
                 #print ' -- Replacing:',old_repl, new_repl
+
+                if isinstance( old_repl, no_remap):
+                    continue
+
                 replacer = ReplaceNodeHack(srcObj=old_repl, dstObj=new_repl)
                 new_node.accept_visitor(replacer)
 
@@ -543,15 +547,16 @@ class NineMLComponent(EqnSet):
         shared_nodes = set(new_nodes) & set(old_nodes)
         shared_nodes_invalid = [sn for sn in shared_nodes if not isinstance(sn, no_remap)]
         #print 
-        #print 'Shared Nodes:'
-        #print shared_nodes
-        #for s in shared_nodes_invalid:
-            #print  ' ', s, s in old_to_new_dict
-            #print  '  Referenced by:'
-            #for c in connections_map_conns_to_objs[s]:
-            #    print '    *', c 
-            #print
-        assert len(shared_nodes_invalid) == 0
+        if len(shared_nodes_invalid) != 0:
+            print 'Shared Nodes:'
+            print shared_nodes_invalid
+            for s in shared_nodes_invalid:
+                print  ' ', s, s in old_to_new_dict
+                print  '  Referenced by:'
+                for c in connections_map_conns_to_objs[s]:
+                    print '    *', c 
+                print
+            assert len(shared_nodes_invalid) == 0
         #assert len(new_nodes) == len(old_nodes)
 
         return new_obj

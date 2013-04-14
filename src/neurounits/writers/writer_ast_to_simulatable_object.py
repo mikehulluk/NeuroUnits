@@ -54,7 +54,7 @@ class DebugScope(object):
     def __init__(self, s ):
         self.s = s
     def __enter__(self):
-        print 'Entering Scope: %s' % self.s
+        #print 'Entering Scope: %s' % self.s
         DebugScope.nesting_depth = DebugScope.nesting_depth + 1
 
     def __exit__(self, *args):
@@ -69,7 +69,11 @@ class MyWriter(object):
         s1 = '  '  * DebugScope.nesting_depth
         std_out_orig.write(s1)
         return std_out_orig.write(s)
-#sys.stdout = MyWriter()
+
+    def flush(self, *args, **kwargs):
+        return std_out_orig.flush(*args, **kwargs)
+
+sys.stdout = MyWriter()
 
 
 
@@ -302,6 +306,21 @@ class SimulationStateData(object):
 
                                    )
 
+
+
+
+
+def with_number_check(func, src_obj):
+    return func
+
+
+    def my_func(*args, **kwargs):
+        #print 'Evaluating Node', src_obj
+        with DebugScope(''):
+            res = func(*args, **kwargs)
+        print 'Value of node:', repr(src_obj), res
+        return res
+    return my_func
 
 class FunctorGenerator(ASTVisitorBase):
 
@@ -576,11 +595,11 @@ class FunctorGenerator(ASTVisitorBase):
                     ParsingBackend = MHUnitBackend
                     assert len(func_params) == 1
                     return ParsingBackend.Quantity( float( np.abs( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
-                if o.funcname == 'exp':
+                if o.funcname == '__exp__':
                     ParsingBackend = MHUnitBackend
                     assert len(func_params) == 1
                     return ParsingBackend.Quantity( float( np.exp( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
-                if o.funcname == 'sin':
+                if o.funcname == '__sin__':
                     assert len(func_params) == 1
                     ParsingBackend = MHUnitBackend
                     return ParsingBackend.Quantity( float( np.sin( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
@@ -628,7 +647,7 @@ class FunctorGenerator(ASTVisitorBase):
             assert o.get_dimension().is_compatible(v.get_units())
             return v
 
-        return eFunc2
+        return with_number_check( eFunc2, o )
 
     def VisitParameter(self, o, **kwargs):
         def eFunc(state_data,**kw):
@@ -665,8 +684,10 @@ class FunctorGenerator(ASTVisitorBase):
 
         assignment_rhs = self.assignment_evaluators[o.symbol]
         def eFunc(**kw):
-            return assignment_rhs(**kw)
-        return eFunc
+            res = assignment_rhs(**kw)
+            #print 'Value of: %s is %s' %( o.symbol, res)
+            return res
+        return with_number_check(eFunc, o)
 
     def VisitAddOp(self, o, **kwargs):
         f_lhs = self.visit(o.lhs)
@@ -674,21 +695,23 @@ class FunctorGenerator(ASTVisitorBase):
         def eFunc(**kw):
             res = f_lhs(**kw) + f_rhs(**kw)
             return res
-        return eFunc
+        return with_number_check(eFunc,o)
 
     def VisitSubOp(self, o, **kwargs):
         f_lhs = self.visit(o.lhs)
         f_rhs = self.visit(o.rhs)
         def eFunc(**kw):
-            return f_lhs(**kw) - f_rhs(**kw)
-        return eFunc
+            v_l = f_lhs(**kw)
+            v_r = f_rhs(**kw)
+            return v_l-v_r
+        return with_number_check( eFunc, o)
 
     def VisitMulOp(self, o, **kwargs):
         f_lhs = self.visit(o.lhs)
         f_rhs = self.visit(o.rhs)
         def eFunc(**kw):
             return f_lhs(**kw) * f_rhs(**kw)
-        return eFunc
+        return with_number_check(eFunc, o)
 
     def VisitDivOp(self, o, **kwargs):
         f_lhs = self.visit(o.lhs)
@@ -698,7 +721,7 @@ class FunctorGenerator(ASTVisitorBase):
             v_r = f_rhs(**kw)
             res = v_l / v_r
             return res
-        return eFunc
+        return with_number_check(eFunc,o)
 
     def VisitExpOp(self, o, **kwargs):
         f_lhs = self.visit(o.lhs)
