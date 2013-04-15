@@ -223,6 +223,10 @@ class ASTClone(object):
     def VisitConstant(self, o, **kwargs):
         new = ast.ConstValue(value = o.value)
         return copy_std(o, new, )
+    
+    def VisitConstantZero(self, o, **kwargs):
+        new = ast.ConstValueZero()
+        return copy_std(o, new, )
 
     def VisitAssignedVariable(self, o, **kwargs):
         new = ast.AssignedVariable(symbol = o.symbol)

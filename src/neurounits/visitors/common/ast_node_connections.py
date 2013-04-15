@@ -168,6 +168,8 @@ class ASTAllConnections(ASTActionerDepthFirst):
 
     def VisitConstant(self, o, **kwargs):
         return []
+    def VisitConstantZero(self, o, **kwargs):
+        return []
 
     def VisitAssignedVariable(self, o, **kwargs):
         return []

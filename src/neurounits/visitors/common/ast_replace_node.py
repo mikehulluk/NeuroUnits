@@ -246,6 +246,8 @@ class ReplaceNode(ASTVisitorBase):
 
     def VisitConstant(self, o, **kwargs):
         return o
+    def VisitConstantZero(self, o, **kwargs):
+        return o
 
     def VisitAssignedVariable(self, o, **kwargs):
         return o

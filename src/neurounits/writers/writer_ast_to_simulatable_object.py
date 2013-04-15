@@ -669,6 +669,21 @@ class FunctorGenerator(ASTVisitorBase):
                 return o.value.float_in_si()
             return eFunc
 
+    def VisitConstantZero(self, o, **kwargs):
+        if not self.as_float_in_si:
+
+            def eFunc(**kw):
+                from neurounits.units_backends.mh import MMUnit, MMQuantity
+                return MMQuantity( 0 , o.get_dimension() )
+            return eFunc
+        else:
+            assert False,'TODO: Need to multiply next lines by unit...'
+            def eFunc(**kw):
+                return 0
+            return eFunc
+
+
+
     def VisitSuppliedValue(self, o, **kwargs):
         def eFunc(state_data, **kw):
             v = state_data.suppliedvalues[o.symbol]

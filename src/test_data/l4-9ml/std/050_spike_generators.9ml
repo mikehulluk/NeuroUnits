@@ -9,9 +9,6 @@ namespace spike_gen {
         <=> PARAMETER t_spike
         <=> INPUT t:s
         
-        #initial { 
-        #    regime pre
-        #}
         
         regime pre {
             on( t> t_spike){
@@ -19,6 +16,7 @@ namespace spike_gen {
                 transition_to post
             }
         }
+        
     }
     
     
