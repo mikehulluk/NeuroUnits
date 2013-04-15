@@ -343,30 +343,42 @@ res = simulate_component(component=c,
 
 
 
-def auto_plot(res):
-    plot_objs = sorted( list( itertools.chain( res.state_variables.items(), res.assignments.items(), res.rt_regimes.items() ) ), key=lambda s:s[0] )
-    n_axes = len(plot_objs)
-    f = pylab.figure()    
-    axes = [f.add_subplot(n_axes, 1, i+1) for i in range(len(plot_objs))]
-    
-    
-    for (plot_name,plot_obj), ax in zip( plot_objs, axes):
-
-        ax.plot(res.get_time(), plot_obj)
-        ax.set_ylabel(plot_name + '   ',rotation=0, horizontalalignment='right' )
-        ax.set_yticks([])
-        ax.set_yticklabels([])
-
-    print 
-    print 'Transitions:'
-    for tr in res.transitions:
-        print tr
-    #f.tight_layout()
-    pylab.show()
-    assert False
-
-
-auto_plot(res)
+#def auto_plot(res):
+#
+#
+#    plot_vars = list( itertools.chain( res.state_variables.keys(), res.assignments.keys(), ))
+#
+#    print 'Plot Variables:'
+#    for p in plot_vars:
+#        print p
+#
+#    assert False
+#
+#
+#
+#    plot_objs = sorted( list( itertools.chain( res.state_variables.items(), res.assignments.items(), res.rt_regimes.items() ) ), key=lambda s:s[0] )
+#    n_axes = len(plot_objs)
+#    f = pylab.figure()    
+#    axes = [f.add_subplot(n_axes, 1, i+1) for i in range(len(plot_objs))]
+#    
+#    
+#    for (plot_name,plot_obj), ax in zip( plot_objs, axes):
+#
+#        ax.plot(res.get_time(), plot_obj)
+#        ax.set_ylabel(plot_name + '   ',rotation=0, horizontalalignment='right' )
+#        ax.set_yticks([])
+#        ax.set_yticklabels([])
+#
+#    print 
+#    print 'Transitions:'
+#    for tr in res.transitions:
+#        print tr
+#    #f.tight_layout()
+#    pylab.show()
+#    assert False
+#
+#
+#auto_plot(res)
 
 
 

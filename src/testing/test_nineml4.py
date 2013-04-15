@@ -67,7 +67,8 @@ def test0():
                 #component=general_neuron,
                 component=general_neuron_with_step_inj,
                 
-                times = np.linspace(0, 0.2,num=10000),
+                #times = np.linspace(0, 0.05,num=1000),
+                times = np.arange(0, 0.1,0.00001),
                 close_reduce_ports=True,
                 parameters={}, 
                 initial_state_values=   {

@@ -641,6 +641,7 @@ class AbstractBlockBuilder(object):
         assignments = SingleSetDict()
         maps_asses = defaultdict(SingleSetDict)
         for reg_ass in self.builddata._assigments_per_regime:
+            print 'Processing:', reg_ass.lhs
             maps_asses[reg_ass.lhs][reg_ass.regime] = reg_ass.rhs
 
         for (ass_var, tds) in maps_asses.items():

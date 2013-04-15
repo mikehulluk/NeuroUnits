@@ -1,0 +1,150 @@
+
+
+
+define_component chl_dIN_na {
+    
+
+    <=> PARAMETER g:(S), erev
+    <=> OUTPUT    i:(mA)
+    <=> INPUT     V: mV    
+    
+    from std.math import exp
+
+    i = g * (erev-V) * m*m*m*h
+    
+    
+    AlphaBetaFunc(V, A,B,C,D,E) = (A+B*V) / (C + exp( (D+V)/E))
+    
+    alpha_m = AlphaBetaFunc(V=V, A=8.67ms-1, B=0ms-1 mV-1, C=1.0, D=-1.01mV,E=-12.65mV)
+    beta_m =  AlphaBetaFunc(V=V, A=3.82ms-1, B=0ms-1 mV-1, C=1.0, D=9.01mV, E=9.69mV)
+    alpha_h = AlphaBetaFunc(V=V, A=0.08ms-1, B=0ms-1 mV-1, C=0.0, D=38.88mV,E=26.0mV)
+    beta_h =  AlphaBetaFunc(V=V, A=4.08ms-1, B=0ms-1 mV-1, C=1.0, D=-5.09mV,E=-10.21mV)
+    
+    
+    inf_m = alpha_m / (alpha_m + beta_m)
+    inf_h = alpha_h/ (alpha_h + beta_h)
+
+    tau_m = 1.0 / (alpha_m + beta_m)
+    tau_h = 1.0 / (alpha_h + beta_h)
+
+
+    m' = (inf_m - m) / tau_m
+    h' = (inf_h - h) / tau_h
+
+    
+    
+    
+    compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+        # Local <==> Compound-port name
+        V <==> V
+        i <==> I
+    }
+
+
+}
+
+
+define_component chl_dIN_kf {
+
+    <=> PARAMETER g:(S), erev
+    <=> OUTPUT    i:(mA)
+    <=> INPUT     V: mV    
+
+    from std.math import exp
+
+    i = g * (erev-V) * n*n*n*n
+    
+    
+    AlphaBetaFunc(V, A,B,C,D,E) = (A+B*V) / (C + exp( (D+V)/E))
+
+    alpha_n = AlphaBetaFunc(V=V, A=5.06ms-1, B=0.0666ms-1 mV-1, C=5.12, D=-18.396mV,E=-25.42mV)
+    beta_n =  AlphaBetaFunc(V=V, A=0.505ms-1, B=0ms-1 mV-1, C=0, D=28.7mV, E=34.6mV)
+
+    inf_n = alpha_n / (alpha_n + beta_n)
+    tau_n = 1.0 / (alpha_n + beta_n)
+   
+    n' = (inf_n - n) / tau_n
+    
+    compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+        # Local <==> Compound-port name
+        V <==> V
+        i <==> I
+    }
+    
+}
+
+
+
+define_component chl_dIN_ks {
+
+    <=> PARAMETER g:(S), erev
+    <=> OUTPUT    i:(mA)
+    <=> INPUT     V: mV    
+
+    from std.math import exp
+
+    i = g * (erev-V) * n*n
+    
+    
+    AlphaBetaFunc(V, A,B,C,D,E) = (A+B*V) / (C + exp( (D+V)/E))
+
+    alpha_n = AlphaBetaFunc(V=V, A=0.462ms-1, B=8.2e-3ms-1 mV-1, C=4.59, D=-4.21mV,E=-11.97mV)
+    beta_n =  AlphaBetaFunc(V=V, A=0.0924ms-1, B=-1.353e-3ms-1 mV-1, C=1.615, D=2.1e5mV, E=3.3e5mV)
+
+    inf_n = alpha_n / (alpha_n + beta_n)
+    tau_n = 1.0 / (alpha_n + beta_n)
+   
+    n' = (inf_n - n) / tau_n
+    
+    
+    compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+        # Local <==> Compound-port name
+        V <==> V
+        i <==> I
+    }
+    
+}
+
+
+define_component chl_dIN_ca {
+
+    
+    
+    from std.physics import F, R
+    from std.math import exp
+    
+    AlphaBetaFunc(V, A,B,C,D,E) = (A+B*V) / (C + exp( (D+V)/E))
+
+    T = 300K
+    i_un = pca * 2 * nu * F * (cai - cao * exp(-nu)) / (1-exp(-nu) )
+    nu = (2 * V * F ) / (R*T)
+    i = i_un * m * m 
+
+    alpha_m = AlphaBetaFunc(V=V, A=4.05ms-1, B=0ms-1 mV-1, C=1.0, D=-15.32mV,E=-13.57mV) 
+    beta_m1 = AlphaBetaFunc(V=V, A=1.24ms-1, B=0.093ms-1 mV-1, C=-1.0, D=10.63mV,E=1.0mV) 
+    beta_m2 = AlphaBetaFunc(V=V, A=1.28ms-1, B=0ms-1 mV-1, C=1.0, D=5.39mV,E=12.11mV) 
+    
+    beta_m = [beta_m1] if [V<-25mV] else [beta_m2]
+    
+
+    inf_m = alpha_m / (alpha_m + beta_m)
+    tau_m = 1.0 / (alpha_m + beta_m)
+
+    m' = (inf_m - m) / tau_m
+    
+    cai = 100nM
+    cao = 10mM
+    
+     <=> PARAMETER pca
+     <=> OUTPUT    i:(mA)
+     <=> INPUT     V: mV
+    
+    compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+        # Local <==> Compound-port name
+        V <==> V
+        i <==> I
+    }
+
+}
+
+

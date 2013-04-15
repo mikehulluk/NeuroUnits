@@ -20,6 +20,7 @@ clean:
 	make -C src/ clean
 	find . -name '*.new' -exec rm {} \;
 	find . -name '*.pyc' -exec rm {} \;
+	find . -name '*.pyo' -exec rm {} \;
 	find . -name '*~' -exec rm {} \;
 	rm -rf tmp_out/
 
