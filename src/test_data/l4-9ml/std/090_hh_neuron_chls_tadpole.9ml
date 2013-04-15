@@ -106,45 +106,46 @@ define_component chl_dIN_ks {
 }
 
 
-define_component chl_dIN_ca {
+#define_component chl_dIN_ca {
+#
+#    
+#    
+#    from std.physics import F, R
+#    from std.math import exp
+#    
+#    AlphaBetaFunc(V, A,B,C,D,E) = (A+B*V) / (C + exp( (D+V)/E))
+#
+#    T = 300K
+#    i_un = pca * 2 * nu * F * (cai - cao * exp(-nu)) / (1-exp(-nu) )
+#    nu = (2 * V * F ) / (R*T)
+#    i = i_un * m * m 
+#
+#    alpha_m = AlphaBetaFunc(V=V, A=4.05ms-1, B=0ms-1 mV-1, C=1.0, D=-15.32mV,E=-13.57mV) 
+#    beta_m1 = AlphaBetaFunc(V=V, A=1.24ms-1, B=0.093ms-1 mV-1, C=-1.0, D=10.63mV,E=1.0mV) 
+#    beta_m2 = AlphaBetaFunc(V=V, A=1.28ms-1, B=0ms-1 mV-1, C=1.0, D=5.39mV,E=12.11mV) 
+#    
+#    beta_m = [beta_m1] if [V<-25mV] else [beta_m2]
+#    
 
-    
-    
-    from std.physics import F, R
-    from std.math import exp
-    
-    AlphaBetaFunc(V, A,B,C,D,E) = (A+B*V) / (C + exp( (D+V)/E))
-
-    T = 300K
-    i_un = pca * 2 * nu * F * (cai - cao * exp(-nu)) / (1-exp(-nu) )
-    nu = (2 * V * F ) / (R*T)
-    i = i_un * m * m 
-
-    alpha_m = AlphaBetaFunc(V=V, A=4.05ms-1, B=0ms-1 mV-1, C=1.0, D=-15.32mV,E=-13.57mV) 
-    beta_m1 = AlphaBetaFunc(V=V, A=1.24ms-1, B=0.093ms-1 mV-1, C=-1.0, D=10.63mV,E=1.0mV) 
-    beta_m2 = AlphaBetaFunc(V=V, A=1.28ms-1, B=0ms-1 mV-1, C=1.0, D=5.39mV,E=12.11mV) 
-    
-    beta_m = [beta_m1] if [V<-25mV] else [beta_m2]
-    
-
-    inf_m = alpha_m / (alpha_m + beta_m)
-    tau_m = 1.0 / (alpha_m + beta_m)
-
-    m' = (inf_m - m) / tau_m
-    
-    cai = 100nM
-    cao = 10mM
-    
-     <=> PARAMETER pca
-     <=> OUTPUT    i:(mA)
-     <=> INPUT     V: mV
-    
-    compoundport process_mount_in of_type neuron_membrane_point_process <in> {
-        # Local <==> Compound-port name
-        V <==> V
-        i <==> I
-    }
-
-}
+#    inf_m = alpha_m / (alpha_m + beta_m)
+#    tau_m = 1.0 / (alpha_m + beta_m)
+#
+#    m' = (inf_m - m) / tau_m
+#    
+#    cai = 100nM
+#    cao = 10mM
+#    
+#     <=> PARAMETER pca: cm/s
+#     <=> OUTPUT    i:(mA/m2), m:()
+#     <=> INPUT     V: mV
+#     
+#    
+#    compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+#        # Local <==> Compound-port name
+#        V <==> V
+#        i <==> I
+#    }
+#
+#}
 
 

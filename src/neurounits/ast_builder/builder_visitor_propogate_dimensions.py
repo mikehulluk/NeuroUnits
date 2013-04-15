@@ -33,6 +33,7 @@ from neurounits.visitors.common import ASTNodeLabels
 from neurounits.units_misc import EnsureExisits
 from neurounits.visitors.common import ActionerFormatStringsAsIDs
 from neurounits.unit_errors import panic, UnitMismatchError
+import pylab
 
 
 class ASTVisitorCollectorAll(ASTActionerDefault):
@@ -46,6 +47,19 @@ class ASTVisitorCollectorAll(ASTActionerDefault):
         self.objects.add(o)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 class VerifyUnitsInTree(ASTActionerDepthFirst):
 
     def __init__(self, obj, unknown_ok):
@@ -55,7 +69,43 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
         if unknown_ok:
             return
 
-        self.visit(obj)
+
+        try:
+            self.visit(obj)
+        except UnitMismatchError, e:
+            print e
+            #raise
+
+            def get_str(node):
+                if isinstance(node, ast.ASTExpressionObject):
+                    return '%s\n%s'%(repr(node), node.get_dimension())
+                else:
+                    return '%s'%(repr(node))
+
+
+
+            all_nodes = list(obj.all_ast_nodes())
+            colors = dict([(node,'white') for node in all_nodes])
+            labels = dict([(node, get_str(node)) for node in all_nodes])
+
+            if e.objA:
+                colors[e.objA] = 'red'
+            if e.objB:
+                colors[e.objB] = 'red'
+
+            
+
+
+
+            from neurounits.visitors.common.plot_networkx import ActionerPlotNetworkX
+            ActionerPlotNetworkX(o=obj, labels=labels, colors=colors)
+            pylab.show()
+            
+            
+            
+            assert False
+
+
 
     def verify_equal_units(self, objs):
         from neurounits.units_backends.mh import MMUnit
@@ -146,7 +196,12 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
         self.verify_equal_units([o, o.lhs, o.rhs])
 
     def ActionMulOp(self, o, **kwargs):
-        (o.lhs.get_dimension() * o.rhs.get_dimension()).check_compatible(o.get_dimension())
+        print repr(o.lhs), repr(o.rhs)
+        try:
+            (o.lhs.get_dimension() * o.rhs.get_dimension()).check_compatible(o.get_dimension())
+        except UnitMismatchError, e:
+            e.objA = o
+            raise
 
     def ActionDivOp(self, o, **kwargs):
         (o.lhs.get_dimension() / o.rhs.get_dimension()).check_compatible(o.get_dimension())

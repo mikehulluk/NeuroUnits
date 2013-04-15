@@ -21,16 +21,10 @@ define_component gating_particle_hh_k {
 define_component gating_particle_hh_na {
 
     from std.math import exp, abs
-
-    
-    
-
    
     vrel = V - {-65mV}
     
     SF = (1/{1 ms})
-    
-    
     
     s_alpha_m = ( ({25mV} - vrel)/(10 * ( exp( ({25mV}-vrel)/{10mV}) -{1.} )  ) ) *               (1/{1mV}) * SF
     s_beta_m =  4 * exp( -vrel/{18mV} ) * SF
@@ -50,6 +44,14 @@ define_component gating_particle_hh_na {
     s_h' = (s_inf_h - s_h)/s_tau_h
 
     s_out = s_m * s_m * s_m * s_h
+    
+    
+    initial {
+        s_m = 0
+        h_m = 0
+        regime off
+    }
+    
     
     <=> OUTPUT    s_out:()
     <=> INPUT     V:mV
@@ -174,7 +176,7 @@ define_compound chl_na {
 
 define_component chl_lk {
 
-        <=> PARAMETER g:(S), erev, area:(m2)
+        <=> PARAMETER g:(S/m2), erev, area:(m2)
         <=> OUTPUT    i:(mA)
         <=> INPUT     V: mV
 

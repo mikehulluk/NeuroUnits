@@ -13,27 +13,23 @@ define_compound general_neuron {
     multiconnect nrn/process_mount <==> chl_na/process_mount_in
      
     
-    area =  std.math.pi * 30 * 30
-    
-    set chl_lk/area =  std.math.pi * 30 * 30
-    set chl_na/X/area =  std.math.pi * 30 * 30
-    set chl_kf/X/area =  std.math.pi * 30 * 30
+    set chl_lk/area =  3.141 * {30um} * {30um}
+    set chl_na/X/area =  3.141 * {30um} * {30um}
+    set chl_kf/X/area =  3.141 * {30um} * {30um}
     
     
     
     # Conductance densities and reversal potentials:
-    set chl_kf/erev = -81mV
-    set chl_kf/g = 30nS
-    
-    
     set chl_lk/erev = -65mV
-    set chl_lk/g =  1.4nS
+    set chl_lk/g =  0.3 mS/cm2
+    
+    set chl_kf/erev = -77mV
+    set chl_kf/g = 36mS/cm2
     
     set chl_na/erev =  50mV
-    set chl_na/g = 250nS 
+    set chl_na/g = 120mS/cm2
      
-
-    set nrn/C = 10 pF
+    set nrn/C = {1uF/cm2} * 3.141 * {30um} * {30um}
 
     rename nrn/i_sum to i_sum
 
@@ -54,7 +50,7 @@ define_compound general_neuron {
 
 define_compound dIN {
     instantiate hh_neuron_base as nrn
-    instantiate chl_dIN_ca as chl_ca
+    #instantiate chl_dIN_ca as chl_ca
     instantiate chl_dIN_na as chl_na
     instantiate chl_lk as chl_lk
     instantiate chl_dIN_kf as chl_kf
@@ -65,7 +61,7 @@ define_compound dIN {
     multiconnect nrn/process_mount <==> chl_lk/process_mount_in
     multiconnect nrn/process_mount <==> chl_kf/process_mount_in
     multiconnect nrn/process_mount <==> chl_na/process_mount_in
-    multiconnect nrn/process_mount <==> chl_ca/process_mount_in
+    #multiconnect nrn/process_mount <==> chl_ca/process_mount_in
     multiconnect nrn/process_mount <==> chl_ks/process_mount_in
     
     
@@ -78,7 +74,8 @@ define_compound dIN {
     
     
     set chl_lk/erev = -65mV
-    set chl_lk/g =  1.4nS
+    set chl_lk/g =  {1.4nS }/ {1000um2}
+    set chl_lk/area= 1000um2
     
     set chl_na/erev =  50mV
     set chl_na/g = 250nS 
@@ -97,6 +94,21 @@ define_compound dIN {
 
 
 define_compound general_neuron_with_step_inj {
+
+    instantiate general_neuron as nrn
+    instantiate i_squarewave as stim 
+    
+    connect nrn/i_sum <==> stim/i
+    
+    set stim/t_on = 100ms
+    set stim/t_off = 30ms        
+    set stim/i_amp = 100pA
+
+}
+
+
+
+define_compound dIN_with_step_inj {
 
     instantiate general_neuron as nrn
     instantiate i_squarewave as stim 

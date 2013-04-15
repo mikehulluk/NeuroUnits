@@ -261,7 +261,7 @@ def p_compound_component9(p):
     p[0] = {'action':'COMPOUNDPORT', 'port_instance':p[1] }
 
 def p_compound_component10(p):
-    """compound_line : SET ns_name EQUALS quantity_expr """
+    """compound_line : SET ns_name EQUALS rhs_generic """
     p[0] = {'action':'SET', 'lhs':p[2], 'rhs':p[4] }
 
 

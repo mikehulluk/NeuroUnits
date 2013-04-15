@@ -345,7 +345,9 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
         for lhs, rhs in set_parameters:
             print 'Set', lhs, rhs
             old_node = comp._parameters_lut.get_single_obj_by(symbol=lhs)
-            new_node = ast.ConstValue(value=rhs)
+            assert isinstance(rhs, ast.ASTExpressionObject)
+
+            new_node = rhs #ast.ConstValue(value=rhs)
 
             ReplaceNode.replace_and_check( srcObj=old_node, dstObj=new_node, root=comp)
 

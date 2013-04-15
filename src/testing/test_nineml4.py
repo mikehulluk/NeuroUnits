@@ -54,14 +54,11 @@ def test0():
 
 
 
-    general_neuron = library_manager.get('general_neuron')
-    general_neuron.summarise()
+    #general_neuron = library_manager.get('general_neuron')
+    #general_neuron.summarise()
 
     general_neuron_with_step_inj = library_manager.get('general_neuron_with_step_inj')
-    #general_neuron_with_step_inj = 
-    #chl_kf = library_manager.get('chl_kf')
-    #chl_kf.summarise()
-    
+
     
     res = simulate_component(
                 #component=general_neuron,

@@ -41,8 +41,12 @@ class NodeColor(ASTVisitorBase):
             return 'red'
 
 
+
+
+
+
 class ActionerPlotNetworkX(object):
-    def __init__(self, o):
+    def __init__(self, o, labels = None, colors=None):
 
 
         graph = nx.DiGraph()
@@ -55,18 +59,35 @@ class ActionerPlotNetworkX(object):
             for c in connections:
                 graph.add_edge(node, c, color='blue')
 
-        nc = NodeColor()
-        node_color = [nc.visit(v) for v in graph]
 
+        if isinstance(colors, dict):
+            color_lut =  colors 
+            colors = [ color_lut.get(node,'white') for node in graph]
 
+        if colors == None:
+            nc = NodeColor()
+            colors = [nc.visit(v) for v in graph]
 
+        #labels = None
+        if isinstance(labels, dict):
+            for node in  graph.nodes_iter():
+                if not node in labels:
+                    #print 'Adding!'
+                    labels[node] = repr(node)
 
-        for n, nodedata in graph.nodes_iter( data=True):
-            print n, nodedata
+        if labels == None:
+            labels=dict( (s, repr(s)) for s in graph.nodes_iter( ) )
+
+        #for node in graph.nodes_iter():
+        #    assert node in labels
+        graph_nodes = set(  graph.nodes_iter() )
+        labels = dict([(k,v) for (k,v) in labels.items() if k in graph_nodes])
+
+        #for n, nodedata in graph.nodes_iter( data=True):
+        #    print n, nodedata
 
         f = plt.figure()
-        #nx.draw_spring(graph, font_size=8, iteration=200, node_color=node_color,scale=2)
-        nx.draw_graphviz(graph, font_size=8, iteration=200, node_color=node_color,scale=2, labels=dict( (s, repr(s)) for s in graph.nodes_iter( ) ) )
+        nx.draw_graphviz(graph, font_size=10, iteration=200, node_color=colors,scale=1, labels=labels )
 
 
 
