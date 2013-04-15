@@ -170,6 +170,8 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
 
     def ActionConstant(self, o, **kwargs):
         pass
+    def ActionConstantZero(self, o, **kwargs):
+        pass
 
     def ActionAssignedVariable(self, o, **kwargs):
         pass
@@ -415,6 +417,8 @@ class DimensionResolver(ASTVisitorBase):
         return []
 
     def VisitConstant(self, o, **kwargs):
+        return []
+    def VisitConstantZero(self, o, **kwargs):
         return []
 
     def VisitAssignedVariable(self, o, **kwargs):

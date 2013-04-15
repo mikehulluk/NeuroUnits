@@ -9,7 +9,9 @@ namespace spike_gen {
         <=> PARAMETER t_spike
         <=> INPUT t:s
         
-        regime init { on(1>0){transition_to pre;}; }
+        #initial { 
+        #    regime pre
+        #}
         
         regime pre {
             on( t> t_spike){
@@ -24,7 +26,10 @@ namespace spike_gen {
         
         <=> PARAMETER t_period
         <=> INPUT t:s
-        t_last' = 0
+        
+        initial {
+            t_last = 0s
+        }
         
         on(t > t_last + t_period ){
             t_last = t

@@ -714,22 +714,24 @@ class AbstractBlockBuilder(object):
 
 
         ## Finish off resolving StateVariables:
-        ## They might be defined on the left hand side on StateAssignments in transitions, 
-        #def ensure_state_variable(symbol):
-        #    if not self.global_scope.hasSymbol(symbol):
-        #        sv = ast.StateVariable(symbol=symbol)
-        #        self._resolve_global_symbol(symbol=sv.symbol, target=sv)
-        #        td = ast.EqnTimeDerivativePerRegime(
-        #                lhs = sv, 
-        #                rhs_map = ast.EqnRegimeDispatchMap( 
-        #                    rhs_map={ self._current_rt_graph.regimes[None]: ast.ConstValue(0, unknown_unit=True)})
-        #                )
-        #        self.builddata.timederivatives.append(td) # = time_derivatives.values()
+        ## They might be defined on the left hand side on StateAssignments in transitions,
+        def ensure_state_variable(symbol):
+
+            sv = ast.StateVariable(symbol=symbol)
+            self._resolve_global_symbol(symbol=sv.symbol, target=sv)
+            deriv_value =  ast.ConstValueZero()
+
+            td = ast.EqnTimeDerivativeByRegime(
+                    lhs = sv,
+                    rhs_map = ast.EqnRegimeDispatchMap(
+                        rhs_map={ self._current_rt_graph.regimes.get_single_obj_by(name=None): deriv_value})
+                    )
+            self.builddata.timederivatives.append(td)
 
 
             #assert False
 
-        # Ok, so if we have state variables with no explcity state time derivatives, then 
+        # Ok, so if we have state variables with no explcity state time derivatives, then
         # lets create them:
         for tr in self.builddata.transitions_triggers + self.builddata.transitions_events:
             for action in tr.actions:
@@ -737,20 +739,24 @@ class AbstractBlockBuilder(object):
 
                     if isinstance( action.lhs, SymbolProxy) :
 
-                        # Does it resolve?
-                        p =  RemoveAllSymbolProxy().followSymbolProxy(action.lhs) 
-                        if isinstance(p, ast.StateVariable):
+                        # Follow the proxy:
+                        n = action.lhs
+                        while n.target and isinstance(n.target, SymbolProxy):
+                            n = n.target
+
+                        # Already points to a state_varaible?
+                        if isinstance(n.target, ast.StateVariable):
                             continue
 
-                        print p
-                        assert False, 'Unresolved Proxy Object!'
-
+                        target_name = self.global_scope.get_proxy_targetname(n)
+                        ensure_state_variable(target_name)
+                        print 'Unresolved target:'
 
 
                     else:
                         assert isinstance( action.lhs, ast.StateVariable)
 
-        
+
         # OK, make sure that we are not setting anything other than state_varaibles:
         for (sym, initial_value) in self._default_state_variables.items():
             sv_objs = [td.lhs for td in self.builddata.timederivatives if td.lhs.symbol == sym]

@@ -83,6 +83,9 @@ class ASTActionerDefault(ASTActionerDepthFirst):
     def ActionConstant(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
+    def ActionConstantZero(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
+
     def ActionAssignedVariable(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 

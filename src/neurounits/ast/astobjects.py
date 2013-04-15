@@ -186,10 +186,20 @@ class ConstValue(ASTExpressionObject):
     def __init__(self, value, **kwargs):
         ASTExpressionObject.__init__(self, **kwargs)
         self.value = value
+
         self.set_dimensionality(value.units.with_no_powerten())
 
     def __repr__(self):
         return "<Const: '%s'>" % self.value
+
+
+class ConstValueZero(ASTExpressionObject):
+    def __init__(self, **kwargs):
+        ASTExpressionObject.__init__(self, **kwargs)
+
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitConstantZero(self, **kwargs)
+
 
 
 class SymbolicConstant(ASTExpressionObject):

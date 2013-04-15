@@ -156,6 +156,9 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def VisitConstant(self, o, **kwargs):
         self._ActionConstant(o, **kwargs)
 
+    def VisitConstantZero(self, o, **kwargs):
+        self._ActionConstantZero(o, **kwargs)
+
     def VisitAssignedVariable(self, o, **kwargs):
         self._ActionAssignedVariable(o, **kwargs)
 
@@ -349,6 +352,10 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def _ActionConstant(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionConstant(o, **kwargs)
+
+    def _ActionConstantZero(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionConstantZero(o, **kwargs)
 
     def _ActionAssignedVariable(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):

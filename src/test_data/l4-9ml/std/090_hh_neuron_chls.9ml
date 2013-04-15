@@ -15,6 +15,11 @@ define_component gating_particle_hh_k {
     
     <=> OUTPUT    s:()
     <=> INPUT     V:mV
+    
+    initial {
+        s = 0
+        
+    }
 }
 
 
@@ -47,8 +52,8 @@ define_component gating_particle_hh_na {
     
     
     initial {
-        #s_m = 0
-        #h_m = 1.0
+        s_m = 0
+        s_h = 1.0
     }
     
     
