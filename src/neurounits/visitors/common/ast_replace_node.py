@@ -165,7 +165,12 @@ class ReplaceNode(ASTVisitorBase):
 
     def VisitRTGraph(self, o, **kwargs):
         #print o.regimes
+        if o.default_regime:
+            assert o.default_regime in o.regimes
         o.regimes = self._replace_within_new_lut(o.regimes)
+        if o.default_regime:
+            o.default_regime = self.replace_or_visit(o.default_regime)
+            assert o.default_regime in o.regimes
         return o
 
 
@@ -232,6 +237,8 @@ class ReplaceNode(ASTVisitorBase):
 
     # Terminals:
     def VisitStateVariable(self, o, **kwargs):
+        if o.initial_value:
+            o.initial_value = self.replace_or_visit(o.initial_value)
         return o
 
     def VisitParameter(self, o, **kwargs):

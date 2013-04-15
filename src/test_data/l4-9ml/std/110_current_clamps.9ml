@@ -3,14 +3,7 @@
  define_component i_squarewave{
         t_last'=0
         i=0nA
-        regime init{
-            i=0A
-            on(0<1){
-                t_last = 0s
-                transition_to OFF
-                }
-        }
-
+        
         regime OFF{
             i=0A
             on (t>t_last + t_off) {
@@ -25,6 +18,12 @@
                 t_last = t
                 transition_to OFF;
                 }
+        }
+        
+        
+        initial {
+            t_last=0s
+            regime OFF
         }
 
         <=> PARAMETER t_on, t_off

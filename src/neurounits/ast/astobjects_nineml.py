@@ -213,32 +213,25 @@ class RTBlock(ASTObject):
     def __init__(self, name=None,):
         self.name = name
         self.regimes = LookUpDict([Regime(None, parent_rt_graph=self)])
+        self.default_regime = None
 
     def ns_string(self):
         return (self.name if self.name is not None else '')
 
     def get_regime(self, name):
         return self.regimes.get_single_obj_by(name=name)
-        #return self.regimes[name]
 
     def get_or_create_regime(self, name):
         if not self.regimes.has_obj(name=name):
             self.regimes._add_item( Regime(name=name, parent_rt_graph=self) )
         return self.regimes.get_single_obj_by(name=name)
 
-        #if not name in self.regimes:
-        #    self.regimes[name] = Regime(name=name, parent_rt_graph=self)
-
-        #return self.regimes[name]
 
     def __repr__(self):
         return '<RT Block: %s>' % self.name
 
     def has_regime(self, name):
         return self.regimes.has_obj(name=name)
-        #for (r_name, r) in self.regimesitems():
-        #    assert r_name == r.name
-        #rreturn name in self.regimes
 
 
  # Temporary objects used only during building:

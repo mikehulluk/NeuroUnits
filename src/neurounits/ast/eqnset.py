@@ -481,7 +481,7 @@ class NineMLComponent(EqnSet):
         # First, lets clone each and every node:
         #print
         #print 'Remapping nodes:'
-        old_nodes = list( EqnsetVisitorNodeCollector(self).all() )
+        old_nodes = list(set(list( EqnsetVisitorNodeCollector(self).all() )))
         old_to_new_dict = {}
         for old_node in old_nodes:
 

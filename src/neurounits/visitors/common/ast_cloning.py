@@ -35,8 +35,8 @@ class ASTClone(object):
         from ast_replace_node import ReplaceNode
 
         new_obj = None
-        # Replace the nodes one at a time:
-        for old_node in obj.all_ast_nodes():
+        # Replace the nodes one at a time (set to prevent duplicates:
+        for old_node in set(obj.all_ast_nodes()):
             new_node = ASTClone().visit(old_node)
             if old_node == obj:
                 new_obj = new_node
@@ -61,6 +61,9 @@ class ASTClone(object):
     def VisitRTGraph(self, o, **kwargs):
         new = ast.RTBlock(name = o.name)
         new.regimes = o.regimes.copy()
+        if o.default_regime:
+            new.default_regime = new.get_regime(name=o.default_regime.name)
+            assert new.default_regime in new.regimes
         return new
 
     def VisitRegime(self, o, **kwargs):
@@ -134,6 +137,7 @@ class ASTClone(object):
         new = ast.StateVariable(
                 symbol=o.symbol
                 )
+        new.initial_value = o.initial_value
         return copy_std(o, new, )
 
     def VisitTimeDerivativeByRegime(self, o, **kwargs):

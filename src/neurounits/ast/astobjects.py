@@ -155,9 +155,14 @@ class StateVariable(ASTExpressionObject):
     def __init__(self, symbol, **kwargs):
         ASTExpressionObject.__init__(self, **kwargs)
         self.symbol = symbol
+        self.initial_value = None
 
     def __repr__(self):
         return "<StateVariable: '%s'>" % self.symbol
+
+    @property
+    def default(self):
+        return self.initial_value
 
 
 class Parameter(ASTExpressionObject):

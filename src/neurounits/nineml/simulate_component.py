@@ -219,6 +219,12 @@ def simulate_component(component, times, parameters,initial_state_values, initia
         assert terminal_obj.get_dimension().is_compatible(v.get_units())
     # =======================================================
 
+
+
+    # Sanity Check:
+    for rt_graph in component.rt_graphs:
+        if rt_graph.default_regime:
+            assert rt_graph.default_regime in rt_graph.regimes
     # Resolve initial regimes:
     # ========================
     # i. Initial, make initial regimes 'None', then lets try and work it out:
@@ -230,9 +236,13 @@ def simulate_component(component, times, parameters,initial_state_values, initia
             current_regimes[rt_graph] = rt_graph.regimes.get_single_obj_by()
 
     # iii. Do the transion graphs have a 'init' block?
+    #for rt_graph in component.rt_graphs:
+    #    if rt_graph.has_regime(name='init'):
+    #        current_regimes[rt_graph] = rt_graph.get_regime(name='init')
     for rt_graph in component.rt_graphs:
-        if rt_graph.has_regime(name='init'):
-            current_regimes[rt_graph] = rt_graph.get_regime(name='init')
+        if rt_graph.default_regime is not None:
+            current_regimes[rt_graph] = rt_graph.default_regime
+
 
     # iv. Explicitly provided:
     for (rt_name, regime_name) in initial_regimes.items():
@@ -243,8 +253,11 @@ def simulate_component(component, times, parameters,initial_state_values, initia
     # v. Check everything is hooked up OK:
     for rt_graph, regime in current_regimes.items():
         assert regime is not None, " Start regime for '%s' not set! " % (rt_graph.name)
-        assert regime in rt_graph.regimes
+        assert regime in rt_graph.regimes, 'regime: %s [%s]' % (repr(regime), rt_graph.regimes  )
 
+
+
+    
     #print
     #print 'Initial_regimes'
     #for k,v in current_regimes.items():
@@ -257,6 +270,26 @@ def simulate_component(component, times, parameters,initial_state_values, initia
     #for n in nodes[ast.RTBlock]:
     #    print repr(n)
     #assert False
+
+
+    # Resolve the inital values of the states:
+    state_values = {}
+    # Check initial state_values defined in the 'initial {...}' block: :
+    for td in component.timederivatives:
+        sv = td.lhs
+        #print repr(sv), sv.initial_value
+        if sv.initial_value:
+            assert isinstance(sv.initial_value, ast.ConstValue)
+            state_values[sv.symbol] = sv.initial_value.value
+
+    for (k,v) in initial_state_values.items():
+        assert not k in state_values, 'Double set intial values: %s' % k
+        assert k in [td.lhs.symbol for td in component.timederivatives]
+        state_values[k]= v
+
+
+    #assert False
+
 
 
 
@@ -278,7 +311,7 @@ def simulate_component(component, times, parameters,initial_state_values, initia
     print 'Running Simulation:'
     print
 
-    state_values = initial_state_values.copy()
+    #state_values = initial_state_values.copy()
     for i in range(len(times) - 1):
 
         t = times[i]

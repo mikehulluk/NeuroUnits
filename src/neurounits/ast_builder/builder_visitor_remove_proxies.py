@@ -45,7 +45,7 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         visited_nodes.add(node)
 
         if type(node) == SymbolProxy:
-            assert node.is_resolved()
+            assert node.is_resolved(), 'Unresolved node found:'
             return self.followSymbolProxy(node.target,visited_nodes=visited_nodes)
         return node
 

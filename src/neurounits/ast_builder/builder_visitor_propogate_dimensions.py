@@ -159,7 +159,8 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
 
     # Terminals:
     def ActionStateVariable(self, o, **kwargs):
-        pass
+        if o.initial_value: 
+            self.verify_equal_units([o, o.initial_value])
 
     def ActionSymbolicConstant(self, o, **kwargs):
         pass
@@ -407,7 +408,8 @@ class DimensionResolver(ASTVisitorBase):
 
     # Terminals:
     def VisitStateVariable(self, o, **kwargs):
-        return []
+        if o.initial_value:
+            self.EnsureEqualDimensions([o, o.initial_value])
 
     def VisitParameter(self, o, **kwargs):
         return []

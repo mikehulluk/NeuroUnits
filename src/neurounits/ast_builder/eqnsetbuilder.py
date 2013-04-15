@@ -268,6 +268,13 @@ class Scope(object):
         assert isinstance(symbol, basestring)
         self.symbol_dict[symbol] = value
 
+    def get_proxy_targetname(self, symproxy):
+        print 'Finding:', symproxy, symproxy.target
+        print self.symbol_dict
+        posses = [ (k,v) for (k,v) in self.symbol_dict.items() if v==symproxy]
+        assert len(posses) == 1
+        return posses[0][0]
+
 
 class BuildData(object):
 
@@ -313,10 +320,36 @@ class AbstractBlockBuilder(object):
         #CompoundPort Data:
         self._compound_port_data = []
 
-
         # Event ports:
         self._output_event_ports = LookUpDict( accepted_obj_types=(ast.OutEventPort) )
         self._input_event_ports = LookUpDict( accepted_obj_types=(ast.InEventPort) )
+
+
+
+        # Default state_variables
+        self._default_state_variables = SingleSetDict()
+
+
+
+
+
+
+
+
+
+    def set_initial_state_variable(self, name, value):
+        print name, value
+        assert isinstance(value, ast.ConstValue)
+        self._default_state_variables[name] = value
+
+        #assert False
+
+    def set_initial_regime(self, regime_name):
+        assert len( self._all_rt_graphs)  == 1, 'Only one rt grpah supported at the mo (because of default handling)'
+        assert self._current_rt_graph.has_regime(name=regime_name), 'Default regime not found! %s' % regime_name
+        self._current_rt_graph.default_regime = self._current_rt_graph.get_regime(regime_name)
+        #assert False
+
 
     def get_input_event_port(self, port_name,  expected_parameter_names):
         if not self._input_event_ports.has_obj(name=port_name):
@@ -627,6 +660,8 @@ class AbstractBlockBuilder(object):
             statevar_obj = ast.StateVariable(sv)
             self._resolve_global_symbol(sv, statevar_obj)
 
+
+
             mapping = dict([(reg, rhs) for (reg,rhs) in tds.items()])
             rhs = ast.EqnTimeDerivativeByRegime(
                     lhs=statevar_obj,
@@ -636,6 +671,10 @@ class AbstractBlockBuilder(object):
 
         self.builddata.timederivatives = time_derivatives.values()
         del self.builddata._time_derivatives_per_regime
+
+
+
+
 
         ## Resolve the Assignments into a single object:
         assignments = SingleSetDict()
@@ -671,6 +710,57 @@ class AbstractBlockBuilder(object):
             (lib, token) = symbol.rsplit('.', 1)
             print 'Automatically importing: %s' % symbol
             self.do_import(srclibrary=lib, tokens=[(token, symbol)])
+
+
+
+        ## Finish off resolving StateVariables:
+        ## They might be defined on the left hand side on StateAssignments in transitions, 
+        #def ensure_state_variable(symbol):
+        #    if not self.global_scope.hasSymbol(symbol):
+        #        sv = ast.StateVariable(symbol=symbol)
+        #        self._resolve_global_symbol(symbol=sv.symbol, target=sv)
+        #        td = ast.EqnTimeDerivativePerRegime(
+        #                lhs = sv, 
+        #                rhs_map = ast.EqnRegimeDispatchMap( 
+        #                    rhs_map={ self._current_rt_graph.regimes[None]: ast.ConstValue(0, unknown_unit=True)})
+        #                )
+        #        self.builddata.timederivatives.append(td) # = time_derivatives.values()
+
+
+            #assert False
+
+        # Ok, so if we have state variables with no explcity state time derivatives, then 
+        # lets create them:
+        for tr in self.builddata.transitions_triggers + self.builddata.transitions_events:
+            for action in tr.actions:
+                if isinstance( action, ast.OnEventStateAssignment ):
+
+                    if isinstance( action.lhs, SymbolProxy) :
+
+                        # Does it resolve?
+                        p =  RemoveAllSymbolProxy().followSymbolProxy(action.lhs) 
+                        if isinstance(p, ast.StateVariable):
+                            continue
+
+                        print p
+                        assert False, 'Unresolved Proxy Object!'
+
+
+
+                    else:
+                        assert isinstance( action.lhs, ast.StateVariable)
+
+        
+        # OK, make sure that we are not setting anything other than state_varaibles:
+        for (sym, initial_value) in self._default_state_variables.items():
+            sv_objs = [td.lhs for td in self.builddata.timederivatives if td.lhs.symbol == sym]
+            assert len(sv_objs) == 1, "Can't find state variable: %s" % sym
+            sv_obj = sv_objs[0]
+
+            sv_obj.initial_value = initial_value
+            print repr(sv_obj)
+
+
 
         # We inspect the io_data ('<=>' lines), and use it to:
         #  - resolve the types of unresolved symbols
@@ -798,7 +888,8 @@ class EqnSetBuilder(AbstractBlockBuilder):
 
     def add_compoundport_def_data(self, connector):
         self._compound_port_data.append(connector)
-        #assert False
+
+
 
 
 

@@ -45,6 +45,6 @@ class SymbolProxy(object):
         return self.target.accept_visitor(v, **kwargs)
 
     def __repr__(self):
-        return '<Symobl Proxy: >'
+        return '<Symbol Proxy: %s>' % hash(self)
 
 

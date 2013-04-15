@@ -156,6 +156,8 @@ class ASTAllConnections(ASTActionerDepthFirst):
 
     # Terminals:
     def VisitStateVariable(self, o, **kwargs):
+        if o.initial_value:
+            return [o.initial_value]
         return []
 
     def VisitSymbolicConstant(self, o, **kwargs):

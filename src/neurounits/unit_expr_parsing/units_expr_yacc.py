@@ -328,7 +328,8 @@ def p_parse_componentline4(p):
                                | assignment
                                | time_derivative
                                | on_transition_trigger
-                               | regime_block"""
+                               | regime_block
+                               | initial_block """
     pass
 def p_parse_componentline2(p):
     """componentlinecontents : IO_LINE"""
@@ -337,6 +338,22 @@ def p_parse_componentline2(p):
 def p_parse_componentline3(p):
     """componentlinecontents : compound_port_inst"""
     p.parser.library_manager.get_current_block_builder().add_compoundport_def_data(p[1])
+
+def p_parse_componentline5(p):
+    """ initial_block : INITIAL LCURLYBRACKET initial_expr_block RCURLYBRACKET"""
+
+
+def p_parse_intial_block(p):
+    """ initial_expr_block : empty"""
+
+def p_parse_intial_block1(p):
+    """ initial_expr_block : initial_expr_block ns_name EQUALS rhs_generic SEMICOLON"""
+    p.parser.library_manager.get_current_block_builder().set_initial_state_variable(name=p[2], value=p[4])
+
+def p_parse_intial_block2(p):
+    """ initial_expr_block : initial_expr_block REGIME ns_name SEMICOLON """
+    p.parser.library_manager.get_current_block_builder().set_initial_regime(p[3])
+
 
 
 

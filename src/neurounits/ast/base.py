@@ -42,3 +42,5 @@ class ASTObject(object):
         return 'ASTObject_%s_%s' %( id(self), type(self).__name__.split('.')[-1] )
 
 
+    def get_dimension():
+        return None

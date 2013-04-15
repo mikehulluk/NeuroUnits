@@ -47,9 +47,8 @@ define_component gating_particle_hh_na {
     
     
     initial {
-        s_m = 0
-        h_m = 0
-        regime off
+        #s_m = 0
+        #h_m = 1.0
     }
     
     

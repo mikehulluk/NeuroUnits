@@ -67,13 +67,14 @@ def test0():
                 #times = np.linspace(0, 0.05,num=1000),
                 times = np.arange(0, 0.1,0.00001),
                 close_reduce_ports=True,
-                parameters={}, 
+                parameters={
+                }, 
                 initial_state_values=   {
                     'nrn/nrn/V':'-51mV',
                     'nrn/chl_kf/kf/s':'0',
                     'nrn/chl_na/na/s_h':'0',
                     'nrn/chl_na/na/s_m':'0',
-                    'stim/t_last':'0ms',
+                    #'stim/t_last':'0ms',
                 },
                 
                 initial_regimes = {

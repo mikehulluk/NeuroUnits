@@ -143,6 +143,8 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
     # Terminals:
     def VisitStateVariable(self, o, **kwargs):
+        if o.initial_value:
+            self.visit(o.initial_value)
         self._ActionStateVariable(o, **kwargs)
 
     def VisitSymbolicConstant(self, o, **kwargs):
@@ -260,6 +262,8 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         self._ActionOutEventPortParameter(o, **kwargs)
 
     def VisitRTGraph(self, o, **kwargs):
+        if o.default_regime:
+            assert o.default_regime in o.regimes
         for r in o.regimes:
             self.visit(r, **kwargs)
         self._ActionRTGraph(o, **kwargs)
