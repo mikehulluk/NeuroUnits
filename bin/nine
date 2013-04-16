@@ -1,0 +1,85 @@
+#! /usr/bin/python
+# vim: set filetype=python :
+
+
+#nine simulate my_model -I../stdlib --
+#nine codegen my_model -I../stdlib --
+#nine validate my_model -I../stdlib --
+import argparse
+
+
+#/comp1/X/*/**
+
+
+def handle_simulate(args):
+    from neurounits.nineml_fe.nineml_fe_simulate import cmdline_simulate
+    cmdline_simulate(args)
+    #print 'Simulating'
+    #for arg, arg_value in vars(args).items():
+    #    print arg, arg_value
+def handle_visualise(args):
+    print 'Visualising'
+def handle_codegen(args):
+    print 'Code-generating'
+def handle_validating(args):
+    print 'Code-validate'
+
+
+def build_argparser():
+    parser = argparse.ArgumentParser(description='Front-end to NineML.')
+
+    parent_parser = argparse.ArgumentParser(add_help=False)
+    parent_parser.add_argument('-I','--include',type=str, action='append', help='Either a filename or a direcotry')
+    parent_parser.add_argument('--safety-mode', action='store', choices=('cowboy','normal','safe'), default='normal')
+    parent_parser.add_argument('--verbose', action='store_true', )
+
+    subparsers = parser.add_subparsers()
+
+    # Simulation: 
+    # ===========
+    simulate_subparser = subparsers.add_parser('simulate', parents=[parent_parser])
+    simulate_subparser.set_defaults(func=handle_simulate)
+    simulate_subparser.add_argument('component', type=str, )
+
+   # Time steps:
+    simulate_subparser.add_argument('--dt', type=str, required=True )
+    simulate_subparser.add_argument('--endt', type=str, required=True )
+
+    # Plotting Options:
+    simulate_subparser.add_argument('--no-show-plot', action='store_false', default=True, dest='show_plot' )
+    simulate_subparser.add_argument('--save_plot-file', action='append', type=str )
+    simulate_subparser.add_argument('-p', '--plot-what', type=str, )
+    simulate_subparser.add_argument('--phase-plot',  type=str, action='append' )
+
+    
+    # Save to CSV file:
+    simulate_subparser.add_argument('--write-csv', type=str, dest='csv_filename', )
+    simulate_subparser.add_argument('--csv-cols', type=str, dest='csv_columns', default='*')
+
+
+    #
+
+    # Visualise:
+    # ==========
+    visualise_subparser = subparsers.add_parser('visualise', parents=[parent_parser])
+    visualise_subparser.set_defaults(func=handle_visualise)
+
+    codegen_subparser = subparsers.add_parser('codegen', parents=[parent_parser])
+    codegen_subparser.set_defaults(func=handle_codegen)
+
+    validate_subparser = subparsers.add_parser('visualise', parents=[parent_parser])
+    validate_subparser.set_defaults(func=handle_validating)
+
+    return parser
+    pass
+
+
+def main():
+    parser = build_argparser()
+    args = parser.parse_args()
+    args.func(args)
+
+
+
+if __name__ == '__main__':
+    main()

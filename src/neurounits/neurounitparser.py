@@ -90,6 +90,18 @@ class NeuroUnitParser(object):
         return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.N6_9MLFile, working_dir=working_dir, backend=backend, options=options, **kwargs)
 
 
+    @classmethod
+    def Parse9MLFiles(cls, filenames, debug=False, backend=None, working_dir=None, options=None, **kwargs):
+        library_manager = None
+        for filename in filenames:
+            with open(filename) as f:
+                library_manager = cls.Parse9MLFile(text = f.read(), library_manager=library_manager, debug=debug, backend=backend, working_dir=working_dir, options=options)
+        return library_manager
 
 
+
+
+
+def MQ1(s):
+    return NeuroUnitParser.QuantitySimple(s)
 

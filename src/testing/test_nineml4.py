@@ -28,7 +28,7 @@ log_handler1.push_application()
 
 def test0():
     
-    src_files = sorted( glob.glob("/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/std/*.9ml" ))
+    src_files = sorted( glob.glob("/home/michael/hw_to_come//NeuroUnits/src/test_data/l4-9ml/std/*.9ml" ))
 
 
 

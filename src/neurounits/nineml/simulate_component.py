@@ -167,35 +167,39 @@ def auto_plot(res):
         ax.legend()
 
 
-    pylab.show()
+    #pylab.show()
 
-    assert False
-
-
-    plot_objs = list( itertools.chain( res.state_variables.items(), res.assignments.items(),) )# res.rt_regimes.items() ) )
-    n_axes = len(plot_objs)
-    f = pylab.figure()
-    axes = [f.add_subplot(n_axes, 1, i+1) for i in range(len(plot_objs))]
+    #assert False
 
 
-    for (plot_name,plot_obj), ax in zip( plot_objs, axes):
-        ax.plot(res.get_time(), plot_obj)
-        ax.set_ylabel(plot_name + '   ',rotation=0, horizontalalignment='right' )
+    #plot_objs = list( itertools.chain( res.state_variables.items(), res.assignments.items(),) )# res.rt_regimes.items() ) )
+    #n_axes = len(plot_objs)
+    #f = pylab.figure()
+    #axes = [f.add_subplot(n_axes, 1, i+1) for i in range(len(plot_objs))]
 
 
-    print
-    print 'Transitions:'
-    for tr in res.transitions:
-        print tr
-    #f.tight_layout()
-    pylab.show()
-    assert False
+    #for (plot_name,plot_obj), ax in zip( plot_objs, axes):
+    #    ax.plot(res.get_time(), plot_obj)
+    #    ax.set_ylabel(plot_name + '   ',rotation=0, horizontalalignment='right' )
 
 
+    #print
+    #print 'Transitions:'
+    #for tr in res.transitions:
+    #    print tr
+    ##f.tight_layout()
+    #pylab.show()
+    #assert False
 
 
 
-def simulate_component(component, times, parameters,initial_state_values, initial_regimes, close_reduce_ports=True):
+
+
+def simulate_component(component, times, parameters=None,initial_state_value=None, initial_regimes=None, close_reduce_ports=True):
+
+    parameters = parameters if parameters is not None else {}
+    initial_regimes = initial_regimes if initial_regimes is not None else {}
+    initial_state_values = initial_state_value if initial_state_value is not None else {}
     verbose=False
 
     # Before we start, check the dimensions of the AST tree
