@@ -105,9 +105,13 @@ class EventManager(object):
         self.outstanding_event_list = []
         self.processed_event_list = []
 
+        # Just for testing:
+        self.dummy_delay =  neurounits.NeuroUnitParser.QuantitySimple('10ms')
+
+
     def emit_event(self, port, parameter_values):
 
-        submit_time = self.current_time + neurounits.NeuroUnitParser.QuantitySimple('10ms')
+        submit_time = self.current_time + self.dummy_delay
         self.outstanding_event_list.append( Event( port=port, parameter_values=parameter_values, time=submit_time) )
 
     def set_time(self, t):
@@ -403,8 +407,8 @@ def simulate_component(component, times, parameters=None,initial_state_value=Non
         # =========================
 
         if triggered_transitions:
-            print 'RESOLVE TRANSITION:', len(triggered_transitions) 
-            print 'Current States:', sorted(state_data.states_in.items())
+            #print 'RESOLVE TRANSITION:', len(triggered_transitions) 
+            #print 'Current States:', sorted(state_data.states_in.items())
             # Check there is only on transition per rt-graph:
             rt_graphs = set([ rt_graph for ( tr, evt, rt_graph) in triggered_transitions ])
             for rt_graph in rt_graphs:
@@ -417,7 +421,7 @@ def simulate_component(component, times, parameters=None,initial_state_value=Non
                 (state_changes, new_regime) = do_transition_change(tr=tr, evt=evt, state_data=state_data, functor_gen = f)
                 current_regimes[rt_graph] = new_regime
                 
-                print 'StateChanges', state_changes
+                #print 'StateChanges', state_changes
             
 
                 # Make sure that we are not changing a single state in two different transitions:
@@ -428,7 +432,7 @@ def simulate_component(component, times, parameters=None,initial_state_value=Non
                     #print ' -- Change to:', sv
                 state_values.update(state_changes)
 
-                print '(OK)'
+                #print '(OK)'
 
 
         # Mark the events as done

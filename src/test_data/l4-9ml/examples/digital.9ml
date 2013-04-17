@@ -56,7 +56,7 @@ define_compound shift_reg {
 
 
 
-define_compound simple_circuit {
+define_compound simple_circuit1 {
     instantiate ff as ff_single
     instantiate sine_gen as stim
     instantiate clk_gen as clk
@@ -74,5 +74,96 @@ define_compound simple_circuit {
 
 }
 
+
+
+
+
+
+
+
+
+
+define_component ff_h {
+
+    <=> INPUT D:V
+    <=> OUTPUT Q:mV
+
+    on clk() {
+        Q = D
+    }
+
+    initial {
+        Q =5V
+    }
+}
+define_component ff_l {
+
+    <=> INPUT D:V
+    <=> OUTPUT Q:mV
+
+    on clk() {
+        Q = D
+    }
+
+    initial {
+        Q =0mV
+    }
+}
+
+
+
+
+define_component xor{
+    <=> INPUT x1:V, x2:V
+    <=> OUTPUT Q:mV
+
+    T = 2.5V
+
+    Q = [5V] if [ ((x1>T) and (x2<T) ) or ( (x1<T) and (x2>T)) ] else [0V]
+    #Q = [0mV] if [ (x1<T and x2>T) ] else [0mV]
+
+
+}
+
+
+define_component binary_to_dec{
+
+  <=> OUTPUT val:()
+  <=> INPUT x0,x1,x2,x3
+
+  val = (x0 + 2* x1 + 4*x2 + 8*x3) / {1V}
+}
+
+define_compound simple_circuit2 {
+    instantiate ff_h as ff0
+    instantiate ff_l as ff1
+    instantiate ff_h as ff2
+    instantiate ff_l as ff3
+    instantiate xor as X1
+    instantiate clk_gen as clk
+    instantiate binary_to_dec as btd
+
+
+    # Tap delay line:
+    connect ff0/Q <==> ff1/D
+    connect ff1/Q <==> ff2/D
+    connect ff2/Q <==> ff3/D
+
+    # XOR feedback:
+    connect ff2/Q <==> X1/x1
+    connect ff3/Q <==> X1/x2
+    connect X1/Q <==> ff0/D
+
+    # Hook up the clocks:
+    connect clk/my_clk <==> ff0/clk
+    connect clk/my_clk <==> ff1/clk
+    connect clk/my_clk <==> ff2/clk
+    connect clk/my_clk <==> ff3/clk
+
+    connect btd/x0 <==> ff0/Q
+    connect btd/x1 <==> ff1/Q
+    connect btd/x2 <==> ff2/Q
+    connect btd/x3 <==> ff3/Q
+}
 
 

@@ -64,6 +64,10 @@ class UnitExprLexer(object):
 
         'multiconnect':'MULTICONNECT',
         'initial':'INITIAL',
+        
+        'and':'AND',
+        'or':'OR',
+        'not':'NOT',
         }
 
     tokens = [
