@@ -296,6 +296,9 @@ class SimulationStateData(object):
         self.rt_regimes = rt_regimes
         self.event_manager = event_manager
 
+    def clear_states_out(self):
+        self.states_out = {}
+
     def copy(self):
         return SimulationStateData(parameters=self.parameters.copy(),
                                    suppliedvalues=self.suppliedvalues.copy(),

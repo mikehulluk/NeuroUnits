@@ -57,14 +57,14 @@ define_compound shift_reg {
 
 
 define_compound simple_circuit {
-    instantiate ff as ff
+    instantiate ff as ff_single
     instantiate sine_gen as stim
     instantiate clk_gen as clk
 
     instantiate shift_reg as reg
 
-    connect stim/vout <==> ff/D
-    connect clk/my_clk <==> ff/clk
+    connect stim/vout <==> ff_single/D
+    connect clk/my_clk <==> ff_single/clk
     
     connect clk/my_clk <==> reg/clk
     connect stim/vout <==> reg/ff0/D

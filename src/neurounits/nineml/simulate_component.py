@@ -76,6 +76,7 @@ def do_transition_change(tr, evt, state_data, functor_gen):
     # State assignments & events:
     #assert evt==None
 
+    
 
     functor = functor_gen.transitions_actions[tr]
     functor(state_data=state_data, evt=evt)
@@ -261,7 +262,7 @@ def simulate_component(component, times, parameters=None,initial_state_value=Non
 
 
 
-    
+
     #print
     #print 'Initial_regimes'
     #for k,v in current_regimes.items():
@@ -337,7 +338,7 @@ def simulate_component(component, times, parameters=None,initial_state_value=Non
         state_data = SimulationStateData(
             parameters=parameters,
             suppliedvalues=supplied_values,
-            states_in=state_values,
+            states_in=state_values.copy(),
             states_out={},
             rt_regimes=current_regimes,
             event_manager = evt_manager,
@@ -376,35 +377,59 @@ def simulate_component(component, times, parameters=None,initial_state_value=Non
 
         # Check for transitions:
         #print 'Checking for transitions:'
+        triggered_transitions = []
         for rt_graph in component.rt_graphs:
             current_regime = current_regimes[rt_graph]
             #print '  ', rt_graph, '(in %s)' % current_regime
 
-            triggered_transitions = []
             for transition in component.transitions_from_regime(current_regime):
-                print '       Checking',  repr(transition)
+                #print '       Checking',  repr(transition)
 
                 if isinstance(transition, ast.OnTriggerTransition):
                     res = f.transition_triggers_evals[transition]( state_data=state_data)
                     if res:
-                        triggered_transitions.append((transition,None))
+                        triggered_transitions.append((transition,None, rt_graph))
                 elif isinstance(transition, ast.OnEventTransition):
                     for (port,evt) in ports_with_events.items():
                         if transition in f.transition_port_handlers[port]:
-                            triggered_transitions.append((transition,evt))
+                            triggered_transitions.append((transition,evt, rt_graph))
                 else:
                     assert False
 
-            allow_double_transition_only_action_first = False
-            if not allow_double_transition_only_action_first:
-                assert len(triggered_transitions) in (0,1)
-            assert len(triggered_transitions) in (0,1)
-            if triggered_transitions:
-                tr, evt = triggered_transitions[0]
 
+
+
+        # Resolve the transitions:
+        # =========================
+
+        if triggered_transitions:
+            print 'RESOLVE TRANSITION:', len(triggered_transitions) 
+            print 'Current States:', sorted(state_data.states_in.items())
+            # Check there is only on transition per rt-graph:
+            rt_graphs = set([ rt_graph for ( tr, evt, rt_graph) in triggered_transitions ])
+            for rt_graph in rt_graphs:
+                assert len ( [ True for ( tr, evt, rt_graph_) in triggered_transitions if rt_graph_ == rt_graph ]) == 1
+
+            updated_states = set()
+            for (tr,evt,rt_graph) in triggered_transitions:
+                #print 'Resolving Transition:', repr(tr)
+                state_data.clear_states_out()
                 (state_changes, new_regime) = do_transition_change(tr=tr, evt=evt, state_data=state_data, functor_gen = f)
-                state_values.update(state_changes)
                 current_regimes[rt_graph] = new_regime
+                
+                print 'StateChanges', state_changes
+            
+
+                # Make sure that we are not changing a single state in two different transitions:
+                for sv in state_changes:
+                    #print sv
+                    assert not sv in updated_states, 'Multiple changes detected for: %s' % sv
+                    updated_states.add(sv)
+                    #print ' -- Change to:', sv
+                state_values.update(state_changes)
+
+                print '(OK)'
+
 
         # Mark the events as done
         for evt in active_events:
