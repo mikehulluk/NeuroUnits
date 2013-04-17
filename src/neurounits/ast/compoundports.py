@@ -60,6 +60,10 @@ class CompoundPortDef(base.ASTObject):
         self.symbol = symbol
         self.connections = LookUpDict(connections, accepted_obj_types=(CompoundPortDefWire,))
 
+    @property
+    def name(self):
+        return self.symbol
+
     def summarise(self):
         print
         print 'Compound Port: %s' % self.symbol

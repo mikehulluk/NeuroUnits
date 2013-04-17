@@ -102,6 +102,17 @@ class LibraryManager(object):
             LibraryManager(backend=backend, is_stdlib_cache=True)
 
 
+    def get_modules(self, include_std_lib=False):
+        return ['.( modules are not supported yet']
+
+    def get_all_in_module(self,modulename):
+        return self.libraries + self.components + self.compound_port_defs 
+        #assert not include_std_lib
+        #return 
+        #self.libraries = []
+        #self.components = []
+        #self.compound_port_defs = []
+
 
     def add_component(self, component):
         try:
@@ -115,8 +126,8 @@ class LibraryManager(object):
 
     def add_compoundportdef(self, compoundportdef):
         try:
-            self.get(compoundportdef.name)
-            raise DuplicateNameError('Name already exists: %s' % compoundportdef.name)
+            self.get(compoundportdef.symbol)
+            raise DuplicateNameError('Name already exists: %s' % compoundportdef.symbol)
         except NoSuchObjectError:
             pass
         self.compound_port_defs.append(compoundportdef)

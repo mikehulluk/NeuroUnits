@@ -15,3 +15,8 @@ define_compoundport synapse_input_event {
 
 
 
+library my_dummy_library {
+    a = 4mV
+    #b = a +1V
+
+}

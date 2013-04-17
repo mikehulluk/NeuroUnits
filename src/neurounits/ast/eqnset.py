@@ -335,7 +335,7 @@ class NineMLComponent(EqnSet):
 
         from neurounits.ast import CompoundPortConnector
         # This is a list of the available connectors from this component
-        self._compound_ports_connectors = LookUpDict( accepted_obj_types=(CompoundPortConnector,), unique_attrs=('name',))
+        self._compound_ports_connectors = LookUpDict( accepted_obj_types=(CompoundPortConnector,), unique_attrs=('symbol',))
 
     def add_compound_port(self, compoundportconnector ):
         self._compound_ports_connectors._add_item(compoundportconnector)
