@@ -90,7 +90,13 @@ class RunDialog(wx.Dialog):
 
 
 
-
+class StdImages:
+    def __init__(self):
+        root= '/home/michael/Desktop/icons/open_icon_library-standard/icons/png/24x24/mimetypes'
+        self.im_module = wx.Bitmap(root + '/oxygen-style/application-x-tar.png', wx.BITMAP_TYPE_PNG)
+        self.im_component = wx.Bitmap(root + '/oxygen-style/text-x-script.png', wx.BITMAP_TYPE_PNG)
+        self.im_library = wx.Bitmap(root + '/oxygen-style/uri-mmst.png', wx.BITMAP_TYPE_PNG)
+        self.im_interface = wx.Bitmap(root + '/oxygen-style/text-x-java-2.png', wx.BITMAP_TYPE_PNG)
 
 
 
@@ -104,10 +110,16 @@ class TabPanel1(wx.Panel):
         self.tree = wx.TreeCtrl(self, 1, wx.DefaultPosition, (-1,-1), wx.TR_HIDE_ROOT|wx.TR_HAS_BUTTONS|wx.EXPAND)
 
         # Setup the image lists:
-        self.isz=(16,16)
-        self.il = wx.ImageList(16,16)
-        self.im_fldridx = self.il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, self.isz))
-        self.im_fldropenidx = self.il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, self.isz))
+        #self.isz=(16,16)
+        self.il = wx.ImageList(24,24)
+        imgs = StdImages()
+        self.im_module = self.il.Add(imgs.im_module)
+        self.im_component = self.il.Add(imgs.im_component)
+        self.im_library = self.il.Add(imgs.im_library)
+        self.im_interface = self.il.Add(imgs.im_interface)
+        
+        #self.im_fldridx = self.il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, self.isz))
+        #self.im_fldropenidx = self.il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, self.isz))
         self.tree.SetImageList(self.il)
         self.tree.AssignImageList(self.il)
 
@@ -171,13 +183,23 @@ class TreeByModule(TabPanel1):
         modules = lib_mgr.get_modules()
         for m in modules:
             br = self.tree.AppendItem(root, 'Module: %s' % m)
+            self.tree.SetItemImage(br, self.im_module, wx.TreeItemIcon_Normal)
             sub_comps = lib_mgr.get_all_in_module(m)
             for sc in sub_comps:
+                
                 itm = self.tree.AppendItem(br, 'Obj:  %s %s' % (type(sc).__name__.split('.')[-1], sc.name) )
                 self.tree.SetPyData(itm, sc)
             
-                self.tree.SetItemImage(itm, self.im_fldridx, wx.TreeItemIcon_Normal)
-                self.tree.SetItemImage(itm, self.im_fldropenidx, wx.TreeItemIcon_Expanded)
+                img = {
+                    ast.NineMLComponent: self.im_component,
+                    ast.Library: self.im_library,
+                    ast.CompoundPortDef: self.im_interface,
+                    
+                }[type(sc)]
+            
+                self.tree.SetItemImage(itm, img, wx.TreeItemIcon_Normal)
+                #self.tree.SetItemImage(itm, self.im_fldridx, wx.TreeItemIcon_Normal)
+                #self.tree.SetItemImage(itm, self.im_fldropenidx, wx.TreeItemIcon_Expanded)
         self.tree.ExpandAll()
         
         
@@ -369,21 +391,24 @@ class RHSToolbookDemo(wx.Toolbook):
         self.AssignImageList(il)
         imageIdGenerator = getNextImageID(il.GetImageCount())
         
-        
+        imgs = StdImages()
         page_types = (
-            (neurounits.ast.NineMLComponent, RHSPanelComponent, "Component"),
-            (neurounits.ast.CompoundPortDef, RHSPanelInterface, "Interface"),
-            (neurounits.ast.Library, RHSPanelInterface, "Library"),
-            (None, RHSPanelModule, "Module"),
+            (neurounits.ast.NineMLComponent, RHSPanelComponent, "Component", imgs.im_component),
+            (neurounits.ast.CompoundPortDef, RHSPanelInterface, "Interface", imgs.im_interface),
+            (neurounits.ast.Library, RHSPanelInterface, "Library", imgs.im_library),
+            (None, RHSPanelModule, "Module", imgs.im_module),
         )
         
         self.page_map = {}
         
 
-        for index, (objtype, pagetype, label) in enumerate(page_types):
+        for index, (objtype, pagetype, label,img) in enumerate(page_types):
+            I = il.Add(img)
+            
             page = pagetype(self)
             self.page_map[objtype] = index, page
-            self.AddPage(page, label, imageId=imageIdGenerator.next())
+            self.AddPage(page, label, imageId=I)
+            #self.AddPage(page, label, imageId=imageIdGenerator.next())
            
  
  

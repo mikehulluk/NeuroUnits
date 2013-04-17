@@ -1,4 +1,14 @@
 
+library testlib {
+
+
+}
+
+define_compoundport  asdf {
+
+
+}
+
 define_component sine_gen {
 from std.math import sin
 
