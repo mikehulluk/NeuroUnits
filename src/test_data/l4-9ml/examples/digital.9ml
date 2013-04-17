@@ -1,0 +1,78 @@
+
+define_component sine_gen {
+from std.math import sin
+
+    <=> OUTPUT vout:mV
+    <=> INPUT t:s
+
+    vout = sin( t * 2 * std.math.pi / {1s} ) * {2V}
+}
+
+define_component clk_gen {
+    <=> INPUT t:s
+
+    #t_last' = 0
+    on(t > t_last + 50ms){
+        t_last = t
+        emit my_clk()
+    }
+    initial {
+    t_last = 0s
+    }
+
+}
+
+define_component ff {
+
+    <=> INPUT D:V
+    <=> OUTPUT Q:mV
+
+    on clk() {
+        Q = D
+    }
+
+    initial {
+        Q =0mV
+    }
+}
+
+
+define_compound shift_reg {
+
+    instantiate ff as ff0
+    instantiate ff as ff1
+    instantiate ff as ff2
+    instantiate ff as ff3
+
+
+    merge [ff0/clk, ff1/clk, ff2/clk, ff3/clk] as clk
+
+    connect ff0/Q <==> ff1/D
+    connect ff1/Q <==> ff2/D
+    connect ff2/Q <==> ff3/D
+
+}
+
+
+
+
+define_compound simple_circuit {
+    instantiate ff as ff
+    instantiate sine_gen as stim
+    instantiate clk_gen as clk
+
+    instantiate shift_reg as reg
+
+    connect stim/vout <==> ff/D
+    connect clk/my_clk <==> ff/clk
+    
+    connect clk/my_clk <==> reg/clk
+    connect stim/vout <==> reg/ff0/D
+
+
+    
+
+}
+
+
+

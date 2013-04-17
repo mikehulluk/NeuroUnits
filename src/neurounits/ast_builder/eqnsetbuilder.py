@@ -359,14 +359,14 @@ class AbstractBlockBuilder(object):
                 param_dict._add_item( ast.InEventPortParameter(symbol=param_name) )
 
             # Create the port object:
-            port = ast.InEventPort(name=port_name, parameters=param_dict)
+            port = ast.InEventPort(symbol=port_name, parameters=param_dict)
 
             self._input_event_ports._add_item(port)
 
 
         # Get the event port, and check that the parameters match up:
         #print 'Getting input port:', port_name
-        p = self._input_event_ports.get_single_obj_by(name=port_name)
+        p = self._input_event_ports.get_single_obj_by(symbol=port_name)
         assert len(p.parameters) == len(expected_parameter_names), 'Parameter length mismatch'
         assert set(p.parameters.get_objects_attibutes(attr='symbol'))==set(expected_parameter_names)
 

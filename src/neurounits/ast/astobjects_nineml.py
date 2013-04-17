@@ -280,14 +280,14 @@ class InEventPort(ASTObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitInEventPort(self, **kwargs)
 
-    def __init__(self, name, parameters, **kwargs):
+    def __init__(self, symbol, parameters, **kwargs):
         super(InEventPort, self).__init__(**kwargs)
-        self.name = name
+        self.symbol = symbol
         self.parameters = parameters
-        assert isinstance(self.name, basestring)
+        assert isinstance(self.symbol, basestring)
         assert isinstance(self.parameters, LookUpDict)
     def __repr__(self,):
-        return '<InPort: %s>' % self.name
+        return '<InPort: %s>' % self.symbol
 
     
 

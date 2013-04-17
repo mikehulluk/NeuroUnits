@@ -215,7 +215,7 @@ class EqnSet(Block):
 
 
         if not len(possible_objs) == 1:
-            all_syms = [ p.symbol for p in self.all_terminal_objs() ]
+            all_syms = [ p.symbol for p in self.all_terminal_objs() ] + self.input_event_port_lut.get_objects_attibutes(attr='name')
             raise KeyError("Can't find terminal/EventPort: '%s' \n (Terminals/EntPorts found: %s)" % (symbol, ','.join(all_syms) ) )
 
         return possible_objs[0]
@@ -233,7 +233,7 @@ class EqnSet(Block):
 
 
         if not len(possible_objs) == 1:
-            all_syms = [ p.symbol for p in self.all_terminal_objs() ]
+            all_syms = [ p.symbol for p in self.all_terminal_objs()] 
             raise KeyError("Can't find terminal: '%s' \n (Terminals found: %s)" % (symbol, ','.join(sorted(all_syms)) ) )
 
         return possible_objs[0]

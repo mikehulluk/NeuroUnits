@@ -245,7 +245,7 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
                 assert False, 'No sources found'
 
             # Sanity check:
-            src_objs = [comp.get_terminal_obj(s) for s in srcs]
+            src_objs = [comp.get_terminal_obj_or_port(s) for s in srcs]
             node_types = list( set( [ type(s) for s in src_objs ] ) )
             assert len(node_types) == 1, 'Different types of nodes found in merge'
             assert node_types[0] in mergeable_node_types

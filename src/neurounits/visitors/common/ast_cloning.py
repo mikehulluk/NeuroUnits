@@ -317,7 +317,7 @@ class ASTClone(object):
 
     def VisitInEventPort(self,o, **kwargs):
         return ast.InEventPort(
-                name = o.name,
+                symbol = o.symbol,
                 parameters = o.parameters.copy()
                 )
         

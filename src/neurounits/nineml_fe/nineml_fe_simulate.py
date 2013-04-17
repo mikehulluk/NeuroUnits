@@ -39,8 +39,8 @@ def cmdline_simulate(args):
                     src_files.append(fname)
         # Add an individual file:
         elif os.path.isfile(incl_path):
-            if not fname in src_files:
-                src_files.append(fname)
+            if not incl_path in src_files:
+                src_files.append(incl_path)
 
 
     # Read all the input files:
