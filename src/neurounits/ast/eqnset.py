@@ -209,13 +209,13 @@ class EqnSet(Block):
                         LookUpDict(self.assignedvalues).get_objs_by(symbol=symbol)+ \
                         LookUpDict(self.state_variables).get_objs_by(symbol=symbol)+ \
                         LookUpDict(self.symbolicconstants).get_objs_by(symbol=symbol) + \
-                        self.input_event_port_lut.get_objs_by(name=symbol) + \
-                        self.output_event_port_lut.get_objs_by(name=symbol)
+                        self.input_event_port_lut.get_objs_by(symbol=symbol) + \
+                        self.output_event_port_lut.get_objs_by(symbol=symbol)
 
 
 
         if not len(possible_objs) == 1:
-            all_syms = [ p.symbol for p in self.all_terminal_objs() ] + self.input_event_port_lut.get_objects_attibutes(attr='name')
+            all_syms = [ p.symbol for p in self.all_terminal_objs() ] + self.input_event_port_lut.get_objects_attibutes(attr='symbol')
             raise KeyError("Can't find terminal/EventPort: '%s' \n (Terminals/EntPorts found: %s)" % (symbol, ','.join(all_syms) ) )
 
         return possible_objs[0]
@@ -361,7 +361,7 @@ class NineMLComponent(EqnSet):
                             )
             wire_mappings.append(wire_map)
 
-        conn = ast.CompoundPortConnector(name=local_name, compound_port_def = compound_port_def, wire_mappings=wire_mappings, direction=direction)
+        conn = ast.CompoundPortConnector(symbol=local_name, compound_port_def = compound_port_def, wire_mappings=wire_mappings, direction=direction)
         self.add_compound_port(conn)
 
 

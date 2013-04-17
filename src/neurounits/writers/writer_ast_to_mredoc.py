@@ -118,7 +118,7 @@ class LatexEqnWriterN(ASTVisitorBase):
 
 
     def VisitOnEvent(self, o, **kwargs):
-        ev_name = o.name.replace('_', '\\_')
+        ev_name = o.symbol.replace('_', '\\_')
 
         tr = '%s(%s) \\rightarrow ' % (ev_name,
                 ','.join(o.parameters.keys()))  #

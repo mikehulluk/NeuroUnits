@@ -68,10 +68,10 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
         #Event Ports:
         import itertools
         for port in itertools.chain( component.output_event_port_lut,  component.input_event_port_lut):
-            port.name = ns_prefix + port.name
+            port.symbol = ns_prefix + port.symbol
 
         for connector in itertools.chain( component._compound_ports_connectors):
-            connector.name = ns_prefix + connector.name
+            connector.symbol = ns_prefix + connector.symbol
 
 
 
@@ -147,8 +147,8 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
             io1_name, io2_name = m
             #print 'Multicnnecitons;', m
             #print comp._compound_ports_connectors
-            conn1 = comp._compound_ports_connectors.get_single_obj_by(name=io1_name)
-            conn2 = comp._compound_ports_connectors.get_single_obj_by(name=io2_name)
+            conn1 = comp._compound_ports_connectors.get_single_obj_by(symbol=io1_name)
+            conn2 = comp._compound_ports_connectors.get_single_obj_by(symbol=io2_name)
             #print 'Connecting connectors:,', conn1, conn2
 
             # sort out the direction:
@@ -298,8 +298,8 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
 
 
     for (src, dst) in event_connections:
-        src_port = comp.output_event_port_lut.get_single_obj_by(name=src)
-        dst_port = comp.input_event_port_lut.get_single_obj_by(name=dst)
+        src_port = comp.output_event_port_lut.get_single_obj_by(symbol=src)
+        dst_port = comp.input_event_port_lut.get_single_obj_by(symbol=dst)
         conn = ast.EventPortConnection( src_port = src_port, dst_port = dst_port)
         comp.add_event_port_connection(conn)
 
@@ -336,7 +336,7 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
             #                    )
             #    wire_mappings.append(wire_map)
 
-            #conn = ast.CompoundPortConnector(name=local_name, compound_port_def = compound_port_def, wire_mappings=wire_mappings, direction=direction)
+            #conn = ast.CompoundPortConnector(symbol=local_name, compound_port_def = compound_port_def, wire_mappings=wire_mappings, direction=direction)
             #comp.add_compound_port(conn)
 
 

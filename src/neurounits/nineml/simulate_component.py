@@ -382,7 +382,7 @@ def simulate_component(component, times, parameters=None,initial_state_value=Non
 
             triggered_transitions = []
             for transition in component.transitions_from_regime(current_regime):
-                #print '       Checking',  transition
+                print '       Checking',  repr(transition)
 
                 if isinstance(transition, ast.OnTriggerTransition):
                     res = f.transition_triggers_evals[transition]( state_data=state_data)
@@ -392,13 +392,13 @@ def simulate_component(component, times, parameters=None,initial_state_value=Non
                     for (port,evt) in ports_with_events.items():
                         if transition in f.transition_port_handlers[port]:
                             triggered_transitions.append((transition,evt))
-                            #assert False
                 else:
                     assert False
 
-            allow_double_transition_only_action_first = True
+            allow_double_transition_only_action_first = False
             if not allow_double_transition_only_action_first:
                 assert len(triggered_transitions) in (0,1)
+            assert len(triggered_transitions) in (0,1)
             if triggered_transitions:
                 tr, evt = triggered_transitions[0]
 

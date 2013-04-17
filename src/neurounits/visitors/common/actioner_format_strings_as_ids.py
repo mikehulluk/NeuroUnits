@@ -79,7 +79,7 @@ class ActionerFormatStringsAsIDs(ASTActionerDefault):
                         o.parameters.iteritems()])
         actions = ','.join([self.IDs[a] for a in o.actions])
         self.format_strings[o] = \
-            'OnEvent: Name:%s Params:%s Actions: [%s]' % (o.name, pStr,
+            'OnEvent: Name:%s Params:%s Actions: [%s]' % (o.symbol, pStr,
                 actions)
 
     def ActionOnEventStateAssignment(self, o, **kwargs):

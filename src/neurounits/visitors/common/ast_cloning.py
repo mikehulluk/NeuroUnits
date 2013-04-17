@@ -306,7 +306,7 @@ class ASTClone(object):
 
     def VisitOutEventPort(self, o, **kwargs):
         return ast.OutEventPort(
-                name = o.name,
+                symbol = o.symbol,
                 parameters = o.parameters.copy()
                 )
     def VisitEmitEvent(self, o, **kwargs):
@@ -335,7 +335,7 @@ class ASTClone(object):
 
     def VisitCompoundPortConnector(self, o, **kwaargs):
         return ast.CompoundPortConnector(
-                name = o.name, 
+                symbol = o.symbol, 
                 compound_port_def = o.compound_port_def,
                 wire_mappings = o.wire_mappings.copy(),
                 direction = o.direction

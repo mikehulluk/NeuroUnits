@@ -309,15 +309,15 @@ class OutEventPort(ASTObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitOutEventPort(self, **kwargs)
 
-    def __init__(self, name, parameters, **kwargs):
+    def __init__(self, symbol, parameters, **kwargs):
         super(OutEventPort, self).__init__(**kwargs)
-        self.name = name
+        self.symbol = symbol
         self.parameters = parameters
-        assert isinstance(self.name, basestring)
+        assert isinstance(self.symbol, basestring)
         assert isinstance(self.parameters, LookUpDict)
 
     def __repr__(self,):
-        return '<OutPort: %s>' % self.name
+        return '<OutPort: %s>' % self.symbol
 
     
 

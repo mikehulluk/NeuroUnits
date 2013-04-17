@@ -54,15 +54,15 @@ class CompoundPortDef(base.ASTObject):
         return visitor.VisitCompoundPortDef(self, **kwargs)
 
 
-    def __init__(self, name, connections):
+    def __init__(self, symbol, connections):
         super(CompoundPortDef, self).__init__()
         #print 'Creating CompoundPortDef:', id(self)
-        self.name = name
+        self.symbol = symbol
         self.connections = LookUpDict(connections, accepted_obj_types=(CompoundPortDefWire,))
 
     def summarise(self):
         print
-        print 'Compound Port: %s' % self.name
+        print 'Compound Port: %s' % self.symbol
         for conn in self.connections:
             conn._summarise()
         print
@@ -71,7 +71,7 @@ class CompoundPortDef(base.ASTObject):
         return self.connections.get_single_obj_by(symbol=wire_name)
 
     def __repr__(self, ):
-        return '<CompoundPortDef: %s (%s)>' % (self.name, id(self))
+        return '<CompoundPortDef: %s (%s)>' % (self.symbol, id(self))
 
 
 class CompoundPortConnectorWireMapping(base.ASTObject):
@@ -101,16 +101,16 @@ class CompoundPortConnector(base.ASTObject):
     def accept_visitor(self, visitor, **kwargs):
         return visitor.VisitCompoundPortConnector(self, **kwargs)
 
-    def __init__(self, name, compound_port_def, wire_mappings, direction):
+    def __init__(self, symbol, compound_port_def, wire_mappings, direction):
         super(CompoundPortConnector, self).__init__()
 
-        self.name = name
+        self.symbol = symbol
         self.compound_port_def =  compound_port_def
         self.wire_mappings = LookUpDict(wire_mappings, accepted_obj_types=(CompoundPortConnectorWireMapping,) )
         self.direction = direction
 
     def __repr__(self):
-        return '<CompoundPortConnctor: %s (%s) [%s] (%s)>' % ( self.name,self.direction, '??', id(self))
+        return '<CompoundPortConnctor: %s (%s) [%s] (%s)>' % ( self.symbol,self.direction, '??', id(self))
 
     def get_direction(self):
         return self.direction
