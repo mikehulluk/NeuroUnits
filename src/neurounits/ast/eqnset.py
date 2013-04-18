@@ -62,6 +62,10 @@ class Block(ASTObject):
         from neurounits.writers import MRedocWriterVisitor
         return MRedocWriterVisitor.build(self)
 
+    @property
+    def short_name(self):
+        return self.name.split('.')[-1]
+
 
 
 

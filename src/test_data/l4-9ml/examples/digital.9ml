@@ -177,3 +177,12 @@ define_compound simple_circuit2 {
 }
 
 
+
+namespace myDigiNS {
+    library libOne{
+    
+    }
+    library libTwo{
+    
+    }
+}

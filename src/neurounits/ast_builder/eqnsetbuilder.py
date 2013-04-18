@@ -301,6 +301,10 @@ class BuildData(object):
 class AbstractBlockBuilder(object):
 
     def __init__(self, library_manager, block_type, name):
+
+        if not '.' in name and library_manager._parsing_namespace_stack:
+            name = '.'.join(library_manager._parsing_namespace_stack + [name])
+
         self.library_manager = library_manager
         self.builddata = BuildData()
         self.builddata.eqnset_name = name
