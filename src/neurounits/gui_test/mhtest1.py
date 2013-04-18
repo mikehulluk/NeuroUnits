@@ -38,7 +38,7 @@ class RunDialog(wx.Dialog):
         
         
         self.InitUI()
-        self.SetSize((250, 200))
+        self.SetSize((250, 300))
         self.SetTitle("Run component")
         
         
@@ -46,7 +46,32 @@ class RunDialog(wx.Dialog):
 
         pnl = wx.Panel(self)
         vbox = wx.BoxSizer(wx.VERTICAL)
+        
+        
+        
+        
+        #wx.Slider(parent, id, init_val, min_val, max_val, position_tuple, size_tuple, style)
+        #(10, 10), (30, 50), 
+        hbox3 = wx.BoxSizer(wx.VERTICAL)
+        
+        hbox3a = wx.BoxSizer(wx.HORIZONTAL)
+        self.dur_slider = wx.Slider(self, -1, 50, 0, 10000, (-1,-1), (200,50),  style=wx.SL_HORIZONTAL | wx.SL_AUTOTICKS | wx.SL_LABELS)
+        self.objlabel = wx.StaticText(self, -1, 'Duration: (ms)')
+        hbox3a.Add(self.dur_slider, wx.EXPAND)
+        hbox3a.Add(self.objlabel)
+        
+        hbox3b = wx.BoxSizer(wx.HORIZONTAL)
+        self.dt_slider = wx.Slider(self, -1, 0.1 , 0.01, 10, (-1,-1), (200,50),  style=wx.SL_HORIZONTAL | wx.SL_AUTOTICKS | wx.SL_LABELS)
+        self.objlabel = wx.StaticText(self, -1, 'DT: (ms)')
+        
+        hbox3b.Add(self.dt_slider, wx.EXPAND)
+        hbox3b.Add(self.objlabel)
 
+        hbox3.Add(hbox3a)
+        hbox3.Add(hbox3b)
+
+        
+        
         sb = wx.StaticBox(pnl, label='Colors')
         sbs = wx.StaticBoxSizer(sb, orient=wx.VERTICAL)        
         sbs.Add(wx.RadioButton(pnl, label='256 Colors', style=wx.RB_GROUP))
@@ -66,8 +91,17 @@ class RunDialog(wx.Dialog):
         hbox2.Add(runButton)
         hbox2.Add(closeButton, flag=wx.LEFT, border=5)
 
+
+        
+        
+
+
+
         vbox.Add(pnl, proportion=1, flag=wx.ALL|wx.EXPAND, border=5)
+        vbox.Add(hbox3, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM|wx.EXPAND, border=10)
         vbox.Add(hbox2, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)
+        
+        
 
         self.SetSizer(vbox)
         
