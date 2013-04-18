@@ -200,11 +200,11 @@ def auto_plot(res):
 
 
 
-def simulate_component(component, times, parameters=None,initial_state_value=None, initial_regimes=None, close_reduce_ports=True):
+def simulate_component(component, times, parameters=None,initial_state_values=None, initial_regimes=None, close_reduce_ports=True):
 
     parameters = parameters if parameters is not None else {}
     initial_regimes = initial_regimes if initial_regimes is not None else {}
-    initial_state_values = initial_state_value if initial_state_value is not None else {}
+    initial_state_values = initial_state_values if initial_state_values is not None else {}
     verbose=False
 
     # Before we start, check the dimensions of the AST tree
@@ -409,10 +409,15 @@ def simulate_component(component, times, parameters=None,initial_state_value=Non
         if triggered_transitions:
             #print 'RESOLVE TRANSITION:', len(triggered_transitions) 
             #print 'Current States:', sorted(state_data.states_in.items())
-            # Check there is only on transition per rt-graph:
+            # Check that all transitions resolve back to this state:
             rt_graphs = set([ rt_graph for ( tr, evt, rt_graph) in triggered_transitions ])
             for rt_graph in rt_graphs:
-                assert len ( [ True for ( tr, evt, rt_graph_) in triggered_transitions if rt_graph_ == rt_graph ]) == 1
+                rt_trig_trans = ( [ tr for ( tr, evt, rt_graph_) in triggered_transitions if rt_graph_ == rt_graph ]) 
+                target_regimes = set( [tr.target_regime for tr in rt_trig_trans] )
+                assert len(target_regimes) == 1
+
+                #print rt_trig_trans
+                #assert len( rt_trig_trans) in (0, 1)
 
             updated_states = set()
             for (tr,evt,rt_graph) in triggered_transitions:

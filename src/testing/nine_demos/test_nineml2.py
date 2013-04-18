@@ -1,5 +1,14 @@
 
 
+from yapsy.IPlugin import IPlugin
+class PluginOne(IPlugin):
+    def get_name(self):
+        return '2'
+
+    def run_demo(self, ):
+        test2()
+
+
 
 
 import neurounits
@@ -10,7 +19,6 @@ import numpy as np
 
 ball_arena_text = """
 
-namespace m {
     define_component ball_arena {
         from std.math import abs
         from std.math import pow
@@ -69,7 +77,7 @@ namespace m {
 
 
         t_last'=0
-        on( dist_sq < rad*rad and t-t_last > 0.1s ) {
+        on( dist_sq < rad*rad and t-t_last > 0.3s ) {
             t_last=t
 
             # Simply add the two components, but flip the sign of the 
@@ -89,70 +97,13 @@ namespace m {
 }
 
 
-}
+
 
 """
 
 
 
-lm = neurounits.NeuroUnitParser.Parse9MLFile(ball_arena_text)
-ball_arena = lm.get('ball_arena')
 
-for t in ball_arena.all_ast_nodes():
-    if hasattr(t,'symbol'):
-        print t.symbol, t.get_dimension()
-
-
-#import sys
-#sys.exit(0)
-
-
-res= neurounits.nineml.simulate_component(
-        component = ball_arena,
-        times = np.linspace(0,50,num=1000),
-        #times = np.linspace(0,50,num=100),
-        parameters={
-            },
-        initial_state_values= {
-            'B1VX':'3m/s',
-            'B1VY':'5m/s',
-            'B1X':'2m',
-            'B1Y':'5m',
-
-            'B2VX':'3m/s',
-            'B2VY':'5m/s',
-            'B2X':'6m',
-            'B2Y':'8m',
-            't_last':'0s',
-            },
-        initial_regimes = {
-
-            },
-        )
-
-print res
-print res.state_variables
-print res.events
-
-if False:
-    import pylab
-    f = pylab.figure()
-    ax1 = f.add_subplot(3,1,1)
-    ax2 = f.add_subplot(3,1,2)
-    ax3 = f.add_subplot(3,1,3)
-    #ax1.set_ylim((-70e-3,50e-3))
-    ax1.plot( res.get_time(), res.state_variables['B1X'] )
-    ax1.plot( res.get_time(), res.state_variables['B1Y'] )
-    ax1.set_ylabel('nrn1/nrn/V %s' %('??'))
-    ax2.plot( res.get_time(), res.state_variables['B1X'] )
-    ax2.plot( res.get_time(), res.state_variables['B1Y'] )
-    ax2.set_ylabel('nrn1/nrn/V %s' %('??'))
-    #ax2.plot( res.get_time(), res.state_variables['nrn1/i_square/t_last'] )
-    #ax3.plot( res.get_time(), res.rt_regimes['nrn1/nrn/']+0.0 , label='nrn1/nrn')
-    #ax3.plot( res.get_time(), res.rt_regimes['nrn1/i_inj/']+0.1, label='nrn1/i_inj')
-    #ax3.plot( res.get_time(), res.rt_regimes['nrn1/i_square/']+0.2,label='nrn1/i_square' )
-    #ax3.legend()
-    pylab.show()
 
 
 
@@ -196,6 +147,15 @@ def simData():
         yield times[i],x1s[i], y1s[i] , x2s[i], y2s[i], V1_t_x[i], V1_t_y[i], V1_c_x[i], V1_c_y[i], c_x_hat[i], c_y_hat[i]
 
 def simPoints(simData):
+    global res
+    global time_text
+    global line1
+    global line2
+    global line_v1_t
+    global line_v1_join
+    global line_v1_c
+    global time_template
+    
     #t,x1,y1 = simData[0], simData[1], simData[2]
     t,x1,y1, x2, y2, V1_t_x, V1_t_y, V1_c_x, V1_c_y, c_x_hat, c_y_hat = simData
     time_text.set_text(time_template%(t))
@@ -214,40 +174,108 @@ def simPoints(simData):
     line_v1_c.set_data( [x1, x1+V1_c_x/V1_c_mag], [y1, y1+V1_c_y/V1_c_mag] )
     return line1, line2, time_text, line_v1_t, line_v1_c
 
-##
-##   set up figure for plotting:
-##
-fig = plt.figure()
-ax = fig.add_subplot(111)
-# I'm still unfamiliar with the following line of code:
-line1, = ax.plot([], [], 'bo', ms=10)
-line2, = ax.plot([], [], 'go', ms=10)
-line_v1_join, = ax.plot([], [], 'm-')
-
-line_v1_t, = ax.plot([], [], 'r-', )
-line_v1_c, = ax.plot([], [], 'c-', )
-
-ax.set_ylim(-2, 12)
-ax.set_xlim(-2, 12)
-ax.axhline(0, ls='--')
-ax.axhline(10, ls='--')
-ax.axvline(0, ls='--')
-ax.axvline(10, ls='--')
-##
-time_template = 'Time = %.1f s'    # prints running simulation time
-time_text = ax.text(0.05, 0.9, '', transform=ax.transAxes)
-plt.title('NineML bouncing ball simulation (test_nineml2.py)')
-## Now call the animation package: (simData is the user function
-## serving as the argument for simPoints):
-ani = animation.FuncAnimation(fig, simPoints, simData, blit=False, interval=1, repeat=True, save_count=1000)
-
-#ani.save('myoutput.avi', writer='ffmpeg', bitrate=200, fps=20, codec='ffv1' )#extra_args=['-vcodec huffyuv']) # codec='ffv1')
-ani.save('myoutput.avi', writer='ffmpeg',  fps=20, codec='ffv1' )#extra_args=['-vcodec huffyuv']) # codec='ffv1')
-#plt.show() 
 
 
 
 
+
+res = None
+time_text = None
+line1 = None
+line2 = None
+line_v1_t = None
+line_v1_join = None
+line_v1_c = None
+time_template = None
+
+
+def test2():
+    global res
+    global time_text
+    global time_template
+    global line1
+    global line2
+    global line_v1_t
+    global line_v1_join
+    global line_v1_c
+    
+    
+    
+    lm = neurounits.NeuroUnitParser.Parse9MLFile(ball_arena_text)
+    ball_arena = lm.get('ball_arena')
+
+
+
+    res= neurounits.nineml.simulate_component(
+            component = ball_arena,
+            times = np.linspace(0,70,num=5000),
+            parameters={
+                },
+            initial_state_values= {
+                'B1VX':'3m/s',
+                'B1VY':'5m/s',
+                'B1X':'3.5m',
+                'B1Y':'2.5m',
+
+                'B2VX':'-3m/s',
+                'B2VY':'-5m/s',
+                'B2X':'6.5m',
+                'B2Y':'7.5m',
+                't_last':'0s',
+                },
+            initial_regimes = {
+
+                },
+            )
+
+    print res
+    print res.state_variables
+    print res.events
+
+
+
+
+    ##
+    ##   set up figure for plotting:
+    ##
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    # I'm still unfamiliar with the following line of code:
+    line1, = ax.plot([], [], 'bo', ms=10)
+    line2, = ax.plot([], [], 'go', ms=10)
+    line_v1_join, = ax.plot([], [], 'm-')
+
+    line_v1_t, = ax.plot([], [], 'r-', )
+    line_v1_c, = ax.plot([], [], 'c-', )
+
+    ax.set_ylim(-2, 12)
+    ax.set_xlim(-2, 12)
+    ax.axhline(0, ls='--')
+    ax.axhline(10, ls='--')
+    ax.axvline(0, ls='--')
+    ax.axvline(10, ls='--')
+    ##
+    time_template = 'Time = %.1f s'    # prints running simulation time
+    time_text = ax.text(0.05, 0.9, '', transform=ax.transAxes)
+    plt.title('NineML bouncing ball simulation (test_nineml2.py)')
+    ## Now call the animation package: (simData is the user function
+    ## serving as the argument for simPoints):
+    ani = animation.FuncAnimation(fig, simPoints, simData, blit=False, interval=1, repeat=True, save_count=1000)
+
+    #ani.save('myoutput.avi', writer='ffmpeg', bitrate=200, fps=20, codec='ffv1' )#extra_args=['-vcodec huffyuv']) # codec='ffv1')
+    ani.save('myoutput.avi', writer='ffmpeg',  fps=40, codec='ffv1' )#extra_args=['-vcodec huffyuv']) # codec='ffv1')
+    #plt.show() 
+
+
+
+
+
+
+
+if __name__=='__main__':
+    test2()
+    import pylab
+    pylab.show()
 
 
 

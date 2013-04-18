@@ -138,14 +138,14 @@ class ComponentNamespace(object):
         assert not obj.name in self.libraries.get_objects_attibutes(attr='name')
         assert not obj.name in self.components.get_objects_attibutes(attr='name')
         assert not obj.name in self.interfaces.get_objects_attibutes(attr='name')
-        
+
         if isinstance(obj, ast.NineMLComponent):
             self.components._add_item(obj)
         if isinstance(obj, ast.Library):
             self.libraries._add_item(obj)
         if isinstance(obj, ast.CompoundPortDef):
             self.interfaces._add_item(obj)
-        
+
 
     def get_all(self):
         objs =  list( self.libraries ) + list(self.components) + list(self.interfaces)
@@ -194,7 +194,7 @@ class LibraryManager(object):
         #self.components = []
         #self.compound_port_defs = []
 
-        
+
         self._parsing_namespace_stack = []
 
         # And into these:

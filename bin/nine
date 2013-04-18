@@ -24,6 +24,29 @@ def handle_codegen(args):
 def handle_validating(args):
     print 'Code-validate'
 
+def handle_gui(args):
+    from neurounits.gui.ninegui import run_gui
+    run_gui()
+
+def handle_demo(args):
+    from yapsy.PluginManager import PluginManager
+    srcs = '/home/michael/hw/NeuroUnits/src/testing/nine_demos'
+    manager = PluginManager()
+    manager.setPluginPlaces([srcs,"plugins"])
+    manager.collectPlugins()
+
+    # Loop over the plugins and run them: 
+    for plugin in manager.getAllPlugins():
+
+        if len(args.what) == 0 or plugin.plugin_object.get_name() in args.what:
+            plugin.plugin_object.run_demo()
+    
+    import pylab
+    pylab.show()
+
+
+
+
 
 def build_argparser():
     parser = argparse.ArgumentParser(description='Front-end to NineML.')
@@ -70,8 +93,21 @@ def build_argparser():
     validate_subparser = subparsers.add_parser('visualise', parents=[parent_parser])
     validate_subparser.set_defaults(func=handle_validating)
 
+
+    # GUI interface:
+    # ===============
+    gui_subparser = subparsers.add_parser('gui', parents=[parent_parser])
+    gui_subparser.set_defaults(func=handle_gui)
+
+
+    # Demo interface
+    demo_subparser = subparsers.add_parser('demo', parents=[parent_parser])
+    demo_subparser.add_argument('what', nargs='*',  )
+    demo_subparser.set_defaults(func=handle_demo)
+
+
+
     return parser
-    pass
 
 
 def main():
