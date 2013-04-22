@@ -224,7 +224,7 @@ class TreeByModule(TabPanel1):
             img = {
                 ast.NineMLComponent: self.im_component,
                 ast.Library: self.im_library,
-                ast.CompoundPortDef: self.im_interface,
+                ast.Interface: self.im_interface,
             }[type(obj)]
 
             self.tree.SetItemImage(itm, img, wx.TreeItemIcon_Normal)
@@ -256,7 +256,7 @@ class TreeByModule(TabPanel1):
         #        img = {
         #            ast.NineMLComponent: self.im_component,
         #            ast.Library: self.im_library,
-        #            ast.CompoundPortDef: self.im_interface,
+        #            ast.Interface: self.im_interface,
 
         #        }[type(sc)]
 
@@ -455,7 +455,7 @@ class RHSToolbookDemo(wx.Toolbook):
         imgs = StdImages()
         page_types = (
             (neurounits.ast.NineMLComponent, RHSPanelComponent, "Component", imgs.im_component),
-            (neurounits.ast.CompoundPortDef, RHSPanelInterface, "Interface", imgs.im_interface),
+            (neurounits.ast.Interface, RHSPanelInterface, "Interface", imgs.im_interface),
             (neurounits.ast.Library, RHSPanelInterface, "Library", imgs.im_library),
             (None, RHSPanelModule, "Module", imgs.im_namespace),
         )

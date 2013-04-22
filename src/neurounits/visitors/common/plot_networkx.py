@@ -276,7 +276,7 @@ class ActionerGetConnections(ASTActionerDefault):
         self.connections[o].extend([o.src_port, o.dst_port])
 
 
-    def ActionCompoundPortDef(self, o, **kwargs):
+    def ActionInterface(self, o, **kwargs):
         self.connections[o].extend(list(o.connections))
 
     def ActionCompoundPortConnectorWireMapping(self, o, **kwargs):

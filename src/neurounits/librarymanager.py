@@ -62,7 +62,7 @@ class ComponentNamespace(object):
         self.subnamespaces = LookUpDict(accepted_obj_types=ComponentNamespace)
         self.libraries = LookUpDict(accepted_obj_types=ast.Library)
         self.components = LookUpDict(accepted_obj_types=ast.NineMLComponent)
-        self.interfaces = LookUpDict(accepted_obj_types=ast.CompoundPortDef)
+        self.interfaces = LookUpDict(accepted_obj_types=ast.Interface)
 
     def get_blocks(self,):
         return list( self.libraries) + list(self.components) + list(self.interfaces)
@@ -143,7 +143,7 @@ class ComponentNamespace(object):
             self.components._add_item(obj)
         if isinstance(obj, ast.Library):
             self.libraries._add_item(obj)
-        if isinstance(obj, ast.CompoundPortDef):
+        if isinstance(obj, ast.Interface):
             self.interfaces._add_item(obj)
 
 

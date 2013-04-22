@@ -486,7 +486,7 @@ class NineMLComponent(Block):
         # CONCEPTUALLY THIS IS VERY SIMPLE< BUT THE CODE
         # IS A HORRIBLE HACK!
 
-        no_remap = (ast.CompoundPortDef, ast.CompoundPortDefWireContinuous, ast.CompoundPortDefWireEvent, ast.BuiltInFunction, ast.FunctionDefParameter)
+        no_remap = (ast.Interface, ast.InterfaceWireContinuous, ast.InterfaceWireEvent, ast.BuiltInFunction, ast.FunctionDefParameter)
         # First, lets clone each and every node:
         #print
         #print 'Remapping nodes:'

@@ -39,9 +39,9 @@ class ASTAllConnectionsCheck(ASTActionerDefault):
     def check_node(self, obj, **kwargs):
 
 
-        from neurounits.ast import CompoundPortDef
+        from neurounits.ast import Interface
         from neurounits.ast import EventPortConnection
-        if isinstance(obj, CompoundPortDef):
+        if isinstance(obj, Interface):
             return
         if isinstance(obj, EventPortConnection):
             return
@@ -250,7 +250,7 @@ class ASTAllConnections(ASTActionerDepthFirst):
     def VisitCompoundPortConnectorWireMapping(self, o, **kwargs):
         return [o.compound_port, o.component_port]
 
-    def VisitCompoundPortDef(self, o, **kwargs):
+    def VisitInterface(self, o, **kwargs):
         return list(o.connections)
 
     def VisitCompoundPortConnector(self, o, **kwargs):

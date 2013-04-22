@@ -107,7 +107,7 @@ def p_namespace_def2(p):
 
 def p_compoundport_1(p):
     """ compound_port_def : DEFINE_COMPOUNDPORT alphanumtoken LCURLYBRACKET compound_port_def_contents RCURLYBRACKET SEMICOLON"""
-    compound_port = ast.CompoundPortDef( symbol=p[2], connections = p[4] )
+    compound_port = ast.Interface( symbol=p[2], connections = p[4] )
     p.parser.library_manager.add_compoundportdef(compound_port)
 
 def p_compoundport_2(p):
@@ -121,32 +121,32 @@ def p_compoundport_2(p):
 
 def p_compoundport_3a(p):
     """ compound_port_def_direction_arrow : COMPOUNDPORT_IN"""
-    p[0] = (ast.CompoundPortDefWire.DirRight, False)
+    p[0] = (ast.InterfaceWire.DirRight, False)
 
 def p_compoundport_3b(p):
     """ compound_port_def_direction_arrow : COMPOUNDPORT_IN_OPT"""
-    p[0] = (ast.CompoundPortDefWire.DirRight, True)
+    p[0] = (ast.InterfaceWire.DirRight, True)
 
 def p_compoundport_3c(p):
     """ compound_port_def_direction_arrow : COMPOUNDPORT_OUT"""
-    p[0] = (ast.CompoundPortDefWire.DirLeft, False)
+    p[0] = (ast.InterfaceWire.DirLeft, False)
 
 def p_compoundport_3d(p):
     """ compound_port_def_direction_arrow : COMPOUNDPORT_OUT_OPT"""
-    p[0] = (ast.CompoundPortDefWire.DirLeft, True)
+    p[0] = (ast.InterfaceWire.DirLeft, True)
 
 
 # Analog port:
 def p_compoundport_7(p):
     """compound_port_def_line : compound_port_def_direction_arrow alphanumtoken COLON LBRACKET unit_expr RBRACKET """
     direction, optional = p[1]
-    p[0] = ast.CompoundPortDefWireContinuous( symbol=p[2], direction=direction, unit=5, optional=optional)
+    p[0] = ast.InterfaceWireContinuous( symbol=p[2], direction=direction, unit=5, optional=optional)
 
 # Events:
 def p_compoundport_8(p):
     """compound_port_def_line : compound_port_def_direction_arrow alphanumtoken LBRACKET compoundport_event_param_list RBRACKET"""
     direction, optional = p[1]
-    p[0] = ast.CompoundPortDefWireEvent( symbol=p[2], direction=direction, parameters=p[4], optional=optional)
+    p[0] = ast.InterfaceWireEvent( symbol=p[2], direction=direction, parameters=p[4], optional=optional)
 
 
 def p_compoundport_event_param_list_1(p):
