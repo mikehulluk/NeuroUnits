@@ -875,8 +875,20 @@ def p_rhs_term_div(p):
 
 
 
+def p_rhs_term_AND(p):
+    """ AND : AND_SYM 
+            | AND_KW """
+    pass
 
+def p_rhs_term_OR(p):
+    """ OR : OR_SYM 
+            | OR_KW """
+    pass
 
+def p_rhs_term_NOT(p):
+    """ NOT : NOT_SYM 
+            | NOT_KW """
+    pass
 
 
 
@@ -1130,9 +1142,9 @@ def p_error(p):
 # ( e.g. {2 m/ s s} )
 precedence = (
 
-    ('left', 'OR'),
-    ('left', 'AND'),
-    ('right', 'NOT'),
+    ('left', 'OR_KW', 'OR_SYM'),
+    ('left', 'AND_KW', 'AND_SYM'),
+    ('right', 'NOT_KW', 'NOT_SYM'),
     ('left', 'GREATERTHAN'),
     ('left', 'LESSTHAN'),
     ('left', 'PLUS', 'MINUS'),
@@ -1265,14 +1277,14 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
     # 'A': When loading QuantityExpr or Functions, we might use
     # stdlib functions. Therefore; we we need a 'block_builder':
     if parse_type in [ParseTypes.L3_QuantityExpr]:
-        parser.library_manager.start_eqnset_block()
-        parser.library_manager.get_current_block_builder().set_name('anon')
+        parser.library_manager.start_component_block(name='anon')
+        #parser.library_manager.get_current_block_builder().set_name('anon')
 
     pRes = parser.parse(text_eqn, lexer=lexer, debug=debug)
 
     # Close the block we opened in 'A'
     if parse_type in [ParseTypes.L3_QuantityExpr]:
-        parser.library_manager.end_eqnset_block()
+        parser.library_manager.end_component_block()
 
     parser.library_manager = None
 

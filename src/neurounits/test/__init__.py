@@ -2,15 +2,33 @@
 
 
 
-class TestingPluginBase():
-    pass
+class TestingPluginBase(object):
+    def get_name(self, ):
+        raise NotImplementedError()
+        
+    def run(self, args):
+        raise NotImplementedError()
+        
 
 
 
 def do_test(args):
     from straight.plugin import load
-    plugins = load('neurounits.test_plugins', subclasses=TestingPluginBase)
-    print plugins
+    from straight.plugin.loaders import ClassLoader
+    plugin_classes = load('neurounits.test.plugins', subclasses=TestingPluginBase)
+    plugins = plugin_classes.produce()
+    
+    
+    print 'Testing Plugins:'
+    for plugin in plugins:
+        print ' * Plugin:', plugin.get_name()
+
+    # Run all:
+    print 'Running:'
+    for plugin in plugins:
+        print ' * Plugin:', plugin.get_name()
+        plugin.run(args)
+    
 
 
     #handlers = plugins.produce()

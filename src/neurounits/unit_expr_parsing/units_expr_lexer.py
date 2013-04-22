@@ -65,9 +65,9 @@ class UnitExprLexer(object):
         'multiconnect':'MULTICONNECT',
         'initial':'INITIAL',
         
-        'and':'AND',
-        'or':'OR',
-        'not':'NOT',
+        'and':'AND_KW',
+        'or':'OR_KW',
+        'not':'NOT_KW',
         }
 
     tokens = [
@@ -104,9 +104,9 @@ class UnitExprLexer(object):
         'DOT',
         'LESSTHAN',
         'GREATERTHAN',
-        'AND',
-        'OR',
-        'NOT',
+        'AND_SYM',
+        'OR_SYM',
+        'NOT_SYM',
         ] + list(reserved.values())
 
 
@@ -165,9 +165,9 @@ class UnitExprLexer(object):
     t_COLON = r""":""" + WS
     t_EQUALS = r"""=""" + WS
 
-    t_NOT = r"""!""" + WS
-    t_AND = r"""&""" + WS
-    t_OR = r"""\|""" + WS
+    t_NOT_SYM = r"""!""" + WS
+    t_AND_SYM = r"""&""" + WS
+    t_OR_SYM = r"""\|""" + WS
 
 
 

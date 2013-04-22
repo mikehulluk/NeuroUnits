@@ -77,7 +77,6 @@ class ComponentNamespace(object):
             return self.parent.full_name + '.' + self.name
 
     def get_subnamespace(self, sub_namespace_name_tokens):
-        print 'GETTING SUBNAMESPACE', sub_namespace_name_tokens
         if not self.subnamespaces.has_obj(name=sub_namespace_name_tokens[0]):
             sub_ns = ComponentNamespace(name=sub_namespace_name_tokens[0], parent=self)
             self.subnamespaces._add_item(sub_ns)
@@ -93,11 +92,8 @@ class ComponentNamespace(object):
         assert False
 
     def add(self, obj):
-        print 'ADDING!', obj.name, 'to', self.full_name
         obj_toks = obj.name.split('.')
         ns_toks = self.full_name.split('.')
-        print 'obj_toks', obj_toks
-        print 'ns_toks', ns_toks
 
         n_more_obj_tokens = len(obj_toks) - len(ns_toks)
         assert n_more_obj_tokens > 0 or self.is_root()
