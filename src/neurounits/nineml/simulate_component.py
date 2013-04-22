@@ -2,13 +2,12 @@
 from neurounits.ast_builder.builder_visitor_propogate_dimensions import PropogateDimensions
 from neurounits.ast_builder.builder_visitor_propogate_dimensions import VerifyUnitsInTree
 import neurounits.ast as ast
-#from neurounits.ast_builder.eqnsetbuilder import BuildData
-#from neurounits.ast import NineMLComponent
-#from neurounits.ast import SuppliedValue
-#from neurounits.ast.astobjects_nineml import AnalogReducePort
+
+
+
+
 from neurounits.visitors.common.ast_replace_node import ReplaceNode
 
-#import pylab
 from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator, SimulationStateData
 
 import neurounits
@@ -69,14 +68,10 @@ class SimulationResultsData(object):
         else:
             assert False, 'Could not find: %s' % name
 
+    def plot_auto(self):
+        auto_plot(self)
 
 def do_transition_change(tr, evt, state_data, functor_gen):
-    #print 'Doing transition change', tr
-    #print 'Transition Triggered!',
-    # State assignments & events:
-    #assert evt==None
-
-    
 
     functor = functor_gen.transitions_actions[tr]
     functor(state_data=state_data, evt=evt)
@@ -172,32 +167,6 @@ def auto_plot(res):
         ax.legend()
 
 
-    #pylab.show()
-
-    #assert False
-
-
-    #plot_objs = list( itertools.chain( res.state_variables.items(), res.assignments.items(),) )# res.rt_regimes.items() ) )
-    #n_axes = len(plot_objs)
-    #f = pylab.figure()
-    #axes = [f.add_subplot(n_axes, 1, i+1) for i in range(len(plot_objs))]
-
-
-    #for (plot_name,plot_obj), ax in zip( plot_objs, axes):
-    #    ax.plot(res.get_time(), plot_obj)
-    #    ax.set_ylabel(plot_name + '   ',rotation=0, horizontalalignment='right' )
-
-
-    #print
-    #print 'Transitions:'
-    #for tr in res.transitions:
-    #    print tr
-    ##f.tight_layout()
-    #pylab.show()
-    #assert False
-
-
-
 
 
 def simulate_component(component, times, parameters=None,initial_state_values=None, initial_regimes=None, close_reduce_ports=True):
@@ -223,7 +192,6 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
 
     # Sanity check, are the parameters and initial state_variable values in teh right units:
     for (k, v) in parameters.items() + initial_state_values.items():
-        #print k, v
         terminal_obj = component.get_terminal_obj(k)
         assert terminal_obj.get_dimension().is_compatible(v.get_units())
     # =======================================================
@@ -244,10 +212,7 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
         if len(rt_graph.regimes) == 1:
             current_regimes[rt_graph] = rt_graph.regimes.get_single_obj_by()
 
-    # iii. Do the transion graphs have a 'init' block?
-    #for rt_graph in component.rt_graphs:
-    #    if rt_graph.has_regime(name='init'):
-    #        current_regimes[rt_graph] = rt_graph.get_regime(name='init')
+    # iii. Do the transion graphs have a 'initial' block?
     for rt_graph in component.rt_graphs:
         if rt_graph.default_regime is not None:
             current_regimes[rt_graph] = rt_graph.default_regime
@@ -265,22 +230,6 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
         assert regime in rt_graph.regimes, 'regime: %s [%s]' % (repr(regime), rt_graph.regimes  )
 
 
-
-
-    #print
-    #print 'Initial_regimes'
-    #for k,v in current_regimes.items():
-    #    print repr(k), repr(v)
-    #print
-
-    # Check we have all the nodes:
-    #from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
-    #nodes = EqnsetVisitorNodeCollector(component).nodes
-    #for n in nodes[ast.RTBlock]:
-    #    print repr(n)
-    #assert False
-
-
     # Resolve the inital values of the states:
     state_values = {}
     # Check initial state_values defined in the 'initial {...}' block: :
@@ -295,13 +244,6 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
         assert not k in state_values, 'Double set intial values: %s' % k
         assert k in [td.lhs.symbol for td in component.timederivatives]
         state_values[k]= v
-
-
-    #assert False
-
-
-
-
 
     # ======================
 
@@ -320,7 +262,6 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
     print 'Running Simulation:'
     print
 
-    #state_values = initial_state_values.copy()
     for i in range(len(times) - 1):
 
         t = times[i]
@@ -354,7 +295,6 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
         # Compute the derivatives at each point:
         deltas = {}
         for td in component.timederivatives:
-            #print 'Evaluating:', td.lhs.symbol
             td_eval = f.timederivative_evaluators[td.lhs.symbol]
             res = td_eval(state_data=state_data)
             deltas[td.lhs.symbol] = res
@@ -362,16 +302,13 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
         # Update the states:
         for (d, dS) in deltas.items():
             assert d in state_values, "Found unexpected delta: %s " %( d )
-            #print 'State Var:', d,state_values[d], dS
             state_values[d] += dS * (times[i+1] - times[i] ) * one_second
 
 
         # Get all the events, and forward them to the approprate input ports:
         active_events = evt_manager.get_events_for_delivery()
-        #print '\nEvents:', active_events
         ports_with_events = {}
         for evt in active_events:
-            #print 'Evt!', evt
             if evt.port in f.transition_event_forwarding:
                 for input_port in f.transition_event_forwarding[evt.port]:
                     ports_with_events[input_port] = evt
@@ -384,10 +321,8 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
         triggered_transitions = []
         for rt_graph in component.rt_graphs:
             current_regime = current_regimes[rt_graph]
-            #print '  ', rt_graph, '(in %s)' % current_regime
 
             for transition in component.transitions_from_regime(current_regime):
-                #print '       Checking',  repr(transition)
 
                 if isinstance(transition, ast.OnTriggerTransition):
                     res = f.transition_triggers_evals[transition]( state_data=state_data)
@@ -407,8 +342,6 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
         # =========================
 
         if triggered_transitions:
-            #print 'RESOLVE TRANSITION:', len(triggered_transitions) 
-            #print 'Current States:', sorted(state_data.states_in.items())
             # Check that all transitions resolve back to this state:
             rt_graphs = set([ rt_graph for ( tr, evt, rt_graph) in triggered_transitions ])
             for rt_graph in rt_graphs:
@@ -416,35 +349,24 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
                 target_regimes = set( [tr.target_regime for tr in rt_trig_trans] )
                 assert len(target_regimes) == 1
 
-                #print rt_trig_trans
-                #assert len( rt_trig_trans) in (0, 1)
-
             updated_states = set()
             for (tr,evt,rt_graph) in triggered_transitions:
-                #print 'Resolving Transition:', repr(tr)
                 state_data.clear_states_out()
                 (state_changes, new_regime) = do_transition_change(tr=tr, evt=evt, state_data=state_data, functor_gen = f)
                 current_regimes[rt_graph] = new_regime
                 
-                #print 'StateChanges', state_changes
-            
 
                 # Make sure that we are not changing a single state in two different transitions:
                 for sv in state_changes:
-                    #print sv
                     assert not sv in updated_states, 'Multiple changes detected for: %s' % sv
                     updated_states.add(sv)
-                    #print ' -- Change to:', sv
                 state_values.update(state_changes)
 
-                #print '(OK)'
 
 
         # Mark the events as done
         for evt in active_events:
             evt_manager.marked_event_as_processed(evt)
-
-        #assert False
 
 
 
@@ -478,7 +400,6 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
             td_eval = f.assignment_evaluators[ass.symbol]
             res = td_eval(state_data=time_pt_data)
             ass_res.append(res.float_in_si())
-        #print ass_res
         assignments[ass.symbol] = np.array(ass_res)
         print
         print '  (Min:', np.min( assignments[ass.symbol]), ', Max:', np.max( assignments[ass.symbol]), ')'

@@ -108,10 +108,6 @@ class NeuroUnitParsingErrorUnexpectedToken(NeuroUnitParsingError):
 
         pre_parsed_lines = lines[ max(bad_line_no-lines_context,0): bad_line_no ]
         post_parsed_lines = lines[ bad_line_no : min(bad_line_no+lines_context,len(lines)-1) ]
-        #print self.bad_token.lineno
-        #print self.bad_token.__dict__
-        #print self.bad_token.lexer.lexer.__dict__.keys()
-        #assert False
         parsed_line = lines[bad_line_no]
 
 
@@ -139,7 +135,7 @@ class NeuroUnitParsingErrorUnexpectedToken(NeuroUnitParsingError):
         E2 = 'Chars: %d' % col_pos
         E3 = pre_str + char_str[col_pos] + post_str
         E4 = ' ' * len(pre_str) + '^' + ' ' * len(post_str)
-        #E2 = '
+        
 
 
         print self.bad_token.__dict__

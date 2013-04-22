@@ -483,7 +483,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
 
     def ActionEventPortConnection(self, o, **kwargs):
-        #print self
+
         raise NotImplementedError()
 
 
@@ -491,8 +491,6 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         raise NotImplementedError()
 
 
-    #def ActionEqnSet(self, o, **kwargs):
-    #    raise NotImplementedError()
     def ActionLibrary(self,o, **kwargs):
         raise NotImplementedError()
     def ActionNineMLComponent(self, o, **kwargs):

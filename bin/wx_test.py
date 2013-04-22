@@ -36,15 +36,14 @@ class MyFrame(wx.Frame):
         print 'Updateing', src_text
 
         library_manager = neurounits.NeuroUnitParser.File(src_text)
-        #print ast
+
 
         from neurounits.writers import StringWriterVisitor
         strs = [StringWriterVisitor().visit(eqn) for eqn in library_manager.eqnsets ]
 
         ast_output = '' + str(datetime.datetime.now()) + '\n'
-        #ast_output += 'Name:' + ast.name if ast.name else '<None>' + '\n'
 
-        #ast_output += 'EqnSets + \n'
+
         ast_output += '\n\n'.join(  strs ) #[ '* ' + eqn.name for eqn in ast.eqnsets] )
         
         self.details_box.Clear()

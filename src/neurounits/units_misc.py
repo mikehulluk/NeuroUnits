@@ -61,32 +61,32 @@ class SingleSetDict(dict):
 
 # http://code.activestate.com/recipes/305268-chained-map-lookups/
 
-class Chainmap(UserDict.DictMixin):
+#class Chainmap(UserDict.DictMixin):
+#
+#    """Combine multiple mappings for sequential lookup.
+#
+#    For example, to emulate Python's normal lookup sequence:
+#
+#        import __builtin__
+#        pylookup = Chainmap(locals(), globals(), vars(__builtin__))
+#    """
+#
+#    def __init__(self, *maps):
+#        self._maps = maps
+#
+#    def __getitem__(self, key):
+#        for mapping in self._maps:
+#            try:
+#                return mapping[key]
+#            except KeyError:
+#                pass
+#        raise KeyError(key)
 
-    """Combine multiple mappings for sequential lookup.
 
-    For example, to emulate Python's normal lookup sequence:
-
-        import __builtin__
-        pylookup = Chainmap(locals(), globals(), vars(__builtin__))
-    """
-
-    def __init__(self, *maps):
-        self._maps = maps
-
-    def __getitem__(self, key):
-        for mapping in self._maps:
-            try:
-                return mapping[key]
-            except KeyError:
-                pass
-        raise KeyError(key)
-
-
-def IterateDictValueByKeySorted(d):
-    keys = sorted(d.keys())
-    for k in keys:
-        yield d[k]
+#ef IterateDictValueByKeySorted(d):
+#    keys = sorted(d.keys())
+#    for k in keys:
+#        yield d[k]
 
 
 
@@ -113,7 +113,6 @@ class LookUpDict(object):
 
     def get_attr_value(self, obj, attr):
         res =  getattr(obj, attr)
-        #print 'Finding attr: %s on:%s -> %s' %(attr,obj,res)
         return res
 
 

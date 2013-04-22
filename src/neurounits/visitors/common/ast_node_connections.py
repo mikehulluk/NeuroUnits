@@ -91,8 +91,6 @@ class ASTAllConnectionsCheck(ASTActionerDefault):
 
 class ASTAllConnections(ASTActionerDepthFirst):
 
-    #def VisitCompoundPort(self, o, **kwargs):
-    #    return []
 
 
     def VisitEventPortConnection(self, o, **kwargs):
@@ -140,7 +138,6 @@ class ASTAllConnections(ASTActionerDepthFirst):
     def VisitBoolNot(self, o, **kwargs):
         return [o.lhs]
 
-    # Function Definitions:
     def VisitFunctionDef(self, o, **kwargs):
         return list(chain(
             o.parameters.values(),
@@ -154,7 +151,6 @@ class ASTAllConnections(ASTActionerDepthFirst):
     def VisitFunctionDefParameter(self, o, **kwargs):
         return []
 
-    # Terminals:
     def VisitStateVariable(self, o, **kwargs):
         if o.initial_value:
             return [o.initial_value]

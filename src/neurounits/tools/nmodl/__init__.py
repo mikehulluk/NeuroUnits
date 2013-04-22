@@ -284,10 +284,5 @@ def WriteToNMODL(eqnset, buildparameters=None, initial_values=None, neuron_suffi
     txt = m.to_text()
 
 
-    #print 
-    #print txt
-    #print
-    #assert False
-
     return (txt, buildparameters)
 

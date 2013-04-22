@@ -24,10 +24,15 @@ def handle_codegen(args):
 def handle_validating(args):
     print 'Code-validate'
 
+def handle_test(args):
+    print 'Testing'
+    from neurounits.test import do_test
+    do_test(args)
+
+
 def handle_gui(args):
     from neurounits.gui.ninegui import run_gui
     run_gui()
-
 def handle_demo(args):
     from yapsy.PluginManager import PluginManager
     srcs = '/home/michael/hw/NeuroUnits/src/testing/nine_demos'
@@ -105,6 +110,10 @@ def build_argparser():
     demo_subparser.add_argument('what', nargs='*',  )
     demo_subparser.set_defaults(func=handle_demo)
 
+    # test interface
+    test_subparser = subparsers.add_parser('test', parents=[parent_parser])
+    test_subparser.add_argument('what', nargs='*',  )
+    test_subparser.set_defaults(func=handle_test)
 
 
     return parser

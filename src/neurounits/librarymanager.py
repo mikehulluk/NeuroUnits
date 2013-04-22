@@ -261,22 +261,15 @@ class LibraryManager(object):
         if include_stdlibs:
             srcs_1 = self.namespace.get_all()
             srcs_2 = LibraryManager._stdlib_cache.get_all()
-            srcs =  srcs_1 + srcs_2 #chain(self.libraries, self.components, self.compound_port_defs, self._stdlib_cache.libraries)
+            srcs =  srcs_1 + srcs_2 
         else:
-            #srcs = chain(self.libraries, self.components, self.compound_port_defs)
+            
             srcs = self.namespace.get_all()
 
         srcs = list(srcs)
-        #print srcs
-        #print [s.name for s in srcs]
-        #print '"%s"' % name
         ls = [l for l in srcs if l.name == name]
 
         if len(ls) != 1:
-            #print 'Did not find item in Library Manager!'
-            #print 'Looking for: %s' % name
-            #print 'Found:', [l.name for l in ls]
-            #print
             possibles = [ l.name for l in srcs if l.name.endswith(name) ]
             raise NoSuchObjectError('Cant find: %s in [%s]\nDid you mean: %s' % (name, ','.join([l.name for l in srcs] ), str(possibles) ) )
 
@@ -285,23 +278,14 @@ class LibraryManager(object):
         from neurounits.visitors.common.ast_node_connections import ASTAllConnections
         from neurounits.visitors.common.ast_node_connections import ASTAllConnectionsCheck
         ASTAllConnectionsCheck().visit(ls[0])
-        #assert False
         return ls[0]
 
     def get_library(self, libname):
 
-        # print 'Searching for library: ' % libname
+        
 
         lib = SeqUtils.expect_single([l for l in chain(self.libraries, self._stdlib_cache.libraries) if l.name == libname])
         return lib
-
-    #def get_eqnset(self, libname):
-    #    eqnset = SeqUtils.expect_single([l for l in self.eqnsets if l.name == libname])
-    #    return eqnset
-
-    #def get_eqnset_names(self):
-    #    names = [l.name for l in self.eqnsets]
-    #    return names
 
     def get_library_names(self, include_stdlibs=True):
         return [l.name for l in self.libraries]
@@ -311,15 +295,6 @@ class LibraryManager(object):
 
     def pop_block(self):
         return self.block_stack.pop()
-
-    #def start_eqnset_block(self, name):
-    #    self.open_block(EqnSetBuilder(library_manager=self, name=name))
-
-    #def end_eqnset_block(self):
-    #    eqnset = self.pop_block()
-    #    eqnset.finalise()
-    #    self.eqnsets.append(eqnset._astobject)
-    #    self.get_eqnset_names()
 
     def start_library_block(self, name):
         self.open_block(LibraryBuilder(library_manager=self, name=name))
@@ -335,11 +310,9 @@ class LibraryManager(object):
         return self.currentblock
 
     def start_namespace_block(self, name):
-        #self.open_block(ComponentNamespace(name=name))
         self._parsing_namespace_stack.append(name)
 
     def end_namespace_block(self):
-        #self.pop_block()
         self._parsing_namespace_stack.pop()
 
     def start_component_block(self, name):
@@ -350,7 +323,6 @@ class LibraryManager(object):
         component.finalise()
         self.add_component( component._astobject)
 
-        #self.components.append(component._astobject)
 
     def summary(self, details=True):
         name = self.name if self.name else ''

@@ -130,7 +130,7 @@ class OnEventTransition(Transition):
         super(OnEventTransition, self).__init__(**kwargs)
         self.port = port
         self.parameters = parameters
-        #print self.parameters
+
         assert isinstance( self.parameters, LookUpDict)
 
     def __repr__(self):
@@ -341,9 +341,7 @@ class EventPortConnection(ASTObject):
         assert isinstance( dst_port, InEventPort)
         assert isinstance( src_port, OutEventPort)
 
-        
-        #print set(src_port.parameters.get_objects_attibutes(attr='symbol')) 
-        #print set(dst_port.parameters.get_objects_attibutes(attr='symbol')) 
+
         assert len( src_port.parameters) == len( dst_port.parameters )
         if len( src_port.parameters) > 1:
             assert set(src_port.parameters.get_objects_attibutes(attr='symbol')) == set(dst_port.parameters.get_objects_attibutes(attr='symbol')) 

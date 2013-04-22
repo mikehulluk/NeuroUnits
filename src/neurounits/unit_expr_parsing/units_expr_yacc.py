@@ -189,14 +189,13 @@ def p_ns_dotname(p):
 def p_compound_component(p):
     """compound_component_def : DEFINE_COMPOUND alphanumtoken LCURLYBRACKET compoundcontents RCURLYBRACKET SEMICOLON"""
 
-    #print 'Building Compound component:'
-    #print 'IN compoung componet'
+
     lib_mgr = p.parser.library_manager
     name = p[2]
     actions = p[4]
-    #print 'Buidling:', name
+
     instantiations = [ (d['as'], lib_mgr.get(d['what'])) for d in actions if d['action']=='INSTANTIATE']
-    #print '  - Got instantiations'
+
     connections = [ d['what'] for d in actions if d['action']=='CONNECT']
     multiconnections = [ d['what'] for d in actions if d['action']=='MULTICONNECT']
     renames = [ d['what'] for d in actions if d['action']=='RENAME']
@@ -204,9 +203,7 @@ def p_compound_component(p):
 
     compound_ports = [ d['port_instance'] for d in actions if d['action']=='COMPOUNDPORT'] 
     set_parameters = [ (d['lhs'], d['rhs']) for d in actions if d['action']=='SET'] 
-   
-     
-    #assert False
+
     from neurounits.nineml import build_compound_component
     component = build_compound_component(
             component_name=name,
@@ -218,15 +215,14 @@ def p_compound_component(p):
             multiconnections=multiconnections,
             set_parameters = set_parameters,
             )
-    #assert False
+
     lib_mgr = p.parser.library_manager.add_component(component)
 
-    #print component.name
-    #print name
+
     assert component.name == name
-    #print 'Created compound component:', name
-    #assert False
-    #
+
+
+
 
 
 def p_compound_component2(p):

@@ -93,7 +93,6 @@ class LatexEqnWriterN(ASTVisitorBase):
             return r"\langle %s ~ \mathrm{%s} \rangle" \
                 % (str(val.magnitude), dim_str)
 
-    # High Level Display:
 
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
@@ -129,7 +128,6 @@ class LatexEqnWriterN(ASTVisitorBase):
     def VisitOnEventStateAssignment(self, o, **kwargs):
         return '%s = %s' % (self.visit(o.lhs), self.visit(o.rhs))
 
-    # Function Definitions:
 
     def VisitFunctionDef(self, o, **kwargs):
         return Equation('%s(%s) \\rightarrow %s' % (o.funcname,
@@ -139,7 +137,6 @@ class LatexEqnWriterN(ASTVisitorBase):
     def VisitFunctionDefParameter(self, o, **kwargs):
         return "\mathit{%s}" % o.symbol.replace('_', '\\_')
 
-    # Terminals:
 
     def VisitStateVariable(self, o, **kwargs):
         return self.FormatTerminalSymbol(o.symbol)
@@ -159,7 +156,6 @@ class LatexEqnWriterN(ASTVisitorBase):
     def VisitSymbolicConstant(self, o, **kwargs):
         return self.FormatTerminalSymbol(o.symbol)
 
-    # AST Nodes:
 
     def VisitAddOp(self, o, **kwargs):
         return '(%s + %s)' % (self.visit(o.lhs), self.visit(o.rhs))
@@ -242,13 +238,11 @@ def build_figures(eqnset):
             if not meta:
                 continue
 
-            # print meta
 
             if not 'mf' in meta or not 'role' in meta['mf']:
                 continue
             role = meta['mf']['role']
 
-            # print role
 
             if role != 'MEMBRANEVOLTAGE':
                 continue
@@ -259,7 +253,6 @@ def build_figures(eqnset):
             f = F.assignment_evaluators[a.symbol]
 
             try:
-                #print f
                 vVals = [-80, -70, -60, -40, -20, 0, 20, 40]
                 vVals = np.linspace(-80, 50, 22) #* pq.milli * pq.volt
                 oUnit = None
@@ -268,7 +261,6 @@ def build_figures(eqnset):
                     from neurounits.neurounitparser import NeuroUnitParser
                     vUnit = NeuroUnitParser.QuantitySimple('%f mV' % v)
                     vRes = f(V=vUnit, v=vUnit)
-                    #vRes = f(V=v, v=v)
                     if oUnit is None:
                         oUnit = vRes.unit
                     assert vRes.unit == oUnit

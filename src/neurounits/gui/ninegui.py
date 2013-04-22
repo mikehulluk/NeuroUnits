@@ -140,7 +140,6 @@ class TabPanel1(wx.Panel):
         self.tree = wx.TreeCtrl(self, 1, wx.DefaultPosition, (-1,-1), wx.TR_HIDE_ROOT|wx.TR_HAS_BUTTONS|wx.EXPAND)
 
         # Setup the image lists:
-        #self.isz=(16,16)
         self.il = wx.ImageList(24,24)
         imgs = StdImages()
         self.im_namespace = self.il.Add(imgs.im_namespace)
@@ -148,8 +147,6 @@ class TabPanel1(wx.Panel):
         self.im_library = self.il.Add(imgs.im_library)
         self.im_interface = self.il.Add(imgs.im_interface)
 
-        #self.im_fldridx = self.il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, self.isz))
-        #self.im_fldropenidx = self.il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, self.isz))
         self.tree.SetImageList(self.il)
         self.tree.AssignImageList(self.il)
 
@@ -244,32 +241,10 @@ class TreeByModule(TabPanel1):
         self.tree.ExpandAll()
 
 
-        #for m in namespaces:
-        #    br = self.tree.AppendItem(root, 'Module: %s' % m)
-        #    self.tree.SetItemImage(br, self.im_namespace, wx.TreeItemIcon_Normal)
-        #    sub_comps = lib_mgr.get_all_in_namespace(m)
-        #    for sc in sub_comps:
-
-        #        itm = self.tree.AppendItem(br, 'Obj:  %s %s' % (type(sc).__name__.split('.')[-1], sc.name) )
-        #        self.tree.SetPyData(itm, sc)
-
-        #        img = {
-        #            ast.NineMLComponent: self.im_component,
-        #            ast.Library: self.im_library,
-        #            ast.Interface: self.im_interface,
-
-        #        }[type(sc)]
-
-        #        self.tree.SetItemImage(itm, img, wx.TreeItemIcon_Normal)
-        #        #self.tree.SetItemImage(itm, self.im_fldridx, wx.TreeItemIcon_Normal)
-        #        #self.tree.SetItemImage(itm, self.im_fldropenidx, wx.TreeItemIcon_Expanded)
-        #self.tree.ExpandAll()
-
 
 
 class TreeByType(TabPanel1):
     def build_tree(self):
-        #raise NotImplementedError()
         root = self.tree.AddRoot('')
         os = self.tree.AppendItem(root, 'Operating Systems')
         pl = self.tree.AppendItem(root, 'Programming Languages')
@@ -278,7 +253,6 @@ class TreeByType(TabPanel1):
 
 class TreeByFile(TabPanel1):
     def build_tree(self):
-        #raise NotImplementedError()
         root = self.tree.AddRoot('')
         os = self.tree.AppendItem(root, 'Operating Systems')
         pl = self.tree.AppendItem(root, 'Programming Languages')
@@ -423,7 +397,6 @@ class RHSPanelComponent(wx.Panel):
 
 
 import wx
-#import panelOne, panelTwo, panelThree
 
 def getNextImageID(count):
     imID = 0
@@ -443,14 +416,8 @@ class RHSToolbookDemo(wx.Toolbook):
         """Constructor"""
         wx.Toolbook.__init__(self, parent, wx.ID_ANY, )
 
-        # make an image list using the LBXX images
         il = wx.ImageList(24, 24)
-        #for x in range(3):
-        #    obj = getattr(images, 'LB%02d' % (x+1))
-        #    bmp = obj.GetBitmap()
-        #    il.Add(bmp)
-        #self.AssignImageList(il)
-        #imageIdGenerator = getNextImageID(il.GetImageCount())
+
 
         imgs = StdImages()
         page_types = (

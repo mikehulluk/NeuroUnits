@@ -26,7 +26,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-from neurounits.units_misc import Chainmap
 from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
 from .base import ASTObject
 from neurounits.ast.astobjects import Parameter, SuppliedValue, AssignedVariable
@@ -78,23 +77,20 @@ class Library(Block):
         super(Library,self).__init__(library_manager=library_manager, builder=builder, name=name)
         import neurounits.ast as ast
 
-
-        # Top-level objects:
         self._function_defs = LookUpDict( builddata.funcdefs, accepted_obj_types=(ast.FunctionDef, ast.BuiltInFunction) )
         self._symbolicconstants = LookUpDict( builddata.symbolicconstants, accepted_obj_types=(ast.SymbolicConstant, ) )
         self._eqn_assignment = LookUpDict( builddata.assignments, accepted_obj_types=(ast.EqnAssignmentByRegime,) )
 
     def get_terminal_obj(self, symbol):
-        ##print self.functiondefs
+
         possible_objs = LookUpDict(self.assignedvalues).get_objs_by(symbol=symbol)+ \
                         LookUpDict(self.symbolicconstants).get_objs_by(symbol=symbol)+ \
                         LookUpDict(self.functiondefs).get_objs_by(funcname=symbol)
 
-        #print'Looking for:'
-        #print self.functiondefs.get_objects_attibutes(attr='funcname')
-        #print 'Symbol:', '"%s"' % symbol
-        ###print 'Looking for:', symbol
-        ###print possible_objs
+
+
+
+
         if not len(possible_objs) == 1:
             raise KeyError("Can't find terminal: %s" % symbol)
 
@@ -446,9 +442,7 @@ class NineMLComponent(Block):
     def clone(self, ):
 
 
-        #import gc
-        #import collections
-        #from neurounits.librarymanager import LibraryManager
+
         from neurounits.visitors.common.ast_replace_node import ReplaceNode
         from neurounits.visitors.common.ast_node_connections import ASTAllConnections
 
@@ -457,24 +451,13 @@ class NineMLComponent(Block):
         class ReplaceNodeHack(ReplaceNode):
             def replace_or_visit(self, o):
                 if o == self.srcObj:
-                    #print '    Replacing', self.srcObj, ' -> ', self.dstObj
+
                     return self.dstObj
                 else:
                     return o
 
-        #print 'Refs to library manager:'
-        #lib_man_refs =  gc.get_referrers( self.library_manager)
-        #for ref in lib_man_refs:
-        #    print type(ref)
-        #    print ref
-        #print 'Len', len(lib_man_refs)
 
-        #assert False
-        #gc.collect()
-        #prev_objs = list( gc.get_objects() )
-        #type_count_before  = collections.Counter( [type(obj) for obj in prev_objs])
 
-        #print type_count_before
 
 
         from neurounits.visitors.common.ast_cloning import ASTClone
@@ -488,8 +471,6 @@ class NineMLComponent(Block):
 
         no_remap = (ast.Interface, ast.InterfaceWireContinuous, ast.InterfaceWireEvent, ast.BuiltInFunction, ast.FunctionDefParameter)
         # First, lets clone each and every node:
-        #print
-        #print 'Remapping nodes:'
         old_nodes = list(set(list( EqnsetVisitorNodeCollector(self).all() )))
         old_to_new_dict = {}
         for old_node in old_nodes:
@@ -540,10 +521,10 @@ class NineMLComponent(Block):
         connections_map_obj_to_conns = {}
         connections_map_conns_to_objs = defaultdict(list)
         for node in new_nodes:
-            #print 'Node', node
-            #print
+
+
             conns = list( node.accept_visitor( ASTAllConnections() ) )
-            #print node, len(conns)
+
             connections_map_obj_to_conns[node] = conns
 
             for c in conns:
@@ -555,7 +536,7 @@ class NineMLComponent(Block):
 
         shared_nodes = set(new_nodes) & set(old_nodes)
         shared_nodes_invalid = [sn for sn in shared_nodes if not isinstance(sn, no_remap)]
-        #print 
+
         if len(shared_nodes_invalid) != 0:
             print 'Shared Nodes:'
             print shared_nodes_invalid
@@ -566,95 +547,9 @@ class NineMLComponent(Block):
                     print '    *', c 
                 print
             assert len(shared_nodes_invalid) == 0
-        #assert len(new_nodes) == len(old_nodes)
+
 
         return new_obj
 
-
-
-
-
-
-
-        #assert False
-
-
-
-
-
-        # Nasty Hack - serialise and unserialse to clone the object
-
-        import pickle
-        import cStringIO
-        c = cStringIO.StringIO()
-
-
-        old_lib_man = self.library_manager
-        self.library_manager = None
-        pickle.dump(self, c)
-        new = pickle.load(cStringIO.StringIO(c.getvalue()))
-        new.library_manager =  old_lib_man
-
-
-
-
-
-        ## When we clone, however, we shouldn't also clone CompundPortDefintions amd sub components, since otherwise we
-        ## can't maintain mapping between objects:
-        #for compound_port_conn_orig in self._compound_ports_connectors:
-        #    assert False
-
-        #    # Change the wire mappings,
-        #    # TODO!
-
-
-        #    # Change the compund-port-definition:
-        #    from neurounits.visitors.common.ast_replace_node import ReplaceNode
-        #    compound_port_conn_cloned = new._compound_ports_connectors.get_single_obj_by(name=compound_port_conn_orig.name)
-        #    comp_port_src = compound_port_conn_cloned.compound_port_def
-        #    comp_port_dst = compound_port_conn_orig.compound_port_def
-        #    ReplaceNode.replace_and_check(srcObj=comp_port_src, dstObj = comp_port_dst, root=self)
-        #
-
-
-
-        #gc.collect()
-        #next_objs = list( gc.get_objects() )
-        #type_count_after  = collections.Counter( [type(obj) for obj in next_objs])
-        #count_change = type_count_after - type_count_before
-        #print 'Changes:'
-        ##print count_change
-        #for obj, count in sorted(count_change.items(), key=lambda s:s[1]):
-        #    print count, obj
-
-        ##new_objs = [ o for o in next_objs if not o in prev_objs]
-
-        #print 'Pointing at the new library manager:'
-        #lib_mans = [o for o in next_objs if isinstance(o, (LibraryManager))]
-        #print lib_mans
-
-
-        #refs = gc.get_referrers(*lib_mans)
-        #print refs
-
-        #assert False
-
-
-
-
-        return new
-
-
-
-
-
-
-class NineMLModule(object):
-
-    def accept_visitor(self, visitor, **kwargs):
-        return visitor.VisitNineMLModule(self, **kwargs)
-
-    def __init__(self, **kwargs):
-        pass
 
 

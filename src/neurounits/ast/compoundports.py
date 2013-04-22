@@ -56,7 +56,7 @@ class Interface(base.ASTObject):
 
     def __init__(self, symbol, connections):
         super(Interface, self).__init__()
-        #print 'Creating Interface:', id(self)
+
         self.symbol = symbol
         self.connections = LookUpDict(connections, accepted_obj_types=(InterfaceWire,))
 
@@ -85,8 +85,8 @@ class CompoundPortConnectorWireMapping(base.ASTObject):
         self.compound_port = compound_port
 
         import neurounits.ast as ast
-        #print 'component_port', type(component_port)
-        #print 'compound_port', type(compound_port)
+
+
 
         assert isinstance(component_port, (ast.SuppliedValue, ast.AssignedVariable, ast.StateVariable, ast.AnalogReducePort) )
         assert isinstance(compound_port, (InterfaceWireContinuous, InterfaceWireEvent) )

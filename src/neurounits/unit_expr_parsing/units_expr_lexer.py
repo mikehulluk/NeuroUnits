@@ -120,22 +120,11 @@ class UnitExprLexer(object):
         t.value = int(t.value.strip())
         return t
 
-    #def t_ALPHATOKENSPACE(self, t):
-    #    r"""[a-zA-Z_]+\s+"""
-    #    t.value = t.value.strip()
-    #    t.type = UnitExprLexer.reserved.get(t.value, t.type)
-    #    return t
-
     def t_ALPHATOKEN(self, t):
         r"""[a-zA-Z_]+\s*"""
         t.value = t.value.strip()
         t.type = UnitExprLexer.reserved.get(t.value, t.type)
         return t
-
-    #def t_NEWLINE(self, t):
-    #    r"""\n+\s*"""
-    #    t.lexer.lineno += len(t.value)
-    #    return t
 
     WS = '\s*'
 
@@ -168,7 +157,6 @@ class UnitExprLexer(object):
     t_PRIME = r"""'""" + WS 
     t_SEMICOLON = r""";""" + WS 
 
-    #t_TILDE = r"""~""" + WS
     t_DOT = r"""\.""" + WS
     t_TIMES = r"""\*""" + WS 
     t_PLUS = r"""\+""" + WS

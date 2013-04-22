@@ -1,0 +1,9 @@
+[Core]
+Name = Test4
+Module = test_nineml4
+
+[Documentation]
+Author = Mike Hull
+Version = 0.1
+Website = http://lotsofplugins.com
+Description = My first plugin
