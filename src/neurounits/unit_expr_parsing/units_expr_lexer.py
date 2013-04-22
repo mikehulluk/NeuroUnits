@@ -57,7 +57,7 @@ class UnitExprLexer(object):
         'rename':'RENAME',
         'to':'TO',
 
-        'define_compoundport': 'DEFINE_COMPOUNDPORT',
+        'interface': 'INTERFACE',
         'compoundport': 'COMPOUNDPORT',
         'of_type': 'OFTYPE',
         'set':'SET',

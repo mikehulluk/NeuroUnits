@@ -1,13 +1,13 @@
 
 
 
-define_compoundport neuron_membrane_point_process {
+interface neuron_membrane_point_process {
     ==>> V:(V)
     <<== I:(A)
 }
 
 
-define_compoundport synapse_input_event {
+interface synapse_input_event {
 
 
 

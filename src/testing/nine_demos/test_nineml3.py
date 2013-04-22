@@ -187,7 +187,7 @@ def test3():
 
 
 
-            define_compoundport std_pt_process {
+            interface std_pt_process {
                     ==>> V : (V)
                     <<== I : (A)
                     #==?> events_in (V:S)

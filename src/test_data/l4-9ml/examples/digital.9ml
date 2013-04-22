@@ -4,7 +4,7 @@ library testlib {
 
 }
 
-define_compoundport  asdf {
+interface  asdf {
 
 
 }

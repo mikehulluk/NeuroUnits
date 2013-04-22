@@ -106,7 +106,7 @@ def p_namespace_def2(p):
 # ==============
 
 def p_compoundport_1(p):
-    """ compound_port_def : DEFINE_COMPOUNDPORT alphanumtoken LCURLYBRACKET compound_port_def_contents RCURLYBRACKET SEMICOLON"""
+    """ compound_port_def : INTERFACE alphanumtoken LCURLYBRACKET compound_port_def_contents RCURLYBRACKET SEMICOLON"""
     compound_port = ast.Interface( symbol=p[2], connections = p[4] )
     p.parser.library_manager.add_compoundportdef(compound_port)
 
