@@ -150,11 +150,11 @@ class NineMLComponent(Block):
 
     @property
     def parameters(self):
-        return self._parameters
+        return self._parameters_lut
 
     @property
     def suppliedvalues(self):
-        return self._supplied_values
+        return self._supplied_lut
 
     @property
     def analog_reduce_ports(self):
@@ -269,7 +269,9 @@ class NineMLComponent(Block):
         assert sym in self.terminal_symbols
 
         if isinstance(sym, AssignedVariable):
-            sym = self._eqn_assignment[sym]
+            # These are terminals, not sym!'
+            #sym = self._eqn_assignment[sym]
+            sym = self._eqn_assignment.get_single_obj_by(lhs=sym)
 
         d = VisitorFindDirectSymbolDependance()
 
@@ -297,7 +299,9 @@ class NineMLComponent(Block):
 
     def getSymbolMetadata(self, sym):
         assert sym in self.terminal_symbols
-        return self.get_terimal_symbol_obj(sym)._metadata._metadata
+        if not sym._metadata:
+            return None
+        return sym._metadata.metadata
 
 
     def propagate_and_check_dimensions(self):

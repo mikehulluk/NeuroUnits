@@ -39,12 +39,18 @@ def test4():
 
 
 
-    library_manager = None
-    for s in src_files:
-        #print 'Loading from:', s
-        text = open(s).read()
-        library_manager = neurounits.NeuroUnitParser.Parse9MLFile( text, library_manager=library_manager)
+   # library_manager = None
+   # for s in src_files:
+   #     #print 'Loading from:', s
+   #     text = open(s).read()
+   #     library_manager = neurounits.NeuroUnitParser.Parse9MLFile( text, library_manager=library_manager)
 
+    library_manager = neurounits.NeuroUnitParser.Parse9MLFiles( src_files)
+
+    for obj in library_manager.objects:
+        obj.to_redoc()
+
+    
 
 
     print

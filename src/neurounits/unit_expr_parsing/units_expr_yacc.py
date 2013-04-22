@@ -1240,12 +1240,19 @@ def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=No
         ev = FunctorGenerator().visit(pRes)
         pRes = ev()
 
+
+
+
     # And return the correct type of object:
     ret = { ParseTypes.L1_Unit:             lambda: pRes,
             ParseTypes.L2_QuantitySimple:   lambda: pRes,
             ParseTypes.L3_QuantityExpr:     lambda: pRes,
             ParseTypes.N6_9MLFile:        lambda: library_manager,
     }
+
+
+
+
 
     return ret[parse_type]()
 

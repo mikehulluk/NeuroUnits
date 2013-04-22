@@ -30,6 +30,7 @@ from neurounits.visitors import ASTVisitorBase
 from mredoc import VerticalColTable, Figure, SectionNewPage, Section, EquationBlock, VerbatimBlock, Equation, Image, HierachyScope
 from neurounits.ast.astobjects import SuppliedValue
 from neurounits.ast.astobjects import Parameter, StateVariable
+from neurounits.ast import AnalogReducePort
 from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator
 
 import quantities as pq
@@ -106,7 +107,7 @@ class LatexEqnWriterN(ASTVisitorBase):
         if len(o.rhs_map) == 1:
             return self.visit(o.rhs_map.values()[0])
         else:
-            case_lines = [ '%s & if %s'%(reg, self.visit(rhs)) for (reg,rhs) in o.rhs_map ]
+            case_lines = [ '%s & if %s'%(reg, self.visit(rhs)) for (reg,rhs) in o.rhs_map.items() ]
             return r""" \begin{cases} %s \end{cases}""" % ( r'\\'.join(case_lines))
 
 
@@ -146,6 +147,10 @@ class LatexEqnWriterN(ASTVisitorBase):
 
     def VisitConstant(self, o, **kwargs):
         return self.FormatInlineConstant(o.value)
+    
+    def VisitConstantZero(self, o, **kwargs):
+        from neurounits.units_backends.mh import MMQuantity
+        return self.FormatInlineConstant( MMQuantity(0, o.get_dimension()) )
 
     def VisitAssignedVariable(self, o, **kwargs):
         return self.FormatTerminalSymbol(o.symbol)
@@ -156,6 +161,8 @@ class LatexEqnWriterN(ASTVisitorBase):
     def VisitSymbolicConstant(self, o, **kwargs):
         return self.FormatTerminalSymbol(o.symbol)
 
+    def VisitAnalogReducePort(self, o, **kwargs):
+        return self.FormatTerminalSymbol(o.symbol)
 
     def VisitAddOp(self, o, **kwargs):
         return '(%s + %s)' % (self.visit(o.lhs), self.visit(o.rhs))
@@ -220,7 +227,8 @@ def build_figures(eqnset):
         deps_params = [d for d in all_deps if isinstance(d, Parameter)]
         deps_state = [d for d in all_deps if isinstance(d,
                       StateVariable)]
-        assert len(deps_sup + deps_params + deps_state) == len(all_deps)
+        deps_reduce_ports = [d for d in all_deps if isinstance(d, AnalogReducePort)]
+        assert len(deps_sup + deps_params + deps_state + deps_reduce_ports) == len(all_deps)
 
         # Ignore anything deopendant on state variables:
 
@@ -238,7 +246,9 @@ def build_figures(eqnset):
             if not meta:
                 continue
 
+            print meta
 
+            
             if not 'mf' in meta or not 'role' in meta['mf']:
                 continue
             role = meta['mf']['role']

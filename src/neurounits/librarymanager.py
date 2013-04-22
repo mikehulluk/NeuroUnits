@@ -239,6 +239,11 @@ class LibraryManager(object):
     def libraries(self):
         return self.get_root_namespace().get_all(interfaces=False, components=False)
 
+    @property
+    def objects(self):
+        return self.get_root_namespace().get_all()
+
+
     def add_component(self, component):
         self.namespace.add(component)
 

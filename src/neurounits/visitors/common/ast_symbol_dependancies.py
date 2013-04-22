@@ -201,4 +201,7 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         return self.visit(o.rhs_ast)
 
+    def VisitAnalogReducePort(self, o, **kwargs):
+        return [o] + list(itertools.chain( *[self.visit(a) for a in o.rhses]))
+
 

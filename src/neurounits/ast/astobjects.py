@@ -32,6 +32,8 @@ from .base import ASTObject
 class ASTExpressionObject(ASTObject):
 
     def __init__(self, dimension=None):
+        ASTObject.__init__(self)
+
         self._dimension = None
 
         if dimension:
