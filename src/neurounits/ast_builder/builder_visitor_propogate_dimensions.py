@@ -123,8 +123,8 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
                 print o, o0
                 assert False,' %s, %s (%s %s)' %(o,o0, o.get_dimension(), o0.get_dimension())
 
-    def ActionEqnSet(self, o, **kwargs):
-        pass
+    #def ActionEqnSet(self, o, **kwargs):
+    #    pass
 
     def ActionLibrary(self, o, **kwargs):
         pass

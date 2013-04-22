@@ -147,10 +147,18 @@ class ComponentNamespace(object):
             self.interfaces._add_item(obj)
 
 
-    def get_all(self):
-        objs =  list( self.libraries ) + list(self.components) + list(self.interfaces)
+    def get_all(self, components=True, libraries=True, interfaces=True):
+
+        objs =  []
+        if components:
+            objs.extend(self.components)
+        if libraries:
+            objs.extend(self.libraries)
+        if interfaces:
+            objs.extend(self.interfaces)
+
         for ns in self.subnamespaces:
-            objs.extend( ns.get_all() )
+            objs.extend( ns.get_all(components=components, libraries=libraries, interfaces=interfaces) )
         return objs
 
 
@@ -224,6 +232,16 @@ class LibraryManager(object):
         return self.namespace
 
 
+    # Syntactic sugar:
+    @property
+    def interfaces(self):
+        return self.get_root_namespace().get_all(components=False, libraries=False)
+    @property
+    def components(self):
+        return self.get_root_namespace().get_all(interfaces=False, libraries=False)
+    @property
+    def libraries(self):
+        return self.get_root_namespace().get_all(interfaces=False, components=False)
 
     def add_component(self, component):
         self.namespace.add(component)
@@ -259,7 +277,8 @@ class LibraryManager(object):
             #print 'Looking for: %s' % name
             #print 'Found:', [l.name for l in ls]
             #print
-            raise NoSuchObjectError('Cant find: %s in [%s]' % (name, ','.join([l.name for l in srcs] ) ) )
+            possibles = [ l.name for l in srcs if l.name.endswith(name) ]
+            raise NoSuchObjectError('Cant find: %s in [%s]\nDid you mean: %s' % (name, ','.join([l.name for l in srcs] ), str(possibles) ) )
 
 
         # Testing: make sure all nodes accounted for:

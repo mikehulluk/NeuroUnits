@@ -356,7 +356,7 @@ class MRedocWriterVisitor(ASTVisitorBase):
 
 
 
-    def VisitEqnSet(self, eqnset):
+    def VisitNineMLComponent(self, eqnset):
 
         format_dim = lambda o: ('$%s$'
                                 % FormatDimensionality(o.get_dimension()) if not o.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False) else '-'

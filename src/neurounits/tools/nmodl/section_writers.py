@@ -63,17 +63,17 @@ class StateWriter(ASTActionerDefaultIgnoreMissing):
         s = CStringWriter.Build(n, build_parameters=build_parameters, expand_assignments=False)
         modfilecontents.section_DERIVATIVE.append( s )
 
-    def ActionEqnSet(self, n, modfilecontents,  build_parameters, **kwargs):
-
-        # A slightly hacky way of writing out the initial conditions:
-        # TODO: FIX THIS!
-
-        for ic in n.initial_conditions:
-            o1 = n.get_terminal_obj(ic.symbol)
-            o2 = n.get_terminal_obj(ic.value)
-            assert build_parameters.symbol_units[o1] == build_parameters.symbol_units[o2]
-
-            s = '%s = %s' % (ic.symbol, ic.value)
+    #def ActionEqnSet(self, n, modfilecontents,  build_parameters, **kwargs):
+#
+#        # A slightly hacky way of writing out the initial conditions:
+#        # TODO: FIX THIS!
+#
+#        for ic in n.initial_conditions:
+#            o1 = n.get_terminal_obj(ic.symbol)
+#            o2 = n.get_terminal_obj(ic.value)
+#            assert build_parameters.symbol_units[o1] == build_parameters.symbol_units[o2]
+#
+#            s = '%s = %s' % (ic.symbol, ic.value)
             modfilecontents.section_INITIAL.append(s)
 
 

@@ -882,9 +882,10 @@ class AbstractBlockBuilder(object):
         ReduceConstants().visit(ast_object)
 
 
+# TODO: REMVOE HERE
 class EqnSetBuilder(AbstractBlockBuilder):
 
-    def __init__(self, library_manager, name, block_type=ast.EqnSet):
+    def __init__(self, library_manager, name, block_type=ast.NineMLComponent):
         AbstractBlockBuilder.__init__(self,block_type=block_type, library_manager=library_manager,name=name)
 
     def add_io_data(self, l):

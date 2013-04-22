@@ -336,7 +336,7 @@ class FunctorGenerator(ASTVisitorBase):
         self.as_float_in_si = as_float_in_si
 
         if eqnset is not None:
-            assert isinstance(eqnset, ast.EqnSet)
+            assert isinstance(eqnset, ast.NineMLComponent)
             self.visit(eqnset)
 
     #def VisitEqnSet(self, o, **kwargs):

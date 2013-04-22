@@ -118,22 +118,10 @@ class Library(Block):
         return sorted(list(self._eqn_assignment.get_objects_attibutes('lhs')), key=lambda a:a.symbol)
 
 
-class EqnSet(Block):
 
-    def accept_visitor(self, v, **kwargs):
-        return v.VisitEqnSet(self, **kwargs)
 
-    def __init__(self,  library_manager, builder, builddata, name):
-        super(EqnSet, self).__init__(library_manager=library_manager, builder=builder, name=name)
+class NineMLComponent(Block):
 
-        import neurounits.ast as ast
-
-        # Top-level objects:
-        self._function_defs = LookUpDict( builddata.funcdefs, accepted_obj_types=(ast.FunctionDef) )
-        self._symbolicconstants = LookUpDict( builddata.symbolicconstants, accepted_obj_types=(ast.SymbolicConstant, ) )
-
-        self._eqn_assignment = LookUpDict( builddata.assignments, accepted_obj_types=(ast.EqnAssignmentByRegime,) )
-        self._eqn_time_derivatives = LookUpDict( builddata.timederivatives, accepted_obj_types=(ast.EqnTimeDerivativeByRegime,) )
 
 
 
@@ -316,8 +304,6 @@ class EqnSet(Block):
         return self.get_terimal_symbol_obj(sym)._metadata._metadata
 
 
-class NineMLComponent(EqnSet):
-
     def propagate_and_check_dimensions(self):
         from neurounits.ast_builder.builder_visitor_propogate_dimensions import PropogateDimensions
         PropogateDimensions.propogate_dimensions(self)
@@ -328,7 +314,18 @@ class NineMLComponent(EqnSet):
 
 
     def __init__(self,  library_manager, builder, builddata, name=None):
-        super(NineMLComponent,self).__init__(library_manager=library_manager, builder=builder, builddata=builddata, name=name)
+        super(NineMLComponent,self).__init__(library_manager=library_manager, builder=builder,  name=name)
+
+
+        import neurounits.ast as ast
+
+        # Top-level objects:
+        self._function_defs = LookUpDict( builddata.funcdefs, accepted_obj_types=(ast.FunctionDef) )
+        self._symbolicconstants = LookUpDict( builddata.symbolicconstants, accepted_obj_types=(ast.SymbolicConstant, ) )
+
+        self._eqn_assignment = LookUpDict( builddata.assignments, accepted_obj_types=(ast.EqnAssignmentByRegime,) )
+        self._eqn_time_derivatives = LookUpDict( builddata.timederivatives, accepted_obj_types=(ast.EqnTimeDerivativeByRegime,) )
+
 
         self._transitions_triggers = LookUpDict( builddata.transitions_triggers )
         self._transitions_events = LookUpDict( builddata.transitions_events )
@@ -340,6 +337,14 @@ class NineMLComponent(EqnSet):
         from neurounits.ast import CompoundPortConnector
         # This is a list of the available connectors from this component
         self._compound_ports_connectors = LookUpDict( accepted_obj_types=(CompoundPortConnector,), unique_attrs=('symbol',))
+
+
+
+
+
+
+
+
 
     def add_compound_port(self, compoundportconnector ):
         self._compound_ports_connectors._add_item(compoundportconnector)

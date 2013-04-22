@@ -1,0 +1,14 @@
+define_component lorenz {
+    x' = (sigma*(y-x)) * {1s-1}
+    y' = (x*( rho-z)-y) * {1s-1}
+    z' = (x*y-beta*z) * {1s-1}
+    sigma = 1000
+    beta = 8/3
+    rho= 28
+
+ initial {
+    x=1.0
+    y=1.0
+    z=1.0
+}
+}

@@ -295,9 +295,9 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionLibrary(o, **kwargs)
 
-    def _ActionEqnSet(self, o, **kwargs):
-        if self._ActionPredicate(o, **kwargs):
-            return self.ActionEqnSet(o, **kwargs)
+    #def _ActionEqnSet(self, o, **kwargs):
+    #    if self._ActionPredicate(o, **kwargs):
+    #        return self.ActionEqnSet(o, **kwargs)
 
     def _ActionNineMLComponent(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
@@ -491,8 +491,8 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         raise NotImplementedError()
 
 
-    def ActionEqnSet(self, o, **kwargs):
-        raise NotImplementedError()
+    #def ActionEqnSet(self, o, **kwargs):
+    #    raise NotImplementedError()
     def ActionLibrary(self,o, **kwargs):
         raise NotImplementedError()
     def ActionNineMLComponent(self, o, **kwargs):

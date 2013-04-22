@@ -34,7 +34,7 @@ class PluginOne(IPlugin):
 def test4():
 
 
-    
+
     src_files = sorted( glob.glob("/home/michael/hw_to_come//NeuroUnits/src/test_data/l4-9ml/std/*.9ml" ))
 
 
@@ -49,7 +49,7 @@ def test4():
 
     print
     print 'Available Interfaces:'
-    for comp in library_manager.compound_port_defs:
+    for comp in library_manager.interfaces:
         print '  ',  repr(comp)
     print
 
@@ -66,33 +66,17 @@ def test4():
 
     general_neuron_with_step_inj = library_manager.get('general_neuron_with_step_inj')
 
-    
+
     res = simulate_component(
                 #component=general_neuron,
                 component=general_neuron_with_step_inj,
-                
-                #times = np.linspace(0, 0.05,num=1000),
                 times = np.arange(0, 0.1,0.00001),
                 close_reduce_ports=True,
-                parameters={
-                }, 
-                initial_state_values=   {
-                    #'nrn/nrn/V':'-51mV',
-                    #'nrn/chl_kf/kf/s':'0',
-                    #'nrn/chl_na/na/s_h':'0',
-                    #'nrn/chl_na/na/s_m':'0',
-                    #'stim/t_last':'0ms',
-                },
-                
-                initial_regimes = {
-                
-                },
-                
                 )
 
-    
+
     auto_plot(res)
-    
+
 
 def main():
     warnings.simplefilter('error', UserWarning)
@@ -103,10 +87,10 @@ def main():
 
     log_handler1 = FileHandler('application.log')
     log_handler1.push_application()
-        
+
     test4()
     pylab.show()
 
 
 if __name__=='__main__':
-    test4()
+    main()

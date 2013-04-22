@@ -177,6 +177,14 @@ def p_ns_name(p):
     else:
         p[0] = p[1] + '/' + p[3]
 
+def p_ns_dotname(p):
+    """ns_dot_name : alphanumtoken
+                   | ns_dot_name DOT alphanumtoken """
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        p[0] = p[1] + '.' + p[3]
+
 
 def p_compound_component(p):
     """compound_component_def : DEFINE_COMPOUND alphanumtoken LCURLYBRACKET compoundcontents RCURLYBRACKET SEMICOLON"""
@@ -230,7 +238,7 @@ def p_compound_component2(p):
         p[0] = p[1] + [p[2]]
 
 def p_compound_component3(p):
-    """compound_line : INSTANTIATE alphanumtoken AS alphanumtoken"""
+    """compound_line : INSTANTIATE ns_dot_name AS alphanumtoken"""
     p[0] = {'action': 'INSTANTIATE' , 'what':p[2], 'as':p[4] }
     
 def p_compound_component4(p):
@@ -1147,9 +1155,6 @@ class ParseDetails(object):
         ParseTypes.L1_Unit: 'unit_expr',
         ParseTypes.L2_QuantitySimple: 'quantity_expr',
         ParseTypes.L3_QuantityExpr: 'rhs_generic',
-        #ParseTypes.L4_EqnSet: 'eqnset',
-        #ParseTypes.L5_Library: 'library_set',
-        #ParseTypes.L6_TextBlock: 'text_block',
         ParseTypes.N6_9MLFile: 'nineml_file',
         }
 
@@ -1161,9 +1166,9 @@ class ParserMgr(object):
     @classmethod
     def build_parser(cls, start_symbol, debug):
 
-        #debug=True
+        debug=True
 
-        from neurounits.logging import log_neurounits
+        from neurounits.nulogging import log_neurounits
         log_neurounits.info('Building Parser for: %s' % start_symbol)
 
 
@@ -1186,8 +1191,8 @@ class ParserMgr(object):
 
 
 
-import neurounits.logging as logging
-from neurounits.logging import MLine
+import neurounits.nulogging as logging
+from neurounits.nulogging import MLine
 
 def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
 

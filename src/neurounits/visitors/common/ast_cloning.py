@@ -53,10 +53,10 @@ class ASTClone(object):
     def visit(self, o, **kwargs):
         return o.accept_visitor(self, **kwargs)
 
-    def VisitEqnSet(self, o, **kwargs):
-        assert False
-
-        raise NotImplementedError()
+    #def VisitEqnSet(self, o, **kwargs):
+    #    assert False
+    #
+    #    raise NotImplementedError()
 
     def VisitRTGraph(self, o, **kwargs):
         new = ast.RTBlock(name = o.name)

@@ -29,7 +29,7 @@
 from neurounits.unit_expr_parsing import units_expr_yacc
 from neurounits.misc import SeqUtils
 
-import neurounits.logging as logging
+import neurounits.nulogging as logging
 
 class NeuroUnitParserOptions(object):
     def __init__(  self,
@@ -75,11 +75,11 @@ class NeuroUnitParser(object):
         backend = backend or cls.get_defaultBackend()
         return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L6_TextBlock, working_dir=working_dir, backend=backend, options=options, name=name)
 
-    @classmethod
-    def EqnSet(cls, text, **kwargs):
-        library_manager = cls.File(text=text, **kwargs)
-        eqnset_name = SeqUtils.expect_single(library_manager.get_eqnset_names())
-        return library_manager.get_eqnset(eqnset_name)
+    #@classmethod
+    #def EqnSet(cls, text, **kwargs):
+    #    library_manager = cls.File(text=text, **kwargs)
+    #    eqnset_name = SeqUtils.expect_single(library_manager.get_eqnset_names())
+    #    return library_manager.get_eqnset(eqnset_name)
 
     @classmethod
     def Parse9MLFile(cls, text, debug=False, backend=None, working_dir=None, options=None, **kwargs):

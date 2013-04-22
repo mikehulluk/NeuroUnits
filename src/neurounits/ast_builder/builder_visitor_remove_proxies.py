@@ -49,9 +49,9 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
             return self.followSymbolProxy(node.target,visited_nodes=visited_nodes)
         return node
 
-    def VisitEqnSet(self, o, **kwargs):
-        for i in itertools.chain(o.timederivatives, o.assignments, o.functiondefs, o.symbolicconstants):
-            self.visit(i)
+    #def VisitEqnSet(self, o, **kwargs):
+    #    for i in itertools.chain(o.timederivatives, o.assignments, o.functiondefs, o.symbolicconstants):
+    #        self.visit(i)
 
 
     def VisitNineMLComponent(self, o, **kwargs):

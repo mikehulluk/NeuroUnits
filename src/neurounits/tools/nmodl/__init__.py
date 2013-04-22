@@ -42,8 +42,7 @@ from .section_writers import OnEventWriter
 
 from .neuron_constants import NeuronSuppliedValues, NEURONMappings, MechanismType
 from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
-from neurounits.ast import EqnSet,\
-    ConstValue, InEquality, OnEvent, EqnTimeDerivativeByRegime, EqnAssignmentByRegime
+from neurounits.ast import ConstValue, InEquality, OnEvent, EqnTimeDerivativeByRegime, EqnAssignmentByRegime
 
 
 
@@ -227,6 +226,7 @@ class MODLBuildParameters(object):
                     print 'Unknown supplied value:', t
                     assert False
             else:
+
                 if isinstance(s,(EqnTimeDerivativeByRegime, EqnAssignmentByRegime, EqnSet, ConstValue)):
                     continue
                 if isinstance(s,(InEquality, OnEvent)):
@@ -239,7 +239,7 @@ class MODLBuildParameters(object):
 
 
         # Event Handling:
-		assert False, 'Deprecated, needs rewrite'
+        assert False, 'Deprecated, needs rewrite'
         zero_arg_events = [ev for ev in eqnset.onevents if len(ev.parameters) == 0]
         if len(zero_arg_events) == 0:
             event_function = None
