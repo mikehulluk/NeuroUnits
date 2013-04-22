@@ -10,23 +10,30 @@ import pylab
 from neurounits.nineml import build_compound_component, auto_plot
 from neurounits.nineml import simulate_component
 import glob
-#pylab.ion()
-
 import warnings
 
-warnings.simplefilter('error', UserWarning)
-warnings.simplefilter('error', Warning)
 
 
 
-level='WARNING'
-from logbook import FileHandler, StreamHandler
-
-log_handler1 = FileHandler('application.log')
-log_handler1.push_application()
 
 
-def test0():
+
+from yapsy.IPlugin import IPlugin
+class PluginOne(IPlugin):
+    def get_name(self):
+        return '4'
+
+    def run_demo(self, ):
+        test4()
+
+
+
+
+
+
+def test4():
+
+
     
     src_files = sorted( glob.glob("/home/michael/hw_to_come//NeuroUnits/src/test_data/l4-9ml/std/*.9ml" ))
 
@@ -85,7 +92,21 @@ def test0():
 
     
     auto_plot(res)
+    
+
+def main():
+    warnings.simplefilter('error', UserWarning)
+    warnings.simplefilter('error', Warning)
+
+    level='WARNING'
+    from logbook import FileHandler, StreamHandler
+
+    log_handler1 = FileHandler('application.log')
+    log_handler1.push_application()
+        
+    test4()
     pylab.show()
-    
-    
-test0()
+
+
+if __name__=='__main__':
+    test4()

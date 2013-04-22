@@ -1,0 +1,4949 @@
+[2013-04-18 18:10] INFO: neurounits: Parse9MLFile:
+[2013-04-18 18:10] INFO: neurounits: Options: None
+[2013-04-18 18:10] INFO: neurounits: Text: 
+
+    define_component step_current{
+        regime OFF{
+            i=0A
+            on (t>t_start) {
+                transition_to ON;
+            }
+        }
+
+        regime ON{
+            i = i_amp
+        }
+
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A), t_start
+        <=> INPUT t:(ms)
+    }
+
+    define_component simple_syn{
+        A' = -A/t_open
+        B' = -B/t_close
+
+        g = g_bar * (B-A)
+        i = g * (e_syn-V_post) 
+        regime init{
+            on(0<1){
+                transition_to sub
+            }
+        }
+
+        #init_with {
+        #    A = 0
+        #    B = 0
+        #    transition_to sub
+        #}
+
+        regime sub{
+            on(V_pre>0mV){
+                A = A + 1
+                B = B + 1
+                transition_to super
+            }
+        }
+
+        regime super{
+            on(V_pre<-10mV){
+                transition_to sub
+            }
+
+        }
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
+        <=> INPUT V_pre:(V), V_post:(V)
+    }
+
+
+
+
+    define_component i_squarewave{
+        t_last'=0
+        i=0nA
+        regime init{
+            i=0A
+            on(0<1){
+                t_last = 0s
+                transition_to OFF
+                }
+        }
+
+        regime OFF{
+            i=0A
+            on (t>t_last + t_off) {
+                t_last = t
+                transition_to ON;
+                }
+            }
+
+        regime ON{
+            i = i_amp
+            on (t>t_last + t_on) {
+                t_last = t
+                transition_to OFF;
+                }
+        }
+
+        <=> PARAMETER t_on, t_off
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A)
+        <=> INPUT t:(ms)
+
+        }
+
+
+    define_component std_neuron {
+
+
+        V' = i_sum / C
+
+        <=> ANALOG_REDUCE_PORT i_sum
+        <=> PARAMETER C:(uF)
+        <=> OUTPUT     V: mV
+
+    }
+
+    define_component chlstd_leak {
+
+
+        i = g * (erev-V) *a
+        a = 1000 um2
+        <=> PARAMETER g:(S/m2), erev
+        <=> OUTPUT    i:(mA)
+        <=> INPUT     V: mV
+
+    }
+
+    define_component evt_gen {
+        t_last'=0
+
+        regime init{
+            t_last'=0
+            on(0<1){
+                t_last = 0s
+            transition_to std
+            }
+        }
+
+        regime std{
+            t_last'=0
+            on(t > t_last + {100ms}){
+                t_last = t
+                emit myevent(5pS)
+                emit myotherevent(x=5pS, y=6pA)
+            }
+        }
+        <=> INPUT t:(ms)
+    }
+
+
+    define_component evt_syn{
+        A' = -A/t_open
+        B' = -B/t_close
+
+        g = g_bar * (B-A)
+        i = g * (e_syn-V_post) 
+
+
+        on myevent(amp:{S}){
+            A = A + 1 + amp/{1mS}
+            B = B + 1 + amp/{1mS}
+        }
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
+        <=> INPUT  V_post:(V)
+    }
+
+
+
+
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 
+define_component step_current{
+regime OFF{
+i=0A;
+on (t>t_start) {
+transition_to ON;
+};
+};
+regime ON{
+i = i_amp;
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER i_amp:(A), t_start;
+<=> INPUT t:(ms);
+};
+define_component simple_syn{
+A' = -A/t_open;
+B' = -B/t_close;
+g = g_bar * (B-A);
+i = g * (e_syn-V_post);
+regime init{
+on(0<1){
+transition_to sub;
+};
+};
+regime sub{
+on(V_pre>0mV){
+A = A + 1;
+B = B + 1;
+transition_to super;
+};
+};
+regime super{
+on(V_pre<-10mV){
+transition_to sub;
+};
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V);
+<=> INPUT V_pre:(V), V_post:(V);
+};
+define_component i_squarewave{
+t_last'=0;
+i=0nA;
+regime init{
+i=0A;
+on(0<1){
+t_last = 0s;
+transition_to OFF;
+};
+};
+regime OFF{
+i=0A;
+on (t>t_last + t_off) {
+t_last = t;
+transition_to ON;
+};
+};
+regime ON{
+i = i_amp;
+on (t>t_last + t_on) {
+t_last = t;
+transition_to OFF;
+};
+};
+<=> PARAMETER t_on, t_off;
+<=> OUTPUT i:(A);
+<=> PARAMETER i_amp:(A);
+<=> INPUT t:(ms);
+};
+define_component std_neuron {
+V' = i_sum / C;
+<=> ANALOG_REDUCE_PORT i_sum;
+<=> PARAMETER C:(uF);
+<=> OUTPUT     V: mV;
+};
+define_component chlstd_leak {
+i = g * (erev-V) *a;
+a = 1000 um2;
+<=> PARAMETER g:(S/m2), erev;
+<=> OUTPUT    i:(mA);
+<=> INPUT     V: mV;
+};
+define_component evt_gen {
+t_last'=0;
+regime init{
+t_last'=0;
+on(0<1){
+t_last = 0s;
+transition_to std;
+};
+};
+regime std{
+t_last'=0;
+on(t > t_last + {100ms}){
+t_last = t;
+emit myevent(5pS);
+emit myotherevent(x=5pS, y=6pA);
+};
+};
+<=> INPUT t:(ms);
+};
+define_component evt_syn{
+A' = -A/t_open;
+B' = -B/t_close;
+g = g_bar * (B-A);
+i = g * (e_syn-V_post);
+on myevent(amp:{S}){
+A = A + 1 + amp/{1mS};
+B = B + 1 + amp/{1mS};
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V);
+<=> INPUT  V_post:(V);
+};
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (uS)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (uF)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: mV
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (S/m2)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (mA)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: mV
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (uS)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:10] INFO: neurounits: Parse9MLFile:
+[2013-04-18 18:10] INFO: neurounits: Options: None
+[2013-04-18 18:10] INFO: neurounits: Text: 
+
+    define_component step_current{
+        regime OFF{
+            i=0A
+            on (t>t_start) {
+                transition_to ON;
+            }
+        }
+
+        regime ON{
+            i = i_amp
+        }
+
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A), t_start
+        <=> INPUT t:(ms)
+    }
+
+    define_component simple_syn{
+        A' = -A/t_open
+        B' = -B/t_close
+
+        g = g_bar * (B-A)
+        i = g * (e_syn-V_post) 
+        regime init{
+            on(0<1){
+                transition_to sub
+            }
+        }
+
+        #init_with {
+        #    A = 0
+        #    B = 0
+        #    transition_to sub
+        #}
+
+        regime sub{
+            on(V_pre>0mV){
+                A = A + 1
+                B = B + 1
+                transition_to super
+            }
+        }
+
+        regime super{
+            on(V_pre<-10mV){
+                transition_to sub
+            }
+
+        }
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
+        <=> INPUT V_pre:(V), V_post:(V)
+    }
+
+
+
+
+    define_component i_squarewave{
+        t_last'=0
+        i=0nA
+        regime init{
+            i=0A
+            on(0<1){
+                t_last = 0s
+                transition_to OFF
+                }
+        }
+
+        regime OFF{
+            i=0A
+            on (t>t_last + t_off) {
+                t_last = t
+                transition_to ON;
+                }
+            }
+
+        regime ON{
+            i = i_amp
+            on (t>t_last + t_on) {
+                t_last = t
+                transition_to OFF;
+                }
+        }
+
+        <=> PARAMETER t_on, t_off
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A)
+        <=> INPUT t:(ms)
+
+        }
+
+
+    define_component std_neuron {
+
+
+        V' = i_sum / C
+
+        <=> ANALOG_REDUCE_PORT i_sum
+        <=> PARAMETER C:(uF)
+        <=> OUTPUT     V: mV
+
+    }
+
+    define_component chlstd_leak {
+
+
+        i = g * (erev-V) *a
+        a = 1000 um2
+        <=> PARAMETER g:(S/m2), erev
+        <=> OUTPUT    i:(mA)
+        <=> INPUT     V: mV
+
+    }
+
+    define_component evt_gen {
+        t_last'=0
+
+        regime init{
+            t_last'=0
+            on(0<1){
+                t_last = 0s
+            transition_to std
+            }
+        }
+
+        regime std{
+            t_last'=0
+            on(t > t_last + {100ms}){
+                t_last = t
+                emit myevent(5pS)
+                emit myotherevent(x=5pS, y=6pA)
+            }
+        }
+        <=> INPUT t:(ms)
+    }
+
+
+    define_component evt_syn{
+        A' = -A/t_open
+        B' = -B/t_close
+
+        g = g_bar * (B-A)
+        i = g * (e_syn-V_post) 
+
+
+        on myevent(amp:{S}){
+            A = A + 1 + amp/{1mS}
+            B = B + 1 + amp/{1mS}
+        }
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
+        <=> INPUT  V_post:(V)
+    }
+
+
+
+
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 
+define_component step_current{
+regime OFF{
+i=0A;
+on (t>t_start) {
+transition_to ON;
+};
+};
+regime ON{
+i = i_amp;
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER i_amp:(A), t_start;
+<=> INPUT t:(ms);
+};
+define_component simple_syn{
+A' = -A/t_open;
+B' = -B/t_close;
+g = g_bar * (B-A);
+i = g * (e_syn-V_post);
+regime init{
+on(0<1){
+transition_to sub;
+};
+};
+regime sub{
+on(V_pre>0mV){
+A = A + 1;
+B = B + 1;
+transition_to super;
+};
+};
+regime super{
+on(V_pre<-10mV){
+transition_to sub;
+};
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V);
+<=> INPUT V_pre:(V), V_post:(V);
+};
+define_component i_squarewave{
+t_last'=0;
+i=0nA;
+regime init{
+i=0A;
+on(0<1){
+t_last = 0s;
+transition_to OFF;
+};
+};
+regime OFF{
+i=0A;
+on (t>t_last + t_off) {
+t_last = t;
+transition_to ON;
+};
+};
+regime ON{
+i = i_amp;
+on (t>t_last + t_on) {
+t_last = t;
+transition_to OFF;
+};
+};
+<=> PARAMETER t_on, t_off;
+<=> OUTPUT i:(A);
+<=> PARAMETER i_amp:(A);
+<=> INPUT t:(ms);
+};
+define_component std_neuron {
+V' = i_sum / C;
+<=> ANALOG_REDUCE_PORT i_sum;
+<=> PARAMETER C:(uF);
+<=> OUTPUT     V: mV;
+};
+define_component chlstd_leak {
+i = g * (erev-V) *a;
+a = 1000 um2;
+<=> PARAMETER g:(S/m2), erev;
+<=> OUTPUT    i:(mA);
+<=> INPUT     V: mV;
+};
+define_component evt_gen {
+t_last'=0;
+regime init{
+t_last'=0;
+on(0<1){
+t_last = 0s;
+transition_to std;
+};
+};
+regime std{
+t_last'=0;
+on(t > t_last + {100ms}){
+t_last = t;
+emit myevent(5pS);
+emit myotherevent(x=5pS, y=6pA);
+};
+};
+<=> INPUT t:(ms);
+};
+define_component evt_syn{
+A' = -A/t_open;
+B' = -B/t_close;
+g = g_bar * (B-A);
+i = g * (e_syn-V_post);
+on myevent(amp:{S}){
+A = A + 1 + amp/{1mS};
+B = B + 1 + amp/{1mS};
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V);
+<=> INPUT  V_post:(V);
+};
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (uS)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (uF)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: mV
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (S/m2)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (mA)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: mV
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (uS)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 500ms
+[2013-04-18 18:10] INFO: neurounits: Building Parser for: quantity_expr
+[2013-04-18 18:10] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:10] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:10] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 4ms
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: -55mV
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 100ms
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 2pA
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 5pA
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 10pS
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 3ms
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 0.1pS/um2
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 50ms
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: -60mV
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 80ms
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 100pS
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 0mV
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 0.5pF
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 0.1pS/um2
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 10ms
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 0mV
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 0.5pF
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 0ms
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 0ms
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: -60mV
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: -50mV
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:10] INFO: neurounits: In parse_expr()
+[2013-04-18 18:10] INFO: neurounits: Creating library manager
+[2013-04-18 18:10] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:12] INFO: neurounits: Parse9MLFile:
+[2013-04-18 18:12] INFO: neurounits: Options: None
+[2013-04-18 18:12] INFO: neurounits: Text: 
+
+    define_component step_current{
+        regime OFF{
+            i=0A
+            on (t>t_start) {
+                transition_to ON;
+            }
+        }
+
+        regime ON{
+            i = i_amp
+        }
+
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A), t_start
+        <=> INPUT t:(ms)
+    }
+
+    define_component simple_syn{
+        A' = -A/t_open
+        B' = -B/t_close
+
+        g = g_bar * (B-A)
+        i = g * (e_syn-V_post) 
+        regime init{
+            on(0<1){
+                transition_to sub
+            }
+        }
+
+        #init_with {
+        #    A = 0
+        #    B = 0
+        #    transition_to sub
+        #}
+
+        regime sub{
+            on(V_pre>0mV){
+                A = A + 1
+                B = B + 1
+                transition_to super
+            }
+        }
+
+        regime super{
+            on(V_pre<-10mV){
+                transition_to sub
+            }
+
+        }
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
+        <=> INPUT V_pre:(V), V_post:(V)
+    }
+
+
+
+
+    define_component i_squarewave{
+        t_last'=0
+        i=0nA
+        regime init{
+            i=0A
+            on(0<1){
+                t_last = 0s
+                transition_to OFF
+                }
+        }
+
+        regime OFF{
+            i=0A
+            on (t>t_last + t_off) {
+                t_last = t
+                transition_to ON;
+                }
+            }
+
+        regime ON{
+            i = i_amp
+            on (t>t_last + t_on) {
+                t_last = t
+                transition_to OFF;
+                }
+        }
+
+        <=> PARAMETER t_on, t_off
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A)
+        <=> INPUT t:(ms)
+
+        }
+
+
+    define_component std_neuron {
+
+
+        V' = i_sum / C
+
+        <=> ANALOG_REDUCE_PORT i_sum
+        <=> PARAMETER C:(uF)
+        <=> OUTPUT     V: mV
+
+    }
+
+    define_component chlstd_leak {
+
+
+        i = g * (erev-V) *a
+        a = 1000 um2
+        <=> PARAMETER g:(S/m2), erev
+        <=> OUTPUT    i:(mA)
+        <=> INPUT     V: mV
+
+    }
+
+    define_component evt_gen {
+
+
+        regime std{
+            t_last'=0
+            on(t > t_last + {100ms}){
+                t_last = t
+                emit myevent(5pS)
+                emit myotherevent(x=5pS, y=6pA)
+            }
+        }
+        
+        initial{
+            t_last = 0s
+            regime std
+            }
+        
+        <=> INPUT t:(ms)
+    }
+
+
+    define_component evt_syn{
+        A' = -A/t_open
+        B' = -B/t_close
+
+        g = g_bar * (B-A)
+        i = g * (e_syn-V_post) 
+
+
+        on myevent(amp:{S}){
+            A = A + 1 + amp/{1mS}
+            B = B + 1 + amp/{1mS}
+        }
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
+        <=> INPUT  V_post:(V)
+    }
+
+
+
+
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 
+define_component step_current{
+regime OFF{
+i=0A;
+on (t>t_start) {
+transition_to ON;
+};
+};
+regime ON{
+i = i_amp;
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER i_amp:(A), t_start;
+<=> INPUT t:(ms);
+};
+define_component simple_syn{
+A' = -A/t_open;
+B' = -B/t_close;
+g = g_bar * (B-A);
+i = g * (e_syn-V_post);
+regime init{
+on(0<1){
+transition_to sub;
+};
+};
+regime sub{
+on(V_pre>0mV){
+A = A + 1;
+B = B + 1;
+transition_to super;
+};
+};
+regime super{
+on(V_pre<-10mV){
+transition_to sub;
+};
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V);
+<=> INPUT V_pre:(V), V_post:(V);
+};
+define_component i_squarewave{
+t_last'=0;
+i=0nA;
+regime init{
+i=0A;
+on(0<1){
+t_last = 0s;
+transition_to OFF;
+};
+};
+regime OFF{
+i=0A;
+on (t>t_last + t_off) {
+t_last = t;
+transition_to ON;
+};
+};
+regime ON{
+i = i_amp;
+on (t>t_last + t_on) {
+t_last = t;
+transition_to OFF;
+};
+};
+<=> PARAMETER t_on, t_off;
+<=> OUTPUT i:(A);
+<=> PARAMETER i_amp:(A);
+<=> INPUT t:(ms);
+};
+define_component std_neuron {
+V' = i_sum / C;
+<=> ANALOG_REDUCE_PORT i_sum;
+<=> PARAMETER C:(uF);
+<=> OUTPUT     V: mV;
+};
+define_component chlstd_leak {
+i = g * (erev-V) *a;
+a = 1000 um2;
+<=> PARAMETER g:(S/m2), erev;
+<=> OUTPUT    i:(mA);
+<=> INPUT     V: mV;
+};
+define_component evt_gen {
+regime std{
+t_last'=0;
+on(t > t_last + {100ms}){
+t_last = t;
+emit myevent(5pS);
+emit myotherevent(x=5pS, y=6pA);
+};
+};
+initial{
+t_last = 0s;
+regime std;
+};
+<=> INPUT t:(ms);
+};
+define_component evt_syn{
+A' = -A/t_open;
+B' = -B/t_close;
+g = g_bar * (B-A);
+i = g * (e_syn-V_post);
+on myevent(amp:{S}){
+A = A + 1 + amp/{1mS};
+B = B + 1 + amp/{1mS};
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V);
+<=> INPUT  V_post:(V);
+};
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (uS)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (uF)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: mV
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (S/m2)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (mA)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: mV
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (uS)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 500ms
+[2013-04-18 18:12] INFO: neurounits: Building Parser for: quantity_expr
+[2013-04-18 18:12] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:12] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:12] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 4ms
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: -55mV
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 100ms
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 2pA
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 5pA
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 10pS
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 3ms
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 0.1pS/um2
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 50ms
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: -60mV
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 80ms
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 100pS
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 0mV
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 0.5pF
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 0.1pS/um2
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 10ms
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 0mV
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 0.5pF
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 0ms
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 0ms
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: -60mV
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: -50mV
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:12] INFO: neurounits: In parse_expr()
+[2013-04-18 18:12] INFO: neurounits: Creating library manager
+[2013-04-18 18:12] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:13] INFO: neurounits: Parse9MLFile:
+[2013-04-18 18:13] INFO: neurounits: Options: None
+[2013-04-18 18:13] INFO: neurounits: Text: 
+
+    define_component step_current{
+        regime OFF{
+            i=0A
+            on (t>t_start) {
+                transition_to ON;
+            }
+        }
+
+        regime ON{
+            i = i_amp
+        }
+
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A), t_start
+        <=> INPUT t:(ms)
+    }
+
+    define_component simple_syn{
+        A' = -A/t_open
+        B' = -B/t_close
+
+        g = g_bar * (B-A)
+        i = g * (e_syn-V_post) 
+
+
+
+        regime sub{
+            on(V_pre>0mV){
+                A = A + 1
+                B = B + 1
+                transition_to super
+            }
+        }
+
+        regime super{
+            on(V_pre<-10mV){
+                transition_to sub
+            }
+
+        }
+        
+        initial {
+                regime sub
+        }
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
+        <=> INPUT V_pre:(V), V_post:(V)
+    }
+
+
+
+
+    define_component i_squarewave{
+        t_last'=0
+        i=0nA
+        regime init{
+            i=0A
+            on(0<1){
+                t_last = 0s
+                transition_to OFF
+                }
+        }
+
+        regime OFF{
+            i=0A
+            on (t>t_last + t_off) {
+                t_last = t
+                transition_to ON;
+                }
+            }
+
+        regime ON{
+            i = i_amp
+            on (t>t_last + t_on) {
+                t_last = t
+                transition_to OFF;
+                }
+        }
+
+        <=> PARAMETER t_on, t_off
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A)
+        <=> INPUT t:(ms)
+
+        }
+
+
+    define_component std_neuron {
+
+
+        V' = i_sum / C
+
+        <=> ANALOG_REDUCE_PORT i_sum
+        <=> PARAMETER C:(uF)
+        <=> OUTPUT     V: mV
+
+    }
+
+    define_component chlstd_leak {
+
+
+        i = g * (erev-V) *a
+        a = 1000 um2
+        <=> PARAMETER g:(S/m2), erev
+        <=> OUTPUT    i:(mA)
+        <=> INPUT     V: mV
+
+    }
+
+    define_component evt_gen {
+
+
+        regime std{
+            t_last'=0
+            on(t > t_last + {100ms}){
+                t_last = t
+                emit myevent(5pS)
+                emit myotherevent(x=5pS, y=6pA)
+            }
+        }
+        
+        initial{
+            t_last = 0s
+            regime std
+            }
+        
+        <=> INPUT t:(ms)
+    }
+
+
+    define_component evt_syn{
+        A' = -A/t_open
+        B' = -B/t_close
+
+        g = g_bar * (B-A)
+        i = g * (e_syn-V_post) 
+
+
+        on myevent(amp:{S}){
+            A = A + 1 + amp/{1mS}
+            B = B + 1 + amp/{1mS}
+        }
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
+        <=> INPUT  V_post:(V)
+    }
+
+
+
+
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 
+define_component step_current{
+regime OFF{
+i=0A;
+on (t>t_start) {
+transition_to ON;
+};
+};
+regime ON{
+i = i_amp;
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER i_amp:(A), t_start;
+<=> INPUT t:(ms);
+};
+define_component simple_syn{
+A' = -A/t_open;
+B' = -B/t_close;
+g = g_bar * (B-A);
+i = g * (e_syn-V_post);
+regime sub{
+on(V_pre>0mV){
+A = A + 1;
+B = B + 1;
+transition_to super;
+};
+};
+regime super{
+on(V_pre<-10mV){
+transition_to sub;
+};
+};
+initial {
+regime sub;
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V);
+<=> INPUT V_pre:(V), V_post:(V);
+};
+define_component i_squarewave{
+t_last'=0;
+i=0nA;
+regime init{
+i=0A;
+on(0<1){
+t_last = 0s;
+transition_to OFF;
+};
+};
+regime OFF{
+i=0A;
+on (t>t_last + t_off) {
+t_last = t;
+transition_to ON;
+};
+};
+regime ON{
+i = i_amp;
+on (t>t_last + t_on) {
+t_last = t;
+transition_to OFF;
+};
+};
+<=> PARAMETER t_on, t_off;
+<=> OUTPUT i:(A);
+<=> PARAMETER i_amp:(A);
+<=> INPUT t:(ms);
+};
+define_component std_neuron {
+V' = i_sum / C;
+<=> ANALOG_REDUCE_PORT i_sum;
+<=> PARAMETER C:(uF);
+<=> OUTPUT     V: mV;
+};
+define_component chlstd_leak {
+i = g * (erev-V) *a;
+a = 1000 um2;
+<=> PARAMETER g:(S/m2), erev;
+<=> OUTPUT    i:(mA);
+<=> INPUT     V: mV;
+};
+define_component evt_gen {
+regime std{
+t_last'=0;
+on(t > t_last + {100ms}){
+t_last = t;
+emit myevent(5pS);
+emit myotherevent(x=5pS, y=6pA);
+};
+};
+initial{
+t_last = 0s;
+regime std;
+};
+<=> INPUT t:(ms);
+};
+define_component evt_syn{
+A' = -A/t_open;
+B' = -B/t_close;
+g = g_bar * (B-A);
+i = g * (e_syn-V_post);
+on myevent(amp:{S}){
+A = A + 1 + amp/{1mS};
+B = B + 1 + amp/{1mS};
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V);
+<=> INPUT  V_post:(V);
+};
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (uS)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (uF)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (S/m2)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (mA)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (uS)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 500ms
+[2013-04-18 18:13] INFO: neurounits: Building Parser for: quantity_expr
+[2013-04-18 18:13] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:13] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:13] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 4ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: -55mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 100ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 2pA
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 5pA
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 10pS
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 3ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0.1pS/um2
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 50ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: -60mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 80ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 100pS
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0.5pF
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0.1pS/um2
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 10ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0.5pF
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: -60mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: -50mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:13] INFO: neurounits: Parse9MLFile:
+[2013-04-18 18:13] INFO: neurounits: Options: None
+[2013-04-18 18:13] INFO: neurounits: Text: 
+
+    define_component step_current{
+        regime OFF{
+            i=0A
+            on (t>t_start) {
+                transition_to ON;
+            }
+        }
+
+        regime ON{
+            i = i_amp
+        }
+
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A), t_start
+        <=> INPUT t:(ms)
+    }
+
+    define_component simple_syn{
+        A' = -A/t_open
+        B' = -B/t_close
+
+        g = g_bar * (B-A)
+        i = g * (e_syn-V_post) 
+
+
+
+        regime sub{
+            on(V_pre>0mV){
+                A = A + 1
+                B = B + 1
+                transition_to super
+            }
+        }
+
+        regime super{
+            on(V_pre<-10mV){
+                transition_to sub
+            }
+
+        }
+        
+        initial {
+                regime sub
+        }
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
+        <=> INPUT V_pre:(V), V_post:(V)
+    }
+
+
+
+
+    define_component i_squarewave{
+        t_last'=0
+        i=0nA
+        
+
+        regime OFF{
+            i=0A
+            on (t>t_last + t_off) {
+                t_last = t
+                transition_to ON;
+                }
+            }
+
+        regime ON{
+            i = i_amp
+            on (t>t_last + t_on) {
+                t_last = t
+                transition_to OFF;
+                }
+        }
+        initial{
+            t_last = 0s
+            regime OFF
+        }
+
+        <=> PARAMETER t_on, t_off
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A)
+        <=> INPUT t:(ms)
+
+        }
+
+
+    define_component std_neuron {
+
+
+        V' = i_sum / C
+
+        <=> ANALOG_REDUCE_PORT i_sum
+        <=> PARAMETER C:(uF)
+        <=> OUTPUT     V: mV
+
+    }
+
+    define_component chlstd_leak {
+
+
+        i = g * (erev-V) *a
+        a = 1000 um2
+        <=> PARAMETER g:(S/m2), erev
+        <=> OUTPUT    i:(mA)
+        <=> INPUT     V: mV
+
+    }
+
+    define_component evt_gen {
+
+
+        regime std{
+            t_last'=0
+            on(t > t_last + {100ms}){
+                t_last = t
+                emit myevent(5pS)
+                emit myotherevent(x=5pS, y=6pA)
+            }
+        }
+        
+        initial{
+            t_last = 0s
+            regime std
+            }
+        
+        <=> INPUT t:(ms)
+    }
+
+
+    define_component evt_syn{
+        A' = -A/t_open
+        B' = -B/t_close
+
+        g = g_bar * (B-A)
+        i = g * (e_syn-V_post) 
+
+
+        on myevent(amp:{S}){
+            A = A + 1 + amp/{1mS}
+            B = B + 1 + amp/{1mS}
+        }
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
+        <=> INPUT  V_post:(V)
+    }
+
+
+
+
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 
+define_component step_current{
+regime OFF{
+i=0A;
+on (t>t_start) {
+transition_to ON;
+};
+};
+regime ON{
+i = i_amp;
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER i_amp:(A), t_start;
+<=> INPUT t:(ms);
+};
+define_component simple_syn{
+A' = -A/t_open;
+B' = -B/t_close;
+g = g_bar * (B-A);
+i = g * (e_syn-V_post);
+regime sub{
+on(V_pre>0mV){
+A = A + 1;
+B = B + 1;
+transition_to super;
+};
+};
+regime super{
+on(V_pre<-10mV){
+transition_to sub;
+};
+};
+initial {
+regime sub;
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V);
+<=> INPUT V_pre:(V), V_post:(V);
+};
+define_component i_squarewave{
+t_last'=0;
+i=0nA;
+regime OFF{
+i=0A;
+on (t>t_last + t_off) {
+t_last = t;
+transition_to ON;
+};
+};
+regime ON{
+i = i_amp;
+on (t>t_last + t_on) {
+t_last = t;
+transition_to OFF;
+};
+};
+initial{
+t_last = 0s;
+regime OFF;
+};
+<=> PARAMETER t_on, t_off;
+<=> OUTPUT i:(A);
+<=> PARAMETER i_amp:(A);
+<=> INPUT t:(ms);
+};
+define_component std_neuron {
+V' = i_sum / C;
+<=> ANALOG_REDUCE_PORT i_sum;
+<=> PARAMETER C:(uF);
+<=> OUTPUT     V: mV;
+};
+define_component chlstd_leak {
+i = g * (erev-V) *a;
+a = 1000 um2;
+<=> PARAMETER g:(S/m2), erev;
+<=> OUTPUT    i:(mA);
+<=> INPUT     V: mV;
+};
+define_component evt_gen {
+regime std{
+t_last'=0;
+on(t > t_last + {100ms}){
+t_last = t;
+emit myevent(5pS);
+emit myotherevent(x=5pS, y=6pA);
+};
+};
+initial{
+t_last = 0s;
+regime std;
+};
+<=> INPUT t:(ms);
+};
+define_component evt_syn{
+A' = -A/t_open;
+B' = -B/t_close;
+g = g_bar * (B-A);
+i = g * (e_syn-V_post);
+on myevent(amp:{S}){
+A = A + 1 + amp/{1mS};
+B = B + 1 + amp/{1mS};
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V);
+<=> INPUT  V_post:(V);
+};
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (uS)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (uF)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (S/m2)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (mA)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (uS)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 500ms
+[2013-04-18 18:13] INFO: neurounits: Building Parser for: quantity_expr
+[2013-04-18 18:13] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:13] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:13] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 4ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: -55mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 100ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 2pA
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 5pA
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 10pS
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 3ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0.1pS/um2
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 50ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: -60mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 80ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 100pS
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0.5pF
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0.1pS/um2
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 10ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0.5pF
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: -60mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: -50mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:13] INFO: neurounits: Parse9MLFile:
+[2013-04-18 18:13] INFO: neurounits: Options: None
+[2013-04-18 18:13] INFO: neurounits: Text: 
+
+    define_component step_current{
+        regime OFF{
+            i=0A
+            on (t>t_start) {
+                transition_to ON;
+            }
+        }
+
+        regime ON{
+            i = i_amp
+        }
+
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A), t_start
+        <=> INPUT t:(ms)
+    }
+
+    define_component simple_syn{
+        A' = -A/t_open
+        B' = -B/t_close
+
+        g = g_bar * (B-A)
+        i = g * (e_syn-V_post) 
+
+
+
+        regime sub{
+            on(V_pre>0mV){
+                A = A + 1
+                B = B + 1
+                transition_to super
+            }
+        }
+
+        regime super{
+            on(V_pre<-10mV){
+                transition_to sub
+            }
+
+        }
+        
+        initial {
+                regime sub
+        }
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
+        <=> INPUT V_pre:(V), V_post:(V)
+    }
+
+
+
+
+    define_component i_squarewave{
+        i=0nA
+        
+
+        regime OFF{
+            i=0A
+            on (t>t_last + t_off) {
+                t_last = t
+                transition_to ON;
+                }
+            }
+
+        regime ON{
+            i = i_amp
+            on (t>t_last + t_on) {
+                t_last = t
+                transition_to OFF;
+                }
+        }
+        initial{
+            t_last = 0s
+            regime OFF
+        }
+
+        <=> PARAMETER t_on, t_off
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A)
+        <=> INPUT t:(ms)
+
+        }
+
+
+    define_component std_neuron {
+
+
+        V' = i_sum / C
+
+        <=> ANALOG_REDUCE_PORT i_sum
+        <=> PARAMETER C:(uF)
+        <=> OUTPUT     V: mV
+
+    }
+
+    define_component chlstd_leak {
+
+
+        i = g * (erev-V) *a
+        a = 1000 um2
+        <=> PARAMETER g:(S/m2), erev
+        <=> OUTPUT    i:(mA)
+        <=> INPUT     V: mV
+
+    }
+
+    define_component evt_gen {
+
+
+        regime std{
+            t_last'=0
+            on(t > t_last + {100ms}){
+                t_last = t
+                emit myevent(5pS)
+                emit myotherevent(x=5pS, y=6pA)
+            }
+        }
+        
+        initial{
+            t_last = 0s
+            regime std
+            }
+        
+        <=> INPUT t:(ms)
+    }
+
+
+    define_component evt_syn{
+        A' = -A/t_open
+        B' = -B/t_close
+
+        g = g_bar * (B-A)
+        i = g * (e_syn-V_post) 
+
+
+        on myevent(amp:{S}){
+            A = A + 1 + amp/{1mS}
+            B = B + 1 + amp/{1mS}
+        }
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
+        <=> INPUT  V_post:(V)
+    }
+
+
+
+
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 
+define_component step_current{
+regime OFF{
+i=0A;
+on (t>t_start) {
+transition_to ON;
+};
+};
+regime ON{
+i = i_amp;
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER i_amp:(A), t_start;
+<=> INPUT t:(ms);
+};
+define_component simple_syn{
+A' = -A/t_open;
+B' = -B/t_close;
+g = g_bar * (B-A);
+i = g * (e_syn-V_post);
+regime sub{
+on(V_pre>0mV){
+A = A + 1;
+B = B + 1;
+transition_to super;
+};
+};
+regime super{
+on(V_pre<-10mV){
+transition_to sub;
+};
+};
+initial {
+regime sub;
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V);
+<=> INPUT V_pre:(V), V_post:(V);
+};
+define_component i_squarewave{
+i=0nA;
+regime OFF{
+i=0A;
+on (t>t_last + t_off) {
+t_last = t;
+transition_to ON;
+};
+};
+regime ON{
+i = i_amp;
+on (t>t_last + t_on) {
+t_last = t;
+transition_to OFF;
+};
+};
+initial{
+t_last = 0s;
+regime OFF;
+};
+<=> PARAMETER t_on, t_off;
+<=> OUTPUT i:(A);
+<=> PARAMETER i_amp:(A);
+<=> INPUT t:(ms);
+};
+define_component std_neuron {
+V' = i_sum / C;
+<=> ANALOG_REDUCE_PORT i_sum;
+<=> PARAMETER C:(uF);
+<=> OUTPUT     V: mV;
+};
+define_component chlstd_leak {
+i = g * (erev-V) *a;
+a = 1000 um2;
+<=> PARAMETER g:(S/m2), erev;
+<=> OUTPUT    i:(mA);
+<=> INPUT     V: mV;
+};
+define_component evt_gen {
+regime std{
+t_last'=0;
+on(t > t_last + {100ms}){
+t_last = t;
+emit myevent(5pS);
+emit myotherevent(x=5pS, y=6pA);
+};
+};
+initial{
+t_last = 0s;
+regime std;
+};
+<=> INPUT t:(ms);
+};
+define_component evt_syn{
+A' = -A/t_open;
+B' = -B/t_close;
+g = g_bar * (B-A);
+i = g * (e_syn-V_post);
+on myevent(amp:{S}){
+A = A + 1 + amp/{1mS};
+B = B + 1 + amp/{1mS};
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V);
+<=> INPUT  V_post:(V);
+};
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (uS)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (uF)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (S/m2)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (mA)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (uS)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 500ms
+[2013-04-18 18:13] INFO: neurounits: Building Parser for: quantity_expr
+[2013-04-18 18:13] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:13] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:13] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 4ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: -55mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 100ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 2pA
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 5pA
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 10pS
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 3ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0.1pS/um2
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 50ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: -60mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 80ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 100pS
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0.5pF
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0.1pS/um2
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 10ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0.5pF
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0ms
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: -60mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: -50mV
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:13] INFO: neurounits: In parse_expr()
+[2013-04-18 18:13] INFO: neurounits: Creating library manager
+[2013-04-18 18:13] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:14] INFO: neurounits: Parse9MLFile:
+[2013-04-18 18:14] INFO: neurounits: Options: None
+[2013-04-18 18:14] INFO: neurounits: Text: 
+
+    define_component step_current{
+        regime OFF{
+            i=0A
+            on (t>t_start) {
+                transition_to ON;
+            }
+        }
+
+        regime ON{
+            i = i_amp
+        }
+
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A), t_start
+        <=> INPUT t:(ms)
+    }
+
+    define_component simple_syn{
+        A' = -A/t_open
+        B' = -B/t_close
+
+        g = g_bar * (B-A)
+        i = g * (e_syn-V_post) 
+
+
+
+        regime sub{
+            on(V_pre>0mV){
+                A = A + 1
+                B = B + 1
+                transition_to super
+            }
+        }
+
+        regime super{
+            on(V_pre<-10mV){
+                transition_to sub
+            }
+
+        }
+        
+        initial {
+                regime sub
+        }
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
+        <=> INPUT V_pre:(V), V_post:(V)
+    }
+
+
+
+
+    define_component i_squarewave{
+        i=0nA
+        
+
+        regime OFF{
+            i=0A
+            on (t>t_last + t_off) {
+                t_last = t
+                transition_to ON;
+                }
+            }
+
+        regime ON{
+            i = i_amp
+            on (t>t_last + t_on) {
+                t_last = t
+                transition_to OFF;
+                }
+        }
+        initial{
+            t_last = 0s
+            regime OFF
+        }
+
+        <=> PARAMETER t_on, t_off
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A)
+        <=> INPUT t:(ms)
+
+        }
+
+
+    define_component std_neuron {
+
+
+        V' = i_sum / C
+
+        <=> ANALOG_REDUCE_PORT i_sum
+        <=> PARAMETER C:(uF)
+        <=> OUTPUT     V: mV
+
+    }
+
+    define_component chlstd_leak {
+
+
+        i = g * (erev-V) *a
+        a = 1000 um2
+        <=> PARAMETER g:(S/m2), erev
+        <=> OUTPUT    i:(mA)
+        <=> INPUT     V: mV
+
+    }
+
+    define_component evt_gen {
+
+
+        regime std{
+            t_last'=0
+            on(t > t_last + {100ms}){
+                t_last = t
+                emit myevent(5pS)
+                emit myotherevent(x=5pS, y=6pA)
+            }
+        }
+        
+        initial{
+            t_last = 0s
+            regime std
+            }
+        
+        <=> INPUT t:(ms)
+    }
+
+
+    define_component evt_syn{
+        A' = -A/t_open
+        B' = -B/t_close
+
+        g = g_bar * (B-A)
+        i = g * (e_syn-V_post) 
+
+
+        on myevent(amp:{S}){
+            A = A + 1 + amp/{1mS}
+            B = B + 1 + amp/{1mS}
+        }
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
+        <=> INPUT  V_post:(V)
+    }
+
+
+
+
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 
+define_component step_current{
+regime OFF{
+i=0A;
+on (t>t_start) {
+transition_to ON;
+};
+};
+regime ON{
+i = i_amp;
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER i_amp:(A), t_start;
+<=> INPUT t:(ms);
+};
+define_component simple_syn{
+A' = -A/t_open;
+B' = -B/t_close;
+g = g_bar * (B-A);
+i = g * (e_syn-V_post);
+regime sub{
+on(V_pre>0mV){
+A = A + 1;
+B = B + 1;
+transition_to super;
+};
+};
+regime super{
+on(V_pre<-10mV){
+transition_to sub;
+};
+};
+initial {
+regime sub;
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V);
+<=> INPUT V_pre:(V), V_post:(V);
+};
+define_component i_squarewave{
+i=0nA;
+regime OFF{
+i=0A;
+on (t>t_last + t_off) {
+t_last = t;
+transition_to ON;
+};
+};
+regime ON{
+i = i_amp;
+on (t>t_last + t_on) {
+t_last = t;
+transition_to OFF;
+};
+};
+initial{
+t_last = 0s;
+regime OFF;
+};
+<=> PARAMETER t_on, t_off;
+<=> OUTPUT i:(A);
+<=> PARAMETER i_amp:(A);
+<=> INPUT t:(ms);
+};
+define_component std_neuron {
+V' = i_sum / C;
+<=> ANALOG_REDUCE_PORT i_sum;
+<=> PARAMETER C:(uF);
+<=> OUTPUT     V: mV;
+};
+define_component chlstd_leak {
+i = g * (erev-V) *a;
+a = 1000 um2;
+<=> PARAMETER g:(S/m2), erev;
+<=> OUTPUT    i:(mA);
+<=> INPUT     V: mV;
+};
+define_component evt_gen {
+regime std{
+t_last'=0;
+on(t > t_last + {100ms}){
+t_last = t;
+emit myevent(5pS);
+emit myotherevent(x=5pS, y=6pA);
+};
+};
+initial{
+t_last = 0s;
+regime std;
+};
+<=> INPUT t:(ms);
+};
+define_component evt_syn{
+A' = -A/t_open;
+B' = -B/t_close;
+g = g_bar * (B-A);
+i = g * (e_syn-V_post);
+on myevent(amp:{S}){
+A = A + 1 + amp/{1mS};
+B = B + 1 + amp/{1mS};
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V);
+<=> INPUT  V_post:(V);
+};
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (uS)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (uF)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: mV
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (S/m2)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (mA)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: mV
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (uS)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 500ms
+[2013-04-18 18:14] INFO: neurounits: Building Parser for: quantity_expr
+[2013-04-18 18:14] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:14] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:14] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 4ms
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: -55mV
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 100ms
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 2pA
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 5pA
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 10pS
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 3ms
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0.1pS/um2
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 50ms
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: -60mV
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 80ms
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 100pS
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0mV
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0.5pF
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0.1pS/um2
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 10ms
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0mV
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0.5pF
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0ms
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: -60mV
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: -50mV
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:14] INFO: neurounits: Parse9MLFile:
+[2013-04-18 18:14] INFO: neurounits: Options: None
+[2013-04-18 18:14] INFO: neurounits: Text: 
+
+    define_component step_current{
+        regime OFF{
+            i=0A
+            on (t>t_start) {
+                transition_to ON;
+            }
+        }
+
+        regime ON{
+            i = i_amp
+        }
+
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A), t_start
+        <=> INPUT t:(ms)
+    }
+
+    define_component simple_syn{
+        A' = -A/t_open
+        B' = -B/t_close
+
+        g = g_bar * (B-A)
+        i = g * (e_syn-V_post) 
+
+
+
+        regime sub{
+            on(V_pre>0mV){
+                A = A + 1
+                B = B + 1
+                transition_to super
+            }
+        }
+
+        regime super{
+            on(V_pre<-10mV){
+                transition_to sub
+            }
+
+        }
+        
+        initial {
+                regime sub
+        }
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
+        <=> INPUT V_pre:(V), V_post:(V)
+    }
+
+
+
+
+    define_component i_squarewave{
+        i=0nA
+        
+
+        regime OFF{
+            i=0A
+            on (t>t_last + t_off) {
+                t_last = t
+                transition_to ON;
+                }
+            }
+
+        regime ON{
+            i = i_amp
+            on (t>t_last + t_on) {
+                t_last = t
+                transition_to OFF;
+                }
+        }
+        initial{
+            t_last = 0s
+            regime OFF
+        }
+
+        <=> PARAMETER t_on, t_off
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A)
+        <=> INPUT t:(ms)
+
+        }
+
+
+    define_component std_neuron {
+
+
+        V' = i_sum / C
+
+        <=> ANALOG_REDUCE_PORT i_sum
+        <=> PARAMETER C:(uF)
+        <=> OUTPUT     V: mV
+
+    }
+
+    define_component chlstd_leak {
+
+
+        i = g * (erev-V) *a
+        a = 1000 um2
+        <=> PARAMETER g:(S/m2), erev
+        <=> OUTPUT    i:(mA)
+        <=> INPUT     V: mV
+
+    }
+
+    define_component evt_gen {
+
+
+        regime std{
+            t_last'=0
+            on(t > t_last + {100ms}){
+                t_last = t
+                emit myevent(5pS)
+                emit myotherevent(x=5pS, y=6pA)
+            }
+        }
+        
+        initial{
+            t_last = 0s
+            regime std
+            }
+        
+        <=> INPUT t:(ms)
+    }
+
+
+    define_component evt_syn{
+        A' = -A/t_open
+        B' = -B/t_close
+
+        g = g_bar * (B-A)
+        i = g * (e_syn-V_post) 
+
+
+        on myevent(amp:{S}){
+            A = A + 1 + amp/{1mS}
+            B = B + 1 + amp/{1mS}
+        }
+
+        <=> OUTPUT i:(A)
+        <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
+        <=> INPUT  V_post:(V)
+    }
+
+
+
+
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 
+define_component step_current{
+regime OFF{
+i=0A;
+on (t>t_start) {
+transition_to ON;
+};
+};
+regime ON{
+i = i_amp;
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER i_amp:(A), t_start;
+<=> INPUT t:(ms);
+};
+define_component simple_syn{
+A' = -A/t_open;
+B' = -B/t_close;
+g = g_bar * (B-A);
+i = g * (e_syn-V_post);
+regime sub{
+on(V_pre>0mV){
+A = A + 1;
+B = B + 1;
+transition_to super;
+};
+};
+regime super{
+on(V_pre<-10mV){
+transition_to sub;
+};
+};
+initial {
+regime sub;
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V);
+<=> INPUT V_pre:(V), V_post:(V);
+};
+define_component i_squarewave{
+i=0nA;
+regime OFF{
+i=0A;
+on (t>t_last + t_off) {
+t_last = t;
+transition_to ON;
+};
+};
+regime ON{
+i = i_amp;
+on (t>t_last + t_on) {
+t_last = t;
+transition_to OFF;
+};
+};
+initial{
+t_last = 0s;
+regime OFF;
+};
+<=> PARAMETER t_on, t_off;
+<=> OUTPUT i:(A);
+<=> PARAMETER i_amp:(A);
+<=> INPUT t:(ms);
+};
+define_component std_neuron {
+V' = i_sum / C;
+<=> ANALOG_REDUCE_PORT i_sum;
+<=> PARAMETER C:(uF);
+<=> OUTPUT     V: mV;
+};
+define_component chlstd_leak {
+i = g * (erev-V) *a;
+a = 1000 um2;
+<=> PARAMETER g:(S/m2), erev;
+<=> OUTPUT    i:(mA);
+<=> INPUT     V: mV;
+};
+define_component evt_gen {
+regime std{
+t_last'=0;
+on(t > t_last + {100ms}){
+t_last = t;
+emit myevent(5pS);
+emit myotherevent(x=5pS, y=6pA);
+};
+};
+initial{
+t_last = 0s;
+regime std;
+};
+<=> INPUT t:(ms);
+};
+define_component evt_syn{
+A' = -A/t_open;
+B' = -B/t_close;
+g = g_bar * (B-A);
+i = g * (e_syn-V_post);
+on myevent(amp:{S}){
+A = A + 1 + amp/{1mS};
+B = B + 1 + amp/{1mS};
+};
+<=> OUTPUT i:(A);
+<=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V);
+<=> INPUT  V_post:(V);
+};
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (uS)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (uF)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: mV
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (S/m2)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (mA)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: mV
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (uS)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: (V)
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 500ms
+[2013-04-18 18:14] INFO: neurounits: Building Parser for: quantity_expr
+[2013-04-18 18:14] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:14] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:14] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 4ms
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: -55mV
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 100ms
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 2pA
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 5pA
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 10pS
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 3ms
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0.1pS/um2
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 50ms
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: -60mV
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 80ms
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 100pS
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0mV
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0.5pF
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0.1pS/um2
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 10ms
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0mV
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0.5pF
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: -60mV
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: -50mV
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 0
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 1s
+[2013-04-18 18:14] INFO: neurounits: In parse_expr()
+[2013-04-18 18:14] INFO: neurounits: Creating library manager
+[2013-04-18 18:14] INFO: neurounits: Parsing with PLY: 10ms
+[2013-04-19 13:23] INFO: neurounits: Parse9MLFile:
+[2013-04-19 13:23] INFO: neurounits: Options: None
+[2013-04-19 13:23] INFO: neurounits: Text: 
+
+
+
+define_compoundport neuron_membrane_point_process {
+    ==>> V:(V)
+    <<== I:(A)
+}
+
+
+define_compoundport synapse_input_event {
+
+
+
+}
+
+
+
+library my_dummy_library {
+    a = 4mV
+    #b = a +1V
+
+}
+
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: 
+library std.math {
+pi = 3.141592653;
+e =  2.718281828;
+sin(x) = __sin__(x);
+cos(x) = __cos__(x);
+tan(x) = __tan__(x);
+sinh(x) = __sinh__(x);
+cosh(x) = __cosh__(x);
+tanh(x) = __tanh__(x);
+asin(x) = __asin__(x);
+acos(x) = __acos__(x);
+atan(x) = __atan__(x);
+atan2(x,y) = __atan2__(x=x,y=y);
+exp(x) = __exp__(x);
+ln(x) = __ln__(x);
+log2(x) = __log2__(x);
+log10(x) = __log10__(x);
+abs(x) = __abs__(x);
+pow(base,exp) = __pow__(base=base,exp=exp);
+ceil(x) = __ceil__(x);
+fabs(x) = __fabs__(x);
+floor(x) = __floor__(x);
+};
+library std.geom {
+from std.math import pi;
+area_of_sphere(r:{m}) = 4 * pi * r*r;
+volume_of_sphere(r:{m}) = 4.0/3.0 * pi * r*r *r;
+};
+library std.neuro {
+from std.math import pi,pow;
+r_a(R_i:{ohm m}, d:{m}) = (4*R_i)/(pi*d*d);
+space_constant(Rm:{ohm m2},Ri:{ohm m},d:{m}) = pow(base=(( (Rm/Ri)*(d/4) )/{1m2}),exp=0.5) * {1m};
+Rinf_sealed_end(Rm:{ohm m2},d:{m}) = (4*Rm/(pi*d*d) );
+RateConstant5(V:{V},a1:{s-1} ,a2:{V-1 s-1}, a3:{},a4:{V},a5:{V} ) = (a1 + a2*V)/(a3+std.math.exp( (V+a4)/a5) );
+};
+library std.physics {
+F = 96485.3365 coulomb mole-1;
+Na = 6.02214129e23 mole-1;
+k = 1.380648e-23 joule kelvin-1;
+e =  1.602176565 coulomb;
+R = 8.3144621 J mole-1 kelvin-1;
+};
+[2013-04-19 13:23] INFO: neurounits: Building Parser for: nineml_file
+[2013-04-19 13:23] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-19 13:23] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-19 13:23] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: 
+define_compoundport neuron_membrane_point_process {
+==>> V:(V);
+<<== I:(A);
+};
+define_compoundport synapse_input_event {
+};
+library my_dummy_library {
+a = 4mV;
+};
+[2013-04-19 13:23] INFO: neurounits: Parse9MLFile:
+[2013-04-19 13:23] INFO: neurounits: Options: None
+[2013-04-19 13:23] INFO: neurounits: Text: 
+
+
+
+namespace spike_gen {
+
+
+
+    define_component fixed_time {
+        <=> PARAMETER t_spike
+        <=> INPUT t:s
+        
+        
+        regime pre {
+            on( t> t_spike){
+                emit spike()
+                transition_to post
+            }
+        }
+        
+    }
+    
+    
+    define_component fixed_period {
+        
+        <=> PARAMETER t_period
+        <=> INPUT t:s
+        
+        initial {
+            t_last = 0s
+        }
+        
+        on(t > t_last + t_period ){
+            t_last = t
+            emit spike();
+        }
+    }
+    
+    
+    
+    
+    
+}
+
+
+
+
+
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: 
+namespace spike_gen {
+define_component fixed_time {
+<=> PARAMETER t_spike;
+<=> INPUT t:s;
+regime pre {
+on( t> t_spike){
+emit spike();
+transition_to post;
+};
+};
+};
+define_component fixed_period {
+<=> PARAMETER t_period;
+<=> INPUT t:s;
+initial {
+t_last = 0s;
+};
+on(t > t_last + t_period ){
+t_last = t;
+emit spike();
+};
+};
+};
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: s
+[2013-04-19 13:23] INFO: neurounits: Building Parser for: unit_expr
+[2013-04-19 13:23] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-19 13:23] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-19 13:23] WARNING: neurounits: Token '%s' multiply defined
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] WARNING: neurounits: Symbol '%s' is unreachable
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: s
+[2013-04-19 13:23] INFO: neurounits: Parse9MLFile:
+[2013-04-19 13:23] INFO: neurounits: Options: None
+[2013-04-19 13:23] INFO: neurounits: Text: 
+
+
+namespace hh_neuron {
+
+
+    define_component hh_neuron_base {
+        <=> ANALOG_REDUCE_PORT i_sum
+        <=> PARAMETER C:(uF)
+        <=> OUTPUT     V: mV
+        
+        V' = i_sum / C
+
+
+        initial {
+            V = 0mV
+        }
+        
+        compoundport process_mount of_type neuron_membrane_point_process <out> {
+            # Local <==> Compound-port name
+            V <==> V
+            i_sum <==> I
+            }
+    }
+    
+    
+}
+
+
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: 
+namespace hh_neuron {
+define_component hh_neuron_base {
+<=> ANALOG_REDUCE_PORT i_sum;
+<=> PARAMETER C:(uF);
+<=> OUTPUT     V: mV;
+V' = i_sum / C;
+initial {
+V = 0mV;
+};
+compoundport process_mount of_type neuron_membrane_point_process <out> {
+V <==> V;
+i_sum <==> I;
+};
+};
+};
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: (uF)
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: mV
+[2013-04-19 13:23] INFO: neurounits: Parse9MLFile:
+[2013-04-19 13:23] INFO: neurounits: Options: None
+[2013-04-19 13:23] INFO: neurounits: Text: 
+
+
+define_component gating_particle_hh_k {
+    from std.math import exp
+    vrel = V - -60mV
+    s_alpha = ( ({10mV} - vrel) / ( 100*( exp( ({10mV}-vrel)/{10mV})  -{1.}) ) ) *(1/{1 ms mV})
+    s_beta = 0.125 * exp(-vrel/{80mV}) * (1/{1ms})
+    
+    s_inf = s_alpha / (s_alpha + s_beta)
+    s_tau = 1. / (s_alpha + s_beta) 
+
+    s' = (s_inf - s)/s_tau
+
+    s4 = s*s*s*s
+    
+    <=> OUTPUT    s:()
+    <=> INPUT     V:mV
+    
+    initial {
+        s = 0
+        
+    }
+}
+
+
+define_component gating_particle_hh_na {
+
+    from std.math import exp, abs
+   
+    vrel = V - {-65mV}
+    
+    SF = (1/{1 ms})
+    
+    s_alpha_m = ( ({25mV} - vrel)/(10 * ( exp( ({25mV}-vrel)/{10mV}) -{1.} )  ) ) *               (1/{1mV}) * SF
+    s_beta_m =  4 * exp( -vrel/{18mV} ) * SF
+    
+    s_alpha_h = 0.07 * exp(vrel/{-20mV}) * SF
+    s_beta_h = (1/ (exp(({30mV}-vrel)/{10mV}) + 1) ) *SF
+    
+    
+    s_inf_m = s_alpha_m / (s_alpha_m + s_beta_m)
+    s_tau_m = 1. / (s_alpha_m + s_beta_m) 
+    
+    s_inf_h = s_alpha_h / (s_alpha_h + s_beta_h)
+    s_tau_h = 1. / (s_alpha_h + s_beta_h) 
+    
+
+    s_m' = (s_inf_m - s_m)/s_tau_m
+    s_h' = (s_inf_h - s_h)/s_tau_h
+
+    s_out = s_m * s_m * s_m * s_h
+    
+    
+    initial {
+        s_m = 0
+        s_h = 1.0
+    }
+    
+    
+    <=> OUTPUT    s_out:()
+    <=> INPUT     V:mV
+}
+
+
+
+
+
+
+
+
+
+
+
+#define_component gating_particle {
+#    from std.math import exp
+#    s_alpha = (r1A + (r1B * V)) * ( r1C  + exp( (V+r1D)/r1E) ) #/ 1000.
+#    s_beta =  (r2A + (r2B * V)) * ( r2C  + exp( (V+r2D)/r2E) ) #/ 1000.
+#    
+#    s_inf = s_alpha / (s_alpha + s_beta)
+#    s_tau = 1. / (s_alpha + s_beta) 
+#
+#    s' = (s_inf - s)/s_tau
+#
+#    s2 = s*s
+#    s4 = s*s*s*s
+#    
+#
+#        <=> PARAMETER r1A, r1B, r1C, r1D, r1E
+#        <=> PARAMETER r2A, r2B, r2C, r2D, r2E
+#        <=> OUTPUT    s:()
+#        <=> INPUT     V:mV
+#        
+#
+#}
+
+
+
+
+
+define_component chl_base {
+
+    i = g * (erev-V) * s_in *area
+
+    <=> PARAMETER g:(S/m2), erev, area:(m2)
+    <=> OUTPUT    i:(mA)
+    <=> INPUT     V: mV    
+    <=> ANALOG_REDUCE_PORT s_in:()
+
+}
+
+
+
+
+
+
+
+
+
+define_compound chl_kf {
+    instantiate gating_particle_hh_k as kf
+    instantiate chl_base as X
+
+    connect kf/s4 <==> X/s_in
+
+    merge [X/V, kf/V] as V 
+    
+    rename X/g to g 
+    rename X/erev to erev
+
+    
+    
+    compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+            # Local <==> Compound-port name
+            V <==> V
+            X/i <==> I
+            }
+    
+    
+}
+
+define_compound chl_na {
+    instantiate gating_particle_hh_na as na
+    
+    instantiate chl_base as X
+
+    connect na/s_out <==> X/s_in
+
+    merge [X/V, na/V] as V 
+    
+    rename X/g to g 
+    rename X/erev to erev
+
+    
+    
+    compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+            # Local <==> Compound-port name
+            V <==> V
+            X/i <==> I
+            }
+    
+    
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+define_component chl_lk {
+
+        <=> PARAMETER g:(S/m2), erev, area:(m2)
+        <=> OUTPUT    i:(mA)
+        <=> INPUT     V: mV
+
+        i = g * (erev-V) * area
+        
+        compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+            # Local <==> Compound-port name
+            V <==> V
+            i <==> I
+            } 
+
+}
+
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: 
+define_component gating_particle_hh_k {
+from std.math import exp;
+vrel = V - -60mV;
+s_alpha = ( ({10mV} - vrel) / ( 100*( exp( ({10mV}-vrel)/{10mV})  -{1.}) ) ) *(1/{1 ms mV});
+s_beta = 0.125 * exp(-vrel/{80mV}) * (1/{1ms});
+s_inf = s_alpha / (s_alpha + s_beta);
+s_tau = 1. / (s_alpha + s_beta);
+s' = (s_inf - s)/s_tau;
+s4 = s*s*s*s;
+<=> OUTPUT    s:();
+<=> INPUT     V:mV;
+initial {
+s = 0;
+};
+};
+define_component gating_particle_hh_na {
+from std.math import exp, abs;
+vrel = V - {-65mV};
+SF = (1/{1 ms});
+s_alpha_m = ( ({25mV} - vrel)/(10 * ( exp( ({25mV}-vrel)/{10mV}) -{1.} )  ) ) *               (1/{1mV}) * SF;
+s_beta_m =  4 * exp( -vrel/{18mV} ) * SF;
+s_alpha_h = 0.07 * exp(vrel/{-20mV}) * SF;
+s_beta_h = (1/ (exp(({30mV}-vrel)/{10mV}) + 1) ) *SF;
+s_inf_m = s_alpha_m / (s_alpha_m + s_beta_m);
+s_tau_m = 1. / (s_alpha_m + s_beta_m);
+s_inf_h = s_alpha_h / (s_alpha_h + s_beta_h);
+s_tau_h = 1. / (s_alpha_h + s_beta_h);
+s_m' = (s_inf_m - s_m)/s_tau_m;
+s_h' = (s_inf_h - s_h)/s_tau_h;
+s_out = s_m * s_m * s_m * s_h;
+initial {
+s_m = 0;
+s_h = 1.0;
+};
+<=> OUTPUT    s_out:();
+<=> INPUT     V:mV;
+};
+define_component chl_base {
+i = g * (erev-V) * s_in *area;
+<=> PARAMETER g:(S/m2), erev, area:(m2);
+<=> OUTPUT    i:(mA);
+<=> INPUT     V: mV;
+<=> ANALOG_REDUCE_PORT s_in:();
+};
+define_compound chl_kf {
+instantiate gating_particle_hh_k as kf;
+instantiate chl_base as X;
+connect kf/s4 <==> X/s_in;
+merge [X/V, kf/V] as V;
+rename X/g to g;
+rename X/erev to erev;
+compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+V <==> V;
+X/i <==> I;
+};
+};
+define_compound chl_na {
+instantiate gating_particle_hh_na as na;
+instantiate chl_base as X;
+connect na/s_out <==> X/s_in;
+merge [X/V, na/V] as V;
+rename X/g to g;
+rename X/erev to erev;
+compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+V <==> V;
+X/i <==> I;
+};
+};
+define_component chl_lk {
+<=> PARAMETER g:(S/m2), erev, area:(m2);
+<=> OUTPUT    i:(mA);
+<=> INPUT     V: mV;
+i = g * (erev-V) * area;
+compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+V <==> V;
+i <==> I;
+};
+};
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: ()
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: mV
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: ()
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: mV
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: (S/m2)
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: (m2)
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: (mA)
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: mV
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: ()
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: (S/m2)
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: (m2)
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: (mA)
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: mV
+[2013-04-19 13:23] INFO: neurounits: Parse9MLFile:
+[2013-04-19 13:23] INFO: neurounits: Options: None
+[2013-04-19 13:23] INFO: neurounits: Text: 
+
+
+
+define_component chl_dIN_na {
+    
+
+    <=> PARAMETER g:(S), erev
+    <=> OUTPUT    i:(mA)
+    <=> INPUT     V: mV    
+    
+    from std.math import exp
+
+    i = g * (erev-V) * m*m*m*h
+    
+    
+    AlphaBetaFunc(V, A,B,C,D,E) = (A+B*V) / (C + exp( (D+V)/E))
+    
+    alpha_m = AlphaBetaFunc(V=V, A=8.67ms-1, B=0ms-1 mV-1, C=1.0, D=-1.01mV,E=-12.65mV)
+    beta_m =  AlphaBetaFunc(V=V, A=3.82ms-1, B=0ms-1 mV-1, C=1.0, D=9.01mV, E=9.69mV)
+    alpha_h = AlphaBetaFunc(V=V, A=0.08ms-1, B=0ms-1 mV-1, C=0.0, D=38.88mV,E=26.0mV)
+    beta_h =  AlphaBetaFunc(V=V, A=4.08ms-1, B=0ms-1 mV-1, C=1.0, D=-5.09mV,E=-10.21mV)
+    
+    
+    inf_m = alpha_m / (alpha_m + beta_m)
+    inf_h = alpha_h/ (alpha_h + beta_h)
+
+    tau_m = 1.0 / (alpha_m + beta_m)
+    tau_h = 1.0 / (alpha_h + beta_h)
+
+
+    m' = (inf_m - m) / tau_m
+    h' = (inf_h - h) / tau_h
+
+    
+    
+    
+    compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+        # Local <==> Compound-port name
+        V <==> V
+        i <==> I
+    }
+
+
+}
+
+
+define_component chl_dIN_kf {
+
+    <=> PARAMETER g:(S), erev
+    <=> OUTPUT    i:(mA)
+    <=> INPUT     V: mV    
+
+    from std.math import exp
+
+    i = g * (erev-V) * n*n*n*n
+    
+    
+    AlphaBetaFunc(V, A,B,C,D,E) = (A+B*V) / (C + exp( (D+V)/E))
+
+    alpha_n = AlphaBetaFunc(V=V, A=5.06ms-1, B=0.0666ms-1 mV-1, C=5.12, D=-18.396mV,E=-25.42mV)
+    beta_n =  AlphaBetaFunc(V=V, A=0.505ms-1, B=0ms-1 mV-1, C=0, D=28.7mV, E=34.6mV)
+
+    inf_n = alpha_n / (alpha_n + beta_n)
+    tau_n = 1.0 / (alpha_n + beta_n)
+   
+    n' = (inf_n - n) / tau_n
+    
+    compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+        # Local <==> Compound-port name
+        V <==> V
+        i <==> I
+    }
+    
+}
+
+
+
+define_component chl_dIN_ks {
+
+    <=> PARAMETER g:(S), erev
+    <=> OUTPUT    i:(mA)
+    <=> INPUT     V: mV    
+
+    from std.math import exp
+
+    i = g * (erev-V) * n*n
+    
+    
+    AlphaBetaFunc(V, A,B,C,D,E) = (A+B*V) / (C + exp( (D+V)/E))
+
+    alpha_n = AlphaBetaFunc(V=V, A=0.462ms-1, B=8.2e-3ms-1 mV-1, C=4.59, D=-4.21mV,E=-11.97mV)
+    beta_n =  AlphaBetaFunc(V=V, A=0.0924ms-1, B=-1.353e-3ms-1 mV-1, C=1.615, D=2.1e5mV, E=3.3e5mV)
+
+    inf_n = alpha_n / (alpha_n + beta_n)
+    tau_n = 1.0 / (alpha_n + beta_n)
+   
+    n' = (inf_n - n) / tau_n
+    
+    
+    compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+        # Local <==> Compound-port name
+        V <==> V
+        i <==> I
+    }
+    
+}
+
+
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: 
+define_component chl_dIN_na {
+<=> PARAMETER g:(S), erev;
+<=> OUTPUT    i:(mA);
+<=> INPUT     V: mV;
+from std.math import exp;
+i = g * (erev-V) * m*m*m*h;
+AlphaBetaFunc(V, A,B,C,D,E) = (A+B*V) / (C + exp( (D+V)/E));
+alpha_m = AlphaBetaFunc(V=V, A=8.67ms-1, B=0ms-1 mV-1, C=1.0, D=-1.01mV,E=-12.65mV);
+beta_m =  AlphaBetaFunc(V=V, A=3.82ms-1, B=0ms-1 mV-1, C=1.0, D=9.01mV, E=9.69mV);
+alpha_h = AlphaBetaFunc(V=V, A=0.08ms-1, B=0ms-1 mV-1, C=0.0, D=38.88mV,E=26.0mV);
+beta_h =  AlphaBetaFunc(V=V, A=4.08ms-1, B=0ms-1 mV-1, C=1.0, D=-5.09mV,E=-10.21mV);
+inf_m = alpha_m / (alpha_m + beta_m);
+inf_h = alpha_h/ (alpha_h + beta_h);
+tau_m = 1.0 / (alpha_m + beta_m);
+tau_h = 1.0 / (alpha_h + beta_h);
+m' = (inf_m - m) / tau_m;
+h' = (inf_h - h) / tau_h;
+compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+V <==> V;
+i <==> I;
+};
+};
+define_component chl_dIN_kf {
+<=> PARAMETER g:(S), erev;
+<=> OUTPUT    i:(mA);
+<=> INPUT     V: mV;
+from std.math import exp;
+i = g * (erev-V) * n*n*n*n;
+AlphaBetaFunc(V, A,B,C,D,E) = (A+B*V) / (C + exp( (D+V)/E));
+alpha_n = AlphaBetaFunc(V=V, A=5.06ms-1, B=0.0666ms-1 mV-1, C=5.12, D=-18.396mV,E=-25.42mV);
+beta_n =  AlphaBetaFunc(V=V, A=0.505ms-1, B=0ms-1 mV-1, C=0, D=28.7mV, E=34.6mV);
+inf_n = alpha_n / (alpha_n + beta_n);
+tau_n = 1.0 / (alpha_n + beta_n);
+n' = (inf_n - n) / tau_n;
+compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+V <==> V;
+i <==> I;
+};
+};
+define_component chl_dIN_ks {
+<=> PARAMETER g:(S), erev;
+<=> OUTPUT    i:(mA);
+<=> INPUT     V: mV;
+from std.math import exp;
+i = g * (erev-V) * n*n;
+AlphaBetaFunc(V, A,B,C,D,E) = (A+B*V) / (C + exp( (D+V)/E));
+alpha_n = AlphaBetaFunc(V=V, A=0.462ms-1, B=8.2e-3ms-1 mV-1, C=4.59, D=-4.21mV,E=-11.97mV);
+beta_n =  AlphaBetaFunc(V=V, A=0.0924ms-1, B=-1.353e-3ms-1 mV-1, C=1.615, D=2.1e5mV, E=3.3e5mV);
+inf_n = alpha_n / (alpha_n + beta_n);
+tau_n = 1.0 / (alpha_n + beta_n);
+n' = (inf_n - n) / tau_n;
+compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+V <==> V;
+i <==> I;
+};
+};
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: (S)
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: (mA)
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: mV
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: (S)
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: (mA)
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: mV
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: (S)
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: (mA)
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: mV
+[2013-04-19 13:23] INFO: neurounits: Parse9MLFile:
+[2013-04-19 13:23] INFO: neurounits: Options: None
+[2013-04-19 13:23] INFO: neurounits: Text: 
+
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: 
+[2013-04-19 13:23] INFO: neurounits: Parse9MLFile:
+[2013-04-19 13:23] INFO: neurounits: Options: None
+[2013-04-19 13:23] INFO: neurounits: Text: 
+
+
+ define_component i_squarewave{
+        #t_last'=0
+        
+        i=0nA
+        
+        regime OFF{
+            i=0A
+            on (t>t_last + t_off) {
+                t_last = t
+                transition_to ON;
+                }
+            }
+
+        regime ON{
+            i = i_amp
+            on (t>t_last + t_on) {
+                t_last = t
+                transition_to OFF;
+                }
+        }
+        
+        
+        initial {
+            t_last=0s
+            regime OFF
+        }
+
+        <=> PARAMETER t_on, t_off
+        <=> OUTPUT i:(A)
+        <=> PARAMETER i_amp:(A)
+        <=> INPUT t:(ms)
+
+        }
+        
+
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: 
+define_component i_squarewave{
+i=0nA;
+regime OFF{
+i=0A;
+on (t>t_last + t_off) {
+t_last = t;
+transition_to ON;
+};
+};
+regime ON{
+i = i_amp;
+on (t>t_last + t_on) {
+t_last = t;
+transition_to OFF;
+};
+};
+initial {
+t_last=0s;
+regime OFF;
+};
+<=> PARAMETER t_on, t_off;
+<=> OUTPUT i:(A);
+<=> PARAMETER i_amp:(A);
+<=> INPUT t:(ms);
+};
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: (A)
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: (ms)
+[2013-04-19 13:23] INFO: neurounits: Parse9MLFile:
+[2013-04-19 13:23] INFO: neurounits: Options: None
+[2013-04-19 13:23] INFO: neurounits: Text: 
+
+define_component gap_junction {
+    <=> PARAMETER r:ohm
+    <=> INPUT V1:V, V2:V
+    <=> OUTPUT I1:A, I2:A
+    
+    #v=ir => i = v/r
+    I1 = (V1-V2) / r
+    I2 = -I1
+}
+
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: 
+define_component gap_junction {
+<=> PARAMETER r:ohm;
+<=> INPUT V1:V, V2:V;
+<=> OUTPUT I1:A, I2:A;
+I1 = (V1-V2) / r;
+I2 = -I1;
+};
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: ohm
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: V
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: V
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: A
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Creating library manager
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: A
+[2013-04-19 13:23] INFO: neurounits: Parse9MLFile:
+[2013-04-19 13:23] INFO: neurounits: Options: None
+[2013-04-19 13:23] INFO: neurounits: Text: 
+
+
+
+define_compound general_neuron {
+    instantiate hh_neuron_base as nrn
+    instantiate chl_lk as chl_lk
+    instantiate chl_kf as chl_kf
+    instantiate chl_na as chl_na
+    
+    
+    multiconnect nrn/process_mount <==> chl_lk/process_mount_in
+    multiconnect nrn/process_mount <==> chl_kf/process_mount_in
+    multiconnect nrn/process_mount <==> chl_na/process_mount_in
+     
+    
+    set chl_lk/area =  3.141 * {30um} * {30um}
+    set chl_na/X/area =  3.141 * {30um} * {30um}
+    set chl_kf/X/area =  3.141 * {30um} * {30um}
+    
+    
+    
+    # Conductance densities and reversal potentials:
+    set chl_lk/erev = -65mV
+    set chl_lk/g =  0.3 mS/cm2
+    
+    set chl_kf/erev = -77mV
+    set chl_kf/g = 36mS/cm2
+    
+    set chl_na/erev =  50mV
+    set chl_na/g = 120mS/cm2
+     
+    set nrn/C = {1uF/cm2} * 3.141 * {30um} * {30um}
+
+    rename nrn/i_sum to i_sum
+
+    
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+define_compound dIN {
+    instantiate hh_neuron_base as nrn
+    #instantiate chl_dIN_ca as chl_ca
+    instantiate chl_dIN_na as chl_na
+    instantiate chl_lk as chl_lk
+    instantiate chl_dIN_kf as chl_kf
+    instantiate chl_dIN_ks as chl_ks
+    
+    
+    
+    multiconnect nrn/process_mount <==> chl_lk/process_mount_in
+    multiconnect nrn/process_mount <==> chl_kf/process_mount_in
+    multiconnect nrn/process_mount <==> chl_na/process_mount_in
+    #multiconnect nrn/process_mount <==> chl_ca/process_mount_in
+    multiconnect nrn/process_mount <==> chl_ks/process_mount_in
+    
+    
+    
+    
+    
+    # Conductance densities and reversal potentials:
+    set chl_kf/erev = -81mV
+    set chl_kf/g = 12nS
+    
+    
+    set chl_lk/erev = -65mV
+    set chl_lk/g =  {1.4nS }/ {1000um2}
+    set chl_lk/area= 1000um2
+    
+    set chl_na/erev =  50mV
+    set chl_na/g = 250nS 
+    
+    
+    
+    
+    set nrn/C = 10 pF
+
+    rename nrn/i_sum to i_sum
+
+    }
+
+
+
+
+
+define_compound general_neuron_with_step_inj {
+
+    instantiate general_neuron as nrn
+    instantiate i_squarewave as stim 
+    
+    connect nrn/i_sum <==> stim/i
+    
+    set stim/t_on = 100ms
+    set stim/t_off = 30ms        
+    set stim/i_amp = 100pA
+
+}
+
+
+
+define_compound dIN_with_step_inj {
+
+    instantiate general_neuron as nrn
+    instantiate i_squarewave as stim 
+    
+    connect nrn/i_sum <==> stim/i
+    
+    set stim/t_on = 100ms
+    set stim/t_off = 30ms        
+    set stim/i_amp = 100pA
+
+}
+
+
+
+
+[2013-04-19 13:23] INFO: neurounits: In parse_expr()
+[2013-04-19 13:23] INFO: neurounits: Parsing with PLY: 
+define_compound general_neuron {
+instantiate hh_neuron_base as nrn;
+instantiate chl_lk as chl_lk;
+instantiate chl_kf as chl_kf;
+instantiate chl_na as chl_na;
+multiconnect nrn/process_mount <==> chl_lk/process_mount_in;
+multiconnect nrn/process_mount <==> chl_kf/process_mount_in;
+multiconnect nrn/process_mount <==> chl_na/process_mount_in;
+set chl_lk/area =  3.141 * {30um} * {30um};
+set chl_na/X/area =  3.141 * {30um} * {30um};
+set chl_kf/X/area =  3.141 * {30um} * {30um};
+set chl_lk/erev = -65mV;
+set chl_lk/g =  0.3 mS/cm2;
+set chl_kf/erev = -77mV;
+set chl_kf/g = 36mS/cm2;
+set chl_na/erev =  50mV;
+set chl_na/g = 120mS/cm2;
+set nrn/C = {1uF/cm2} * 3.141 * {30um} * {30um};
+rename nrn/i_sum to i_sum;
+};
+define_compound dIN {
+instantiate hh_neuron_base as nrn;
+instantiate chl_dIN_na as chl_na;
+instantiate chl_lk as chl_lk;
+instantiate chl_dIN_kf as chl_kf;
+instantiate chl_dIN_ks as chl_ks;
+multiconnect nrn/process_mount <==> chl_lk/process_mount_in;
+multiconnect nrn/process_mount <==> chl_kf/process_mount_in;
+multiconnect nrn/process_mount <==> chl_na/process_mount_in;
+multiconnect nrn/process_mount <==> chl_ks/process_mount_in;
+set chl_kf/erev = -81mV;
+set chl_kf/g = 12nS;
+set chl_lk/erev = -65mV;
+set chl_lk/g =  {1.4nS }/ {1000um2};
+set chl_lk/area= 1000um2;
+set chl_na/erev =  50mV;
+set chl_na/g = 250nS;
+set nrn/C = 10 pF;
+rename nrn/i_sum to i_sum;
+};
+define_compound general_neuron_with_step_inj {
+instantiate general_neuron as nrn;
+instantiate i_squarewave as stim;
+connect nrn/i_sum <==> stim/i;
+set stim/t_on = 100ms;
+set stim/t_off = 30ms;
+set stim/i_amp = 100pA;
+};
+define_compound dIN_with_step_inj {
+instantiate general_neuron as nrn;
+instantiate i_squarewave as stim;
+connect nrn/i_sum <==> stim/i;
+set stim/t_on = 100ms;
+set stim/t_off = 30ms;
+set stim/i_amp = 100pA;
+};
