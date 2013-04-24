@@ -199,14 +199,13 @@ class StdFuncs(object):
                                    , dimension=backend.Unit())},
                                    dimension=backend.Unit())
 
-   # @classmethod
-   # def get_max(cls, backend):
-   #     return ast.BuiltInFunction(funcname='min',
-   #                                parameters={
-   #                                    'x': ast.FunctionDefParameter(symbol='x', dimension=None),
-   #                                    'y': ast.FunctionDefParameter(symbol='y', dimension=None)
-   #                                    },
-   #                                dimension=backend.Unit())
+
+
+
+
+
+
+
 
     @classmethod
     def get_builtin_function(cls, name, backend):
@@ -301,6 +300,10 @@ class BuildData(object):
 class AbstractBlockBuilder(object):
 
     def __init__(self, library_manager, block_type, name):
+
+        if not '.' in name and library_manager._parsing_namespace_stack:
+            name = '.'.join(library_manager._parsing_namespace_stack + [name])
+
         self.library_manager = library_manager
         self.builddata = BuildData()
         self.builddata.eqnset_name = name
@@ -342,31 +345,29 @@ class AbstractBlockBuilder(object):
         assert isinstance(value, ast.ConstValue)
         self._default_state_variables[name] = value
 
-        #assert False
 
     def set_initial_regime(self, regime_name):
         assert len( self._all_rt_graphs)  == 1, 'Only one rt grpah supported at the mo (because of default handling)'
         assert self._current_rt_graph.has_regime(name=regime_name), 'Default regime not found! %s' % regime_name
         self._current_rt_graph.default_regime = self._current_rt_graph.get_regime(regime_name)
-        #assert False
+
 
 
     def get_input_event_port(self, port_name,  expected_parameter_names):
-        if not self._input_event_ports.has_obj(name=port_name):
+        if not self._input_event_ports.has_obj(symbol=port_name):
             # Create the parameter objects:
             param_dict = LookUpDict(accepted_obj_types=(ast.InEventPortParameter), unique_attrs=['symbol'])
             for param_name in expected_parameter_names:
                 param_dict._add_item( ast.InEventPortParameter(symbol=param_name) )
 
             # Create the port object:
-            port = ast.InEventPort(name=port_name, parameters=param_dict)
+            port = ast.InEventPort(symbol=port_name, parameters=param_dict)
 
             self._input_event_ports._add_item(port)
 
 
         # Get the event port, and check that the parameters match up:
-        #print 'Getting input port:', port_name
-        p = self._input_event_ports.get_single_obj_by(name=port_name)
+        p = self._input_event_ports.get_single_obj_by(symbol=port_name)
         assert len(p.parameters) == len(expected_parameter_names), 'Parameter length mismatch'
         assert set(p.parameters.get_objects_attibutes(attr='symbol'))==set(expected_parameter_names)
 
@@ -377,8 +378,7 @@ class AbstractBlockBuilder(object):
 
     def get_output_event_port(self, port_name,  expected_parameter_names):
 
-        if not self._output_event_ports.has_obj(name=port_name):
-            #print 'Creating port'
+        if not self._output_event_ports.has_obj(symbol=port_name):
 
             # Create the parameter objects:
             param_dict = LookUpDict(accepted_obj_types=(ast.OutEventPortParameter), unique_attrs=['symbol'])
@@ -386,19 +386,15 @@ class AbstractBlockBuilder(object):
                 param_dict._add_item( ast.OutEventPortParameter(symbol=param_name) )
 
             # Create the port object:
-            port = ast.OutEventPort(name=port_name, parameters=param_dict)
+            port = ast.OutEventPort(symbol=port_name, parameters=param_dict)
 
             self._output_event_ports._add_item(port)
 
 
         # Get the event port, and check that the parameters match up:
-        p = self._output_event_ports.get_single_obj_by(name=port_name)
+        p = self._output_event_ports.get_single_obj_by(symbol=port_name)
         assert len(p.parameters) == len(expected_parameter_names), 'Parameter length mismatch'
 
-        #print 'Getting output port:', port_name
-        #print 'Do params match?:'
-        #print 'Existing:', set(p.parameters.get_objects_attibutes(attr='symbol'))
-        #print 'Expected:', set(expected_parameter_names)
         assert set(p.parameters.get_objects_attibutes(attr='symbol'))==set(expected_parameter_names)
 
         return p
@@ -408,9 +404,6 @@ class AbstractBlockBuilder(object):
 
     def create_emit_event(self, port_name, parameters):
         port = self.get_output_event_port(port_name=port_name, expected_parameter_names=parameters.get_objects_attibutes('_symbol'))
-
-        #print parameters
-        #assert False
 
         # Connect up the parameters:
         for p in parameters:
@@ -447,7 +440,6 @@ class AbstractBlockBuilder(object):
 
     # Internal symbol handling:
     def get_symbol_or_proxy(self, s):
-        #print 'get_symbol_or_proxy:', s
         # Are we in a function definition?
         if self.active_scope is not None:
             return self.active_scope.getSymbolOrProxy(s)
@@ -541,9 +533,6 @@ class AbstractBlockBuilder(object):
         # Resolve the symbols in the namespace
         for (sym, obj) in scope.iteritems():
             # Resolve Symbol from the Event Parameters:
-            #print event_params
-            #print 'sym',sym
-            #assert len(event_params) ==0
             if sym in event_params.get_objects_attibutes(attr='symbol'):
                 obj.set_target( event_params.get_single_obj_by(symbol=sym) ) #event_params[sym])
             else:
@@ -560,7 +549,6 @@ class AbstractBlockBuilder(object):
         port = self.get_input_event_port(port_name=event_name, expected_parameter_names=event_params.get_objects_attibutes('symbol'))
 
         self.builddata.transitions_events.append(
-            #ast.OnEventTransition(event_name=event_name, parameters=event_params, actions= actions, target_regime=target_regime, src_regime=src_regime)
             ast.OnEventTransition(port=port, parameters=event_params, actions= actions, target_regime=target_regime, src_regime=src_regime)
         )
 
@@ -574,9 +562,7 @@ class AbstractBlockBuilder(object):
 
         # Resolve all symbols from the global namespace:
         for (sym, obj) in scope.iteritems():
-            # print 'Resolving:', sym
             obj.set_target(self.global_scope.getSymbolOrProxy(sym))
-            # print self.global_scope.__dict__
 
         src_regime = self.get_current_regime()
         if target_regime is None:
@@ -878,9 +864,10 @@ class AbstractBlockBuilder(object):
         ReduceConstants().visit(ast_object)
 
 
+# TODO: REMVOE HERE
 class EqnSetBuilder(AbstractBlockBuilder):
 
-    def __init__(self, library_manager, name, block_type=ast.EqnSet):
+    def __init__(self, library_manager, name, block_type=ast.NineMLComponent):
         AbstractBlockBuilder.__init__(self,block_type=block_type, library_manager=library_manager,name=name)
 
     def add_io_data(self, l):

@@ -49,9 +49,8 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
             return self.followSymbolProxy(node.target,visited_nodes=visited_nodes)
         return node
 
-    def VisitEqnSet(self, o, **kwargs):
-        for i in itertools.chain(o.timederivatives, o.assignments, o.functiondefs, o.symbolicconstants):
-            self.visit(i)
+
+
 
 
     def VisitNineMLComponent(self, o, **kwargs):
@@ -198,7 +197,7 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         self.visit(o.trigger)
 
     def VisitOnTransitionEvent(self, o, **kwargs):
-        #o.parameters = dict([(sym, self.followSymbolProxy(rhs)) for (sym, rhs) in o.parameters.items()])
+
         o.parameters = LookUpDict( 
                 [self.followSymbolProxy(rhs) for rhs in o.parameters], 
                 accepted_obj_types=o.parameters.accepted_obj_types, 
@@ -213,7 +212,7 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
                 [self.followSymbolProxy(rhs) for rhs in o.parameters], 
                 accepted_obj_types=o.parameters.accepted_obj_types, 
                 unique_attrs=o.parameters.unique_attrs ) 
-        #o.parameter_map= dict([(reg, self.followSymbolProxy(rhs)) for (reg, rhs) in o.parameter_map.items()])
+
         for p in o.parameters:
             self.visit(p)
 

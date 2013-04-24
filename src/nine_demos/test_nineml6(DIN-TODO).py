@@ -9,7 +9,7 @@ library my_neuro {
     ClipTau(tau:{s},tau_min:{s}) = [tau_min] if [tau<tau_min] else [tau]
 }
 
-eqnset my_din {
+define_component my_din {
 
     from my_neuro import RateConstant5, ClipInf, ClipTau
     from std.physics import F,R
@@ -70,12 +70,12 @@ eqnset my_din {
 
     area = 1000um2
     C = {1uF/cm2} * area
-    g_na = {0.025 S/cm2}
+    g_na = {0.025 S/cm2} * 2
     e_na = 50 mV
     g_ks = {1.0 mS/cm2}
     e_k = -81 mV
-    g_kf = {1.25 mS/cm2}
-    g_lk = {0.00025 S/cm2}
+    g_kf = {1.25 mS/cm2} 
+    g_lk = {0.00025 S/cm2} 
     e_lk = -52mV
 
 
@@ -97,6 +97,17 @@ eqnset my_din {
 
     <=> OUTPUT    V
     <=> INPUT    t
+    
+    initial {
+        V = -80mV
+        ks = 0
+        m=0
+        h=0
+        kf=0
+        ca_m=0
+    }
+    
+    
     }
 
 
@@ -107,68 +118,15 @@ import neurounits
 import numpy as np
 import pylab
 from neurounits.writers.writer_ast_to_simulatable_object import EqnSimulator
+from neurounits.nineml import simulate_component
 
-library_manager = neurounits.NeuroUnitParser.File(neuron_def)
-from neurounits import NeuroUnitParser as P
+lm = neurounits.NeuroUnitParser.Parse9MLFile(neuron_def)
 
-print library_manager
+nrn = lm.get('my_din')
 
-evaluator = EqnSimulator(library_manager.eqnsets[0])
-res = evaluator(time_data=np.linspace(0.0, 0.100, 1000), params={},
-                state0In={
-    'V': P.QuantityExpr('-52mV'),
-    'm': P.QuantityExpr('0'),
-    'h': P.QuantityExpr('0'),
-    'kf': P.QuantityExpr('0'),
-    'ks': P.QuantityExpr('0'),
-    'ca_m': P.QuantityExpr('0'),
-    })
 
-print 'Done Simulating'
-print res
-print res.keys()
-
-# pylab.figure()
-# pylab.plot(res['x'], res['y'])
-
-fig = pylab.figure()
-
-ax1 = fig.add_subplot(611)
-ax2 = fig.add_subplot(612)
-ax3 = fig.add_subplot(613)
-ax4 = fig.add_subplot(614)
-ax5 = fig.add_subplot(615)
-ax6 = fig.add_subplot(616)
-
-ax1.plot(res['t'], res['V'], 'x-')
-
-ax2.plot(res['t'], res['i_na_bar'])
-# ax2.plot(res['t'], res['i_lk_bar'])
-# ax2.plot(res['t'], res['i_ks_bar'])
-# ax2.plot(res['t'], res['i_kf_bar'])
-ax2.plot(res['t'], res['i_ca_bar'])
-# ax5.plot(res['t'], res['i_ca_bar'])
-
-# ax3.plot(res['t'], res['m'], 'b')
-# ax3.plot(res['t'], res['h'], 'g')
-# ax3.plot(res['t'], res['ks'], 'm')
-# ax3.plot(res['t'], res['kf'], 'm')
-ax3.plot(res['t'], res['ca_m'], 'r')
-
-ax4.plot(res['t'], res['i_na'], label='na')
-# ax4.plot(res['t'], res['i_lk']  ,label='lk')
-# ax4.plot(res['t'], res['i_ks']  ,label='ks')
-# ax4.plot(res['t'], res['i_kf']  ,label='kf')
-ax4.plot(res['t'], res['i_ca'], label='ca')
-ax6.plot(res['t'], res['i_ca'], label='ca')
-# ax4.plot(res['t'], res['i_Inj'] ,label='iinj')
-
-ax4.legend()
-
-# ax1.plot(res['t'], res['i_Inj'])
-ax1.margins(0.100)
-ax2.margins(0.100)
-ax3.margins(0.100)
-ax4.margins(0.100)
+res = simulate_component( component = nrn, times=np.linspace(0.0, 0.100, 10000) )
+res.plot_auto()
 
 pylab.show()
+

@@ -30,8 +30,8 @@
 from .astobjects import ASTExpressionObject
 
 class OnEvent(object):
-    def __init__(self, name, parameters, actions, **kwargs):
-        self.name = name
+    def __init__(self, symbol, parameters, actions, **kwargs):
+        self.symbol = symbol
         self.parameters = parameters
         self.actions = [a for a in actions if a]
 

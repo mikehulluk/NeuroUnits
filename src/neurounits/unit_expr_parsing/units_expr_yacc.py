@@ -106,8 +106,8 @@ def p_namespace_def2(p):
 # ==============
 
 def p_compoundport_1(p):
-    """ compound_port_def : DEFINE_COMPOUNDPORT alphanumtoken LCURLYBRACKET compound_port_def_contents RCURLYBRACKET SEMICOLON"""
-    compound_port = ast.CompoundPortDef( name=p[2], connections = p[4] )
+    """ compound_port_def : INTERFACE alphanumtoken LCURLYBRACKET compound_port_def_contents RCURLYBRACKET SEMICOLON"""
+    compound_port = ast.Interface( symbol=p[2], connections = p[4] )
     p.parser.library_manager.add_compoundportdef(compound_port)
 
 def p_compoundport_2(p):
@@ -121,32 +121,32 @@ def p_compoundport_2(p):
 
 def p_compoundport_3a(p):
     """ compound_port_def_direction_arrow : COMPOUNDPORT_IN"""
-    p[0] = (ast.CompoundPortDefWire.DirRight, False)
+    p[0] = (ast.InterfaceWire.DirRight, False)
 
 def p_compoundport_3b(p):
     """ compound_port_def_direction_arrow : COMPOUNDPORT_IN_OPT"""
-    p[0] = (ast.CompoundPortDefWire.DirRight, True)
+    p[0] = (ast.InterfaceWire.DirRight, True)
 
 def p_compoundport_3c(p):
     """ compound_port_def_direction_arrow : COMPOUNDPORT_OUT"""
-    p[0] = (ast.CompoundPortDefWire.DirLeft, False)
+    p[0] = (ast.InterfaceWire.DirLeft, False)
 
 def p_compoundport_3d(p):
     """ compound_port_def_direction_arrow : COMPOUNDPORT_OUT_OPT"""
-    p[0] = (ast.CompoundPortDefWire.DirLeft, True)
+    p[0] = (ast.InterfaceWire.DirLeft, True)
 
 
 # Analog port:
 def p_compoundport_7(p):
     """compound_port_def_line : compound_port_def_direction_arrow alphanumtoken COLON LBRACKET unit_expr RBRACKET """
     direction, optional = p[1]
-    p[0] = ast.CompoundPortDefWireContinuous( symbol=p[2], direction=direction, unit=5, optional=optional)
+    p[0] = ast.InterfaceWireContinuous( symbol=p[2], direction=direction, unit=5, optional=optional)
 
 # Events:
 def p_compoundport_8(p):
     """compound_port_def_line : compound_port_def_direction_arrow alphanumtoken LBRACKET compoundport_event_param_list RBRACKET"""
     direction, optional = p[1]
-    p[0] = ast.CompoundPortDefWireEvent( symbol=p[2], direction=direction, parameters=p[4], optional=optional)
+    p[0] = ast.InterfaceWireEvent( symbol=p[2], direction=direction, parameters=p[4], optional=optional)
 
 
 def p_compoundport_event_param_list_1(p):
@@ -177,18 +177,25 @@ def p_ns_name(p):
     else:
         p[0] = p[1] + '/' + p[3]
 
+def p_ns_dotname(p):
+    """ns_dot_name : alphanumtoken
+                   | ns_dot_name DOT alphanumtoken """
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        p[0] = p[1] + '.' + p[3]
+
 
 def p_compound_component(p):
     """compound_component_def : DEFINE_COMPOUND alphanumtoken LCURLYBRACKET compoundcontents RCURLYBRACKET SEMICOLON"""
 
-    #print 'Building Compound component:'
-    #print 'IN compoung componet'
+
     lib_mgr = p.parser.library_manager
     name = p[2]
     actions = p[4]
-    #print 'Buidling:', name
+
     instantiations = [ (d['as'], lib_mgr.get(d['what'])) for d in actions if d['action']=='INSTANTIATE']
-    #print '  - Got instantiations'
+
     connections = [ d['what'] for d in actions if d['action']=='CONNECT']
     multiconnections = [ d['what'] for d in actions if d['action']=='MULTICONNECT']
     renames = [ d['what'] for d in actions if d['action']=='RENAME']
@@ -196,9 +203,7 @@ def p_compound_component(p):
 
     compound_ports = [ d['port_instance'] for d in actions if d['action']=='COMPOUNDPORT'] 
     set_parameters = [ (d['lhs'], d['rhs']) for d in actions if d['action']=='SET'] 
-   
-     
-    #assert False
+
     from neurounits.nineml import build_compound_component
     component = build_compound_component(
             component_name=name,
@@ -210,15 +215,14 @@ def p_compound_component(p):
             multiconnections=multiconnections,
             set_parameters = set_parameters,
             )
-    #assert False
+
     lib_mgr = p.parser.library_manager.add_component(component)
 
-    #print component.name
-    #print name
+
     assert component.name == name
-    #print 'Created compound component:', name
-    #assert False
-    #
+
+
+
 
 
 def p_compound_component2(p):
@@ -230,7 +234,7 @@ def p_compound_component2(p):
         p[0] = p[1] + [p[2]]
 
 def p_compound_component3(p):
-    """compound_line : INSTANTIATE alphanumtoken AS alphanumtoken"""
+    """compound_line : INSTANTIATE ns_dot_name AS alphanumtoken"""
     p[0] = {'action': 'INSTANTIATE' , 'what':p[2], 'as':p[4] }
     
 def p_compound_component4(p):
@@ -871,8 +875,20 @@ def p_rhs_term_div(p):
 
 
 
+def p_rhs_term_AND(p):
+    """ AND : AND_SYM 
+            | AND_KW """
+    pass
 
+def p_rhs_term_OR(p):
+    """ OR : OR_SYM 
+            | OR_KW """
+    pass
 
+def p_rhs_term_NOT(p):
+    """ NOT : NOT_SYM 
+            | NOT_KW """
+    pass
 
 
 
@@ -1126,9 +1142,9 @@ def p_error(p):
 # ( e.g. {2 m/ s s} )
 precedence = (
 
-    ('left', 'OR'),
-    ('left', 'AND'),
-    ('right', 'NOT'),
+    ('left', 'OR_KW', 'OR_SYM'),
+    ('left', 'AND_KW', 'AND_SYM'),
+    ('right', 'NOT_KW', 'NOT_SYM'),
     ('left', 'GREATERTHAN'),
     ('left', 'LESSTHAN'),
     ('left', 'PLUS', 'MINUS'),
@@ -1147,9 +1163,6 @@ class ParseDetails(object):
         ParseTypes.L1_Unit: 'unit_expr',
         ParseTypes.L2_QuantitySimple: 'quantity_expr',
         ParseTypes.L3_QuantityExpr: 'rhs_generic',
-        #ParseTypes.L4_EqnSet: 'eqnset',
-        #ParseTypes.L5_Library: 'library_set',
-        #ParseTypes.L6_TextBlock: 'text_block',
         ParseTypes.N6_9MLFile: 'nineml_file',
         }
 
@@ -1161,9 +1174,9 @@ class ParserMgr(object):
     @classmethod
     def build_parser(cls, start_symbol, debug):
 
-        #debug=True
+        debug=True
 
-        from neurounits.logging import log_neurounits
+        from neurounits.nulogging import log_neurounits
         log_neurounits.info('Building Parser for: %s' % start_symbol)
 
 
@@ -1186,8 +1199,8 @@ class ParserMgr(object):
 
 
 
-import neurounits.logging as logging
-from neurounits.logging import MLine
+import neurounits.nulogging as logging
+from neurounits.nulogging import MLine
 
 def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
 
@@ -1227,12 +1240,19 @@ def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=No
         ev = FunctorGenerator().visit(pRes)
         pRes = ev()
 
+
+
+
     # And return the correct type of object:
     ret = { ParseTypes.L1_Unit:             lambda: pRes,
             ParseTypes.L2_QuantitySimple:   lambda: pRes,
             ParseTypes.L3_QuantityExpr:     lambda: pRes,
             ParseTypes.N6_9MLFile:        lambda: library_manager,
     }
+
+
+
+
 
     return ret[parse_type]()
 
@@ -1264,14 +1284,14 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
     # 'A': When loading QuantityExpr or Functions, we might use
     # stdlib functions. Therefore; we we need a 'block_builder':
     if parse_type in [ParseTypes.L3_QuantityExpr]:
-        parser.library_manager.start_eqnset_block()
-        parser.library_manager.get_current_block_builder().set_name('anon')
+        parser.library_manager.start_component_block(name='anon')
+        #parser.library_manager.get_current_block_builder().set_name('anon')
 
     pRes = parser.parse(text_eqn, lexer=lexer, debug=debug)
 
     # Close the block we opened in 'A'
     if parse_type in [ParseTypes.L3_QuantityExpr]:
-        parser.library_manager.end_eqnset_block()
+        parser.library_manager.end_component_block()
 
     parser.library_manager = None
 

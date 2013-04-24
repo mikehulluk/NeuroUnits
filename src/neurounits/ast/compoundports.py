@@ -10,59 +10,63 @@ class PortDirection(object):
     Out = 'Out'
 
 
-class CompoundPortDefWire(base.ASTObject):
+class InterfaceWire(base.ASTObject):
     DirRight = 'DirRight'
     DirLeft = 'DirLeft'
 
     DirCute = {DirRight:'==>>', DirLeft:'<<=='}
 
     def __init__(self, symbol, direction, optional=False):
-        assert direction in [CompoundPortDefWire.DirRight, CompoundPortDefWire.DirLeft]
+        assert direction in [InterfaceWire.DirRight, InterfaceWire.DirLeft]
         self.symbol = symbol
         self.direction = direction
         self.optional = optional
 
-class CompoundPortDefWireContinuous(CompoundPortDefWire):
+class InterfaceWireContinuous(InterfaceWire):
     def __init__(self, symbol, direction, unit, optional=False):
-        super(CompoundPortDefWireContinuous, self).__init__( symbol=symbol, direction=direction, optional=optional)
+        super(InterfaceWireContinuous, self).__init__( symbol=symbol, direction=direction, optional=optional)
         self.unit = unit
 
     def _summarise(self):
         print '  ', self.DirCute[self.direction],self.symbol.ljust(5),  'Analog', self.unit, 'Optional:', self.optional
 
     def accept_visitor(self, visitor, **kwargs):
-        return visitor.VisitCompoundPortDefWireContinuous(self, **kwargs)
+        return visitor.VisitInterfaceWireContinuous(self, **kwargs)
 
-class CompoundPortDefWireEvent(CompoundPortDefWire):
+class InterfaceWireEvent(InterfaceWire):
     def __init__(self, symbol, direction, parameters, optional=False):
-        super(CompoundPortDefWireEvent, self).__init__( symbol=symbol, direction=direction, optional=optional)
+        super(InterfaceWireEvent, self).__init__( symbol=symbol, direction=direction, optional=optional)
         self.parameters = parameters
     def _summarise(self):
         print '  ', self.DirCute[self.direction],self.symbol.ljust(5),  'Event', ['%s:%s'%p for p in self.parameters ], 'Optional:', self.optional
 
     def accept_visitor(self, visitor, **kwargs):
-        return visitor.VisitCompoundPortDefWireEvent(self, **kwargs)
+        return visitor.VisitInterfaceWireEvent(self, **kwargs)
 
     def __repr__(self,):
-        return '<CompoundPortDefWireEvent: %s (Optional:%s, Direction:%s)>' %( self.symbol, self.optional, self.direction)
+        return '<InterfaceWireEvent: %s (Optional:%s, Direction:%s)>' %( self.symbol, self.optional, self.direction)
 
 
 
-class CompoundPortDef(base.ASTObject):
+class Interface(base.ASTObject):
 
     def accept_visitor(self, visitor, **kwargs):
-        return visitor.VisitCompoundPortDef(self, **kwargs)
+        return visitor.VisitInterface(self, **kwargs)
 
 
-    def __init__(self, name, connections):
-        super(CompoundPortDef, self).__init__()
-        #print 'Creating CompoundPortDef:', id(self)
-        self.name = name
-        self.connections = LookUpDict(connections, accepted_obj_types=(CompoundPortDefWire,))
+    def __init__(self, symbol, connections):
+        super(Interface, self).__init__()
+
+        self.symbol = symbol
+        self.connections = LookUpDict(connections, accepted_obj_types=(InterfaceWire,))
+
+    @property
+    def name(self):
+        return self.symbol
 
     def summarise(self):
         print
-        print 'Compound Port: %s' % self.name
+        print 'Compound Port: %s' % self.symbol
         for conn in self.connections:
             conn._summarise()
         print
@@ -71,7 +75,7 @@ class CompoundPortDef(base.ASTObject):
         return self.connections.get_single_obj_by(symbol=wire_name)
 
     def __repr__(self, ):
-        return '<CompoundPortDef: %s (%s)>' % (self.name, id(self))
+        return '<Interface: %s (%s)>' % (self.symbol, id(self))
 
 
 class CompoundPortConnectorWireMapping(base.ASTObject):
@@ -81,11 +85,11 @@ class CompoundPortConnectorWireMapping(base.ASTObject):
         self.compound_port = compound_port
 
         import neurounits.ast as ast
-        #print 'component_port', type(component_port)
-        #print 'compound_port', type(compound_port)
+
+
 
         assert isinstance(component_port, (ast.SuppliedValue, ast.AssignedVariable, ast.StateVariable, ast.AnalogReducePort) )
-        assert isinstance(compound_port, (CompoundPortDefWireContinuous, CompoundPortDefWireEvent) )
+        assert isinstance(compound_port, (InterfaceWireContinuous, InterfaceWireEvent) )
 
     def accept_visitor(self, visitor, **kwargs):
         return visitor.VisitCompoundPortConnectorWireMapping(self, **kwargs)
@@ -101,16 +105,16 @@ class CompoundPortConnector(base.ASTObject):
     def accept_visitor(self, visitor, **kwargs):
         return visitor.VisitCompoundPortConnector(self, **kwargs)
 
-    def __init__(self, name, compound_port_def, wire_mappings, direction):
+    def __init__(self, symbol, compound_port_def, wire_mappings, direction):
         super(CompoundPortConnector, self).__init__()
 
-        self.name = name
+        self.symbol = symbol
         self.compound_port_def =  compound_port_def
         self.wire_mappings = LookUpDict(wire_mappings, accepted_obj_types=(CompoundPortConnectorWireMapping,) )
         self.direction = direction
 
     def __repr__(self):
-        return '<CompoundPortConnctor: %s (%s) [%s] (%s)>' % ( self.name,self.direction, '??', id(self))
+        return '<CompoundPortConnctor: %s (%s) [%s] (%s)>' % ( self.symbol,self.direction, '??', id(self))
 
     def get_direction(self):
         return self.direction

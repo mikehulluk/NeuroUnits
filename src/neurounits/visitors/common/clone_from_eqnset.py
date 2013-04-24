@@ -60,8 +60,8 @@ class _CloneFuncDef(ASTVisitorBase):
     def __init__(self):
         self.func_param_map = {}
 
-    def VisitEqnSet(self, o, **kwargs):
-        panic()
+    #def VisitEqnSet(self, o, **kwargs):
+    #    panic()
 
     def VisitOnEvent(self, o, **kwargs):
         panic()

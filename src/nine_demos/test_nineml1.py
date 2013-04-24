@@ -11,23 +11,16 @@ from neurounits.nineml import build_compound_component
 from neurounits.nineml import simulate_component
 
 
+from yapsy.IPlugin import IPlugin
+
+class PluginOne(IPlugin):
+    def get_name(self):
+        return '1'
+
+    def run_demo(self, ):
+        test1()
 
 
-
-def test0():
-    src_files = [
-        "/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/simple_components.9ml" ,
-        "/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/more_components.9ml" ,
-        "/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/complex_component.9ml" ,
-    ]
-
-    #src_files = [s.replace('libs/','') for s in src_files]
-
-
-    library_manager = None
-    for s in src_files:
-        text = open(s).read()
-        library_manager = neurounits.NeuroUnitParser.Parse9MLFile( text, library_manager=library_manager)
 
 
 
@@ -39,7 +32,6 @@ def test0():
 
 
 test_text = """
-namespace test {
     define_component step_current{
         regime OFF{
             i=0A
@@ -63,18 +55,9 @@ namespace test {
         B' = -B/t_close
 
         g = g_bar * (B-A)
-        i = g * (e_syn-V_post) 
-        regime init{
-            on(0<1){
-                transition_to sub
-            }
-        }
+        i = g * (e_syn-V_post)
 
-        #init_with {
-        #    A = 0
-        #    B = 0
-        #    transition_to sub
-        #}
+
 
         regime sub{
             on(V_pre>0mV){
@@ -91,6 +74,10 @@ namespace test {
 
         }
 
+        initial {
+                regime sub
+        }
+
         <=> OUTPUT i:(A)
         <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
         <=> INPUT V_pre:(V), V_post:(V)
@@ -100,15 +87,8 @@ namespace test {
 
 
     define_component i_squarewave{
-        t_last'=0
         i=0nA
-        regime init{
-            i=0A
-            on(0<1){
-                t_last = 0s
-                transition_to OFF
-                }
-        }
+
 
         regime OFF{
             i=0A
@@ -124,6 +104,10 @@ namespace test {
                 t_last = t
                 transition_to OFF;
                 }
+        }
+        initial{
+            t_last = 0s
+            regime OFF
         }
 
         <=> PARAMETER t_on, t_off
@@ -157,15 +141,7 @@ namespace test {
     }
 
     define_component evt_gen {
-        t_last'=0
 
-        regime init{
-            t_last'=0
-            on(0<1){
-                t_last = 0s
-            transition_to std
-            }
-        }
 
         regime std{
             t_last'=0
@@ -175,6 +151,12 @@ namespace test {
                 emit myotherevent(x=5pS, y=6pA)
             }
         }
+
+        initial{
+            t_last = 0s
+            regime std
+            }
+
         <=> INPUT t:(ms)
     }
 
@@ -184,7 +166,7 @@ namespace test {
         B' = -B/t_close
 
         g = g_bar * (B-A)
-        i = g * (e_syn-V_post) 
+        i = g * (e_syn-V_post)
 
 
         on myevent(amp:{S}){
@@ -199,27 +181,10 @@ namespace test {
 
 
 
-}
 """
 
 
-library_manager = neurounits.NeuroUnitParser.Parse9MLFile( test_text )
 
-
-test_clone = True
-#test_clone = False
-if test_clone:
-    c = library_manager.get( 'i_squarewave')
-    d = c.clone()
-
-    c_ast = set(c.all_ast_nodes())
-    d_ast = set(d.all_ast_nodes())
-
-    overlapping = c_ast & d_ast
-    print 'Overlapping components'
-    for o in overlapping:
-        print '  ', o
-    assert c_ast & d_ast == set()
 
 
 
@@ -246,19 +211,17 @@ if test_clone:
 
 
 def test1():
-    #def merge_components( components
     library_manager =  neurounits.NeuroUnitParser.Parse9MLFile( test_text )
     chlstd_leak = library_manager.get('chlstd_leak')
     std_neuron = library_manager.get('std_neuron')
     step_current = library_manager.get('step_current')
     square_current = library_manager.get('i_squarewave')
     simple_syn1 = library_manager.get('simple_syn')
-    simple_syn2 = library_manager.get('simple_syn')
 
     evt_gen = library_manager.get('evt_gen')
     evt_syn = library_manager.get('evt_syn')
-    
-    
+
+
 
     c1 = build_compound_component(
           component_name = 'Neuron1',
@@ -288,16 +251,14 @@ def test1():
           component_name = 'driven_synapse',
           instantiate = { 'spike_gen': evt_gen, 'syn': evt_syn,},
           event_connections = [
-            ('spike_gen/myevent', 'syn/myevent' ), 
+            ('spike_gen/myevent', 'syn/myevent' ),
             ],
           analog_connections = [
-            #('lk/i', 'nrn/i_sum'),
-            #('nrn/V', 'lk/V'),
           ],
     )
 
 
-    
+
     c = build_compound_component(
           component_name = 'network',
           instantiate = { 'nrn1': c1, 'nrn2': c2, 'syn1':simple_syn1, 'syn2':c3},
@@ -306,7 +267,7 @@ def test1():
             ('syn1/i','nrn2/nrn/i_sum'),
             ('nrn1/nrn/V','syn1/V_pre'),
             ('nrn2/nrn/V','syn1/V_post'),
-            
+
             ('syn2/syn/i','nrn2/nrn/i_sum'),
             ('nrn2/nrn/V','syn2/syn/V_post'),
           ],
@@ -333,7 +294,7 @@ def test1():
                             'syn1/t_close': '10ms',
                             'syn1/g_bar': '100pS',
                             'syn1/e_syn': '0mV',
-                            
+
                             'syn2/syn/t_close':'80ms',
                             'syn2/syn/t_open':'4ms',
                             'syn2/syn/g_bar': '10pS',
@@ -343,13 +304,11 @@ def test1():
                         initial_state_values={
                             'nrn1/nrn/V': '-50mV',
                             'nrn2/nrn/V': '-60mV',
-                            'nrn1/i_square/t_last': '0ms',
                             'syn1/A':'0',
                             'syn1/B':'0',
-                            
+
                             'syn2/syn/A':'0',
                             'syn2/syn/B':'0',
-                            'syn2/spike_gen/t_last':'0ms',
                         },
                         initial_regimes={
                             'nrn1/i_inj/':'OFF',
@@ -373,15 +332,12 @@ def test1():
 
 
 
-from logbook import FileHandler
-log_handler = FileHandler('application.log')
-log_handler.push_application()
-
-from neurounits.logging import logbook as lb
 
 def main():
-    test0()
     test1()
     pylab.show()
-main()
+
+
+if __name__ == '__main__':
+    main()
 

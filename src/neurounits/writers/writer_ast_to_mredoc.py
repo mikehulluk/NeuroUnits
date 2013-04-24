@@ -30,6 +30,7 @@ from neurounits.visitors import ASTVisitorBase
 from mredoc import VerticalColTable, Figure, SectionNewPage, Section, EquationBlock, VerbatimBlock, Equation, Image, HierachyScope
 from neurounits.ast.astobjects import SuppliedValue
 from neurounits.ast.astobjects import Parameter, StateVariable
+from neurounits.ast import AnalogReducePort
 from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator
 
 import quantities as pq
@@ -93,7 +94,6 @@ class LatexEqnWriterN(ASTVisitorBase):
             return r"\langle %s ~ \mathrm{%s} \rangle" \
                 % (str(val.magnitude), dim_str)
 
-    # High Level Display:
 
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
@@ -107,7 +107,7 @@ class LatexEqnWriterN(ASTVisitorBase):
         if len(o.rhs_map) == 1:
             return self.visit(o.rhs_map.values()[0])
         else:
-            case_lines = [ '%s & if %s'%(reg, self.visit(rhs)) for (reg,rhs) in o.rhs_map ]
+            case_lines = [ '%s & if %s'%(reg, self.visit(rhs)) for (reg,rhs) in o.rhs_map.items() ]
             return r""" \begin{cases} %s \end{cases}""" % ( r'\\'.join(case_lines))
 
 
@@ -118,7 +118,7 @@ class LatexEqnWriterN(ASTVisitorBase):
 
 
     def VisitOnEvent(self, o, **kwargs):
-        ev_name = o.name.replace('_', '\\_')
+        ev_name = o.symbol.replace('_', '\\_')
 
         tr = '%s(%s) \\rightarrow ' % (ev_name,
                 ','.join(o.parameters.keys()))  #
@@ -129,7 +129,6 @@ class LatexEqnWriterN(ASTVisitorBase):
     def VisitOnEventStateAssignment(self, o, **kwargs):
         return '%s = %s' % (self.visit(o.lhs), self.visit(o.rhs))
 
-    # Function Definitions:
 
     def VisitFunctionDef(self, o, **kwargs):
         return Equation('%s(%s) \\rightarrow %s' % (o.funcname,
@@ -139,7 +138,6 @@ class LatexEqnWriterN(ASTVisitorBase):
     def VisitFunctionDefParameter(self, o, **kwargs):
         return "\mathit{%s}" % o.symbol.replace('_', '\\_')
 
-    # Terminals:
 
     def VisitStateVariable(self, o, **kwargs):
         return self.FormatTerminalSymbol(o.symbol)
@@ -149,6 +147,10 @@ class LatexEqnWriterN(ASTVisitorBase):
 
     def VisitConstant(self, o, **kwargs):
         return self.FormatInlineConstant(o.value)
+    
+    def VisitConstantZero(self, o, **kwargs):
+        from neurounits.units_backends.mh import MMQuantity
+        return self.FormatInlineConstant( MMQuantity(0, o.get_dimension()) )
 
     def VisitAssignedVariable(self, o, **kwargs):
         return self.FormatTerminalSymbol(o.symbol)
@@ -159,7 +161,8 @@ class LatexEqnWriterN(ASTVisitorBase):
     def VisitSymbolicConstant(self, o, **kwargs):
         return self.FormatTerminalSymbol(o.symbol)
 
-    # AST Nodes:
+    def VisitAnalogReducePort(self, o, **kwargs):
+        return self.FormatTerminalSymbol(o.symbol)
 
     def VisitAddOp(self, o, **kwargs):
         return '(%s + %s)' % (self.visit(o.lhs), self.visit(o.rhs))
@@ -224,7 +227,8 @@ def build_figures(eqnset):
         deps_params = [d for d in all_deps if isinstance(d, Parameter)]
         deps_state = [d for d in all_deps if isinstance(d,
                       StateVariable)]
-        assert len(deps_sup + deps_params + deps_state) == len(all_deps)
+        deps_reduce_ports = [d for d in all_deps if isinstance(d, AnalogReducePort)]
+        assert len(deps_sup + deps_params + deps_state + deps_reduce_ports) == len(all_deps)
 
         # Ignore anything deopendant on state variables:
 
@@ -242,13 +246,13 @@ def build_figures(eqnset):
             if not meta:
                 continue
 
-            # print meta
+            print meta
 
+            
             if not 'mf' in meta or not 'role' in meta['mf']:
                 continue
             role = meta['mf']['role']
 
-            # print role
 
             if role != 'MEMBRANEVOLTAGE':
                 continue
@@ -259,7 +263,6 @@ def build_figures(eqnset):
             f = F.assignment_evaluators[a.symbol]
 
             try:
-                #print f
                 vVals = [-80, -70, -60, -40, -20, 0, 20, 40]
                 vVals = np.linspace(-80, 50, 22) #* pq.milli * pq.volt
                 oUnit = None
@@ -268,7 +271,6 @@ def build_figures(eqnset):
                     from neurounits.neurounitparser import NeuroUnitParser
                     vUnit = NeuroUnitParser.QuantitySimple('%f mV' % v)
                     vRes = f(V=vUnit, v=vUnit)
-                    #vRes = f(V=v, v=v)
                     if oUnit is None:
                         oUnit = vRes.unit
                     assert vRes.unit == oUnit
@@ -356,7 +358,7 @@ class MRedocWriterVisitor(ASTVisitorBase):
 
 
 
-    def VisitEqnSet(self, eqnset):
+    def VisitNineMLComponent(self, eqnset):
 
         format_dim = lambda o: ('$%s$'
                                 % FormatDimensionality(o.get_dimension()) if not o.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False) else '-'

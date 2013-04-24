@@ -54,12 +54,10 @@ class DebugScope(object):
     def __init__(self, s ):
         self.s = s
     def __enter__(self):
-        #print 'Entering Scope: %s' % self.s
         DebugScope.nesting_depth = DebugScope.nesting_depth + 1
 
     def __exit__(self, *args):
         DebugScope.nesting_depth = DebugScope.nesting_depth - 1
-        #print 'Exiti Scope: %s' % self.s, args
 
 
 std_out_orig = sys.stdout
@@ -184,18 +182,8 @@ class EqnSimulator(object):
 
 
 
-        ## Sanity Check:
-        #for a,ev in self.fObj.assignment_evaluators.iteritems():
-        #    x = state0In
-        #    x.update(params)
-        #    x['t'] = self.ast.library_manager.backend.Quantity(0.0,self.ast.library_manager.backend.Unit(second=1) )
-        #    ev(**state0In)
 
-        # ACTION!
-        #evaluate_gradient(state0, 0.0)
 
-        # Resolve the starting values:
-        #state0 = [ get_as_si(get_initial_condition(td.lhs.symbol) ) for td in self.timederivatives ]
 
 
 
@@ -296,6 +284,9 @@ class SimulationStateData(object):
         self.rt_regimes = rt_regimes
         self.event_manager = event_manager
 
+    def clear_states_out(self):
+        self.states_out = {}
+
     def copy(self):
         return SimulationStateData(parameters=self.parameters.copy(),
                                    suppliedvalues=self.suppliedvalues.copy(),
@@ -333,7 +324,7 @@ class FunctorGenerator(ASTVisitorBase):
         self.as_float_in_si = as_float_in_si
 
         if eqnset is not None:
-            assert isinstance(eqnset, ast.EqnSet)
+            assert isinstance(eqnset, ast.NineMLComponent)
             self.visit(eqnset)
 
     #def VisitEqnSet(self, o, **kwargs):

@@ -110,12 +110,12 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
     def verify_equal_units(self, objs):
         from neurounits.units_backends.mh import MMUnit
         from neurounits.ast import ASTExpressionObject
-        #print 'Checking', objs
+
         if len(objs) == 0:
             return
         o0 = objs[0]
         for o in objs:
-            #print o, o0
+
             assert isinstance(o, ASTExpressionObject)
             assert isinstance(o0, ASTExpressionObject)
             if not o.get_dimension().is_compatible(o0.get_dimension()):
@@ -123,8 +123,7 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
                 print o, o0
                 assert False,' %s, %s (%s %s)' %(o,o0, o.get_dimension(), o0.get_dimension())
 
-    def ActionEqnSet(self, o, **kwargs):
-        pass
+
 
     def ActionLibrary(self, o, **kwargs):
         pass
@@ -147,7 +146,6 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
     def ActionBoolNot(self, o, **kwargs):
         pass
 
-    # Function Definitions:
     def ActionFunctionDef(self, o, **kwargs):
         self.verify_equal_units([o, o.rhs])
 
@@ -157,7 +155,6 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
     def ActionFunctionDefParameter(self, o, **kwargs):
         pass
 
-    # Terminals:
     def ActionStateVariable(self, o, **kwargs):
         if o.initial_value: 
             self.verify_equal_units([o, o.initial_value])
@@ -210,9 +207,9 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
         (o.lhs.get_dimension() / o.rhs.get_dimension()).check_compatible(o.get_dimension())
 
     def ActionExpOp(self, o, **kwargs):
-        assert o.is_dimensionless()
-        assert o.lhs.is_dimensionless()
-        assert o.rhs.is_dimensionless()
+        assert o.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False)
+        assert o.lhs.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False)
+        assert isinstance(o.rhs, int)
 
     def ActionFunctionDefInstantiation(self, o, **kwargs):
         self.verify_equal_units([o, o.function_def])
@@ -236,7 +233,6 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
         pass
 
     def ActionOnEventDefParameter(self, o, **kwargs):
-        # self.verify_equal_units([o,
         pass
 
     def ActionOutEventPortParameter(self, o, **kwargs):
@@ -277,17 +273,17 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
 
 
 
-    def VisitCompoundPortDefWireContinuous(self, o):
+    def VisitInterfaceWireContinuous(self, o):
         pass
 
-    def VisitCompoundPortDefWireEvent(self, o):
+    def VisitInterfaceWireEvent(self, o):
         pass
 
 
 
     def VisitCompoundPortConnectorWireMapping(self, o):
         pass
-    def VisitCompoundPortDef(self, o):
+    def VisitInterface(self, o):
         pass
     def VisitCompoundPortConnector(self, o):
         pass
@@ -316,7 +312,7 @@ class DimensionResolver(ASTVisitorBase):
                 u.get_dimension() == au.get_dimension()
             except UnitMismatchError, e:
                 raise UnitMismatchError(unitA=u.get_dimension(), unitB=au.get_dimension(), objA=u, objB=au)
-            #check_dimension_compatible(u, au)
+
 
         unassigned_dimensions = [a for a in args if not a.is_dimension_known()]
         for au in unassigned_dimensions:
@@ -529,7 +525,6 @@ class DimensionResolver(ASTVisitorBase):
             self.EnsureEqualDimensions([p.rhs_ast, p])
             self.EnsureEqualDimensions([p, p._function_def_parameter])
             self.EnsureEqualDimensions([p.rhs_ast, p._function_def_parameter])
-            #self.EnsureEqualDimensions([p, p._function_def_parameter.rhs_ast])
 
         # powint and sqrt need to  be handled differently, since thier
         # dimensions depend on the input and output:
@@ -662,14 +657,14 @@ class DimensionResolver(ASTVisitorBase):
     def VisitEventPortConnection(self, o):
         pass
 
-    def VisitCompoundPortDefWireContinuous(self, o):
+    def VisitInterfaceWireContinuous(self, o):
         pass
 
 
 
     def VisitCompoundPortConnectorWireMapping(self, o):
         pass
-    def VisitCompoundPortDef(self, o):
+    def VisitInterface(self, o):
         pass
     def VisitCompoundPortConnector(self, o):
         pass
@@ -694,7 +689,7 @@ class PropogateDimensions(object):
 
             while True:
                 nUnresolvedPre = len([s for s in obj_with_dimension if not s.is_dimension_known()])
-                #res_symbols = [uR.visit(s) for s in all_symbols]
+
                 for s in all_symbols:
                     # print s
                     uR.visit(s)
@@ -703,19 +698,7 @@ class PropogateDimensions(object):
                 if nUnresolvedPre == nUnresolvedPost:
                     break
         except UnitMismatchError, e:
-
             raise
-
-            # print 'Error with: '
-            # print ' - ', labels[e.objA], "Unit:", e.objA.get_dimension()
-            # print ' - ', labels[e.objB], "Unit:", e.objB.get_dimension()
-            # print
-            # s1 = StringWriterVisitor().visit(e.objA)
-            # s2 = StringWriterVisitor().visit(e.objB)
-            # print 'S1:', s1
-            # print 'S2:',  s2
-            # #assert False
-            # raise
 
         # Look for unresolved symbols:
         symbols_without_dimension = [s for s in all_symbols if isinstance(s, ast.ASTExpressionObject) and not s.is_dimension_known()]

@@ -41,7 +41,6 @@ class ASTClone(object):
             if old_node == obj:
                 new_obj = new_node
             ReplaceNode.replace_and_check(srcObj=old_node, dstObj=new_node, root = obj)
-            #print ' Replaced:', old_node
 
 
         assert new_obj is not None
@@ -53,10 +52,6 @@ class ASTClone(object):
     def visit(self, o, **kwargs):
         return o.accept_visitor(self, **kwargs)
 
-    def VisitEqnSet(self, o, **kwargs):
-        assert False
-
-        raise NotImplementedError()
 
     def VisitRTGraph(self, o, **kwargs):
         new = ast.RTBlock(name = o.name)
@@ -70,7 +65,6 @@ class ASTClone(object):
         new = ast.Regime(name=o.name, parent_rt_graph = o.parent_rt_graph)
         return new
 
-        #self.parent_rt_graph = parent_rt_graph
 
 
 
@@ -306,7 +300,7 @@ class ASTClone(object):
 
     def VisitOutEventPort(self, o, **kwargs):
         return ast.OutEventPort(
-                name = o.name,
+                symbol = o.symbol,
                 parameters = o.parameters.copy()
                 )
     def VisitEmitEvent(self, o, **kwargs):
@@ -317,7 +311,7 @@ class ASTClone(object):
 
     def VisitInEventPort(self,o, **kwargs):
         return ast.InEventPort(
-                name = o.name,
+                symbol = o.symbol,
                 parameters = o.parameters.copy()
                 )
         
@@ -335,7 +329,7 @@ class ASTClone(object):
 
     def VisitCompoundPortConnector(self, o, **kwaargs):
         return ast.CompoundPortConnector(
-                name = o.name, 
+                symbol = o.symbol, 
                 compound_port_def = o.compound_port_def,
                 wire_mappings = o.wire_mappings.copy(),
                 direction = o.direction

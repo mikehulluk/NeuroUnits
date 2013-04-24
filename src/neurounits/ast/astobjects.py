@@ -32,6 +32,8 @@ from .base import ASTObject
 class ASTExpressionObject(ASTObject):
 
     def __init__(self, dimension=None):
+        ASTObject.__init__(self)
+
         self._dimension = None
 
         if dimension:
@@ -64,8 +66,6 @@ class ASTExpressionObject(ASTObject):
         self._dimension = dimension
 
 
-# Boolean Expressions:
-
 class IfThenElse(ASTExpressionObject):
 
     def accept_visitor(self, v, **kwargs):
@@ -78,8 +78,6 @@ class IfThenElse(ASTExpressionObject):
         self.if_false_ast = if_false_ast
 
 
-# Boolean Objects:
-####################
 
 class InEquality(ASTObject):
 

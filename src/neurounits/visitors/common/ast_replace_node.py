@@ -117,12 +117,12 @@ class ReplaceNode(ASTVisitorBase):
         return o
 
 
-    def VisitCompoundPortDefWireContinuous(self, o, **kwargs):
+    def VisitInterfaceWireContinuous(self, o, **kwargs):
         return o
-    def VisitCompoundPortDefWireEvent(self, o, **kwargs):
+    def VisitInterfaceWireEvent(self, o, **kwargs):
         return o
 
-    def VisitCompoundPortDef(self, o, **kwarg):
+    def VisitInterface(self, o, **kwarg):
         o.connections = self._replace_within_new_lut(o.connections)
         return o
 

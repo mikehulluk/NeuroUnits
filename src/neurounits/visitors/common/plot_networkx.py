@@ -68,37 +68,26 @@ class ActionerPlotNetworkX(object):
             nc = NodeColor()
             colors = [nc.visit(v) for v in graph]
 
-        #labels = None
         if isinstance(labels, dict):
             for node in  graph.nodes_iter():
                 if not node in labels:
-                    #print 'Adding!'
                     labels[node] = repr(node)
 
         if labels == None:
             labels=dict( (s, repr(s)) for s in graph.nodes_iter( ) )
 
-        #for node in graph.nodes_iter():
-        #    assert node in labels
         graph_nodes = set(  graph.nodes_iter() )
         labels = dict([(k,v) for (k,v) in labels.items() if k in graph_nodes])
 
-        #for n, nodedata in graph.nodes_iter( data=True):
-        #    print n, nodedata
 
         f = plt.figure()
         nx.draw_graphviz(graph, font_size=10, iteration=200, node_color=colors,scale=1, labels=labels )
 
-
-
-
-        #plt.title(str(o) )
         ax = plt.gca()
         ax.text(0.5, 0.5, 'Hello')
         
         plt.show()
 
-        #plt.show()
 
 
 class ActionerGetConnections(ASTActionerDefault):
@@ -125,11 +114,6 @@ class ActionerGetConnections(ASTActionerDefault):
         self.connections[o].extend(o.functiondefs)
         self.connections[o].extend(o.symbolicconstants)
 
-    #def ActionEqnSet(self, o, **kwargs):
-    #    self.connections[o].extend(o.assignments)
-    #    self.connections[o].extend(o.timederivatives)
-    #    self.connections[o].extend(o.functiondefs)
-    #    self.connections[o].extend(o.symbolicconstants)
 
     def ActionNineMLComponent(self, o, **kwargs):
         self.connections[o].extend(o.assignments)
@@ -185,7 +169,6 @@ class ActionerGetConnections(ASTActionerDefault):
     def ActionBoolNot(self, o, **kwargs):
         self.connections[o].append(o.lhs)
 
-    # Function Definitions:
     def ActionFunctionDef(self, o, **kwargs):
         self.connections[o].extend(o.parameters.values())
         self.connections[o].append(o.rhs)
@@ -196,7 +179,6 @@ class ActionerGetConnections(ASTActionerDefault):
     def ActionFunctionDefParameter(self, o, **kwargs):
         pass
 
-    # Terminals:
     def ActionStateVariable(self, o, **kwargs):
         pass
 
@@ -215,7 +197,6 @@ class ActionerGetConnections(ASTActionerDefault):
     def ActionSuppliedValue(self, o, **kwargs):
         pass
 
-    # AST Objects:
     def ActionTimeDerivativeByRegime(self, o, **kwargs):
         self.connections[o].append(o.lhs)
         self.connections[o].append(o.rhs_map)
@@ -276,7 +257,7 @@ class ActionerGetConnections(ASTActionerDefault):
         self.connections[o].extend([o.src_port, o.dst_port])
 
 
-    def ActionCompoundPortDef(self, o, **kwargs):
+    def ActionInterface(self, o, **kwargs):
         self.connections[o].extend(list(o.connections))
 
     def ActionCompoundPortConnectorWireMapping(self, o, **kwargs):

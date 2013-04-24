@@ -36,8 +36,6 @@ class ASTVisitorBase(object):
     def VisitEventPortConnection(self, o, **kwargs):
         raise NotImplementedError()
 
-    def VisitEqnSet(self, o, **kwargs):
-        raise NotImplementedError()
 
     def VisitNineMLComponent(self, o, **kwargs):
         raise NotImplementedError(self)

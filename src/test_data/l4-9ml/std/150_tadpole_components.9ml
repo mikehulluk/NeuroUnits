@@ -2,7 +2,7 @@
 
 
 define_compound general_neuron {
-    instantiate hh_neuron_base as nrn
+    instantiate hh_neuron.hh_neuron_base as nrn
     instantiate chl_lk as chl_lk
     instantiate chl_kf as chl_kf
     instantiate chl_na as chl_na
@@ -49,7 +49,7 @@ define_compound general_neuron {
 
 
 define_compound dIN {
-    instantiate hh_neuron_base as nrn
+    instantiate hh_neuron.hh_neuron_base as nrn
     #instantiate chl_dIN_ca as chl_ca
     instantiate chl_dIN_na as chl_na
     instantiate chl_lk as chl_lk

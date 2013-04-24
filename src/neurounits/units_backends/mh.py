@@ -213,10 +213,8 @@ class MMQuantity(object):
         else:
             dim = self.unit.detail_str()
 
-        # return
 
         return '<MMQuantity:%s %s>' % (self.magnitude, dim)
-        #return '<Quantity: %s %s>' % (self.magnitude, self.unit)
 
     def __eq__(self, rhs):
         lhs_mag = self.magnitude * 10**self.unit.powerTen
@@ -309,7 +307,6 @@ class MMQuantity(object):
         post = self.unit.FormatLatex(inc_powerten=False)
         return '%s %s' % (pre, post)
 
-    # FormatLatex(self, inc_powerten=True):
 
     def as_quantities_quantity(self):
         return self.magnitude * self.unit.as_quantities_unit()

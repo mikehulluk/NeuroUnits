@@ -96,12 +96,12 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
     def __init__(self):
         self.dependancies = {}
 
-    def VisitEqnSet(self, o, **kwargs):
-        for a in o.assignments:
-            self.dependancies[a.lhs] = self.visit(a)
-
-        for a in o.timederivatives:
-            self.dependancies[a] = self.visit(a)
+    #def VisitEqnSet(self, o, **kwargs):
+    #    for a in o.assignments:
+    #        self.dependancies[a.lhs] = self.visit(a)
+#
+#        for a in o.timederivatives:
+#            self.dependancies[a] = self.visit(a)
 
     def VisitNineMLComponent(self, o, **kwargs):
         for a in o.assignments:
@@ -200,5 +200,8 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         return self.visit(o.rhs_ast)
+
+    def VisitAnalogReducePort(self, o, **kwargs):
+        return [o] + list(itertools.chain( *[self.visit(a) for a in o.rhses]))
 
 

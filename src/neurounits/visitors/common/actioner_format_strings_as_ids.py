@@ -49,20 +49,6 @@ class ActionerFormatStringsAsIDs(ASTActionerDefault):
             for (k, v) in d:
                 f.write('%s %s\n' % (k.ljust(6), v))
 
-    # AST Top Level:
-    def ActionEqnSet(self, o, **kwargs):
-        funcdefs = ','.join(self.IDs[f] for f in o.functiondefs)
-        timederivatives = ','.join(self.IDs[f] for f in
-                                   o.timederivatives)
-        assignments = ','.join(self.IDs[f] for f in o.assignments)
-        symbolicconstants = ','.join(self.IDs[f] for f in
-                o.symbolicconstants)
-
-        data = (assignments, timederivatives, funcdefs,
-                symbolicconstants)
-        s = '<EqnSet: Assignments: [%s] TimeDerivatives:[%s], FunctionDefs:[%s], SymbolicConstants:[%s]' \
-            % data
-        self.format_strings[o] = s
 
     def ActionLibrary(self, o, **kwargs):
         funcdefs = ','.join(self.IDs[f] for f in o.functiondefs)
@@ -79,7 +65,7 @@ class ActionerFormatStringsAsIDs(ASTActionerDefault):
                         o.parameters.iteritems()])
         actions = ','.join([self.IDs[a] for a in o.actions])
         self.format_strings[o] = \
-            'OnEvent: Name:%s Params:%s Actions: [%s]' % (o.name, pStr,
+            'OnEvent: Name:%s Params:%s Actions: [%s]' % (o.symbol, pStr,
                 actions)
 
     def ActionOnEventStateAssignment(self, o, **kwargs):

@@ -130,7 +130,7 @@ class OnEventTransition(Transition):
         super(OnEventTransition, self).__init__(**kwargs)
         self.port = port
         self.parameters = parameters
-        #print self.parameters
+
         assert isinstance( self.parameters, LookUpDict)
 
     def __repr__(self):
@@ -280,14 +280,14 @@ class InEventPort(ASTObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitInEventPort(self, **kwargs)
 
-    def __init__(self, name, parameters, **kwargs):
+    def __init__(self, symbol, parameters, **kwargs):
         super(InEventPort, self).__init__(**kwargs)
-        self.name = name
+        self.symbol = symbol
         self.parameters = parameters
-        assert isinstance(self.name, basestring)
+        assert isinstance(self.symbol, basestring)
         assert isinstance(self.parameters, LookUpDict)
     def __repr__(self,):
-        return '<InPort: %s>' % self.name
+        return '<InPort: %s>' % self.symbol
 
     
 
@@ -309,15 +309,15 @@ class OutEventPort(ASTObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitOutEventPort(self, **kwargs)
 
-    def __init__(self, name, parameters, **kwargs):
+    def __init__(self, symbol, parameters, **kwargs):
         super(OutEventPort, self).__init__(**kwargs)
-        self.name = name
+        self.symbol = symbol
         self.parameters = parameters
-        assert isinstance(self.name, basestring)
+        assert isinstance(self.symbol, basestring)
         assert isinstance(self.parameters, LookUpDict)
 
     def __repr__(self,):
-        return '<OutPort: %s>' % self.name
+        return '<OutPort: %s>' % self.symbol
 
     
 
@@ -341,9 +341,7 @@ class EventPortConnection(ASTObject):
         assert isinstance( dst_port, InEventPort)
         assert isinstance( src_port, OutEventPort)
 
-        
-        #print set(src_port.parameters.get_objects_attibutes(attr='symbol')) 
-        #print set(dst_port.parameters.get_objects_attibutes(attr='symbol')) 
+
         assert len( src_port.parameters) == len( dst_port.parameters )
         if len( src_port.parameters) > 1:
             assert set(src_port.parameters.get_objects_attibutes(attr='symbol')) == set(dst_port.parameters.get_objects_attibutes(attr='symbol')) 

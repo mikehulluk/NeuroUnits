@@ -319,7 +319,7 @@ def build_eqnset( chlmlinfo, eqnsetname=None ):
     options = NeuroUnitParserOptions(
                 allow_unused_parameter_declarations=True,
                 allow_unused_suppliedvalue_declarations=True)
-    eqnset = NeuroUnitParser.EqnSet(text=neuroEqn, options=options  )
+    eqnset = NeuroUnitParser.NineMLComponent(text=neuroEqn, options=options  )
 
 
     default_params = {

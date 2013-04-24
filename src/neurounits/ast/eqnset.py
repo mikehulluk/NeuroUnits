@@ -26,7 +26,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-from neurounits.units_misc import Chainmap
 from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
 from .base import ASTObject
 from neurounits.ast.astobjects import Parameter, SuppliedValue, AssignedVariable
@@ -62,6 +61,10 @@ class Block(ASTObject):
         from neurounits.writers import MRedocWriterVisitor
         return MRedocWriterVisitor.build(self)
 
+    @property
+    def short_name(self):
+        return self.name.split('.')[-1]
+
 
 
 
@@ -74,23 +77,20 @@ class Library(Block):
         super(Library,self).__init__(library_manager=library_manager, builder=builder, name=name)
         import neurounits.ast as ast
 
-
-        # Top-level objects:
         self._function_defs = LookUpDict( builddata.funcdefs, accepted_obj_types=(ast.FunctionDef, ast.BuiltInFunction) )
         self._symbolicconstants = LookUpDict( builddata.symbolicconstants, accepted_obj_types=(ast.SymbolicConstant, ) )
         self._eqn_assignment = LookUpDict( builddata.assignments, accepted_obj_types=(ast.EqnAssignmentByRegime,) )
 
     def get_terminal_obj(self, symbol):
-        ##print self.functiondefs
+
         possible_objs = LookUpDict(self.assignedvalues).get_objs_by(symbol=symbol)+ \
                         LookUpDict(self.symbolicconstants).get_objs_by(symbol=symbol)+ \
                         LookUpDict(self.functiondefs).get_objs_by(funcname=symbol)
 
-        #print'Looking for:'
-        #print self.functiondefs.get_objects_attibutes(attr='funcname')
-        #print 'Symbol:', '"%s"' % symbol
-        ###print 'Looking for:', symbol
-        ###print possible_objs
+
+
+
+
         if not len(possible_objs) == 1:
             raise KeyError("Can't find terminal: %s" % symbol)
 
@@ -114,22 +114,10 @@ class Library(Block):
         return sorted(list(self._eqn_assignment.get_objects_attibutes('lhs')), key=lambda a:a.symbol)
 
 
-class EqnSet(Block):
 
-    def accept_visitor(self, v, **kwargs):
-        return v.VisitEqnSet(self, **kwargs)
 
-    def __init__(self,  library_manager, builder, builddata, name):
-        super(EqnSet, self).__init__(library_manager=library_manager, builder=builder, name=name)
+class NineMLComponent(Block):
 
-        import neurounits.ast as ast
-
-        # Top-level objects:
-        self._function_defs = LookUpDict( builddata.funcdefs, accepted_obj_types=(ast.FunctionDef) )
-        self._symbolicconstants = LookUpDict( builddata.symbolicconstants, accepted_obj_types=(ast.SymbolicConstant, ) )
-
-        self._eqn_assignment = LookUpDict( builddata.assignments, accepted_obj_types=(ast.EqnAssignmentByRegime,) )
-        self._eqn_time_derivatives = LookUpDict( builddata.timederivatives, accepted_obj_types=(ast.EqnTimeDerivativeByRegime,) )
 
 
 
@@ -162,11 +150,11 @@ class EqnSet(Block):
 
     @property
     def parameters(self):
-        return self._parameters
+        return self._parameters_lut
 
     @property
     def suppliedvalues(self):
-        return self._supplied_values
+        return self._supplied_lut
 
     @property
     def analog_reduce_ports(self):
@@ -209,13 +197,13 @@ class EqnSet(Block):
                         LookUpDict(self.assignedvalues).get_objs_by(symbol=symbol)+ \
                         LookUpDict(self.state_variables).get_objs_by(symbol=symbol)+ \
                         LookUpDict(self.symbolicconstants).get_objs_by(symbol=symbol) + \
-                        self.input_event_port_lut.get_objs_by(name=symbol) + \
-                        self.output_event_port_lut.get_objs_by(name=symbol)
+                        self.input_event_port_lut.get_objs_by(symbol=symbol) + \
+                        self.output_event_port_lut.get_objs_by(symbol=symbol)
 
 
 
         if not len(possible_objs) == 1:
-            all_syms = [ p.symbol for p in self.all_terminal_objs() ]
+            all_syms = [ p.symbol for p in self.all_terminal_objs() ] + self.input_event_port_lut.get_objects_attibutes(attr='symbol')
             raise KeyError("Can't find terminal/EventPort: '%s' \n (Terminals/EntPorts found: %s)" % (symbol, ','.join(all_syms) ) )
 
         return possible_objs[0]
@@ -233,7 +221,7 @@ class EqnSet(Block):
 
 
         if not len(possible_objs) == 1:
-            all_syms = [ p.symbol for p in self.all_terminal_objs() ]
+            all_syms = [ p.symbol for p in self.all_terminal_objs()] 
             raise KeyError("Can't find terminal: '%s' \n (Terminals found: %s)" % (symbol, ','.join(sorted(all_syms)) ) )
 
         return possible_objs[0]
@@ -281,7 +269,9 @@ class EqnSet(Block):
         assert sym in self.terminal_symbols
 
         if isinstance(sym, AssignedVariable):
-            sym = self._eqn_assignment[sym]
+            # These are terminals, not sym!'
+            #sym = self._eqn_assignment[sym]
+            sym = self._eqn_assignment.get_single_obj_by(lhs=sym)
 
         d = VisitorFindDirectSymbolDependance()
 
@@ -309,10 +299,10 @@ class EqnSet(Block):
 
     def getSymbolMetadata(self, sym):
         assert sym in self.terminal_symbols
-        return self.get_terimal_symbol_obj(sym)._metadata._metadata
+        if not sym._metadata:
+            return None
+        return sym._metadata.metadata
 
-
-class NineMLComponent(EqnSet):
 
     def propagate_and_check_dimensions(self):
         from neurounits.ast_builder.builder_visitor_propogate_dimensions import PropogateDimensions
@@ -324,7 +314,18 @@ class NineMLComponent(EqnSet):
 
 
     def __init__(self,  library_manager, builder, builddata, name=None):
-        super(NineMLComponent,self).__init__(library_manager=library_manager, builder=builder, builddata=builddata, name=name)
+        super(NineMLComponent,self).__init__(library_manager=library_manager, builder=builder,  name=name)
+
+
+        import neurounits.ast as ast
+
+        # Top-level objects:
+        self._function_defs = LookUpDict( builddata.funcdefs, accepted_obj_types=(ast.FunctionDef) )
+        self._symbolicconstants = LookUpDict( builddata.symbolicconstants, accepted_obj_types=(ast.SymbolicConstant, ) )
+
+        self._eqn_assignment = LookUpDict( builddata.assignments, accepted_obj_types=(ast.EqnAssignmentByRegime,) )
+        self._eqn_time_derivatives = LookUpDict( builddata.timederivatives, accepted_obj_types=(ast.EqnTimeDerivativeByRegime,) )
+
 
         self._transitions_triggers = LookUpDict( builddata.transitions_triggers )
         self._transitions_events = LookUpDict( builddata.transitions_events )
@@ -335,7 +336,15 @@ class NineMLComponent(EqnSet):
 
         from neurounits.ast import CompoundPortConnector
         # This is a list of the available connectors from this component
-        self._compound_ports_connectors = LookUpDict( accepted_obj_types=(CompoundPortConnector,), unique_attrs=('name',))
+        self._compound_ports_connectors = LookUpDict( accepted_obj_types=(CompoundPortConnector,), unique_attrs=('symbol',))
+
+
+
+
+
+
+
+
 
     def add_compound_port(self, compoundportconnector ):
         self._compound_ports_connectors._add_item(compoundportconnector)
@@ -361,7 +370,7 @@ class NineMLComponent(EqnSet):
                             )
             wire_mappings.append(wire_map)
 
-        conn = ast.CompoundPortConnector(name=local_name, compound_port_def = compound_port_def, wire_mappings=wire_mappings, direction=direction)
+        conn = ast.CompoundPortConnector(symbol=local_name, compound_port_def = compound_port_def, wire_mappings=wire_mappings, direction=direction)
         self.add_compound_port(conn)
 
 
@@ -437,9 +446,7 @@ class NineMLComponent(EqnSet):
     def clone(self, ):
 
 
-        #import gc
-        #import collections
-        #from neurounits.librarymanager import LibraryManager
+
         from neurounits.visitors.common.ast_replace_node import ReplaceNode
         from neurounits.visitors.common.ast_node_connections import ASTAllConnections
 
@@ -448,24 +455,13 @@ class NineMLComponent(EqnSet):
         class ReplaceNodeHack(ReplaceNode):
             def replace_or_visit(self, o):
                 if o == self.srcObj:
-                    #print '    Replacing', self.srcObj, ' -> ', self.dstObj
+
                     return self.dstObj
                 else:
                     return o
 
-        #print 'Refs to library manager:'
-        #lib_man_refs =  gc.get_referrers( self.library_manager)
-        #for ref in lib_man_refs:
-        #    print type(ref)
-        #    print ref
-        #print 'Len', len(lib_man_refs)
 
-        #assert False
-        #gc.collect()
-        #prev_objs = list( gc.get_objects() )
-        #type_count_before  = collections.Counter( [type(obj) for obj in prev_objs])
 
-        #print type_count_before
 
 
         from neurounits.visitors.common.ast_cloning import ASTClone
@@ -477,10 +473,8 @@ class NineMLComponent(EqnSet):
         # CONCEPTUALLY THIS IS VERY SIMPLE< BUT THE CODE
         # IS A HORRIBLE HACK!
 
-        no_remap = (ast.CompoundPortDef, ast.CompoundPortDefWireContinuous, ast.CompoundPortDefWireEvent, ast.BuiltInFunction, ast.FunctionDefParameter)
+        no_remap = (ast.Interface, ast.InterfaceWireContinuous, ast.InterfaceWireEvent, ast.BuiltInFunction, ast.FunctionDefParameter)
         # First, lets clone each and every node:
-        #print
-        #print 'Remapping nodes:'
         old_nodes = list(set(list( EqnsetVisitorNodeCollector(self).all() )))
         old_to_new_dict = {}
         for old_node in old_nodes:
@@ -531,10 +525,10 @@ class NineMLComponent(EqnSet):
         connections_map_obj_to_conns = {}
         connections_map_conns_to_objs = defaultdict(list)
         for node in new_nodes:
-            #print 'Node', node
-            #print
+
+
             conns = list( node.accept_visitor( ASTAllConnections() ) )
-            #print node, len(conns)
+
             connections_map_obj_to_conns[node] = conns
 
             for c in conns:
@@ -546,7 +540,7 @@ class NineMLComponent(EqnSet):
 
         shared_nodes = set(new_nodes) & set(old_nodes)
         shared_nodes_invalid = [sn for sn in shared_nodes if not isinstance(sn, no_remap)]
-        #print 
+
         if len(shared_nodes_invalid) != 0:
             print 'Shared Nodes:'
             print shared_nodes_invalid
@@ -557,95 +551,9 @@ class NineMLComponent(EqnSet):
                     print '    *', c 
                 print
             assert len(shared_nodes_invalid) == 0
-        #assert len(new_nodes) == len(old_nodes)
+
 
         return new_obj
 
-
-
-
-
-
-
-        #assert False
-
-
-
-
-
-        # Nasty Hack - serialise and unserialse to clone the object
-
-        import pickle
-        import cStringIO
-        c = cStringIO.StringIO()
-
-
-        old_lib_man = self.library_manager
-        self.library_manager = None
-        pickle.dump(self, c)
-        new = pickle.load(cStringIO.StringIO(c.getvalue()))
-        new.library_manager =  old_lib_man
-
-
-
-
-
-        ## When we clone, however, we shouldn't also clone CompundPortDefintions amd sub components, since otherwise we
-        ## can't maintain mapping between objects:
-        #for compound_port_conn_orig in self._compound_ports_connectors:
-        #    assert False
-
-        #    # Change the wire mappings,
-        #    # TODO!
-
-
-        #    # Change the compund-port-definition:
-        #    from neurounits.visitors.common.ast_replace_node import ReplaceNode
-        #    compound_port_conn_cloned = new._compound_ports_connectors.get_single_obj_by(name=compound_port_conn_orig.name)
-        #    comp_port_src = compound_port_conn_cloned.compound_port_def
-        #    comp_port_dst = compound_port_conn_orig.compound_port_def
-        #    ReplaceNode.replace_and_check(srcObj=comp_port_src, dstObj = comp_port_dst, root=self)
-        #
-
-
-
-        #gc.collect()
-        #next_objs = list( gc.get_objects() )
-        #type_count_after  = collections.Counter( [type(obj) for obj in next_objs])
-        #count_change = type_count_after - type_count_before
-        #print 'Changes:'
-        ##print count_change
-        #for obj, count in sorted(count_change.items(), key=lambda s:s[1]):
-        #    print count, obj
-
-        ##new_objs = [ o for o in next_objs if not o in prev_objs]
-
-        #print 'Pointing at the new library manager:'
-        #lib_mans = [o for o in next_objs if isinstance(o, (LibraryManager))]
-        #print lib_mans
-
-
-        #refs = gc.get_referrers(*lib_mans)
-        #print refs
-
-        #assert False
-
-
-
-
-        return new
-
-
-
-
-
-
-class NineMLModule(object):
-
-    def accept_visitor(self, visitor, **kwargs):
-        return visitor.VisitNineMLModule(self, **kwargs)
-
-    def __init__(self, **kwargs):
-        pass
 
 

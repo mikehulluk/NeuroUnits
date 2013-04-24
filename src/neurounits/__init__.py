@@ -36,7 +36,10 @@ except ImportError:
     print localdir
     assert False
 
-from neurounits.neurounitparser import NeuroUnitParser
+
+# Standard imports:
+
+from neurounits.neurounitparser import NeuroUnitParser, MQ1
 from neurounits.neurounitparser import NeuroUnitParserOptions
 from neurounits.unit_expr_parsing.units_expr_yacc import ParseTypes
 
