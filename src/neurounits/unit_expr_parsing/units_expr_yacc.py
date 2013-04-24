@@ -997,11 +997,6 @@ def p_quantity_1(p):
     backend = p.parser.library_manager.backend
     p[0] = backend.Quantity(p[1], p[2])
 
-#def p_quantity_2(p):
-#    """quantity : magnitude unit_expr"""
-#    backend = p.parser.library_manager.backend
-#    p[0] = backend.Quantity(p[1], p[3])
-
 
 def p_quantity_magnitude(p):
     """magnitude : FLOAT
@@ -1099,17 +1094,6 @@ def p_unit_term_2(p):
     p[0] = p[1] ** int(p[2])
 
 
-#def p_unit_term_3(p):
-#    """ unit_term_unpowered : LCURLYBRACKET TILDE ALPHATOKEN RCURLYBRACKET """
-#    assert False
-#
-#    backend = p.parser.library_manager.backend
-#    unit_long_LUT = UnitTermData.getUnitLUTLong(backend=backend)
-#
-#    if p[3] in unit_long_LUT:
-#        p[0] = unit_long_LUT[p[3]]
-#    else:
-#        assert False
 
 # Unpowered unit terms:
 ########################

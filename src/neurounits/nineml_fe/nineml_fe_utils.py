@@ -5,6 +5,9 @@ import glob
 
 
 def get_src_9ml_files(args):
+
+    assert False, 'If not includes, then lets look up in the Location class!'
+
     # Load from all the include directories, but only add files once 
     # to prevent duplicate entries in the library_manager
     src_files = []

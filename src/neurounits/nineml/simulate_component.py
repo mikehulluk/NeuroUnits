@@ -17,31 +17,6 @@ import numpy as np
 from collections import defaultdict
 
 
-def _build_ADD_ast(nodes):
-    assert len(nodes) > 0
-    if len(nodes) == 1:
-        return nodes[0]
-    if len(nodes) == 2:
-        return ast.AddOp( nodes[0], nodes[1] )
-    else:
-        return ast.AddOp( nodes[0], _build_ADD_ast(nodes[1:]))
-
-def close_analog_port(ap, comp):
-    new_node = None
-    if len(ap.rhses) == 0:
-        assert False, 'No input found for reduce port? (maybe this is OK!)'
-
-    new_node = _build_ADD_ast(ap.rhses)
-
-    assert new_node is not None
-    ReplaceNode.replace_and_check(srcObj=ap, dstObj=new_node, root=comp)
-
-    PropogateDimensions.propogate_dimensions(comp)
-
-
-def close_all_analog_reduce_ports(component):
-    for ap in component.analog_reduce_ports:
-        close_analog_port(ap, component)
 
 
 class SimulationResultsData(object):
@@ -184,7 +159,8 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
 
     # Close all the open analog ports:
     if close_reduce_ports:
-        close_all_analog_reduce_ports(component)
+        component.close_all_analog_reduce_ports()
+    
 
     # Sort out the parameters and initial_state_variables:
     # =====================================================

@@ -106,11 +106,8 @@ def test4():
     general_neuron_with_step_inj = library_manager.get('general_neuron_with_step_inj')
 
 
-    res = simulate_component(
-                #component=general_neuron,
-                component=general_neuron_with_step_inj,
+    res = general_neuron_with_step_inj.simulate(
                 times = np.arange(0, 0.1,0.00001),
-                close_reduce_ports=True,
                 )
 
 

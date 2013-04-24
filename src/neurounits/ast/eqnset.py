@@ -118,7 +118,36 @@ class Library(Block):
 
 class NineMLComponent(Block):
 
+    @classmethod
+    def _build_ADD_ast(cls, nodes):
+        import neurounits.ast as ast
+        assert len(nodes) > 0
+        if len(nodes) == 1:
+            return nodes[0]
+        if len(nodes) == 2:
+            return ast.AddOp( nodes[0], nodes[1] )
+        else:
+            return ast.AddOp( nodes[0], cls._build_ADD_ast(nodes[1:]))
 
+    def close_analog_port(self, ap, ):
+        from neurounits.ast_builder.builder_visitor_propogate_dimensions import PropogateDimensions
+        from neurounits.visitors.common.ast_replace_node import ReplaceNode
+        #from neurounits.ast_builder.builder_visitor_propogate_dimensions import VerifyUnitsInTree
+        new_node = None
+        if len(ap.rhses) == 0:
+            assert False, 'No input found for reduce port? (maybe this is OK!)'
+
+        new_node = NineMLComponent._build_ADD_ast(ap.rhses)
+
+        assert new_node is not None
+        ReplaceNode.replace_and_check(srcObj=ap, dstObj=new_node, root=self)
+
+        PropogateDimensions.propogate_dimensions(self)
+
+
+    def close_all_analog_reduce_ports(self):
+        for ap in self.analog_reduce_ports:
+            self.close_analog_port(ap)
 
 
 

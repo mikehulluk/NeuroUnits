@@ -22,9 +22,7 @@ library_manager = NeuroUnitParser.Parse9MLFile("""
         }
         """)
 
-# SimulateEquations(es)
 
-# es.to_redoc().to_pdf(filename="/home/michael/Desktop//out1.pdf")
 
 res = library_manager.get('van_de_pol').simulate(
     times=np.linspace(0.0, 0.0200, 10000),
