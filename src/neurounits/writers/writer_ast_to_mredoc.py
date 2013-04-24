@@ -147,7 +147,7 @@ class LatexEqnWriterN(ASTVisitorBase):
 
     def VisitConstant(self, o, **kwargs):
         return self.FormatInlineConstant(o.value)
-    
+
     def VisitConstantZero(self, o, **kwargs):
         from neurounits.units_backends.mh import MMQuantity
         return self.FormatInlineConstant( MMQuantity(0, o.get_dimension()) )
@@ -193,8 +193,7 @@ class LatexEqnWriterN(ASTVisitorBase):
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
         p = [self.visit(p) for p in o.parameters.values()]
-        return '\\textrm{%s}(%s)' % (o.function_def.funcname,
-                ','.join(p))
+        return '\\textrm{%s}(%s)' % (o.function_def.funcname.replace("_",r"\_"), ','.join(p))
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         rhs = self.visit(o.rhs_ast)
@@ -248,7 +247,7 @@ def build_figures(eqnset):
 
             print meta
 
-            
+
             if not 'mf' in meta or not 'role' in meta['mf']:
                 continue
             role = meta['mf']['role']
@@ -316,9 +315,9 @@ def build_figures(eqnset):
         imgs = [Image(f[1]) for f in sorted(vs)]
         img_sets.append((imgs, s))
 
-    
 
-    
+
+
     ps = [ Figure(caption='State:%s' % state, *imgs) for (imgs, state) in img_sets]
     return ps
 
@@ -351,10 +350,23 @@ class MRedocWriterVisitor(ASTVisitorBase):
                         VerbatimBlock(library_manager.src_text))
             local_redocs = [p] + local_redocs
 
-        
+
         # Check here;
         d = Section(title, local_redocs)
         return d
+
+
+    def VisitInterface(self, interface, **kwargs):
+        connections = VerticalColTable("Symbol  | Type    | Value  | Dimensions | Dependancies | Metadata",
+                                      ["$%s$    | -       | -      | -          | -            | -       " % (p.symbol,) for p in interface.connections]  
+                                      )
+        
+        return HierachyScope(
+            "Summary of '%s'" % interface.name,
+            Section('Connections', 
+                connections
+                )
+            )
 
 
 
@@ -382,6 +394,8 @@ class MRedocWriterVisitor(ASTVisitorBase):
                                             ["$%s$     | Assd  | -     | %s         | $\{%s\}$     | %s  " % (symbol_format(a.symbol), format_dim(a), dep_string_indir(a), meta_format(a)   ) for a in eqnset.assignedvalues] +
                                             ["$%s$     | State | -     | %s         | $\{%s\}$     | %s  " % (symbol_format(s.symbol), format_dim(s), dep_string_indir(s), meta_format(s)  ) for s in eqnset.state_variables]
                                             )
+
+        terminal_symbols = Section('TODO')
 
         plts = build_figures( eqnset)
         return HierachyScope(

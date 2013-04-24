@@ -78,6 +78,11 @@ class Interface(base.ASTObject):
         return '<Interface: %s (%s)>' % (self.symbol, id(self))
 
 
+    def to_redoc(self):
+        from neurounits.writers import MRedocWriterVisitor
+        return MRedocWriterVisitor.build(self)
+
+
 class CompoundPortConnectorWireMapping(base.ASTObject):
     def __init__(self, component_port, compound_port):
         super(CompoundPortConnectorWireMapping,self).__init__()

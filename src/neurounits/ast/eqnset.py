@@ -443,6 +443,12 @@ class NineMLComponent(Block):
         c.visit(self)
         return itertools.chain( *c.nodes.values() )
 
+
+
+    def simulate(self, **kwargs):
+        from neurounits.nineml import simulate_component
+        return simulate_component( self, **kwargs)
+
     def clone(self, ):
 
 

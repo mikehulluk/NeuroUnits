@@ -69,7 +69,8 @@ class ASTAllConnectionsCheck(ASTActionerDefault):
         from neurounits.units_backends.mh import MMUnit, MMQuantity
         from neurounits.ast_builder.eqnsetbuilder import NineMLComponentBuilder
         from neurounits.ast_builder.eqnsetbuilder_io.io_str_parser import IODataDimensionSpec
-        clses = (LibraryBuilder, LibraryManager, MMUnit, MMQuantity, IODataDimensionSpec, NineMLComponentBuilder)
+        from neurounits.ast_builder.eqnsetbuilder_io.io_str_parser import IODataInitialCondition
+        clses = (LibraryBuilder, LibraryManager, MMUnit, MMQuantity, IODataDimensionSpec, IODataInitialCondition, NineMLComponentBuilder)
         nodes_found = [n for n in nodes_found if not isinstance(n, clses)]
 
         nt = set(nodes_told)

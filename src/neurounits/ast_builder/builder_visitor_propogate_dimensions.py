@@ -196,7 +196,7 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
         self.verify_equal_units([o, o.lhs, o.rhs])
 
     def ActionMulOp(self, o, **kwargs):
-        print repr(o.lhs), repr(o.rhs)
+        #print repr(o.lhs), repr(o.rhs)
         try:
             (o.lhs.get_dimension() * o.rhs.get_dimension()).check_compatible(o.get_dimension())
         except UnitMismatchError, e:
@@ -615,10 +615,10 @@ class DimensionResolver(ASTVisitorBase):
 
         return
         print 'Dealing with special'
+        raise NotImplementedError()
         assert o.funcname in dimensionless_functions
 
         return
-        raise NotImplementedError()
 
     def VisitOnTransitionTrigger(self, o, **kwargs):
         for a in o.actions:

@@ -268,8 +268,8 @@ class Scope(object):
         self.symbol_dict[symbol] = value
 
     def get_proxy_targetname(self, symproxy):
-        print 'Finding:', symproxy, symproxy.target
-        print self.symbol_dict
+        #print 'Finding:', symproxy, symproxy.target
+        #print self.symbol_dict
         posses = [ (k,v) for (k,v) in self.symbol_dict.items() if v==symproxy]
         assert len(posses) == 1
         return posses[0][0]
@@ -341,7 +341,7 @@ class AbstractBlockBuilder(object):
 
 
     def set_initial_state_variable(self, name, value):
-        print name, value
+        #print name, value
         assert isinstance(value, ast.ConstValue)
         self._default_state_variables[name] = value
 
@@ -666,7 +666,7 @@ class AbstractBlockBuilder(object):
         assignments = SingleSetDict()
         maps_asses = defaultdict(SingleSetDict)
         for reg_ass in self.builddata._assigments_per_regime:
-            print 'Processing:', reg_ass.lhs
+            #print 'Processing:', reg_ass.lhs
             maps_asses[reg_ass.lhs][reg_ass.regime] = reg_ass.rhs
 
         for (ass_var, tds) in maps_asses.items():
@@ -694,7 +694,7 @@ class AbstractBlockBuilder(object):
             if not symbol.startswith('std.'):
                 continue
             (lib, token) = symbol.rsplit('.', 1)
-            print 'Automatically importing: %s' % symbol
+            #print 'Automatically importing: %s' % symbol
             self.do_import(srclibrary=lib, tokens=[(token, symbol)])
 
 
@@ -736,7 +736,7 @@ class AbstractBlockBuilder(object):
 
                         target_name = self.global_scope.get_proxy_targetname(n)
                         ensure_state_variable(target_name)
-                        print 'Unresolved target:'
+                        #print 'Unresolved target:'
 
 
                     else:
@@ -750,7 +750,7 @@ class AbstractBlockBuilder(object):
             sv_obj = sv_objs[0]
 
             sv_obj.initial_value = initial_value
-            print repr(sv_obj)
+            #print repr(sv_obj)
 
 
 

@@ -30,6 +30,14 @@ def handle_test(args):
     do_test(args)
 
 
+def handle_summarise(args):
+
+    print 'Summarising'
+    from neurounits.nineml_fe.nineml_fe_summarise import cmdline_summarise
+    cmdline_summarise(args)
+
+
+
 def handle_gui(args):
     from neurounits.gui.ninegui import run_gui
     run_gui()
@@ -115,6 +123,10 @@ def build_argparser():
     test_subparser.add_argument('what', nargs='*',  )
     test_subparser.set_defaults(func=handle_test)
 
+    # Summarise
+    summarise_subparser = subparsers.add_parser('summarise', parents=[parent_parser])
+    summarise_subparser.add_argument('what', nargs='*',  )
+    summarise_subparser.set_defaults(func=handle_summarise)
 
     return parser
 

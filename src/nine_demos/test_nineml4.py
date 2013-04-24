@@ -14,6 +14,45 @@ import warnings
 
 
 
+import os, sys, traceback
+ 
+class Proxy(object):
+    def __init__(self, target_object):
+        self._count = {}
+        self._obj = target_object
+ 
+    def __getattr__(self, attr):
+        if attr in self._count: 
+            self._count[attr]+=1
+        else: 
+            self._count[attr]=1
+        return getattr(self._obj, attr)
+ 
+    def write(self, *args, **kwargs):
+        rv = self._obj.write(*args, **kwargs)
+        for filename, lineno, function, line in traceback.extract_stack():
+            if 'print' in line:
+                if os.environ.get('TRACE_PRINT', None) == 'traceback':
+                    traceback.print_stack()
+                else:
+                    sys.stderr.write("%s:%d (%s): %s\n" % (filename, lineno, function, line))
+                break
+ 
+if os.environ.get('TRACE_PRINT', None):
+    sys.stdout = Proxy(sys.stdout)
+sys.stdout = Proxy(sys.stdout)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -35,22 +74,15 @@ def test4():
 
 
 
-    src_files = sorted( glob.glob("/home/michael/hw_to_come//NeuroUnits/src/test_data/l4-9ml/std/*.9ml" ))
+    src_files = sorted( glob.glob("/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/std/*.9ml" ))
 
-
-
-   # library_manager = None
-   # for s in src_files:
-   #     #print 'Loading from:', s
-   #     text = open(s).read()
-   #     library_manager = neurounits.NeuroUnitParser.Parse9MLFile( text, library_manager=library_manager)
 
     library_manager = neurounits.NeuroUnitParser.Parse9MLFiles( src_files)
 
     for obj in library_manager.objects:
+        print "Summarising", obj
         obj.to_redoc()
 
-    # assert False
     
 
 

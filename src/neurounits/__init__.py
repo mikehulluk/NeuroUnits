@@ -28,13 +28,18 @@
 
 
 # Add 'straight.plugin' into the python path
-try: 
+
+try:
     import straight.plugin
+
 except ImportError:
-    import sys
-    localdir = os.path.abspath( os.path.dirname( __file__ ))
-    print localdir
-    assert False
+    import sys, os
+    localdir = os.path.dirname( __file__ )
+    ext_deps_dir = os.path.abspath( os.path.join( localdir, '../../ext_deps/') )
+    sys.path.append(os.path.join(ext_deps_dir, 'straight.plugin/') )
+
+    import straight.plugin
+
 
 
 # Standard imports:

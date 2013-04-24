@@ -25,23 +25,25 @@ def cmdline_simulate(args):
 
 
     from neurounits import NeuroUnitParser, MQ1
+    from neurounits.nineml_fe.nineml_fe_utils import get_src_9ml_files
 
     # Load from all the include directories, but only add files once 
     # to prevent duplicate entries in the library_manager
-    src_files = []
-    for incl_path in args.include:
-        assert os.path.exists(incl_path)
-        # Add all the files in a directory:
-        if os.path.isdir(incl_path):
-            new_files = sorted([ os.path.abspath(fname)  for fname in glob.glob(incl_path+'/*.9ml') ] )
-            for fname in new_files:
-                if not fname in src_files:
-                    src_files.append(fname)
-        # Add an individual file:
-        elif os.path.isfile(incl_path):
-            if not incl_path in src_files:
-                src_files.append(incl_path)
+    #src_files = []
+    #for incl_path in args.include:
+    #    assert os.path.exists(incl_path)
+    #    # Add all the files in a directory:
+    #    if os.path.isdir(incl_path):
+    #        new_files = sorted([ os.path.abspath(fname)  for fname in glob.glob(incl_path+'/*.9ml') ] )
+    #        for fname in new_files:
+    #            if not fname in src_files:
+    #                src_files.append(fname)
+    #    # Add an individual file:
+    #    elif os.path.isfile(incl_path):
+    #        if not incl_path in src_files:
+    #            src_files.append(incl_path)
 
+    src_files = get_src_9ml_files(args)
 
     # Read all the input files:
     library_manager = NeuroUnitParser.Parse9MLFiles(filenames=src_files)

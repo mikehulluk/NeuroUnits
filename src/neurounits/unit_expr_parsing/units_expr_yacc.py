@@ -158,10 +158,10 @@ def p_compoundport_event_param_list_2(p):
 def p_compoundport_event_param_list_3(p):
     """compoundport_event_param_list : compoundport_event_param_list COMMA compoundport_event_param   """
     p[0] = p[1] + [p[3]]
-def p_compoundport_event_param_1(p):
-    """compoundport_event_param : alphanumtoken COLON LBRACKET RBRACKET   """
-    backend = p.parser.library_manager.backend
-    p[0] = ( p[1], backend.Unit() )
+#def p_compoundport_event_param_1(p):
+#    """compoundport_event_param : alphanumtoken COLON LBRACKET RBRACKET   """
+#    backend = p.parser.library_manager.backend
+#    p[0] = ( p[1], backend.Unit() )
 def p_compoundport_event_param_2(p):
     """compoundport_event_param : alphanumtoken COLON unit_expr  """
     p[0] = ( p[1], p[3] )

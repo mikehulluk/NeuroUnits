@@ -70,6 +70,8 @@ class SimulationResultsData(object):
 
     def plot_auto(self):
         auto_plot(self)
+    def auto_plot(self):
+        auto_plot(self)
 
 def do_transition_change(tr, evt, state_data, functor_gen):
 
