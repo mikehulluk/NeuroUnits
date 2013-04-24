@@ -673,7 +673,7 @@ class FunctorGenerator(ASTVisitorBase):
         if not self.as_float_in_si:
 
             def eFunc(**kw):
-                from neurounits.units_backends.mh import MMUnit, MMQuantity
+                from neurounits.units_backends.mh import MMQuantity
                 return MMQuantity( 0 , o.get_dimension() )
             return eFunc
         else:

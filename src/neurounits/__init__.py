@@ -26,6 +26,16 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
+
+# Add 'straight.plugin' into the python path
+try: 
+    import straight.plugin
+except ImportError:
+    import sys
+    localdir = os.path.abspath( os.path.dirname( __file__ ))
+    print localdir
+    assert False
+
 from neurounits.neurounitparser import NeuroUnitParser
 from neurounits.neurounitparser import NeuroUnitParserOptions
 from neurounits.unit_expr_parsing.units_expr_yacc import ParseTypes
