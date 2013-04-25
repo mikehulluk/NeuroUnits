@@ -204,8 +204,9 @@ def p_compound_component(p):
     compound_ports = [ d['port_instance'] for d in actions if d['action']=='COMPOUNDPORT'] 
     set_parameters = [ (d['lhs'], d['rhs']) for d in actions if d['action']=='SET'] 
 
-    from neurounits.nineml import build_compound_component
-    component = build_compound_component(
+    from neurounits.ast import NineMLComponent
+
+    component = NineMLComponent.build_compound_component(
             component_name=name,
             instantiate = dict( instantiations ),   
             connections = connections,

@@ -144,12 +144,19 @@ class NineMLComponent(Block):
 
         PropogateDimensions.propogate_dimensions(self)
 
-
     def close_all_analog_reduce_ports(self):
         for ap in self.analog_reduce_ports:
             self.close_analog_port(ap)
 
 
+    def simulate(self, **kwargs):
+        from neurounits.ast.nineml import simulate_component
+        return simulate_component( self, **kwargs)
+
+    @classmethod
+    def build_compound_component(cls, **kwargs):
+        from neurounits.ast.nineml import build_compound_component
+        return build_compound_component(**kwargs)
 
 
     # OK:
@@ -474,9 +481,6 @@ class NineMLComponent(Block):
 
 
 
-    def simulate(self, **kwargs):
-        from neurounits.nineml import simulate_component
-        return simulate_component( self, **kwargs)
 
     def clone(self, ):
 
