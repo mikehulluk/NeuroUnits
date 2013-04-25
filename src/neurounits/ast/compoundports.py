@@ -101,7 +101,11 @@ class CompoundPortConnectorWireMapping(base.ASTObject):
 
 
     def __repr__(self,):
-        return "<CompoundPortConnectorWireMapping: Component: %s to Compound: %s>" % (self.component_port.symbol, self.interface_port.symbol)
+        try:
+            # This might fail when we close reduce ports with AddOps
+            return "<CompoundPortConnectorWireMapping: Component: %s to Compound: %s>" % (self.component_port.symbol, self.interface_port.symbol)
+        except AttributeError:
+            return "<CompoundPortConnectorWireMapping: Component: %s to Compound: %s>" % (self.component_port, self.interface_port)
 
 
 

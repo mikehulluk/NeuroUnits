@@ -190,6 +190,8 @@ class ActionerGetConnections(ASTActionerDefault):
 
     def ActionConstant(self, o, **kwargs):
         pass
+    def ActionConstantZero(self, o, **kwargs):
+        pass
 
     def ActionAssignedVariable(self, o, **kwargs):
         pass
@@ -261,7 +263,7 @@ class ActionerGetConnections(ASTActionerDefault):
         self.connections[o].extend(list(o.connections))
 
     def ActionCompoundPortConnectorWireMapping(self, o, **kwargs):
-        self.connections[o].extend([o.interface, o.component_port])
+        self.connections[o].extend([o.interface_port, o.component_port])
 
 
     def ActionCompoundPortConnector(self, o, **kwargs):

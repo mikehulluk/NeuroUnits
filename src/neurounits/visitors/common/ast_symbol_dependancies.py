@@ -28,6 +28,9 @@
 
 from neurounits.visitors import ASTVisitorBase
 import itertools
+import networkx as nx
+from itertools import chain
+
 
 
 class VisitorFindDirectSymbolDependance(ASTVisitorBase):
@@ -96,19 +99,57 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
     def __init__(self):
         self.dependancies = {}
 
-    #def VisitEqnSet(self, o, **kwargs):
-    #    for a in o.assignments:
-    #        self.dependancies[a.lhs] = self.visit(a)
-#
-#        for a in o.timederivatives:
-#            self.dependancies[a] = self.visit(a)
+
+    @classmethod
+    def build_direct_dependancy_graph(cls, component):
+        import neurounits.ast as ast
+        dep_find = VisitorFindDirectSymbolDependance()
+        dep_find.visit(component)
+
+
+        # Remap TimeDerivatives into StateVariables:
+        #for k,v in dep_find.dependancies:
+            
+
+
+
+        g = nx.DiGraph()
+
+        all_objs = set( list(chain(*dep_find.dependancies.values()))  + dep_find.dependancies.keys() )
+
+        for o in all_objs:
+            color_lut = {
+                    ast.AssignedVariable: 'green',
+                    ast.StateVariable: 'blue', }
+            color = color_lut[type(o)] if type(o) in color_lut else 'red'
+
+            g.add_node(o, label=repr(o), color=color)
+
+
+
+        for k,v in dep_find.dependancies.items():
+            for c in v:
+                g.add_edge(k,c)
+            print repr(k), v
+
+        return g
+
+
+
+        
+
+
+
+
+
+
 
     def VisitNineMLComponent(self, o, **kwargs):
         for a in o.assignments:
             self.dependancies[a.lhs] = self.visit(a)
 
         for a in o.timederivatives:
-            self.dependancies[a] = self.visit(a)
+            self.dependancies[a.lhs] = self.visit(a)
 
     def VisitSymbolicConstant(self, o, **kwargs):
         return []

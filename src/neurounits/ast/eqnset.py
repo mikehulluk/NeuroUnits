@@ -28,7 +28,7 @@
 
 from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
 from .base import ASTObject
-from neurounits.ast.astobjects import Parameter, SuppliedValue, AssignedVariable
+from neurounits.ast.astobjects import Parameter, SuppliedValue, AssignedVariable, StateVariable
 from neurounits.ast.astobjects_nineml import AnalogReducePort
 from neurounits.ast.astobjects_nineml import Regime
 from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
@@ -305,9 +305,9 @@ class NineMLComponent(Block):
         assert sym in self.terminal_symbols
 
         if isinstance(sym, AssignedVariable):
-            # These are terminals, not sym!'
-            #sym = self._eqn_assignment[sym]
             sym = self._eqn_assignment.get_single_obj_by(lhs=sym)
+        if isinstance(sym, StateVariable):
+            sym = self._eqn_time_derivatives.get_single_obj_by(lhs=sym)
 
         d = VisitorFindDirectSymbolDependance()
 

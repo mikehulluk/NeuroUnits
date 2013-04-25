@@ -1,5 +1,34 @@
 
 
+define_component exp2syn {
+    A' = A/t_open
+    B' = B/t_close
+    i = g_max * (B-A) * (Erev-V)
+    
+    on event(){
+        A = A + 1
+        B = B + 1
+    }
+
+    initial {
+        A = 0
+        B = 0
+    }
+    
+    <=> PARAMETER g_max:S, Erev, t_open, t_close
+    <=> INPUT V:V
+    <=> OUTPUT i:A
+    
+    compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+        # Local <==> Compound-port name
+        V <==> V
+        i <==> I
+    }
+
+}
+
+
+
 
 define_compound general_neuron {
     instantiate hh_neuron.hh_neuron_base as nrn
@@ -8,9 +37,13 @@ define_compound general_neuron {
     instantiate chl_na as chl_na
     
     
+    
+    
     multiconnect nrn/process_mount <==> chl_lk/process_mount_in
     multiconnect nrn/process_mount <==> chl_kf/process_mount_in
     multiconnect nrn/process_mount <==> chl_na/process_mount_in
+    
+    
      
     
     set chl_lk/area =  3.141 * {30um} * {30um}
@@ -33,6 +66,22 @@ define_compound general_neuron {
 
     rename nrn/i_sum to i_sum
 
+    
+    
+    instantiate exp2syn as syn_excit
+    instantiate exp2syn as syn_inhib
+    multiconnect nrn/process_mount <==> syn_excit/process_mount_in
+    multiconnect nrn/process_mount <==> syn_inhib/process_mount_in
+    set syn_excit/g_max = 20pS
+    set syn_inhib/g_max = 20pS
+    set syn_excit/Erev = 0mV
+    set syn_inhib/Erev = -60mV
+    
+    set syn_inhib/t_open = 4ms
+    set syn_excit/t_open = 4ms
+    set syn_inhib/t_close = 14ms
+    set syn_excit/t_close = 40ms
+    
     
 }
 
