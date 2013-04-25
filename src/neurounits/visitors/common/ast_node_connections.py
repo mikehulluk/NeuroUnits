@@ -113,7 +113,7 @@ class ASTAllConnections(ASTActionerDepthFirst):
             iter(o._transitions_triggers),
             iter(o._transitions_events),
             iter(o.rt_graphs),
-            iter(o._compound_ports_connectors),
+            iter(o._interface_connectors),
             iter(o._event_port_connections),
         ))
 
@@ -245,13 +245,13 @@ class ASTAllConnections(ASTActionerDepthFirst):
 
 
     def VisitCompoundPortConnectorWireMapping(self, o, **kwargs):
-        return [o.compound_port, o.component_port]
+        return [o.interface, o.component_port]
 
     def VisitInterface(self, o, **kwargs):
         return list(o.connections)
 
     def VisitCompoundPortConnector(self, o, **kwargs):
-        return list(o.wire_mappings) + [o.compound_port_def]
+        return list(o.wire_mappings) + [o.interface_def]
 
 
 

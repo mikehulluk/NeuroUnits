@@ -372,7 +372,7 @@ class NineMLComponent(Block):
 
         from neurounits.ast import CompoundPortConnector
         # This is a list of the available connectors from this component
-        self._compound_ports_connectors = LookUpDict( accepted_obj_types=(CompoundPortConnector,), unique_attrs=('symbol',))
+        self._interface_connectors = LookUpDict( accepted_obj_types=(CompoundPortConnector,), unique_attrs=('symbol',))
 
 
 
@@ -382,12 +382,12 @@ class NineMLComponent(Block):
 
 
 
-    def add_compound_port(self, compoundportconnector ):
-        self._compound_ports_connectors._add_item(compoundportconnector)
+    def add_interface_connector(self, compoundportconnector ):
+        self._interface_connectors._add_item(compoundportconnector)
 
 
 
-    def build_compound_port(self, local_name, porttype, direction, wire_mapping_txts):
+    def build_interface_connector(self, local_name, porttype, direction, wire_mapping_txts):
         assert isinstance(local_name, basestring)
         assert isinstance(porttype, basestring)
         assert isinstance(direction, basestring)
@@ -397,17 +397,17 @@ class NineMLComponent(Block):
 
 
         import neurounits.ast as ast
-        compound_port_def = self.library_manager.get(porttype)
+        interface_def = self.library_manager.get(porttype)
         wire_mappings = []
         for wire_mapping_txt in wire_mapping_txts:
             wire_map = ast.CompoundPortConnectorWireMapping(
                             component_port = self.get_terminal_obj(wire_mapping_txt[0]),
-                            compound_port = compound_port_def.get_wire(wire_mapping_txt[1]),
+                            interface_port = interface_def.get_wire(wire_mapping_txt[1]),
                             )
             wire_mappings.append(wire_map)
 
-        conn = ast.CompoundPortConnector(symbol=local_name, compound_port_def = compound_port_def, wire_mappings=wire_mappings, direction=direction)
-        self.add_compound_port(conn)
+        conn = ast.CompoundPortConnector(symbol=local_name, interface_def = interface_def, wire_mappings=wire_mappings, direction=direction)
+        self.add_interface(conn)
 
 
 
@@ -421,7 +421,7 @@ class NineMLComponent(Block):
 
 
     def __repr__(self):
-        return '<NineML Component: %s [Supports interfaces: %s ]>' % (self.name, ','.join([ "'%s'" % conn.compound_port_def.name for conn in  self._compound_ports_connectors]))
+        return '<NineML Component: %s [Supports interfaces: %s ]>' % (self.name, ','.join([ "'%s'" % conn.interface_def.name for conn in  self._interfaces_connectors]))
 
     @property
     def rt_graphs(self):

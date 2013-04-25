@@ -118,7 +118,7 @@ class ReplaceNode(ASTVisitorBase):
 
 
     def VisitCompoundPortConnectorWireMapping(self, o, **kwargs):
-        o.compound_port = self.replace_or_visit(o.compound_port)
+        o.interface_port = self.replace_or_visit(o.interface_port)
         o.component_port = self.replace_or_visit(o.component_port)
         return o
 
@@ -136,7 +136,7 @@ class ReplaceNode(ASTVisitorBase):
 
     def VisitCompoundPortConnector(self, o, **kwargs):
         o.wire_mappings = self._replace_within_new_lut(o.wire_mappings)
-        o.compound_port_def = self.replace_or_visit(o.compound_port_def)
+        o.interface_def = self.replace_or_visit(o.interface_def)
         return o
 
         assert False
@@ -157,7 +157,7 @@ class ReplaceNode(ASTVisitorBase):
         o._eqn_time_derivatives = self._replace_within_new_lut(o._eqn_time_derivatives)
         o._function_defs = self._replace_within_new_lut(o._function_defs)
         o._symbolicconstants = self._replace_within_new_lut(o._symbolicconstants)
-        o._compound_ports_connectors = self._replace_within_new_lut(o._compound_ports_connectors)
+        o._interface_connectors = self._replace_within_new_lut(o._interface_connectors)
 
         o._event_port_connections = self._replace_within_new_lut(o._event_port_connections)
 

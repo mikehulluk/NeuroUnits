@@ -388,7 +388,7 @@ class RHSPanelComponent(wx.Panel):
             self.list_ctrl_terminals.SetStringItem(index, 2, str(obj.get_dimension()) )
 
 
-        for index, obj in enumerate( component._compound_ports_connectors ):
+        for index, obj in enumerate( component._interface_connectors ):
             self.list_ctrl_interfaces.InsertStringItem(index, obj.symbol)
             self.list_ctrl_interfaces.SetStringItem(index, 1, type(obj).__name__.split('.')[-1] )
             self.list_ctrl_interfaces.SetStringItem(index, 2, '' )

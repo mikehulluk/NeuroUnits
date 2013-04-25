@@ -84,24 +84,24 @@ class Interface(base.ASTObject):
 
 
 class CompoundPortConnectorWireMapping(base.ASTObject):
-    def __init__(self, component_port, compound_port):
+    def __init__(self, component_port, interface_port):
         super(CompoundPortConnectorWireMapping,self).__init__()
         self.component_port = component_port
-        self.compound_port = compound_port
+        self.interface_port = interface_port
 
         import neurounits.ast as ast
 
 
 
         assert isinstance(component_port, (ast.SuppliedValue, ast.AssignedVariable, ast.StateVariable, ast.AnalogReducePort) )
-        assert isinstance(compound_port, (InterfaceWireContinuous, InterfaceWireEvent) )
+        assert isinstance(interface_port, (InterfaceWireContinuous, InterfaceWireEvent) )
 
     def accept_visitor(self, visitor, **kwargs):
         return visitor.VisitCompoundPortConnectorWireMapping(self, **kwargs)
 
 
     def __repr__(self,):
-        return "<CompoundPortConnectorWireMapping: Component: %s to Compound: %s>" % (self.component_port.symbol, self.compound_port.symbol)
+        return "<CompoundPortConnectorWireMapping: Component: %s to Compound: %s>" % (self.component_port.symbol, self.interface_port.symbol)
 
 
 
@@ -110,11 +110,11 @@ class CompoundPortConnector(base.ASTObject):
     def accept_visitor(self, visitor, **kwargs):
         return visitor.VisitCompoundPortConnector(self, **kwargs)
 
-    def __init__(self, symbol, compound_port_def, wire_mappings, direction):
+    def __init__(self, symbol, interface_def, wire_mappings, direction):
         super(CompoundPortConnector, self).__init__()
 
         self.symbol = symbol
-        self.compound_port_def =  compound_port_def
+        self.interface_def =  interface_def
         self.wire_mappings = LookUpDict(wire_mappings, accepted_obj_types=(CompoundPortConnectorWireMapping,) )
         self.direction = direction
 

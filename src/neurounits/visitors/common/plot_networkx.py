@@ -107,7 +107,7 @@ class ActionerGetConnections(ASTActionerDefault):
     def ActionLibraryManager(self, o, **kwargs):
         self.connections[o].extend(o.libraries)
         self.connections[o].extend(o.components)
-        self.connections[o].extend(o.compound_port_defs)
+        self.connections[o].extend(o.interfaces)
 
 
     def ActionLibrary(self, o, **kwargs):
@@ -122,7 +122,7 @@ class ActionerGetConnections(ASTActionerDefault):
         self.connections[o].extend(o.symbolicconstants)
         self.connections[o].extend(o.transitions)
         self.connections[o].extend(list(o._event_port_connections) )
-        self.connections[o].extend(list(o._compound_ports_connectors) )
+        self.connections[o].extend(list(o._interface_connectors) )
 
 
     def ActionRegime(self, o, **kwargs):
@@ -261,9 +261,9 @@ class ActionerGetConnections(ASTActionerDefault):
         self.connections[o].extend(list(o.connections))
 
     def ActionCompoundPortConnectorWireMapping(self, o, **kwargs):
-        self.connections[o].extend([o.compound_port, o.component_port])
+        self.connections[o].extend([o.interface, o.component_port])
 
 
     def ActionCompoundPortConnector(self, o, **kwargs):
-        self.connections[o].extend([o.compound_port_def] + list(o.wire_mappings))
+        self.connections[o].extend([o.interface_def] + list(o.wire_mappings))
 

@@ -321,7 +321,7 @@ class AbstractBlockBuilder(object):
         self.builddata.eqnset_name = name.strip()
 
         #CompoundPort Data:
-        self._compound_port_data = []
+        self._interface_data = []
 
         # Event ports:
         self._output_event_ports = LookUpDict( accepted_obj_types=(ast.OutEventPort) )
@@ -831,9 +831,9 @@ class AbstractBlockBuilder(object):
 
         # Resolve the compound-connectors:
 
-        for compoundport in self._compound_port_data:
+        for compoundport in self._interface_data:
             local_name, porttype, direction, wire_mapping_txts = compoundport
-            self._astobject.build_compound_port(local_name=local_name, porttype=porttype, direction=direction, wire_mapping_txts=wire_mapping_txts)
+            self._astobject.build_interface_connector(local_name=local_name, porttype=porttype, direction=direction, wire_mapping_txts=wire_mapping_txts)
             #print conn
             #assert False
 
@@ -880,7 +880,7 @@ class EqnSetBuilder(AbstractBlockBuilder):
         self.builddata._time_derivatives_per_regime.append(a)
 
     def add_compoundport_def_data(self, connector):
-        self._compound_port_data.append(connector)
+        self._interface_data.append(connector)
 
 
 

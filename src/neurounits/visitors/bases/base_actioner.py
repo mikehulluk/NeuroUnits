@@ -56,14 +56,14 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         self._ActionInterface( o, **kwargs)
 
     def VisitCompoundPortConnector(self, o, **kwargs):
-        self.visit(o.compound_port_def)
+        self.visit(o.interface_def)
         for wire in o.wire_mappings:
             self.visit(wire)
         self._ActionCompoundPortConnector(o, **kwargs)
         
     def VisitCompoundPortConnectorWireMapping(self, o, **kwargs):
         self.visit(o.component_port)
-        self.visit(o.compound_port)
+        self.visit(o.interface_port)
         self._ActionCompoundPortConnectorWireMapping(o, **kwargs)
 
     def VisitInterfaceWireContinuous(self, o, **kwargs):
@@ -82,7 +82,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
     def VisitNineMLComponent(self, o, **kwargs):
 
-        subnodes = itertools.chain(o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants, o.transitions, o._event_port_connections, o.rt_graphs, o._compound_ports_connectors)
+        subnodes = itertools.chain(o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants, o.transitions, o._event_port_connections, o.rt_graphs, o._interface_connectors)
         for f in subnodes:
             self.visit(f, **kwargs)
 

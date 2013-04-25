@@ -25,7 +25,7 @@ def _is_node_analog(n):
     assert False, "I don't know the direction of: %s %s" % (n, type(n))
 
 
-def build_compound_component(component_name, instantiate,  analog_connections=None, event_connections=None,  renames=None, connections=None, prefix='/', auto_remap_time=True, merge_nodes=None, compound_ports_in=None, multiconnections=None, set_parameters=None):
+def build_compound_component(component_name, instantiate,  analog_connections=None, event_connections=None,  renames=None, connections=None, prefix='/', auto_remap_time=True, merge_nodes=None, interfaces_in=None, multiconnections=None, set_parameters=None):
     #print 'Building Compund Componet:', component_name
 
 
@@ -70,7 +70,7 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
         for port in itertools.chain( component.output_event_port_lut,  component.input_event_port_lut):
             port.symbol = ns_prefix + port.symbol
 
-        for connector in itertools.chain( component._compound_ports_connectors):
+        for connector in itertools.chain( component._interface_connectors):
             connector.symbol = ns_prefix + connector.symbol
 
 
@@ -120,8 +120,8 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
 
     # Copy accross existing compound ports:
     for component in instantiate.values():
-        for compoundport in component._compound_ports_connectors:
-            comp.add_compound_port(compoundport)
+        for interface in component._interface_connectors:
+            comp.add_interface_connector(interface)
 
 
 
@@ -138,25 +138,25 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
     if multiconnections:
         for m in multiconnections:
             io1_name, io2_name = m
-            conn1 = comp._compound_ports_connectors.get_single_obj_by(symbol=io1_name)
-            conn2 = comp._compound_ports_connectors.get_single_obj_by(symbol=io2_name)
+            conn1 = comp._interface_connectors.get_single_obj_by(symbol=io1_name)
+            conn2 = comp._interface_connectors.get_single_obj_by(symbol=io2_name)
             #print 'Connecting connectors:,', conn1, conn2
 
             # sort out the direction:
             if  (conn1.get_direction()=='in' and conn2.get_direction()=='out'):
                 conn1,conn2 = conn2, conn1
             assert (conn1.get_direction()=='out' and conn2.get_direction()=='in') 
-            compound_ports = list(set([conn1.compound_port_def, conn2.compound_port_def] ) )
+            interfaces = list(set([conn1.interface_def, conn2.interface_def] ) )
             
-            assert len(compound_ports) == 1
-            compound_port = compound_ports[0]
+            assert len(interfaces) == 1
+            interface = interfaces[0]
 
             # Make the connections:
-            for wire in compound_port.connections:
+            for wire in interface.connections:
 
 
-                pre = conn1.wire_mappings.get_single_obj_by(compound_port=wire)
-                post = conn2.wire_mappings.get_single_obj_by(compound_port=wire)
+                pre = conn1.wire_mappings.get_single_obj_by(interface_port=wire)
+                post = conn2.wire_mappings.get_single_obj_by(interface_port=wire)
 
                 # Resolve the direction again!:
                 if wire.direction  =='DirRight':
@@ -278,10 +278,10 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
 
     # 7. Create any new compound ports:
     # TODO: shouldn't this go higher up? before connections??
-    if compound_ports_in:
-        for compound_port in compound_ports_in:
-            local_name, porttype, direction, wire_mapping_txts = compound_port
-            comp.build_compound_port(local_name=local_name, porttype=porttype, direction=direction, wire_mapping_txts=wire_mapping_txts)
+    if interfaces_in:
+        for interface in interfaces_in:
+            local_name, porttype, direction, wire_mapping_txts = interface
+            comp.build_interface_connector(local_name=local_name, porttype=porttype, direction=direction, wire_mapping_txts=wire_mapping_txts)
 
     #8. Set parameters:
     if set_parameters:

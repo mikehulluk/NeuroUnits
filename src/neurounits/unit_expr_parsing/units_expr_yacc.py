@@ -201,7 +201,7 @@ def p_compound_component(p):
     renames = [ d['what'] for d in actions if d['action']=='RENAME']
     merge_nodes = [ d['what'] for d in actions if d['action']=='MERGE']
 
-    compound_ports = [ d['port_instance'] for d in actions if d['action']=='COMPOUNDPORT'] 
+    interfaces = [ d['port_instance'] for d in actions if d['action']=='COMPOUNDPORT'] 
     set_parameters = [ (d['lhs'], d['rhs']) for d in actions if d['action']=='SET'] 
 
     from neurounits.ast import NineMLComponent
@@ -212,7 +212,7 @@ def p_compound_component(p):
             connections = connections,
             renames = renames,
             merge_nodes = merge_nodes,
-            compound_ports_in = compound_ports,
+            interfaces_in = interfaces,
             multiconnections=multiconnections,
             set_parameters = set_parameters,
             )

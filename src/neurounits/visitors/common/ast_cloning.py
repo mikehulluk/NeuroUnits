@@ -92,7 +92,7 @@ class ASTClone(object):
                 )
 
         new._event_port_connections = o._event_port_connections.copy()
-        new._compound_ports_connectors = o._compound_ports_connectors.copy()
+        new._interface_connectors = o._interface_connectors.copy()
         return copy_std(o, new, )
 
 
@@ -330,7 +330,7 @@ class ASTClone(object):
     def VisitCompoundPortConnector(self, o, **kwaargs):
         return ast.CompoundPortConnector(
                 symbol = o.symbol, 
-                compound_port_def = o.compound_port_def,
+                interface_def = o.interface_def,
                 wire_mappings = o.wire_mappings.copy(),
                 direction = o.direction
                 )
@@ -338,7 +338,7 @@ class ASTClone(object):
     def VisitCompoundPortConnectorWireMapping(self, o, **kwargs):
         return ast.CompoundPortConnectorWireMapping(
                 component_port = o.component_port,
-                compound_port =  o.compound_port,
+                interface_port =  o.interface_port,
                 )
 
     def VisitEventPortConnection(self, o, **kwargs ):

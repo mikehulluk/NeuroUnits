@@ -193,11 +193,7 @@ class LibraryManager(object):
 
         self.backend = backend
 
-        ## We are moving away from using these:
-        #self.libraries = []
-        #self.components = []
-        #self.compound_port_defs = []
-
+     
 
         self._parsing_namespace_stack = []
 
