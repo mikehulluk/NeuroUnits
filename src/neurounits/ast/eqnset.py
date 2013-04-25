@@ -407,7 +407,7 @@ class NineMLComponent(Block):
             wire_mappings.append(wire_map)
 
         conn = ast.CompoundPortConnector(symbol=local_name, interface_def = interface_def, wire_mappings=wire_mappings, direction=direction)
-        self.add_interface(conn)
+        self.add_interface_connector(conn)
 
 
 
@@ -421,7 +421,7 @@ class NineMLComponent(Block):
 
 
     def __repr__(self):
-        return '<NineML Component: %s [Supports interfaces: %s ]>' % (self.name, ','.join([ "'%s'" % conn.interface_def.name for conn in  self._interfaces_connectors]))
+        return '<NineML Component: %s [Supports interfaces: %s ]>' % (self.name, ','.join([ "'%s'" % conn.interface_def.name for conn in  self._interface_connectors]))
 
     @property
     def rt_graphs(self):

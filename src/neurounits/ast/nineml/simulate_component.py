@@ -147,6 +147,7 @@ def auto_plot(res):
 
 
 def simulate_component(component, times, parameters=None,initial_state_values=None, initial_regimes=None, close_reduce_ports=True):
+    times = np.linspace(0,0.01, num=100)
 
     parameters = parameters if parameters is not None else {}
     initial_regimes = initial_regimes if initial_regimes is not None else {}

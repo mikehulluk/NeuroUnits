@@ -245,7 +245,7 @@ class ASTAllConnections(ASTActionerDepthFirst):
 
 
     def VisitCompoundPortConnectorWireMapping(self, o, **kwargs):
-        return [o.interface, o.component_port]
+        return [o.interface_port, o.component_port]
 
     def VisitInterface(self, o, **kwargs):
         return list(o.connections)
