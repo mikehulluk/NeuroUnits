@@ -81,6 +81,12 @@ class ReplaceNode(ASTVisitorBase):
             return self.visit(o)
 
 
+    def replace(self, o, ):
+        if o == self.srcObj:
+            return self.dstObj
+        return o
+        
+
     def visit(self, o, **kwargs):
         return o.accept_visitor(self, **kwargs)
 
@@ -153,13 +159,11 @@ class ReplaceNode(ASTVisitorBase):
         o._symbolicconstants = self._replace_within_new_lut(o._symbolicconstants)
         o._compound_ports_connectors = self._replace_within_new_lut(o._compound_ports_connectors)
 
-        #if len(o._event_port_connections):
-        #    assert False, 'TOADD!'
         o._event_port_connections = self._replace_within_new_lut(o._event_port_connections)
 
 
-        if o is self.srcObj:
-            return self.dstObj
+        #if o is self.srcObj:
+        #    return self.dstObj
 
         return o
 
@@ -176,9 +180,9 @@ class ReplaceNode(ASTVisitorBase):
 
     def VisitRegime(self, o, **kwargs):
         # This is not a parent, so lets prevenmt recursion:
-        if o.parent_rt_graph == self.srcObj:
-            o.parent_rt_graph = self.dstObj
-        return o
+       o.parent_rt_graph  = self.replace(o.parent_rt_graph) #== self.srcObj:
+            #o.parent_rt_graph = self.dstObj
+       return o
 
 
 
@@ -299,9 +303,7 @@ class ReplaceNode(ASTVisitorBase):
         return o
 
     def VisitFunctionDefInstantiation(self, o, **kwargs):
-        o.parameters = dict([(pName, self.replace_or_visit(p))
-                            for (pName, p) in o.parameters.iteritems()])
-        assert not self.srcObj in o.parameters.values()
+        o.parameters = dict([(pName, self.replace_or_visit(p)) for (pName, p) in o.parameters.iteritems()])
         o.function_def = self.replace_or_visit(o.function_def)
 
         return o

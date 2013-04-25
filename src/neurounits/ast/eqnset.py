@@ -250,7 +250,7 @@ class NineMLComponent(Block):
 
 
         if not len(possible_objs) == 1:
-            all_syms = [ p.symbol for p in self.all_terminal_objs()] 
+            all_syms = [ p.symbol for p in self.all_terminal_objs()]
             raise KeyError("Can't find terminal: '%s' \n (Terminals found: %s)" % (symbol, ','.join(sorted(all_syms)) ) )
 
         return possible_objs[0]
@@ -488,10 +488,18 @@ class NineMLComponent(Block):
 
 
         class ReplaceNodeHack(ReplaceNode):
-            def replace_or_visit(self, o):
-                if o == self.srcObj:
 
-                    return self.dstObj
+            def __init__(self, mapping_dict):
+                assert isinstance(mapping_dict, dict)
+                self.mapping_dict = mapping_dict
+
+
+            def replace_or_visit(self, o):
+                return self.replace(o)
+
+            def replace(self, o, ):
+                if o in self.mapping_dict:
+                    return self.mapping_dict[o]
                 else:
                     return o
 
@@ -518,7 +526,7 @@ class NineMLComponent(Block):
                 new_node = ASTClone().visit(old_node)
             else:
                 new_node = old_node
-            
+
 
             #print old_node, '-->', new_node
             assert type(old_node) == type(new_node)
@@ -533,21 +541,31 @@ class NineMLComponent(Block):
             assert isinstance(o, no_remap)
 
         # Now, lets visit each of the new nodes, and replace (old->new) on it:
-        #print 
+        #print
         #print 'Replacing Nodes:'
+
+        # Build the mapping dictionary:
+        mapping_dict = {}
+        for old_repl, new_repl in old_to_new_dict.items():
+            #if new_repl == new_node:
+            #    continue
+            #print ' -- Replacing:',old_repl, new_repl
+
+            if isinstance(old_repl, no_remap):
+                continue
+
+            mapping_dict[old_repl] = new_repl
+
+        # Remap all the nodes:
         for new_node in old_to_new_dict.values():
             #print 'Replacing nodes on:', new_node
 
-            for old_repl, new_repl in old_to_new_dict.items():
-                if new_repl == new_node:
-                    continue
-                #print ' -- Replacing:',old_repl, new_repl
+            node_mapping_dict = mapping_dict.copy()
+            if new_node in node_mapping_dict:
+                del node_mapping_dict[new_node]
 
-                if isinstance( old_repl, no_remap):
-                    continue
-
-                replacer = ReplaceNodeHack(srcObj=old_repl, dstObj=new_repl)
-                new_node.accept_visitor(replacer)
+            replacer = ReplaceNodeHack(mapping_dict=node_mapping_dict)
+            new_node.accept_visitor(replacer)
 
 
         # ok, so the clone should now be all clear:
@@ -561,11 +579,8 @@ class NineMLComponent(Block):
         connections_map_conns_to_objs = defaultdict(list)
         for node in new_nodes:
 
-
             conns = list( node.accept_visitor( ASTAllConnections() ) )
-
             connections_map_obj_to_conns[node] = conns
-
             for c in conns:
                 connections_map_conns_to_objs[c].append(node)
 
@@ -583,7 +598,7 @@ class NineMLComponent(Block):
                 print  ' ', s, s in old_to_new_dict
                 print  '  Referenced by:'
                 for c in connections_map_conns_to_objs[s]:
-                    print '    *', c 
+                    print '    *', c
                 print
             assert len(shared_nodes_invalid) == 0
 
