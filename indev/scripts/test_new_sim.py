@@ -14,7 +14,7 @@ from neurounits import NineMLComponent
 
 
 def test():
-     src_files = sorted( glob.glob("/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/std/*.9ml" ))
+     src_files = sorted( glob.glob("/home/michael/hw_to_come//NeuroUnits/src/test_data/l4-9ml/std/*.9ml" ))
 
 
      library_manager = neurounits.NeuroUnitParser.Parse9MLFiles( src_files)
@@ -23,7 +23,7 @@ def test():
              component_name = 'Test1',
              instantiate={
                  'o1': general_neuron_with_step_inj,
-                 #'o2': general_neuron_with_step_inj,
+                 'o2': general_neuron_with_step_inj,
                  #'o3': general_neuron_with_step_inj,
                  }
              )

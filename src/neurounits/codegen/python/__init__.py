@@ -9,8 +9,8 @@ def simulate( component, times ):
 
     blks = utils.separate_integration_blocks(component)
 
-    for blk in blks:
-        print 'blks:', blk
+    #for blk in blks:
+    #    print 'blks:', blk
 
 
 

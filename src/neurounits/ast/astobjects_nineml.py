@@ -109,6 +109,11 @@ class Transition(ASTObject):
         self.target_regime = target_regime
         self.src_regime = src_regime
         self.actions = actions
+    @property
+    def rt_graph(self):
+        rt_graphs = set( [self.src_regime.parent_rt_graph, self.target_regime.parent_rt_graph ])
+        assert len(rt_graphs) == 1
+        return list(rt_graphs)[0]
 
 
 class OnTriggerTransition(Transition):

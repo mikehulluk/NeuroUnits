@@ -147,9 +147,11 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
     def VisitNineMLComponent(self, o, **kwargs):
         for a in o.assignments:
             self.dependancies[a.lhs] = self.visit(a)
-
         for a in o.timederivatives:
             self.dependancies[a.lhs] = self.visit(a)
+
+        #for rt_graph in self._rt_graphs:
+        #    assert False
 
     def VisitSymbolicConstant(self, o, **kwargs):
         return []
@@ -212,13 +214,20 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         return self.visit(o.rhs_map)
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
+        # Visit the RT graph, to work out what it depends on!
+        #self.visit(o.get_rt_graph())
+
         symbols = []
         for rhs in o.rhs_map.values():
             symbols.extend(self.visit(rhs, **kwargs))
-        return symbols
+        # The RT graph is only a dependance if there is more than one possibility!
+        return symbols + ([o.get_rt_graph()] if len(o.rhs_map) > 1 else [] )
+
+    def VisitRTGraph(self, o, **kwargs):
+        assert False
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
-        return self.visit(o.rhs_map)
+        return self.visit(o.rhs_map) 
 
     def VisitAddOp(self, o, **kwargs):
         return self.visit(o.lhs) + self.visit(o.rhs)
