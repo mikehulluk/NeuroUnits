@@ -85,7 +85,7 @@ class ReplaceNode(ASTVisitorBase):
         if o == self.srcObj:
             return self.dstObj
         return o
-        
+
 
     def visit(self, o, **kwargs):
         return o.accept_visitor(self, **kwargs)

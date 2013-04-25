@@ -51,6 +51,7 @@ from neurounits.unit_expr_parsing.units_expr_yacc import ParseTypes
 from neurounits.nuts_io import NutsIO
 from neurounits.locations import Locations
 
+from neurounits.ast import NineMLComponent
 
 Q1 = lambda o: NeuroUnitParser.QuantitySimple(o).as_quantities_quantity()
 Q2 = lambda o: NeuroUnitParser.QuantityExpr(o).as_quantities_quantity()
