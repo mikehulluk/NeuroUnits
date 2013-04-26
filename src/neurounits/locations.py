@@ -2,7 +2,8 @@
 
 
 import os 
-
+import itertools
+import glob
 
 
 class Locations(object):
@@ -14,9 +15,12 @@ class Locations(object):
     
     @classmethod    
     def get_default_9ml_locations(cls):
-        locs = [ get_package_root(cls) + 'test_data/l4-9ml/*.9ml'  ]
+        locs = [ cls.get_package_root() + '/src/test_data/l4-9ml/std/*.9ml'  ]
+        assert locs
+        print locs
         
-        src_files = itertools.chain( * [glob.glob(l) for l in locs] )
+        src_files = sorted(list(itertools.chain( * [glob.glob(l) for l in locs] )))
+        assert src_files
         return src_files
         
 

@@ -11,10 +11,13 @@ import glob
 
 from neurounits.codegen.python import simulate
 from neurounits import NineMLComponent
+from neurounits.locations import Locations
 
 
 def test():
-     src_files = sorted( glob.glob("/home/michael/hw_to_come//NeuroUnits/src/test_data/l4-9ml/std/*.9ml" ))
+     #src_files = sorted( glob.glob("/home/michael/hw_to_come//NeuroUnits/src/test_data/l4-9ml/std/*.9ml" ))
+     src_files = Locations.get_default_9ml_locations()
+     print src_files
 
 
      library_manager = neurounits.NeuroUnitParser.Parse9MLFiles( src_files)

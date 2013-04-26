@@ -22,7 +22,7 @@ class AnalogIntegrationBlock(object):
 
 
     def __repr__(self):
-        return '<AnalogIntegrationBlock: %s %s %s>' % (
+        return '<AnalogIntegrationBlock: SV: %s ASS: %s RTGrpahs: %s>' % (
                 ','.join([ sv.symbol for sv in self.state_variables ] ),
                 ','.join([ ass.symbol for ass in self.assigned_variables ] ),
                 ','.join([ rt.name for rt in self.rt_graphs ] )
@@ -158,7 +158,11 @@ def build_event_blks(component, analog_blks):
 def separate_integration_blocks(component):
     print 'Separating Integration blocks'
 
+    # Make some cleanups to the component to start with:
     component.close_all_analog_reduce_ports()
+    from remove_unused_rt_graphs import remove_unused_rt_graphs
+    remove_unused_rt_graphs(component)
+
 
     # Step 1:
     # Build the AnalogIntegrationBlocks, based on what  variables needed to be

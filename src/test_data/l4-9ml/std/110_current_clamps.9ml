@@ -1,7 +1,7 @@
 
 
  define_component i_squarewave{
-        #t_last'=0
+        
         
         i=0nA
         
@@ -11,6 +11,8 @@
                 t_last = t
                 transition_to ON;
                 }
+            # Dummy variable for testing:
+            f'= ({1m}-f)/10ms
             }
 
         regime ON{
@@ -19,6 +21,9 @@
                 t_last = t
                 transition_to OFF;
                 }
+            
+            # Dummy variable for testing:    
+            f'= ({3m}-f)/30ms
         }
         
         
