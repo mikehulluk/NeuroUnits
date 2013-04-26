@@ -10,6 +10,21 @@ from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirect
 
 import neurounits.ast as ast
 
+
+
+
+
+def plot_networkx_graph(graph, show=True):
+    plt.figure()
+    objs, labels, colors = zip( * [ (d[0], d[1]['label'], d[1]['color'] ) for d in graph.nodes_iter(data=True) ] )
+    nx.draw_graphviz(graph, font_size=10, iteration=200, node_color=colors,scale=1, labels=dict(zip(objs,labels)) )
+    if show:
+        plt.show()
+
+
+
+
+
 class AnalogIntegrationBlock(object):
     def __init__(self, objs):
 #        import neurounits.ast as ast
@@ -28,10 +43,16 @@ class AnalogIntegrationBlock(object):
                 ','.join([ rt.name for rt in self.rt_graphs ] )
                 )
 
+    @property
+    def objects(self,):
+        return self.state_variables + self.assigned_variables + self.rt_graphs
+        
+
 
 def EventIntegrationBlock(object):
     def __init__(self, analog_blks):
         self.analog_blks = analog_blks
+        
 
 
 
@@ -43,9 +64,7 @@ def build_analog_integration_blks(component):
     # Plot:
     do_plot = True and False
     if do_plot:
-        objs, labels, colors = zip( * [ (d[0], d[1]['label'], d[1]['color'] ) for d in graph.nodes_iter(data=True) ] )
-        nx.draw_graphviz(graph, font_size=10, iteration=200, node_color=colors,scale=1, labels=dict(zip(objs,labels)) )
-        plt.show()
+        plot_networkx_graph(graph, show=False)
 
     res = nx.components.strongly_connected_component_subgraphs(graph)
 
@@ -65,6 +84,12 @@ def build_analog_integration_blks(component):
         blks.append(blk)
 
     return blks
+
+
+
+
+
+
 
 
 from collections import defaultdict
@@ -96,7 +121,6 @@ def build_event_blks(component, analog_blks):
         for action in tr.actions:
             if isinstance(action, ast.OnEventStateAssignment):
                 statevar_on_rt_deps[action.lhs].add(tr.rt_graph)
-                #assert False
 
 
     # OK, now lets build a new dependancy graph to work out transition/event
@@ -114,6 +138,35 @@ def build_event_blks(component, analog_blks):
     for sv, deps in statevar_on_rt_deps.items():
         for dep in deps:
             graph.add_edge(sv,dep,)
+    # E. Event Dependancies:
+    #  -- (Use the src event ports as the 'objects' in the graph:
+    for inp in component.input_event_port_lut:
+        graph.add_node(inp, label=repr(inp), color='brown')
+    for out in component.output_event_port_lut:
+        graph.add_node(out, label=repr(out), color='chocolate')
+        
+    #Output events are dependant on their rt_graphs:
+    for tr in component.transitions:
+        for a in tr.actions:
+            if isinstance(a, ast.EmitEvent ):
+                graph.add_edge(a.port, tr.rt_graph)
+
+    #  -- RT graph dependance on input events:
+    for tr in component._transitions_events:
+        # The RT graph depends on the incoming events:
+        graph.add_edge(tr.rt_graph, tr.port )
+
+    # -- Input ports can depend on output ports:
+    for conn in component._event_port_connections:
+        graph.add_edge(conn.dst_port, conn.src_port)
+
+
+
+    
+
+
+
+
 
     statevar_on_rt_deps= defaultdict(set)
     
@@ -123,15 +176,17 @@ def build_event_blks(component, analog_blks):
 
     do_plot=True
     if do_plot:
-        objs, labels, colors = zip( * [ (d[0], d[1]['label'], d[1]['color'] ) for d in graph.nodes_iter(data=True) ] )
-        nx.draw_graphviz(graph, font_size=10, iteration=200, node_color=colors,scale=1, labels=dict(zip(objs,labels)) )
-        plt.show()
+        plot_networkx_graph(graph, show=False)
 
     print rt_graph_deps_triggers
     print rt_graph_deps_events
 
     scc = nx.strongly_connected_components(graph)
     cond = nx.condensation(graph, scc=scc)
+    
+    #plot_networkx_graph(cond)
+    plt.figure()
+    nx.draw_graphviz(cond, font_size=10, iteration=200, ) 
 
     for node, node_data in cond.nodes_iter(data=True):
         print node, node_data
@@ -140,19 +195,55 @@ def build_event_blks(component, analog_blks):
         print sc
 
 
+
+    # Build a dictionary mapping each state_variable to analog block that its in:
+    obj_to_analog_block = {}
+    for blk in analog_blks:
+        for obj in blk.objects:
+            assert not obj in obj_to_analog_block
+            obj_to_analog_block[obj] = blk
+
     ordering = reversed( nx.topological_sort(cond) )
 
+    ev_blks = []
     print 'Event Block ordering:'
     print '====================='
     for o in ordering:
+        print
+        print ' ---- %d ---- ' % o
         print scc[o]
+        #for obj in scc[o]:
+        #    print ' -- ', obj, 
 
-    
+        analog_blks = list(set( [obj_to_analog_block.get(obj,None) for obj in scc[o] ] ) )
+        analog_blks = [blk for blk in analog_blks if blk is not None]
+        print 'Analog Blocks:', len(analog_blks)
 
-    #for blk in analog_blks:
-    #    print 'Analysing Blk:', blk
+        ev = EventIntegrationBlock(analog_blks)
+        ev_blks.append(ev)
 
-    pass
+    return ev_blks
+
+    #print '====================='
+    #
+    #
+    ##
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #plt.show()
+
+    #
+
+    ##for blk in analog_blks:
+    ##    print 'Analysing Blk:', blk
+
+    #pass
 
 
 def separate_integration_blocks(component):
@@ -181,6 +272,8 @@ def separate_integration_blocks(component):
     # Events, or transitions that change state equations
 
     build_event_blks(component=component, analog_blks=analog_blks)
+
+    return build_event_blks
 
 
 

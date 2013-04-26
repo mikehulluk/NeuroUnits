@@ -14,7 +14,7 @@ from neurounits import NineMLComponent
 from neurounits.locations import Locations
 
 
-def test():
+def test_new_sim():
      #src_files = sorted( glob.glob("/home/michael/hw_to_come//NeuroUnits/src/test_data/l4-9ml/std/*.9ml" ))
      src_files = Locations.get_default_9ml_locations()
      print src_files
@@ -27,8 +27,18 @@ def test():
              instantiate={
                  'o1': general_neuron_with_step_inj,
                  'o2': general_neuron_with_step_inj,
-                 #'o3': general_neuron_with_step_inj,
-                 }
+                 'o3': general_neuron_with_step_inj,
+                 'o4': general_neuron_with_step_inj,
+                 },
+             event_connections= [ 
+                 ('o1/syntrigger/spike', 'o2/nrn/syn_excit/event'),  
+                 ('o1/syntrigger/spike', 'o2/nrn/syn_inhib/event'),  
+                 ('o1/syntrigger/spike', 'o3/nrn/syn_excit/event'),  
+                 ('o2/syntrigger/spike', 'o3/nrn/syn_excit/event'),  
+
+                 ('o4/syntrigger/spike', 'o2/nrn/syn_excit/event'),  
+                 ('o3/syntrigger/spike', 'o4/nrn/syn_excit/event'),  
+                ]
              )
 
      # Old version:
@@ -44,5 +54,5 @@ def test():
 
 
 if __name__=='__main__':
-    test()
+    test_new_sim()
     pylab.show()

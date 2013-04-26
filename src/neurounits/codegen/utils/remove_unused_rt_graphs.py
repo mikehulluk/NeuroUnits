@@ -4,6 +4,8 @@ import neurounits.ast as ast
 from collections import defaultdict
 
 
+def close_unconnected_input_event_ports(component):
+    assert False
 
 def remove_unused_rt_graphs(component):
 

@@ -93,7 +93,7 @@ class CompoundPortConnectorWireMapping(base.ASTObject):
 
 
 
-        assert isinstance(component_port, (ast.SuppliedValue, ast.AssignedVariable, ast.StateVariable, ast.AnalogReducePort) )
+        assert isinstance(component_port, (ast.SuppliedValue, ast.AssignedVariable, ast.StateVariable, ast.AnalogReducePort, ast.SymbolicConstant) )
         assert isinstance(interface_port, (InterfaceWireContinuous, InterfaceWireEvent) )
 
     def accept_visitor(self, visitor, **kwargs):

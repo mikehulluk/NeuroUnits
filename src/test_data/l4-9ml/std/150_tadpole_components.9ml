@@ -28,6 +28,45 @@ define_component exp2syn {
 }
 
 
+define_component syn_trig {
+
+    i=0A
+    v_thres = 0mV
+    
+    regime super {
+        on(V<v_thres){
+            transition_to sub
+        }    
+    }
+    
+    regime sub {
+        on(V>v_thres){
+            emit spike()
+            transition_to super
+        }
+    
+    }
+    
+    initial {
+        regime sub
+    }
+    
+    <=> INPUT V:V
+
+   compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+        # Local <==> Compound-port name
+        V <==> V
+        i <==> I
+    }
+
+    
+
+
+
+}
+
+
+
 
 
 define_compound general_neuron {
@@ -146,6 +185,9 @@ define_compound general_neuron_with_step_inj {
 
     instantiate general_neuron as nrn
     instantiate i_squarewave as stim 
+    
+    instantiate syn_trig as syntrigger
+    multiconnect nrn/nrn/process_mount <==> syntrigger/process_mount_in
     
     connect nrn/i_sum <==> stim/i
     

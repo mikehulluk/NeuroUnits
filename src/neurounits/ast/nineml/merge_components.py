@@ -11,14 +11,14 @@ from neurounits.visitors.common.ast_replace_node import ReplaceNode
 
 
 def _is_node_output(n):
-    if isinstance( n, (ast.AssignedVariable, ast.StateVariable, ast.OutEventPort)):
+    if isinstance( n, (ast.AssignedVariable, ast.StateVariable, ast.OutEventPort, ast.SymbolicConstant)):
         return True
     if isinstance( n, (ast.AnalogReducePort, ast.SuppliedValue, ast.InEventPort)):
         return False
     assert False, "I don't know the direction of: %s" % n
 
 def _is_node_analog(n):
-    if isinstance( n, (ast.AssignedVariable, ast.StateVariable, ast.AnalogReducePort, ast.SuppliedValue)):
+    if isinstance( n, (ast.AssignedVariable, ast.StateVariable, ast.AnalogReducePort, ast.SuppliedValue, ast.SymbolicConstant)):
         return True
     if isinstance( n, (ast.OutEventPort, ast.InEventPort)):
         return False
