@@ -602,13 +602,13 @@ class FunctorGenerator(ASTVisitorBase):
                     assert False, "Sim can't handle function: %s" % o.funcname
         else:
             def eFunc(**kw):
-                if o.funcname == 'exp':
+                if o.funcname == '__exp__':
                     assert len(kw) == 1
                     return float(np.exp(kw.values()[0]))
-                if o.funcname == 'sin':
+                if o.funcname == '__sin__':
                     assert len(kw) == 1
                     return float(np.sin(kw.values()[0]))
-                if o.funcname == 'pow':
+                if o.funcname == '__pow__':
                     assert len(kw) == 2
                     return float(np.power(kw['base'], kw['exp']))
                 else:
@@ -633,10 +633,16 @@ class FunctorGenerator(ASTVisitorBase):
     # Terminals:
     def VisitStateVariable(self, o, **kwargs):
 
-        def eFunc2(state_data, **kw):
-            v = state_data.states_in[o.symbol]
-            assert o.get_dimension().is_compatible(v.get_units())
-            return v
+        if not self.as_float_in_si:
+            def eFunc2(state_data, **kw):
+                v = state_data.states_in[o.symbol]
+                assert o.get_dimension().is_compatible(v.get_units())
+                return v
+        else:
+            def eFunc2(state_data, **kw):
+                v = state_data.states_in[o.symbol]
+                return v
+
 
         return with_number_check( eFunc2, o )
 
@@ -668,7 +674,7 @@ class FunctorGenerator(ASTVisitorBase):
                 return MMQuantity( 0 , o.get_dimension() )
             return eFunc
         else:
-            assert False,'TODO: Need to multiply next lines by unit...'
+            #assert False,'TODO: Need to multiply next lines by unit...'
             def eFunc(**kw):
                 return 0
             return eFunc

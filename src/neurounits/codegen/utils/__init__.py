@@ -46,13 +46,15 @@ class AnalogIntegrationBlock(object):
     @property
     def objects(self,):
         return self.state_variables + self.assigned_variables + self.rt_graphs
-        
 
 
-def EventIntegrationBlock(object):
+
+class EventIntegrationBlock(object):
     def __init__(self, analog_blks):
         self.analog_blks = analog_blks
-        
+    def __repr__(self,):
+        return '<EventIntegrationBlock: %s analog blocks:>' % len(self.analog_blks)
+
 
 
 
@@ -66,15 +68,16 @@ def build_analog_integration_blks(component):
     if do_plot:
         plot_networkx_graph(graph, show=False)
 
-    res = nx.components.strongly_connected_component_subgraphs(graph)
+    #res = nx.components.strongly_connected_component_subgraphs(graph)
 
     # Get the strongly connected components, and the dependancies between the
     # nodes:
     scc = nx.strongly_connected_components(graph)
     cond = nx.condensation(graph, scc=scc)
 
-    for node, node_data in cond.nodes_iter(data=True):
-        print node, node_data
+
+    #for node, node_data in cond.nodes_iter(data=True):
+    #    print node, node_data
 
 
     ordering = reversed( nx.topological_sort(cond) )
@@ -101,7 +104,7 @@ def build_event_blks(component, analog_blks):
     rt_graph_deps_triggers = defaultdict(set)
     dep_finder = VisitorFindDirectSymbolDependance()
     for tr in component._transitions_triggers:
-        print 'TRANSITION:', repr(tr)
+        #print 'TRANSITION:', repr(tr)
         trigger_deps = dep_finder.visit(tr.trigger)
         for tdep in trigger_deps:
             if tdep.symbol != 't':
@@ -110,7 +113,7 @@ def build_event_blks(component, analog_blks):
     # 2. Make a map dependancies 'rt_graph -> event_ports'
     rt_graph_deps_events = defaultdict(set)
     for tr in component._transitions_events:
-        print 'TRANSITION:', repr(tr)
+        #print 'TRANSITION:', repr(tr)
         rt_graph_deps_events[tr.rt_graph].add(tr.port)
 
     # Find out what transitions particular state-variables
@@ -134,7 +137,7 @@ def build_event_blks(component, analog_blks):
     for rt_graph, deps in rt_graph_deps_triggers.items():
         for dep in deps:
             graph.add_edge(rt_graph,dep,)
-    # D. Add the dependance of state_varaibles on assignments in rt_graphs: 
+    # D. Add the dependance of state_varaibles on assignments in rt_graphs:
     for sv, deps in statevar_on_rt_deps.items():
         for dep in deps:
             graph.add_edge(sv,dep,)
@@ -144,7 +147,7 @@ def build_event_blks(component, analog_blks):
         graph.add_node(inp, label=repr(inp), color='brown')
     for out in component.output_event_port_lut:
         graph.add_node(out, label=repr(out), color='chocolate')
-        
+
     #Output events are dependant on their rt_graphs:
     for tr in component.transitions:
         for a in tr.actions:
@@ -162,38 +165,25 @@ def build_event_blks(component, analog_blks):
 
 
 
-    
+
 
 
 
 
 
     statevar_on_rt_deps= defaultdict(set)
-    
-    for d in graph.nodes_iter(data=True):
-        print d
-        print d[1]['label']
 
-    do_plot=True
+    do_plot=False
     if do_plot:
         plot_networkx_graph(graph, show=False)
 
-    print rt_graph_deps_triggers
-    print rt_graph_deps_events
 
     scc = nx.strongly_connected_components(graph)
     cond = nx.condensation(graph, scc=scc)
-    
+
     #plot_networkx_graph(cond)
     plt.figure()
-    nx.draw_graphviz(cond, font_size=10, iteration=200, ) 
-
-    for node, node_data in cond.nodes_iter(data=True):
-        print node, node_data
-
-    for sc in scc:
-        print sc
-
+    nx.draw_graphviz(cond, font_size=10, iteration=200, )
 
 
     # Build a dictionary mapping each state_variable to analog block that its in:
@@ -213,37 +203,18 @@ def build_event_blks(component, analog_blks):
         print ' ---- %d ---- ' % o
         print scc[o]
         #for obj in scc[o]:
-        #    print ' -- ', obj, 
+        #    print ' -- ', obj,
 
         analog_blks = list(set( [obj_to_analog_block.get(obj,None) for obj in scc[o] ] ) )
         analog_blks = [blk for blk in analog_blks if blk is not None]
         print 'Analog Blocks:', len(analog_blks)
 
-        ev = EventIntegrationBlock(analog_blks)
-        ev_blks.append(ev)
+        if analog_blks:
+            ev = EventIntegrationBlock(analog_blks=analog_blks)
+            ev_blks.append(ev)
 
     return ev_blks
 
-    #print '====================='
-    #
-    #
-    ##
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #plt.show()
-
-    #
-
-    ##for blk in analog_blks:
-    ##    print 'Analysing Blk:', blk
-
-    #pass
 
 
 def separate_integration_blocks(component):
@@ -254,7 +225,6 @@ def separate_integration_blocks(component):
     from remove_unused_rt_graphs import remove_unused_rt_graphs
     remove_unused_rt_graphs(component)
 
-
     # Step 1:
     # Build the AnalogIntegrationBlocks, based on what  variables needed to be
     # solved by the  integrator together:
@@ -262,35 +232,12 @@ def separate_integration_blocks(component):
     # the later ones:
     analog_blks = build_analog_integration_blks(component)
 
-
-    for o in analog_blks:
-        print o
-
     # Step 2:
     # Work out the event dependancies between the blocks.
     # These can come from:
     # Events, or transitions that change state equations
+    ent_blks = build_event_blks(component=component, analog_blks=analog_blks)
 
-    build_event_blks(component=component, analog_blks=analog_blks)
-
-    return build_event_blks
-
-
-
-
-    #for blk in blks:
-    #    print blk
-
-
-
-    #print 'Done'
-    #assert False
-
-
-
-
-    #from dependancy_new import get_dependancy_graph
-
-    #get_dependancy_graph(component)
+    return ent_blks
 
 

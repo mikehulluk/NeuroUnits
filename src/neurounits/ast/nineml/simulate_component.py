@@ -146,6 +146,59 @@ def auto_plot(res):
 
 
 
+
+
+
+
+def get_initial_regimes(rt_graphs, initial_regimes=None):
+    if initial_regimes is None:
+        initial_regimes = {}
+
+    # Sanity Check:
+    for rt_graph in rt_graphs:
+        if rt_graph.default_regime:
+            assert rt_graph.default_regime in rt_graph.regimes
+
+    # Resolve initial regimes:
+    # ========================
+    # i. Initial, make initial regimes 'None', then lets try and work it out:
+    current_regimes = dict( [ (rt, None) for rt in rt_graphs] )
+
+    # ii. Is there just a single regime?
+    for (rt_graph, regime) in current_regimes.items():
+        if len(rt_graph.regimes) == 1:
+            current_regimes[rt_graph] = rt_graph.regimes.get_single_obj_by()
+
+    # iii. Do the transion graphs have a 'initial' block?
+    for rt_graph in rt_graphs:
+        if rt_graph.default_regime is not None:
+            current_regimes[rt_graph] = rt_graph.default_regime
+
+
+    # iv. Explicitly provided:
+    for (rt_name, regime_name) in initial_regimes.items():
+        rt_graph = rt_graphs.get_single_obj_by(name=rt_name)
+        assert current_regimes[rt_graph] is None, "Initial state for '%s' set twice " % rt_graph.name
+        current_regimes[rt_graph]  = rt_graph.get_regime( name=regime_name )
+
+    # v. Check everything is hooked up OK:
+    for rt_graph, regime in current_regimes.items():
+        assert regime is not None, " Start regime for '%s' not set! " % (rt_graph.name)
+        assert regime in rt_graph.regimes, 'regime: %s [%s]' % (repr(regime), rt_graph.regimes  )
+
+    return current_regimes
+
+
+
+
+
+
+
+
+
+
+
+
 def simulate_component(component, times, parameters=None,initial_state_values=None, initial_regimes=None, close_reduce_ports=True):
     times = np.linspace(0,0.01, num=100)
 
@@ -161,7 +214,7 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
     # Close all the open analog ports:
     if close_reduce_ports:
         component.close_all_analog_reduce_ports()
-    
+
 
     # Sort out the parameters and initial_state_variables:
     # =====================================================
@@ -181,32 +234,35 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
     for rt_graph in component.rt_graphs:
         if rt_graph.default_regime:
             assert rt_graph.default_regime in rt_graph.regimes
+
     # Resolve initial regimes:
     # ========================
-    # i. Initial, make initial regimes 'None', then lets try and work it out:
-    current_regimes = dict( [ (rt, None) for rt in component.rt_graphs] )
+    current_regimes = get_initial_regimes(rt_graphs=component.rt_graphs, initial_regimes=initial_regimes)
+    ## i. Initial, make initial regimes 'None', then lets try and work it out:
+    #current_regimes = dict( [ (rt, None) for rt in component.rt_graphs] )
 
-    # ii. Is there just a single regime?
-    for (rt_graph, regime) in current_regimes.items():
-        if len(rt_graph.regimes) == 1:
-            current_regimes[rt_graph] = rt_graph.regimes.get_single_obj_by()
+    ## ii. Is there just a single regime?
+    #for (rt_graph, regime) in current_regimes.items():
+    #    if len(rt_graph.regimes) == 1:
+    #        current_regimes[rt_graph] = rt_graph.regimes.get_single_obj_by()
 
-    # iii. Do the transion graphs have a 'initial' block?
-    for rt_graph in component.rt_graphs:
-        if rt_graph.default_regime is not None:
-            current_regimes[rt_graph] = rt_graph.default_regime
+    ## iii. Do the transion graphs have a 'initial' block?
+    #for rt_graph in component.rt_graphs:
+    #    if rt_graph.default_regime is not None:
+    #        current_regimes[rt_graph] = rt_graph.default_regime
 
 
-    # iv. Explicitly provided:
-    for (rt_name, regime_name) in initial_regimes.items():
-        rt_graph = component.rt_graphs.get_single_obj_by(name=rt_name)
-        assert current_regimes[rt_graph] is None, "Initial state for '%s' set twice " % rt_graph.name
-        current_regimes[rt_graph]  = rt_graph.get_regime( name=regime_name )
+    ## iv. Explicitly provided:
+    #for (rt_name, regime_name) in initial_regimes.items():
+    #    rt_graph = component.rt_graphs.get_single_obj_by(name=rt_name)
+    #    assert current_regimes[rt_graph] is None, "Initial state for '%s' set twice " % rt_graph.name
+    #    current_regimes[rt_graph]  = rt_graph.get_regime( name=regime_name )
 
-    # v. Check everything is hooked up OK:
-    for rt_graph, regime in current_regimes.items():
-        assert regime is not None, " Start regime for '%s' not set! " % (rt_graph.name)
-        assert regime in rt_graph.regimes, 'regime: %s [%s]' % (repr(regime), rt_graph.regimes  )
+    ## v. Check everything is hooked up OK:
+    #for rt_graph, regime in current_regimes.items():
+    #    assert regime is not None, " Start regime for '%s' not set! " % (rt_graph.name)
+    #    assert regime in rt_graph.regimes, 'regime: %s [%s]' % (repr(regime), rt_graph.regimes  )
+
 
 
     # Resolve the inital values of the states:
@@ -324,7 +380,7 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
             # Check that all transitions resolve back to this state:
             rt_graphs = set([ rt_graph for ( tr, evt, rt_graph) in triggered_transitions ])
             for rt_graph in rt_graphs:
-                rt_trig_trans = ( [ tr for ( tr, evt, rt_graph_) in triggered_transitions if rt_graph_ == rt_graph ]) 
+                rt_trig_trans = ( [ tr for ( tr, evt, rt_graph_) in triggered_transitions if rt_graph_ == rt_graph ])
                 target_regimes = set( [tr.target_regime for tr in rt_trig_trans] )
                 assert len(target_regimes) == 1
 
@@ -333,7 +389,7 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
                 state_data.clear_states_out()
                 (state_changes, new_regime) = do_transition_change(tr=tr, evt=evt, state_data=state_data, functor_gen = f)
                 current_regimes[rt_graph] = new_regime
-                
+
 
                 # Make sure that we are not changing a single state in two different transitions:
                 for sv in state_changes:
