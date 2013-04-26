@@ -67,6 +67,9 @@ def solve_eventblock(component, evt_blk, datastore, tstop=0.500, dt=0.1e-3):
     rt_graphs = list(chain(* [analog_blk.rt_graphs for analog_blk in analog_blks] ))
 
 
+    # Setup depandancy info:
+    print 'Block Dependancies:', evt_blk.dependancies
+
     #print rt_graphs
     #assert False
 
@@ -157,7 +160,7 @@ def solve_eventblock(component, evt_blk, datastore, tstop=0.500, dt=0.1e-3):
         # =========================
         for rt_graph in rt_graphs:
             print 'Updating RT_graph:', rt_graph
-            assert False
+            #assert False
 
         # D. Resolve the transitions:
         # ===========================

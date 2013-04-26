@@ -11,6 +11,7 @@ from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirect
 import neurounits.ast as ast
 
 
+from itertools import chain
 
 
 
@@ -22,18 +23,31 @@ def plot_networkx_graph(graph, show=True):
         plt.show()
 
 
-
+def split_by_type(seq, types):
+    """Splits a  list of objects by type:"""
+    res = defaultdict(list)
+    for s in seq:
+        res[type(s)].append(s)
+    if set(res).issuperset( set(types) ):
+        print "Sets don't match!:", set(res), set(types)
+    return [res[t] for t in types]
 
 
 class AnalogIntegrationBlock(object):
-    def __init__(self, objs):
-#        import neurounits.ast as ast
-        self.state_variables = [o for o in objs if isinstance(o, ast.StateVariable)]
-        self.assigned_variables = [o for o in objs if isinstance(o, ast.AssignedVariable)]
-        self.rt_graphs = [o for o in objs if isinstance(o, ast.RTBlock)]
+    def __init__(self, objs, dependancies):
+        # Objs resolved in block:
+
+        self.state_variables, self.assigned_variables, self.rt_graphs = split_by_type(objs, (ast.StateVariable, ast.AssignedVariable, ast.RTBlock))
+        #self.state_variables = [o for o in objs if isinstance(o, ast.StateVariable)]
+        #self.assigned_variables = [o for o in objs if isinstance(o, ast.AssignedVariable)]
+        #self.rt_graphs = [o for o in objs if isinstance(o, ast.RTBlock)]
+        self.depends_state_variables, self.depends_assigned_variables, self.depends_rt_graphs = split_by_type(dependancies, (ast.StateVariable, ast.AssignedVariable, ast.RTBlock))
+        
+        # Objs resolved in block:
+
+
+
         assert len(objs) == len(self.state_variables) + len(self.assigned_variables) + len(self.rt_graphs)
-        #self.assignments = []
-        #self.rt_graphs = []
 
 
     def __repr__(self):
@@ -47,6 +61,16 @@ class AnalogIntegrationBlock(object):
     def objects(self,):
         return self.state_variables + self.assigned_variables + self.rt_graphs
 
+    @property
+    def dependancies(self,):
+        return list(chain(
+            self.depends_state_variables,
+            self.depends_assigned_variables,
+            self.depends_rt_graphs,
+            )
+            )
+
+
 
 
 class EventIntegrationBlock(object):
@@ -54,6 +78,14 @@ class EventIntegrationBlock(object):
         self.analog_blks = analog_blks
     def __repr__(self,):
         return '<EventIntegrationBlock: %s analog blocks:>' % len(self.analog_blks)
+    
+    @property
+    def dependancies(self):
+        return list(chain(*[blk.dependancies for blk in self.analog_blks]))
+    @property
+    def objects(self):
+        return list(chain(*[blk.objects for blk in self.analog_blks]))
+
 
 
 
@@ -83,8 +115,18 @@ def build_analog_integration_blks(component):
     ordering = reversed( nx.topological_sort(cond) )
     blks = []
     for o in ordering:
-        blk = AnalogIntegrationBlock( objs = scc[o] )
+        objs = set(scc[0])
+        blk_deps = set()
+        for obj in scc[o]:
+            o_deps = set(graph.successors(obj)) - objs
+            #print 'Resolves: %s. Needs: [%s]' % (obj,o_deps )
+            blk_deps |= o_deps
+
+        print blk_deps
+        blk = AnalogIntegrationBlock( objs = scc[o], dependancies=blk_deps )
         blks.append(blk)
+
+
 
     return blks
 
@@ -236,8 +278,19 @@ def separate_integration_blocks(component):
     # Work out the event dependancies between the blocks.
     # These can come from:
     # Events, or transitions that change state equations
-    ent_blks = build_event_blks(component=component, analog_blks=analog_blks)
+    evt_blks = build_event_blks(component=component, analog_blks=analog_blks)
 
-    return ent_blks
+
+    # Sanity Check, are all dependancies resolved in the 
+    # right order?:
+    res_blks = set()
+    for evt_blk in evt_blks:
+        unresolved_deps = set(evt_blk.dependancies) - res_blks
+        if unresolved_deps:
+            print 'Unresolved dependancies:', unresolved_deps
+        res_blks |= set(evt_blk.objects)
+
+
+    return evt_blks
 
 
