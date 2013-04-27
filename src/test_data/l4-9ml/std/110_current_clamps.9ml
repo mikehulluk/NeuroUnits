@@ -30,6 +30,8 @@
         initial {
             t_last=0s
             regime OFF
+            
+            f= 2m
         }
 
         <=> PARAMETER t_on, t_off

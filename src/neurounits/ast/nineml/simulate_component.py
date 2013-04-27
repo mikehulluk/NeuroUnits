@@ -200,7 +200,7 @@ def get_initial_regimes(rt_graphs, initial_regimes=None):
 
 
 def simulate_component(component, times, parameters=None,initial_state_values=None, initial_regimes=None, close_reduce_ports=True):
-    times = np.linspace(0,0.01, num=100)
+    #times = np.linspace(0,0.01, num=100)
 
     parameters = parameters if parameters is not None else {}
     initial_regimes = initial_regimes if initial_regimes is not None else {}
@@ -307,7 +307,7 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
         print '\rTime: %s' % str('%2.3f' % t).ljust(5),
         sys.stdout.flush()
 
-
+        
 
 
         t_unit = t * one_second
@@ -321,7 +321,9 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
             states_in=state_values.copy(),
             states_out={},
             rt_regimes=current_regimes,
+            assignedvalues={},
             event_manager = evt_manager,
+
         )
 
         # Save the state data:

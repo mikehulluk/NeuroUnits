@@ -71,29 +71,6 @@ define_component gating_particle_hh_na {
 
 
 
-#define_component gating_particle {
-#    from std.math import exp
-#    s_alpha = (r1A + (r1B * V)) * ( r1C  + exp( (V+r1D)/r1E) ) #/ 1000.
-#    s_beta =  (r2A + (r2B * V)) * ( r2C  + exp( (V+r2D)/r2E) ) #/ 1000.
-#    
-#    s_inf = s_alpha / (s_alpha + s_beta)
-#    s_tau = 1. / (s_alpha + s_beta) 
-#
-#    s' = (s_inf - s)/s_tau
-#
-#    s2 = s*s
-#    s4 = s*s*s*s
-#    
-#
-#        <=> PARAMETER r1A, r1B, r1C, r1D, r1E
-#        <=> PARAMETER r2A, r2B, r2C, r2D, r2E
-#        <=> OUTPUT    s:()
-#        <=> INPUT     V:mV
-#        
-#
-#}
-
-
 
 
 

@@ -194,23 +194,24 @@ define_compound general_neuron_with_step_inj {
     set stim/t_on = 100ms
     set stim/t_off = 30ms        
     set stim/i_amp = 100pA
+    #set stim/i_amp = 88.888888pA
 
 }
 
 
 
-define_compound dIN_with_step_inj {
-
-    instantiate general_neuron as nrn
-    instantiate i_squarewave as stim 
-    
-    connect nrn/i_sum <==> stim/i
-    
-    set stim/t_on = 100ms
-    set stim/t_off = 30ms        
-    set stim/i_amp = 100pA
-
-}
+#define_compound dIN_with_step_inj {
+#
+#    instantiate general_neuron as nrn
+#    instantiate i_squarewave as stim 
+#    
+#    connect nrn/i_sum <==> stim/i
+#    
+#    set stim/t_on = 100ms
+#    set stim/t_off = 30ms        
+#    set stim/i_amp = 100pA
+#
+#}
 
 
 

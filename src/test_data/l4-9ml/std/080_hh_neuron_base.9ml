@@ -12,7 +12,7 @@ namespace hh_neuron {
 
 
         initial {
-            V = 0mV
+            V = -65mV
         }
         
         compoundport process_mount of_type neuron_membrane_point_process <out> {

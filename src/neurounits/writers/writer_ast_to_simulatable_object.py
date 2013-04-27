@@ -272,12 +272,14 @@ class SimulationStateData(object):
     def __init__(self,
             parameters,
             suppliedvalues,
+            assignedvalues,
             states_in,
             states_out,
             rt_regimes,
             event_manager,
             ):
         self.parameters = parameters
+        self.assignedvalues = assignedvalues
         self.suppliedvalues = suppliedvalues
         self.states_in = states_in
         self.states_out = states_out
@@ -290,6 +292,7 @@ class SimulationStateData(object):
     def copy(self):
         return SimulationStateData(parameters=self.parameters.copy(),
                                    suppliedvalues=self.suppliedvalues.copy(),
+                                   assignedvalues=self.assignedvalues.copy(),
                                    states_in=self.states_in.copy(),
                                    states_out=self.states_out.copy(),
                                    rt_regimes=self.rt_regimes.copy(),
@@ -315,8 +318,10 @@ def with_number_check(func, src_obj):
 
 class FunctorGenerator(ASTVisitorBase):
 
-    def __init__(self, eqnset=None, as_float_in_si=False):
+    def __init__(self, eqnset=None, as_float_in_si=False, fully_calculate_assignments=True):
         self.ast = None
+
+        self.fully_calculate_assignments = fully_calculate_assignments
 
         self.assignment_evaluators = {}
         self.timederivative_evaluators = {}
@@ -327,37 +332,6 @@ class FunctorGenerator(ASTVisitorBase):
             assert isinstance(eqnset, ast.NineMLComponent)
             self.visit(eqnset)
 
-    #def VisitEqnSet(self, o, **kwargs):
-    #    self.ast = o
-
-    #    deps = VisitorFindDirectSymbolDependance()
-    #    deps.visit(o)
-    #    self.assignee_to_assigment = {}
-    #    for a in o.assignments:
-    #        self.assignee_to_assigment[a.lhs] = a
-
-    #    assignment_deps = deps.dependancies
-    #    resolved = set()
-
-    #    def resolve(assignment):
-    #        if assignment in resolved:
-    #            return
-
-    #        if type(assignment) != ast.AssignedVariable:
-    #            return
-    #        for dep in assignment_deps[assignment]:
-    #            resolve(dep)
-    #        self.visit(self.assignee_to_assigment[assignment])
-    #        resolved.add(assignment)
-
-    #    for a in o.assignments:
-    #        resolve(a.lhs)
-
-    #    for a in o.assignments:
-    #        self.visit(a)
-
-    #    for a in o.timederivatives:
-    #        self.visit(a)
 
     def VisitNineMLComponent(self, o, **kwargs):
         self.ast = o
@@ -601,10 +575,10 @@ class FunctorGenerator(ASTVisitorBase):
                 else:
                     assert False, "Sim can't handle function: %s" % o.funcname
         else:
-            def eFunc(**kw):
+            def eFunc(state_data, func_params, **kw):
                 if o.funcname == '__exp__':
-                    assert len(kw) == 1
-                    return float(np.exp(kw.values()[0]))
+                    assert len(func_params) == 1
+                    return float(np.exp(func_params.values()[0]))
                 if o.funcname == '__sin__':
                     assert len(kw) == 1
                     return float(np.sin(kw.values()[0]))
@@ -663,6 +637,7 @@ class FunctorGenerator(ASTVisitorBase):
             return eFunc
         else:
             def eFunc(**kw):
+                #print 'Getting value of constant', o.value
                 return o.value.float_in_si()
             return eFunc
 
@@ -693,13 +668,19 @@ class FunctorGenerator(ASTVisitorBase):
         # Right hand side of the assigned variable:
         #print self.assignment_evaluators.keys()
         #print 'Assigned Var:', o, o.symbol
+        if self.fully_calculate_assignments:
+            assignment_rhs = self.assignment_evaluators[o.symbol]
+            def eFunc(**kw):
+                res = assignment_rhs(**kw)
+                #print 'Value of: %s is %s' %( o.symbol, res)
+                return res
+            return with_number_check(eFunc, o)
 
-        assignment_rhs = self.assignment_evaluators[o.symbol]
-        def eFunc(**kw):
-            res = assignment_rhs(**kw)
-            #print 'Value of: %s is %s' %( o.symbol, res)
-            return res
-        return with_number_check(eFunc, o)
+        else:
+            def eFunc(state_data, **kw):
+                v = state_data.assignedvalues[o.symbol]
+                return v
+            return eFunc
 
     def VisitAddOp(self, o, **kwargs):
         f_lhs = self.visit(o.lhs)
@@ -731,6 +712,7 @@ class FunctorGenerator(ASTVisitorBase):
         def eFunc(**kw):
             v_l = f_lhs(**kw)
             v_r = f_rhs(**kw)
+            #print repr(o.lhs), '/', repr(o.rhs), 'Vals:', v_l, v_r
             res = v_l / v_r
             return res
         return with_number_check(eFunc,o)

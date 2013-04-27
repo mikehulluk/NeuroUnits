@@ -87,7 +87,13 @@ class EventIntegrationBlock(object):
         return list(chain(*[blk.objects for blk in self.analog_blks]))
 
 
+    @property
+    def depends_rt_graphs(self,):
+        return list(chain(*[blk.depends_rt_graphs for blk in self.analog_blks]))
 
+    @property
+    def depends_assigned_variables(self,):
+        return list(chain(*[blk.depends_assigned_variables for blk in self.analog_blks]))
 
 
 

@@ -78,9 +78,9 @@ def test4():
 
     library_manager = neurounits.NeuroUnitParser.Parse9MLFiles( src_files)
 
-    for obj in library_manager.objects:
-        print "Summarising", obj
-        obj.to_redoc()
+    #for obj in library_manager.objects:
+    #    print "Summarising", obj
+    #    obj.to_redoc()
 
     
 
