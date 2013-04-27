@@ -83,7 +83,7 @@ class EventManager(object):
 
     def emit_event(self, port, parameter_values):
 
-        submit_time = self.current_time + self.dummy_delay
+        submit_time = self.current_time + 0.005 # + self.dummy_delay
         self.outstanding_event_list.append( Event( port=port, parameter_values=parameter_values, time=submit_time) )
 
     def set_time(self, t):

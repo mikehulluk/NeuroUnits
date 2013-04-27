@@ -171,7 +171,7 @@ class EmitEvent(ASTObject):
         assert isinstance( self.parameters, LookUpDict)
 
     def __repr__(self):
-        return "<EmitEvent: '%s'>" % self.port
+        return "<EmitEvent: '%s'>" % repr(self.port)
 
 class EmitEventParameter(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):

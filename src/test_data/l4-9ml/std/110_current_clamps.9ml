@@ -9,6 +9,7 @@
             i=0A
             on (t>t_last + t_off) {
                 t_last = t
+                emit dummyevent()
                 transition_to ON;
                 }
             # Dummy variable for testing:

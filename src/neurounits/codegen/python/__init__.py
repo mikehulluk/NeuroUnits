@@ -70,7 +70,7 @@ class AvailableData(object):
         return results
 
     def add_regime_results(self, rt_result):
-        assert not rt_result in self.rt_results
+        assert not rt_result.rt_graph in self.rt_results
         self.rt_results[rt_result.rt_graph] = rt_result
 
 
@@ -91,13 +91,14 @@ def do_transition_change(tr, evt, state_data, functor_gen):
 
 
 import bisect
+from collections import defaultdict
 
-def find_lt(a, x):
-    'Find rightmost value less than x'
-    i = bisect.bisect_left(a, x)
-    if i:
-        return a[i-1]
-    raise ValueError
+#def find_lt(a, x):
+#    'Find rightmost value less than x'
+#    i = bisect.bisect_left(a, x)
+#    if i:
+#        return a[i-1]
+#    raise ValueError
 
 
 
@@ -127,10 +128,9 @@ def solve_eventblock(component, evt_blk, datastore,):
 
 
 
-    time_derivatives = [ component._eqn_time_derivatives.get_single_obj_by(lhs=sv) for sv in state_variables ]
-
-    n_sv = len(state_variables)
-    n_ass = len(assigned_variables)
+    #time_derivatives = [ component._eqn_time_derivatives.get_single_obj_by(lhs=sv) for sv in state_variables ]
+    #n_sv = len(state_variables)
+    #n_ass = len(assigned_variables)
 
     f = FunctorGenerator(component, as_float_in_si=True, fully_calculate_assignments=False)
 
@@ -186,6 +186,27 @@ def solve_eventblock(component, evt_blk, datastore,):
 
     evt_manager = EventManager()
 
+    # Load in event times from over events:
+    # HORRIFIC!:
+    #in_event_ports = set()
+    #for rtgraph in rt_graphs:
+    #    for tr in component.transitions:
+    #        if not tr.parent_rt_graph == rt_graph:
+    #            continue
+    #        if not isinstance(tr, OnEventTransition):
+    #            continue
+    #        in_event_ports.add(port)
+
+    #for in_port in in_event_ports:
+        # Aggregate all sources:
+        
+        
+    all_events = sorted(list( set(chain(*datastore.events.values()  ) ) ) )
+    evt_manager.outstanding_event_list.extend(all_events)
+    #for port, evts in datastore.events.items():
+        
+
+
 
     # For calculating assignements:
     f_no_ass_dep = FunctorGenerator(component, as_float_in_si=True)
@@ -205,6 +226,8 @@ def solve_eventblock(component, evt_blk, datastore,):
     
     print 'Depends Assigned:', evt_blk.depends_assigned_variables
 
+    
+    output_events = defaultdict(list)
 
     #t_prev=0.
     for t_index, t in enumerate(time_pts):
@@ -277,7 +300,7 @@ def solve_eventblock(component, evt_blk, datastore,):
             states_out={},
             rt_regimes=rt_regimes,
             assignedvalues=assignedvalues,
-            event_manager = None,# evt_manager,
+            event_manager = evt_manager,
         )
 
 
@@ -301,6 +324,10 @@ def solve_eventblock(component, evt_blk, datastore,):
         active_events = evt_manager.get_events_for_delivery()
         ports_with_events = {}
         for evt in active_events:
+            print evt
+            output_events[evt.port].append(evt)
+            #assert False
+            #assert False 
             if evt.port in f.transition_event_forwarding:
                 for input_port in f.transition_event_forwarding[evt.port]:
                     ports_with_events[input_port] = evt
@@ -387,6 +414,11 @@ def solve_eventblock(component, evt_blk, datastore,):
         datastore.add_regime_results(rt_res)
 
 
+    if output_events:
+        print output_events
+        for port, evts in output_events.items():
+            datastore.events[port].extend(evts)
+        #assert False
 
 
 

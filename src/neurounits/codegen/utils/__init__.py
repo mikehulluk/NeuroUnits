@@ -101,12 +101,19 @@ def build_analog_integration_blks(component):
     # Build the original dependance graph:
     graph = VisitorFindDirectSymbolDependance.build_direct_dependancy_graph(component)
 
+    # Also, add in the RT graphs, that aren't direct dependents of anything, so
+    # that the aprpriate AnalogIntegrationBlocks are created. (This might
+    # emit events, but nothing else for example)
+    for rt_graph in component.rt_graphs:
+        if not rt_graph in graph:
+            graph.add_node(rt_graph, label=repr(rt_graph), color='grey')
+
+
     # Plot:
-    do_plot = True and False
+    do_plot = True #and False
     if do_plot:
         plot_networkx_graph(graph, show=False)
-
-    #res = nx.components.strongly_connected_component_subgraphs(graph)
+        plt.show()
 
     # Get the strongly connected components, and the dependancies between the
     # nodes:
@@ -243,6 +250,8 @@ def build_event_blks(component, analog_blks):
 
     ordering = reversed( nx.topological_sort(cond) )
 
+
+    all_uncovered_blks = set()
     ev_blks = []
     print 'Event Block ordering:'
     print '====================='
@@ -257,10 +266,24 @@ def build_event_blks(component, analog_blks):
         analog_blks = [blk for blk in analog_blks if blk is not None]
         print 'Analog Blocks:', len(analog_blks)
 
+        # OK, whose not covered by the AnalogBlocks?
+        covered_objs = set( list(chain(*[blk.objects for blk in analog_blks])) )
+        uncovered_objs = set(scc[o]) - covered_objs
+        uncovered_objs = set( [co for co in uncovered_objs if not isinstance(co, (ast.InEventPort,ast.OutEventPort))])
+        if uncovered_objs:
+            print 'UNcovered Objects:', uncovered_objs
+            all_uncovered_blks |= uncovered_objs
+            #assert False
+
+
         if analog_blks:
             ev = EventIntegrationBlock(analog_blks=analog_blks)
             ev_blks.append(ev)
 
+    if all_uncovered_blks:
+        print all_uncovered_blks
+        assert False
+    
     return ev_blks
 
 

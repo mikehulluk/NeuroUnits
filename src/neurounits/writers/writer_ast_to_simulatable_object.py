@@ -419,11 +419,6 @@ class FunctorGenerator(ASTVisitorBase):
             # Do the effects:
             for c in callable_actions:
                 c(state_data=state_data, **kw)
-
-            # Switch the state:
-            #current_regimes[rt_graph] = tr.target_regime
-
-
         return f2
 
     def VisitOnTransitionTrigger(self, o, **kwargs):
@@ -769,6 +764,8 @@ class FunctorGenerator(ASTVisitorBase):
             param_evals[param] = self.visit(param.rhs)
 
         def f(state_data,**kw):
+            #assert False
+            print 'Emitting Event on %s' % repr(o)
             parameter_values = {}
             for p in o.parameters:
                 val = param_evals[p](state_data=state_data, **kw)

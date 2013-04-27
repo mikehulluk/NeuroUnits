@@ -106,13 +106,6 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         dep_find = VisitorFindDirectSymbolDependance()
         dep_find.visit(component)
 
-
-        # Remap TimeDerivatives into StateVariables:
-        #for k,v in dep_find.dependancies:
-            
-
-
-
         g = nx.DiGraph()
 
         all_objs = set( list(chain(*dep_find.dependancies.values()))  + dep_find.dependancies.keys() )
@@ -130,7 +123,7 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         for k,v in dep_find.dependancies.items():
             for c in v:
                 g.add_edge(k,c)
-            print repr(k), v
+
 
         return g
 
@@ -151,7 +144,7 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
             self.dependancies[a.lhs] = self.visit(a)
 
         #for rt_graph in self._rt_graphs:
-        #    assert False
+        #    self.dependencies[rt_graph] = self.visit(rt_graph)
 
     def VisitSymbolicConstant(self, o, **kwargs):
         return []

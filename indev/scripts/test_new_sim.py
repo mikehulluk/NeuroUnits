@@ -26,13 +26,13 @@ def test_new_sim():
              component_name = 'Test1',
              instantiate={
                  'o1': general_neuron_with_step_inj,
-                 #'o2': general_neuron_with_step_inj,
+                 'o2': general_neuron_with_step_inj,
                  #'o3': general_neuron_with_step_inj,
                  #'o4': general_neuron_with_step_inj,
                  },
              event_connections= [ 
-                 #('o1/syntrigger/spike', 'o2/nrn/syn_excit/event'),  
-                 #('o1/syntrigger/spike', 'o2/nrn/syn_inhib/event'),  
+                 ('o1/syntrigger/spike', 'o2/nrn/syn_excit/event'),  
+                 ('o1/syntrigger/spike', 'o2/nrn/syn_inhib/event'),  
                  #('o1/syntrigger/spike', 'o3/nrn/syn_excit/event'),  
                  #('o2/syntrigger/spike', 'o3/nrn/syn_excit/event'),  
 
