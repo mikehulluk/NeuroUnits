@@ -143,8 +143,13 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         for a in o.timederivatives:
             self.dependancies[a.lhs] = self.visit(a)
 
-        #for rt_graph in self._rt_graphs:
-        #    self.dependencies[rt_graph] = self.visit(rt_graph)
+        for rt_graph in o._rt_graphs:
+            self.dependancies[rt_graph] = [] # self.visit(rt_graph)
+        for tr in o.transitions:
+            tr_deps =self.visit(tr) 
+            import neurounits.ast as ast
+            tr_deps = [o for o in tr_deps if not (isinstance(o, ast.SuppliedValue) and o.symbol=='t') ] 
+            self.dependancies[tr.rt_graph].extend ( tr_deps)
 
     def VisitSymbolicConstant(self, o, **kwargs):
         return []
@@ -217,7 +222,30 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         return symbols + ([o.get_rt_graph()] if len(o.rhs_map) > 1 else [] )
 
     def VisitRTGraph(self, o, **kwargs):
-        assert False
+        return [] #list( o.regimes)
+
+
+    def visit_trans(self,o):
+        action_deps = []
+        for a in o.actions:
+            action_deps.extend( self.visit(a, rt_graph=o.rt_graph))
+
+        return list(set(action_deps))
+
+    def VisitOnTransitionTrigger(self, o, **kwargs):
+        return [o.rt_graph] + self.visit_trans(o) + self.visit(o.trigger)
+    def VisitOnTransitionEvent(self, o, **kwargs):
+        return [o.rt_graph] + self.visit_trans(o)
+
+    def VisitOnEventStateAssignment(self,o, rt_graph, **kwargs):
+        # In the case of state assignements, then the state-variable is now dependant on the RT-grpah
+        assert o.lhs in self.dependancies
+        self.dependancies[o.lhs].append(rt_graph)
+        return [o.lhs] + self.visit(o.rhs)
+    def VisitEmitEvent(self, o, rt_graph):
+        return list( chain(*[self.visit(p) for p in o.parameters]) )
+
+
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         return self.visit(o.rhs_map) 

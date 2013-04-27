@@ -765,7 +765,7 @@ class FunctorGenerator(ASTVisitorBase):
 
         def f(state_data,**kw):
             #assert False
-            print 'Emitting Event on %s' % repr(o)
+            #print 'Emitting Event on %s' % repr(o)
             parameter_values = {}
             for p in o.parameters:
                 val = param_evals[p](state_data=state_data, **kw)

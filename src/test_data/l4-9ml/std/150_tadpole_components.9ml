@@ -1,9 +1,9 @@
 
 
 define_component exp2syn {
-    A' = A/t_open
-    B' = B/t_close
-    i = g_max * (B-A) * (Erev-V)
+    A' = -A/t_open
+    B' = -B/t_close
+    i = g_max * (B-A) * (Erev-V) + {20pA}
     
     on event(){
         A = A + 1
@@ -116,9 +116,9 @@ define_compound general_neuron {
     set syn_excit/Erev = 0mV
     set syn_inhib/Erev = -60mV
     
-    set syn_inhib/t_open = 4ms
-    set syn_excit/t_open = 4ms
-    set syn_inhib/t_close = 14ms
+    set syn_inhib/t_open = 14ms
+    set syn_excit/t_open = 14ms
+    set syn_inhib/t_close = 84ms
     set syn_excit/t_close = 40ms
     
     

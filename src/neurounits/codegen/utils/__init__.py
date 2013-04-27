@@ -132,10 +132,10 @@ def build_analog_integration_blks(component):
         blk_deps = set()
         for obj in scc[o]:
             o_deps = set(graph.successors(obj)) - objs
-            #print 'Resolves: %s. Needs: [%s]' % (obj,o_deps )
             blk_deps |= o_deps
 
         print blk_deps
+        blk_deps = blk_deps - set(scc[o])
         blk = AnalogIntegrationBlock( objs = scc[o], dependancies=blk_deps )
         blks.append(blk)
 

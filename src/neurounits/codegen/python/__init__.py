@@ -104,7 +104,10 @@ from collections import defaultdict
 
 def solve_eventblock(component, evt_blk, datastore,):
     print
+    print
     print '  Solving Event Block:', evt_blk
+    print '  ---------------------'
+
 
     print '    Analog Blocks:'
     for analog_blk in evt_blk.analog_blks:
@@ -124,7 +127,7 @@ def solve_eventblock(component, evt_blk, datastore,):
 
 
     # Setup depandancy info:
-    print 'Block Dependancies:', evt_blk.dependancies
+    #print 'Block Dependancies:', evt_blk.dependancies
 
 
 
@@ -324,7 +327,7 @@ def solve_eventblock(component, evt_blk, datastore,):
         active_events = evt_manager.get_events_for_delivery()
         ports_with_events = {}
         for evt in active_events:
-            print evt
+            #print evt
             output_events[evt.port].append(evt)
             #assert False
             #assert False 
@@ -382,7 +385,7 @@ def solve_eventblock(component, evt_blk, datastore,):
                 for sv in state_changes:
                     assert not sv in updated_states, 'Multiple changes detected for: %s' % sv
                     updated_states.add(sv)
-                print state_changes
+                #print state_changes
 
                 # Make the updates:
                 for symbol, new_value in state_changes.items():
@@ -398,7 +401,8 @@ def solve_eventblock(component, evt_blk, datastore,):
 
 
 
-
+    print
+    print 'Simulation Complete'
     # Simulation complete:
     # A. Back-calculate the assignments:
 
@@ -415,12 +419,15 @@ def solve_eventblock(component, evt_blk, datastore,):
 
 
     if output_events:
-        print output_events
+        #print output_events
         for port, evts in output_events.items():
             datastore.events[port].extend(evts)
-        #assert False
+            print '%d events on port: %s' % (len(evts), port.symbol)
 
 
+    print 'Done solving Event Block'
+    print 
+    print
 
 
 
@@ -485,6 +492,21 @@ def simulate( component, times ):
         if sym == 'o1/nrn/nrn/V':
             plt.plot( datastore.time_pts, d.data, 'x-', label=d.variable.symbol)
 
+    plt.figure()
+    for d in datastore.traces.values():
+        print d.variable.symbol, np.min(d.data), np.max(d.data)
+        sym = d.variable.symbol
+        if sym == 'o1/nrn/syn_inhib/i':
+            plt.plot( datastore.time_pts, d.data, 'x-', label=d.variable.symbol)
+            plt.legend()
+    
+    plt.figure()
+    for d in datastore.traces.values():
+        print d.variable.symbol, np.min(d.data), np.max(d.data)
+        sym = d.variable.symbol
+        if sym == 'o1/nrn/syn_inhib/A':
+            plt.plot( datastore.time_pts, d.data, 'x-', label=d.variable.symbol)
+            plt.legend()
 
 
     plt.figure()
