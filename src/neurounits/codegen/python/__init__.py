@@ -496,7 +496,7 @@ def simulate( component, times ):
     for d in datastore.traces.values():
         print d.variable.symbol, np.min(d.data), np.max(d.data)
         sym = d.variable.symbol
-        if sym == 'o1/nrn/syn_inhib/i':
+        if sym == 'o2/nrn/syn_excit/i':
             plt.plot( datastore.time_pts, d.data, 'x-', label=d.variable.symbol)
             plt.legend()
     
@@ -504,7 +504,7 @@ def simulate( component, times ):
     for d in datastore.traces.values():
         print d.variable.symbol, np.min(d.data), np.max(d.data)
         sym = d.variable.symbol
-        if sym == 'o1/nrn/syn_inhib/A':
+        if sym == 'o2/nrn/syn_excit/A':
             plt.plot( datastore.time_pts, d.data, 'x-', label=d.variable.symbol)
             plt.legend()
 

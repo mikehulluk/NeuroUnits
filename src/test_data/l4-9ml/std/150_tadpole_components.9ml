@@ -111,8 +111,8 @@ define_compound general_neuron {
     instantiate exp2syn as syn_inhib
     multiconnect nrn/process_mount <==> syn_excit/process_mount_in
     multiconnect nrn/process_mount <==> syn_inhib/process_mount_in
-    set syn_excit/g_max = 20pS
-    set syn_inhib/g_max = 20pS
+    set syn_excit/g_max = 200pS
+    set syn_inhib/g_max = 200pS
     set syn_excit/Erev = 0mV
     set syn_inhib/Erev = -60mV
     
