@@ -9,9 +9,16 @@ import pylab
 import glob
 #import warnings
 
-from neurounits.codegen.python import simulate
+#from neurounits.codegen.python import simulate
+import neurounits.codegen
+import neurounits.codegen.python
+import neurounits.codegen.cpp1
 from neurounits import NineMLComponent
 from neurounits.locations import Locations
+
+import os
+import cPickle
+
 
 
 def test_new_sim():
@@ -19,34 +26,51 @@ def test_new_sim():
      src_files = Locations.get_default_9ml_locations()
      print src_files
 
+     obj_cache_file = 'obj_cache.txt'
 
-     library_manager = neurounits.NeuroUnitParser.Parse9MLFiles( src_files)
-     general_neuron_with_step_inj = library_manager.get('general_neuron_with_step_inj')
-     comp = NineMLComponent.build_compound_component(
-             component_name = 'Test1',
-             instantiate={
-                 'o1': general_neuron_with_step_inj,
-                 'o2': general_neuron_with_step_inj,
-                 #'o3': general_neuron_with_step_inj,
-                 #'o4': general_neuron_with_step_inj,
-                 },
-             event_connections= [ 
-                 ('o1/syntrigger/spike', 'o2/nrn/syn_excit/event'),  
-                 ('o1/syntrigger/spike', 'o2/nrn/syn_inhib/event'),  
-                 #('o1/syntrigger/spike', 'o3/nrn/syn_excit/event'),  
-                 #('o2/syntrigger/spike', 'o3/nrn/syn_excit/event'),  
+     if not os.path.exists(obj_cache_file):
+         library_manager = neurounits.NeuroUnitParser.Parse9MLFiles( src_files)
+         general_neuron_with_step_inj = library_manager.get('general_neuron_with_step_inj')
+         comp = NineMLComponent.build_compound_component(
+                 component_name = 'Test1',
+                 instantiate={
+                     'o1': general_neuron_with_step_inj,
+                     'o2': general_neuron_with_step_inj,
+                     'o3': general_neuron_with_step_inj,
+                     'o4': general_neuron_with_step_inj,
+                     },
+                 event_connections= [ 
+                     ('o1/syntrigger/spike', 'o2/nrn/syn_excit/event'),  
+                     ('o1/syntrigger/spike', 'o2/nrn/syn_inhib/event'),  
+                     ('o1/syntrigger/spike', 'o3/nrn/syn_excit/event'),  
+                     ('o2/syntrigger/spike', 'o3/nrn/syn_excit/event'),  
 
-                 #('o4/syntrigger/spike', 'o2/nrn/syn_excit/event'),  
-                 #('o3/syntrigger/spike', 'o4/nrn/syn_excit/event'),  
-                ]
-             )
+                     ('o4/syntrigger/spike', 'o2/nrn/syn_excit/event'),  
+                     ('o3/syntrigger/spike', 'o4/nrn/syn_excit/event'),  
+                    ]
+                 )
+
+     else:
+         with open(obj_cache_file) as fin:
+            comp = cPickle.load(fin) 
+
+     # Write the cache:
+     with open(obj_cache_file,'w') as fout:
+        cPickle.dump(comp, fout) 
+
+
+
 
      # Old version:
      #res = general_neuron_with_step_inj.simulate( times = np.arange(0, 0.1,0.00001),)
      #res = comp.simulate( times = np.arange(0, 0.1,0.00001),)
 
-     # New version:
-     res = simulate(comp, times = np.arange(0, 0.5,0.0001),)
+     # New versions:
+     #res = neurounits.codegen.python.simulate(comp, times = np.arange(0, 0.5,0.0001),)
+
+
+     
+     res = neurounits.codegen.cpp1.simulate(comp, times = np.arange(0, 0.5,0.0001),)
 
      res.auto_plot()
 

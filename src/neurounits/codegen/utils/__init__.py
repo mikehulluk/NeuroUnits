@@ -42,7 +42,7 @@ class AnalogIntegrationBlock(object):
         #self.assigned_variables = [o for o in objs if isinstance(o, ast.AssignedVariable)]
         #self.rt_graphs = [o for o in objs if isinstance(o, ast.RTBlock)]
         self.depends_state_variables, self.depends_assigned_variables, self.depends_rt_graphs = split_by_type(dependancies, (ast.StateVariable, ast.AssignedVariable, ast.RTBlock))
-        
+
         # Objs resolved in block:
 
 
@@ -78,7 +78,7 @@ class EventIntegrationBlock(object):
         self.analog_blks = analog_blks
     def __repr__(self,):
         return '<EventIntegrationBlock: %s analog blocks:>' % len(self.analog_blks)
-    
+
     @property
     def dependancies(self):
         return list(chain(*[blk.dependancies for blk in self.analog_blks]))
@@ -94,6 +94,23 @@ class EventIntegrationBlock(object):
     @property
     def depends_assigned_variables(self,):
         return list(chain(*[blk.depends_assigned_variables for blk in self.analog_blks]))
+    
+    @property
+    def depends_state_variables(self,):
+        return list(chain(*[blk.depends_state_variables for blk in self.analog_blks]))
+
+    @property
+    def state_variables(self):
+        return sorted( list(chain(* [analog_blk.state_variables for analog_blk in self.analog_blks] )), key=lambda o:o.symbol )
+
+    @property
+    def assigned_variables(self):
+        return sorted( list(chain(* [analog_blk.assigned_variables for analog_blk in self.analog_blks] )), key=lambda o:o.symbol )
+
+    @property
+    def rt_graphs(self):
+        return sorted( list(chain(* [analog_blk.rt_graphs for analog_blk in self.analog_blks] )), key=lambda o:o.name) 
+
 
 
 
@@ -110,7 +127,7 @@ def build_analog_integration_blks(component):
 
 
     # Plot:
-    do_plot = True #and False
+    do_plot = True and False
     if do_plot:
         plot_networkx_graph(graph, show=False)
         plt.show()
@@ -283,7 +300,7 @@ def build_event_blks(component, analog_blks):
     if all_uncovered_blks:
         print all_uncovered_blks
         assert False
-    
+
     return ev_blks
 
 
@@ -310,7 +327,7 @@ def separate_integration_blocks(component):
     evt_blks = build_event_blks(component=component, analog_blks=analog_blks)
 
 
-    # Sanity Check, are all dependancies resolved in the 
+    # Sanity Check, are all dependancies resolved in the
     # right order?:
     res_blks = set()
     for evt_blk in evt_blks:
