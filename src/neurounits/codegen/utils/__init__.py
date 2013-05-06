@@ -74,10 +74,16 @@ class AnalogIntegrationBlock(object):
 
 
 class EventIntegrationBlock(object):
+    cnt = 0
+
     def __init__(self, analog_blks):
         self.analog_blks = analog_blks
+
+        self.cnt_num = EventIntegrationBlock.cnt
+        EventIntegrationBlock.cnt +=1
+
     def __repr__(self,):
-        return '<EventIntegrationBlock: %s analog blocks:>' % len(self.analog_blks)
+        return '<EventIntegrationBlock [%d]: %s analog blocks:>' % (self.cnt_num, len(self.analog_blks) )
 
     @property
     def dependancies(self):
@@ -111,6 +117,10 @@ class EventIntegrationBlock(object):
     def rt_graphs(self):
         return sorted( list(chain(* [analog_blk.rt_graphs for analog_blk in self.analog_blks] )), key=lambda o:o.name) 
 
+
+    #@property
+    #def rt_triggers(self,):
+    #    return chain(*[ ] )
 
 
 

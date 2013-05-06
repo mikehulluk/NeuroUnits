@@ -503,7 +503,10 @@ static int check_flag(void *flagvalue, char *funcname, int opt)
 
 
 
+"""
 
+
+header2 = """
 
 
 // CUSTOM CONFIG:
@@ -519,8 +522,8 @@ static int check_flag(void *flagvalue, char *funcname, int opt)
 
     };
 
-    class DataManager {
-    };
+    //#class DataManager {
+    //#};
 
     class RTGraphManager {
     };
@@ -528,9 +531,9 @@ static int check_flag(void *flagvalue, char *funcname, int opt)
 
 class DataStore {
 public:
-    EventManager event_mgr; 
-    DataManager data_mgr; 
-    RTGraphManager rtgraph_mgr; 
+    EventManager event_mgr;
+    DataManager data_mgr;
+    RTGraphManager rtgraph_mgr;
 
 
 };
@@ -549,10 +552,6 @@ int solve_system()
 
     // Setup control data structures:
     DataStore data_store = DataStore();
-    //EventManager event_mgr = EventManager();
-    //DataManager data_mgr = DataManager();
-    //RTGraphManager rtgraph_mgr = RTGraphManager();
-
     // Call each function to solve the blocks:
     %for name in ev_blk_func_names:
         ${name}(data_store);
@@ -576,10 +575,73 @@ int main(int argc, char* argv[] )
 """
 
 
+
 from mako.template  import Template
 from mako.template import Template
 from mako.runtime import Context
 from StringIO import StringIO
+
+
+class DataMgrBuilder(object):
+    def __init__(self, ev_blks, cpp_builddata, component):
+    #def __init__(self,  evt_blks):
+        self.evt_blks = ev_blks
+        self.cpp_builddata = cpp_builddata
+        self.component = component
+
+
+
+    def get_text(self):
+
+        templ = """
+        class DataManager {
+        public:
+
+        %for evt_blk in ev_blks:
+            //Evt Block: ${evt_blk}
+            %for sv in evt_blk.state_variables:
+                inline float set_${sv.symbol.replace("/","__")}(float* time, float* data){
+                    printf("Setting data for: ${sv.symbol}");
+                    printf("Build cublic interpolator...");
+
+                    printf("OK!");
+                }
+
+                inline float get_${sv.symbol.replace("/","__")}(float time)
+                {
+                    return 0.0000001;
+                }
+
+
+
+            %endfor
+        %endfor
+
+
+        };
+
+        """
+
+        mytemplate = Template(templ)
+        buf = StringIO()
+        ctx = Context(buf, ev_blks=self.evt_blks)
+        mytemplate.render_context(ctx)
+        res = buf.getvalue() + ('\n' * 3)
+        return res
+
+        #return templ
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -604,7 +666,39 @@ ev_blk_function = r"""
 
 // Event Block Evaluation: ${ev_blk_index}
 // ============================
+<% evt_blk_user_data_typename = 'EvtBlkUserInfo%d' % ev_blk_index  %>
+<% evt_blk_regime_typename = 'EvtBlkRTStates%d' % ev_blk_index  %>
+<% trigger_transition_count = len(bd.tr_index_by_evt_blk[ev_blk]) %>
 
+// A structure that hold the possible states of the current regime graphs:
+struct ${evt_blk_regime_typename} {
+    public:
+    %for rt_graph in ev_blk.rt_graphs:
+    <% rt_name = bd.rt_graph_name(rt_graph) %>
+    enum States_${rt_name} {
+        %for regime in bd.rt_graph_regimes(rt_graph):
+            ${bd.regime_name(regime)},
+        %endfor
+    };
+    %endfor
+
+    %for rt_graph in ev_blk.rt_graphs:
+    <% rt_name = bd.rt_graph_name(rt_graph) %>
+    enum States_${rt_name}  ${rt_name} ;
+    %endfor
+};
+
+struct ${evt_blk_user_data_typename} {
+
+    ${evt_blk_user_data_typename}(DataStore* pDS, ${evt_blk_regime_typename}* pRegimes  )
+    : pDS(pDS), pRegimes(pRegimes)
+    {
+    }
+
+    ${evt_blk_regime_typename}* pRegimes;
+    DataStore* pDS;
+
+};
 
 
 // Triggers:
@@ -614,6 +708,7 @@ ev_blk_function = r"""
         <%
         fn = bd.func_def_tr_triggers[tr]
         %>
+//Transistion: ${repr(tr)}
 ${fn.signature}
 {
     ${fn.body}
@@ -623,16 +718,29 @@ ${fn.signature}
 
 
 
+// Large function that covers all the functions:
+int trig_${ev_blk_index}(realtype t, N_Vector y, realtype *gout, void *user_data )
+{
+//printf("Evaluating Root function!\n");
+%for tr,i in bd.tr_index_by_evt_blk[ev_blk].items():
+    gout[${i}] = ${bd.func_def_tr_triggers[tr].name} (t, y, gout, user_data) ;
+    //printf("%f\n",  gout[${i}]  );
+%endfor
+return (0);
+
+}
+
 // Gradient function:
 int f_block_${ev_blk_index}(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 {
-
+    //DataStore* pDS = (DataStore*) user_data;
+    ${evt_blk_user_data_typename} * pD = (${evt_blk_user_data_typename} *) user_data;
 
     return(0);
 }
 
 
-int evaluate_event_block_${ev_blk_index}(DataStore& ds ) //EventManager& event_mgr, DataManager& data_mgr, RTGraphManager& rt_graph_mgr)
+int evaluate_event_block_${ev_blk_index}(DataStore& ds )
 {
     printf("Starting to evaluate EvtBlock: ${ev_blk_index}");
 
@@ -720,26 +828,38 @@ int evaluate_event_block_${ev_blk_index}(DataStore& ds ) //EventManager& event_m
 
 
   // Setup the transitions:
-    %for tr in component._transitions_triggers:
+    %if trigger_transition_count:
+    flag = CVodeRootInit(cvode_mem, ${trigger_transition_count}, trig_${ev_blk_index});
+    if (check_flag(&flag, "CVodeRootFind", 1)) return(1);
+    %endif
 
-        //flag = CVodeRootInit(cvode mem, nrtfn, g);
+
+
+    // Structure containing the current regime_state:
+    ${evt_blk_regime_typename}  current_regimes;
+    // TODO - set initial states!
+    %for rt_graph in ev_blk.rt_graphs:
+    <% rt_name = bd.rt_graph_name(rt_graph) %>
+    current_regimes.${rt_name} = 0; // ERROR!
     %endfor
+
+    // Construct the object that contains a pointer to the local regime states,
+    // as well as the global datastore:
+    ${evt_blk_user_data_typename} user_data = ${evt_blk_user_data_typename} (&ds, &current_regimes);
 
 
 
   /* In loop, call CVode, print results, and test for error.*/
   printf("OK");
 
-    
+
     // Point to user data:
-    CVodeSetUserData(cvode_mem, 0);
+    CVodeSetUserData(cvode_mem, &user_data);
 
 
 
 
 
-
-    // Do we need to make cubic interpolations of other values?:
 
 
 
@@ -760,13 +880,184 @@ int evaluate_event_block_${ev_blk_index}(DataStore& ds ) //EventManager& event_m
     float t_stop = 0.3;
     int n_points = 200;
 
+
+
+    // Active transition changes:
+    // These transitions tell us what transions are triggered on this round!
+    bool triggered_transitions_triggers[${trigger_transition_count}];
+    <%event_transition_count = 0 %>
+    bool triggered_transitions_events[${event_transition_count}]; //TODO
+
+
+    FILE* fp = fopen("op/res_evt_blk_${ev_blk_index}.txt","w");
+    fprintf(fp, "\t t");
+    % for i, sv, in enumerate(ev_blk.state_variables):
+    fprintf(fp, "\t ${sv.symbol}");
+    % endfor
+
+
+
     int i=0;
     for(i=1;i< n_points; i++)
     {
+        // Reset all the transitions:
+         // Triggers:
+         for(int itr=0;itr < ${trigger_transition_count}; itr++)
+         {
+             triggered_transitions_triggers[itr] = false;
+         }
+          // Events::
+         for(int itr=0;itr < ${event_transition_count}; itr++)
+         {
+             triggered_transitions_events[itr] = false;
+         }
+
+
+
+
       float t_next = t_start + (t_stop-t_start)/n_points * i;
       printf("\r   Advancing to: %f", t_next);
 
+      // Advance to the next stopping point:
       flag = CVode(cvode_mem, t_next, y, &t, CV_NORMAL);
+
+      bool possible_transition = false;
+      if( flag == CV_ROOT_RETURN){
+
+
+         printf("\n     Root Found at: %f\n",t_next);
+
+         // Which transitions occured:
+         int found_roots[${trigger_transition_count}] ;
+         CVodeGetRootInfo(cvode_mem, found_roots);
+         if (check_flag(&flag, "Error with finding roots", 1)) return(1);
+
+         // Resolve the roots and see what transions are triggered::
+         %for tr,i in bd.tr_index_by_evt_blk[ev_blk].items():
+         <% rt_graph = tr.rt_graph %>
+         <%rt_name = bd.rt_graph_name(rt_graph) %>
+         // Is the trigger met, and are we in the corect regime?
+         //Transition: ${repr(tr)}
+         if(
+            (current_regimes.${bd.rt_graph_name(rt_graph)} == ${evt_blk_regime_typename}::States_${rt_name}::${bd.regime_name(tr.src_regime )})
+            &&
+            (found_roots[ ${bd.tr_index_by_evt_blk[ev_blk][tr]} ] )
+            )
+         {
+            //printf("\nTransition triggered! ${repr(tr)} \n");
+            possible_transition = true;
+            triggered_transitions_triggers[ ${bd.tr_index_by_evt_blk[ev_blk][tr]} ] = true;
+         }
+         %endfor
+
+
+      }
+      else if(flag == CV_TSTOP_RETURN) {
+         printf("Hard stop found!: %f\n",t_next);
+        assert(0);
+
+      }
+      else if(flag == CV_SUCCESS) {
+      }
+      else {
+      assert(0);
+      }
+
+
+
+      // Resolve the transitions:
+      if(possible_transition){
+
+        ${evt_blk_regime_typename}  new_regimes;
+        %for rt_graph in ev_blk.rt_graphs:
+        <% rt_name = bd.rt_graph_name(rt_graph) %>
+        new_regimes.${rt_name} = -1;
+        %endfor
+
+        realtype new_states[n_states];
+        bool state_changes[n_states] = {false};
+
+         // Triggers:
+         ###%for tr,i in range(trigger_transition_count):
+         %for tr,i in bd.tr_index_by_evt_blk[ev_blk].items():
+         if( triggered_transitions_triggers[${i}] ){
+            printf("\nTransition triggered! ${repr(tr)} \n");
+            // ${repr(tr)}
+            // Events:
+            // == Todo! ===
+
+            // Set StateVariables:
+            %for (state_assignment, state_ass_gen) in bd.state_variable_updates_for_transition(tr):
+            //state_assignment.lhs.symbol = ${state_ass_gen.visit((state_assignment.rhs)) };
+            <% sv_index = bd.sv_index_by_evt_blk[ev_blk][state_assignment.lhs] %>
+            assert( state_changes[ ${sv_index} ] == false);
+            new_states[ ${sv_index} ] =  ${state_ass_gen.visit((state_assignment.rhs)) };
+            state_changes[ ${sv_index} ] =  true;
+            %endfor
+
+
+            // Target Regime:
+            // ---------------
+            <% rt_graph = tr.rt_graph %>
+            <% rt_name = bd.rt_graph_name(rt_graph) %>
+            if( new_regimes.${bd.rt_graph_name(rt_graph)} == -1 ) {
+                new_regimes.${bd.rt_graph_name(rt_graph)} = ${evt_blk_regime_typename}::States_${rt_name}::${bd.regime_name(tr.target_regime)}; 
+                printf("At A\n");
+            }
+            else if (new_regimes.${bd.rt_graph_name(rt_graph)} == ${evt_blk_regime_typename}::States_${rt_name}::${bd.regime_name(tr.target_regime)}) {
+                // Pass, no need to do anything:
+                printf("At B\n");
+            }
+            else {
+                assert(false); // Double set!
+            }
+
+
+
+         }
+         %endfor
+
+
+         // OK, now lets update the current data:
+         //Regimes:
+        %for rt_graph in ev_blk.rt_graphs:
+        <% rt_name = bd.rt_graph_name(rt_graph) %>
+        if( new_regimes.${rt_name} != -1){
+            current_regimes.${rt_name} = new_regimes.${rt_name};
+            printf("Regime Change: ${rt_name} to %d\n", new_regimes.${rt_name} );
+            fprintf(fp,"\nRegime Change: ${rt_name} to %d\n", new_regimes.${rt_name} );
+        }
+        %endfor
+
+         // State-Variables:
+         % for i, sv, in enumerate(ev_blk.state_variables):
+         if( state_changes[ ${i} ])  NV_Ith_S(y,${i}) = new_states[ ${i} ];
+         %endfor
+
+
+        // OK, we have made changes, so lets reinitialise cv_ode:
+        flag = CVodeReInit(cvode_mem, t, y);
+        if (check_flag(&flag, "CVodeReInit", 1)) return(1);
+
+
+        }
+
+
+
+
+
+
+
+
+      // Write the output to a file:
+      fprintf(fp,"\n");
+      fprintf(fp,"%f", t);
+      % for i, sv, in enumerate(ev_blk.state_variables):
+      fprintf(fp, "\t%f" , NV_Ith_S(y,${i}) );
+      % endfor
+
+
+
       //loop_function(t,y);
 
 
@@ -776,7 +1067,7 @@ int evaluate_event_block_${ev_blk_index}(DataStore& ds ) //EventManager& event_m
 
 
       if (check_flag(&flag, "CVode", 1)) break;
-      assert(flag==CV_SUCCESS);
+     //assert(flag==CV_SUCCESS);
     }
 
 
@@ -790,7 +1081,8 @@ int evaluate_event_block_${ev_blk_index}(DataStore& ds ) //EventManager& event_m
 
 
 
-
+    // Write to file:
+    fclose(fp);
 
 
     // SHUTDOWN CVODE:
@@ -820,8 +1112,10 @@ class VariableSrcs:
     InProgress = 'InProgress'
 
 class TriggerConditionGenerator(ASTVisitorBase):
-    def __init__(self, variable_srcs):
+    def __init__(self, variable_srcs, evt_blk, cpp_builddata):
         self.variable_srcs = variable_srcs
+        self.evt_blk = evt_blk
+        self.cpp_builddata = cpp_builddata
 
     def VisitInEquality(self, o, **kwargs):
         return '(%s) - (%s)'  % ( self.visit(o.less_than), self.visit(o.greater_than) )
@@ -829,9 +1123,12 @@ class TriggerConditionGenerator(ASTVisitorBase):
 
     def VisitStateVariable(self, o, **kwargs):
         if self.variable_srcs[o] == VariableSrcs.PreCalculated:
-            return '(FROM DATASTORE: %s)'% o.symbol
+            fname = "get_%s"%( o.symbol.replace("/","__") )
+            return 'pDS->data_mgr.%s(t)' % fname
         if self.variable_srcs[o] == VariableSrcs.InProgress:
-            return '(InProg: %s)'% o.symbol
+            print self.evt_blk
+            index = self.cpp_builddata.sv_index_by_evt_blk[self.evt_blk][o]
+            return "NV_Ith_S(y, %d)" %(index)
 
     def VisitSymbolicConstant(self, o, **kwargs):
         return '%f' % o.value.float_in_si()
@@ -848,6 +1145,13 @@ class TriggerConditionGenerator(ASTVisitorBase):
             assert False
 
 
+class StateAssigmentGenerator(TriggerConditionGenerator):
+    pass
+
+
+
+
+
 class FuncDef(object):
     def __init__(self, name, signature, body):
         self.name=name
@@ -861,18 +1165,60 @@ class CPPBuildData(object):
         self.ev_blks = ev_blks
 
         self.sv_index_by_evt_blk = None
+        self.tr_index_by_evt_blk = None
         self.func_def_tr_triggers = None
         self.rt_graph_trigger_map = None
 
         #
+        self.build_sv_index_by_evt_blk()
+        self.build_tr_index_by_evt_blk()
         self.build_transition_trigger_functions()
         self.build_rt_to_transition_map()
-        self.build_sv_index_by_evt_blk()
 
+
+    # Naming things in the CPP file:
+    def rt_graph_name(self, rt_graph):
+        if rt_graph.name[-1] == '/':
+            return rt_graph.name.replace("/","__")[:-2]
+        else:
+            return rt_graph.name.replace("/","__")
+    def rt_graph_regimes(self, rt_graph):
+        return [reg for reg in rt_graph.regimes if reg.name is not None]
+    def regime_name(self, regime):
+        return self.rt_graph_name(regime.parent_rt_graph) + "_" + regime.name.replace("/","__")
+
+
+    def state_variable_updates_for_transition(self, tr):
+        sas = []
+        for a in tr.actions:
+            if isinstance(a, ast.OnEventStateAssignment):
+                evt_blk_transition = self.get_evt_blk_which_solves( tr.rt_graph )
+                srcs = self.get_variable_srcs_dict(evt_blk_transition)
+                gen = StateAssigmentGenerator( variable_srcs=srcs, evt_blk=evt_blk_transition, cpp_builddata=self)
+                sas.append((a, gen))
+        return sas
+
+
+
+    def build_tr_index_by_evt_blk(self):
+        self.tr_index_by_evt_blk = dict()
+        for evt_blk in self.ev_blks:
+            self.tr_index_by_evt_blk[evt_blk] = {}
+            print 'For evt_block:', repr(evt_blk)
+            trs = [tr for tr in self.component._transitions_triggers if tr.rt_graph in evt_blk.rt_graphs]
+            for i,tr in enumerate(trs):
+                self.tr_index_by_evt_blk[evt_blk][tr] = i
 
     def build_sv_index_by_evt_blk(self):
-        self.sv_index_by_evt_blk = {}
-        assert False
+        self.sv_index_by_evt_blk = defaultdict(dict)
+        for evt_blk in self.ev_blks:
+            print 'For evt_block:', repr(evt_blk)
+            for i,state_variable in enumerate(evt_blk.state_variables):
+                print '  SV index for: %s is %d' % (repr(state_variable), i)
+                self.sv_index_by_evt_blk[evt_blk][state_variable] = i
+
+
+
 
 
     def build_rt_to_transition_map(self):
@@ -887,9 +1233,21 @@ class CPPBuildData(object):
         assert len(ev_blks) == 1
         return ev_blks[0]
 
+
+    def get_variable_srcs_dict(self,evt_blk):
+            srcs = {}
+            for sv in self.component.state_variables + self.component.assignedvalues:
+                if self.get_evt_blk_which_solves(sv) == evt_blk:
+                    srcs[sv] = VariableSrcs.InProgress
+                else:
+                    srcs[sv] = VariableSrcs.PreCalculated
+            return srcs
+
+
+
     def build_transition_trigger_functions(self):
 
-        
+
 
 
         self.func_def_tr_triggers = {}
@@ -899,25 +1257,28 @@ class CPPBuildData(object):
             evt_blk_transition = self.get_evt_blk_which_solves( tr.rt_graph )
 
             # Build the dictionary, telling us where state variables come from:
-            srcs = {}
-            for sv in self.component.state_variables + self.component.assignedvalues:
-                if self.get_evt_blk_which_solves(sv) == evt_blk_transition:
-                    srcs[sv] = VariableSrcs.InProgress
-                else:
-                    srcs[sv] = VariableSrcs.PreCalculated
+            srcs = self.get_variable_srcs_dict(evt_blk = evt_blk_transition)
+            #srcs = {}
+            #for sv in self.component.state_variables + self.component.assignedvalues:
+            #    if self.get_evt_blk_which_solves(sv) == evt_blk_transition:
+            #        srcs[sv] = VariableSrcs.InProgress
+            #    else:
+            #        srcs[sv] = VariableSrcs.PreCalculated
 
 
 
-            tr_gen = TriggerConditionGenerator(variable_srcs=srcs)
-            
+            tr_gen = TriggerConditionGenerator(variable_srcs=srcs, evt_blk=evt_blk_transition, cpp_builddata=self )
+
+
             # OK, where do we get the value from? are they calculated in this funciton, or were they calculated before?
-
-
             name='func_trig_%d'%i
-            body = "// TODO!!;\nreturn 0;"
-            body = 'return ' + tr_gen.visit(tr.trigger) 
+
+
+            l1 = """DataStore* pDS = (DataStore*) user_data;"""
+            l2 = 'return ' + tr_gen.visit(tr.trigger) + ';'
+            body = "\n".join( [l1 , l2 ] )
             fn = FuncDef(name=name,
-                         signature ="int %s (realtype t, N_Vector y, realtype *gout,void *user_data)" %name,
+                         signature ="float %s (realtype t, N_Vector y, realtype *gout,void *user_data)" %name,
                          body=body )
             self.func_def_tr_triggers[tr] = fn
 
@@ -959,11 +1320,14 @@ def build_simulation(component):
     mytemplate.render_context(ctx)
     res = buf.getvalue() + ('\n' * 3)
 
+    data_mgr_txt = DataMgrBuilder(ev_blks=ev_blks, cpp_builddata=build_data, component=component).get_text()
 
 
     op_file = 'out1.c'
     with open(op_file,'w') as fout:
         fout.write(header1)
+        fout.write(data_mgr_txt)
+        fout.write(header2)
         fout.write(op_blks)
         fout.write(res)
 
