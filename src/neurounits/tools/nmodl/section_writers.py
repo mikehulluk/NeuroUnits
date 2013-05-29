@@ -74,7 +74,7 @@ class StateWriter(ASTActionerDefaultIgnoreMissing):
 #            assert build_parameters.symbol_units[o1] == build_parameters.symbol_units[o2]
 #
 #            s = '%s = %s' % (ic.symbol, ic.value)
-            modfilecontents.section_INITIAL.append(s)
+            #modfilecontents.section_INITIAL.append(s)
 
 
 class SuppliedValuesWriter(ASTActionerDefaultIgnoreMissing):
