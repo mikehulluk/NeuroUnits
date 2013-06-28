@@ -76,7 +76,7 @@ class ReplaceNode(ASTVisitorBase):
             return self.dstObj
         else:
             if 'symbol' in o.__dict__ and hasattr(self.srcObj,'symbol'):
-                assert not o.symbol == self.srcObj.symbol
+                assert not o.symbol == self.srcObj.symbol, 'Symbol: %s' % o.symbol
 
             return self.visit(o)
 

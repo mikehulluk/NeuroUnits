@@ -45,7 +45,7 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
     @classmethod
     def get_assignment_dependancy_ordering(cls, eqnset):
         from neurounits.ast.astobjects import AssignedVariable
-        deps = dict([(ass, VisitorFindDirectSymbolDependance().visit(ass_eqn.rhs)) for (ass, ass_eqn) in eqnset._eqn_assignment.iteritems()])
+        deps = dict([(ass.lhs, VisitorFindDirectSymbolDependance().visit(ass.rhs_map)) for ass in eqnset.assignments])
 
         ordered = []
         to_order = set(deps.keys())

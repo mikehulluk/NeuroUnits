@@ -229,6 +229,9 @@ class BuiltInFunction(ASTExpressionObject):
     def __repr__(self,):
         return '<FunctionDef: %s>' % (self.funcname)
 
+    def is_builtin(self):
+        return True
+
 
 class FunctionDef(ASTExpressionObject):
 
@@ -244,8 +247,8 @@ class FunctionDef(ASTExpressionObject):
     def __repr__(self,):
         return '<FunctionDef: %s>' % (self.funcname)
 
-    def __repr__(self,):
-        return '<BuiltinFunction: %s>' % (self.funcname)
+    def is_builtin(self):
+        return False
 
 class FunctionDefParameter(ASTExpressionObject):
 

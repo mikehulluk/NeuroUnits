@@ -333,6 +333,11 @@ class NineMLComponent(Block):
             res_deps = [d for d in res_deps if not isinstance(d,AssignedVariable) ]
         return res_deps
 
+
+
+
+
+
     def getSymbolMetadata(self, sym):
         assert sym in self.terminal_symbols
         if not sym._metadata:
