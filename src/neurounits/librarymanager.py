@@ -250,6 +250,9 @@ class LibraryManager(object):
         self.namespace.add(library)
 
 
+    def __getitem__(self, key):
+        return self.get(name=key)
+
     def get(self, name, include_stdlibs=True):
 
         if LibraryManager._stdlib_cache_loading:
