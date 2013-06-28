@@ -70,12 +70,13 @@ class Demo4(DemoPluginBase):
 
 
 def test4():
+    import neurounits
 
 
 
-    src_files = sorted( glob.glob("/home/michael/hw_to_come/libs/NeuroUnits/src/test_data/l4-9ml/std/*.9ml" ))
+    #src_files = sorted( glob.glob("/home/michael/hw_to_come/NeuroUnits/src/test_data/l4-9ml/std/*.9ml" ))
 
-
+    src_files =  neurounits.Locations.get_default_9ml_locations()
     library_manager = neurounits.NeuroUnitParser.Parse9MLFiles( src_files)
 
     #for obj in library_manager.objects:

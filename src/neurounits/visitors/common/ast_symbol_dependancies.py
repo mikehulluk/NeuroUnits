@@ -242,10 +242,17 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         assert o.lhs in self.dependancies
         self.dependancies[o.lhs].append(rt_graph)
         return [o.lhs] + self.visit(o.rhs)
+
     def VisitEmitEvent(self, o, rt_graph):
         return list( chain(*[self.visit(p) for p in o.parameters]) )
 
-
+    def VisitEmitEventParameter(self, o):
+        return self.visit(o.rhs)
+        #return list( chain(*[self.visit(p) for p in o.parameters]) )
+    def VisitOnEventDefParameter(self,o):
+        return []
+        print repr(o)
+        assert False
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         return self.visit(o.rhs_map) 
