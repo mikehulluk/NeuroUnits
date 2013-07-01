@@ -275,6 +275,8 @@ class FunctionDefInstantiation(ASTExpressionObject):
         self.function_def = function_def
         self.parameters = parameters
 
+    def __repr__(self):
+        return "<FunctionDefInstantiation: '%s(%s)'>" % (self.function_def.funcname, "...")
 
 class FunctionDefParameterInstantiation(ASTExpressionObject):
 

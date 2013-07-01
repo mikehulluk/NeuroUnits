@@ -11,5 +11,6 @@
 parser.out
 
 doc/_build/*
+doc/sphinx/_build/*
 src/testing/htmlcov/
 src/testing/.coverage

@@ -41,9 +41,13 @@ class NeuroUnitParserOptions(object):
 
 
 class NeuroUnitParser(object):
+    """ 
+    Interface for parsing NeuroUnit strings and equations
+    """
 
     @classmethod
     def get_defaultBackend(cls):
+        """Blah Blha"""
         from .units_backends.mh import MHUnitBackend as defaultbackend
         return defaultbackend()
 

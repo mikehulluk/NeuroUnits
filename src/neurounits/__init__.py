@@ -27,6 +27,47 @@
 # -------------------------------------------------------------------------------
 
 
+
+
+"""
+Intended for client
+=====================
+
+
+Parsing
+-------
+
+.. autosummary::
+   :toctree: DIRNAME
+
+   NeuroUnitParser
+   MQ1
+
+.. _autoclass:: NeuroUnitParser
+
+Simulation & Code Generation
+-----------------------------
+
+
+
+Visitors
+---------
+
+
+NUTS files
+-----------
+
+
+
+
+Intended for internal
+======================
+
+
+
+
+"""
+
 # Add 'straight.plugin' into the python path
 
 try:

@@ -159,6 +159,16 @@ class NineMLComponent(Block):
         return build_compound_component(**kwargs)
 
 
+
+    @property
+    def ordered_assignments_by_dependancies(self,):
+        from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
+        from neurounits.units_misc import LookUpDict
+        ordered_assigned_values =  VisitorFindDirectSymbolDependance.get_assignment_dependancy_ordering(self)
+        ordered_assignments =  [LookUpDict(self.assignments).get_single_obj_by(lhs=av) for av in ordered_assigned_values]
+        return ordered_assignments
+
+
     # OK:
     @property
     def assignments(self):
@@ -613,6 +623,7 @@ class NineMLComponent(Block):
 
 
         return new_obj
+
 
 
 
