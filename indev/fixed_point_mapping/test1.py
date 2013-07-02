@@ -6,6 +6,7 @@ import neurounits
 
 import numpy as np
 import pylab
+from neurounits.units_backends.mh import MMQuantity, MMUnit
 
 
 
@@ -94,6 +95,21 @@ define_component simple_leak {
 }
 
 """
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -534,7 +550,7 @@ class VarAnnot(object):
 
 
 var_annots = {
-    't'             : VarAnnot(val_min=None, val_max = None),
+    't'             : VarAnnot(val_min="0ms", val_max = "1s"),
     'alpha_ca_m'    : VarAnnot(val_min=None, val_max = None),
     'alpha_kf_n'    : VarAnnot(val_min=None, val_max = None),
     'alpha_ks_n'    : VarAnnot(val_min=None, val_max = None),
@@ -554,31 +570,37 @@ var_annots = {
     'iKs'           : VarAnnot(val_min=None, val_max = None),
     'iLk'           : VarAnnot(val_min=None, val_max = None),
     'iNa'           : VarAnnot(val_min=None, val_max = None),
-    'inf_ca_m'      : VarAnnot(val_min=None, val_max = None),
-    'inf_kf_n'      : VarAnnot(val_min=None, val_max = None),
-    'inf_ks_n'      : VarAnnot(val_min=None, val_max = None),
-    'inf_na_h'      : VarAnnot(val_min=None, val_max = None),
-    'inf_na_m'      : VarAnnot(val_min=None, val_max = None),
-    'nu'            : VarAnnot(val_min=None, val_max = None),
-    'tau_ca_m'      : VarAnnot(val_min=None, val_max = None),
-    'tau_kf_n'      : VarAnnot(val_min=None, val_max = None),
-    'tau_ks_n'      : VarAnnot(val_min=None, val_max = None),
-    'tau_na_h'      : VarAnnot(val_min=None, val_max = None),
-    'tau_na_m'      : VarAnnot(val_min=None, val_max = None),
+    'inf_ca_m'      : VarAnnot(val_min="0", val_max = "1" ),
+    'inf_kf_n'      : VarAnnot(val_min="0", val_max = "1" ),
+    'inf_ks_n'      : VarAnnot(val_min="0", val_max = "1" ),
+    'inf_na_h'      : VarAnnot(val_min="0", val_max = "1" ),
+    'inf_na_m'      : VarAnnot(val_min="0", val_max = "1" ),
+    'nu'            : VarAnnot(val_min="0", val_max = "1" ),
+    'tau_ca_m'      : VarAnnot(val_min="0.0ms", val_max = None),
+    'tau_kf_n'      : VarAnnot(val_min="0.0ms", val_max = None),
+    'tau_ks_n'      : VarAnnot(val_min="0.0ms", val_max = None),
+    'tau_na_h'      : VarAnnot(val_min="0.0ms", val_max = None),
+    'tau_na_m'      : VarAnnot(val_min="0.0ms", val_max = None),
     'V'             : VarAnnot(val_min="-100mV", val_max = "50mV"),
-    'ca_m'          : VarAnnot(val_min=None, val_max = None),
-    'kf_n'          : VarAnnot(val_min=None, val_max = None),
-    'ks_n'          : VarAnnot(val_min=None, val_max = None),
-    'na_h'          : VarAnnot(val_min=None, val_max = None),
-    'na_m'          : VarAnnot(val_min=None, val_max = None),
+    'ca_m'          : VarAnnot(val_min="0", val_max = "1"),
+    'kf_n'          : VarAnnot(val_min="0", val_max = "1"),
+    'ks_n'          : VarAnnot(val_min="0", val_max = "1"),
+    'na_h'          : VarAnnot(val_min="0", val_max = "1"),
+    'na_m'          : VarAnnot(val_min="0", val_max = "1"),
 }
 
 
 
 
 
-
-
+import operator
+def do_op(a,b,op):
+    if a is None or b is None:
+        return None
+    try:
+        return op(a,b)
+    except ZeroDivisionError:
+        return None
 
 
 
@@ -597,87 +619,176 @@ class ASTDataAnnotator(ASTVisitorBase):
         self.visit(component)
 
     def VisitNineMLComponent(self, component):
-        for o in component.ordered_assignments_by_dependancies:
-            self.visit(o)
-        for o in component.timederivatives:
-            self.visit(o)
+        
+        for i in range(2):
+            for o in component.symbolicconstants:
+                self.visit(o)
+            for o in component.ordered_assignments_by_dependancies:
+                self.visit(o)
+            for o in component.timederivatives:
+                self.visit(o)
+
 
 
 
     def VisitEqnAssignmentByRegime(self, o):
         self.visit(o.rhs_map)
         self.visit(o.lhs)
-        print 'Need to make assignment'
+        
+        
+        ann_lhs = self.annotations[o.lhs]
+        ann_rhs = self.annotations[o.rhs_map]
+        
+        #Min:
+        if ann_lhs.val_min is None and  ann_rhs.val_min is not None:
+            ann_lhs.val_min = ann_rhs.val_min
+            
+        if ann_lhs.val_max is None and  ann_rhs.val_max is not None:
+            ann_lhs.val_max = ann_rhs.val_max
+        
 
     def VisitTimeDerivativeByRegime(self, o):
         self.visit(o.rhs_map)
         self.visit(o.lhs)
-        print 'Need to make assignment'
+        
+        
+        ann_lhs = self.annotations[o.lhs]
+        ann_rhs = self.annotations[o.rhs_map]
+        
+        #Min:
+        if ann_lhs.val_min is None and  ann_rhs.val_min is not None:
+            ann_lhs.val_min = ann_rhs.val_min
+            
+        if ann_lhs.val_max is None and  ann_rhs.val_max is not None:
+            ann_lhs.val_max = ann_rhs.val_max
+        
+        
 
 
     def VisitRegimeDispatchMap(self, o):
         assert len(o.rhs_map) == 1
         # Don't worry about regime maps:
-        return self.visit( o.rhs_map.values()[0])
+        for v in o.rhs_map.values():
+            self.visit( v )
+            
+        var_annots = [ self.annotations[v] for v in  o.rhs_map.values() ]
+        mins =   sorted( [ann.val_min for ann in var_annots if ann.val_min is not None] )
+        maxes =  sorted( [ann.val_max for ann in var_annots if ann.val_max is not None] )
+        
+        if not mins:
+            mins = [None]
+        if not maxes:
+            maxes = [None]
+        
+        self.annotations[o] = VarAnnot( mins[0], maxes[-1] )
+        #self.annotations[o] = self.visit( o.rhs_map.values()[0])
+        
 
 
     def VisitFunctionDefInstantiation(self,o):
-        pass
+        print 
+        for p in o.parameters.values():
+            self.visit(p)
+        # We should only have builtin functions by this point
+        assert o.function_def.is_builtin()
+        
+        # Handle exponents:
+        assert o.function_def.funcname is '__exp__'
+        param_node_ann = self.annotations[ o.parameters.values()[0].rhs_ast ]
+        print param_node_ann
+        
+        min=None
+        max=None
+        if param_node_ann.val_min is not None:
+            v = param_node_ann.val_min.dimensionless()
+            min = MMQuantity( np.exp(v),  MMUnit() )
+        if param_node_ann.val_max is not None:
+            v = param_node_ann.val_max.dimensionless()
+            max = MMQuantity( np.exp(v),  MMUnit() )
+        
+        self.annotations[o] = VarAnnot(val_min=min, val_max=max)
+        #assert False
+        
+        
 
     def VisitFunctionDefInstantiationParater(self, o):
-        pass
+        self.visit(o.rhs_ast)
 
-    def VisitFunctionDefParameter(self, o):
-        pass
 
+    
+    
+    
+    
+    
+    def _VisitBinOp(self, o, op):
+        self.visit(o.lhs)
+        self.visit(o.rhs)
+        ann1 = self.annotations[o.lhs]
+        ann2 = self.annotations[o.rhs]
+                
+        extremes = [
+            do_op(ann1.val_min, ann2.val_min, op ),
+            do_op(ann1.val_min, ann2.val_max, op ),
+            do_op(ann1.val_max, ann2.val_min, op ),
+            do_op(ann1.val_max, ann2.val_max, op ),                
+            ]
+        extremes = sorted([e for e in extremes if e is not None])
+        
+        if len(extremes) < 2:
+            min = None
+            max = None
+        else:
+            min = extremes[0]
+            max = extremes[-1]
+        
+        self.annotations[o] = VarAnnot(val_min=min, val_max=max)
+
+    
 
     def VisitAddOp(self, o):
-        self.visit(o.lhs)
-        self.visit(o.rhs)
-        ann1 = self.annotations[o.lhs]
-        ann2 = self.annotations[o.rhs]
-        print ann1, ann2, repr(o.lhs), repr(o.rhs)
-        assert False
+        self._VisitBinOp(o, op=operator.add)
 
     def VisitSubOp(self, o):
-        self.visit(o.lhs)
-        self.visit(o.rhs)
-        ann1 = self.annotations[o.lhs]
-        ann2 = self.annotations[o.rhs]
-        print ann1, ann2
-        assert False
+        self._VisitBinOp(o, op=operator.sub)
 
     def VisitMulOp(self, o):
-        self.visit(o.lhs)
-        self.visit(o.rhs)
-        ann1 = self.annotations[o.lhs]
-        ann2 = self.annotations[o.rhs]
-        print ann1, ann2
-        assert False
-
+        self._VisitBinOp(o, op=operator.mul)
+     
     def VisitDivOp(self, o):
-        self.visit(o.lhs)
-        self.visit(o.rhs)
-        ann1 = self.annotations[o.lhs]
-        ann2 = self.annotations[o.rhs]
-        print ann1, ann2
-        assert False
-
-
-
+        self._VisitBinOp(o, op=operator.div)
+       
+       
+       
+       
     def VisitIfThenElse(self, o):
-        pass
-        #return "( (%s) ? (%s) : (%s) )" % (
-        #            self.visit(o.predicate),
-        #            self.visit(o.if_true_ast),
-        #            self.visit(o.if_false_ast),
-        #        )
+        self.visit(o.if_true_ast)
+        self.visit(o.if_false_ast)
+        ann1 = self.annotations[o.if_true_ast]
+        ann2 = self.annotations[o.if_false_ast]
+                
+        extremes = [
+            ann1.val_min,
+            ann1.val_max,
+            ann2.val_min,
+            ann2.val_max,
+                ]
+        extremes = sorted([e for e in extremes if e is not None])
+        
+        if len(extremes) < 2:
+            min = None
+            max = None
+        else:
+            min = extremes[0]
+            max = extremes[-1]
+        
+        self.annotations[o] = VarAnnot(val_min=min, val_max=max)
+        
+        
+       
 
     def VisitInEquality(self, o):
         pass
         return "(%s < %s)" % ( self.visit(o.less_than), self.visit(o.greater_than) )
-    def VisitStateVariable(self, o):
-        pass
         #return self.get_var_str(o.symbol)
 
     def VisitParameter(self, o):
@@ -688,8 +799,11 @@ class ASTDataAnnotator(ASTVisitorBase):
         self.annotations[o] = VarAnnot(val_min=o.value, val_max=o.value)
 
 
-    def VisitAssignedVariable(self, o):
+    # Handled in the __init__ function:
+    def VisitStateVariable(self, o):
+        pass
 
+    def VisitAssignedVariable(self, o):
         pass
         #return self.get_var_str(o.symbol)
 
@@ -701,6 +815,94 @@ class ASTDataAnnotator(ASTVisitorBase):
         #return o.symbol
 
 annotations = ASTDataAnnotator( comp, annotations_in = var_annots)
+
+
+
+print
+print 'Results:'
+print '--------'
+
+for term in comp.terminal_symbols:
+    ann = annotations.annotations[term]
+    print repr(term), annotations.annotations[term]
+    print ann.val_min is not None and ann.val_max is not None 
+
+
+print
+print 'Results:'
+print '--------'
+
+for k,v in annotations.annotations.items():
+    print repr(k), '\t\t->', v
+    
+
+
+ 
+for term in comp.terminal_symbols:
+    ann = annotations.annotations[term]
+
+
+
+
+
+
+
+
+Nbits = 16
+Nrange = 2**Nbits
+
+# OK, how are awe going to map each node:
+print 'Looking at mappings:'
+print '===================='
+for term in comp.assignedvalues:
+    print
+    print repr(term)
+    print '-' * len(repr(term))
+    ann = annotations.annotations[term]
+    print ann
+    
+    
+    
+    
+    # Calculate a scaling factor, to move 
+    
+    
+    # Lets go symmetrical, about 0:
+    vmin = ann.val_min.float_in_si()
+    vmax = ann.val_max.float_in_si()
+    ext = max( [np.abs(vmin),np.abs(vmax) ] )
+    upscaling_pow = int( np.ceil( np.log2(ext) ) ) * -1
+    
+    # Lets remap the limits:
+    upscaling_val = 2 ** upscaling_pow
+    vmin_scaled  = vmin * upscaling_val
+    vmax_scaled  = vmax * upscaling_val
+    
+    print 'vMin, vMax', vmin, vmax
+    print 'Scaling:', '2**', upscaling_pow, ' ->', upscaling_val
+    print 'vMin_scaled, vMax_scaled', vmin_scaled, vmax_scaled
+    
+    
+    ann.fixed_scaling_power = upscaling_pow 
+    
+    
+print
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
