@@ -164,6 +164,9 @@ class LookUpDict(object):
             return True
 
 
+    def clear(self):
+        self._objs.clear()
+
 
     def copy(self):
         return LookUpDict( objs = self._objs, unique_attrs=self.unique_attrs, accepted_obj_types=self.accepted_obj_types)

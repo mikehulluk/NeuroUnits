@@ -90,8 +90,11 @@ class FunctionExpander(ASTActionerDefaultIgnoreMissing):
         #print component._function_defs
         
         # And so no more attached functions:
-        from neurounits.units_misc import LookUpDict
-        component.function_defs = LookUpDict()
+        #from neurounits.units_misc import LookUpDict
+        
+        # Remove the functions from the body:
+        component._function_defs.clear()
+        
         
     
 

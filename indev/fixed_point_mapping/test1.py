@@ -7,6 +7,7 @@ import neurounits
 import numpy as np
 import pylab
 from neurounits.units_backends.mh import MMQuantity, MMUnit
+from neurounits.visitors.bases.base_actioner import ASTActionerDepthFirst
 
 
 
@@ -155,159 +156,6 @@ if simulate:
 
 
 
-import mako
-from mako.template import Template
-
-c_prog = r"""
-
-#include <stdio.h>
-#include <iostream>
-#include <fstream>
-#include <math.h>
-#include <gmpxx.h>
-
-// Define the data-structures:
-${DEF_DATASTRUCT}
-
-
-
-
-mpf_class exp(const mpf_class& x)
-{
-    double X = x.get_d();
-    double res = exp(X);
-    ##std::cout  << "exp(" << X << ") ->" << res << "\n";
-    return mpf_class(res);
-
-
-
-}
-
-
-
-// User functions
-${DEF_USERFUNCS_DECL}
-${DEF_USERFUNCS}
-
-// Update-function
-${DEF_UPDATE_FUNC}
-
-
-// Save-data function
-
-
-int main()
-{
-    //mpf_set_default_prec (1000);
-    mpf_set_default_prec (64);
-    //setprecision(100)
-
-    NrnData data;
-
-
-    std::ofstream results_file("${output_filename}");
-
-    for(int i=0;i<10000;i++)
-    {
-        std::cout << "Loop: " << i << "\n";
-        sim_step(data, i);
-        //results_file << i << " "
-
-        results_file << i << " ";
-        results_file << data.V << " ";              // 1
-        results_file << data.iNa << " ";            // 2
-        results_file << data.iCa2 << " ";           // 3
-        results_file << data.ca_m << " ";           // 4
-        results_file << data.beta_ca_m << " ";      // 5
-        results_file << "\n";
-
-    }
-
-    results_file.close();
-
-    printf("Simulation Complete\n");
-}
-
-
-
-
-"""
-
-
-
-
-nrn_data_blk = r"""
-struct NrnData
-{
-    // Parameters:
-% for p_def in parameter_defs:
-    ${p_def.datatype} ${p_def.name};
-% endfor
-
-    // Assignments:
-% for a_def in assignment_defs:
-    ${a_def.datatype} ${a_def.name};
-% endfor
-
-    // States:
-% for sv_def in state_var_defs:
-    ${sv_def.datatype} ${sv_def.name};
-    ${sv_def.datatype} d_${sv_def.name};
-% endfor
-};
-
-
-
-"""
-
-
-
-
-
-
-
-nrn_update_internal_function = r"""
-<% params = ','.join([ "%s %s" %(floattype, p) for p in sorted(func.parameters)] )
-%>
-inline ${floattype} user_${func.funcname}(${params})
-% if not forward_declare:
-{
-    ##%for p in sorted(func.parameters):
-    ##std::cout << "${p}:" << ${p} << "\n" ;
-    ##% endfor
-
-    return ${func_body};
-}
-% else:
-;
-% endif """
-
-
-
-
-update_func = """
-void sim_step(NrnData& d, int time_step)
-{
-    const ${floattype}  dt = 0.1e-3;
-    const ${floattype} t = time_step * dt;
-
-    // Calculate assignments:
-% for eqn in eqns_assignments:
-    d.${eqn.lhs} = ${eqn.rhs};
-% endfor
-
-    // Calculate delta's for all state-variables:
-% for eqn in eqns_timederivatives:
-    d.d_${eqn.lhs} = ${eqn.rhs};
-    d.${eqn.lhs} += d.d_${eqn.lhs} * dt;
-% endfor
-
-}
-"""
-
-
-
-
 
 
 
@@ -316,171 +164,10 @@ import os
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase 
 
 
-class VarDef(object):
-    def __init__(self, name, datatype):
-        self.name = name
-        self.datatype = datatype
-
-class Eqn(object):
-    def __init__(self, lhs, rhs):
-        self.lhs = lhs
-        self.rhs = rhs
 
 
 
 
-
-class CBasedFloatWriter(ASTVisitorBase):
-    def to_c(self, obj):
-        return self.visit(obj)
-
-    def VisitRegimeDispatchMap(self, o):
-        assert len (o.rhs_map) == 1
-        return self.visit(o.rhs_map.values()[0])
-
-
-    def get_var_str(self, name):
-        return "d.%s" % name
-
-    def VisitAddOp(self, o):
-        return "( %s + %s )" % (self.visit(o.lhs), self.visit(o.rhs))
-    def VisitSubOp(self, o):
-        return "( %s - %s )" % (self.visit(o.lhs), self.visit(o.rhs))
-    def VisitMulOp(self, o):
-        return "( %s * %s )" % (self.visit(o.lhs), self.visit(o.rhs))
-    def VisitDivOp(self, o):
-        return "( %s / %s )" % (self.visit(o.lhs), self.visit(o.rhs))
-
-
-    def VisitIfThenElse(self, o):
-        return "( (%s) ? (%s) : (%s) )" % (
-                    self.visit(o.predicate),
-                    self.visit(o.if_true_ast),
-                    self.visit(o.if_false_ast),
-                )
-
-    def VisitInEquality(self, o):
-        return "(%s < %s)" % ( self.visit(o.less_than), self.visit(o.greater_than) )
-
-    def VisitFunctionDefInstantiation(self,o):
-        print o.parameters
-        param_list = sorted(o.parameters.values(), key=lambda p:p.symbol)
-        if o.function_def.is_builtin():
-            func_name = {
-                '__exp__': 'exp'
-                }[o.function_def.funcname]
-
-        else:
-            func_name = "user_%s" %  o.function_def.funcname
-
-
-        return "%s(%s)" % (
-                func_name,
-                ",".join([self.visit(p.rhs_ast) for p in param_list])
-                )
-    def VisitFunctionDefInstantiationParater(self, o):
-        return o.symbol
-
-    def VisitFunctionDefParameter(self, o):
-        return o.symbol
-
-    def VisitStateVariable(self, o):
-        return self.get_var_str(o.symbol)
-
-    def VisitParameter(self, o):
-        return self.get_var_str(o.symbol)
-
-    def VisitSymbolicConstant(self, o):
-        return (o.value.float_in_si())
-
-    def VisitAssignedVariable(self, o):
-        return self.get_var_str(o.symbol)
-
-    def VisitConstant(self, o):
-        return "%e" % (o.value.float_in_si())
-
-    def VisitSuppliedValue(self, o):
-        return o.symbol
-
-
-class CBasedEqnWriter(object):
-    def __init__(self, component, float_type, output_filename, annotations):
-        self.component = component
-        self.float_type = float_type
-
-
-
-
-
-
-
-        def_DATASTRUCT = self.build_data_structure()
-        def_UPDATEFUNC = self.build_update_function()
-
-        func_tmpl = Template(nrn_update_internal_function)
-        writer = CBasedFloatWriter()
-        def_USERFUNCS = "\n".join( [func_tmpl.render(func=func, floattype=self.float_type, func_body=writer.visit(func.rhs)) for func in self.component.functiondefs] )
-        def_USERFUNCS_DECL = "\n".join( [func_tmpl.render(func=func, floattype=self.float_type, func_body=writer.visit(func.rhs), forward_declare=True) for func in self.component.functiondefs] )
-
-
-        cfile = Template(c_prog).render(
-                    DEF_DATASTRUCT = def_DATASTRUCT,
-                    DEF_UPDATE_FUNC = def_UPDATEFUNC ,
-                    DEF_USERFUNCS = def_USERFUNCS ,
-                    DEF_USERFUNCS_DECL = def_USERFUNCS_DECL ,
-                    output_filename = output_filename,
-                    )
-
-
-
-        # Compile and run:
-        for f in ['sim1.cpp','a.out',output_filename]:
-            if os.path.exists(f):
-                os.unlink(f)
-
-        with open( 'sim1.cpp','w') as f:
-            f.write(cfile)
-        os.system("g++ -g sim1.cpp -lgmpxx -lgmp && ./a.out > /dev/null")
-
-
-
-
-
-    def build_data_structure(self):
-        parameter_defs =[ VarDef(p.symbol, self.float_type) for p in self.component.parameters]
-        state_var_defs =[ VarDef(sv.symbol, self.float_type) for sv in self.component.state_variables]
-        assignment_defs =[ VarDef(ass.symbol, self.float_type) for ass in self.component.assignedvalues]
-        ds = Template(nrn_data_blk).render(
-                parameter_defs = parameter_defs,
-                state_var_defs = state_var_defs,
-                assignment_defs = assignment_defs,
-                floattype = self.float_type,
-                )
-        return ds
-
-
-
-    def build_update_function(self, ):
-        writer = CBasedFloatWriter()
-        ordered_assignments = self.component.ordered_assignments_by_dependancies
-
-        ass_eqns =[ Eqn(td.lhs.symbol, writer.to_c(td.rhs_map) ) for td in ordered_assignments]
-        td_eqns = [ Eqn(td.lhs.symbol, writer.to_c(td.rhs_map) ) for td in self.component.timederivatives]
-
-        func = Template(update_func).render(
-                eqns_timederivatives = td_eqns,
-                eqns_assignments = ass_eqns,
-                floattype = self.float_type,
-                )
-        return func
-
-
-
-
-
-
-class VariableAnnotation(object):
-    pass
 
 
 
@@ -488,6 +175,7 @@ class VariableAnnotation(object):
 
 test_c = False
 if test_c:
+    from neurounits.tools.fixed_point import CBasedEqnWriter
     CBasedEqnWriter(comp, float_type='float',  output_filename='res_float.txt',  annotations=[] )
     CBasedEqnWriter(comp, float_type='double', output_filename='res_double.txt',  annotations=[] )
     CBasedEqnWriter(comp, float_type='mpf_class', output_filename='res_gmp.txt',  annotations=[] )
@@ -646,6 +334,8 @@ class ASTDataAnnotator(ASTVisitorBase):
         if ann_lhs.val_max is None and  ann_rhs.val_max is not None:
             ann_lhs.val_max = ann_rhs.val_max
         
+        
+        
 
     def VisitTimeDerivativeByRegime(self, o):
         self.visit(o.rhs_map)
@@ -713,7 +403,8 @@ class ASTDataAnnotator(ASTVisitorBase):
 
     def VisitFunctionDefInstantiationParater(self, o):
         self.visit(o.rhs_ast)
-
+        ann = self.annotations[o.rhs_ast]
+        self.annotations[o] =  VarAnnot(val_min=ann.val_min, val_max=ann.val_max)
 
     
     
@@ -788,8 +479,6 @@ class ASTDataAnnotator(ASTVisitorBase):
 
     def VisitInEquality(self, o):
         pass
-        return "(%s < %s)" % ( self.visit(o.less_than), self.visit(o.greater_than) )
-        #return self.get_var_str(o.symbol)
 
     def VisitParameter(self, o):
         pass
@@ -844,6 +533,10 @@ for term in comp.terminal_symbols:
 
 
 
+from itertools import chain
+
+
+
 
 
 
@@ -851,46 +544,159 @@ for term in comp.terminal_symbols:
 Nbits = 16
 Nrange = 2**Nbits
 
-# OK, how are awe going to map each node:
+class CalculateInternalStoragePerNode(ASTActionerDepthFirst):
+    
+    
+    def encode_value(self, value, upscaling_pow):
+        print
+        print 'Encoding', value, "using upscaling power:", upscaling_pow 
+        value_scaled = value * ( 2**(-upscaling_pow) ) 
+        print ' --Value Scaled:', value_scaled 
+        res = int( value_scaled * (2**Nbits) )
+        print ' --Value int:', res
+        return res 
+        
+        
+    
+    
+    def ActionNodeStd(self, o):
+        print
+        print repr(o)
+        print '-' * len(repr(o))
+        ann = annotations.annotations[o]
+        print ann
+        
+        # Lets go symmetrical, about 0:
+        vmin = ann.val_min.float_in_si()
+        vmax = ann.val_max.float_in_si()
+        ext = max( [np.abs(vmin),np.abs(vmax) ] )
+        if ext != 0.0:
+            upscaling_pow = int( np.ceil( np.log2(ext) ) )
+        else:
+            upscaling_pow = 0 
+        
+        # Lets remap the limits:
+        upscaling_val = 2 ** (-upscaling_pow)
+        vmin_scaled  = vmin * upscaling_val
+        vmax_scaled  = vmax * upscaling_val
+        
+        print 'vMin, vMax', vmin, vmax
+        print 'Scaling:', '2**', upscaling_pow, ' ->', upscaling_val
+        print 'vMin_scaled, vMax_scaled', vmin_scaled, vmax_scaled
+        
+        
+        ann.fixed_scaling_power = upscaling_pow 
+        
+        
+        
+    
+    
+
+    
+
+    def ActionAddOp(self, o):
+        self.ActionNodeStd(o)
+    def ActionSubOp(self, o):
+        self.ActionNodeStd(o)
+    def ActionMulOp(self, o):
+        self.ActionNodeStd(o)
+    def ActionDivOp(self, o):
+        self.ActionNodeStd(o)
+
+    def ActionFunctionDefInstantiation(self, o):
+        pass
+
+    def ActionFunctionDefInstantiationParater(self,o):
+        self.ActionNodeStd(o)
+    
+    
+    def ActionInEquality(self, o):
+        pass
+        
+    def ActionIfThenElse(self, o ):
+        self.ActionNodeStd(o)
+        
+        
+    
+    def ActionFunctionDefParameter(self, o):
+        pass
+        
+    def ActionBuiltInFunction(self, o):
+        pass
+        
+    def ActionAssignedVariable(self, o):
+        self.ActionNodeStd(o)
+    def ActionStateVariable(self, o, **kwargs):
+        self.ActionNodeStd(o)
+        
+    def ActionSuppliedValue(self, o):
+        self.ActionNodeStd(o)
+        
+    def ActionConstant(self, o):
+        print
+        print 'Converting: ', o, o.value
+        
+        v = o.value.float_in_si()        
+        
+        if o.value.magnitude == 0.0:
+            upscaling_pow = 0
+            ann.fixed_scaling_power = upscaling_pow 
+            ann.value_as_int = self.encode_value(v, upscaling_pow) 
+            
+        else:
+            upscaling_pow = int( np.ceil( np.log2(np.fabs(v)) ) )
+            ann.fixed_scaling_power = upscaling_pow 
+            ann.value_as_int = self.encode_value(v, upscaling_pow) 
+        
+    def ActionSymbolicConstant(self, o):
+        self.ActionConstant(o)
+    
+    def ActionRegimeDispatchMap(self, o):
+        self.ActionNodeStd(o)
+    
+    def ActionEqnAssignmentByRegime(self, o):
+        pass
+    def ActionTimeDerivativeByRegime(self, o):
+        pass
+    
+
+       
+        
+    def ActionRegime(self,o):
+        pass
+    def ActionRTGraph(self, o):
+        pass
+    def ActionNineMLComponent(self, o):
+        pass
+
+
+
+print
+print
 print 'Looking at mappings:'
 print '===================='
-for term in comp.assignedvalues:
-    print
-    print repr(term)
-    print '-' * len(repr(term))
-    ann = annotations.annotations[term]
-    print ann
+
+CalculateInternalStoragePerNode().visit(comp)
+
+
+
     
-    
-    
-    
-    # Calculate a scaling factor, to move 
-    
-    
-    # Lets go symmetrical, about 0:
-    vmin = ann.val_min.float_in_si()
-    vmax = ann.val_max.float_in_si()
-    ext = max( [np.abs(vmin),np.abs(vmax) ] )
-    upscaling_pow = int( np.ceil( np.log2(ext) ) ) * -1
-    
-    # Lets remap the limits:
-    upscaling_val = 2 ** upscaling_pow
-    vmin_scaled  = vmin * upscaling_val
-    vmax_scaled  = vmax * upscaling_val
-    
-    print 'vMin, vMax', vmin, vmax
-    print 'Scaling:', '2**', upscaling_pow, ' ->', upscaling_val
-    print 'vMin_scaled, vMax_scaled', vmin_scaled, vmax_scaled
-    
-    
-    ann.fixed_scaling_power = upscaling_pow 
-    
-    
+
+
+
+
 print
-    
+print
+print 'Writing out to C-file'
+print '===================='
 
 
+from neurounits.tools.fixed_point import CBasedEqnWriterFixed
+CBasedEqnWriterFixed(comp, output_filename='res_int.txt',  annotations=[] )
 
+data_int = np.loadtxt('res_int.txt')
+pylab.plot(data_int[:,0], data_int[:,1], label='int' )
+pylab.show()
 
 
 
