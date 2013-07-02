@@ -26,6 +26,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-from .actioner_format_strings_as_ids import ActionerFormatStringsAsIDs
-from .ast_node_to_id_dict import ASTNodeLabels
 from .ast_symbol_dependancies import VisitorFindDirectSymbolDependance
+
+
+from neurounits.visitors.common.function_expander import FunctionExpander

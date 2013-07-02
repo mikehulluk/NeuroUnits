@@ -26,13 +26,14 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
+
 from .base import ASTObject
 from neurounits.ast.astobjects import Parameter, SuppliedValue, AssignedVariable, StateVariable
 from neurounits.ast.astobjects_nineml import AnalogReducePort
 from neurounits.ast.astobjects_nineml import Regime
-from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
-from neurounits.io_types import IOType
+
+
+#from neurounits.io_types import IOType
 from neurounits.units_misc import LookUpDict
 
 
@@ -133,7 +134,7 @@ class NineMLComponent(Block):
         from neurounits.ast_builder.builder_visitor_propogate_dimensions import PropogateDimensions
         from neurounits.visitors.common.ast_replace_node import ReplaceNode
         #from neurounits.ast_builder.builder_visitor_propogate_dimensions import VerifyUnitsInTree
-        new_node = None
+        #new_node = None
         if len(ap.rhses) == 0:
             assert False, 'No input found for reduce port? (maybe this is OK!)'
 
@@ -160,10 +161,16 @@ class NineMLComponent(Block):
 
 
 
+    def expand_all_function_calls(self):
+        from neurounits.visitors.common import FunctionExpander
+        FunctionExpander(self)
+
+
     @property
     def ordered_assignments_by_dependancies(self,):
         from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
-        from neurounits.units_misc import LookUpDict
+        #from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
+        #from neurounits.units_misc import LookUpDict
         ordered_assigned_values =  VisitorFindDirectSymbolDependance.get_assignment_dependancy_ordering(self)
         ordered_assignments =  [LookUpDict(self.assignments).get_single_obj_by(lhs=av) for av in ordered_assigned_values]
         return ordered_assignments
@@ -276,24 +283,29 @@ class NineMLComponent(Block):
     # Recreate each time - this is not! efficient!!
     @property
     def _parameters_lut(self):
+        from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         t = EqnsetVisitorNodeCollector(obj=self)
         return LookUpDict(t.nodes[Parameter] )
     @property
     def _supplied_lut(self):
+        from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         t = EqnsetVisitorNodeCollector(obj=self)
         return LookUpDict(t.nodes[SuppliedValue] )
     @property
     def _analog_reduce_ports_lut(self):
+        from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         t = EqnsetVisitorNodeCollector(obj=self)
         return LookUpDict(t.nodes[AnalogReducePort] )
     @property
     def input_event_port_lut(self):
         import neurounits.ast as ast
+        from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         t = EqnsetVisitorNodeCollector(obj=self)
         return LookUpDict(t.nodes[ast.InEventPort] )
     @property
     def output_event_port_lut(self):
         import neurounits.ast as ast
+        from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         t = EqnsetVisitorNodeCollector(obj=self)
         return LookUpDict(t.nodes[ast.OutEventPort] )
 
@@ -311,7 +323,7 @@ class NineMLComponent(Block):
 
     # These should be tidied up:
     def getSymbolDependancicesDirect(self, sym, include_constants=False):
-
+        from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
         assert sym in self.terminal_symbols
 
         if isinstance(sym, AssignedVariable):
@@ -490,6 +502,7 @@ class NineMLComponent(Block):
 
 
     def all_ast_nodes(self):
+        from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         c = EqnsetVisitorNodeCollector()
         c.visit(self)
         return itertools.chain( *c.nodes.values() )
@@ -503,7 +516,7 @@ class NineMLComponent(Block):
 
         from neurounits.visitors.common.ast_replace_node import ReplaceNode
         from neurounits.visitors.common.ast_node_connections import ASTAllConnections
-
+        from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
 
 
         class ReplaceNodeHack(ReplaceNode):

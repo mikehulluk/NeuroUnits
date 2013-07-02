@@ -29,10 +29,7 @@
 from neurounits.visitors import ASTVisitorBase,ASTActionerDefault
 from neurounits.visitors.bases.base_actioner import SingleVisitPredicate, ASTActionerDepthFirst
 from neurounits import ast
-from neurounits.visitors.common import ASTNodeLabels
-from neurounits.units_misc import EnsureExisits
-from neurounits.visitors.common import ActionerFormatStringsAsIDs
-from neurounits.unit_errors import panic, UnitMismatchError
+from neurounits.unit_errors import UnitMismatchError
 import pylab
 
 
