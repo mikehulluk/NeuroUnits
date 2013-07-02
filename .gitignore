@@ -1,3 +1,9 @@
+/indev/fixed_point_mapping/sim1.cpp
+/indev/fixed_point_mapping/a.out
+/indev/fixed_point_mapping/res.txt
+/indev/fixed_point_mapping/res_double.txt
+/indev/fixed_point_mapping/res_float.txt
+/indev/fixed_point_mapping/res_gmp.txt
 /src/testing/application.log
 /pylint.html
 /src/testing/nohup.out
