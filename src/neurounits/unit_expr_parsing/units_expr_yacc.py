@@ -825,17 +825,20 @@ def p_bool_term_c(p):
 
 
 def p_bool_term_and1(p):
-    """bool_expr : bool_expr AND bool_expr"""
+    """bool_expr : bool_expr AND_SYM bool_expr
+                 | bool_expr AND_KW bool_expr """
     p[0] = ast.BoolAnd(lhs=p[1], rhs=p[3])
 
 
 def p_bool_term2(p):
-    """bool_expr : bool_expr OR bool_expr"""
+    """bool_expr :  bool_expr OR_SYM bool_expr
+                 |  bool_expr OR_KW bool_expr"""
     p[0] = ast.BoolOr(lhs=p[1], rhs=p[3])
 
 
 def p_bool_term3(p):
-    """bool_expr : NOT bool_expr"""
+    """bool_expr : NOT_SYM bool_expr
+                 | NOT_KW bool_expr"""
     p[0] = ast.BoolNot(lhs=p[2])
 
 
@@ -876,20 +879,20 @@ def p_rhs_term_div(p):
 
 
 
-def p_rhs_term_AND(p):
-    """ AND : AND_SYM 
-            | AND_KW """
-    pass
+#def p_rhs_term_AND(p):
+#    """ AND : AND_SYM 
+#            | AND_KW """
+#    pass
+#
+#def p_rhs_term_OR(p):
+#    """ OR : OR_SYM 
+#            | OR_KW """
+#    pass
 
-def p_rhs_term_OR(p):
-    """ OR : OR_SYM 
-            | OR_KW """
-    pass
-
-def p_rhs_term_NOT(p):
-    """ NOT : NOT_SYM 
-            | NOT_KW """
-    pass
+#def p_rhs_term_NOT(p):
+#    """ NOT : NOT_SYM 
+#            | NOT_KW """
+#    pass
 
 
 
@@ -1129,12 +1132,13 @@ precedence = (
 
     ('left', 'OR_KW', 'OR_SYM'),
     ('left', 'AND_KW', 'AND_SYM'),
-    ('right', 'NOT_KW', 'NOT_SYM'),
+    ('right', 'NOT_KW', 'NOT_SYM', ),
     ('left', 'GREATERTHAN'),
     ('left', 'LESSTHAN'),
     ('left', 'PLUS', 'MINUS'),
     ('left', 'TIMES', 'SLASH'),
     ('left', 'TIMESTIMES'),
+
     ('left', 'ALPHATOKEN'),
 )
 
@@ -1169,7 +1173,7 @@ class ParserMgr(object):
         tables_loc = EnsureExisits('/tmp/%s/nu/yacc/parse_eqn_block' % username)
         parser = yacc.yacc(debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1, errorlog=log_neurounits,  )
 
-
+        assert False
         return parser
 
     @classmethod
