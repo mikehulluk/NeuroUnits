@@ -26,50 +26,50 @@
 # -------------------------------------------------------------------------------
 
 
-assert False
-
-from neurounits import ast
-from units_data_unitterms import UnitTermData
-
-
-class StdLibrary(object):
-
-    @classmethod
-    def getMath(cls, backend):
-
-        consts = {
-          'pi':           backend.Quantity(3.141592653,   backend.Unit() ),
-          'e_euler':      backend.Quantity(2.718281828,   backend.Unit() ),
-        }
-        constants = dict( [ (sym, ast.SymbolicConstant(symbol=sym, value=val) ) for (sym,val) in consts.iteritems()] )
-
-        functiondefs ={
-            'exp' : ast.BuiltInFunction(funcname='exp',
-                                        parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
-                                        dimension=backend.Unit() ),
-            }
-
-        return ast.Library('std.math', constants=constants, functiondefs=functiondefs)
-
-    @classmethod
-    def getPhysics(cls, backend):
-
-        uL = UnitTermData.getUnitLUT(backend)
-        consts = {
-                   'F':         backend.Quantity(96485.3365,    uL['coulomb']/uL["mole"] ),
-                   'R':         backend.Quantity(8.3144621,     uL['joule']/(uL["mole"]*uL['kelvin'] ) ),
-                   'Na':        backend.Quantity(6.02214129e23, backend.Unit(mole=-1) ),
-                   'k':         backend.Quantity(1.380648e-23,  uL['joule']/uL["kelvin"] ),
-                   'e_charge':  backend.Quantity(1.602176565,   uL['coulomb']   ),
-                   }
-        constants = dict( [ (sym, ast.SymbolicConstant(symbol=sym, value=val) ) for (sym,val) in consts.iteritems()] )
-
-        return ast.Library('std.physics', constants = constants, functiondefs={} )
-
-
-
-    @classmethod
-    def get_default(cls, backend):
-        return []
-
-
+#assert False
+#
+#from neurounits import ast
+#from units_data_unitterms import UnitTermData
+#
+#
+#class StdLibrary(object):
+#
+#    @classmethod
+#    def getMath(cls, backend):
+#
+#        consts = {
+#          'pi':           backend.Quantity(3.141592653,   backend.Unit() ),
+#          'e_euler':      backend.Quantity(2.718281828,   backend.Unit() ),
+#        }
+#        constants = dict( [ (sym, ast.SymbolicConstant(symbol=sym, value=val) ) for (sym,val) in consts.iteritems()] )
+#
+#        functiondefs ={
+#            'exp' : ast.BuiltInFunction(funcname='exp',
+#                                        parameters={'x':ast.FunctionDefParameter(symbol='x', dimension=backend.Unit() ) },
+#                                        dimension=backend.Unit() ),
+#            }
+#
+#        return ast.Library('std.math', constants=constants, functiondefs=functiondefs)
+#
+#    @classmethod
+#    def getPhysics(cls, backend):
+#
+#        uL = UnitTermData.getUnitLUT(backend)
+#        consts = {
+#                   'F':         backend.Quantity(96485.3365,    uL['coulomb']/uL["mole"] ),
+#                   'R':         backend.Quantity(8.3144621,     uL['joule']/(uL["mole"]*uL['kelvin'] ) ),
+#                   'Na':        backend.Quantity(6.02214129e23, backend.Unit(mole=-1) ),
+#                   'k':         backend.Quantity(1.380648e-23,  uL['joule']/uL["kelvin"] ),
+#                   'e_charge':  backend.Quantity(1.602176565,   uL['coulomb']   ),
+#                   }
+#        constants = dict( [ (sym, ast.SymbolicConstant(symbol=sym, value=val) ) for (sym,val) in consts.iteritems()] )
+#
+#        return ast.Library('std.physics', constants = constants, functiondefs={} )
+#
+#
+#
+#    @classmethod
+#    def get_default(cls, backend):
+#        return []
+#
+#

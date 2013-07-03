@@ -142,6 +142,11 @@ class Eqn(object):
 
 
 class CBasedFixedWriter(ASTVisitorBase):
+    
+    def __init__(self, annotations):
+        self.annotations = annotations
+        super(CBasedFixedWriter, self).__init__()
+        
     def to_c(self, obj):
         return self.visit(obj)
 
@@ -156,7 +161,15 @@ class CBasedFixedWriter(ASTVisitorBase):
 
     def VisitAddOp(self, o):
         print 'Creating AddOp'
+        ann_lhs = self.annotations[o.lhs]
+        ann_rhs = self.annotations[o.rhs]
+        ann = self.annotations[o]
+        print '  - LHS:', ann_lhs.fixed_scaling_power
+        print '  - LHS:', ann_rhs.fixed_scaling_power
+        print '  - RHS:', ann.fixed_scaling_power
+        
         assert False
+        
         return "( %s + %s )" % (self.visit(o.lhs), self.visit(o.rhs))
     def VisitSubOp(self, o):
         return "( %s - %s )" % (self.visit(o.lhs), self.visit(o.rhs))
@@ -217,6 +230,9 @@ class CBasedEqnWriterFixed(object):
     def __init__(self, component, output_filename, annotations):
         self.component = component
         self.float_type = 'int'
+        self.annotations = annotations
+
+        self.writer = CBasedFixedWriter(annotations=annotations)
 
         def_DATASTRUCT = self.build_data_structure()
         def_UPDATEFUNC = self.build_update_function()
@@ -258,11 +274,11 @@ class CBasedEqnWriterFixed(object):
 
 
     def build_update_function(self, ):
-        writer = CBasedFixedWriter()
+        
         ordered_assignments = self.component.ordered_assignments_by_dependancies
 
-        ass_eqns =[ Eqn(td.lhs.symbol, writer.to_c(td.rhs_map) ) for td in ordered_assignments]
-        td_eqns = [ Eqn(td.lhs.symbol, writer.to_c(td.rhs_map) ) for td in self.component.timederivatives]
+        ass_eqns =[ Eqn(td.lhs.symbol, self.writer.to_c(td.rhs_map) ) for td in ordered_assignments]
+        td_eqns = [ Eqn(td.lhs.symbol, self.writer.to_c(td.rhs_map) ) for td in self.component.timederivatives]
 
         func = Template(update_func).render(
                 eqns_timederivatives = td_eqns,

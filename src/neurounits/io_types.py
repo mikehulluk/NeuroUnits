@@ -28,7 +28,8 @@
 
 
 class IOType(object):
-
+    
+    
     Input = 'Input'
     Output = 'Output'
     Parameter = 'Parameter'

@@ -1,2 +1,2 @@
-from fixed_point_writer import CBasedEqnWriterFixed
-from float_comparison import CBasedEqnWriterFloat
+from neurounits.tools.fixed_point.fixed_point_writer import CBasedEqnWriterFixed
+from neurounits.tools.fixed_point.float_comparison import CBasedEqnWriterFloat

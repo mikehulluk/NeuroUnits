@@ -31,6 +31,10 @@ import os
 extensions = ['sphinx.ext.todo', 'sphinx.ext.viewcode', 'sphinx.ext.autodoc', 'sphinx.ext.autosummary']
 autosummary_generate = True
 
+
+autodoc_default_flags = ['members', 'undoc-members', 'inherited-members', 'show-inheritance']
+#'private-members', 'special-members', 
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 

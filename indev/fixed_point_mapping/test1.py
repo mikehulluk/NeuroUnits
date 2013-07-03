@@ -229,6 +229,7 @@ class VarAnnot(object):
 
         self.val_min = val_min
         self.val_max = val_max
+        self.fixed_scaling_power = None
 
     def __str__(self):
         return "Bounds( min:{%s} max:{%s} )" % (self.val_min, self.val_max)
@@ -293,6 +294,12 @@ def do_op(a,b,op):
 
 
 class ASTDataAnnotator(ASTVisitorBase):
+    
+    
+    def __getitem__(self, k):
+        return self.annotations[k]
+    
+    
     def __init__(self, component, annotations_in):
         self.component = component
         self.annotations = {}
@@ -506,29 +513,29 @@ class ASTDataAnnotator(ASTVisitorBase):
 annotations = ASTDataAnnotator( comp, annotations_in = var_annots)
 
 
-
-print
-print 'Results:'
-print '--------'
-
-for term in comp.terminal_symbols:
-    ann = annotations.annotations[term]
-    print repr(term), annotations.annotations[term]
-    print ann.val_min is not None and ann.val_max is not None 
-
-
-print
-print 'Results:'
-print '--------'
-
-for k,v in annotations.annotations.items():
-    print repr(k), '\t\t->', v
-    
-
-
- 
-for term in comp.terminal_symbols:
-    ann = annotations.annotations[term]
+# 
+# print
+# print 'Results:'
+# print '--------'
+# 
+# for term in comp.terminal_symbols:
+#     ann = annotations.annotations[term]
+#     print repr(term), annotations.annotations[term]
+#     print ann.val_min is not None and ann.val_max is not None 
+# 
+# 
+# print
+# print 'Results:'
+# print '--------'
+# 
+# for k,v in annotations.annotations.items():
+#     print repr(k), '\t\t->', v
+#     
+# 
+# 
+#  
+# for term in comp.terminal_symbols:
+#     ann = annotations.annotations[term]
 
 
 
@@ -637,7 +644,7 @@ class CalculateInternalStoragePerNode(ASTActionerDepthFirst):
         print 'Converting: ', o, o.value
         
         v = o.value.float_in_si()        
-        
+        ann = annotations.annotations[o]
         if o.value.magnitude == 0.0:
             upscaling_pow = 0
             ann.fixed_scaling_power = upscaling_pow 
@@ -692,7 +699,7 @@ print '===================='
 
 
 from neurounits.tools.fixed_point import CBasedEqnWriterFixed
-CBasedEqnWriterFixed(comp, output_filename='res_int.txt',  annotations=[] )
+CBasedEqnWriterFixed(comp, output_filename='res_int.txt',  annotations=annotations )
 
 data_int = np.loadtxt('res_int.txt')
 pylab.plot(data_int[:,0], data_int[:,1], label='int' )

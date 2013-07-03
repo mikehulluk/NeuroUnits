@@ -163,7 +163,7 @@ class ComponentNamespace(object):
 
 
 class LibraryManager(object):
-
+    """LibMan class docstring"""
     _stdlib_cache = None
     _stdlib_cache_loading = False
 

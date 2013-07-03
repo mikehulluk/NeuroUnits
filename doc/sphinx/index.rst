@@ -4,8 +4,17 @@
 .. toctree::
      :maxdepth: 2
 
+     op/modules
      refs/index
 
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
 
 
 Overview
@@ -286,6 +295,7 @@ Long Form          Short Form
 ================== ================
 
 
+
 Valid Multipliers
 ^^^^^^^^^^^^^^^^^^^
 
@@ -300,7 +310,7 @@ Long Form          Short Form
   ``micro``        ``u``
   ``nano``         ``n``
   ``pico``         ``p``
-
+================== ================
 
 Standard Library
 ~~~~~~~~~~~~~~~~
