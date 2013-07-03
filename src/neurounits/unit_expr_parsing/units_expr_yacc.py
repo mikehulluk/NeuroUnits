@@ -959,9 +959,9 @@ def p_quantity_term_1(p):
     p[0] = p[1] * p[3]
 
 
-def p_quantity_term_2(p):
-    """quantity_term : quantity_term SLASH quantity_factor"""
-    p[0] = p[1] / p[3]
+#def p_quantity_term_2(p):
+#    """quantity_term : quantity_term SLASH quantity_factor"""
+#    p[0] = p[1] / p[3]
 
 
 def p_quantity_term_3(p):
