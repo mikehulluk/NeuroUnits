@@ -103,15 +103,16 @@ def parse_io_line(line):
             defs.append(io_data)
         return defs
 
-    elif mode == 'INITIAL':
-        defs = []
-        data = g['DEFS']
-        for d in data.split(','):
-            pDef = d.split(':')
-
-            ic = IODataInitialCondition(symbol=pDef[0], value=pDef[1])
-            defs.append(ic)
-        return defs
+    # REMOVED, now use """initial {a=1, b=1, c=14mV, etc}"""
+#    elif mode == 'INITIAL':
+#        defs = []
+#        data = g['DEFS']
+#        for d in data.split(','):
+#            pDef = d.split(':')
+#
+#            ic = IODataInitialCondition(symbol=pDef[0], value=pDef[1])
+#            defs.append(ic)
+#        return defs
     else:
         raise ParsingError('Unexpected Mode: %s' % mode)
 

@@ -341,7 +341,6 @@ class AbstractBlockBuilder(object):
 
 
     def set_initial_state_variable(self, name, value):
-        #print name, value
         assert isinstance(value, ast.ConstValue)
         self._default_state_variables[name] = value
 
