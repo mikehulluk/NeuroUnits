@@ -239,7 +239,7 @@ class CBasedFixedWriter(ASTVisitorBase):
             return "((%s) << %d )" % (src, shift)
 
 
-    def DoAddSub(self, o, symbol):
+    def DoOpSimple(self, o, symbol):
         print 'Creating AddSubOp', symbol
         ann_lhs = self.annotations[o.lhs]
         ann_rhs = self.annotations[o.rhs]
@@ -248,13 +248,13 @@ class CBasedFixedWriter(ASTVisitorBase):
     
     
     def VisitAddOp(self, o):
-        return self.DoAddSub(o, '+')
+        return self.DoOpSimple(o, '+')
     def VisitSubOp(self, o):
-        return self.DoAddSub(o, '-')
+        return self.DoOpSimple(o, '-')
     def VisitMulOp(self, o):
-        return self.DoAddSub(o, '*')
+        return self.DoOpSimple(o, '*')
     def VisitDivOp(self, o):
-        return self.DoAddSub(o, '/')
+        return self.DoOpSimple(o, '/')
 
 
 
