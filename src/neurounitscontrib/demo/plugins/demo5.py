@@ -44,8 +44,6 @@ def test5():
                     y=6.0
                 }
              <=> PARAMETER mu
-             <=> INITIAL x:0
-             <=> INITIAL y:0
             }
             """)
 

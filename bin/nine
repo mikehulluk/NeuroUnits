@@ -30,6 +30,11 @@ def handle_demo(args):
     do_demo(args)
 
 
+def handle_coverage(args):
+    from neurounits.frontend.cmdline.nineml_fe_coverage import do_coverage
+    do_coverage(args)
+
+
 
 
 # TODO:
@@ -110,6 +115,9 @@ def build_argparser():
     summarise_subparser = subparsers.add_parser('summarise', parents=[parent_parser])
     summarise_subparser.add_argument('what', nargs='*',  )
     summarise_subparser.set_defaults(func=handle_summarise)
+
+    coverage_subparser = subparsers.add_parser('coverage', parents=[parent_parser])
+    coverage_subparser.set_defaults(func=handle_coverage)
 
     return parser
 

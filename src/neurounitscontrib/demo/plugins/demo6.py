@@ -137,7 +137,7 @@ def test6():
 
 
     res = nrn.simulate(times=np.linspace(0.0, 0.100, 10000) )
-    res.plot_auto()
+    res.auto_plot()
 
 
 def main():

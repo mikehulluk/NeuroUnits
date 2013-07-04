@@ -16,37 +16,10 @@ import numpy as np
 
 from collections import defaultdict
 
+import itertools
+import pylab
 
 
-
-class SimulationResultsData(object):
-    def __init__(self, times, state_variables, assignments, transitions, rt_regimes, events, component):
-        self.times = times
-        self.state_variables = state_variables
-        self.assignments = assignments
-        self.transitions = transitions
-        self.rt_regimes = rt_regimes
-
-        self.events = events
-        self.component = component
-
-    def get_time(self):
-        return self.times
-
-
-    def get_data(self, name):
-        assert isinstance(name, basestring)
-        if name in self.state_variables:
-            return self.state_variables[name]
-        elif name in self.assignments:
-            return self.assignments[name]
-        else:
-            assert False, 'Could not find: %s' % name
-
-    def plot_auto(self):
-        auto_plot(self)
-    def auto_plot(self):
-        auto_plot(self)
 
 def do_transition_change(tr, evt, state_data, functor_gen):
 
@@ -104,48 +77,6 @@ class EventManager(object):
 
 
 
-import itertools
-import pylab
-
-def auto_plot(res):
-
-
-    si_base_units = defaultdict(list)
-    plot_objs = sorted( list( itertools.chain( res.state_variables.keys(), res.assignments.keys(),) ) )
-    for plt_obj in plot_objs:
-        print plt_obj
-        terminal_obj = res.component.get_terminal_obj(plt_obj)
-        dimension = terminal_obj.get_dimension()
-
-        found = False
-        for k,v in si_base_units.items():
-            if k.is_compatible( dimension):
-                si_base_units[k].append(plt_obj)
-                found = True
-                break
-        if not found:
-            si_base_units[ dimension.with_no_powerten()].append(plt_obj)
-
-
-
-    print si_base_units
-    print len(si_base_units)
-    n_axes = len(si_base_units)
-
-    f = pylab.figure()
-    axes = [f.add_subplot(n_axes, 1, i+1) for i in range(n_axes)]
-
-
-    for ((unit,objs),ax) in zip(sorted(si_base_units.items()), axes):
-        ax.set_ylabel(str(unit))
-        ax.margins(0.1)
-        for o in sorted(objs):
-            ax.plot( res.get_time(), res.get_data(o), label=o)
-        ax.legend()
-
-
-
-
 
 
 
@@ -190,9 +121,24 @@ def get_initial_regimes(rt_graphs, initial_regimes=None):
 
 
 
+def get_initial_state_values(component, initial_state_values):
+    # Resolve the inital values of the states:
+    
+    state_values = {}
+    # Check initial state_values defined in the 'initial {...}' block: :
+    for td in component.timederivatives:
+        sv = td.lhs
+        #print repr(sv), sv.initial_value
+        if sv.initial_value:
+            assert isinstance(sv.initial_value, ast.ConstValue)
+            state_values[sv.symbol] = sv.initial_value.value
 
+    for (k,v) in initial_state_values.items():
+        assert not k in state_values, 'Double set intial values: %s' % k
+        assert k in [td.lhs.symbol for td in component.timederivatives]
+        state_values[k]= v
 
-
+    return state_values
 
 
 
@@ -222,7 +168,7 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
     parameters = dict( (k, neurounits.Q1(v)) for (k,v) in parameters.items() )
     initial_state_values = dict( (k, neurounits.Q1(v)) for (k,v) in initial_state_values.items() )
 
-    # Sanity check, are the parameters and initial state_variable values in teh right units:
+    # Sanity check, are the parameters and initial state_variable values in the right units:
     for (k, v) in parameters.items() + initial_state_values.items():
         terminal_obj = component.get_terminal_obj(k)
         assert terminal_obj.get_dimension().is_compatible(v.get_units())
@@ -238,49 +184,8 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
     # Resolve initial regimes:
     # ========================
     current_regimes = get_initial_regimes(rt_graphs=component.rt_graphs, initial_regimes=initial_regimes)
-    ## i. Initial, make initial regimes 'None', then lets try and work it out:
-    #current_regimes = dict( [ (rt, None) for rt in component.rt_graphs] )
-
-    ## ii. Is there just a single regime?
-    #for (rt_graph, regime) in current_regimes.items():
-    #    if len(rt_graph.regimes) == 1:
-    #        current_regimes[rt_graph] = rt_graph.regimes.get_single_obj_by()
-
-    ## iii. Do the transion graphs have a 'initial' block?
-    #for rt_graph in component.rt_graphs:
-    #    if rt_graph.default_regime is not None:
-    #        current_regimes[rt_graph] = rt_graph.default_regime
-
-
-    ## iv. Explicitly provided:
-    #for (rt_name, regime_name) in initial_regimes.items():
-    #    rt_graph = component.rt_graphs.get_single_obj_by(name=rt_name)
-    #    assert current_regimes[rt_graph] is None, "Initial state for '%s' set twice " % rt_graph.name
-    #    current_regimes[rt_graph]  = rt_graph.get_regime( name=regime_name )
-
-    ## v. Check everything is hooked up OK:
-    #for rt_graph, regime in current_regimes.items():
-    #    assert regime is not None, " Start regime for '%s' not set! " % (rt_graph.name)
-    #    assert regime in rt_graph.regimes, 'regime: %s [%s]' % (repr(regime), rt_graph.regimes  )
-
-
-
-    # Resolve the inital values of the states:
-    state_values = {}
-    # Check initial state_values defined in the 'initial {...}' block: :
-    for td in component.timederivatives:
-        sv = td.lhs
-        #print repr(sv), sv.initial_value
-        if sv.initial_value:
-            assert isinstance(sv.initial_value, ast.ConstValue)
-            state_values[sv.symbol] = sv.initial_value.value
-
-    for (k,v) in initial_state_values.items():
-        assert not k in state_values, 'Double set intial values: %s' % k
-        assert k in [td.lhs.symbol for td in component.timederivatives]
-        state_values[k]= v
-
-    # ======================
+    state_values = get_initial_state_values(component, initial_state_values )
+    
 
 
 
