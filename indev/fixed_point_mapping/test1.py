@@ -408,7 +408,7 @@ plot_set(data_int, 'i', ['V','V2'],  5, 5, fig )
 
 
 
-for data_name in [ 'V' ] : #,'V2', 'alpha_kf_n', 'beta_kf_n']:
+for data_name in [ 'V' ,'V2', 'alpha_kf_n', 'beta_kf_n']:
 
     try:
         pylab.figure()

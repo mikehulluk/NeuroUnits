@@ -38,6 +38,8 @@ from neurounits.units_misc import LookUpDict
 
 
 import itertools
+import neurounits
+
 
 
 class Block(ASTObject):
@@ -126,6 +128,20 @@ class Library(Block):
 
 
 class NineMLComponent(Block):
+    
+    
+    
+    def run_sanity_checks(self):
+        from neurounits.ast_builder.builder_visitor_propogate_dimensions import VerifyUnitsInTree
+        
+        # Check all default regimes are on this graph:
+        for rt_graph in self.rt_graphs:
+            if rt_graph.default_regime:
+                assert rt_graph.default_regime in rt_graph.regimes
+        
+        VerifyUnitsInTree(self, unknown_ok=False)
+    
+    
 
     @classmethod
     def _build_ADD_ast(cls, nodes):
@@ -141,8 +157,6 @@ class NineMLComponent(Block):
     def close_analog_port(self, ap, ):
         from neurounits.ast_builder.builder_visitor_propogate_dimensions import PropogateDimensions
         from neurounits.visitors.common.ast_replace_node import ReplaceNode
-        #from neurounits.ast_builder.builder_visitor_propogate_dimensions import VerifyUnitsInTree
-        #new_node = None
         if len(ap.rhses) == 0:
             assert False, 'No input found for reduce port? (maybe this is OK!)'
 
@@ -159,7 +173,7 @@ class NineMLComponent(Block):
 
 
     def simulate(self, **kwargs):
-        from neurounits.ast.nineml import simulate_component
+        from neurounits.simulation.simulate_component import simulate_component
         return simulate_component( self, **kwargs)
 
     @classmethod
@@ -514,6 +528,105 @@ class NineMLComponent(Block):
         c = EqnsetVisitorNodeCollector()
         c.visit(self)
         return itertools.chain( *c.nodes.values() )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    def get_initial_regimes(self,  initial_regimes=None):
+        if initial_regimes is None:
+            initial_regimes = {}
+    
+        rt_graphs = self.rt_graphs
+    
+        # Sanity Check:
+        for rt_graph in rt_graphs:
+            if rt_graph.default_regime:
+                assert rt_graph.default_regime in rt_graph.regimes
+    
+        # Resolve initial regimes:
+        # ========================
+        # i. Initial, make initial regimes 'None', then lets try and work it out:
+        current_regimes = dict( [ (rt, None) for rt in rt_graphs] )
+    
+        # ii. Is there just a single regime?
+        for (rt_graph, regime) in current_regimes.items():
+            if len(rt_graph.regimes) == 1:
+                current_regimes[rt_graph] = rt_graph.regimes.get_single_obj_by()
+    
+        # iii. Do the transion graphs have a 'initial' block?
+        for rt_graph in rt_graphs:
+            if rt_graph.default_regime is not None:
+                current_regimes[rt_graph] = rt_graph.default_regime
+    
+    
+        # iv. Explicitly provided:
+        for (rt_name, regime_name) in initial_regimes.items():
+            rt_graph = rt_graphs.get_single_obj_by(name=rt_name)
+            assert current_regimes[rt_graph] is None, "Initial state for '%s' set twice " % rt_graph.name
+            current_regimes[rt_graph]  = rt_graph.get_regime( name=regime_name )
+    
+        # v. Check everything is hooked up OK:
+        for rt_graph, regime in current_regimes.items():
+            assert regime is not None, " Start regime for '%s' not set! " % (rt_graph.name)
+            assert regime in rt_graph.regimes, 'regime: %s [%s]' % (repr(regime), rt_graph.regimes  )
+    
+        return current_regimes
+    
+    
+    
+    def get_initial_state_values(self, initial_state_values):
+        from  neurounits import ast
+        # Resolve the inital values of the states:
+        
+        state_values = {}
+        # Check initial state_values defined in the 'initial {...}' block: :
+        for td in self.timederivatives:
+            sv = td.lhs
+            #print repr(sv), sv.initial_value
+            if sv.initial_value:
+                assert isinstance(sv.initial_value, ast.ConstValue)
+                state_values[sv.symbol] = sv.initial_value.value
+    
+        for (k,v) in initial_state_values.items():
+            assert not k in state_values, 'Double set intial values: %s' % k
+            assert k in [td.lhs.symbol for td in self.timederivatives]
+            state_values[k]= v
+    
+        return state_values
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
