@@ -1173,7 +1173,6 @@ class ParserMgr(object):
         tables_loc = EnsureExisits('/tmp/%s/nu/yacc/parse_eqn_block' % username)
         parser = yacc.yacc(debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1, errorlog=log_neurounits,  )
 
-        assert False
         return parser
 
     @classmethod
