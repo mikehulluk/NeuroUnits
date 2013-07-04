@@ -138,19 +138,19 @@ define_component simple_test {
     eK = -80mV
     gKf = 12.5 nS
 
-    AlphaBetaFunc(v, A,B,C,D,E) = (A+B*v) / (C + std.math.exp( (D+v)/E))
-    alpha_kf_n = AlphaBetaFunc(v=V, A=5.06ms-1, B=0.0666ms-1 mV-1, C=5.12, D=-18.396mV,E=-25.42mV)
-    beta_kf_n =  AlphaBetaFunc(v=V, A=0.505ms-1, B=0.0ms-1 mV-1, C=0.0, D=28.7mV, E=34.6mV)
-    inf_kf_n = alpha_kf_n / (alpha_kf_n + beta_kf_n)
-    tau_kf_n = 1.0 / (alpha_kf_n + beta_kf_n)
-    kf_n' = (inf_kf_n - kf_n) / tau_kf_n
-    iKf = gKf * (eK-V) * kf_n*kf_n * kf_n*kf_n
-    iKf2 = (t * {0ms-1}) * 0.0pA
+    #AlphaBetaFunc(v, A,B,C,D,E) = (A+B*v) / (C + std.math.exp( (D+v)/E))
+    #alpha_kf_n = AlphaBetaFunc(v=V, A=5.06ms-1, B=0.0666ms-1 mV-1, C=5.12, D=-18.396mV,E=-25.42mV)
+    #beta_kf_n =  AlphaBetaFunc(v=V, A=0.505ms-1, B=0.0ms-1 mV-1, C=0.0, D=28.7mV, E=34.6mV)
+    #inf_kf_n = alpha_kf_n / (alpha_kf_n + beta_kf_n)
+    #tau_kf_n = 1.0 / (alpha_kf_n + beta_kf_n)
+    #kf_n' = (inf_kf_n - kf_n) / tau_kf_n
+    #iKf = gKf * (eK-V) * kf_n*kf_n * kf_n*kf_n
+    #iKf2 = (t * {0ms-1}) * 0.0pA
 
     initial {
         V = -60mV
         #V2 = -60mV
-        kf_n = 1.0
+        #kf_n = 1.0
     }
 
 

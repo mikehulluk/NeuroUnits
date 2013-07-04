@@ -178,7 +178,7 @@ class NineMLComponent(Block):
 
     @classmethod
     def build_compound_component(cls, **kwargs):
-        from neurounits.ast.nineml import build_compound_component
+        from neurounits.ast_operations.merge_components import build_compound_component
         return build_compound_component(**kwargs)
 
 
