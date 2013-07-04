@@ -120,8 +120,7 @@ define_component simple_hh {
 define_component simple_test {
 
     <=> INPUT t:(ms)
-    #a = t + {3ms}
-    #b = a + {4Ms}
+
 
     iInj = ([50pA] if [t > 100ms] else [0pA])
     Cap = 10 pF
@@ -130,10 +129,10 @@ define_component simple_test {
 
     iLk = gLk * (eLk-V) + ({0 pA/ms} * t)
 
+    
+    
+    
     V' = (1/Cap) * (iInj + iLk )
-
-    #V2' = (1/Cap) * (iInj + iLk + iKf)
-    #V = -10mV
 
     eK = -80mV
     gKf = 12.5 nS
@@ -146,6 +145,14 @@ define_component simple_test {
     #kf_n' = (inf_kf_n - kf_n) / tau_kf_n
     #iKf = gKf * (eK-V) * kf_n*kf_n * kf_n*kf_n
     #iKf2 = (t * {0ms-1}) * 0.0pA
+    #V2' = (1/Cap) * (iInj + iLk + iKf)
+    #V = -10mV
+
+
+
+    
+    
+
 
     initial {
         V = -60mV
@@ -154,8 +161,23 @@ define_component simple_test {
     }
 
 
+    }
+    
+    
+define_component simple_exp {  
+    <=> INPUT t:(ms)  
+    a = [0] if [t<100ms] else [1.5]
+    A' = (a-A)/{20ms}
+
+    initial {
+        A = 0.0
+    }
+
 
 }
+
+
+
 
 """
 
@@ -223,14 +245,24 @@ var_annots_test = {
 
 
 
+var_annots_exp = {
+    't'    : VarAnnot(val_min="0ms", val_max = "1s"),
+    'A'          : VarAnnot(val_min="0", val_max = "1.75"),
+    'a'          : VarAnnot(val_min="0", val_max = "1.75"),
+}
 
 
 
 
 
 
+
+
+#component_name = 'simple_hh'
 component_name = 'simple_test'
 #component_name = 'simple_test'
+#component_name = 'simple_exp'
+
 
 library_manager = neurounits.NeuroUnitParser.Parse9MLFile( src_text)
 comp = library_manager[component_name]
@@ -241,6 +273,7 @@ comp.expand_all_function_calls()
 var_annots = {
               'simple_hh': var_annots_dIN,
               'simple_test': var_annots_test,
+              'simple_exp': var_annots_exp,
              }[component_name]
 
 
@@ -252,6 +285,8 @@ var_annots = {
 
 ## Check it works:
 simulate = True
+#simulate = False
+res = None
 if simulate:
     res = comp.simulate( times = np.arange(0, 0.2,0.00001) )
     res.auto_plot()
@@ -337,8 +372,9 @@ print 'Looking at mappings:'
 print '===================='
 
 
+nbits = 24
 annotations = ASTDataAnnotator( comp, annotations_in = var_annots)
-CalculateInternalStoragePerNode(annotations=annotations).visit(comp)
+CalculateInternalStoragePerNode(annotations=annotations, nbits=nbits).visit(comp)
 
 
 
@@ -357,7 +393,7 @@ print '===================='
 
 
 from neurounits.tools.fixed_point import CBasedEqnWriterFixed
-CBasedEqnWriterFixed(comp, output_filename='res_int.txt',  annotations=annotations )
+CBasedEqnWriterFixed(comp, output_filename='res_int.txt',  annotations=annotations, nbits=nbits )
 
 #data_int = np.loadtxt('res_int.txt')
 with open('res_int.txt') as f:
@@ -392,6 +428,34 @@ def plot_set(data, x, ys, plot_index, plot_total, figure):
     ax.legend()
 
 
+
+
+
+
+# 
+# t = np.linspace(0,0.3,num=3000)
+# correct = 1.5 * (1.-np.exp(-t/20e-3) )
+# 
+# pylab.plot(data_int['i']/10000., data_int['a'], 'x',label='fixed-a' )
+# pylab.plot(data_int['i']/10000., data_int['A'], 'x',label='fixed-A' )
+# 
+# pylab.plot(t+0.1,correct,'r-')
+# pylab.legend()
+# pylab.show()
+# assert False
+
+
+
+
+
+
+
+
+
+
+
+
+
 fig = pylab.figure()
 
 
@@ -408,19 +472,28 @@ plot_set(data_int, 'i', ['V','V2'],  5, 5, fig )
 
 
 
-for data_name in [ 'V' ,'V2', 'alpha_kf_n', 'beta_kf_n']:
 
+
+
+
+
+for data_name in [ 'V' ,'V2', 'alpha_kf_n', 'beta_kf_n', 'A','a']:
+    did_plot = False
     try:
         pylab.figure()
-        pylab.plot(res.get_time(), res.get_data(data_name),'-', label='ref-%s'%data_name )
+        if res:
+            pylab.plot(res.get_time(), res.get_data(data_name),'-', label='ref-%s'%data_name )
         pylab.plot(data_int['i']/10000., data_int[data_name], 'x',label='fixed-%s'%data_name )
         pylab.legend()
+        did_plot=True
     except KeyError, e:
         print e
     except ValueError, e:
         print e
     except AssertionError, e:
         print e
+    if not did_plot:
+        pylab.close()
 
 pylab.show()
 

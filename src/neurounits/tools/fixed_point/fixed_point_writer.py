@@ -16,21 +16,26 @@ c_prog = r"""
 #include <iomanip>
 
 
+#include <fenv.h>
 
+
+const int nbits = ${nbits};
+const int range_max = (1<<(nbits-1)) ;  
 
 
 // Save-data function
 
 double to_float(int val, int upscale)
 {
-    float res =  ( float(val) / (32768) ) * pow(2.0, upscale);
+    //double res =  ( double(val) * (1<<(upscale-bits+1) ) );
+    double res =  ( double(val) * pow(2.0, upscale) / double(range_max) );
     std::cout << "to_float(" << val << ", " << upscale << ") => " << res << "\n";
     return res; 
 }
 
 int from_float(double val, int upscale)
 {
-    int res =  int(val * 32768. / pow(2.0, upscale) ) ;
+    int res =  int(val * (double(range_max) / pow(2.0, upscale) ) ) ;
     std::cout << "from_float(" << val << ", " << upscale << ") => " << res << "\n";
     return res;
 }
@@ -90,6 +95,11 @@ std::ostream& header(std::ostream& o)
 int main()
 {
 
+    //feenableexcept(-1);
+    //feenableexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW | FE_INVALID);
+    
+    
+
     NrnData data;
     
     std::ofstream results_file("${output_filename}");
@@ -98,7 +108,7 @@ int main()
 
 
 
-    for(int i=0;i<2000;i++)
+    for(int i=0;i<3000;i++)
     {
         std::cout << "Loop: " << i << "\n";
         sim_step(data, i);
@@ -170,8 +180,6 @@ void sim_step(NrnData& d, int time_step)
     // Calculate delta's for all state-variables:
 % for eqn in eqns_timederivatives:
     d.d_${eqn.lhs} = from_float( to_float( ${eqn.rhs}, ${eqn.rhs_annotation.fixed_scaling_power}), ${eqn.lhs_annotation.fixed_scaling_power}) ;
-    //d.${eqn.lhs} += d.d_${eqn.lhs} * dt;
-    
     d.${eqn.lhs} += from_float( (to_float( d.d_${eqn.lhs}, ${eqn.lhs_annotation.fixed_scaling_power} )  * dt ),  ${eqn.lhs_annotation.fixed_scaling_power} );
 % endfor
 
@@ -316,7 +324,7 @@ class CBasedFixedWriter(ASTVisitorBase):
 
 
 class CBasedEqnWriterFixed(object):
-    def __init__(self, component, output_filename, annotations):
+    def __init__(self, component, output_filename, annotations, nbits):
         self.component = component
         self.float_type = 'int'
         self.annotations = annotations
@@ -342,6 +350,7 @@ class CBasedEqnWriterFixed(object):
                     output_filename = output_filename,
                     state_var_defs = self.state_var_defs,
                     assignment_defs = self.assignment_defs,
+                    nbits=nbits
                     )
 
         # Compile and run:
