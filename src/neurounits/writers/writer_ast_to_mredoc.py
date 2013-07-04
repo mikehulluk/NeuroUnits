@@ -27,7 +27,7 @@
 # -------------------------------------------------------------------------------
 
 from neurounits.visitors import ASTVisitorBase
-from mredoc import VerticalColTable, Figure, SectionNewPage, Section, EquationBlock, VerbatimBlock, Equation, Image, HierachyScope
+
 from neurounits.ast.astobjects import SuppliedValue
 from neurounits.ast.astobjects import Parameter, StateVariable
 from neurounits.ast import AnalogReducePort
@@ -38,7 +38,10 @@ import numpy as np
 
 from neurounits.ast import BuiltInFunction
 
-
+try:
+    from mredoc import VerticalColTable, Figure, SectionNewPage, Section, EquationBlock, VerbatimBlock, Equation, Image, HierachyScope
+except ImportError:
+    print "Problem importing mredoc - you won't be able to make summary documents"
 
 
 

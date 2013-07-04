@@ -31,7 +31,6 @@ from mhlibs.test_data.neuroml import NeuroMLDataLibrary
 from neurounits.importers.neuroml.errors import NeuroUnitsImportNeuroMLNotImplementedException
 from neurounits.importers.neuroml import ChannelMLReader
 
-from mredoc.objects.core import Document, TableOfContents, SectionNewPage, Section, VerbatimBlock
 
 from neurounits.writers.writer_ast_to_mredoc import MRedocWriterVisitor
 from neurounits.tools import nmodl
@@ -42,6 +41,7 @@ from os.path import join as Join
 
 
 def load_neuroml():
+	from mredoc.objects.core import Document, TableOfContents, SectionNewPage, Section, VerbatimBlock
 
     redocs = []
 

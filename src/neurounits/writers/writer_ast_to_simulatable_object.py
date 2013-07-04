@@ -39,7 +39,7 @@ from neurounits import ast
 from neurounits.units_backends.mh import MHUnitBackend
 import neurounits
 
-import mredoc
+
 from functools import partial
 import traceback
 from collections import defaultdict
@@ -121,6 +121,7 @@ class EqnSimulator(object):
 
 
     def build_redoc( self, time_data, traces=None, phase_plots=None, params={}, state0In={}, default_state0=None):
+        import mredoc
         res = self.__call__(time_data=time_data, params=params, default_state0=default_state0)
 
         # What traces do we plot:
@@ -142,6 +143,7 @@ class EqnSimulator(object):
                         phase_plots.append((r, s))
 
         def build_trace_plot(sym):
+
             import pylab
             f = pylab.figure()
             pylab.plot(res['t'], res[sym])

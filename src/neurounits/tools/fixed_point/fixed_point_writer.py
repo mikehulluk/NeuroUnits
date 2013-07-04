@@ -52,11 +52,11 @@ std::ostream& operator << (std::ostream& o, const NrnData& d)
 {
    
     % for a_def in assignment_defs:
-    o << to_float( d.${a_def.name}, ${a_def.annotation.fixed_scaling_power} )  << " "; 
+    o << to_float( d.${a_def.name}, ${a_def.annotation.fixed_scaling_power} )  << ","; 
     % endfor
         
     % for sv_def in state_var_defs:
-    o << to_float( d.${sv_def.name}, ${sv_def.annotation.fixed_scaling_power} )  << " "; 
+    o << to_float( d.${sv_def.name}, ${sv_def.annotation.fixed_scaling_power} )  << ","; 
     % endfor
     
     return o;
@@ -64,26 +64,25 @@ std::ostream& operator << (std::ostream& o, const NrnData& d)
 
 
 std::ostream& header(std::ostream& o)
-{
-
-    //o << std::setiosflags(std::ios::fixed)
-          //<< std::setprecision(3)
-    //      << std::setw(18)
-    //      << std::left;
-          
-    o << "# i ";
+{          
+    o << "i,";
     % for a_def in assignment_defs:
-    o << "${a_def.name}" << " "; 
+    o << "${a_def.name}" << ","; 
     % endfor
         
     % for sv_def in state_var_defs:
-    o << "${sv_def.name}" << " "; 
+    o << "${sv_def.name}" << ","; 
     % endfor
     
     o << "\n";
     
     return o;   
 }
+
+
+
+
+
 
 
 
@@ -99,14 +98,14 @@ int main()
 
 
 
-    for(int i=0;i<5000;i++)
+    for(int i=0;i<2000;i++)
     {
         std::cout << "Loop: " << i << "\n";
         sim_step(data, i);
 
         
         // Results:
-        results_file << i << " " << data << "\n";
+        results_file << i << "," << data << "\n";
     }
 
     results_file.close();
@@ -267,6 +266,14 @@ class CBasedFixedWriter(ASTVisitorBase):
         return "(to_float(%s, %d) < to_float(%s, %d) )" % ( self.visit(o.less_than), ann_lt.fixed_scaling_power,  self.visit(o.greater_than), ann_gt.fixed_scaling_power )
 
     def VisitFunctionDefInstantiation(self,o):
+        
+        assert o.function_def.is_builtin() and o.function_def.funcname == '__exp__'
+        param = o.parameters.values()[0]
+        param_term = self.visit(param.rhs_ast)
+        ann_func = self.annotations[o]
+        ann_param = self.annotations[param.rhs_ast]
+        return """ from_float( exp( to_float( %s, %d) ), %d )""" %(param_term, ann_param.fixed_scaling_power, ann_func.fixed_scaling_power ) 
+        
         assert False
         print o.parameters
         param_list = sorted(o.parameters.values(), key=lambda p:p.symbol)

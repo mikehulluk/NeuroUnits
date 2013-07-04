@@ -64,6 +64,11 @@ class MMUnit(object):
         self.candela = candela
         self.powerTen = powerTen
 
+    def __lt__(self, rhs):
+        return (self.meter, self.kilogram, self.second, self.ampere, self.kelvin, self.mole, self.candela, self.powerTen) < (rhs.meter, rhs.kilogram, rhs.second, rhs.ampere, rhs.kelvin, rhs.mole, rhs.candela, rhs.powerTen)
+
+
+
     def __mul__(self, rhs):
         assert isinstance(rhs, MMUnit)
 

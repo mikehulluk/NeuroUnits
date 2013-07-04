@@ -120,18 +120,40 @@ define_component simple_hh {
 define_component simple_test {
     
     <=> INPUT t:(ms)
-    a = t + {3ms}
-    b = a + {4Ms}
+    #a = t + {3ms}
+    #b = a + {4Ms}
     
-    iInj = ([50pA] if [t > 150ms] else [0pA])
+    iInj = ([50pA] if [t > 100ms] else [0pA])
     Cap = 10 pF 
     gLk = 1.25 nS 
     eLk = -50mV
 
-    iLk = gLk * (eLk-V)
+    iLk = gLk * (eLk-V) + ({0 pA/ms} * t)
     
-    V' = (1/Cap) * (iInj + iLk)
+    V' = (1/Cap) * (iInj + iLk )
     
+    #V2' = (1/Cap) * (iInj + iLk + iKf)
+    #V = -10mV
+    
+    eK = -80mV
+    gKf = 12.5 nS
+    
+    AlphaBetaFunc(v, A,B,C,D,E) = (A+B*v) / (C + std.math.exp( (D+v)/E))
+    alpha_kf_n = AlphaBetaFunc(v=V, A=5.06ms-1, B=0.0666ms-1 mV-1, C=5.12, D=-18.396mV,E=-25.42mV)
+    beta_kf_n =  AlphaBetaFunc(v=V, A=0.505ms-1, B=0.0ms-1 mV-1, C=0.0, D=28.7mV, E=34.6mV)
+    inf_kf_n = alpha_kf_n / (alpha_kf_n + beta_kf_n)
+    tau_kf_n = 1.0 / (alpha_kf_n + beta_kf_n)
+    kf_n' = (inf_kf_n - kf_n) / tau_kf_n
+    iKf = gKf * (eK-V) * kf_n*kf_n * kf_n*kf_n
+    iKf2 = (t * {0ms-1}) * 0.0pA
+
+    initial {
+        V = -60mV
+        #V2 = -60mV
+        kf_n = 1.0
+    }
+
+
 
 }
 
@@ -181,16 +203,25 @@ var_annots_dIN = {
 
 var_annots_test = {
     't'    : VarAnnot(val_min="0ms", val_max = "1s"),
-    'a'    : VarAnnot(val_min=None, val_max = None),
-    'b'    : VarAnnot(val_min=None, val_max = None),
+    #'a'    : VarAnnot(val_min=None, val_max = None),
+    #'b'    : VarAnnot(val_min=None, val_max = None),
 
     'iInj' : VarAnnot(val_min=None, val_max = None),
     'iLk'  : VarAnnot(val_min=None, val_max = None),
     'V'    : VarAnnot(val_min="-100mV", val_max = "60mV"),
-        
+    #'V2'    : VarAnnot(val_min="-100mV", val_max = "60mV"),
+    
+    'alpha_kf_n'   : VarAnnot(val_min=None, val_max = None),
+    'beta_kf_n'    : VarAnnot(val_min=None, val_max = None),
+    'inf_kf_n'     : VarAnnot(val_min="0.0", val_max = "1.0"),
+    'tau_kf_n'     : VarAnnot(val_min="0.0ms", val_max = "10ms"),
+    'iKf'          : VarAnnot(val_min=None, val_max = None),
+    'iKf2'          : VarAnnot(val_min=None, val_max = None),
+    'kf_n'          : VarAnnot(val_min="0", val_max = "1"),
 }
 
 
+ 
 
 
 
@@ -198,15 +229,8 @@ var_annots_test = {
 
 
 
-
-
-
-
-
-
-
-#component_name = 'simple_hh'
 component_name = 'simple_test'
+#component_name = 'simple_test'
 
 library_manager = neurounits.NeuroUnitParser.Parse9MLFile( src_text)
 comp = library_manager[component_name]
@@ -227,11 +251,11 @@ var_annots = {
 
 
 ## Check it works:
-simulate = False
+simulate = True
 if simulate:
-    res = comp.simulate( times = np.arange(0, 0.1,0.00001) )
+    res = comp.simulate( times = np.arange(0, 0.2,0.00001) )
     res.auto_plot()
-    pylab.show()
+    #pylab.show()
 
 
 
@@ -322,6 +346,8 @@ CalculateInternalStoragePerNode(annotations=annotations).visit(comp)
 
 
 
+import os
+import time
 
 
 print
@@ -333,17 +359,68 @@ print '===================='
 from neurounits.tools.fixed_point import CBasedEqnWriterFixed
 CBasedEqnWriterFixed(comp, output_filename='res_int.txt',  annotations=annotations )
 
-data_int = np.loadtxt('res_int.txt')
-pylab.plot(data_int[:,0], data_int[:,1], label='int' )
+#data_int = np.loadtxt('res_int.txt')
+with open('res_int.txt') as f:
+    d = f.read()
+os.unlink('res_int.txt')
+with open('res_int.txt', 'w') as f:
+    f.write( d.replace(",\n","\n") )
+    
 
-pylab.figure()
-pylab.plot(data_int[:,0], data_int[:,3], label='int-iinj' )
-pylab.plot(data_int[:,0], data_int[:,4], label='int-iLk' )
-pylab.legend()
+import numpy as np
+data_int = np.genfromtxt('res_int.txt', names=True, delimiter=',', dtype=float)
 
-pylab.figure()
-pylab.plot(data_int[:,0], data_int[:,5], label='int-V' )
-pylab.legend()
+
+print data_int
+print type(data_int)
+print data_int.shape
+
+
+
+
+def plot_set(data, x, ys, plot_index, plot_total, figure):
+    
+    ax = figure.add_subplot(plot_total, 1, plot_index, )
+    for y in ys:
+        try:
+            ax.plot(data_int[x], data_int[y], label=y )
+        except KeyError, e:
+            print e
+        except ValueError, e:
+            print e
+            
+    ax.legend()
+    
+    
+fig = pylab.figure()
+
+
+
+plot_set(data_int, 'i', ['alpha_kf_n', 'beta_kf_n'], 1, 5, fig)
+
+plot_set(data_int, 'i', ['kf_n', 'inf_kf_n'],  2, 5, fig)
+plot_set(data_int, 'i', ['iInj','iLk','iKf'], 3, 5, fig)
+
+plot_set(data_int, 'i', ['tau_kf_n'],  4, 5, fig)
+plot_set(data_int, 'i', ['V','V2'],  5, 5, fig )
+
+
+
+
+
+for data_name in [ 'V' ] : #,'V2', 'alpha_kf_n', 'beta_kf_n']:
+
+    try:
+        pylab.figure()
+        pylab.plot(res.get_time(), res.get_data(data_name),'-', label='ref-%s'%data_name )
+        pylab.plot(data_int['i']/10000., data_int[data_name], 'x',label='fixed-%s'%data_name )
+        pylab.legend()
+    except KeyError, e:
+        print e
+    except ValueError, e:
+        print e
+    except AssertionError, e:
+        print e
 
 pylab.show()
 

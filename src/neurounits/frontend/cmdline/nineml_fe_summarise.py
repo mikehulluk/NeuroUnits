@@ -1,5 +1,5 @@
 
-import mredoc
+
 import os
 
 
@@ -7,6 +7,7 @@ import os
 
 
 def cmdline_summarise(args):
+	import mredoc
     print 'Summarise'
 
     
