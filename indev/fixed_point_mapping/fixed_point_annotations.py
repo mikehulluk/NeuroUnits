@@ -314,11 +314,11 @@ class CalculateInternalStoragePerNode(ASTActionerDepthFirst):
         self.nbits = nbits
 
     def encode_value(self, value, upscaling_pow):
-        print
+        #print
         print 'Encoding', value, "using upscaling power:", upscaling_pow
-        value_scaled = value * ( 2**(-upscaling_pow) )
+        value_scaled = value * ( 2**(-upscaling_pow))
         print ' --Value Scaled:', value_scaled
-        res = int( value_scaled * (2**(self.nbits-1) -1 ) )
+        res = int( round( value_scaled * (2**(self.nbits-1) ) ) )
         print ' --Value int:', res
         return res
 
@@ -335,9 +335,10 @@ class CalculateInternalStoragePerNode(ASTActionerDepthFirst):
         # Lets go symmetrical, about 0:
         vmin = ann.val_min.float_in_si()
         vmax = ann.val_max.float_in_si()
-        ext = max( [np.abs(vmin),np.abs(vmax) ] )
+        ext = max( [np.abs(vmin),np.abs(vmax) ] )   
         if ext != 0.0:
-            upscaling_pow = int( np.ceil( np.log2(ext) ) )
+            #Include some padding:
+            upscaling_pow = int( np.ceil( np.log2(ext ) ) )
         else:
             upscaling_pow = 0
 

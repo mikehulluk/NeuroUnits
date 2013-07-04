@@ -137,17 +137,14 @@ define_component simple_test {
     eK = -80mV
     gKf = 12.5 nS
 
-    #AlphaBetaFunc(v, A,B,C,D,E) = (A+B*v) / (C + std.math.exp( (D+v)/E))
-    #alpha_kf_n = AlphaBetaFunc(v=V, A=5.06ms-1, B=0.0666ms-1 mV-1, C=5.12, D=-18.396mV,E=-25.42mV)
-    #beta_kf_n =  AlphaBetaFunc(v=V, A=0.505ms-1, B=0.0ms-1 mV-1, C=0.0, D=28.7mV, E=34.6mV)
-    #inf_kf_n = alpha_kf_n / (alpha_kf_n + beta_kf_n)
-    #tau_kf_n = 1.0 / (alpha_kf_n + beta_kf_n)
-    #kf_n' = (inf_kf_n - kf_n) / tau_kf_n
-    #iKf = gKf * (eK-V) * kf_n*kf_n * kf_n*kf_n
-    #iKf2 = (t * {0ms-1}) * 0.0pA
-    #V2' = (1/Cap) * (iInj + iLk + iKf)
-    #V = -10mV
-
+    AlphaBetaFunc(v, A,B,C,D,E) = (A+B*v) / (C + std.math.exp( (D+v)/E))
+    alpha_kf_n = AlphaBetaFunc(v=V, A=5.06ms-1, B=0.0666ms-1 mV-1, C=5.12, D=-18.396mV,E=-25.42mV)
+    beta_kf_n =  AlphaBetaFunc(v=V, A=0.505ms-1, B=0.0ms-1 mV-1, C=0.0, D=28.7mV, E=34.6mV)
+    inf_kf_n = alpha_kf_n / (alpha_kf_n + beta_kf_n)
+    tau_kf_n = 1.0 / (alpha_kf_n + beta_kf_n)
+    kf_n' = (inf_kf_n - kf_n) / tau_kf_n
+    iKf = gKf * (eK-V) * kf_n*kf_n * kf_n*kf_n
+    
 
 
     
@@ -157,7 +154,7 @@ define_component simple_test {
     initial {
         V = -60mV
         #V2 = -60mV
-        #kf_n = 1.0
+        kf_n = 1.0
     }
 
 
@@ -184,7 +181,7 @@ define_component simple_exp {
 
 
 var_annots_dIN = {
-    't'             : VarAnnot(val_min="0ms", val_max = "1s"),
+    't'             : VarAnnot(val_min="0ms", val_max = "1.1s"),
     'alpha_ca_m'    : VarAnnot(val_min=None, val_max = None),
     'alpha_kf_n'    : VarAnnot(val_min=None, val_max = None),
     'alpha_ks_n'    : VarAnnot(val_min=None, val_max = None),
@@ -284,11 +281,11 @@ var_annots = {
 
 
 ## Check it works:
-simulate = True
 #simulate = False
+simulate = True
 res = None
 if simulate:
-    res = comp.simulate( times = np.arange(0, 0.2,0.00001) )
+    res = comp.simulate( times = np.arange(0, 0.2,0.0001) )
     res.auto_plot()
     #pylab.show()
 
@@ -477,7 +474,7 @@ plot_set(data_int, 'i', ['V','V2'],  5, 5, fig )
 
 
 
-for data_name in [ 'V' ,'V2', 'alpha_kf_n', 'beta_kf_n', 'A','a']:
+for data_name in [ 'V' ,'V2', 'alpha_kf_n', 'beta_kf_n', 'A','a', 'iInj','iLk','iKf','kf_n', 'inf_kf_n', 'tau_kf_n'  ]:
     did_plot = False
     try:
         pylab.figure()

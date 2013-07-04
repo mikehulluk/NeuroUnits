@@ -96,7 +96,7 @@ int main()
 {
 
     //feenableexcept(-1);
-    //feenableexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW | FE_INVALID);
+    feenableexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW | FE_INVALID);
     
     
 
@@ -115,6 +115,7 @@ int main()
 
         
         // Results:
+        //if( i%10==0)
         results_file << i << "," << data << "\n";
     }
 
@@ -174,7 +175,8 @@ void sim_step(NrnData& d, int time_step)
 
     // Calculate assignments:
 % for eqn in eqns_assignments:
-    d.${eqn.lhs} = ${eqn.rhs};
+    d.${eqn.lhs} = from_float( to_float( ${eqn.rhs},  ${eqn.rhs_annotation.fixed_scaling_power}), ${eqn.lhs_annotation.fixed_scaling_power}) ;
+    //d.${eqn.lhs} =  ${eqn.rhs};
 % endfor
 
     // Calculate delta's for all state-variables:
@@ -259,11 +261,24 @@ class CBasedFixedWriter(ASTVisitorBase):
 
 
     def VisitIfThenElse(self, o):
-        return "( (%s) ? (%s) : (%s) )" % (
+        #return "( (%s) ? (%s) : (%s) )" % (
+        #            self.visit(o.predicate),
+        #            self.visit(o.if_true_ast),
+        #            self.visit(o.if_false_ast),
+        #        )
+       
+        return "from_float( (%s) ? to_float(%s, %d) : to_float(%s, %d), %d )" % (
                     self.visit(o.predicate),
                     self.visit(o.if_true_ast),
+                    self.annotations[o.if_true_ast].fixed_scaling_power,
                     self.visit(o.if_false_ast),
-                )
+                    self.annotations[o.if_false_ast].fixed_scaling_power,
+                    self.annotations[o].fixed_scaling_power,
+                ) 
+        
+        
+        
+        
 
     def VisitInEquality(self, o):
         
@@ -362,7 +377,7 @@ class CBasedEqnWriterFixed(object):
             f.write(cfile)
         print 
         print 'Compiling & Running:'
-        os.system("g++ -g sim1.cpp -lgmpxx -lgmp && ./a.out > /dev/null")
+        os.system("g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror && ./a.out > /dev/null")
 
 
 
