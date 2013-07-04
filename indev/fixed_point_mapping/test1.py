@@ -118,26 +118,26 @@ define_component simple_hh {
 
 
 define_component simple_test {
-    
+
     <=> INPUT t:(ms)
     #a = t + {3ms}
     #b = a + {4Ms}
-    
+
     iInj = ([50pA] if [t > 100ms] else [0pA])
-    Cap = 10 pF 
-    gLk = 1.25 nS 
+    Cap = 10 pF
+    gLk = 1.25 nS
     eLk = -50mV
 
     iLk = gLk * (eLk-V) + ({0 pA/ms} * t)
-    
+
     V' = (1/Cap) * (iInj + iLk )
-    
+
     #V2' = (1/Cap) * (iInj + iLk + iKf)
     #V = -10mV
-    
+
     eK = -80mV
     gKf = 12.5 nS
-    
+
     AlphaBetaFunc(v, A,B,C,D,E) = (A+B*v) / (C + std.math.exp( (D+v)/E))
     alpha_kf_n = AlphaBetaFunc(v=V, A=5.06ms-1, B=0.0666ms-1 mV-1, C=5.12, D=-18.396mV,E=-25.42mV)
     beta_kf_n =  AlphaBetaFunc(v=V, A=0.505ms-1, B=0.0ms-1 mV-1, C=0.0, D=28.7mV, E=34.6mV)
@@ -210,7 +210,7 @@ var_annots_test = {
     'iLk'  : VarAnnot(val_min=None, val_max = None),
     'V'    : VarAnnot(val_min="-100mV", val_max = "60mV"),
     #'V2'    : VarAnnot(val_min="-100mV", val_max = "60mV"),
-    
+
     'alpha_kf_n'   : VarAnnot(val_min=None, val_max = None),
     'beta_kf_n'    : VarAnnot(val_min=None, val_max = None),
     'inf_kf_n'     : VarAnnot(val_min="0.0", val_max = "1.0"),
@@ -221,7 +221,7 @@ var_annots_test = {
 }
 
 
- 
+
 
 
 
@@ -275,7 +275,7 @@ if simulate:
 
 
 #import os
-#from neurounits.visitors.bases.base_visitor import ASTVisitorBase 
+#from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 
 
 
@@ -293,13 +293,13 @@ if test_c:
     CBasedEqnWriter(comp, float_type='float',  output_filename='res_float.txt',  annotations=[] )
     CBasedEqnWriter(comp, float_type='double', output_filename='res_double.txt',  annotations=[] )
     CBasedEqnWriter(comp, float_type='mpf_class', output_filename='res_gmp.txt',  annotations=[] )
-    
-    
-    
+
+
+
     data_float = np.loadtxt('res_gmp.txt')
     data_double = np.loadtxt('res_double.txt')
     data_gmp = np.loadtxt('res_gmp.txt')
-    
+
     pylab.plot(data_float[:,0], data_float[:,1], label='float' )
     pylab.plot(data_double[:,0], data_double[:,1], label='double' )
     pylab.plot(data_gmp[:,0], data_gmp[:,1], label='gmp' )
@@ -365,7 +365,7 @@ with open('res_int.txt') as f:
 os.unlink('res_int.txt')
 with open('res_int.txt', 'w') as f:
     f.write( d.replace(",\n","\n") )
-    
+
 
 import numpy as np
 data_int = np.genfromtxt('res_int.txt', names=True, delimiter=',', dtype=float)
@@ -379,7 +379,7 @@ print data_int.shape
 
 
 def plot_set(data, x, ys, plot_index, plot_total, figure):
-    
+
     ax = figure.add_subplot(plot_total, 1, plot_index, )
     for y in ys:
         try:
@@ -388,10 +388,10 @@ def plot_set(data, x, ys, plot_index, plot_total, figure):
             print e
         except ValueError, e:
             print e
-            
+
     ax.legend()
-    
-    
+
+
 fig = pylab.figure()
 
 
