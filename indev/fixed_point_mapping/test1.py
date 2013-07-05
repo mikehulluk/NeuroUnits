@@ -35,7 +35,7 @@ define_component simple_hh {
 
     iLk = gLk * (eLk-V) * glk_noise
     #V' = (1/Cap) * (iInj + iLk + iKs + iKf + iNa + iCa)
-    V' = (1/Cap) * (iInj + iLk + iKs + iKf + iNa)
+    V' = (1/Cap) * (iInj + iLk + iKs + iKf ) #+ iNa)
 
 
     glk_noise = 1.1
@@ -68,27 +68,27 @@ define_component simple_hh {
     # Sodium (Kf):
     alpha_na_m = AlphaBetaFunc(v=V, A=8.67ms-1, B=0.0ms-1 mV-1, C=1.0, D=-1.01mV,E=-12.56mV)
     beta_na_m =  AlphaBetaFunc(v=V, A=3.82ms-1, B=0.0ms-1 mV-1, C=1.0, D=9.01mV, E=9.69mV)
-    inf_na_m = alpha_na_m / (alpha_na_m + beta_na_m)
-    tau_na_m = 1.0 / (alpha_na_m + beta_na_m)
-    na_m' = (inf_na_m - na_m) / tau_na_m
+    #inf_na_m = alpha_na_m / (alpha_na_m + beta_na_m)
+    #tau_na_m = 1.0 / (alpha_na_m + beta_na_m)
+    #na_m' = (inf_na_m - na_m) / tau_na_m
 
-    alpha_na_h = AlphaBetaFunc(v=V, A=0.08ms-1, B=0.0ms-1 mV-1, C=0.0, D=38.88mV,E=26.0mV)
-    beta_na_h =  AlphaBetaFunc(v=V, A=4.08ms-1, B=0.0ms-1 mV-1, C=1.0, D=-5.09mV, E=-10.21mV)
-    inf_na_h = alpha_na_h / (alpha_na_h + beta_na_h)
-    tau_na_h = 1.0 / (alpha_na_h + beta_na_h)
-    na_h' = (inf_na_h - na_h) / tau_na_h
+    #alpha_na_h = AlphaBetaFunc(v=V, A=0.08ms-1, B=0.0ms-1 mV-1, C=0.0, D=38.88mV,E=26.0mV)
+    #beta_na_h =  AlphaBetaFunc(v=V, A=4.08ms-1, B=0.0ms-1 mV-1, C=1.0, D=-5.09mV, E=-10.21mV)
+    #inf_na_h = alpha_na_h / (alpha_na_h + beta_na_h)
+    #tau_na_h = 1.0 / (alpha_na_h + beta_na_h)
+    #na_h' = (inf_na_h - na_h) / tau_na_h
 
-    iNa = gNa * (eNa-V) * na_m * na_m * na_m * na_h
+    #iNa = gNa * (eNa-V) * na_m * na_m * na_m * na_h
 
 
     # Calcium:
-    alpha_ca_m = AlphaBetaFunc(v=V, A=4.05ms-1, B=0.0ms-1 mV-1, C=1.0, D=-15.32mV,E=-13.57mV)
-    beta_ca_m_1 =  AlphaBetaFunc(v=V, A=1.24ms-1, B=0.093ms-1 mV-1, C=-1.0, D=10.63mV, E=1.0mV)
-    beta_ca_m_2 =  AlphaBetaFunc(v=V, A=1.28ms-1, B=0.0ms-1 mV-1, C=1.0, D=5.39mV, E=12.11mV)
-    beta_ca_m =  [beta_ca_m_1] if [ V<-25mV] else [beta_ca_m_2]
-    inf_ca_m = alpha_ca_m / (alpha_ca_m + beta_ca_m)
-    tau_ca_m = 1.0 / (alpha_ca_m + beta_ca_m)
-    ca_m' = (inf_ca_m - ca_m) / tau_ca_m
+    #alpha_ca_m = AlphaBetaFunc(v=V, A=4.05ms-1, B=0.0ms-1 mV-1, C=1.0, D=-15.32mV,E=-13.57mV)
+    #beta_ca_m_1 =  AlphaBetaFunc(v=V, A=1.24ms-1, B=0.093ms-1 mV-1, C=-1.0, D=10.63mV, E=1.0mV)
+    #beta_ca_m_2 =  AlphaBetaFunc(v=V, A=1.28ms-1, B=0.0ms-1 mV-1, C=1.0, D=5.39mV, E=12.11mV)
+    #beta_ca_m =  [beta_ca_m_1] if [ V<-25mV] else [beta_ca_m_2]
+    #inf_ca_m = alpha_ca_m / (alpha_ca_m + beta_ca_m)
+    #tau_ca_m = 1.0 / (alpha_ca_m + beta_ca_m)
+    #ca_m' = (inf_ca_m - ca_m) / tau_ca_m
 
     pca = {0.16 (m m m)/s} * 1e-6
     F = 96485 C / mol
@@ -107,11 +107,11 @@ define_component simple_hh {
 
     initial {
         V = -60mV
-        na_m = 1.0
-        ca_m = 1.0
-        na_h = 1.0
-        ks_n = 1.0
-        kf_n = 1.0
+        #na_m = 0.0
+        #ca_m = 0.0
+        #na_h = 1.0
+        ks_n = 0.0
+        kf_n = 0.0
     }
 
 }
@@ -132,7 +132,7 @@ define_component simple_test {
     
     
     
-    V' = (1/Cap) * (iInj + iLk )
+    V' = (1/Cap) * (iInj + iLk +iKf)
 
     eK = -80mV
     gKf = 12.5 nS
@@ -243,7 +243,7 @@ var_annots_test = {
 
 
 var_annots_exp = {
-    't'    : VarAnnot(val_min="0ms", val_max = "1s"),
+    't'    : VarAnnot(val_min="0ms", val_max = "1.1s"),
     'A'          : VarAnnot(val_min="0", val_max = "1.75"),
     'a'          : VarAnnot(val_min="0", val_max = "1.75"),
 }
@@ -255,8 +255,8 @@ var_annots_exp = {
 
 
 
-#component_name = 'simple_hh'
-component_name = 'simple_test'
+component_name = 'simple_hh'
+#component_name = 'simple_test'
 #component_name = 'simple_test'
 #component_name = 'simple_exp'
 
@@ -276,18 +276,6 @@ var_annots = {
 
 
 
-
-
-
-
-## Check it works:
-#simulate = False
-simulate = True
-res = None
-if simulate:
-    res = comp.simulate( times = np.arange(0, 0.2,0.0001) )
-    res.auto_plot()
-    #pylab.show()
 
 
 
@@ -426,6 +414,18 @@ def plot_set(data, x, ys, plot_index, plot_total, figure):
 
 
 
+## Check it works:
+simulate = True
+#simulate = False
+res = None
+if simulate:
+    res = comp.simulate( times = np.arange(0, 0.2,0.0001) )
+    res.auto_plot()
+    #pylab.show()
+
+
+
+
 
 
 
@@ -474,13 +474,14 @@ plot_set(data_int, 'i', ['V','V2'],  5, 5, fig )
 
 
 
-for data_name in [ 'V' ,'V2', 'alpha_kf_n', 'beta_kf_n', 'A','a', 'iInj','iLk','iKf','kf_n', 'inf_kf_n', 'tau_kf_n'  ]:
+for data_name in [ 'V' ,'V2', 'alpha_kf_n', 'beta_kf_n', 'A','a', 'iInj','iLk','iKf','kf_n', 'inf_kf_n', 'tau_kf_n' 'alpha_na_m', 'beta_na_m', 'alpha_na_h', 'beta_na_h', ]:
     did_plot = False
     try:
         pylab.figure()
         if res:
-            pylab.plot(res.get_time(), res.get_data(data_name),'-', label='ref-%s'%data_name )
-        pylab.plot(data_int['i']/10000., data_int[data_name], 'x',label='fixed-%s'%data_name )
+            pylab.plot(res.get_time(), res.get_data(data_name),'r-',  alpha=0.4, lw=10 )
+            pylab.plot(res.get_time(), res.get_data(data_name),'r-', label='ref-%s'%data_name, )
+        pylab.plot(data_int['i']/10000., data_int[data_name], 'bx',label='fixed-%s'%data_name )
         pylab.legend()
         did_plot=True
     except KeyError, e:

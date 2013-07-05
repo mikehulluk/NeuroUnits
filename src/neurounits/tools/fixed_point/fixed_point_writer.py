@@ -33,12 +33,14 @@ double to_float(int val, int upscale)
     return res; 
 }
 
-int from_float(double val, int upscale)
+int from_float(double val, int upscale, int whoami=0)
 {
     int res =  int(val * (double(range_max) / pow(2.0, upscale) ) ) ;
     std::cout << "from_float(" << val << ", " << upscale << ") => " << res << "\n";
     return res;
 }
+
+
 
 
 
@@ -169,7 +171,7 @@ void sim_step(NrnData& d, int time_step)
 {
     const double dt = 0.1e-3;
     //const double t = time_step * dt;
-    const int t = from_float(time_step * dt, 0);
+    const int t = from_float(time_step * dt, 1);
 
     std::cout << "t: " << t << "\n";
 
@@ -181,8 +183,9 @@ void sim_step(NrnData& d, int time_step)
 
     // Calculate delta's for all state-variables:
 % for eqn in eqns_timederivatives:
-    d.d_${eqn.lhs} = from_float( to_float( ${eqn.rhs}, ${eqn.rhs_annotation.fixed_scaling_power}), ${eqn.lhs_annotation.fixed_scaling_power}) ;
-    d.${eqn.lhs} += from_float( (to_float( d.d_${eqn.lhs}, ${eqn.lhs_annotation.fixed_scaling_power} )  * dt ),  ${eqn.lhs_annotation.fixed_scaling_power} );
+    //d.d_${eqn.lhs} = from_float( to_float( ${eqn.rhs}, ${eqn.rhs_annotation.fixed_scaling_power}), ${eqn.lhs_annotation.fixed_scaling_power}, 2) ;
+    float d_${eqn.lhs} = to_float( ${eqn.rhs}, ${eqn.rhs_annotation.fixed_scaling_power});
+    d.${eqn.lhs} += from_float( ( d_${eqn.lhs} * dt ),  ${eqn.lhs_annotation.fixed_scaling_power} );
 % endfor
 
 }
@@ -297,18 +300,18 @@ class CBasedFixedWriter(ASTVisitorBase):
         ann_param = self.annotations[param.rhs_ast]
         return """ from_float( exp( to_float( %s, %d) ), %d )""" %(param_term, ann_param.fixed_scaling_power, ann_func.fixed_scaling_power ) 
         
-        assert False
-        print o.parameters
-        param_list = sorted(o.parameters.values(), key=lambda p:p.symbol)
-        assert o.function_def.is_builtin()
-        func_name = {
-            '__exp__': 'exp'
-            }[o.function_def.funcname]
-
-        return "%s(%s)" % (
-                func_name,
-                ",".join([self.visit(p.rhs_ast) for p in param_list])
-                )
+#         assert False
+#         print o.parameters
+#         param_list = sorted(o.parameters.values(), key=lambda p:p.symbol)
+#         assert o.function_def.is_builtin()
+#         func_name = {
+#             '__exp__': 'exp'
+#             }[o.function_def.funcname]
+# 
+#         return "%s(%s)" % (
+#                 func_name,
+#                 ",".join([self.visit(p.rhs_ast) for p in param_list])
+#                 )
     def VisitFunctionDefInstantiationParater(self, o):
         assert False
         return o.symbol
@@ -340,6 +343,20 @@ class CBasedFixedWriter(ASTVisitorBase):
 
 class CBasedEqnWriterFixed(object):
     def __init__(self, component, output_filename, annotations, nbits):
+        
+        print
+        print 'Time derivatives:'
+        for td in component.timederivatives:
+            print 'Time Derivative:', repr(td)
+            ann_lhs = annotations[td.lhs]
+            ann_rhs = annotations[td.rhs_map]
+            print '  Ann-LHS:', ann_lhs
+            print '  Ann-RHS:', ann_rhs
+        
+        print
+        #assert False
+        
+        
         self.component = component
         self.float_type = 'int'
         self.annotations = annotations

@@ -27,7 +27,8 @@ class VarAnnot(object):
 
 
     def __str__(self):
-        return "Bounds( min:{%s} max:{%s} )" % (self.val_min, self.val_max)
+        sc = str(self.fixed_scaling_power) if self.fixed_scaling_power is not None else "??"
+        return "VarAnnot( fixed_scaling_power:%s,  min:{%s} max:{%s},   )" % (sc, self.val_min, self.val_max)
 
 
 
