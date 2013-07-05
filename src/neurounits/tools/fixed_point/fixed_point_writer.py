@@ -14,7 +14,7 @@ c_prog = r"""
 #include <math.h>
 #include <gmpxx.h>
 #include <iomanip>
-
+#include <sstream>
 
 #include <fenv.h>
 
@@ -29,16 +29,67 @@ double to_float(int val, int upscale)
 {
     //double res =  ( double(val) * (1<<(upscale-bits+1) ) );
     double res =  ( double(val) * pow(2.0, upscale) / double(range_max) );
-    std::cout << "to_float(" << val << ", " << upscale << ") => " << res << "\n";
+    //std::cout << "to_float(" << val << ", " << upscale << ") => " << res << "\n";
     return res; 
 }
 
 int from_float(double val, int upscale, int whoami=0)
 {
     int res =  int(val * (double(range_max) / pow(2.0, upscale) ) ) ;
-    std::cout << "from_float(" << val << ", " << upscale << ") => " << res << "\n";
+    //std::cout << "from_float(" << val << ", " << upscale << ") => " << res << "\n";
     return res;
 }
+
+
+
+
+
+FILE* fdebug;
+
+
+void  dump_op_info(int op, int input1, int input2, int output)
+{
+    std::stringstream os;
+    os << "OP{" << op <<"}: " << input1 << " " << input2 << " => " << output << "\n";
+    fprintf(fdebug, "%s", os.str().c_str() );
+    
+
+} 
+
+
+
+
+int do_add_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
+{
+    int res = from_float(to_float(v1,up1) + to_float(v2,up2), up_local);
+    // Store info:   
+    dump_op_info(expr_id, v1, v2, res); 
+    return res;    
+} 
+
+int do_sub_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
+{
+    int res = from_float(to_float(v1,up1) - to_float(v2,up2), up_local);
+    // Store info:  
+    dump_op_info(expr_id, v1, v2, res);   
+    return res;    
+} 
+
+int do_mul_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
+{
+    int res = from_float(to_float(v1,up1) * to_float(v2,up2), up_local);
+    // Store info:    
+    dump_op_info(expr_id, v1, v2, res); 
+    return res;    
+} 
+
+int do_div_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
+{
+    int res = from_float(to_float(v1,up1) / to_float(v2,up2), up_local);
+    // Store info:    
+    dump_op_info(expr_id, v1, v2, res); 
+    return res;    
+} 
 
 
 
@@ -68,6 +119,38 @@ std::ostream& operator << (std::ostream& o, const NrnData& d)
     
     return o;
 }
+
+
+
+void write_float(std::ostream& o, const NrnData& d)
+{
+   
+    % for a_def in assignment_defs:
+    o << to_float( d.${a_def.name}, ${a_def.annotation.fixed_scaling_power} )  << ","; 
+    % endfor
+        
+    % for sv_def in state_var_defs:
+    o << to_float( d.${sv_def.name}, ${sv_def.annotation.fixed_scaling_power} )  << ","; 
+    % endfor
+}
+
+
+void write_int(std::ostream& o, const NrnData& d)
+{
+   
+    % for a_def in assignment_defs:
+    o << d.${a_def.name}  << ","; 
+    % endfor
+        
+    % for sv_def in state_var_defs:
+    o << d.${sv_def.name}  << ","; 
+    % endfor
+}
+
+
+
+
+
 
 
 std::ostream& header(std::ostream& o)
@@ -111,10 +194,12 @@ int main()
     
     
 
-
+    fdebug = fopen("debug.log","w");
     
-    std::ofstream results_file("${output_filename}");
-    header(results_file);
+    std::ofstream results_file_float("${output_filename}");
+    std::ofstream results_file_int("${output_filename}_int");
+    header(results_file_float);
+    header(results_file_int);
 
     NrnData data;
     initialise_statevars(data);
@@ -129,10 +214,22 @@ int main()
         
         // Results:
         //if( i%10==0)
-        results_file << i << "," << data << "\n";
+
+        results_file_int << i << ",";
+        write_int( results_file_int, data); 
+        results_file_int << "\n";
+
+        
+        results_file_float << i << ",";
+        write_float( results_file_float, data); 
+        results_file_float << "\n";
+        
     }
 
-    results_file.close();
+    results_file_float.close();
+    results_file_int.close();
+    fclose(fdebug);
+    
 
     printf("Simulation Complete\n");
 }
@@ -230,10 +327,22 @@ class Eqn(object):
 
 
 
+
+
+
+
+
+
+
 class CBasedFixedWriter(ASTVisitorBase):
     
-    def __init__(self, annotations):
+    def __init__(self, annotations, component, node_int_labels):
         self.annotations = annotations
+        
+       
+        self.intlabels = node_int_labels 
+        
+        
         super(CBasedFixedWriter, self).__init__()
         
     def to_c(self, obj):
@@ -255,32 +364,43 @@ class CBasedFixedWriter(ASTVisitorBase):
             return "((%s) << %d )" % (src, shift)
 
 
-    def DoOpSimple(self, o, symbol):
-        print 'Creating AddSubOp', symbol
-        ann_lhs = self.annotations[o.lhs]
-        ann_rhs = self.annotations[o.rhs]
-        ann = self.annotations[o]
-        return " from_float(to_float(%s, %d) %s to_float(%s, %d), %s) " % (self.visit(o.lhs), ann_lhs.fixed_scaling_power, symbol, self.visit(o.rhs), ann_rhs.fixed_scaling_power, ann.fixed_scaling_power )
-    
+
+
+
+    def DoOpOpComplex(self, o, op):        
+        scale_lhs = self.annotations[o.lhs].fixed_scaling_power
+        scale_rhs = self.annotations[o.rhs].fixed_scaling_power  
+        scale_self = self.annotations[o].fixed_scaling_power
+        expr_lhs = self.visit(o.lhs)
+        expr_rhs = self.visit(o.rhs)
+        expr_num = self.intlabels[o]
+        print expr_num,  scale_self
+        res = "do_%s_op( %s, %d, %s, %d, %d, %d)" % (
+                                            op,
+                                            expr_lhs, scale_lhs,
+                                            expr_rhs, scale_rhs,
+                                            scale_self, expr_num,
+                                                     )
+        return res
+
     
     def VisitAddOp(self, o):
-        return self.DoOpSimple(o, '+')
+        return self.DoOpOpComplex(o, 'add')
+        #return self.DoOpSimple(o, '+')
     def VisitSubOp(self, o):
-        return self.DoOpSimple(o, '-')
+        return self.DoOpOpComplex(o, 'sub')
+        #return self.DoOpSimple(o, '-')
     def VisitMulOp(self, o):
-        return self.DoOpSimple(o, '*')
+        return self.DoOpOpComplex(o, 'mul')
+        #return self.DoOpSimple(o, '*')
     def VisitDivOp(self, o):
-        return self.DoOpSimple(o, '/')
+        return self.DoOpOpComplex(o, 'div')
+        #return self.DoOpSimple(o, '/')
 
 
 
     def VisitIfThenElse(self, o):
-        #return "( (%s) ? (%s) : (%s) )" % (
-        #            self.visit(o.predicate),
-        #            self.visit(o.if_true_ast),
-        #            self.visit(o.if_false_ast),
-        #        )
-       
+
         return "from_float( (%s) ? to_float(%s, %d) : to_float(%s, %d), %d )" % (
                     self.visit(o.predicate),
                     self.visit(o.if_true_ast),
@@ -368,11 +488,16 @@ class CBasedEqnWriterFixed(object):
         #assert False
         
         
+        from neurounits.visitors.common.node_label_with_integers import NodeToIntLabeller
+        
+        node_labeller = NodeToIntLabeller(component)
+        
+        
         self.component = component
         self.float_type = 'int'
         self.annotations = annotations
 
-        self.writer = CBasedFixedWriter(annotations=annotations)
+        self.writer = CBasedFixedWriter(annotations=annotations, component=component, node_int_labels=node_labeller.node_to_int)
 
 
         self.parameter_defs =[ VarDef(p.symbol, annotation=self.annotations[p]) for p in self.component.parameters]
@@ -399,7 +524,7 @@ class CBasedEqnWriterFixed(object):
                     )
 
         # Compile and run:
-        for f in ['sim1.cpp','a.out',output_filename]:
+        for f in ['sim1.cpp','a.out',output_filename, 'debug.log',]:
             if os.path.exists(f):
                 os.unlink(f)
 
@@ -411,6 +536,146 @@ class CBasedEqnWriterFixed(object):
 
 
 
+
+
+        import pylab
+        import numpy as np
+        from collections import defaultdict
+        import shutil
+
+        if os.path.exists('output/'):
+            shutil.rmtree("output/")
+        if not os.path.exists('output/'):
+            os.makedirs('output/')
+        
+
+
+
+        import numpy as np
+        data_int = np.genfromtxt('res_int.txt_int', names=True, delimiter=',', dtype=int)
+        
+        
+        
+        #pylab.show()
+        #pylab.plot(data_int['i'], data_int['tau_kf_n'] )
+        #pylab.show()
+        
+        
+        for index,name in enumerate(data_int.dtype.names):
+            if name in ['i', 'f0']:
+                continue
+            
+            print 'Plotting:', name
+            res = data_int[name]
+            
+            f = pylab.figure()
+            ax = f.add_subplot(211)
+            
+            pc_of_dyn_range_used = ( float(np.ptp(res)) / 2**nbits ) * 100.0
+            
+            node = component.get_terminal_obj(name)
+            ann = self.annotations[node]
+            t1 = 'Distribution of values of: %s. (Using %.2f%% of possible range)' % (name,pc_of_dyn_range_used)
+            t2 = "Infered range: %s to %s" % (ann.val_min,  ann.val_max) 
+            f.suptitle(t1 + "\n" + t2)
+            ext = 2**(nbits-1)-1
+            ax.hist(res, range=(-ext,ext), bins=50 )
+            ax.axvspan( np.min(res), np.max(res), alpha=0.3, color='green')
+            #ax.set_xlim(-ext,ext)
+            ax.set_xlim(-ext*1.1,ext*1.1)
+            ax.axvline(-ext)
+            ax.axvline(ext)
+            
+            ax = f.add_subplot(212)
+            ax.plot(data_int['i'], res )
+            
+            pylab.savefig('output/variables_dynamicranges_%03d.png' % index)
+            pylab.close()
+            
+        print data_int
+        
+        #res_int.txt_int
+        
+
+
+
+
+
+
+
+
+
+
+        import re
+        r = re.compile(r"""OP\{(\d+)\}: (.*) => (.*) """, re.VERBOSE)
+        # Lets plot the graphs of ranges of each operation:
+        op_data = defaultdict(list)
+        with open('debug.log') as f:
+            for l in f.readlines():
+                m = r.match(l)
+                #print 
+                op, operands, res = int(m.group(1)), m.group(2), int(m.group(3))
+                 
+                op_data[ op ].append( (operands, res) )
+                #assert m
+        op_data = [ (op, zip(*t)) for (op,t) in sorted(op_data.items()) ]
+        
+        
+        
+
+        
+            
+            
+        for index, (op, (operands,res) ) in enumerate(op_data):    
+            print 'Operator: ', op, 'Results found:', len(res)
+            node = node_labeller.int_to_node[op]
+            ann = self.annotations[node] 
+            print node
+            
+            res = np.array( [int(r) for r in res] )
+            
+            
+            pc_of_dyn_range_used = ( float(np.ptp(res)) / 2**nbits ) * 100.0
+            f = pylab.figure()
+            ax = f.add_subplot(111)
+            
+            t1 = 'Distribution of values from operator: %s -- %.2f%% of range used -- [%d]' % ( repr(node), pc_of_dyn_range_used, op) 
+            t2 = "Infered range: %s to %s" % (ann.val_min,  ann.val_max)
+            f.suptitle(t1 + '\n' + t2)
+             
+            
+            #res_index = np.linspace( 0, 1.0, num=len(res)  )
+            print res
+            
+            
+            
+            ext = 2**(nbits-1)-1
+            ax.hist(res, range=(-ext,ext), bins=50 )
+            ax.axvspan( np.min(res), np.max(res), alpha=0.3, color='green')
+            ax.set_xlim(-ext*1.1,ext*1.1)
+            ax.axvline(-ext)
+            ax.axvline(ext)
+            
+            
+            pylab.savefig('output/operators_dynamicrange_%03d.png' % index)
+            
+            pylab.close()
+            #ax.scatter(res_index, res)
+            #pylab.show()
+            
+         
+         
+         
+        
+      
+        
+        
+        
+        
+        
+        #assert False
+        
+        
 
 
     def build_data_structure(self):

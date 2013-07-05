@@ -126,13 +126,13 @@ class MMUnit(object):
             )
 
     def detail_str(self):
-        s1 = '(10e%d)' % self.powerTen
+        s1 = 'e%d' % self.powerTen
 
         basis_short_LUT = dict(zip(MMUnit.Bases, MMUnit.BasesShort))
-        basisCounts = dict([(b, getattr(self, b)) for b in
-                           MMUnit.Bases])
-        terms = ['%s %d' % (basis_short_LUT[b], basisCounts[b])
-                 for b in MMUnit.Bases if basisCounts[b]]
+        basisCounts = dict([(b, getattr(self, b)) for b in MMUnit.Bases])
+
+        counts_per_base = [  (basis_short_LUT[b], basisCounts[b]) for b in MMUnit.Bases if basisCounts[b]]
+        terms = ['%s %s' % (base, str(count) if count > 1 else "" ) for (base,count) in counts_per_base] #]basis_short_LUT[b], basisCounts[b]) for b in MMUnit.Bases if basisCounts[b]]
         s2 = ' '.join(terms)
         return '%s %s' % (s1, s2)
 
@@ -219,6 +219,7 @@ class MMQuantity(object):
             dim = self.unit.detail_str()
 
 
+        return '%s%s' % (self.magnitude, dim)
         return '<MMQuantity:%s %s>' % (self.magnitude, dim)
 
     def __eq__(self, rhs):

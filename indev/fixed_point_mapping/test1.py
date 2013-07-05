@@ -12,6 +12,7 @@ from neurounits.visitors.bases.base_actioner import ASTActionerDepthFirst
 
 
 from fixed_point_annotations import VarAnnot, ASTDataAnnotator, CalculateInternalStoragePerNode
+from neurounits.visitors.common.plot_networkx import ActionerPlotNetworkX
 
 
 
@@ -96,8 +97,8 @@ define_component simple_hh {
     T = 300K
     Cai = 100 nM
     Cao = 10 mM
-    nu = ( (2.0 *  F) / (R*T) ) * V ;
-    exp_neg_nu = exp( -1. * nu );
+    #nu = ( (2.0 *  F) / (R*T) ) * V ;
+    #exp_neg_nu = exp( -1. * nu );
     #iCa2 =  -2.0 * 1.e-3 * pca * nu * F * ( Cai - Cao*exp_neg_nu) / (1-exp_neg_nu) *  ca_m * ca_m
     iCa2 = [4pA] if [t < 0ms] else [4pA]
     iCa =  -3pA
@@ -197,10 +198,10 @@ var_annots_dIN = {
     'exp_neg_nu'    : VarAnnot(val_min=None, val_max = None),
     'iCa2'          : VarAnnot(val_min=None, val_max = None),
     'iInj'          : VarAnnot(val_min=None, val_max = None),
-    'iKf'           : VarAnnot(val_min=None, val_max = None),
-    'iKs'           : VarAnnot(val_min=None, val_max = None),
+    'iKf'           : VarAnnot(val_min='-500pA', val_max='500pA'),
+    'iKs'           : VarAnnot(val_min='-100pA', val_max='100pA'),
     'iLk'           : VarAnnot(val_min=None, val_max = None),
-    'iNa'           : VarAnnot(val_min=None, val_max = None),
+    'iNa'           : VarAnnot(val_min='0nA', val_max = '1nA'),
     'inf_ca_m'      : VarAnnot(val_min="0", val_max = "1.5" ),
     'inf_kf_n'      : VarAnnot(val_min="0", val_max = "1.5" ),
     'inf_ks_n'      : VarAnnot(val_min="0", val_max = "1.5" ),
@@ -208,10 +209,10 @@ var_annots_dIN = {
     'inf_na_m'      : VarAnnot(val_min="0", val_max = "1.5" ),
     'nu'            : VarAnnot(val_min="0", val_max = "1.5" ),
     'tau_ca_m'      : VarAnnot(val_min="0.01ms", val_max = None),
-    'tau_kf_n'      : VarAnnot(val_min="0.01ms", val_max = None),
-    'tau_ks_n'      : VarAnnot(val_min="0.01ms", val_max = None),
-    'tau_na_h'      : VarAnnot(val_min="0.01ms", val_max = None),
-    'tau_na_m'      : VarAnnot(val_min="0.01ms", val_max = None),
+    'tau_kf_n'      : VarAnnot(val_min="0.01ms", val_max = "1.5ms"),
+    'tau_ks_n'      : VarAnnot(val_min="0.01ms", val_max = "25ms"),
+    'tau_na_h'      : VarAnnot(val_min="0.01ms", val_max = '10ms'),
+    'tau_na_m'      : VarAnnot(val_min="0.01ms", val_max = '1ms'),
     'V'             : VarAnnot(val_min="-100mV", val_max = "50mV"),
     'ca_m'          : VarAnnot(val_min="0", val_max = "1.5"),
     'kf_n'          : VarAnnot(val_min="0", val_max = "1.5"),
@@ -338,7 +339,8 @@ if test_c:
 
 
 
-
+#ActionerPlotNetworkX(comp)
+#pylab.show()
 
 
 
@@ -357,7 +359,7 @@ print 'Looking at mappings:'
 print '===================='
 
 
-nbits = 24
+nbits = 30
 annotations = ASTDataAnnotator( comp, annotations_in = var_annots)
 CalculateInternalStoragePerNode(annotations=annotations, nbits=nbits).visit(comp)
 
@@ -378,7 +380,7 @@ print '===================='
 
 
 from neurounits.tools.fixed_point import CBasedEqnWriterFixed
-CBasedEqnWriterFixed(comp, output_filename='res_int.txt',  annotations=annotations, nbits=nbits )
+CBasedEqnWriterFixed(comp, output_filename='res_int.txt',  annotations=annotations, nbits=nbits)
 
 #data_int = np.loadtxt('res_int.txt')
 with open('res_int.txt') as f:
