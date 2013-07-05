@@ -403,6 +403,16 @@ class CalculateInternalStoragePerNode(ASTActionerDepthFirst):
         self.ActionNodeStd(o)
     def ActionStateVariable(self, o, **kwargs):
         self.ActionNodeStd(o)
+        
+        # Convert the initial value:
+        if o.initial_value:
+            ann = self.annotations[o]
+            ann.initial_value = self.encode_value(o.initial_value.value.float_in_si(), ann.fixed_scaling_power)
+            
+        
+        
+            
+        
 
     def ActionSuppliedValue(self, o):
         self.ActionNodeStd(o)

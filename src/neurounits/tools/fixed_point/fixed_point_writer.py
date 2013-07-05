@@ -88,9 +88,18 @@ std::ostream& header(std::ostream& o)
 
 
 
+void initialise_statevars(NrnData& d)
+{          
+    % for sv_def in state_var_defs:
+    d.${sv_def.name} =  ${sv_def.annotation.initial_value};
+    % endfor   
+}
 
 
-NrnData data;
+
+
+
+
 
 
 
@@ -107,6 +116,8 @@ int main()
     std::ofstream results_file("${output_filename}");
     header(results_file);
 
+    NrnData data;
+    initialise_statevars(data);
 
 
 

@@ -79,8 +79,7 @@ define_component simple_hh {
     na_h' = (inf_na_h - na_h) / tau_na_h
 
     iNa = gNa * (eNa-V) * na_m * na_m * na_m * na_h
-    #iNa = 0pA * na_m 
-
+    
 
     # Calcium:
     #alpha_ca_m = AlphaBetaFunc(v=V, A=4.05ms-1, B=0.0ms-1 mV-1, C=1.0, D=-15.32mV,E=-13.57mV)
@@ -484,7 +483,7 @@ for data_name in data_names: # [ 'V' ,'V2', 'alpha_kf_n', 'beta_kf_n', 'A','a', 
         pylab.figure()
         if res:
             pylab.plot(res.get_time(), res.get_data(data_name),'r-',  alpha=0.4, lw=10 )
-            pylab.plot(res.get_time(), res.get_data(data_name),'r-', label='ref-%s'%data_name, )
+            pylab.plot(res.get_time(), res.get_data(data_name),'r-x', label='ref-%s'%data_name, )
         pylab.plot(data_int['i']/10000., data_int[data_name], 'bx',label='fixed-%s'%data_name )
         pylab.legend()
         did_plot=True
