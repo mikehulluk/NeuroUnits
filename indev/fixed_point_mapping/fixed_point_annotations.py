@@ -44,6 +44,7 @@ def do_op(a,b,op):
     try:
         return op(a,b)
     except ZeroDivisionError:
+        assert False
         return None
 
 
@@ -114,12 +115,14 @@ class ASTDataAnnotator(ASTVisitorBase):
         ann_lhs = self.annotations[o.lhs]
         ann_rhs = self.annotations[o.rhs_map]
 
-        # Min:
-        if ann_lhs.val_min is None and  ann_rhs.val_min is not None:
-            ann_lhs.val_min = ann_rhs.val_min
-
-        if ann_lhs.val_max is None and  ann_rhs.val_max is not None:
-            ann_lhs.val_max = ann_rhs.val_max
+        # Need to be a bit careful here - because  rememeber that rhs is multiplied by dt!
+        
+        ## Min:
+        #if ann_lhs.val_min is None and  ann_rhs.val_min is not None:
+        #    ann_lhs.val_min = ann_rhs.val_min * 
+        #
+        #if ann_lhs.val_max is None and  ann_rhs.val_max is not None:
+            #ann_lhs.val_max = ann_rhs.val_max
 
 
 
@@ -193,6 +196,8 @@ class ASTDataAnnotator(ASTVisitorBase):
             do_op(ann1.val_max, ann2.val_max, op ),
             ]
         extremes = sorted([e for e in extremes if e is not None])
+        
+        print extremes
 
         if len(extremes) < 2:
             min = None
@@ -216,7 +221,7 @@ class ASTDataAnnotator(ASTVisitorBase):
 
     def VisitDivOp(self, o):
         self._VisitBinOp(o, op=operator.div)
-
+        
 
 
 

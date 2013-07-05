@@ -35,7 +35,7 @@ define_component simple_hh {
 
     iLk = gLk * (eLk-V) * glk_noise
     #V' = (1/Cap) * (iInj + iLk + iKs + iKf + iNa + iCa)
-    V' = (1/Cap) * (iInj + iLk + iKs + iKf ) #+ iNa)
+    V' = (1/Cap) * (iInj + iLk + iKs + iKf +iNa) #+ iNa)
 
 
     glk_noise = 1.1
@@ -68,17 +68,18 @@ define_component simple_hh {
     # Sodium (Kf):
     alpha_na_m = AlphaBetaFunc(v=V, A=8.67ms-1, B=0.0ms-1 mV-1, C=1.0, D=-1.01mV,E=-12.56mV)
     beta_na_m =  AlphaBetaFunc(v=V, A=3.82ms-1, B=0.0ms-1 mV-1, C=1.0, D=9.01mV, E=9.69mV)
-    #inf_na_m = alpha_na_m / (alpha_na_m + beta_na_m)
-    #tau_na_m = 1.0 / (alpha_na_m + beta_na_m)
-    #na_m' = (inf_na_m - na_m) / tau_na_m
+    inf_na_m = alpha_na_m / (alpha_na_m + beta_na_m)
+    tau_na_m = 1.0 / (alpha_na_m + beta_na_m)
+    na_m' = (inf_na_m - na_m) / tau_na_m
 
-    #alpha_na_h = AlphaBetaFunc(v=V, A=0.08ms-1, B=0.0ms-1 mV-1, C=0.0, D=38.88mV,E=26.0mV)
-    #beta_na_h =  AlphaBetaFunc(v=V, A=4.08ms-1, B=0.0ms-1 mV-1, C=1.0, D=-5.09mV, E=-10.21mV)
-    #inf_na_h = alpha_na_h / (alpha_na_h + beta_na_h)
-    #tau_na_h = 1.0 / (alpha_na_h + beta_na_h)
-    #na_h' = (inf_na_h - na_h) / tau_na_h
+    alpha_na_h = AlphaBetaFunc(v=V, A=0.08ms-1, B=0.0ms-1 mV-1, C=0.0, D=38.88mV,E=26.0mV)
+    beta_na_h =  AlphaBetaFunc(v=V, A=4.08ms-1, B=0.0ms-1 mV-1, C=1.0, D=-5.09mV, E=-10.21mV)
+    inf_na_h = alpha_na_h / (alpha_na_h + beta_na_h)
+    tau_na_h = 1.0 / (alpha_na_h + beta_na_h)
+    na_h' = (inf_na_h - na_h) / tau_na_h
 
-    #iNa = gNa * (eNa-V) * na_m * na_m * na_m * na_h
+    iNa = gNa * (eNa-V) * na_m * na_m * na_m * na_h
+    #iNa = 0pA * na_m 
 
 
     # Calcium:
@@ -107,9 +108,9 @@ define_component simple_hh {
 
     initial {
         V = -60mV
-        #na_m = 0.0
+        na_m = 0.0
         #ca_m = 0.0
-        #na_h = 1.0
+        na_h = 1.0
         ks_n = 0.0
         kf_n = 0.0
     }
@@ -201,23 +202,23 @@ var_annots_dIN = {
     'iKs'           : VarAnnot(val_min=None, val_max = None),
     'iLk'           : VarAnnot(val_min=None, val_max = None),
     'iNa'           : VarAnnot(val_min=None, val_max = None),
-    'inf_ca_m'      : VarAnnot(val_min="0", val_max = "1" ),
-    'inf_kf_n'      : VarAnnot(val_min="0", val_max = "1" ),
-    'inf_ks_n'      : VarAnnot(val_min="0", val_max = "1" ),
-    'inf_na_h'      : VarAnnot(val_min="0", val_max = "1" ),
-    'inf_na_m'      : VarAnnot(val_min="0", val_max = "1" ),
-    'nu'            : VarAnnot(val_min="0", val_max = "1" ),
-    'tau_ca_m'      : VarAnnot(val_min="0.0ms", val_max = None),
-    'tau_kf_n'      : VarAnnot(val_min="0.0ms", val_max = None),
-    'tau_ks_n'      : VarAnnot(val_min="0.0ms", val_max = None),
-    'tau_na_h'      : VarAnnot(val_min="0.0ms", val_max = None),
-    'tau_na_m'      : VarAnnot(val_min="0.0ms", val_max = None),
+    'inf_ca_m'      : VarAnnot(val_min="0", val_max = "1.5" ),
+    'inf_kf_n'      : VarAnnot(val_min="0", val_max = "1.5" ),
+    'inf_ks_n'      : VarAnnot(val_min="0", val_max = "1.5" ),
+    'inf_na_h'      : VarAnnot(val_min="0", val_max = "1.5" ),
+    'inf_na_m'      : VarAnnot(val_min="0", val_max = "1.5" ),
+    'nu'            : VarAnnot(val_min="0", val_max = "1.5" ),
+    'tau_ca_m'      : VarAnnot(val_min="0.01ms", val_max = None),
+    'tau_kf_n'      : VarAnnot(val_min="0.01ms", val_max = None),
+    'tau_ks_n'      : VarAnnot(val_min="0.01ms", val_max = None),
+    'tau_na_h'      : VarAnnot(val_min="0.01ms", val_max = None),
+    'tau_na_m'      : VarAnnot(val_min="0.01ms", val_max = None),
     'V'             : VarAnnot(val_min="-100mV", val_max = "50mV"),
-    'ca_m'          : VarAnnot(val_min="0", val_max = "1"),
-    'kf_n'          : VarAnnot(val_min="0", val_max = "1"),
-    'ks_n'          : VarAnnot(val_min="0", val_max = "1"),
-    'na_h'          : VarAnnot(val_min="0", val_max = "1"),
-    'na_m'          : VarAnnot(val_min="0", val_max = "1"),
+    'ca_m'          : VarAnnot(val_min="0", val_max = "1.5"),
+    'kf_n'          : VarAnnot(val_min="0", val_max = "1.5"),
+    'ks_n'          : VarAnnot(val_min="0", val_max = "1.5"),
+    'na_h'          : VarAnnot(val_min="0", val_max = "1.5"),
+    'na_m'          : VarAnnot(val_min="0", val_max = "1.5"),
 }
 
 var_annots_test = {
@@ -473,8 +474,11 @@ plot_set(data_int, 'i', ['V','V2'],  5, 5, fig )
 
 
 
+data_names1 = [ass.symbol for ass in comp.assignedvalues]
+data_names2 = [sv.symbol for sv in comp.state_variables]
 
-for data_name in [ 'V' ,'V2', 'alpha_kf_n', 'beta_kf_n', 'A','a', 'iInj','iLk','iKf','kf_n', 'inf_kf_n', 'tau_kf_n' 'alpha_na_m', 'beta_na_m', 'alpha_na_h', 'beta_na_h', ]:
+data_names = data_names1 + data_names2 
+for data_name in data_names: # [ 'V' ,'V2', 'alpha_kf_n', 'beta_kf_n', 'A','a', 'iInj','iLk','iKf','kf_n', 'inf_kf_n', 'tau_kf_n' 'alpha_na_m', 'beta_na_m', 'alpha_na_h', 'beta_na_h', 'inf_na_m', ]:
     did_plot = False
     try:
         pylab.figure()

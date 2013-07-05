@@ -90,7 +90,7 @@ std::ostream& header(std::ostream& o)
 
 
 
-
+NrnData data;
 
 
 
@@ -102,7 +102,7 @@ int main()
     
     
 
-    NrnData data;
+
     
     std::ofstream results_file("${output_filename}");
     header(results_file);
@@ -178,14 +178,14 @@ void sim_step(NrnData& d, int time_step)
     // Calculate assignments:
 % for eqn in eqns_assignments:
     d.${eqn.lhs} = from_float( to_float( ${eqn.rhs},  ${eqn.rhs_annotation.fixed_scaling_power}), ${eqn.lhs_annotation.fixed_scaling_power}) ;
-    //d.${eqn.lhs} =  ${eqn.rhs};
+    ##//d.${eqn.lhs} =  ${eqn.rhs};
 % endfor
 
     // Calculate delta's for all state-variables:
 % for eqn in eqns_timederivatives:
-    //d.d_${eqn.lhs} = from_float( to_float( ${eqn.rhs}, ${eqn.rhs_annotation.fixed_scaling_power}), ${eqn.lhs_annotation.fixed_scaling_power}, 2) ;
-    float d_${eqn.lhs} = to_float( ${eqn.rhs}, ${eqn.rhs_annotation.fixed_scaling_power});
-    d.${eqn.lhs} += from_float( ( d_${eqn.lhs} * dt ),  ${eqn.lhs_annotation.fixed_scaling_power} );
+    ##//d.d_${eqn.lhs} = from_float( to_float( ${eqn.rhs}, ${eqn.rhs_annotation.fixed_scaling_power}), ${eqn.lhs_annotation.fixed_scaling_power}, 2) ;
+    float d_${eqn.lhs} = to_float( ${eqn.rhs} , ${eqn.rhs_annotation.fixed_scaling_power}) * dt;
+    d.${eqn.lhs} += from_float( ( d_${eqn.lhs} ),  ${eqn.lhs_annotation.fixed_scaling_power} );
 % endfor
 
 }
@@ -371,6 +371,8 @@ class CBasedEqnWriterFixed(object):
         ordered_assignments = self.component.ordered_assignments_by_dependancies
         self.ass_eqns =[ Eqn(td.lhs.symbol, self.writer.to_c(td.rhs_map), lhs_annotation=self.annotations[td.lhs], rhs_annotation=self.annotations[td.rhs_map]) for td in ordered_assignments]
         self.td_eqns = [ Eqn(td.lhs.symbol, self.writer.to_c(td.rhs_map), lhs_annotation=self.annotations[td.lhs], rhs_annotation=self.annotations[td.rhs_map]) for td in self.component.timederivatives]
+        self.td_eqns = sorted(self.td_eqns, key=lambda o: o.lhs.lower())
+                
 
         def_DATASTRUCT = self.build_data_structure()
         def_UPDATEFUNC = self.build_update_function()

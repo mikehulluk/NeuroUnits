@@ -52,7 +52,7 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
 
         while to_order:
             found = False
-            for o in to_order:
+            for o in sorted(to_order, key=lambda o:o.symbol):
                 o_deps = [d for d in deps[o] if type(d) == AssignedVariable]
                 o_deps_unsatisfied = [d for d in o_deps if not d in ordered]
                 if len(o_deps_unsatisfied) == 0:
