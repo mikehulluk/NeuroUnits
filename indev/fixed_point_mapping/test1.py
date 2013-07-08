@@ -477,9 +477,13 @@ plot_set(data_int, 'i', ['V','V2'],  5, 5, fig )
 
 data_names1 = [ass.symbol for ass in comp.assignedvalues]
 data_names2 = [sv.symbol for sv in comp.state_variables]
-
 data_names = data_names1 + data_names2 
-for data_name in data_names: # [ 'V' ,'V2', 'alpha_kf_n', 'beta_kf_n', 'A','a', 'iInj','iLk','iKf','kf_n', 'inf_kf_n', 'tau_kf_n' 'alpha_na_m', 'beta_na_m', 'alpha_na_h', 'beta_na_h', 'inf_na_m', ]:
+
+
+data_names = ['V']
+
+
+for data_name in data_names: 
     did_plot = False
     try:
         pylab.figure()

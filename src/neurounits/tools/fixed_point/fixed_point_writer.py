@@ -4,7 +4,7 @@
 import mako
 from mako.template import Template
 
-
+import subprocess
 
 c_prog = r"""
 
@@ -15,6 +15,7 @@ c_prog = r"""
 #include <gmpxx.h>
 #include <iomanip>
 #include <sstream>
+#include <assert.h>
 
 #include <fenv.h>
 
@@ -45,8 +46,6 @@ int from_float(double val, int upscale, int whoami=0)
 
 
 FILE* fdebug;
-
-
 void  dump_op_info(int op, int input1, int input2, int output)
 {
     std::stringstream os;
@@ -58,18 +57,82 @@ void  dump_op_info(int op, int input1, int input2, int output)
 
 
 
+int auto_shift(int n, int m)
+{
+    if(m==0)
+    {
+        return n;
+    }
+    if( m>0)
+    {
+        return n << m;
+    }
+    else 
+    {
+       return n >> -m;
+    }
+}
+
 
 int do_add_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
 {
     int res_fp = from_float(to_float(v1,up1) + to_float(v2,up2), up_local);
+    
+    
+    // Convert into integer operations:
+    //double f1 = ( double(v1) * pow(2.0, up1) / double(range_max) ) + ( double(v2) * pow(2.0, up2) / double(range_max) );
+    //int res_int = int(f1 * (double(range_max) / pow(2.0, up_local) ) ) ;
+    
+    
+    //double f1 = ( double(v1) * pow(2.0, up1)  +  double(v2) * pow(2.0, up2) ) / double(range_max) ;
+    //int res_int = int(f1 * (double(range_max) / pow(2.0, up_local) ) ) ;
+
+    //double f1 = ( double(v1) * pow(2.0, up1)  +  double(v2) * pow(2.0, up2) ) /pow(2.0, up_local)  ;
+    //int res_int = int(f1) ;
+    
+    //double f1 = ( double(v1) * pow(2.0, up1-up_local)  +  double(v2) * pow(2.0, up2-up_local) ) ;
+    //int res_int = int(f1) ;
+   
+    //int res_int = int( double(v1) * pow(2.0, up1-up_local) )  +  int( double(v2) * pow(2.0, up2-up_local) ) ;
+        
+    int res_int = auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local); 
+    
+    
+    std::cout << "\nAdd OP:" << res_fp << " and " << res_int  << "\n";
+    int diff = res_int - res_fp;
+    if(diff <0) diff = -diff;
+    assert( (diff==0)  || (diff==1));
+    
     // Store info:   
     dump_op_info(expr_id, v1, v2, res_fp); 
     return res_fp;    
 } 
 
+
+
+// Basic Functions:
+ // Convert into integer operations:
+    //double f1 = ( double(v1) * pow(2.0, up1) / double(range_max) ) + ( double(v2) * pow(2.0, up2) / double(range_max) );
+    //int res_int = int(f1 * (double(range_max) / pow(2.0, up_local) ) ) ;
+
+
+
 int do_sub_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
 {
     int res_fp = from_float(to_float(v1,up1) - to_float(v2,up2), up_local);
+    
+    
+    // Convert into integer operations:
+    double f1 = ( double(v1) * pow(2.0, up1) / double(range_max) ) - ( double(v2) * pow(2.0, up2) / double(range_max) );
+    int res_int = int(f1 * (double(range_max) / pow(2.0, up_local) ) ) ;
+    
+    
+    int res_int = auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local); 
+    
+    assert( res_int == res_fp);
+    std::cout << "\nSub OP:" << res_fp << " and " << res_int  << "\n";
+    
+    
     // Store info:  
     dump_op_info(expr_id, v1, v2, res_fp);   
     return res_fp;    
@@ -213,8 +276,6 @@ int main()
 
         
         // Results:
-        //if( i%10==0)
-
         results_file_int << i << ",";
         write_int( results_file_int, data); 
         results_file_int << "\n";
@@ -430,19 +491,7 @@ class CBasedFixedWriter(ASTVisitorBase):
         ann_func = self.annotations[o]
         ann_param = self.annotations[param.rhs_ast]
         return """ from_float( exp( to_float( %s, %d) ), %d )""" %(param_term, ann_param.fixed_scaling_power, ann_func.fixed_scaling_power ) 
-        
-#         assert False
-#         print o.parameters
-#         param_list = sorted(o.parameters.values(), key=lambda p:p.symbol)
-#         assert o.function_def.is_builtin()
-#         func_name = {
-#             '__exp__': 'exp'
-#             }[o.function_def.funcname]
-# 
-#         return "%s(%s)" % (
-#                 func_name,
-#                 ",".join([self.visit(p.rhs_ast) for p in param_list])
-#                 )
+
     def VisitFunctionDefInstantiationParater(self, o):
         assert False
         return o.symbol
@@ -532,10 +581,14 @@ class CBasedEqnWriterFixed(object):
             f.write(cfile)
         print 
         print 'Compiling & Running:'
-        os.system("g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror && ./a.out > /dev/null")
+        c = "g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror && ./a.out > /dev/null"
+        c = "g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror && ./a.out"
+        #os.system("g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror && ./a.out > /dev/null")
+        subprocess.check_call(c, shell=True)
 
 
 
+        return 
 
 
         import pylab
