@@ -61,34 +61,34 @@ void  dump_op_info(int op, int input1, int input2, int output)
 
 int do_add_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
 {
-    int res = from_float(to_float(v1,up1) + to_float(v2,up2), up_local);
+    int res_fp = from_float(to_float(v1,up1) + to_float(v2,up2), up_local);
     // Store info:   
-    dump_op_info(expr_id, v1, v2, res); 
-    return res;    
+    dump_op_info(expr_id, v1, v2, res_fp); 
+    return res_fp;    
 } 
 
 int do_sub_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
 {
-    int res = from_float(to_float(v1,up1) - to_float(v2,up2), up_local);
+    int res_fp = from_float(to_float(v1,up1) - to_float(v2,up2), up_local);
     // Store info:  
-    dump_op_info(expr_id, v1, v2, res);   
-    return res;    
+    dump_op_info(expr_id, v1, v2, res_fp);   
+    return res_fp;    
 } 
 
 int do_mul_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
 {
-    int res = from_float(to_float(v1,up1) * to_float(v2,up2), up_local);
+    int res_fp = from_float(to_float(v1,up1) * to_float(v2,up2), up_local);
     // Store info:    
-    dump_op_info(expr_id, v1, v2, res); 
-    return res;    
+    dump_op_info(expr_id, v1, v2, res_fp); 
+    return res_fp;    
 } 
 
 int do_div_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
 {
-    int res = from_float(to_float(v1,up1) / to_float(v2,up2), up_local);
+    int res_fp = from_float(to_float(v1,up1) / to_float(v2,up2), up_local);
     // Store info:    
-    dump_op_info(expr_id, v1, v2, res); 
-    return res;    
+    dump_op_info(expr_id, v1, v2, res_fp); 
+    return res_fp;    
 } 
 
 

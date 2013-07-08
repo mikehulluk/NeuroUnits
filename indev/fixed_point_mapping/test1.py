@@ -359,7 +359,7 @@ print 'Looking at mappings:'
 print '===================='
 
 
-nbits = 17
+nbits = 24
 annotations = ASTDataAnnotator( comp, annotations_in = var_annots)
 CalculateInternalStoragePerNode(annotations=annotations, nbits=nbits).visit(comp)
 
