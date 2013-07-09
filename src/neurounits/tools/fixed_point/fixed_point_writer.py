@@ -103,7 +103,7 @@ int do_add_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     int res_int = auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local); 
     
     
-    std::cout << "\nAdd OP:" << res_fp << " and " << res_int  << "\n";
+    //std::cout << "\nAdd OP:" << res_fp << " and " << res_int  << "\n";
     int diff = res_int - res_fp;
     if(diff <0) diff = -diff;
     assert( (diff==0)  || (diff==1));
@@ -134,7 +134,7 @@ int do_sub_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     int res_int = auto_shift(v1, up1-up_local) - auto_shift(v2, up2-up_local); 
     
     
-    std::cout << "\nSub OP:" << res_fp << " and " << res_int  << "\n";
+    //std::cout << "\nSub OP:" << res_fp << " and " << res_int  << "\n";
     int diff = res_int - res_fp;
     if(diff <0) diff = -diff;
     assert( (diff==0)  || (diff==1));
@@ -155,7 +155,7 @@ int do_mul_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     int64 v12 = (int64)v1* (int64)v2;
     int res_int = auto_shift64(v12, (up1+up2-up_local-(nbits-1)) );
     
-    std::cout << "\nMul OP:" << res_fp << " and " << res_int  << "\n";
+    //std::cout << "\nMul OP:" << res_fp << " and " << res_int  << "\n";
     int diff = res_int - res_fp;
     if(diff <0) diff = -diff;
     assert( (diff==0)  || (diff==1));
@@ -186,7 +186,7 @@ int do_div_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     int res_int = v; 
     
     
-    std::cout << "\nDiv OP:" << res_fp << " and " << res_int  << "\n";
+    //std::cout << "\nDiv OP:" << res_fp << " and " << res_int  << "\n";
     int diff = res_int - res_fp;
     if(diff <0) diff = -diff;
     
@@ -196,7 +196,13 @@ int do_div_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     return res_int;    
 } 
 
+int int_exp(int v1, int up1, int up_local, int expr_id)
+{
+    int res_fp = from_float( exp( to_float(v1,up1) ), up_local );
+    
+    return res_fp;
 
+}
 
 
 
@@ -460,11 +466,11 @@ class CBasedFixedWriter(ASTVisitorBase):
 
 
 
-    def build_shift_string(self, src, shift):
-        if shift == 0:
-            return "(%s)" % src
-        else:
-            return "((%s) << %d )" % (src, shift)
+    #def build_shift_string(self, src, shift):
+    #    if shift == 0:
+    #        return "(%s)" % src
+    #    else:
+    #        return "((%s) << %d )" % (src, shift)
 
 
 
@@ -518,21 +524,20 @@ class CBasedFixedWriter(ASTVisitorBase):
         
 
     def VisitInEquality(self, o):
-        
         ann_lt = self.annotations[o.less_than]
-        ann_gt = self.annotations[o.greater_than]
-        #ann = self.annotations[o]
-        
+        ann_gt = self.annotations[o.greater_than]   
         return "(to_float(%s, %d) < to_float(%s, %d) )" % ( self.visit(o.less_than), ann_lt.fixed_scaling_power,  self.visit(o.greater_than), ann_gt.fixed_scaling_power )
 
-    def VisitFunctionDefInstantiation(self,o):
-        
+
+    def VisitFunctionDefInstantiation(self,o):        
         assert o.function_def.is_builtin() and o.function_def.funcname == '__exp__'
         param = o.parameters.values()[0]
         param_term = self.visit(param.rhs_ast)
         ann_func = self.annotations[o]
         ann_param = self.annotations[param.rhs_ast]
-        return """ from_float( exp( to_float( %s, %d) ), %d )""" %(param_term, ann_param.fixed_scaling_power, ann_func.fixed_scaling_power ) 
+        expr_num = self.intlabels[o]
+        
+        return """ int_exp( %s, %d, %d, %d )""" %(param_term, ann_param.fixed_scaling_power, ann_func.fixed_scaling_power, expr_num ) 
 
     def VisitFunctionDefInstantiationParater(self, o):
         assert False
