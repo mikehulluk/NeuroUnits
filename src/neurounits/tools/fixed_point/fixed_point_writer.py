@@ -16,8 +16,10 @@ c_prog = r"""
 #include <iomanip>
 #include <sstream>
 #include <assert.h>
-
+#include <cinttypes>
 #include <fenv.h>
+
+typedef std::int64_t int64;
 
 
 const int nbits = ${nbits};
@@ -59,6 +61,7 @@ void  dump_op_info(int op, int input1, int input2, int output)
 
 int auto_shift(int n, int m)
 {
+    //std::cout << "\n" << "n/m:" << n << "/" << m << "\n";
     if(m==0)
     {
         return n;
@@ -74,27 +77,29 @@ int auto_shift(int n, int m)
 }
 
 
+long auto_shift64(long n, int m)
+{
+    //std::cout << "\n" << "n/m:" << n << "/" << m << "\n";
+    if(m==0)
+    {
+        return n;
+    }
+    if( m>0)
+    {
+        return n << m;
+    }
+    else 
+    {
+       return n >> -m;
+    }
+}
+
+
+
+
 int do_add_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
 {
-    int res_fp = from_float(to_float(v1,up1) + to_float(v2,up2), up_local);
-    
-    
-    // Convert into integer operations:
-    //double f1 = ( double(v1) * pow(2.0, up1) / double(range_max) ) + ( double(v2) * pow(2.0, up2) / double(range_max) );
-    //int res_int = int(f1 * (double(range_max) / pow(2.0, up_local) ) ) ;
-    
-    
-    //double f1 = ( double(v1) * pow(2.0, up1)  +  double(v2) * pow(2.0, up2) ) / double(range_max) ;
-    //int res_int = int(f1 * (double(range_max) / pow(2.0, up_local) ) ) ;
-
-    //double f1 = ( double(v1) * pow(2.0, up1)  +  double(v2) * pow(2.0, up2) ) /pow(2.0, up_local)  ;
-    //int res_int = int(f1) ;
-    
-    //double f1 = ( double(v1) * pow(2.0, up1-up_local)  +  double(v2) * pow(2.0, up2-up_local) ) ;
-    //int res_int = int(f1) ;
-   
-    //int res_int = int( double(v1) * pow(2.0, up1-up_local) )  +  int( double(v2) * pow(2.0, up2-up_local) ) ;
-        
+    int res_fp = from_float(to_float(v1,up1) + to_float(v2,up2), up_local);        
     int res_int = auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local); 
     
     
@@ -105,7 +110,7 @@ int do_add_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     
     // Store info:   
     dump_op_info(expr_id, v1, v2, res_fp); 
-    return res_fp;    
+    return res_int;    
 } 
 
 
@@ -123,35 +128,72 @@ int do_sub_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     
     
     // Convert into integer operations:
-    double f1 = ( double(v1) * pow(2.0, up1) / double(range_max) ) - ( double(v2) * pow(2.0, up2) / double(range_max) );
-    int res_int = int(f1 * (double(range_max) / pow(2.0, up_local) ) ) ;
+    //double f1 = ( double(v1) * pow(2.0, up1) / double(range_max) ) - ( double(v2) * pow(2.0, up2) / double(range_max) );
+    //int res_int = int(f1 * (double(range_max) / pow(2.0, up_local) ) ) ;
+    
+    int res_int = auto_shift(v1, up1-up_local) - auto_shift(v2, up2-up_local); 
     
     
-    int res_int = auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local); 
-    
-    assert( res_int == res_fp);
     std::cout << "\nSub OP:" << res_fp << " and " << res_int  << "\n";
-    
+    int diff = res_int - res_fp;
+    if(diff <0) diff = -diff;
+    assert( (diff==0)  || (diff==1));
     
     // Store info:  
     dump_op_info(expr_id, v1, v2, res_fp);   
-    return res_fp;    
+    return res_int;    
 } 
 
 int do_mul_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
 {
     int res_fp = from_float(to_float(v1,up1) * to_float(v2,up2), up_local);
-    // Store info:    
-    dump_op_info(expr_id, v1, v2, res_fp); 
-    return res_fp;    
+    
+    
+    // Convert into integer operations:
+   
+    // Need to promote to 64 bit:
+    int64 v12 = (int64)v1* (int64)v2;
+    int res_int = auto_shift64(v12, (up1+up2-up_local-(nbits-1)) );
+    
+    std::cout << "\nMul OP:" << res_fp << " and " << res_int  << "\n";
+    int diff = res_int - res_fp;
+    if(diff <0) diff = -diff;
+    assert( (diff==0)  || (diff==1));
+    
+    // Store info:  
+    dump_op_info(expr_id, v1, v2, res_fp);   
+    return res_int;    
 } 
+
+
 
 int do_div_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
 {
     int res_fp = from_float(to_float(v1,up1) / to_float(v2,up2), up_local);
-    // Store info:    
-    dump_op_info(expr_id, v1, v2, res_fp); 
-    return res_fp;    
+    
+    int64 v1_L = (int64) v1;
+    int64 v2_L = (int64) v2;
+    
+    v1_L = auto_shift64(v1_L, (nbits-1) );
+    
+    
+    int64 v = v1_L/v2_L;
+    v = auto_shift64(v, up1-up2 - up_local);
+    
+    assert( v < (1<<(nbits) ) );
+    
+    
+    int res_int = v; 
+    
+    
+    std::cout << "\nDiv OP:" << res_fp << " and " << res_int  << "\n";
+    int diff = res_int - res_fp;
+    if(diff <0) diff = -diff;
+    
+    
+    // Store info:  
+    dump_op_info(expr_id, v1, v2, res_fp);   
+    return res_int;    
 } 
 
 
@@ -582,7 +624,7 @@ class CBasedEqnWriterFixed(object):
         print 
         print 'Compiling & Running:'
         c = "g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror && ./a.out > /dev/null"
-        c = "g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror && ./a.out"
+        c = "g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror -std=gnu++0x && ./a.out"
         #os.system("g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror && ./a.out > /dev/null")
         subprocess.check_call(c, shell=True)
 
