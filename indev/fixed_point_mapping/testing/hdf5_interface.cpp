@@ -5,33 +5,14 @@
 
 
 
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
 
 
 
 
 
-
-
-
-
-/*
-float* FloatBuffer::get_data_pointer()
-{
-    return &(this->data[0]);
-}
-
-size_t FloatBuffer::size()
-{
-    return this->data.size();
-}
-
-FloatBuffer operator|(FloatBuffer buff, float data)
-{
-    buff.data.push_back(data);
-    return buff;
-}
-
-*/
 
 
 
@@ -39,36 +20,37 @@ FloatBuffer operator|(FloatBuffer buff, float data)
 
 class _HDF5Location
 {
-    const string location;
-    bool is_absolute;
+    string location;
+    bool _is_absolute;
     public:
-        _HDF5Location(const string& location)
+        _HDF5Location(const string& location_in)
         {
+            string location = location_in;
 
-            if( location[0] == '/') 
+            if( location[0] == '/')
             {
                 location = location.substr(1, location.size() );
-                is_absolute = true;
+                _is_absolute = true;
             }
             else
             {
-                is_absolute = false;
+                _is_absolute = false;
             }
 
-    
+
             if( location[location.size()-1] == '/') location = location.substr(1, location.size());
-            this->location = location
+            this->location = location;
         }
 
-        bool is_local() const 
+        bool is_local() const
         {
             size_t sep_loc = location.find('/');
-            return (sep_loc == string::npos)
+            return (sep_loc == string::npos);
         }
 
-        bool is_absolute() const 
+        bool is_absolute() const
         {
-            return is_absolute;
+            return _is_absolute;
         }
 
         string get_local_path() const
@@ -81,7 +63,7 @@ class _HDF5Location
         {
             assert( !is_local() );
             size_t sep_loc = location.find('/');
-            return location.substr(0,sep_loc);
+            return location.substr(sep_loc+1, location.size());
         }
 };
 
@@ -89,26 +71,6 @@ class _HDF5Location
 
 
 
-
-/*
- *
-    // Drop opening '/'
-    if( location[0] == '/') location = location.substr(1, location.size() );
-    if( location[location.size()-1] == '/') location = location.substr(1, location.size());
-
-    size_t sep_loc = location.find('/');
-    if(sep_loc != string::npos)
-    {
-        string sg = location.substr(0,sep_loc);
-        string sg_child = location.substr(sep_loc+1, location.size());
-        return this->get_subgrouplocal(sg)->get_subgroup(sg_child);
-    }
-
-    else
-    {
-        return this->get_subgrouplocal(location);
-    }
-*/
 
 
 
@@ -239,31 +201,19 @@ HDF5GroupPtr HDF5Group::get_subgroup(const string& location_in)
 
 
 
-    _HDF5Location()
-
-    string location = location_in;
+    _HDF5Location loc(location_in);
 
     // Sanity checks:
-    assert(location[0] != '/' or is_root()); // Looking up absolute path on non-root node
+    if( loc.is_absolute() ) assert(this->is_root() );
 
-    // Drop opening '/'
-    if( location[0] == '/') location = location.substr(1, location.size() );
-    // Drop final '/'
-    if( location[location.size()-1] == '/') location = location.substr(1, location.size());
-
-    size_t sep_loc = location.find('/');
-    if(sep_loc != string::npos)
+    if(loc.is_local())
     {
-        string sg = location.substr(0,sep_loc);
-        string sg_child = location.substr(sep_loc+1, location.size());
-        return this->get_subgrouplocal(sg)->get_subgroup(sg_child);
+        return this->get_subgrouplocal(loc.get_local_path());
     }
-
     else
     {
-        return this->get_subgrouplocal(location);
+        return this->get_subgrouplocal(loc.get_local_path())->get_subgroup(loc.get_child_path());
     }
-
 
 }
 
@@ -305,30 +255,28 @@ HDF5DataSet2DStdPtr HDF5Group::create_dataset(const string& name, const HDF5Data
 }
 
 
-HDF5DataSet2DStdPtr HDF5Group::get_datasetlocal(const string& name)
+HDF5DataSet2DStdPtr HDF5Group::get_dataset(const string& name)
 {
-
-    assert( datasets.find(name) != datasets.end() );
-    return datasets[name];
-}
-
+    _HDF5Location loc(name);
+    // Sanity checks:
+    if( loc.is_absolute() ) assert(this->is_root() );
 
 
-
-HDF5GroupPtr HDF5Group::get_dataset(const string& location)
-{
-    if(location.find("/") == string::npos)
+    if(loc.is_local())
     {
-        return get_datasetlocal(location);
+        cout << "Looking for dataset: " << loc.get_local_path() << "\n";
+        assert( datasets.find(loc.get_local_path()) != datasets.end() );
+        return datasets[loc.get_local_path()];
     }
-
     else
     {
-        assert(0);
-
+        return this->get_subgrouplocal(loc.get_local_path())->get_dataset(loc.get_child_path());
     }
 
 }
+
+
+
 
 
 

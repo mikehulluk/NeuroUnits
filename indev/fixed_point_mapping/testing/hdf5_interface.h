@@ -42,7 +42,6 @@ typedef boost::shared_ptr<HDF5DataSet2DStd> HDF5DataSet2DStdPtr;
 
 
 
-//template<typename T> class DataBuffer;
 
 
 
@@ -76,8 +75,8 @@ typedef FloatBuffer FB;
 class HDF5DataSet2DStdSettings
 {
 public:
-    int size;
-    HDF5DataSet2DStdSettings(int size)
+    size_t size;
+    HDF5DataSet2DStdSettings(size_t size)
         : size(size)
     {}
 

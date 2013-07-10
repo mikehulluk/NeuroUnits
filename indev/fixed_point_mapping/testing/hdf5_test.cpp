@@ -26,7 +26,7 @@ ds->append_buffer(FB() | 2.4f | 4.6f | 9.6f | 4.5f );
 ds->append_buffer(FB() | 2.4f | 4.6f | 4.5f | 9.6f );
 
 
-HDFManager::getInstance().get_file("myfile.hdf")->get_dataset("/SimulationResults/NONO/Hello/Checkit-out/d1")->append_buffer( FB()|1.1f|2.2f|3.3f|4.4f);
+HDFManager::getInstance().get_file("myfile.hdf")->get_dataset("/SimulationResults/NONO/Hello/Checkit-out/d1")->append_buffer( FB() | 1.1f | 2.2f | 3.3f | 4.4f );
 
 
 cout << "\n     **** FINISHED OK **** \n";
