@@ -43,8 +43,9 @@ class SingleVisitPredicate(object):
 
 class ASTActionerDepthFirst(ASTVisitorBase):
 
-    def __init__(self, action_predicates=None):
+    def __init__(self, action_predicates=None, **kwargs):
         self.action_predicates = action_predicates or []
+        super(ASTActionerDepthFirst, self).__init__(**kwargs)
 
 
     def VisitLibraryManager(self, o, **kwargs):

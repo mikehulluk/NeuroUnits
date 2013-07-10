@@ -29,6 +29,10 @@
 
 class ASTVisitorBase(object):
 
+    def __init__(self, component=None):
+        if component is not None:
+            self.visit(component)
+
     def visit(self, o, **kwargs):
         return o.accept_visitor(self, **kwargs)
 

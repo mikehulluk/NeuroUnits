@@ -5,6 +5,8 @@ import mako
 from mako.template import Template
 
 import subprocess
+from neurounits.visitors.bases.base_actioner_default import ASTActionerDefault
+from neurounits.visitors.bases.base_actioner_default_ignoremissing import ASTActionerDefaultIgnoreMissing
 
 c_prog = r"""
 
@@ -19,13 +21,18 @@ c_prog = r"""
 #include <cinttypes>
 #include <fenv.h>
 
-
+#include <boost/format.hpp>
 
 #include "hdfjive.h"
-
-
 const string output_filename = "output.hd5";
 
+
+
+const hid_t hdf5_type_int = H5T_NATIVE_INT;
+const hid_t hdf5_type_float = H5T_NATIVE_FLOAT;
+
+typedef int T_hdf5_type_int;
+typedef float T_hdf5_type_float;    
 
 
 typedef std::int64_t int64;
@@ -118,17 +125,24 @@ int do_add_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     assert( (diff==0)  || (diff==1));
     
     // Store info:   
-    dump_op_info(expr_id, v1, v2, res_fp); 
+    dump_op_info(expr_id, v1, v2, res_fp);
+    
+    
+    
+    
+    // Write to HDF5:
+    //////////////////
+    // Floating point version: 
+    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation-fixed/float/operations/op%s")% expr_id ).str())->append_buffer( 
+            DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp) ) ;
+    
+    // Integer version: 
+    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation-fixed/int/operations/op%s")% expr_id ).str())->append_buffer( 
+            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) v1 | (T_hdf5_type_int) v2 | (T_hdf5_type_int) (res_int) ) ;
+    
+    
     return res_int;    
 } 
-
-
-
-// Basic Functions:
- // Convert into integer operations:
-    //double f1 = ( double(v1) * pow(2.0, up1) / double(range_max) ) + ( double(v2) * pow(2.0, up2) / double(range_max) );
-    //int res_int = int(f1 * (double(range_max) / pow(2.0, up_local) ) ) ;
-
 
 
 int do_sub_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
@@ -309,24 +323,30 @@ void setup_hdf5()
     
     HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
     
+
+    
     // Time
-    file->get_group("simulation-fixed/float")->create_dataset("time", HDF5DataSet2DStdSettings(1) );
-    file->get_group("simulation-fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1) );
+    file->get_group("simulation-fixed/float")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+    file->get_group("simulation-fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
     
     // Storage for state-variables and assignments:
     % for sv_def in state_var_defs:
-    file->get_group("simulation-fixed/float/variables/")->create_dataset("${sv_def.name}", HDF5DataSet2DStdSettings(1) );
-    file->get_group("simulation-fixed/int/variables/")->create_dataset("${sv_def.name}", HDF5DataSet2DStdSettings(1) );
+    file->get_group("simulation-fixed/float/variables/")->create_dataset("${sv_def.name}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+    file->get_group("simulation-fixed/int/variables/")->create_dataset("${sv_def.name}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
     % endfor   
     
     % for ass_def in assignment_defs:
-    file->get_group("simulation-fixed/float/variables/")->create_dataset("${ass_def.name}", HDF5DataSet2DStdSettings(1) );
-    file->get_group("simulation-fixed/int/variables/")->create_dataset("${ass_def.name}", HDF5DataSet2DStdSettings(1) );
+    file->get_group("simulation-fixed/float/variables/")->create_dataset("${ass_def.name}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+    file->get_group("simulation-fixed/int/variables/")->create_dataset("${ass_def.name}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
     % endfor   
 
 
     // Storage for the intermediate values in calculations:
 
+    %for intermediate_store_loc, size in intermediate_store_locs:
+    file->get_group("simulation-fixed/float/operations/")->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size}, hdf5_type_float) );
+    file->get_group("simulation-fixed/int/operations/")->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size},  hdf5_type_int) );
+    %endfor
     
 }
 
@@ -452,18 +472,18 @@ void sim_step(NrnData& d, int time_step)
     HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
     
     // Time
-    file->get_dataset("simulation-fixed/int/time")->append(t);
-    file->get_dataset("simulation-fixed/float/time")->append(t_float);
+    file->get_dataset("simulation-fixed/int/time")->append<T_hdf5_type_int>(t);
+    file->get_dataset("simulation-fixed/float/time")->append<T_hdf5_type_float>(t_float);
     
     // Storage for state-variables and assignments:
     % for eqn in eqns_assignments:
-    file->get_dataset("simulation-fixed/int/variables/${eqn.lhs}")->append( d.${eqn.lhs} );
-    file->get_dataset("simulation-fixed/float/variables/${eqn.lhs}")->append( to_float(  d.${eqn.lhs},  ${eqn.lhs_annotation.fixed_scaling_power} ) );
+    file->get_dataset("simulation-fixed/int/variables/${eqn.lhs}")->append<T_hdf5_type_int>( d.${eqn.lhs} );
+    file->get_dataset("simulation-fixed/float/variables/${eqn.lhs}")->append<T_hdf5_type_float>( to_float(  d.${eqn.lhs},  ${eqn.lhs_annotation.fixed_scaling_power} ) );
     % endfor   
     
     % for eqn in eqns_timederivatives:
-    file->get_dataset("simulation-fixed/int/variables/${eqn.lhs}")->append( d.${eqn.lhs} );
-    file->get_dataset("simulation-fixed/float/variables/${eqn.lhs}")->append( to_float(  d.${eqn.lhs},  ${eqn.lhs_annotation.fixed_scaling_power} ) );
+    file->get_dataset("simulation-fixed/int/variables/${eqn.lhs}")->append<T_hdf5_type_int>( d.${eqn.lhs} );
+    file->get_dataset("simulation-fixed/float/variables/${eqn.lhs}")->append<T_hdf5_type_float>( to_float(  d.${eqn.lhs},  ${eqn.lhs_annotation.fixed_scaling_power} ) );
     % endfor   
     /* -------------------------------------------------------------------------------------------- */
     
@@ -507,6 +527,28 @@ class Eqn(object):
 
 
 
+class IntermediateNodeFinder(ASTActionerDefaultIgnoreMissing):
+    
+    def __init__(self, component):
+        self.valid_nodes = {}
+        super(IntermediateNodeFinder,self).__init__(component=component)
+        
+    # How many values do we store per operation:
+    def ActionAddOp(self, o, **kwargs):
+        self.valid_nodes[o] = 3 
+
+    def ActionSubOp(self, o, **kwargs):
+        self.valid_nodes[o] = 3
+        
+    def ActionMulOp(self, o, **kwargs):
+        self.valid_nodes[o] = 3
+        
+    def ActionDivOp(self, o, **kwargs):
+        self.valid_nodes[o] = 3
+        
+    def ActionExpOp(self, o, **kwargs):
+        self.valid_nodes[o] = 3
+        
 
 
 
@@ -634,7 +676,11 @@ class CBasedEqnWriterFixed(object):
         
         from neurounits.visitors.common.node_label_with_integers import NodeToIntLabeller
         
+        
         node_labeller = NodeToIntLabeller(component)
+        intermediate_nodes = IntermediateNodeFinder(component).valid_nodes
+        intermediate_store_locs = [("op%d" % node_labeller.node_to_int[o], o_number ) for (o, o_number) in intermediate_nodes.items()]
+        
         
         
         self.component = component
@@ -664,7 +710,10 @@ class CBasedEqnWriterFixed(object):
                     output_filename = output_filename,
                     state_var_defs = self.state_var_defs,
                     assignment_defs = self.assignment_defs,
-                    nbits=nbits
+                    nbits=nbits,
+                    intermediate_store_locs=intermediate_store_locs
+                    
+                    
                     )
 
         # Compile and run:
