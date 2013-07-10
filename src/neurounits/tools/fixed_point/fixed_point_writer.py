@@ -19,6 +19,15 @@ c_prog = r"""
 #include <cinttypes>
 #include <fenv.h>
 
+
+
+#include "hdfjive.h"
+
+
+const string output_filename = "output.hd5";
+
+
+
 typedef std::int64_t int64;
 
 
@@ -201,7 +210,7 @@ int int_exp(int v1, int up1, int up_local, int expr_id)
     int res_fp = from_float( exp( to_float(v1,up1) ), up_local );
     
     
-    dump_op_info(expr_id, v1, v2, res_fp); 
+    //dump_op_info(expr_id, v1, v2, res_fp); 
     
     return res_fp;
 
@@ -295,7 +304,31 @@ void initialise_statevars(NrnData& d)
 
 
 
+void setup_hdf5()
+{
+    
+    HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
+    
+    // Time
+    file->get_group("simulation-fixed/float")->create_dataset("time", HDF5DataSet2DStdSettings(1) );
+    file->get_group("simulation-fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1) );
+    
+    // Storage for state-variables and assignments:
+    % for sv_def in state_var_defs:
+    file->get_group("simulation-fixed/float/variables/")->create_dataset("${sv_def.name}", HDF5DataSet2DStdSettings(1) );
+    file->get_group("simulation-fixed/int/variables/")->create_dataset("${sv_def.name}", HDF5DataSet2DStdSettings(1) );
+    % endfor   
+    
+    % for ass_def in assignment_defs:
+    file->get_group("simulation-fixed/float/variables/")->create_dataset("${ass_def.name}", HDF5DataSet2DStdSettings(1) );
+    file->get_group("simulation-fixed/int/variables/")->create_dataset("${ass_def.name}", HDF5DataSet2DStdSettings(1) );
+    % endfor   
 
+
+    // Storage for the intermediate values in calculations:
+
+    
+}
 
 
 
@@ -306,6 +339,10 @@ int main()
     //feenableexcept(-1);
     feenableexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW | FE_INVALID);
     
+    
+    
+    
+    setup_hdf5();
     
 
     fdebug = fopen("debug.log","w");
@@ -390,23 +427,52 @@ update_func = r"""
 void sim_step(NrnData& d, int time_step)
 {
     const double dt = 0.1e-3;
-    //const double t = time_step * dt;
-    const int t = from_float(time_step * dt, 1);
+    const double t_float = time_step * dt;
+    const int t = from_float(t_float, 1);
 
     std::cout << "t: " << t << "\n";
 
     // Calculate assignments:
 % for eqn in eqns_assignments:
     d.${eqn.lhs} = from_float( to_float( ${eqn.rhs},  ${eqn.rhs_annotation.fixed_scaling_power}), ${eqn.lhs_annotation.fixed_scaling_power}) ;
-    ##//d.${eqn.lhs} =  ${eqn.rhs};
 % endfor
 
     // Calculate delta's for all state-variables:
 % for eqn in eqns_timederivatives:
-    ##//d.d_${eqn.lhs} = from_float( to_float( ${eqn.rhs}, ${eqn.rhs_annotation.fixed_scaling_power}), ${eqn.lhs_annotation.fixed_scaling_power}, 2) ;
     float d_${eqn.lhs} = to_float( ${eqn.rhs} , ${eqn.rhs_annotation.fixed_scaling_power}) * dt;
     d.${eqn.lhs} += from_float( ( d_${eqn.lhs} ),  ${eqn.lhs_annotation.fixed_scaling_power} );
-% endfor
+% endfor    
+    
+    
+    
+    
+    
+    // Write to HDF5
+    /* -------------------------------------------------------------------------------------------- */
+    HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
+    
+    // Time
+    file->get_dataset("simulation-fixed/int/time")->append(t);
+    file->get_dataset("simulation-fixed/float/time")->append(t_float);
+    
+    // Storage for state-variables and assignments:
+    % for eqn in eqns_assignments:
+    file->get_dataset("simulation-fixed/int/variables/${eqn.lhs}")->append( d.${eqn.lhs} );
+    file->get_dataset("simulation-fixed/float/variables/${eqn.lhs}")->append( to_float(  d.${eqn.lhs},  ${eqn.lhs_annotation.fixed_scaling_power} ) );
+    % endfor   
+    
+    % for eqn in eqns_timederivatives:
+    file->get_dataset("simulation-fixed/int/variables/${eqn.lhs}")->append( d.${eqn.lhs} );
+    file->get_dataset("simulation-fixed/float/variables/${eqn.lhs}")->append( to_float(  d.${eqn.lhs},  ${eqn.lhs_annotation.fixed_scaling_power} ) );
+    % endfor   
+    /* -------------------------------------------------------------------------------------------- */
+    
+    
+    
+    
+    
+    
+
 
 }
 """
@@ -469,16 +535,6 @@ class CBasedFixedWriter(ASTVisitorBase):
 
 
 
-    #def build_shift_string(self, src, shift):
-    #    if shift == 0:
-    #        return "(%s)" % src
-    #    else:
-    #        return "((%s) << %d )" % (src, shift)
-
-
-
-
-
     def DoOpOpComplex(self, o, op):        
         scale_lhs = self.annotations[o.lhs].fixed_scaling_power
         scale_rhs = self.annotations[o.rhs].fixed_scaling_power  
@@ -498,16 +554,16 @@ class CBasedFixedWriter(ASTVisitorBase):
     
     def VisitAddOp(self, o):
         return self.DoOpOpComplex(o, 'add')
-        #return self.DoOpSimple(o, '+')
+
     def VisitSubOp(self, o):
         return self.DoOpOpComplex(o, 'sub')
-        #return self.DoOpSimple(o, '-')
+
     def VisitMulOp(self, o):
         return self.DoOpOpComplex(o, 'mul')
-        #return self.DoOpSimple(o, '*')
+
     def VisitDivOp(self, o):
         return self.DoOpOpComplex(o, 'div')
-        #return self.DoOpSimple(o, '/')
+
 
 
 
@@ -574,17 +630,6 @@ class CBasedFixedWriter(ASTVisitorBase):
 class CBasedEqnWriterFixed(object):
     def __init__(self, component, output_filename, annotations, nbits):
         
-        print
-        print 'Time derivatives:'
-        for td in component.timederivatives:
-            print 'Time Derivative:', repr(td)
-            ann_lhs = annotations[td.lhs]
-            ann_rhs = annotations[td.rhs_map]
-            print '  Ann-LHS:', ann_lhs
-            print '  Ann-RHS:', ann_rhs
-        
-        print
-        #assert False
         
         
         from neurounits.visitors.common.node_label_with_integers import NodeToIntLabeller
@@ -631,10 +676,19 @@ class CBasedEqnWriterFixed(object):
             f.write(cfile)
         print 
         print 'Compiling & Running:'
-        c = "g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror && ./a.out > /dev/null"
-        c = "g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror -std=gnu++0x && ./a.out"
+        
+        
+        
+        hdfjive_path_incl = os.path.expanduser("~/hw/hdf-jive/include")
+        hdfjive_path_lib = os.path.expanduser("~/hw/hdf-jive/lib/")
+        
+        
+        c1 = "g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror -std=gnu++0x -I%s -L%s -lhdfjive -lhdf5 -lhdf5_hl " % (hdfjive_path_incl, hdfjive_path_lib)
+        c2 = 'export LD_LIBRARY_PATH="%s:$LD_LIBRARY_PATH"; ./a.out' % hdfjive_path_lib
+        
         #os.system("g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror && ./a.out > /dev/null")
-        subprocess.check_call(c, shell=True)
+        subprocess.check_call(c1, shell=True)
+        subprocess.check_call(c2, shell=True)
 
 
 
