@@ -12,6 +12,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
 #include <string>
+#include <vector>
 #include <map>
 #include <boost/enable_shared_from_this.hpp>
 using namespace std;
@@ -41,6 +42,36 @@ typedef boost::shared_ptr<HDF5DataSet2DStd> HDF5DataSet2DStdPtr;
 
 
 
+//template<typename T> class DataBuffer;
+
+
+
+template< typename T>
+class DataBuffer
+{
+public:
+    vector<T> _data;
+
+    inline T* get_data_pointer() {  return &(this->_data[0]); }
+    inline size_t size() { return this->_data.size(); }
+};
+
+template<typename TYPE>
+DataBuffer<TYPE> operator|(DataBuffer<TYPE> buff, TYPE data)
+{
+    buff._data.push_back(data);
+    return buff;
+}
+
+typedef DataBuffer<float> FloatBuffer;
+typedef FloatBuffer FB;
+
+
+
+
+
+
+
 
 class HDF5DataSet2DStdSettings
 {
@@ -66,10 +97,8 @@ public:
     HDF5DataSet2DStd( const string& name, HDF5GroupPtrWeak pParent, const HDF5DataSet2DStdSettings& settings);
     ~HDF5DataSet2DStd();
 
-
-
-
-
+    void append_buffer( float* pData );
+    void append_buffer( FloatBuffer fb );
 };
 
 
@@ -138,6 +167,7 @@ public:
 
 
     HDF5GroupPtr get_group(const string& location);
+    HDF5DataSet2DStdPtr get_dataset(const string& location);
 };
 
 

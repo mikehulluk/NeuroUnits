@@ -9,11 +9,114 @@
 
 
 
+
+
+
+
+
+/*
+float* FloatBuffer::get_data_pointer()
+{
+    return &(this->data[0]);
+}
+
+size_t FloatBuffer::size()
+{
+    return this->data.size();
+}
+
+FloatBuffer operator|(FloatBuffer buff, float data)
+{
+    buff.data.push_back(data);
+    return buff;
+}
+
+*/
+
+
+
+
+
+class _HDF5Location
+{
+    const string location;
+    bool is_absolute;
+    public:
+        _HDF5Location(const string& location)
+        {
+
+            if( location[0] == '/') 
+            {
+                location = location.substr(1, location.size() );
+                is_absolute = true;
+            }
+            else
+            {
+                is_absolute = false;
+            }
+
+    
+            if( location[location.size()-1] == '/') location = location.substr(1, location.size());
+            this->location = location
+        }
+
+        bool is_local() const 
+        {
+            size_t sep_loc = location.find('/');
+            return (sep_loc == string::npos)
+        }
+
+        bool is_absolute() const 
+        {
+            return is_absolute;
+        }
+
+        string get_local_path() const
+        {
+            size_t sep_loc = location.find('/');
+            return location.substr(0,sep_loc);
+        }
+
+        string get_child_path() const
+        {
+            assert( !is_local() );
+            size_t sep_loc = location.find('/');
+            return location.substr(0,sep_loc);
+        }
+};
+
+
+
+
+
+
+/*
+ *
+    // Drop opening '/'
+    if( location[0] == '/') location = location.substr(1, location.size() );
+    if( location[location.size()-1] == '/') location = location.substr(1, location.size());
+
+    size_t sep_loc = location.find('/');
+    if(sep_loc != string::npos)
+    {
+        string sg = location.substr(0,sep_loc);
+        string sg_child = location.substr(sep_loc+1, location.size());
+        return this->get_subgrouplocal(sg)->get_subgroup(sg_child);
+    }
+
+    else
+    {
+        return this->get_subgrouplocal(location);
+    }
+*/
+
+
+
 HDF5DataSet2DStd::HDF5DataSet2DStd( const string& name, HDF5GroupPtrWeak pParent, const HDF5DataSet2DStdSettings& settings)
     :name(name), settings(settings)
 {
     cout << "\nCreating DataSet:" << name  << " \n";
-    
+
 
 
     hsize_t data_dims[2] = {0, settings.size};
@@ -29,8 +132,6 @@ HDF5DataSet2DStd::HDF5DataSet2DStd( const string& name, HDF5GroupPtrWeak pParent
 
 
     H5Pclose (prop);
-    //H5Pclose (dataspace_id);
-
 
 }
 
@@ -45,7 +146,46 @@ HDF5DataSet2DStd::~HDF5DataSet2DStd()
 }
 
 
+void HDF5DataSet2DStd::append_buffer( float* pData )
+{
+    cout << "\nWritting to buffer";
 
+    // How big is the array:?
+    hsize_t dims[2], max_dims[2];
+    hid_t dataspace = H5Dget_space(dataset_id);
+    H5Sget_simple_extent_dims(dataspace, dims, max_dims);
+    H5Sclose(dataspace);
+
+    cout << "\nDims:" << dims[0] << ", " << dims[1] << "\n";
+    assert(dims[1] ==settings.size);
+
+    int curr_size = dims[0];
+
+
+
+
+
+    // Extend the table:
+    hsize_t new_data_dims[2] = {curr_size+1, dims[1] };
+    H5Dextend (dataset_id, new_data_dims);
+
+    // And copy:
+    hid_t filespace = H5Dget_space(dataset_id);
+    hsize_t offset[2] = {curr_size, 0};
+    hsize_t count[2] = {1, dims[1]};
+    H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset, NULL, count, NULL);
+    hsize_t dim1[2] = {1,dims[1]};
+    hid_t memspace = H5Screate_simple(2, dim1, NULL);
+    H5Dwrite (dataset_id, H5T_NATIVE_FLOAT, memspace, filespace, H5P_DEFAULT, pData);
+
+}
+
+void HDF5DataSet2DStd::append_buffer( FloatBuffer fb )
+{
+    assert(fb.size() == this->settings.size);
+    this->append_buffer(fb.get_data_pointer() );
+
+}
 
 
 
@@ -97,6 +237,10 @@ HDF5GroupPtr HDF5Group::get_subgroup(const string& location_in)
 {
     cout << "\nGetting Group: " << location << "\n";
 
+
+
+    _HDF5Location()
+
     string location = location_in;
 
     // Sanity checks:
@@ -112,7 +256,6 @@ HDF5GroupPtr HDF5Group::get_subgroup(const string& location_in)
     {
         string sg = location.substr(0,sep_loc);
         string sg_child = location.substr(sep_loc+1, location.size());
-        //cout << "\nSplitting:" << location << " -> " << sg << " and " << sg_child << "\n";
         return this->get_subgrouplocal(sg)->get_subgroup(sg_child);
     }
 
@@ -162,7 +305,7 @@ HDF5DataSet2DStdPtr HDF5Group::create_dataset(const string& name, const HDF5Data
 }
 
 
-HDF5DataSet2DStdPtr HDF5Group::get_dataset(const string& name)
+HDF5DataSet2DStdPtr HDF5Group::get_datasetlocal(const string& name)
 {
 
     assert( datasets.find(name) != datasets.end() );
@@ -170,11 +313,23 @@ HDF5DataSet2DStdPtr HDF5Group::get_dataset(const string& name)
 }
 
 
-HDF5GroupPtr HDF5Group::get_datasetlocal(const string& location)
-{
 
+
+HDF5GroupPtr HDF5Group::get_dataset(const string& location)
+{
+    if(location.find("/") == string::npos)
+    {
+        return get_datasetlocal(location);
+    }
+
+    else
+    {
+        assert(0);
+
+    }
 
 }
+
 
 
 
@@ -222,6 +377,18 @@ HDF5GroupPtr HDF5File::get_group(const string& location)
     return this->root_group->get_subgroup(location);
 
 }
+
+
+HDF5DataSet2DStdPtr HDF5File::get_dataset(const string& location)
+{
+    if(!root_group)
+    {
+        init();
+    }
+
+    return this->root_group->get_dataset(location);
+}
+
 
 
 

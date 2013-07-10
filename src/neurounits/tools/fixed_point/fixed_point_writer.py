@@ -200,6 +200,9 @@ int int_exp(int v1, int up1, int up_local, int expr_id)
 {
     int res_fp = from_float( exp( to_float(v1,up1) ), up_local );
     
+    
+    dump_op_info(expr_id, v1, v2, res_fp); 
+    
     return res_fp;
 
 }
