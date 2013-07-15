@@ -24,7 +24,7 @@ c_prog = r"""
 #include <boost/format.hpp>
 
 #include "hdfjive.h"
-const string output_filename = "output.hd5";
+const string output_filename = "${output_filename}";
 
 
 
@@ -63,15 +63,15 @@ int from_float(double val, int upscale, int whoami=0)
 
 
 
-FILE* fdebug;
-void  dump_op_info(int op, int input1, int input2, int output)
-{
-    std::stringstream os;
-    os << "OP{" << op <<"}: " << input1 << " " << input2 << " => " << output << "\n";
-    fprintf(fdebug, "%s", os.str().c_str() );
-    
-
-} 
+##//FILE* fdebug;
+##void  dump_op_info(int op, int input1, int input2, int output)
+##{
+##    std::stringstream os;
+##    os << "OP{" << op <<"}: " << input1 << " " << input2 << " => " << output << "\n";
+##    fprintf(fdebug, "%s", os.str().c_str() );
+##    
+##
+##} 
 
 
 
@@ -125,7 +125,7 @@ int do_add_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     assert( (diff==0)  || (diff==1));
     
     // Store info:   
-    dump_op_info(expr_id, v1, v2, res_fp);
+    ##dump_op_info(expr_id, v1, v2, res_fp);
     
     
     
@@ -133,11 +133,11 @@ int do_add_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     // Write to HDF5:
     //////////////////
     // Floating point version: 
-    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation-fixed/float/operations/op%s")% expr_id ).str())->append_buffer( 
+    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% expr_id ).str())->append_buffer( 
             DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp) ) ;
     
     // Integer version: 
-    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation-fixed/int/operations/op%s")% expr_id ).str())->append_buffer( 
+    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% expr_id ).str())->append_buffer( 
             DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) v1 | (T_hdf5_type_int) v2 | (T_hdf5_type_int) (res_int) ) ;
     
     
@@ -163,7 +163,7 @@ int do_sub_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     assert( (diff==0)  || (diff==1));
     
     // Store info:  
-    dump_op_info(expr_id, v1, v2, res_fp);   
+    ##dump_op_info(expr_id, v1, v2, res_fp);   
     return res_int;    
 } 
 
@@ -184,7 +184,7 @@ int do_mul_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     assert( (diff==0)  || (diff==1));
     
     // Store info:  
-    dump_op_info(expr_id, v1, v2, res_fp);   
+    ##dump_op_info(expr_id, v1, v2, res_fp);   
     return res_int;    
 } 
 
@@ -215,7 +215,7 @@ int do_div_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     
     
     // Store info:  
-    dump_op_info(expr_id, v1, v2, res_fp);   
+    ##dump_op_info(expr_id, v1, v2, res_fp);   
     return res_int;    
 } 
 
@@ -242,69 +242,69 @@ ${DEF_UPDATE_FUNC}
 
 
 
-
-std::ostream& operator << (std::ostream& o, const NrnData& d)
-{
-   
-    % for a_def in assignment_defs:
-    o << to_float( d.${a_def.name}, ${a_def.annotation.fixed_scaling_power} )  << ","; 
-    % endfor
-        
-    % for sv_def in state_var_defs:
-    o << to_float( d.${sv_def.name}, ${sv_def.annotation.fixed_scaling_power} )  << ","; 
-    % endfor
-    
-    return o;
-}
-
-
-
-void write_float(std::ostream& o, const NrnData& d)
-{
-   
-    % for a_def in assignment_defs:
-    o << to_float( d.${a_def.name}, ${a_def.annotation.fixed_scaling_power} )  << ","; 
-    % endfor
-        
-    % for sv_def in state_var_defs:
-    o << to_float( d.${sv_def.name}, ${sv_def.annotation.fixed_scaling_power} )  << ","; 
-    % endfor
-}
+##
+##std::ostream& operator << (std::ostream& o, const NrnData& d)
+##{
+##   
+##    % for a_def in assignment_defs:
+##    o << to_float( d.${a_def.name}, ${a_def.annotation.fixed_scaling_power} )  << ","; 
+##    % endfor
+##        
+##    % for sv_def in state_var_defs:
+##    o << to_float( d.${sv_def.name}, ${sv_def.annotation.fixed_scaling_power} )  << ","; 
+##    % endfor
+##    
+##    return o;
+##}
 
 
-void write_int(std::ostream& o, const NrnData& d)
-{
-   
-    % for a_def in assignment_defs:
-    o << d.${a_def.name}  << ","; 
-    % endfor
-        
-    % for sv_def in state_var_defs:
-    o << d.${sv_def.name}  << ","; 
-    % endfor
-}
+
+##void write_float(std::ostream& o, const NrnData& d)
+##{
+##   
+##    % for a_def in assignment_defs:
+##    o << to_float( d.${a_def.name}, ${a_def.annotation.fixed_scaling_power} )  << ","; 
+##    % endfor
+##        
+##    % for sv_def in state_var_defs:
+##    o << to_float( d.${sv_def.name}, ${sv_def.annotation.fixed_scaling_power} )  << ","; 
+##    % endfor
+##}
 
 
+##void write_int(std::ostream& o, const NrnData& d)
+##{
+##   
+##    % for a_def in assignment_defs:
+##    o << d.${a_def.name}  << ","; 
+##    % endfor
+##        
+##    % for sv_def in state_var_defs:
+##    o << d.${sv_def.name}  << ","; 
+##    % endfor
+##}
 
 
 
 
 
-std::ostream& header(std::ostream& o)
-{          
-    o << "i,";
-    % for a_def in assignment_defs:
-    o << "${a_def.name}" << ","; 
-    % endfor
-        
-    % for sv_def in state_var_defs:
-    o << "${sv_def.name}" << ","; 
-    % endfor
-    
-    o << "\n";
-    
-    return o;   
-}
+
+
+##std::ostream& header(std::ostream& o)
+##{          
+##    o << "i,";
+##    % for a_def in assignment_defs:
+##    o << "${a_def.name}" << ","; 
+##    % endfor
+##        
+##    % for sv_def in state_var_defs:
+##    o << "${sv_def.name}" << ","; 
+##    % endfor
+##    
+##    o << "\n";
+##    
+##    return o;   
+##}
 
 
 
@@ -326,26 +326,26 @@ void setup_hdf5()
 
     
     // Time
-    file->get_group("simulation-fixed/float")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
-    file->get_group("simulation-fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
+    file->get_group("simulation_fixed/float")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+    file->get_group("simulation_fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
     
     // Storage for state-variables and assignments:
     % for sv_def in state_var_defs:
-    file->get_group("simulation-fixed/float/variables/")->create_dataset("${sv_def.name}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
-    file->get_group("simulation-fixed/int/variables/")->create_dataset("${sv_def.name}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
+    file->get_group("simulation_fixed/float/variables/")->create_dataset("${sv_def.name}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+    file->get_group("simulation_fixed/int/variables/")->create_dataset("${sv_def.name}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
     % endfor   
     
     % for ass_def in assignment_defs:
-    file->get_group("simulation-fixed/float/variables/")->create_dataset("${ass_def.name}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
-    file->get_group("simulation-fixed/int/variables/")->create_dataset("${ass_def.name}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
+    file->get_group("simulation_fixed/float/variables/")->create_dataset("${ass_def.name}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+    file->get_group("simulation_fixed/int/variables/")->create_dataset("${ass_def.name}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
     % endfor   
 
 
     // Storage for the intermediate values in calculations:
 
     %for intermediate_store_loc, size in intermediate_store_locs:
-    file->get_group("simulation-fixed/float/operations/")->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size}, hdf5_type_float) );
-    file->get_group("simulation-fixed/int/operations/")->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size},  hdf5_type_int) );
+    file->get_group("simulation_fixed/float/operations/")->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size}, hdf5_type_float) );
+    file->get_group("simulation_fixed/int/operations/")->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size},  hdf5_type_int) );
     %endfor
     
 }
@@ -365,12 +365,12 @@ int main()
     setup_hdf5();
     
 
-    fdebug = fopen("debug.log","w");
+    //fdebug = fopen("debug.log","w");
     
-    std::ofstream results_file_float("${output_filename}");
-    std::ofstream results_file_int("${output_filename}_int");
-    header(results_file_float);
-    header(results_file_int);
+    //std::ofstream results_file_float("${output_filename}");
+    //std::ofstream results_file_int("${output_filename}_int");
+    //header(results_file_float);
+    //header(results_file_int);
 
     NrnData data;
     initialise_statevars(data);
@@ -384,20 +384,20 @@ int main()
 
         
         // Results:
-        results_file_int << i << ",";
-        write_int( results_file_int, data); 
-        results_file_int << "\n";
+        //results_file_int << i << ",";
+        //write_int( results_file_int, data); 
+        //results_file_int << "\n";
 
         
-        results_file_float << i << ",";
-        write_float( results_file_float, data); 
-        results_file_float << "\n";
+        //results_file_float << i << ",";
+        //write_float( results_file_float, data); 
+        //results_file_float << "\n";
         
     }
 
-    results_file_float.close();
-    results_file_int.close();
-    fclose(fdebug);
+    //results_file_float.close();
+    //results_file_int.close();
+    //fclose(fdebug);
     
 
     printf("Simulation Complete\n");
@@ -472,18 +472,18 @@ void sim_step(NrnData& d, int time_step)
     HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
     
     // Time
-    file->get_dataset("simulation-fixed/int/time")->append<T_hdf5_type_int>(t);
-    file->get_dataset("simulation-fixed/float/time")->append<T_hdf5_type_float>(t_float);
+    file->get_dataset("simulation_fixed/int/time")->append<T_hdf5_type_int>(t);
+    file->get_dataset("simulation_fixed/float/time")->append<T_hdf5_type_float>(t_float);
     
     // Storage for state-variables and assignments:
     % for eqn in eqns_assignments:
-    file->get_dataset("simulation-fixed/int/variables/${eqn.lhs}")->append<T_hdf5_type_int>( d.${eqn.lhs} );
-    file->get_dataset("simulation-fixed/float/variables/${eqn.lhs}")->append<T_hdf5_type_float>( to_float(  d.${eqn.lhs},  ${eqn.lhs_annotation.fixed_scaling_power} ) );
+    file->get_dataset("simulation_fixed/int/variables/${eqn.lhs}")->append<T_hdf5_type_int>( d.${eqn.lhs} );
+    file->get_dataset("simulation_fixed/float/variables/${eqn.lhs}")->append<T_hdf5_type_float>( to_float(  d.${eqn.lhs},  ${eqn.lhs_annotation.fixed_scaling_power} ) );
     % endfor   
     
     % for eqn in eqns_timederivatives:
-    file->get_dataset("simulation-fixed/int/variables/${eqn.lhs}")->append<T_hdf5_type_int>( d.${eqn.lhs} );
-    file->get_dataset("simulation-fixed/float/variables/${eqn.lhs}")->append<T_hdf5_type_float>( to_float(  d.${eqn.lhs},  ${eqn.lhs_annotation.fixed_scaling_power} ) );
+    file->get_dataset("simulation_fixed/int/variables/${eqn.lhs}")->append<T_hdf5_type_int>( d.${eqn.lhs} );
+    file->get_dataset("simulation_fixed/float/variables/${eqn.lhs}")->append<T_hdf5_type_float>( to_float(  d.${eqn.lhs},  ${eqn.lhs_annotation.fixed_scaling_power} ) );
     % endfor   
     /* -------------------------------------------------------------------------------------------- */
     
@@ -520,10 +520,6 @@ class Eqn(object):
         
         self.lhs_annotation = lhs_annotation 
         self.rhs_annotation = rhs_annotation
-
-
-
-
 
 
 
