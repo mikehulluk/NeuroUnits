@@ -60,21 +60,6 @@ int from_float(double val, int upscale, int whoami=0)
 }
 
 
-
-
-
-##//FILE* fdebug;
-##void  dump_op_info(int op, int input1, int input2, int output)
-##{
-##    std::stringstream os;
-##    os << "OP{" << op <<"}: " << input1 << " " << input2 << " => " << output << "\n";
-##    fprintf(fdebug, "%s", os.str().c_str() );
-##    
-##
-##} 
-
-
-
 int auto_shift(int n, int m)
 {
     //std::cout << "\n" << "n/m:" << n << "/" << m << "\n";
@@ -124,22 +109,16 @@ int do_add_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     if(diff <0) diff = -diff;
     assert( (diff==0)  || (diff==1));
     
-    // Store info:   
-    ##dump_op_info(expr_id, v1, v2, res_fp);
-    
-    
-    
-    
+   
     // Write to HDF5:
     //////////////////
-    // Floating point version: 
+    // -- Floating point version: 
     HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% expr_id ).str())->append_buffer( 
             DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp) ) ;
     
-    // Integer version: 
+    // -- Integer version: 
     HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% expr_id ).str())->append_buffer( 
             DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) v1 | (T_hdf5_type_int) v2 | (T_hdf5_type_int) (res_int) ) ;
-    
     
     return res_int;    
 } 
@@ -158,12 +137,26 @@ int do_sub_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     
     
     //std::cout << "\nSub OP:" << res_fp << " and " << res_int  << "\n";
+    
+    // Check the results:
+    // //////////////////
     int diff = res_int - res_fp;
     if(diff <0) diff = -diff;
     assert( (diff==0)  || (diff==1));
+
+
+
+    // Write to HDF5:
+    //////////////////
+    // -- Floating point version: 
+    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% expr_id ).str())->append_buffer( 
+            DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp) ) ;
     
-    // Store info:  
-    ##dump_op_info(expr_id, v1, v2, res_fp);   
+    // -- Integer version: 
+    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% expr_id ).str())->append_buffer( 
+            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) v1 | (T_hdf5_type_int) v2 | (T_hdf5_type_int) (res_int) ) ;
+
+
     return res_int;    
 } 
 
@@ -183,8 +176,18 @@ int do_mul_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     if(diff <0) diff = -diff;
     assert( (diff==0)  || (diff==1));
     
-    // Store info:  
-    ##dump_op_info(expr_id, v1, v2, res_fp);   
+    
+    
+    // Write to HDF5:
+    //////////////////
+    // -- Floating point version: 
+    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% expr_id ).str())->append_buffer( 
+            DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp) ) ;
+    
+    // -- Integer version: 
+    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% expr_id ).str())->append_buffer( 
+            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) v1 | (T_hdf5_type_int) v2 | (T_hdf5_type_int) (res_int) ) ;
+    
     return res_int;    
 } 
 
@@ -213,9 +216,16 @@ int do_div_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     int diff = res_int - res_fp;
     if(diff <0) diff = -diff;
     
+    // Write to HDF5:
+    //////////////////
+    // -- Floating point version: 
+    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% expr_id ).str())->append_buffer( 
+            DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp) ) ;
     
-    // Store info:  
-    ##dump_op_info(expr_id, v1, v2, res_fp);   
+    // -- Integer version: 
+    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% expr_id ).str())->append_buffer( 
+            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) v1 | (T_hdf5_type_int) v2 | (T_hdf5_type_int) (res_int) ) ;
+    
     return res_int;    
 } 
 
@@ -224,7 +234,18 @@ int int_exp(int v1, int up1, int up_local, int expr_id)
     int res_fp = from_float( exp( to_float(v1,up1) ), up_local );
     
     
-    //dump_op_info(expr_id, v1, v2, res_fp); 
+
+    
+    // Write to HDF5:
+    //////////////////
+    // -- Floating point version: 
+    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% expr_id ).str())->append_buffer( 
+            DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) |  (T_hdf5_type_float) (res_fp) ) ;
+    
+    ## // -- Integer version: 
+    ## HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% expr_id ).str())->append_buffer( 
+    ##        DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) v1 | (T_hdf5_type_int) (res_int) ) ;
+    
     
     return res_fp;
 
@@ -234,77 +255,80 @@ int int_exp(int v1, int up1, int up_local, int expr_id)
 
 
 // Define the data-structures:
-${DEF_DATASTRUCT}
+##${DEF_DATASTRUCT}
+struct NrnData
+{
+    // Parameters:
+% for p_def in parameter_defs:
+    ${p_def.datatype} ${p_def.name};      // Upscale: ${p_def.annotation.fixed_scaling_power}
+% endfor
+
+    // Assignments:
+% for a_def in assignment_defs:
+    ${a_def.datatype} ${a_def.name};      // Upscale: ${a_def.annotation.fixed_scaling_power}
+% endfor
+
+    // States:
+% for sv_def in state_var_defs:
+    ${sv_def.datatype} ${sv_def.name};    // Upscale: ${sv_def.annotation.fixed_scaling_power}
+    ${sv_def.datatype} d_${sv_def.name};
+% endfor
+};
+
+
+
+
 
 // Update-function
-${DEF_UPDATE_FUNC}
+##${DEF_UPDATE_FUNC}
+void sim_step(NrnData& d, int time_step)
+{
+    const double dt = 0.1e-3;
+    const double t_float = time_step * dt;
+    const int t = from_float(t_float, 1);
+
+    std::cout << "t: " << t << "\n";
+
+    // Calculate assignments:
+% for eqn in eqns_assignments:
+    d.${eqn.lhs} = from_float( to_float( ${eqn.rhs},  ${eqn.rhs_annotation.fixed_scaling_power}), ${eqn.lhs_annotation.fixed_scaling_power}) ;
+% endfor
+
+    // Calculate delta's for all state-variables:
+% for eqn in eqns_timederivatives:
+    float d_${eqn.lhs} = to_float( ${eqn.rhs} , ${eqn.rhs_annotation.fixed_scaling_power}) * dt;
+    d.${eqn.lhs} += from_float( ( d_${eqn.lhs} ),  ${eqn.lhs_annotation.fixed_scaling_power} );
+% endfor    
+    
+    
+    
+    
+    
+    // Write to HDF5
+    /* -------------------------------------------------------------------------------------------- */
+    HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
+    
+    // Time
+    file->get_dataset("simulation_fixed/int/time")->append<T_hdf5_type_int>(t);
+    file->get_dataset("simulation_fixed/float/time")->append<T_hdf5_type_float>(t_float);
+    
+    // Storage for state-variables and assignments:
+    % for eqn in eqns_assignments:
+    file->get_dataset("simulation_fixed/int/variables/${eqn.lhs}")->append<T_hdf5_type_int>( d.${eqn.lhs} );
+    file->get_dataset("simulation_fixed/float/variables/${eqn.lhs}")->append<T_hdf5_type_float>( to_float(  d.${eqn.lhs},  ${eqn.lhs_annotation.fixed_scaling_power} ) );
+    % endfor   
+    
+    % for eqn in eqns_timederivatives:
+    file->get_dataset("simulation_fixed/int/variables/${eqn.lhs}")->append<T_hdf5_type_int>( d.${eqn.lhs} );
+    file->get_dataset("simulation_fixed/float/variables/${eqn.lhs}")->append<T_hdf5_type_float>( to_float(  d.${eqn.lhs},  ${eqn.lhs_annotation.fixed_scaling_power} ) );
+    % endfor   
+    /* -------------------------------------------------------------------------------------------- */
+
+
+}
 
 
 
-
-##
-##std::ostream& operator << (std::ostream& o, const NrnData& d)
-##{
-##   
-##    % for a_def in assignment_defs:
-##    o << to_float( d.${a_def.name}, ${a_def.annotation.fixed_scaling_power} )  << ","; 
-##    % endfor
-##        
-##    % for sv_def in state_var_defs:
-##    o << to_float( d.${sv_def.name}, ${sv_def.annotation.fixed_scaling_power} )  << ","; 
-##    % endfor
-##    
-##    return o;
-##}
-
-
-
-##void write_float(std::ostream& o, const NrnData& d)
-##{
-##   
-##    % for a_def in assignment_defs:
-##    o << to_float( d.${a_def.name}, ${a_def.annotation.fixed_scaling_power} )  << ","; 
-##    % endfor
-##        
-##    % for sv_def in state_var_defs:
-##    o << to_float( d.${sv_def.name}, ${sv_def.annotation.fixed_scaling_power} )  << ","; 
-##    % endfor
-##}
-
-
-##void write_int(std::ostream& o, const NrnData& d)
-##{
-##   
-##    % for a_def in assignment_defs:
-##    o << d.${a_def.name}  << ","; 
-##    % endfor
-##        
-##    % for sv_def in state_var_defs:
-##    o << d.${sv_def.name}  << ","; 
-##    % endfor
-##}
-
-
-
-
-
-
-
-##std::ostream& header(std::ostream& o)
-##{          
-##    o << "i,";
-##    % for a_def in assignment_defs:
-##    o << "${a_def.name}" << ","; 
-##    % endfor
-##        
-##    % for sv_def in state_var_defs:
-##    o << "${sv_def.name}" << ","; 
-##    % endfor
-##    
-##    o << "\n";
-##    
-##    return o;   
-##}
 
 
 
@@ -356,6 +380,8 @@ void setup_hdf5()
 int main()
 {
 
+    
+    // Enable floating point exception trapping:
     //feenableexcept(-1);
     feenableexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW | FE_INVALID);
     
@@ -364,14 +390,6 @@ int main()
     
     setup_hdf5();
     
-
-    //fdebug = fopen("debug.log","w");
-    
-    //std::ofstream results_file_float("${output_filename}");
-    //std::ofstream results_file_int("${output_filename}_int");
-    //header(results_file_float);
-    //header(results_file_int);
-
     NrnData data;
     initialise_statevars(data);
 
@@ -379,25 +397,13 @@ int main()
 
     for(int i=0;i<3000;i++)
     {
+    
         std::cout << "Loop: " << i << "\n";
         sim_step(data, i);
-
-        
-        // Results:
-        //results_file_int << i << ",";
-        //write_int( results_file_int, data); 
-        //results_file_int << "\n";
-
-        
-        //results_file_float << i << ",";
-        //write_float( results_file_float, data); 
-        //results_file_float << "\n";
-        
+                
     }
 
-    //results_file_float.close();
-    //results_file_int.close();
-    //fclose(fdebug);
+
     
 
     printf("Simulation Complete\n");
@@ -410,32 +416,30 @@ int main()
 
 
 
-
-nrn_data_blk = r"""
-struct NrnData
-{
-    // Parameters:
-% for p_def in parameter_defs:
-    ${p_def.datatype} ${p_def.name};      // Upscale: ${p_def.annotation.fixed_scaling_power}
-% endfor
-
-    // Assignments:
-% for a_def in assignment_defs:
-    ${a_def.datatype} ${a_def.name};      // Upscale: ${a_def.annotation.fixed_scaling_power}
-% endfor
-
-    // States:
-% for sv_def in state_var_defs:
-    ${sv_def.datatype} ${sv_def.name};    // Upscale: ${sv_def.annotation.fixed_scaling_power}
-    ${sv_def.datatype} d_${sv_def.name};
-% endfor
-};
-
-
-
-"""
-
-
+# 
+# nrn_data_blk = r"""
+# struct NrnData
+# {
+#     // Parameters:
+# % for p_def in parameter_defs:
+#     ${p_def.datatype} ${p_def.name};      // Upscale: ${p_def.annotation.fixed_scaling_power}
+# % endfor
+# 
+#     // Assignments:
+# % for a_def in assignment_defs:
+#     ${a_def.datatype} ${a_def.name};      // Upscale: ${a_def.annotation.fixed_scaling_power}
+# % endfor
+# 
+#     // States:
+# % for sv_def in state_var_defs:
+#     ${sv_def.datatype} ${sv_def.name};    // Upscale: ${sv_def.annotation.fixed_scaling_power}
+#     ${sv_def.datatype} d_${sv_def.name};
+# % endfor
+# };
+# 
+# 
+# 
+# """
 
 
 
@@ -443,59 +447,55 @@ struct NrnData
 
 
 
-update_func = r"""
-void sim_step(NrnData& d, int time_step)
-{
-    const double dt = 0.1e-3;
-    const double t_float = time_step * dt;
-    const int t = from_float(t_float, 1);
-
-    std::cout << "t: " << t << "\n";
-
-    // Calculate assignments:
-% for eqn in eqns_assignments:
-    d.${eqn.lhs} = from_float( to_float( ${eqn.rhs},  ${eqn.rhs_annotation.fixed_scaling_power}), ${eqn.lhs_annotation.fixed_scaling_power}) ;
-% endfor
-
-    // Calculate delta's for all state-variables:
-% for eqn in eqns_timederivatives:
-    float d_${eqn.lhs} = to_float( ${eqn.rhs} , ${eqn.rhs_annotation.fixed_scaling_power}) * dt;
-    d.${eqn.lhs} += from_float( ( d_${eqn.lhs} ),  ${eqn.lhs_annotation.fixed_scaling_power} );
-% endfor    
-    
-    
-    
-    
-    
-    // Write to HDF5
-    /* -------------------------------------------------------------------------------------------- */
-    HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
-    
-    // Time
-    file->get_dataset("simulation_fixed/int/time")->append<T_hdf5_type_int>(t);
-    file->get_dataset("simulation_fixed/float/time")->append<T_hdf5_type_float>(t_float);
-    
-    // Storage for state-variables and assignments:
-    % for eqn in eqns_assignments:
-    file->get_dataset("simulation_fixed/int/variables/${eqn.lhs}")->append<T_hdf5_type_int>( d.${eqn.lhs} );
-    file->get_dataset("simulation_fixed/float/variables/${eqn.lhs}")->append<T_hdf5_type_float>( to_float(  d.${eqn.lhs},  ${eqn.lhs_annotation.fixed_scaling_power} ) );
-    % endfor   
-    
-    % for eqn in eqns_timederivatives:
-    file->get_dataset("simulation_fixed/int/variables/${eqn.lhs}")->append<T_hdf5_type_int>( d.${eqn.lhs} );
-    file->get_dataset("simulation_fixed/float/variables/${eqn.lhs}")->append<T_hdf5_type_float>( to_float(  d.${eqn.lhs},  ${eqn.lhs_annotation.fixed_scaling_power} ) );
-    % endfor   
-    /* -------------------------------------------------------------------------------------------- */
-    
-    
-    
-    
-    
-    
-
-
-}
-"""
+# 
+# 
+# update_func = r"""
+# void sim_step(NrnData& d, int time_step)
+# {
+#     const double dt = 0.1e-3;
+#     const double t_float = time_step * dt;
+#     const int t = from_float(t_float, 1);
+# 
+#     std::cout << "t: " << t << "\n";
+# 
+#     // Calculate assignments:
+# % for eqn in eqns_assignments:
+#     d.${eqn.lhs} = from_float( to_float( ${eqn.rhs},  ${eqn.rhs_annotation.fixed_scaling_power}), ${eqn.lhs_annotation.fixed_scaling_power}) ;
+# % endfor
+# 
+#     // Calculate delta's for all state-variables:
+# % for eqn in eqns_timederivatives:
+#     float d_${eqn.lhs} = to_float( ${eqn.rhs} , ${eqn.rhs_annotation.fixed_scaling_power}) * dt;
+#     d.${eqn.lhs} += from_float( ( d_${eqn.lhs} ),  ${eqn.lhs_annotation.fixed_scaling_power} );
+# % endfor    
+#     
+#     
+#     
+#     
+#     
+#     // Write to HDF5
+#     /* -------------------------------------------------------------------------------------------- */
+#     HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
+#     
+#     // Time
+#     file->get_dataset("simulation_fixed/int/time")->append<T_hdf5_type_int>(t);
+#     file->get_dataset("simulation_fixed/float/time")->append<T_hdf5_type_float>(t_float);
+#     
+#     // Storage for state-variables and assignments:
+#     % for eqn in eqns_assignments:
+#     file->get_dataset("simulation_fixed/int/variables/${eqn.lhs}")->append<T_hdf5_type_int>( d.${eqn.lhs} );
+#     file->get_dataset("simulation_fixed/float/variables/${eqn.lhs}")->append<T_hdf5_type_float>( to_float(  d.${eqn.lhs},  ${eqn.lhs_annotation.fixed_scaling_power} ) );
+#     % endfor   
+#     
+#     % for eqn in eqns_timederivatives:
+#     file->get_dataset("simulation_fixed/int/variables/${eqn.lhs}")->append<T_hdf5_type_int>( d.${eqn.lhs} );
+#     file->get_dataset("simulation_fixed/float/variables/${eqn.lhs}")->append<T_hdf5_type_float>( to_float(  d.${eqn.lhs},  ${eqn.lhs_annotation.fixed_scaling_power} ) );
+#     % endfor   
+#     /* -------------------------------------------------------------------------------------------- */
+# 
+# 
+# }
+# """
 
 
 
@@ -544,9 +544,14 @@ class IntermediateNodeFinder(ASTActionerDefaultIgnoreMissing):
         
     def ActionExpOp(self, o, **kwargs):
         self.valid_nodes[o] = 3
-        
 
+    def ActionFun(self, o, **kwargs):
+        self.valid_nodes[o] = 3        
 
+    def ActionFunctionDefInstantiation(self, o, **kwargs):
+        assert o.function_def.is_builtin()
+        assert o.function_def.funcname == '__exp__'
+        self.valid_nodes[o] = 2      
 
 
 
@@ -665,6 +670,12 @@ class CBasedFixedWriter(ASTVisitorBase):
         return o.symbol
 
 
+
+
+    
+    
+    
+
 class CBasedEqnWriterFixed(object):
     def __init__(self, component, output_filename, annotations, nbits):
         
@@ -696,21 +707,25 @@ class CBasedEqnWriterFixed(object):
         self.td_eqns = sorted(self.td_eqns, key=lambda o: o.lhs.lower())
                 
 
-        def_DATASTRUCT = self.build_data_structure()
-        def_UPDATEFUNC = self.build_update_function()
+        #def_DATASTRUCT = self.build_data_structure()
+        #def_UPDATEFUNC = self.build_update_function()
 
       
         cfile = Template(c_prog).render(
-                    DEF_DATASTRUCT = def_DATASTRUCT,
-                    DEF_UPDATE_FUNC = def_UPDATEFUNC ,
+                    #DEF_DATASTRUCT = def_DATASTRUCT,
+                    #DEF_UPDATE_FUNC = def_UPDATEFUNC ,
                     output_filename = output_filename,
                     state_var_defs = self.state_var_defs,
                     assignment_defs = self.assignment_defs,
+                    parameter_defs = self.parameter_defs,
+                    eqns_timederivatives = self.td_eqns,
+                    eqns_assignments = self.ass_eqns,
+                    floattype = self.float_type,
                     nbits=nbits,
                     intermediate_store_locs=intermediate_store_locs
-                    
-                    
                     )
+
+
 
         # Compile and run:
         for f in ['sim1.cpp','a.out',output_filename, 'debug.log',]:
@@ -736,8 +751,51 @@ class CBasedEqnWriterFixed(object):
         subprocess.check_call(c2, shell=True)
 
 
+        self.results = CBasedEqnWriterFixedResultsProxy(self)
 
         return 
+    
+    
+#     def build_data_structure(self):
+# 
+#         ds = Template(nrn_data_blk).render(
+#                 parameter_defs = self.parameter_defs,
+#                 state_var_defs = self.state_var_defs,
+#                 assignment_defs = self.assignment_defs,
+#                 floattype = self.float_type,
+#                 )
+#         return ds
+# 
+# 
+# 
+#     def build_update_function(self, ):
+#         
+#         func = Template(update_func).render(
+#                 eqns_timederivatives = self.td_eqns,
+#                 eqns_assignments = self.ass_eqns,
+#                 floattype = self.float_type,
+#                 )
+#         return func
+
+
+    
+
+
+
+class CBasedEqnWriterFixedResultsProxy(object):
+    def __init__(self, eqnwriter):
+        self.eqnwriter = eqnwriter
+
+
+
+
+
+    
+    
+    
+    
+    
+    
 
 
         import pylab
@@ -878,32 +936,6 @@ class CBasedEqnWriterFixed(object):
         #assert False
         
         
-
-
-    def build_data_structure(self):
-
-        ds = Template(nrn_data_blk).render(
-                parameter_defs = self.parameter_defs,
-                state_var_defs = self.state_var_defs,
-                assignment_defs = self.assignment_defs,
-                floattype = self.float_type,
-                )
-        return ds
-
-
-
-    def build_update_function(self, ):
-        
-        
-
-
-
-        func = Template(update_func).render(
-                eqns_timederivatives = self.td_eqns,
-                eqns_assignments = self.ass_eqns,
-                floattype = self.float_type,
-                )
-        return func
 
 
 

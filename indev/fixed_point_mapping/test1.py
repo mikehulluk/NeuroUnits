@@ -14,11 +14,17 @@ from neurounits.visitors.bases.base_actioner import ASTActionerDepthFirst
 from fixed_point_annotations import VarAnnot, ASTDataAnnotator, CalculateInternalStoragePerNode
 from neurounits.visitors.common.plot_networkx import ActionerPlotNetworkX
 
+from neurounits.tools.fixed_point import CBasedEqnWriterFixed
+from hdfjive import HDF5SimulationResultFile
+import tables
+import numpy as np
 
 
 
+from neurounits.tools.fixed_point import CBasedEqnWriterFloat
 
-
+import os
+import time
 
 
 
@@ -310,7 +316,7 @@ var_annots = {
 
 test_c = False
 if test_c:
-    from neurounits.tools.fixed_point import CBasedEqnWriter
+
     CBasedEqnWriter(comp, float_type='float',  output_filename='res_float.txt',  annotations=[] )
     CBasedEqnWriter(comp, float_type='double', output_filename='res_double.txt',  annotations=[] )
     CBasedEqnWriter(comp, float_type='mpf_class', output_filename='res_gmp.txt',  annotations=[] )
@@ -369,8 +375,6 @@ CalculateInternalStoragePerNode(annotations=annotations, nbits=nbits).visit(comp
 
 
 
-import os
-import time
 
 
 print
@@ -379,35 +383,26 @@ print 'Writing out to C-file'
 print '===================='
 
 
-from neurounits.tools.fixed_point import CBasedEqnWriterFixed
-CBasedEqnWriterFixed(comp, output_filename='output.hd5',  annotations=annotations, nbits=nbits)
 
 
 
-#data_int = np.loadtxt('res_int.txt')
-#with open('res_int.txt') as f:
-#    d = f.read()
-#os.unlink('res_int.txt')
-#with open('res_int.txt', 'w') as f:
-#    f.write( d.replace(",\n","\n") )
+fixed_sim_res = CBasedEqnWriterFixed(comp, output_filename='output.hd5',  annotations=annotations, nbits=nbits).results
 
 
 
 
 
 
-from hdfjive import HDF5SimulationResultFile
-import tables
+
 
 results = HDF5SimulationResultFile("output.hd5")
-
 float_group = results.h5file.root._f_getChild('/simulation_fixed/float/variables/')
 time_array = results.h5file.root._f_getChild('/simulation_fixed/float/time')
 
 
 
 
-import numpy as np
+
 
 
 
@@ -439,25 +434,6 @@ if simulate:
     res = comp.simulate( times = np.arange(0, 0.2,0.0001) )
     res.auto_plot()
     #pylab.show()
-
-
-
-
-
-
-
-# 
-# t = np.linspace(0,0.3,num=3000)
-# correct = 1.5 * (1.-np.exp(-t/20e-3) )
-# 
-# pylab.plot(data_int['i']/10000., data_int['a'], 'x',label='fixed-a' )
-# pylab.plot(data_int['i']/10000., data_int['A'], 'x',label='fixed-A' )
-# 
-# pylab.plot(t+0.1,correct,'r-')
-# pylab.legend()
-# pylab.show()
-# assert False
-
 
 
 
@@ -531,30 +507,4 @@ pylab.show()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-#pylab.figure()
-#pylab.plot(data_float[:,0], data_float[:,2], label='na' )
-#pylab.plot(data_float[:,0], data_float[:,3], label='na' )
-#
-#pylab.figure()
-#pylab.plot(data_float[:,0], data_float[:,4], label='na' )
-
-#
-#data_double = np.loadtxt('res_double.txt')
-#pylab.legend()
-#
-#
-#pylab.show()
-#
 
