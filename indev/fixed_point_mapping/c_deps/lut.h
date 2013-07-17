@@ -112,6 +112,8 @@ public:
 
 double my_fabs(double x) { return fabs(x); }
 
+const float recip_ln_two = 1.44269504;
+
 
 template<typename MathFunction>
 class LookUpTablePower2
@@ -173,9 +175,9 @@ public:
                 //
                 // The optimal fixed point value upscaling to get our value in the range (-1,1) will be
                 // fp = ln2( exp(x) )
-                // which turns out to be linear in x:
+                // which turns out to be linear in x (:
                 // fp =~ 1.4426 * x
-                int fp_upscale = 1.4426 * x_value_double;
+                int fp_upscale = recip_ln_two * x_value_double;
                 cout << "  -- fixed_point upscale: " << fp_upscale << "\n";
 
                 int res_as_int = from_float(res, fp_upscale);
@@ -231,8 +233,8 @@ public:
             int yn = pData[index_0];
             int yn1 = pData[index_0+1];
 
-            int fp_upscale_n = int( 1.4426 *  xn );
-            int fp_upscale_n1 = int( 1.4426 *  xn1 );
+            int fp_upscale_n = int( recip_ln_two  *  xn );
+            int fp_upscale_n1 = int( recip_ln_two *  xn1 );
 
 
 
@@ -248,6 +250,7 @@ public:
             float yn1_fl = to_float(yn1, fp_upscale_n1);
 
             // OK, lets linearly interpolate between these values:
+            // 3. Interpolate between yn and yn+1
             float prop_to_next = (xout - xn) / (xn1-xn);
             cout << "\n -- prop to next: " << prop_to_next;
             float y_out = yn_fl + (yn1_fl-yn_fl) * prop_to_next;
@@ -258,56 +261,25 @@ public:
             cout << "\n -- Interpolated y :" << y_out;
 
 
+
             cout << "\n\n";
-            //#assert(0);
 
             int res_int_proper = from_float(y_out, up_out);
 
-            // 3. Interpolate between yn and yn+1
-            //
-            //
-
-            /*
-            assert(0); //To do!
-
-            double upscale_factor_in =  pow(2.0, upscale);
-            double index0_dbl = x * pow(2.0, up_x) / pow(2.0, this->upscale) / range_max * table_size_half;
-            int index0 = int_to_index( (int) index0_dbl );
-            cout << "\nindex0: " << index0;
-
-            cout << "\nIndex0: " << index0 << ";";
-            int v0 = pData[index0];
-            int v1 = pData[index0+1];
-
-            double x_value_double_v0 = int(index0_dbl)  * ( table_size_half / upscale_factor_in);
-            double x_value_double_v1 = (int(index0_dbl) + 1) * (table_size_half/upscale_factor_in);
-;
-
-            // Map to doubles:
-            int v0_up =  1.4426 * x_value_double_v0;
-            int v1_up =  1.4426 * x_value_double_v1;
-            double v0_dbl = to_float( v0, v0_up);
-            double v1_dbl = to_float( v1, v1_up);
-
-            cout << "\n -- v0_dbl:" << v0_dbl << "";
-            cout << "\n -- v1_dbl:" << v1_dbl << "";
 
 
-            cout << "\n\n";
-            assert(0);
-            */
 
-            // For validation:
-            //double xout = exp( to_float(x,up_x) );
             int res_int = from_float(exp(xout), up_out);
 
 
             // Validate:
             int diff = res_int_proper - res_int;
             if(diff < 0) diff = -diff;
+            float error = ((float)diff / res_int_proper);
+            cout << "\n -- Error y: " << error * 100. << "%";
             cout << "\n  -- diff: " << diff;
             cout << "\n\n";
-            assert(diff <10 || ( (float) diff / res_int_proper) < 0.001);
+            assert(diff <10 || ( (float) diff / res_int_proper) < 0.1e-2);
 
 
 

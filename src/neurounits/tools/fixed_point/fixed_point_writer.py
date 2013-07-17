@@ -84,7 +84,7 @@ struct LookUpTables
 {
 
     LookUpTables() 
-        : exponential(10, 3)    // (nbits, upscale)
+        : exponential(8, 3)    // (nbits, upscale)
     { }
     
     LookUpTableExpPower2 exponential;
