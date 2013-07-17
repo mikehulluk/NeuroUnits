@@ -390,6 +390,12 @@ fixed_sim_res = CBasedEqnWriterFixed(comp, output_filename='output.hd5',  annota
 
 
 
+fixed_sim_res.plot_func_exp()
+
+assert False
+
+
+
 
 
 
@@ -398,6 +404,8 @@ fixed_sim_res = CBasedEqnWriterFixed(comp, output_filename='output.hd5',  annota
 results = HDF5SimulationResultFile("output.hd5")
 float_group = results.h5file.root._f_getChild('/simulation_fixed/float/variables/')
 time_array = results.h5file.root._f_getChild('/simulation_fixed/float/time')
+
+
 
 
 

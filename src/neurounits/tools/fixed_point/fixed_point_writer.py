@@ -8,6 +8,10 @@ import subprocess
 from neurounits.visitors.bases.base_actioner_default import ASTActionerDefault
 from neurounits.visitors.bases.base_actioner_default_ignoremissing import ASTActionerDefaultIgnoreMissing
 
+
+import numpy as np
+
+
 c_prog = r"""
 
 #include <stdio.h>
@@ -42,6 +46,19 @@ const int nbits = ${nbits};
 const int range_max = (1<<(nbits-1)) ;  
 
 
+
+
+#define CALCULATE_FLOAT true
+#define SAVE_HDF5_FLOAT true
+#define SAVE_HDF5_INT true
+
+#define CHECK_INT_FLOAT_COMPARISON true
+
+
+
+
+
+
 // Save-data function
 
 double to_float(int val, int upscale)
@@ -58,6 +75,26 @@ int from_float(double val, int upscale, int whoami=0)
     //std::cout << "from_float(" << val << ", " << upscale << ") => " << res << "\n";
     return res;
 }
+
+
+
+#include "c_deps/lut.h"
+
+struct LookUpTables
+{
+
+    LookUpTables() 
+        : exponential(10, 3)    // (nbits, upscale)
+    { }
+    
+    LookUpTableExpPower2 exponential;
+
+
+};
+LookUpTables lookuptables;
+
+
+
 
 
 int auto_shift(int n, int m)
@@ -97,41 +134,58 @@ long auto_shift64(long n, int m)
 
 
 
+## #define CALCULATE_FLOAT true
+## #define SAVE_HDF5_FLOAT true
+## #define SAVE_HDF5_INT true
+
+## #define CHECK_INT_FLOAT_COMPARISON true
+
+
+
+
+
 
 int do_add_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
 {
-    int res_fp = from_float(to_float(v1,up1) + to_float(v2,up2), up_local);        
+            
     int res_int = auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local); 
-    
-    
-    //std::cout << "\nAdd OP:" << res_fp << " and " << res_int  << "\n";
-    int diff = res_int - res_fp;
-    if(diff <0) diff = -diff;
-    assert( (diff==0)  || (diff==1));
-    
-   
-    // Write to HDF5:
-    //////////////////
-    // -- Floating point version: 
-    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% expr_id ).str())->append_buffer( 
-            DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp) ) ;
-    
-    // -- Integer version: 
-    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% expr_id ).str())->append_buffer( 
+
+    if( SAVE_HDF5_INT )
+    {
+        HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% expr_id ).str())->append_buffer( 
             DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) v1 | (T_hdf5_type_int) v2 | (T_hdf5_type_int) (res_int) ) ;
+    }
     
+
+    
+    if(CALCULATE_FLOAT)
+    {
+        int res_fp = from_float(to_float(v1,up1) + to_float(v2,up2), up_local);
+        
+        if( CHECK_INT_FLOAT_COMPARISON )
+        {
+            int diff = res_int - res_fp;
+            if(diff <0) diff = -diff;
+            assert( (diff==0)  || (diff==1));
+        }
+        
+        if( SAVE_HDF5_FLOAT )
+        {
+            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% expr_id ).str())->append_buffer( 
+                    DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp) ) ;
+        }    
+    }
+   
     return res_int;    
 } 
 
 
 int do_sub_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
 {
-    int res_fp = from_float(to_float(v1,up1) - to_float(v2,up2), up_local);
     
     
-    // Convert into integer operations:
-    //double f1 = ( double(v1) * pow(2.0, up1) / double(range_max) ) - ( double(v2) * pow(2.0, up2) / double(range_max) );
-    //int res_int = int(f1 * (double(range_max) / pow(2.0, up_local) ) ) ;
+    
+    
     
     int res_int = auto_shift(v1, up1-up_local) - auto_shift(v2, up2-up_local); 
     
@@ -140,6 +194,7 @@ int do_sub_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     
     // Check the results:
     // //////////////////
+    int res_fp = from_float(to_float(v1,up1) - to_float(v2,up2), up_local);
     int diff = res_int - res_fp;
     if(diff <0) diff = -diff;
     assert( (diff==0)  || (diff==1));
@@ -211,10 +266,10 @@ int do_div_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     
     int res_int = v; 
     
-    
-    //std::cout << "\nDiv OP:" << res_fp << " and " << res_int  << "\n";
     int diff = res_int - res_fp;
     if(diff <0) diff = -diff;
+    //assert( (diff==0)  || (diff==1));
+    
     
     // Write to HDF5:
     //////////////////
@@ -231,8 +286,22 @@ int do_div_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
 
 int int_exp(int v1, int up1, int up_local, int expr_id)
 {
+
     int res_fp = from_float( exp( to_float(v1,up1) ), up_local );
     
+    ##double X = to_float(v1,up1);
+    ##cout << "\nint_exp::X " << X;
+    
+    ##double x_out = lookuptables.exponential.get( x );
+    ##int res_int = from_float(x_out, up_local);
+    
+    int res_int = lookuptables.exponential.get( v1, up1, up_local ); 
+    
+    
+    int diff = res_int - res_fp;
+    if(diff <0) diff = -diff;
+    //cout << "Diff: " << diff;
+    //assert( (diff==0)  || (diff==1) || (diff==2) );
     
 
     
@@ -255,7 +324,6 @@ int int_exp(int v1, int up1, int up_local, int expr_id)
 
 
 // Define the data-structures:
-##${DEF_DATASTRUCT}
 struct NrnData
 {
     // Parameters:
@@ -280,14 +348,17 @@ struct NrnData
 
 
 // Update-function
-##${DEF_UPDATE_FUNC}
 void sim_step(NrnData& d, int time_step)
 {
     const double dt = 0.1e-3;
     const double t_float = time_step * dt;
     const int t = from_float(t_float, 1);
 
-    std::cout << "t: " << t << "\n";
+    if(time_step%100 == 0)
+    {
+        std::cout << "Loop: " << time_step << "\n";
+        std::cout << "t: " << t << "\n";
+    }
 
     // Calculate assignments:
 % for eqn in eqns_assignments:
@@ -398,7 +469,7 @@ int main()
     for(int i=0;i<3000;i++)
     {
     
-        std::cout << "Loop: " << i << "\n";
+        
         sim_step(data, i);
                 
     }
@@ -413,89 +484,6 @@ int main()
 
 
 """
-
-
-
-# 
-# nrn_data_blk = r"""
-# struct NrnData
-# {
-#     // Parameters:
-# % for p_def in parameter_defs:
-#     ${p_def.datatype} ${p_def.name};      // Upscale: ${p_def.annotation.fixed_scaling_power}
-# % endfor
-# 
-#     // Assignments:
-# % for a_def in assignment_defs:
-#     ${a_def.datatype} ${a_def.name};      // Upscale: ${a_def.annotation.fixed_scaling_power}
-# % endfor
-# 
-#     // States:
-# % for sv_def in state_var_defs:
-#     ${sv_def.datatype} ${sv_def.name};    // Upscale: ${sv_def.annotation.fixed_scaling_power}
-#     ${sv_def.datatype} d_${sv_def.name};
-# % endfor
-# };
-# 
-# 
-# 
-# """
-
-
-
-
-
-
-
-# 
-# 
-# update_func = r"""
-# void sim_step(NrnData& d, int time_step)
-# {
-#     const double dt = 0.1e-3;
-#     const double t_float = time_step * dt;
-#     const int t = from_float(t_float, 1);
-# 
-#     std::cout << "t: " << t << "\n";
-# 
-#     // Calculate assignments:
-# % for eqn in eqns_assignments:
-#     d.${eqn.lhs} = from_float( to_float( ${eqn.rhs},  ${eqn.rhs_annotation.fixed_scaling_power}), ${eqn.lhs_annotation.fixed_scaling_power}) ;
-# % endfor
-# 
-#     // Calculate delta's for all state-variables:
-# % for eqn in eqns_timederivatives:
-#     float d_${eqn.lhs} = to_float( ${eqn.rhs} , ${eqn.rhs_annotation.fixed_scaling_power}) * dt;
-#     d.${eqn.lhs} += from_float( ( d_${eqn.lhs} ),  ${eqn.lhs_annotation.fixed_scaling_power} );
-# % endfor    
-#     
-#     
-#     
-#     
-#     
-#     // Write to HDF5
-#     /* -------------------------------------------------------------------------------------------- */
-#     HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
-#     
-#     // Time
-#     file->get_dataset("simulation_fixed/int/time")->append<T_hdf5_type_int>(t);
-#     file->get_dataset("simulation_fixed/float/time")->append<T_hdf5_type_float>(t_float);
-#     
-#     // Storage for state-variables and assignments:
-#     % for eqn in eqns_assignments:
-#     file->get_dataset("simulation_fixed/int/variables/${eqn.lhs}")->append<T_hdf5_type_int>( d.${eqn.lhs} );
-#     file->get_dataset("simulation_fixed/float/variables/${eqn.lhs}")->append<T_hdf5_type_float>( to_float(  d.${eqn.lhs},  ${eqn.lhs_annotation.fixed_scaling_power} ) );
-#     % endfor   
-#     
-#     % for eqn in eqns_timederivatives:
-#     file->get_dataset("simulation_fixed/int/variables/${eqn.lhs}")->append<T_hdf5_type_int>( d.${eqn.lhs} );
-#     file->get_dataset("simulation_fixed/float/variables/${eqn.lhs}")->append<T_hdf5_type_float>( to_float(  d.${eqn.lhs},  ${eqn.lhs_annotation.fixed_scaling_power} ) );
-#     % endfor   
-#     /* -------------------------------------------------------------------------------------------- */
-# 
-# 
-# }
-# """
 
 
 
@@ -543,10 +531,8 @@ class IntermediateNodeFinder(ASTActionerDefaultIgnoreMissing):
         self.valid_nodes[o] = 3
         
     def ActionExpOp(self, o, **kwargs):
+        assert False
         self.valid_nodes[o] = 3
-
-    def ActionFun(self, o, **kwargs):
-        self.valid_nodes[o] = 3        
 
     def ActionFunctionDefInstantiation(self, o, **kwargs):
         assert o.function_def.is_builtin()
@@ -684,9 +670,10 @@ class CBasedEqnWriterFixed(object):
         from neurounits.visitors.common.node_label_with_integers import NodeToIntLabeller
         
         
-        node_labeller = NodeToIntLabeller(component)
+        self.node_labeller = NodeToIntLabeller(component)
+        self.node_labels = self.node_labeller.node_to_int
         intermediate_nodes = IntermediateNodeFinder(component).valid_nodes
-        intermediate_store_locs = [("op%d" % node_labeller.node_to_int[o], o_number ) for (o, o_number) in intermediate_nodes.items()]
+        self.intermediate_store_locs = [("op%d" % self.node_labeller.node_to_int[o], o_number ) for (o, o_number) in intermediate_nodes.items()]
         
         
         
@@ -694,7 +681,7 @@ class CBasedEqnWriterFixed(object):
         self.float_type = 'int'
         self.annotations = annotations
 
-        self.writer = CBasedFixedWriter(annotations=annotations, component=component, node_int_labels=node_labeller.node_to_int)
+        self.writer = CBasedFixedWriter(annotations=annotations, component=component, node_int_labels=self.node_labeller.node_to_int)
 
 
         self.parameter_defs =[ VarDef(p.symbol, annotation=self.annotations[p]) for p in self.component.parameters]
@@ -706,14 +693,8 @@ class CBasedEqnWriterFixed(object):
         self.td_eqns = [ Eqn(td.lhs.symbol, self.writer.to_c(td.rhs_map), lhs_annotation=self.annotations[td.lhs], rhs_annotation=self.annotations[td.rhs_map]) for td in self.component.timederivatives]
         self.td_eqns = sorted(self.td_eqns, key=lambda o: o.lhs.lower())
                 
-
-        #def_DATASTRUCT = self.build_data_structure()
-        #def_UPDATEFUNC = self.build_update_function()
-
       
         cfile = Template(c_prog).render(
-                    #DEF_DATASTRUCT = def_DATASTRUCT,
-                    #DEF_UPDATE_FUNC = def_UPDATEFUNC ,
                     output_filename = output_filename,
                     state_var_defs = self.state_var_defs,
                     assignment_defs = self.assignment_defs,
@@ -722,7 +703,7 @@ class CBasedEqnWriterFixed(object):
                     eqns_assignments = self.ass_eqns,
                     floattype = self.float_type,
                     nbits=nbits,
-                    intermediate_store_locs=intermediate_store_locs
+                    intermediate_store_locs=self.intermediate_store_locs
                     )
 
 
@@ -756,30 +737,9 @@ class CBasedEqnWriterFixed(object):
         return 
     
     
-#     def build_data_structure(self):
-# 
-#         ds = Template(nrn_data_blk).render(
-#                 parameter_defs = self.parameter_defs,
-#                 state_var_defs = self.state_var_defs,
-#                 assignment_defs = self.assignment_defs,
-#                 floattype = self.float_type,
-#                 )
-#         return ds
-# 
-# 
-# 
-#     def build_update_function(self, ):
-#         
-#         func = Template(update_func).render(
-#                 eqns_timederivatives = self.td_eqns,
-#                 eqns_assignments = self.ass_eqns,
-#                 floattype = self.float_type,
-#                 )
-#         return func
-
-
     
-
+import pylab
+import pylab as plt
 
 
 class CBasedEqnWriterFixedResultsProxy(object):
@@ -787,13 +747,92 @@ class CBasedEqnWriterFixedResultsProxy(object):
         self.eqnwriter = eqnwriter
 
 
+    def plot_func_exp(self):
+        import tables
+        h5file = tables.openFile("output.hd5")
+        
+        float_group = h5file.root._f_getChild('/simulation_fixed/float/variables/')
+        time_array = h5file.root._f_getChild('/simulation_fixed/float/time').read()
 
+        from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
 
-
+        from neurounits import ast
+        func_call_nodes = EqnsetVisitorNodeCollector(self.eqnwriter.component).nodes[ ast.FunctionDefInstantiation ]
+        print func_call_nodes
+        
+        
+        #node_locs = dict(self.eqnwriter.intermediate_store_locs)
+        #print node_locs 
+        
+        
+        nbits = 10
+        LUT_size = 2**nbits
+        
+        in_min_max = None
+        
+        for func_call_node in func_call_nodes:
+            
+            try:
+                node_loc = self.eqnwriter.node_labels[ func_call_node ]
+                 
+                data = h5file.root._f_getChild('/simulation_fixed/float/operations/' + "op%d" % node_loc).read()
+                
+                print data.shape
+                print time_array.shape
+                
+                
+                in_data = data[:,0]
+                out_data = data[:,1]
+                
+                in_min = np.min(in_data)
+                in_max = np.max(in_data)
+                out_min = np.min(out_data)
+                out_max = np.max(out_data)
+            
+            
+                if in_min_max == None:
+                    in_min_max = (in_min, in_max)
+                else:
+                    in_min_max = (np.min([in_min,in_min_max[0]]), np.max([in_max, in_min_max[1]]) )
+                    
+                    
+                
+                f = pylab.figure()
+                ax1 = f.add_subplot(3,1,1)
+                ax2 = f.add_subplot(3,1,2)
+                ax3 = f.add_subplot(3,1,3)
+                
+                
+                
+                x_space = np.linspace( in_min, in_max, num=2**(nbits+8))
+                x_space_binned = np.linspace( in_min, in_max, num=LUT_size)
+                 
+                
+                
+                
+                ax1.plot(time_array, in_data, label='in_data (in: %f to %f)' % (in_min, in_max) )
+                ax2.plot(time_array, out_data, label='out_data (in: %f to %f)' % (out_min, out_max) )
+                ax1.legend()
+                ax2.legend()
+                
+                ax3.plot( x_space, np.exp(x_space) )
+                #fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharex=True, sharey=True)
+                
+                
+                
+                
+                pylab.legend()
+        
+            except tables.exceptions.NoSuchNodeError, e :
+                print 'Not such group!: ', e
+        
+        
+        print 'In_min_max = ', in_min_max
+        
+        pylab.show()
     
     
-    
-    
+    def plot_blah(self):
     
     
 
