@@ -250,8 +250,8 @@ public:
             int nbits_table_int = nbits_table;
             //double xn =  (double)( (int)index_0 - (int) table_size_half) * pow(2.0, upscale_int) / table_size_half;
             //double xn1 = (double)( (int)(index_0+1) - (int) table_size_half) * pow(2.0, upscale_int) / table_size_half;
-            double xn =  (double)( (int)index_0 - (int) table_size_half) * pow(2.0, upscale_int- (nbits_table_int-1)) ; /// table_size_half;
-            double xn1 = (double)( (int)(index_0+1) - (int) table_size_half) * pow(2.0, upscale_int- (nbits_table_int-1)); // / table_size_half;
+            //#double xn =  (double)( (int)index_0 - (int) table_size_half) * pow(2.0, upscale_int- (nbits_table_int-1)) ; /// table_size_half;
+            //double xn1 = (double)( (int)(index_0+1) - (int) table_size_half) * pow(2.0, upscale_int- (nbits_table_int-1)); // / table_size_half;
 
 
             // Calculate the scaling powers:
@@ -264,13 +264,30 @@ public:
             int right_shift = nbits_table_int - upscale_int -1 ;
             assert(right_shift > 0);
 
-            //int manual_upscale = 16;
-            //double xn_new =  (double)( (int)index_0 * pow(2.0, -right_shift) ) - pow(2.0, upscale_int) ;
-            double xn_new =  (double)( (int)index_0 * pow(2.0, -right_shift) ) - pow(2.0, upscale_int) ;
-            double xn1_new =  xn_new + pow(2.0, upscale_int- (nbits_table_int-1)) ;
+            //// Lets upscale so that we keep as much precision as possible:
+            //int manual_upscale = -right_shift + (nbits-1 - nbits_table) ;
+            ////double xn_new =  (double)( (int)index_0 * pow(2.0, -right_shift) ) - pow(2.0, upscale_int) ;
+            //double xn_new =  (double)( (int)index_0 * pow(2.0, -right_shift+manual_upscale) ) - pow(2.0, upscale_int+manual_upscale) ;
+            //double xn1_new =  xn_new + pow(2.0, upscale_int- (nbits_table_int-1) + manual_upscale) ;
 
-            int fp_upscale_n = int( recip_ln_two  *  xn_new );
-            int fp_upscale_n1 = int( recip_ln_two *  xn1_new );
+
+            
+            // Lets upscale so that we keep as much precision as possible:
+            int manual_upscale = -right_shift + (nbits-1 - nbits_table) ;
+            assert(-right_shift+manual_upscale > 0);
+            //int xn_new =  ( index_0<<(-right_shift+manual_upscale) )  - pow(2.0, upscale_int+manual_upscale) ;
+            //int xn1_new =  xn_new + pow(2.0, upscale_int- (nbits_table_int-1) + manual_upscale) ;
+            int xn_new =  ( index_0<<(-right_shift+manual_upscale) )  - (1<<(upscale_int+manual_upscale) );
+            int xn1_new =  xn_new + (1<< (upscale_int- (nbits_table_int-1) + manual_upscale) ) ;
+
+
+
+
+
+            cout << "\n =====>> xn_new: " << xn_new;
+
+            int fp_upscale_n = int( recip_ln_two  *  xn_new * pow(2.0, -manual_upscale) );
+            int fp_upscale_n1 = int( recip_ln_two *  xn1_new * pow(2.0, -manual_upscale) );
 
 
 
@@ -294,7 +311,8 @@ public:
 
             // OK, lets linearly interpolate between these values:
             // 3. Interpolate between yn and yn+1
-            float prop_to_next = (fp_xout - xn) / (xn1-xn);
+            //float prop_to_next = (fp_xout - xn) / (xn1-xn);
+            float prop_to_next = (fp_xout - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) );
             cout << "\n -- prop to next: " << prop_to_next;
             float y_out = yn_fl + (yn1_fl-yn_fl) * prop_to_next;
 
