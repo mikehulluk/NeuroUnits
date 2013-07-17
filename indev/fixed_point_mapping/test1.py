@@ -390,9 +390,9 @@ fixed_sim_res = CBasedEqnWriterFixed(comp, output_filename='output.hd5',  annota
 
 
 
-fixed_sim_res.plot_func_exp()
+#fixed_sim_res.plot_func_exp()
 
-assert False
+#assert False
 
 
 
