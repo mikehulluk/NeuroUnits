@@ -224,46 +224,49 @@ public:
             cout << "\n -- index_0: " << index_0;
             */
 
+            int right_shift = nbits - up_x - 2;
+            int index_0_signed = (x>>right_shift) + table_size_half;
+            size_t index_0 = index_0_signed;
 
-
-            // As ints!:
-            // Since the range of the table is defined by its upscale, it make sense to use that as a basis:
-            //
-            double orig_x_neg_1_to_1 = to_float(x, up_x) / table_size_half;
-            double orig_index_0_fl = (( orig_x_neg_1_to_1 + 0.5 ) * table_size );
-            size_t orig_index_0 = (int)  orig_index_0_fl;
-            
-
-            // table_size_half(1<<(nbits_table-1))
-
-            //double x_neg_1_to_1 = ; 
-            //double index_0_fl = (( x_neg_1_to_1 + 0.5 ) * table_size );
-            //double index_0_fl = ( to_float(x, up_x - (nbits_table-1) + (nbits_table) ) ) + table_size_half;
-            //
-            //
-            
-            //double index_0_fl = ( ( double(x) * pow(2.0, up_x+1 )  / double(range_max) ) ) + table_size_half;
-            double index_0_fl = ( ( double(x) * pow(2.0, up_x+2 - nbits )  ) ) + table_size_half;
-
-
-
-            
-            //double index_0_fl = ( to_float(x, up_x +1 ) ) + table_size_half;
-            size_t index_0 = (int)  index_0_fl;
-            
-            assert(index_0 == orig_index_0);
-
-            //assert ( x_neg_1_to_1 > -1 && x_neg_1_to_1 < 1);
-            // TODO = Convert to pure int:
+            if(0)
+            {
+                // Float check:
+                double orig_x_neg_1_to_1 = to_float(x, up_x) / table_size_half;
+                double orig_index_0_fl = (( orig_x_neg_1_to_1 + 0.5 ) * table_size );
+                size_t orig_index_0 = (int)  orig_index_0_fl;
+                assert(index_0 == orig_index_0);
+            }
             cout << "\n -->> index_0 (int): " << index_0;
 
 
             // 2. Look up yn and y+1, possibily need to scale
-            float xn = _x_vals[index_0];
-            float xn1 = _x_vals[index_0+1];
+            //float xn = _x_vals[index_0];
+            //float xn1 = _x_vals[index_0+1];
 
-            int fp_upscale_n = int( recip_ln_two  *  xn );
-            int fp_upscale_n1 = int( recip_ln_two *  xn1 );
+
+             // : nbits_table(nbits_table), upscale(upscale), table_size(1<<(nbits_table)), table_size_half(1<<(nbits_table-1))
+
+            int upscale_int = upscale;
+            int nbits_table_int = nbits_table;
+            //double xn =  (double)( (int)index_0 - (int) table_size_half) * pow(2.0, upscale_int) / table_size_half;
+            //double xn1 = (double)( (int)(index_0+1) - (int) table_size_half) * pow(2.0, upscale_int) / table_size_half;
+            double xn =  (double)( (int)index_0 - (int) table_size_half) * pow(2.0, upscale_int- (nbits_table_int-1)) ; /// table_size_half;
+            double xn1 = (double)( (int)(index_0+1) - (int) table_size_half) * pow(2.0, upscale_int- (nbits_table_int-1)); // / table_size_half;
+
+
+            // Calculate the scaling powers:
+            //double xn_new =  (double)( (int)index_0 - (int) table_size_half) * pow(2.0, upscale_int- (nbits_table_int-1)) ;
+            //double xn1_new =  xn_new + pow(2.0, upscale_int- (nbits_table_int-1)) ;
+
+            //double xn_new =  (double)( (int)index_0 * pow(2.0, upscale_int- (nbits_table_int-1)) ) - (int) table_size_half * pow(2.0, upscale_int- (nbits_table_int-1)) ;
+            double xn_new =  (double)( (int)index_0 * pow(2.0, upscale_int- (nbits_table_int-1)) ) - pow(2.0, upscale_int- (nbits_table_int-1) + (nbits_table_int-1) ) ;
+            double xn1_new =  xn_new + pow(2.0, upscale_int- (nbits_table_int-1)) ;
+
+            int fp_upscale_n = int( recip_ln_two  *  xn_new );
+            int fp_upscale_n1 = int( recip_ln_two *  xn1_new );
+
+
+
 
             int yn = pData[index_0];
             int yn1 = pData[index_0+1];
