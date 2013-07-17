@@ -224,8 +224,8 @@ public:
             cout << "\n -- index_0: " << index_0;
             */
 
-            int right_shift = nbits - up_x - 2;
-            int index_0_signed = (x>>right_shift) + table_size_half;
+            int right_shift1 = nbits - up_x - 2;
+            int index_0_signed = (x>>right_shift1) + table_size_half;
             size_t index_0 = index_0_signed;
 
             if(0)
@@ -259,7 +259,14 @@ public:
             //double xn1_new =  xn_new + pow(2.0, upscale_int- (nbits_table_int-1)) ;
 
             //double xn_new =  (double)( (int)index_0 * pow(2.0, upscale_int- (nbits_table_int-1)) ) - (int) table_size_half * pow(2.0, upscale_int- (nbits_table_int-1)) ;
-            double xn_new =  (double)( (int)index_0 * pow(2.0, upscale_int- (nbits_table_int-1)) ) - pow(2.0, upscale_int- (nbits_table_int-1) + (nbits_table_int-1) ) ;
+            // It makes sense to encode our estimates for xn, xn1 in the upscale of the table:
+            
+            int right_shift = nbits_table_int - upscale_int -1 ;
+            assert(right_shift > 0);
+
+            //int manual_upscale = 16;
+            //double xn_new =  (double)( (int)index_0 * pow(2.0, -right_shift) ) - pow(2.0, upscale_int) ;
+            double xn_new =  (double)( (int)index_0 * pow(2.0, -right_shift) ) - pow(2.0, upscale_int) ;
             double xn1_new =  xn_new + pow(2.0, upscale_int- (nbits_table_int-1)) ;
 
             int fp_upscale_n = int( recip_ln_two  *  xn_new );
