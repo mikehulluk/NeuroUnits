@@ -286,9 +286,17 @@ public:
 
             cout << "\n =====>> xn_new: " << xn_new;
 
-            int fp_upscale_n = int( recip_ln_two  *  xn_new * pow(2.0, -manual_upscale) );
-            int fp_upscale_n1 = int( recip_ln_two *  xn1_new * pow(2.0, -manual_upscale) );
 
+            // How do we represent ln(2) as an integer?
+            int recip_ln_two_nbits = 10; //4096 ~ (5dp??)
+            int recip_ln_two_int = recip_ln_two * (1<<recip_ln_two_nbits);
+
+            //int fp_upscale_n = int( recip_ln_two  *  xn_new * pow(2.0, -manual_upscale) );
+            //int fp_upscale_n1 = int( recip_ln_two *  xn1_new * pow(2.0, -manual_upscale) );
+            
+            // TODO: Check here - are we getting close to integer overflow??
+            int fp_upscale_n =  recip_ln_two_int *  xn_new * pow(2.0, -(manual_upscale+recip_ln_two_nbits)) ;
+            int fp_upscale_n1 = recip_ln_two_int *  xn1_new * pow(2.0, -(manual_upscale+recip_ln_two_nbits)) ;
 
 
 
