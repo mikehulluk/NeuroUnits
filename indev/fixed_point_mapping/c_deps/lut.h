@@ -229,10 +229,30 @@ public:
             // As ints!:
             // Since the range of the table is defined by its upscale, it make sense to use that as a basis:
             //
-            double x_neg_1_to_1 = to_float(x, up_x) / table_size_half;
-            double index_0_fl = (( x_neg_1_to_1 + 0.5 ) * table_size );
+            double orig_x_neg_1_to_1 = to_float(x, up_x) / table_size_half;
+            double orig_index_0_fl = (( orig_x_neg_1_to_1 + 0.5 ) * table_size );
+            size_t orig_index_0 = (int)  orig_index_0_fl;
+            
+
+            // table_size_half(1<<(nbits_table-1))
+
+            //double x_neg_1_to_1 = ; 
+            //double index_0_fl = (( x_neg_1_to_1 + 0.5 ) * table_size );
+            //double index_0_fl = ( to_float(x, up_x - (nbits_table-1) + (nbits_table) ) ) + table_size_half;
+            //
+            //
+            
+            //double index_0_fl = ( ( double(x) * pow(2.0, up_x+1 )  / double(range_max) ) ) + table_size_half;
+            double index_0_fl = ( ( double(x) * pow(2.0, up_x+2 - nbits )  ) ) + table_size_half;
+
+
+
+            
+            //double index_0_fl = ( to_float(x, up_x +1 ) ) + table_size_half;
             size_t index_0 = (int)  index_0_fl;
             
+            assert(index_0 == orig_index_0);
+
             //assert ( x_neg_1_to_1 > -1 && x_neg_1_to_1 < 1);
             // TODO = Convert to pure int:
             cout << "\n -->> index_0 (int): " << index_0;
