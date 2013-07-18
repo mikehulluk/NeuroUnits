@@ -24,6 +24,9 @@ const float recip_ln_two = 1.44269504;
 
 
 
+
+
+
 typedef int IntType;
 
 template<typename MathFunction>
