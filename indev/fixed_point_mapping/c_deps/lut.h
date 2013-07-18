@@ -21,6 +21,11 @@ double my_fabs(double x) { return fabs(x); }
 const float recip_ln_two = 1.44269504;
 
 
+
+
+
+typedef int IntType;
+
 template<typename MathFunction>
 class LookUpTablePower2
 {
@@ -151,7 +156,7 @@ public:
 
             //double xn_new =  (double)( (int)index_0 * pow(2.0, upscale_int- (nbits_table_int-1)) ) - (int) table_size_half * pow(2.0, upscale_int- (nbits_table_int-1)) ;
             // It makes sense to encode our estimates for xn, xn1 in the upscale of the table:
-            
+
             int right_shift = nbits_table_int - upscale_int -1 ;
             assert(right_shift > 0);
 
@@ -162,7 +167,7 @@ public:
             //double xn1_new =  xn_new + pow(2.0, upscale_int- (nbits_table_int-1) + manual_upscale) ;
 
 
-            
+
             // Lets upscale so that we keep as much precision as possible:
             int manual_upscale = -right_shift + (nbits-1 - nbits_table) ;
             assert(-right_shift+manual_upscale > 0);
@@ -184,7 +189,7 @@ public:
 
             //int fp_upscale_n = int( recip_ln_two  *  xn_new * pow(2.0, -manual_upscale) );
             //int fp_upscale_n1 = int( recip_ln_two *  xn1_new * pow(2.0, -manual_upscale) );
-            
+
             // TODO: Check here - are we getting close to integer overflow??
             int fp_upscale_n =  recip_ln_two_int *  xn_new * pow(2.0, -(manual_upscale+recip_ln_two_nbits)) ;
             int fp_upscale_n1 = recip_ln_two_int *  xn1_new * pow(2.0, -(manual_upscale+recip_ln_two_nbits)) ;
@@ -192,7 +197,7 @@ public:
 
 
             int yn = pData[index_0];
-            int yn1 = pData[index_0+1];
+            int yn1 = pData[index_0+1] ;
 
 
 
@@ -204,29 +209,67 @@ public:
 
 
 
+            // Its possible that the two y values have different fixed point representations, so we should use the larger power,
+            // which will be the one for yn+1.
+            int working_upscale = fp_upscale_n1;
+
+
+            // prop_to_next will be between zero and one in float, to lets map that to integers
+            //float prop_to_next = ( (to_float(x,up_x) - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) ) ) ;
+            
+            
+            double res =  ( double(val) * pow(2.0, upscale) / double(range_max) );
+
+            int prop_to_next = ( (to_float(x,up_x) - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) ) ) * range_max ;
 
             float yn_fl = to_float(yn, fp_upscale_n);
             float yn1_fl = to_float(yn1, fp_upscale_n1);
 
+
+            float y_out = yn_fl + ( (float) ((yn1_fl-yn_fl) * prop_to_next) / range_max);
+            int res_int_proper = from_float(y_out, up_out);
+
+            cout << "\n -- prop to next: " << prop_to_next;
+            cout << "\nworking_upscale" << working_upscale;
+
+
+
+
+
+
+            {
+            float prop_to_next = (fp_xout - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) );
+            float yn_fl = to_float(yn, fp_upscale_n);
+            float yn1_fl = to_float(yn1, fp_upscale_n1);
+            cout << "\n -- yn_f1:" << yn_fl;
+            cout << "\n -- yn1_f1:" << yn1_fl;
+            float y_out = yn_fl + (yn1_fl-yn_fl) * prop_to_next;
+            int res_int_proper = from_float(y_out, up_out);
+            cout << "\n -- Interpolated y :" << y_out;
+            cout << "\nBLAH" << res_int_proper;
+            }
+
+
+
+
+
             // OK, lets linearly interpolate between these values:
             // 3. Interpolate between yn and yn+1
             //float prop_to_next = (fp_xout - xn) / (xn1-xn);
-            float prop_to_next = (fp_xout - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) );
-            cout << "\n -- prop to next: " << prop_to_next;
-            float y_out = yn_fl + (yn1_fl-yn_fl) * prop_to_next;
+            //float prop_to_next = (fp_xout - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) );
+            //cout << "\n -- prop to next: " << prop_to_next;
 
 
-            cout << "\n -- yn_f1:" << yn_fl;
-            cout << "\n -- yn1_f1:" << yn1_fl;
-            cout << "\n -- Interpolated y :" << y_out;
+            //float y_out = yn_fl + (yn1_fl-yn_fl) * prop_to_next;
 
 
-            //cout << "\n";
-            //assert( index == index_0);
+            //cout << "\n -- Interpolated y :" << y_out;
 
-            cout << "\n\n";
 
-            int res_int_proper = from_float(y_out, up_out);
+
+            //cout << "\n\n";
+
+            //int res_int_proper = from_float(y_out, up_out);
 
 
 
