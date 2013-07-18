@@ -196,6 +196,8 @@ public:
             int fp_upscale_n =  recip_ln_two_int *  xn_new *  pow(2.0, -(manual_upscale+recip_ln_two_nbits)) ;
             int fp_upscale_n1 = recip_ln_two_int *  xn1_new * pow(2.0, -(manual_upscale+recip_ln_two_nbits)) ;
 
+            //int fp_upscale_n =  auto_shift(recip_ln_two_int *  xn_new, -(manual_upscale+recip_ln_two_nbits)) ;
+            //int fp_upscale_n1 = auto_shift(recip_ln_two_int *  xn1_new,  -(manual_upscale+recip_ln_two_nbits)) ;
 
 
             int yn = pData[index_0];
