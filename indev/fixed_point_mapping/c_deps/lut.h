@@ -228,8 +228,17 @@ public:
 
             //( double(yn) * pow(2.0, fp_upscale_n) / double(range_max) )
             //( double(yn1) * pow(2.0, fp_upscale_n1) / double(range_max) )
+            //
+            double dbl_range_max = range_max;
 
-            float y_out = ( double(yn) * pow(2.0, fp_upscale_n) / double(range_max) ) + ( (float) ((  ( double(yn1) * pow(2.0, fp_upscale_n1) / double(range_max) ) - ( double(yn) * pow(2.0, fp_upscale_n) / double(range_max) ) ) * prop_to_next) / range_max);
+            float y_out = ( yn * pow(2.0, fp_upscale_n) / dbl_range_max ) 
+                          + 
+                          ( ((  ( yn1 * pow(2.0, fp_upscale_n1) / dbl_range_max ) - ( yn * pow(2.0, fp_upscale_n) / dbl_range_max ) ) * prop_to_next) / dbl_range_max);
+            
+            //float y_out = ( double(yn) * pow(2.0, fp_upscale_n) / dbl_range_max ) 
+            //              + 
+            //              ( ((  ( double(yn1) * pow(2.0, fp_upscale_n1) / double(range_max) ) - ( double(yn) * pow(2.0, fp_upscale_n) / double(range_max) ) ) * prop_to_next) / range_max);
+            //double y_out = ( double(yn) * pow(2.0, fp_upscale_n)  ) + ( (double) ((  ( double(yn1) * pow(2.0, fp_upscale_n1)) - ( double(yn) * pow(2.0, fp_upscale_n) ) ) * prop_to_next) );
             int res_int_proper = from_float(y_out, up_out);
 
             cout << "\n -- prop to next: " << prop_to_next;
