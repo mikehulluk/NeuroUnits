@@ -216,8 +216,8 @@ public:
 
             // prop_to_next will be between zero and one in float, to lets map that to integers
             //float prop_to_next = ( (to_float(x,up_x) - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) ) ) ;
-            
-            
+
+
             //double res =  ( double(x) * pow(2.0, up_x) / double(range_max) )
 
             int prop_to_next = ( (( double(x) * pow(2.0, up_x) / double(range_max) )  - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) ) ) * range_max ;
@@ -230,16 +230,61 @@ public:
             //( double(yn1) * pow(2.0, fp_upscale_n1) / double(range_max) )
             //
             double dbl_range_max = range_max;
-
-            float y_out = ( yn * pow(2.0, fp_upscale_n) / dbl_range_max ) 
-                          + 
-                          ( ((  ( yn1 * pow(2.0, fp_upscale_n1) / dbl_range_max ) - ( yn * pow(2.0, fp_upscale_n) / dbl_range_max ) ) * prop_to_next) / dbl_range_max);
-            
-            //float y_out = ( double(yn) * pow(2.0, fp_upscale_n) / dbl_range_max ) 
-            //              + 
+            //float y_out = ( double(yn) * pow(2.0, fp_upscale_n) / dbl_range_max )
+            //              +
             //              ( ((  ( double(yn1) * pow(2.0, fp_upscale_n1) / double(range_max) ) - ( double(yn) * pow(2.0, fp_upscale_n) / double(range_max) ) ) * prop_to_next) / range_max);
             //double y_out = ( double(yn) * pow(2.0, fp_upscale_n)  ) + ( (double) ((  ( double(yn1) * pow(2.0, fp_upscale_n1)) - ( double(yn) * pow(2.0, fp_upscale_n) ) ) * prop_to_next) );
-            int res_int_proper = from_float(y_out, up_out);
+
+            //float y_out = ( yn * pow(2.0, fp_upscale_n) / dbl_range_max
+            //              +
+            //              ( ((  ( yn1 * pow(2.0, fp_upscale_n1) / dbl_range_max ) - ( yn * pow(2.0, fp_upscale_n) / dbl_range_max ) ) * prop_to_next) / dbl_range_max) );
+
+            //float y_out = (
+            //                ( yn * pow(2.0, fp_upscale_n) / dbl_range_max
+            //                +
+            //                ( ((  ( yn1 * pow(2.0, fp_upscale_n1) / dbl_range_max ) - ( yn * pow(2.0, fp_upscale_n) / dbl_range_max ) ) * prop_to_next) / dbl_range_max) )
+            //              );
+
+            float y_out = (
+                            ( yn * pow(2.0, fp_upscale_n) 
+                          +
+                            ( ((  ( yn1 * pow(2.0, fp_upscale_n1)  ) - ( yn * pow(2.0, fp_upscale_n)  ) ) * prop_to_next) / dbl_range_max) )
+                          ) / dbl_range_max ;
+
+            int res_int_proper_old = from_float(y_out, up_out);
+
+    
+            //int res_int_proper =  
+            //    ((
+            //                ( yn * pow(2.0, fp_upscale_n) 
+            //              +
+            //                ( ((  ( yn1 * pow(2.0, fp_upscale_n1)  ) - ( yn * pow(2.0, fp_upscale_n)  ) ) * prop_to_next) / dbl_range_max) )
+            //              ) / dbl_range_max ) * 
+            //    (double(range_max) / pow(2.0, up_out) );
+
+            //int res_int_proper =  ( yn * pow(2.0, fp_upscale_n) + ( ((  ( yn1 * pow(2.0, fp_upscale_n1)  ) - ( yn * pow(2.0, fp_upscale_n)  ) ) * prop_to_next) / dbl_range_max) ) / pow(2.0, up_out) ;
+
+
+            //int prop_to_next2 = ( (( x * pow(2.0, up_x) / dbl_range_max )  - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) ) ) * dbl_range_max ;
+            //int res_int_proper =  ( yn * pow(2.0, fp_upscale_n) + ( ((  ( yn1 * pow(2.0, fp_upscale_n1)  ) - ( yn * pow(2.0, fp_upscale_n)  ) ) 
+            //                        * prop_to_next2
+            //                       ) / dbl_range_max) ) / pow(2.0, up_out) ;
+
+            //int prop_to_next2 = (( (( x * pow(2.0, up_x) / dbl_range_max )  - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) ) ) * dbl_range_max );
+            //int res_int_proper =  ( yn * pow(2.0, fp_upscale_n) + ( ((  ( yn1 * pow(2.0, fp_upscale_n1)  ) - ( yn * pow(2.0, fp_upscale_n)  ) ) 
+            //                        * (( (( x * pow(2.0, up_x) / dbl_range_max )  - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) ) ) * dbl_range_max )
+            //                       ) / dbl_range_max) ) / pow(2.0, up_out) ;
+
+            int res_int_proper =  ( yn * pow(2.0, fp_upscale_n) + ( ((  ( yn1 * pow(2.0, fp_upscale_n1)  ) - ( yn * pow(2.0, fp_upscale_n)  ) ) 
+                                    * (( (( x * pow(2.0, up_x) / dbl_range_max )  - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) ) ) * dbl_range_max )
+                                   ) / dbl_range_max) ) / pow(2.0, up_out) ;
+
+
+            cout << "\n** OLD:" <<  res_int_proper_old;
+            cout << "\n** NEW:" << res_int_proper;
+            cout << "\n";
+            assert ( res_int_proper_old == res_int_proper || fabs(res_int_proper-res_int_proper_old) <= 1 );
+
 
             cout << "\n -- prop to next: " << prop_to_next;
             cout << "\nworking_upscale" << working_upscale;
