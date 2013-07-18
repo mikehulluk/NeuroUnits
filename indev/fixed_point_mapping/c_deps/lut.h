@@ -218,15 +218,18 @@ public:
             //float prop_to_next = ( (to_float(x,up_x) - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) ) ) ;
             
             
-            double res =  ( double(val) * pow(2.0, upscale) / double(range_max) );
+            //double res =  ( double(x) * pow(2.0, up_x) / double(range_max) )
 
-            int prop_to_next = ( (to_float(x,up_x) - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) ) ) * range_max ;
+            int prop_to_next = ( (( double(x) * pow(2.0, up_x) / double(range_max) )  - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) ) ) * range_max ;
 
-            float yn_fl = to_float(yn, fp_upscale_n);
-            float yn1_fl = to_float(yn1, fp_upscale_n1);
+            //float yn_fl = to_float(yn, fp_upscale_n);
+            //float yn1_fl = to_float(yn1, fp_upscale_n1);
 
 
-            float y_out = yn_fl + ( (float) ((yn1_fl-yn_fl) * prop_to_next) / range_max);
+            //( double(yn) * pow(2.0, fp_upscale_n) / double(range_max) )
+            //( double(yn1) * pow(2.0, fp_upscale_n1) / double(range_max) )
+
+            float y_out = ( double(yn) * pow(2.0, fp_upscale_n) / double(range_max) ) + ( (float) ((  ( double(yn1) * pow(2.0, fp_upscale_n1) / double(range_max) ) - ( double(yn) * pow(2.0, fp_upscale_n) / double(range_max) ) ) * prop_to_next) / range_max);
             int res_int_proper = from_float(y_out, up_out);
 
             cout << "\n -- prop to next: " << prop_to_next;
