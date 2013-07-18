@@ -378,7 +378,8 @@ public:
             //double X_OVER_M1 = pow(2.0, up_x-(nbits-1) + manual_upscale ); //X / M1;
             //double X_OVER_M1 = pow(2.0, up_x - nbits +1  + upscale_int  + nbits  - 2* nbits_table_int  ); //X / M1;
             
-            double X_OVER_M1 = pow(2.0, up_x +1  + upscale_int   - 2* nbits_table_int  ); //X / M1;
+            int X_OVER_M1_pow = up_x +1  + upscale_int   - 2* nbits_table_int ; //X / M1;
+            double X_OVER_M1 = pow(2.0, X_OVER_M1_pow ); //X / M1;
            
             //double N1P = pow(2.0, fp_upscale_n1 - up_out);
             //int xn_new =  ( index_0<<(-right_shift+manual_upscale) )  - (1<<(upscale_int+manual_upscale) );
@@ -402,7 +403,9 @@ public:
             //int x_diff = 1<< (2 * upscale_int + 1 + nbits  - 3* nbits_table)  ;
 
             //double N1P_OVER_xdiff =  pow(2.0, fp_upscale_n1 - up_out) / pow(2.0, 2 * upscale_int + 1 + nbits  - 3* nbits_table);
-            double N1P_OVER_xdiff =  pow(2.0, (fp_upscale_n1 - up_out) -(2 * upscale_int + 1 + nbits  - 3* nbits_table_int));
+            //double N1P_OVER_xdiff =  pow(2.0, (fp_upscale_n1 - up_out) -(2 * upscale_int + 1 + nbits  - 3* nbits_table_int));
+            int N1P_OVER_xdiff_pow =  fp_upscale_n1 - up_out -2 * upscale_int - 1 - nbits  + 3* nbits_table_int;
+            double N1P_OVER_xdiff =  pow(2.0, N1P_OVER_xdiff_pow);
             //int res_int_proper =(yn*N0+ ( ( yn1*N1 - yn*N0 )*( x*X - xn_new*M1) / x_diff / M1) ) * P ;
             //int res_int_proper = P*yn*N0 + (int)(P * (yn1*N1 - yn*N0 )*(x*X - xn_new*M1) / x_diff / M1 );
 
@@ -419,13 +422,33 @@ public:
             //int res_int_proper = auto_shift(yn, fp_upscale_n-up_out) + (int) (P * N1 * (yn1 - (yn>>diffN) )*(x*X_OVER_M1 - xn_new) / x_diff );
 
             //int res_int_proper = auto_shift(yn, fp_upscale_n-up_out) + (int) ((yn1 - (yn>>diffN) )*(x*X_OVER_M1 - xn_new) * N1P/ x_diff );
-            int res_int_proper = auto_shift(yn, fp_upscale_n-up_out) + (int) ((yn1 - (yn>>diffN) )*(x*X_OVER_M1 - xn_new) * N1P_OVER_xdiff );
+            //
+            cout << "\nDEBUG: x: " << x ;
+            cout << "\nDEBUG: X_OVER_M1: " << X_OVER_M1 ;
+            
+            
+            double v1 = x*X_OVER_M1;
+            int v2 = auto_shift( x, X_OVER_M1_pow);
+            cout << "\nDEBUG: v1: " << v1;
+            cout << "\nDEBUG: v2: " << v2;
+            
+
+            
+
+            cout << "\n";
+            //assert(0);
+
+            
+            // ** SOURCE OF TRUNCATION ERRORS! **
+            //int res_int_proper = auto_shift(yn, fp_upscale_n-up_out) + (int) ((yn1 - (yn>>diffN) )*(x*X_OVER_M1 - xn_new) * N1P_OVER_xdiff );
+            int res_int_proper = auto_shift(yn, fp_upscale_n-up_out) + (int) (((long)(yn1 - (yn>>diffN) )*(long)(v2 - xn_new)) * N1P_OVER_xdiff );
+
 
 
             cout << "\n** OLD:" <<  res_int_proper_old;
             cout << "\n** NEW:" << res_int_proper;
             cout << "\n";
-            assert ( res_int_proper_old == res_int_proper || fabs(res_int_proper-res_int_proper_old) <= 1 );
+            assert ( res_int_proper_old == res_int_proper || fabs(res_int_proper-res_int_proper_old) < 3 || fabs(res_int_proper-res_int_proper_old)/ (double) res_int_proper <= 2.e-2 );
 
 
             cout << "\n -- prop to next: " << prop_to_next;
