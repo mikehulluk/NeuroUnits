@@ -76,28 +76,6 @@ int from_float(double val, int upscale, int whoami=0)
     return res;
 }
 
-
-
-#include "c_deps/lut.h"
-
-struct LookUpTables
-{
-
-    LookUpTables() 
-        //: exponential(8, 3)    // (nbits, upscale)
-        : exponential(5, 3)    // (nbits, upscale)
-    { }
-    
-    LookUpTableExpPower2 exponential;
-
-
-};
-LookUpTables lookuptables;
-
-
-
-
-
 int auto_shift(int n, int m)
 {
     //std::cout << "\n" << "n/m:" << n << "/" << m << "\n";
@@ -132,6 +110,29 @@ long auto_shift64(long n, int m)
        return n >> -m;
     }
 }
+
+
+
+#include "c_deps/lut.h"
+
+struct LookUpTables
+{
+
+    LookUpTables() 
+        //: exponential(8, 3)    // (nbits, upscale)
+        : exponential(5, 3)    // (nbits, upscale)
+    { }
+    
+    LookUpTableExpPower2 exponential;
+
+
+};
+LookUpTables lookuptables;
+
+
+
+
+
 
 
 

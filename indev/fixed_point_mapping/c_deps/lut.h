@@ -171,6 +171,8 @@ public:
             // Lets upscale so that we keep as much precision as possible:
             int manual_upscale = -right_shift + (nbits-1 - nbits_table) ;
             assert(-right_shift+manual_upscale > 0);
+
+
             //int xn_new =  ( index_0<<(-right_shift+manual_upscale) )  - pow(2.0, upscale_int+manual_upscale) ;
             //int xn1_new =  xn_new + pow(2.0, upscale_int- (nbits_table_int-1) + manual_upscale) ;
             int xn_new =  ( index_0<<(-right_shift+manual_upscale) )  - (1<<(upscale_int+manual_upscale) );
@@ -246,38 +248,152 @@ public:
             //              );
 
             float y_out = (
-                            ( yn * pow(2.0, fp_upscale_n) 
+                            ( yn * pow(2.0, fp_upscale_n)
                           +
                             ( ((  ( yn1 * pow(2.0, fp_upscale_n1)  ) - ( yn * pow(2.0, fp_upscale_n)  ) ) * prop_to_next) / dbl_range_max) )
                           ) / dbl_range_max ;
 
             int res_int_proper_old = from_float(y_out, up_out);
 
-    
-            //int res_int_proper =  
+
+            //int res_int_proper =
             //    ((
-            //                ( yn * pow(2.0, fp_upscale_n) 
+            //                ( yn * pow(2.0, fp_upscale_n)
             //              +
             //                ( ((  ( yn1 * pow(2.0, fp_upscale_n1)  ) - ( yn * pow(2.0, fp_upscale_n)  ) ) * prop_to_next) / dbl_range_max) )
-            //              ) / dbl_range_max ) * 
+            //              ) / dbl_range_max ) *
             //    (double(range_max) / pow(2.0, up_out) );
 
             //int res_int_proper =  ( yn * pow(2.0, fp_upscale_n) + ( ((  ( yn1 * pow(2.0, fp_upscale_n1)  ) - ( yn * pow(2.0, fp_upscale_n)  ) ) * prop_to_next) / dbl_range_max) ) / pow(2.0, up_out) ;
 
 
             //int prop_to_next2 = ( (( x * pow(2.0, up_x) / dbl_range_max )  - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) ) ) * dbl_range_max ;
-            //int res_int_proper =  ( yn * pow(2.0, fp_upscale_n) + ( ((  ( yn1 * pow(2.0, fp_upscale_n1)  ) - ( yn * pow(2.0, fp_upscale_n)  ) ) 
+            //int res_int_proper =  ( yn * pow(2.0, fp_upscale_n) + ( ((  ( yn1 * pow(2.0, fp_upscale_n1)  ) - ( yn * pow(2.0, fp_upscale_n)  ) )
             //                        * prop_to_next2
             //                       ) / dbl_range_max) ) / pow(2.0, up_out) ;
 
             //int prop_to_next2 = (( (( x * pow(2.0, up_x) / dbl_range_max )  - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) ) ) * dbl_range_max );
-            //int res_int_proper =  ( yn * pow(2.0, fp_upscale_n) + ( ((  ( yn1 * pow(2.0, fp_upscale_n1)  ) - ( yn * pow(2.0, fp_upscale_n)  ) ) 
+            //int res_int_proper =  ( yn * pow(2.0, fp_upscale_n) + ( ((  ( yn1 * pow(2.0, fp_upscale_n1)  ) - ( yn * pow(2.0, fp_upscale_n)  ) )
             //                        * (( (( x * pow(2.0, up_x) / dbl_range_max )  - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) ) ) * dbl_range_max )
             //                       ) / dbl_range_max) ) / pow(2.0, up_out) ;
 
-            int res_int_proper =  ( yn * pow(2.0, fp_upscale_n) + ( ((  ( yn1 * pow(2.0, fp_upscale_n1)  ) - ( yn * pow(2.0, fp_upscale_n)  ) ) 
-                                    * (( (( x * pow(2.0, up_x) / dbl_range_max )  - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) ) ) * dbl_range_max )
-                                   ) / dbl_range_max) ) / pow(2.0, up_out) ;
+            //OK:
+            //int res_int_proper =  ( yn * pow(2.0, fp_upscale_n) + ( ((  ( yn1 * pow(2.0, fp_upscale_n1)  ) - ( yn * pow(2.0, fp_upscale_n)  ) ) * (( (( x * pow(2.0, up_x) / dbl_range_max )  - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) ) ) * dbl_range_max )) / dbl_range_max) ) / pow(2.0, up_out) ;
+            //
+
+
+            //int res_int_proper =  ( yn * pow(2.0, fp_upscale_n) + ( ((  ( yn1 * pow(2.0, fp_upscale_n1)  ) - ( yn * pow(2.0, fp_upscale_n)  ) ) * (( (( x * pow(2.0, up_x) / dbl_range_max )  - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) ) ) * dbl_range_max )) / dbl_range_max) ) / pow(2.0, up_out) ;
+
+            // OK
+            //double M1 = pow(2.0, -manual_upscale);
+            //double N0 = pow(2.0, fp_upscale_n);
+            //double N1 = pow(2.0, fp_upscale_n1);
+            //int res_int_proper =  ( yn * N0 + ( ((  ( yn1 * N1  ) - ( yn * N0  ) ) * (((( x * pow(2.0, up_x) / dbl_range_max )  - (xn_new* M1 )) / ((xn1_new-xn_new) * M1 ) ) * dbl_range_max )) / dbl_range_max) ) / pow(2.0, up_out) ;
+
+
+            // OK:
+            //double M1 = pow(2.0, -manual_upscale);
+            //double N0 = pow(2.0, fp_upscale_n);
+            //double N1 = pow(2.0, fp_upscale_n1);
+            //int res_int_proper =(yn*N0+((( yn1*N1 - yn*N0 )*((((x*pow(2.0,up_x)/dbl_range_max)-(xn_new*M1))/((xn1_new-xn_new)*M1))*dbl_range_max))/dbl_range_max))/pow(2.0,up_out);
+
+           // // OK:
+           // double M1 = pow(2.0, -manual_upscale);
+           // double N0 = pow(2.0, fp_upscale_n);
+           // double N1 = pow(2.0, fp_upscale_n1);
+
+           // int x_diff = xn1_new-xn_new; // THIS IS PROBABLY FIXED!
+
+
+           // int res_int_proper =(yn*N0+((( yn1*N1 - yn*N0 )*
+           //                 ((
+           //                         ( x*pow(2.0,up_x)/dbl_range_max - xn_new*M1 )  / ( x_diff*M1))*dbl_range_max) ) /dbl_range_max)) / pow(2.0,up_out);
+           //
+
+            //double M1 = pow(2.0, -manual_upscale);
+            //double N0 = pow(2.0, fp_upscale_n);
+            //double N1 = pow(2.0, fp_upscale_n1);
+            //double P =  pow(2.0, -up_out);
+
+            //int x_diff = xn1_new-xn_new; // THIS IS PROBABLY FIXED!
+
+
+            //int res_int_proper =(yn*N0+
+            //        (
+            //            //(( yn1*N1 - yn*N0 )* (( ( x*pow(2.0,up_x)/dbl_range_max - xn_new*M1 )  / (x_diff*M1))*dbl_range_max) ) /dbl_range_max
+            //            ((( yn1*N1 - yn*N0 )* (( ( x*pow(2.0,up_x)/dbl_range_max - xn_new*M1 )  / (x_diff*M1))) ) )
+            //        )
+            //
+            //        ) * P ;
+
+            //double M1 = pow(2.0, -manual_upscale);
+            //double N0 = pow(2.0, fp_upscale_n);
+            //double N1 = pow(2.0, fp_upscale_n1);
+            //double P =  pow(2.0, -up_out);
+            //double X = pow(2.0, up_x-(nbits-1));
+
+            //int x_diff = xn1_new-xn_new; // THIS IS PROBABLY FIXED!
+
+
+            //int res_int_proper =(yn*N0+
+            //        (
+            //            ((( yn1*N1 - yn*N0 )*((( x*X - xn_new*M1) / (x_diff*M1)))))
+            //        )
+            //
+            //        ) * P ;
+
+            //double M1 = pow(2.0, -manual_upscale);
+            //double N0 = pow(2.0, fp_upscale_n);
+            //double N1 = pow(2.0, fp_upscale_n1);
+            //double P =  pow(2.0, -up_out);
+            //double X = pow(2.0, up_x-(nbits-1));
+
+            //int x_diff = xn1_new-xn_new; // THIS IS PROBABLY FIXED!
+
+
+            //int res_int_proper =(yn*N0+
+            //        (
+            //            //( yn1*N1 - yn*N0 )*((( x*X - xn_new*M1) / (x_diff*M1)))
+            //            ( yn1*N1 - yn*N0 )*( x*X - xn_new*M1) / x_diff / M1
+            //        )
+            //
+            //        ) * P ;
+            //
+            //
+
+            //int right_shift = nbits_table_int - upscale_int -1 ;
+            //int manual_upscale = -right_shift + (nbits-1 - nbits_table) ;
+            
+            //int manual_upscale =  upscale_int  + nbits  - 2* nbits_table ;
+            assert(manual_upscale ==  (int)( upscale_int  + nbits  - 2* nbits_table ) ) ;
+
+            double M1 = pow(2.0, -manual_upscale);
+            double N0 = pow(2.0, fp_upscale_n);
+            double N1 = pow(2.0, fp_upscale_n1);
+            double P =  pow(2.0, -up_out);
+            double X = pow(2.0, up_x-(nbits-1));
+
+
+            //int xn_new =  ( index_0<<(-right_shift+manual_upscale) )  - (1<<(upscale_int+manual_upscale) );
+            //int xn1_new =  xn_new + (1<< (upscale_int- (nbits_table_int-1) + manual_upscale) ) ;
+            //int x_diff = xn1_new-xn_new; // THIS IS PROBABLY FIXED!
+
+            //int x_diff = (1<< (upscale_int- (nbits_table_int-1) + manual_upscale) ) ;
+            //int res_int_proper =(yn*N0+ ( ( yn1*N1 - yn*N0 )*( x*X - xn_new*M1) / x_diff / M1) ) * P ;
+
+
+            // OK, so yn and yn1 are big integer, because they are stored near total resolution:
+            int x_diff = (1<< (upscale_int- (nbits_table_int-1) + manual_upscale) ) ;
+            //int res_int_proper =(yn*N0+ ( ( yn1*N1 - yn*N0 )*( x*X - xn_new*M1) / x_diff / M1) ) * P ;
+            //int res_int_proper = P*yn*N0 + (int)(P * (yn1*N1 - yn*N0 )*(x*X - xn_new*M1) / x_diff / M1 );
+
+
+            //int xn_new =  ( index_0<<(-right_shift+manual_upscale) )  - (1<<(upscale_int+manual_upscale) );
+            //int xn1_new =  xn_new + (1<< (upscale_int- (nbits_table_int-1) + manual_upscale) ) ;
+
+            //int res_int_proper = auto_shift(yn, fp_upscale_n-up_out) + (int)(P * (yn1*N1 - yn*N0 )*(x*X - xn_new*M1) / x_diff / M1 );
+            //int res_int_proper = auto_shift(yn, fp_upscale_n-up_out) + (int)(P * (yn1*N1 - yn*N0 )*(x*X - xn_new*M1) / x_diff / M1 );
+            int res_int_proper = auto_shift(yn, fp_upscale_n-up_out) + (int) (P * (yn1*N1 - yn*N0 )*(x*X/M1 - xn_new) / x_diff );
 
 
             cout << "\n** OLD:" <<  res_int_proper_old;
