@@ -6,100 +6,6 @@
 using namespace::std;
 
 
-/*
-
-class LookUpTable
-{
-
-    vector<double> pData;
-    double step_size;
-    double min_value;
-    double max_value;
-public:
-        LookUpTable(vector<double> pData, double min_value, double max_value)
-            : pData(pData), step_size( (max_value-min_value) / pData.size() ), min_value(min_value), max_value(max_value)
-        {
-
-        }
-
-        double get(double x)
-        {
-            cout << "\nget(" << x << ")" << "\n";
-
-            assert( x > min_value && x < max_value);
-            double index_float = (x - min_value ) / step_size;
-
-            size_t index_int = (size_t) index_float;
-            double offset_float = index_float - index_int;
-
-            cout << "Offset float: " << offset_float << "\n";
-            assert(offset_float >= 0 && offset_float < 1.0 );
-
-            double y1 = pData.at(index_int);
-            double y2 = pData.at(index_int+1);
-
-            double y2_delta = y2 - y1;
-
-            double res = y1 + y2_delta * offset_float;
-
-            return res;
-        }
-
-
-};
-
-
-
-class LookUpTableExp
-{
-    LookUpTable table;
-
-    static vector<double> _build_data(size_t size, double min_value, double max_value)
-    {
-        vector<double> interplpts;
-
-        double step_size = (max_value-min_value) / size;
-
-        for(size_t i=0;i<size;i++)
-        {
-            double x = i*step_size + min_value;
-
-            double res = exp(x);
-            interplpts.push_back(res);
-        }
-
-
-        return interplpts;
-    }
-
-public:
-    LookUpTableExp(size_t size, double min_value, double max_value)
-        : table( _build_data(size, min_value, max_value), min_value, max_value )
-    { }
-
-    double get(float x)
-    {
-
-        cout << "Getting Exp " << x <<" \n";
-        double x1 =  exp(x);
-        double x2 = table.get(x);
-        cout << "x1: " << x1 << "\n";
-        cout << "x2: " << x2 << "\n";
-
-        double diff = x1-x2;
-        if (diff < 0.0) diff = -diff;
-
-        assert (diff/x2 < 0.001);
-
-        return x2;
-    }
-};
-
-
-
-
-*/
-
 
 
 
@@ -130,21 +36,6 @@ class LookUpTablePower2
 public:
 
 
-        // The table is symmetrical about zero:
-        size_t int_to_index( int my_int)
-        {
-            //int min_val = (1<< (this->nbits_table-1));
-            return my_int + table_size_half;
-
-        }
-
-        size_t index_to_int( int index)
-        {
-
-            //int min_val = (1<< (this->nbits_table-1));
-            return index - table_size_half;
-
-        }
 
 
         LookUpTablePower2(size_t nbits_table, int upscale)
