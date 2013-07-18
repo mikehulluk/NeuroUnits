@@ -405,7 +405,8 @@ public:
             //double N1P_OVER_xdiff =  pow(2.0, fp_upscale_n1 - up_out) / pow(2.0, 2 * upscale_int + 1 + nbits  - 3* nbits_table);
             //double N1P_OVER_xdiff =  pow(2.0, (fp_upscale_n1 - up_out) -(2 * upscale_int + 1 + nbits  - 3* nbits_table_int));
             int N1P_OVER_xdiff_pow =  fp_upscale_n1 - up_out -2 * upscale_int - 1 - nbits  + 3* nbits_table_int;
-            double N1P_OVER_xdiff =  pow(2.0, N1P_OVER_xdiff_pow);
+            //double N1P_OVER_xdiff =  pow(2.0, N1P_OVER_xdiff_pow);
+            
             //int res_int_proper =(yn*N0+ ( ( yn1*N1 - yn*N0 )*( x*X - xn_new*M1) / x_diff / M1) ) * P ;
             //int res_int_proper = P*yn*N0 + (int)(P * (yn1*N1 - yn*N0 )*(x*X - xn_new*M1) / x_diff / M1 );
 
@@ -441,7 +442,8 @@ public:
             
             // ** SOURCE OF TRUNCATION ERRORS! **
             //int res_int_proper = auto_shift(yn, fp_upscale_n-up_out) + (int) ((yn1 - (yn>>diffN) )*(x*X_OVER_M1 - xn_new) * N1P_OVER_xdiff );
-            int res_int_proper = auto_shift(yn, fp_upscale_n-up_out) + (int) (((long)(yn1 - (yn>>diffN) )*(long)(v2 - xn_new)) * N1P_OVER_xdiff );
+            //int res_int_proper = auto_shift(yn, fp_upscale_n-up_out) + (int) (((long)(yn1 - (yn>>diffN) )*(long)(v2 - xn_new)) * N1P_OVER_xdiff );
+            int res_int_proper = auto_shift(yn, fp_upscale_n-up_out) + auto_shift64(((long)(yn1 - (yn>>diffN) )*(long)(v2 - xn_new)), N1P_OVER_xdiff_pow );
 
 
 
