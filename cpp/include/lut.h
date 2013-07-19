@@ -5,6 +5,7 @@
 #include <iostream>
 using namespace::std;
 
+#include <assert.h>
 
 
 
@@ -27,9 +28,10 @@ const float recip_ln_two = 1.44269504;
 
 
 
+
 typedef int IntType;
 
-template<typename MathFunction>
+
 class LookUpTablePower2
 {
 
@@ -63,7 +65,7 @@ public:
                 cout << "x_int" << i-(int)table_size_half << "\n";
                 double x_value_double = (double)( i - (int) table_size_half) * pow(2.0, upscale) / table_size_half;
 
-                double res = MathFunction::get_value(x_value_double);
+                double res = exp(x_value_double);
 
                 cout << "func(" << x_value_double << ") -> " << res << "\n";
 
@@ -523,30 +525,12 @@ public:
 
             return res_int_proper;
 
-
-
-
-
-
-
-
         }
 };
 
 
 
-class ExpFunc
-{
-public:
-    static double get_value(double x)
-    {
-        return exp(x);
-    }
-
-};
-
-
-typedef LookUpTablePower2<ExpFunc> LookUpTableExpPower2;
+typedef LookUpTablePower2 LookUpTableExpPower2;
 
 
 

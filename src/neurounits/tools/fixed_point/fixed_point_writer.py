@@ -24,19 +24,22 @@ c_prog = r"""
 #include <assert.h>
 #include <cinttypes>
 #include <fenv.h>
-
 #include <boost/format.hpp>
+
+
+
 
 #include "hdfjive.h"
 const string output_filename = "${output_filename}";
 
-
-
+// Data types used for storing in HDF5: 
 const hid_t hdf5_type_int = H5T_NATIVE_INT;
 const hid_t hdf5_type_float = H5T_NATIVE_FLOAT;
 
 typedef int T_hdf5_type_int;
 typedef float T_hdf5_type_float;    
+
+
 
 
 typedef std::int64_t int64;
@@ -56,64 +59,34 @@ const int range_max = (1<<(nbits-1)) ;
 
 
 
-
+#include "float_utils.h"
 
 
 // Save-data function
+typedef mh::FixedFloatConversion<nbits> FixedFloatConversion;
+
 
 double to_float(int val, int upscale)
 {
-    //double res =  ( double(val) * (1<<(upscale-bits+1) ) );
-    double res =  ( double(val) * pow(2.0, upscale) / double(range_max) );
-    //std::cout << "to_float(" << val << ", " << upscale << ") => " << res << "\n";
-    return res; 
+    return FixedFloatConversion::to_float(val, upscale);
 }
 
-int from_float(double val, int upscale, int whoami=0)
+int from_float(double val, int upscale)
 {
-    int res =  int(val * (double(range_max) / pow(2.0, upscale) ) ) ;
-    //std::cout << "from_float(" << val << ", " << upscale << ") => " << res << "\n";
-    return res;
+    return FixedFloatConversion::from_float(val, upscale);
 }
 
-int auto_shift(int n, int m)
-{
-    //std::cout << "\n" << "n/m:" << n << "/" << m << "\n";
-    if(m==0)
-    {
-        return n;
-    }
-    if( m>0)
-    {
-        return n << m;
-    }
-    else 
-    {
-       return n >> -m;
-    }
-}
-
-
-long auto_shift64(long n, int m)
-{
-    //std::cout << "\n" << "n/m:" << n << "/" << m << "\n";
-    if(m==0)
-    {
-        return n;
-    }
-    if( m>0)
-    {
-        return n << m;
-    }
-    else 
-    {
-       return n >> -m;
-    }
-}
+using mh::auto_shift;
+using mh::auto_shift64;
 
 
 
-#include "c_deps/lut.h"
+
+#include "float_utils.h"
+#include "lut.h"
+
+
+//#include "c_deps/lut.h"
 
 struct LookUpTables
 {
@@ -128,21 +101,6 @@ struct LookUpTables
 
 };
 LookUpTables lookuptables;
-
-
-
-
-
-
-
-
-## #define CALCULATE_FLOAT true
-## #define SAVE_HDF5_FLOAT true
-## #define SAVE_HDF5_INT true
-
-## #define CHECK_INT_FLOAT_COMPARISON true
-
-
 
 
 
@@ -726,7 +684,7 @@ class CBasedEqnWriterFixed(object):
         hdfjive_path_lib = os.path.expanduser("~/hw/hdf-jive/lib/")
         
         
-        c1 = "g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror -std=gnu++0x -I%s -L%s -lhdfjive -lhdf5 -lhdf5_hl " % (hdfjive_path_incl, hdfjive_path_lib)
+        c1 = "g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror -std=gnu++0x -I%s -L%s -lhdfjive -lhdf5 -lhdf5_hl -I../../cpp/include/ " % (hdfjive_path_incl, hdfjive_path_lib)
         c2 = 'export LD_LIBRARY_PATH="%s:$LD_LIBRARY_PATH"; ./a.out' % hdfjive_path_lib
         
         #os.system("g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror && ./a.out > /dev/null")

@@ -15,6 +15,7 @@ const int range_max = (1<<(nbits-1)) ;
 
 
 
+
 int main()
 {
     //LookUpTableExpPower2 exp_table( 12, 3);
