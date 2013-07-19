@@ -20,7 +20,7 @@ def boost_python_tool(env):
 
 
 env = Environment(
-	CCFLAGS = " -std=c++0x -Wall -Wno-unused-variable  -I/usr/include/python2.7  -lpython2.7 -lboost_python -p -g" ,
+	CCFLAGS = " -std=c++0x -Werror -Wall -Wno-unused-variable  -I/usr/include/python2.7  -lpython2.7 -lboost_python -p -g -Wfatal-errors  " ,
 	CPPPATH = ['include/'],
 	tools=['default', python_tool, boost_python_tool]
 	)
@@ -30,6 +30,5 @@ env = Environment(
 env.Program("test/lut_test.cpp")
 
 x = env.SharedLibrary('libs/boost_python/fplib', ['boost_python_wrappers/py_fplib.cpp'])
-
 env.InstallAs("fplib.so", x)
 

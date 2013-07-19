@@ -8,12 +8,14 @@ class SafeIntException : public std::exception
 
 };
 
+typedef signed long SL;
+
 
 namespace mh_int32
 {
 
-    const size_t int32_max = (1l<<32-1) - 1;
-    const size_t int32_min = -(1l<<32-1) - 1;
+    const size_t int32_max = (1l<<(32-1)) - 1;
+    const size_t int32_min = -(1l<<(32-1)) - 1;
 
 
     class SafeInt32
@@ -21,10 +23,21 @@ namespace mh_int32
         int _value;
 
     public:
+
+        int get_value()
+        {
+            return _value;
+        }
+
+        long get_value_long()
+        {
+            return _value;
+        }
+        
         explicit SafeInt32(int value)
             : _value(value)
         {
-            if( _value > int32_max || _value < int32_min )
+            if( (SL)_value > (SL)int32_max || (SL)_value < (SL) int32_min )
             {
                 throw SafeIntException();
             }
@@ -39,14 +52,30 @@ namespace mh_int32
         friend SafeInt32 operator-(SafeInt32 a, SafeInt32 b);
         friend SafeInt32 operator*(SafeInt32 a, SafeInt32 b);
         friend SafeInt32 operator/(SafeInt32 a, SafeInt32 b);
-        friend SafeInt32 operator<<(SafeInt32 a, SafeInt32 b);
-        friend SafeInt32 operator>>(SafeInt32 a, SafeInt32 b);
+        friend SafeInt32 operator<<(const SafeInt32& a, const SafeInt32& b);
+        friend SafeInt32 operator>>(const SafeInt32& a, const SafeInt32& b);
+        friend SafeInt32 operator+(SafeInt32 a, int b);
+        friend SafeInt32 operator-(SafeInt32 a, int b);
+        friend SafeInt32 operator*(SafeInt32 a, int b);
 
         bool operator==(const SafeInt32& rhs)
         {
             return _value == rhs._value;    
         }
 
+        bool operator>(int b)
+        {
+            return _value > b;
+        }
+
+        bool operator>=(int b)
+        {
+            return _value >= b;
+        }
+        
+        SafeInt32 operator-()  {
+            return SafeInt32(-_value);
+        }
     };
 
 
@@ -58,8 +87,9 @@ namespace mh_int32
             if( b.is_positive() )
             {
                 // Check for overflow:
-                if( int32_max - a._value  > b._value )
+                if( (SL)int32_max - (SL) a._value  < (SL) b._value )
                 {
+                    cout << "\n\nEh Oh! (SafeInt32 operator+(SafeInt32 a, SafeInt32 b)) Overflow detected! ( " << (SL) a._value << " + " << (SL) b._value << " )\n\n";
                     throw SafeIntException();
                 }
 
@@ -80,7 +110,7 @@ namespace mh_int32
             {
                 // (-) + (-)
                 // Check for underflow:
-                if( int32_min + b._value  < a._value )
+                if( (SL)int32_min + (SL)b._value  < (SL)a._value )
                 {
                     throw SafeIntException();
                 }
@@ -93,7 +123,7 @@ namespace mh_int32
     SafeInt32 operator-(SafeInt32 a, SafeInt32 b)
     {
         // TODO: Check for overflow/underflow here:
-        return SafeInt32( a._value + b._value);
+        return SafeInt32( a._value - b._value);
     }
 
     SafeInt32 operator*(SafeInt32 a, SafeInt32 b)
@@ -108,17 +138,33 @@ namespace mh_int32
         return SafeInt32( a._value / b._value);
     }
 
-    SafeInt32 operator<<(SafeInt32 a, SafeInt32 b)
+    SafeInt32 operator<<(const SafeInt32& a, const SafeInt32& b)
     {
         // TODO: Check for overflow/underflow here:
         return SafeInt32( a._value << b._value);
     }
 
-    SafeInt32 operator>>(SafeInt32 a, SafeInt32 b)
+    SafeInt32 operator>>(const SafeInt32& a, const SafeInt32& b)
     {
         // TODO: Check for overflow/underflow here:
+        return SafeInt32( a._value >> b._value);
     }
 
+
+    SafeInt32 operator+(SafeInt32 a, int b)
+    {
+        return a + SafeInt32(b);
+    }
+    
+    SafeInt32 operator-(SafeInt32 a, int b)
+    {
+        return a - SafeInt32(b);
+    }
+    
+    SafeInt32 operator*(SafeInt32 a, int b)
+    {
+        return a * SafeInt32(b);
+    }
 
 
 
