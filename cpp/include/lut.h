@@ -35,7 +35,7 @@ class LookUpTableExpPower2
 {
 
 
-        typedef mh::FixedFloatConversion<NBIT_VARIABLES> FixedFloatConversion;
+    typedef mh::FixedFloatConversion<NBIT_VARIABLES> FixedFloatConversion;
 
     vector<int> pData;
     vector<double> _x_vals;
