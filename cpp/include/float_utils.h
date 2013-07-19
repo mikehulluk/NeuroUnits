@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <cinttypes>
-
+#include <assert.h>
 
 
 
@@ -30,7 +30,7 @@ namespace mh
 			
 			if( fabs(val)>pow(2.0, upscale))
 			{
-				cout << "Trying to Encode: " << val << " using an upscale of " << upscale << ", which is outside the range!\n";
+				std::cout << "Trying to Encode: " << val << " using an upscale of " << upscale << ", which is outside the range!\n";
 				assert(0);	
 			}
 			assert( fabs(val) <= pow(2.0, upscale) ); // Encoding out of range.
