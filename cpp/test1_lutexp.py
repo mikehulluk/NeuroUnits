@@ -56,7 +56,7 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
 test_lut(lut_address_size=5, lut_input_range_upscale=3, input_range=(-6,6), exp_out_scale=10)
 test_lut(lut_address_size=5, lut_input_range_upscale=3, input_range=(-6,-2), exp_out_scale=-2)
 
-
+test_lut(lut_address_size=8, lut_input_range_upscale=3, input_range=(-6,6), exp_out_scale=10)
 test_lut(lut_address_size=8, lut_input_range_upscale=3, input_range=(-6,-2), exp_out_scale=-2)
 
 pylab.show()
