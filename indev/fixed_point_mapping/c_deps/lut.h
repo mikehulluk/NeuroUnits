@@ -453,6 +453,8 @@ public:
             cout << "\n** OLD:" <<  res_int_proper_old;
             cout << "\n** NEW:" << res_int_proper;
             cout << "\n";
+            
+            
             assert ( res_int_proper_old == res_int_proper || fabs(res_int_proper-res_int_proper_old) < 3 || fabs(res_int_proper-res_int_proper_old)/ (double) res_int_proper <= 2.e-2 );
 
 
