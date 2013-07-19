@@ -7,7 +7,10 @@
 #include <math.h>
 #include <cinttypes>
 #include <assert.h>
-
+#include <stdio.h>
+#include <execinfo.h>
+#include <signal.h>
+#include <stdlib.h>
 
 
 namespace mh 
@@ -31,7 +34,19 @@ namespace mh
 			if( fabs(val)>pow(2.0, upscale))
 			{
 				std::cout << "Trying to Encode: " << val << " using an upscale of " << upscale << ", which is outside the range!\n";
-				assert(0);	
+				void *array[10];
+				  
+				  size_t size;
+
+				  // get void*'s for all entries on the stack
+				  size = backtrace(array, 10);
+
+				  // print out all the frames to stderr
+				  backtrace_symbols_fd(array, size, STDERR_FILENO);
+				  
+				
+				
+				  assert(0);	
 			}
 			assert( fabs(val) <= pow(2.0, upscale) ); // Encoding out of range.
 			if(val <0 ) assert( fabs(val) <= pow(2.0, upscale) -1 );
