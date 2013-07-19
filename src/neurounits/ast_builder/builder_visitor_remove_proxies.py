@@ -171,18 +171,22 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         o.lhs = self.followSymbolProxy(o.lhs)
         self.visit(o.lhs)
 
-    def VisitFunctionDefInstantiation(self, o, **kwargs):
+    def VisitFunctionDefUserInstantiation(self, o, **kwargs):
         for p in o.parameters.values():
             self.visit(p)
+    def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
+        for p in o.parameters.values():
+            self.visit(p)
+
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         o.rhs_ast = self.followSymbolProxy(o.rhs_ast)
         self.visit(o.rhs_ast)
 
-    def VisitBuiltInFunction(self, o, **kwargs):
+    def VisitFunctionDefBuiltIn(self, o, **kwargs):
         pass
 
-    def VisitFunctionDef(self, o, **kwargs):
+    def VisitFunctionDefUser(self, o, **kwargs):
         for p in o.parameters.values():
             self.visit(p)
         o.rhs = self.followSymbolProxy(o.rhs)

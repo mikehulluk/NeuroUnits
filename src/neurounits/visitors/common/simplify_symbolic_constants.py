@@ -139,10 +139,10 @@ class ReduceConstants(ASTVisitorBase):
         raise NotImplementedError()
 
     # Function Definitions:
-    def VisitFunctionDef(self, o, **kwargs):
+    def VisitFunctionDefUser(self, o, **kwargs):
         raise NotImplementedError()
 
-    def VisitBuiltInFunction(self, o, **kwargs):
+    def VisitFunctionDefBuiltIn(self, o, **kwargs):
         raise NotImplementedError()
 
     def VisitFunctionDefParameter(self, o, **kwargs):
@@ -211,7 +211,7 @@ class ReduceConstants(ASTVisitorBase):
             return None
         return t1 ** o.rhs
 
-    def VisitFunctionDefInstantiation(self, o, **kwargs):
+    def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
         # Check if the parameters are constant
         params = {}
         for p in o.parameters.values():
@@ -227,6 +227,24 @@ class ReduceConstants(ASTVisitorBase):
         #assert False
         return None
         raise NotImplementedError()
+
+    def VisitFunctionDefUserInstantiation(self, o, **kwargs):
+        # Check if the parameters are constant
+        params = {}
+        for p in o.parameters.values():
+            pres = self.visit(p.rhs_ast)
+            if pres is None:
+                return None
+            params[p] = pres
+
+
+        # Not Implmented how to calculate it yet!
+        print 'We can evalute function:' , o.function_def.funcname
+        print 'BUT THE LOGIC IS MISSING :)'
+        #assert False
+        return None
+        raise NotImplementedError()
+
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         raise NotImplementedError()

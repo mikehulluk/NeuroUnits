@@ -180,10 +180,10 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         return d1
 
     # Function Definitions:
-    def VisitFunctionDef(self, o, **kwargs):
+    def VisitFunctionDefUser(self, o, **kwargs):
         raise NotImplementedError()
 
-    def VisitBuiltInFunction(self, o, **kwargs):
+    def VisitFunctionDefBuiltIn(self, o, **kwargs):
         raise NotImplementedError()
 
     def VisitFunctionDefParameter(self, o, **kwargs):
@@ -272,9 +272,10 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
     def VisitExpOp(self, o, **kwargs):
         return self.visit(o.lhs)
 
-    def VisitFunctionDefInstantiation(self, o, **kwargs):
-        return list(itertools.chain(*[self.visit(p) for p in
-                    o.parameters.values()]))
+    def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
+        return list(itertools.chain(*[self.visit(p) for p in o.parameters.values()]))
+    def VisitFunctionDefUserInstantiation(self, o, **kwargs):
+        return list(itertools.chain(*[self.visit(p) for p in o.parameters.values()]))
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         return self.visit(o.rhs_ast)

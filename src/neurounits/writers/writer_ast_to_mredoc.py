@@ -36,7 +36,7 @@ from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator
 import quantities as pq
 import numpy as np
 
-from neurounits.ast import BuiltInFunction
+from neurounits.ast import FunctionDefBuiltIn
 
 try:
     from mredoc import VerticalColTable, Figure, SectionNewPage, Section, EquationBlock, VerbatimBlock, Equation, Image, HierachyScope
@@ -133,7 +133,7 @@ class LatexEqnWriterN(ASTVisitorBase):
         return '%s = %s' % (self.visit(o.lhs), self.visit(o.rhs))
 
 
-    def VisitFunctionDef(self, o, **kwargs):
+    def VisitFunctionDefUser(self, o, **kwargs):
         return Equation('%s(%s) \\rightarrow %s' % (o.funcname,
                         ','.join(o.parameters.keys()),
                         self.visit(o.rhs)))
@@ -194,9 +194,14 @@ class LatexEqnWriterN(ASTVisitorBase):
         raise NotImplementedError()
         return '(! %s)' % self.visit(o.lhs)
 
-    def VisitFunctionDefInstantiation(self, o, **kwargs):
+    def VisitFunctionDefUserInstantiation(self, o, **kwargs):
         p = [self.visit(p) for p in o.parameters.values()]
         return '\\textrm{%s}(%s)' % (o.function_def.funcname.replace("_",r"\_"), ','.join(p))
+
+    def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
+        p = [self.visit(p) for p in o.parameters.values()]
+        return '\\textrm{%s}(%s)' % (o.function_def.funcname.replace("_",r"\_"), ','.join(p))
+
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         rhs = self.visit(o.rhs_ast)
@@ -413,7 +418,7 @@ class MRedocWriterVisitor(ASTVisitorBase):
             Section('Function Definitions',
                     EquationBlock(*[LatexEqnWriterN().visit(a) for a in
                     eqnset.functiondefs if not isinstance(a,
-                    BuiltInFunction)])),
+                    FunctionDefBuiltIn)])),
             Section('Symbols', terminal_symbols),
             Section('Imports'),
             #Section('Events',
@@ -436,7 +441,7 @@ class MRedocWriterVisitor(ASTVisitorBase):
         return SectionNewPage('Library Summary: %s' % library.name,
                               Section('Imports'),
                               Section('Function Definitions',
-                              EquationBlock(*[LatexEqnWriterN().visit(a) for a in library.functiondefs if not isinstance(a, BuiltInFunction)])),
+                              EquationBlock(*[LatexEqnWriterN().visit(a) for a in library.functiondefs if not isinstance(a, FunctionDefBuiltIn)])),
                               #Section('Symbols', terminal_symbols)
                               )
 

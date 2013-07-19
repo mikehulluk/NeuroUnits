@@ -143,10 +143,10 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
     def ActionBoolNot(self, o, **kwargs):
         pass
 
-    def ActionFunctionDef(self, o, **kwargs):
+    def ActionFunctionDefUser(self, o, **kwargs):
         self.verify_equal_units([o, o.rhs])
 
-    def ActionBuiltInFunction(self, o, **kwargs):
+    def ActionFunctionDefBuiltIn(self, o, **kwargs):
         pass
 
     def ActionFunctionDefParameter(self, o, **kwargs):
@@ -208,7 +208,10 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
         assert o.lhs.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False)
         assert isinstance(o.rhs, int)
 
-    def ActionFunctionDefInstantiation(self, o, **kwargs):
+    def ActionFunctionDefUserInstantiation(self, o, **kwargs):
+        self.verify_equal_units([o, o.function_def])
+
+    def ActionFunctionDefBuiltInInstantiation(self, o, **kwargs):
         self.verify_equal_units([o, o.function_def])
 
     def ActionFunctionDefInstantiationParater(self, o, **kwargs):
@@ -509,13 +512,13 @@ class DimensionResolver(ASTVisitorBase):
             o.set_dimension(self.ast.library_manager.backend.Unit())
 
     # Function Definitions:
-    def VisitFunctionDef(self, o, **kwargs):
+    def VisitFunctionDefUser(self, o, **kwargs):
         self.EnsureEqualDimensions([o, o.rhs])
 
     def VisitFunctionDefParameter(self, o, **kwargs):
         pass
 
-    def VisitFunctionDefInstantiation(self, o, **kwargs):
+    def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
 
         # Check the parameters tie up:
         for p in o.parameters.values():
@@ -525,8 +528,8 @@ class DimensionResolver(ASTVisitorBase):
 
         # powint and sqrt need to  be handled differently, since thier
         # dimensions depend on the input and output:
-        if isinstance(o.function_def, ast.BuiltInFunction) and o.function_def.funcname in ['powint','sqrt']:
-        #if isinstance(o.function_def, ast.BuiltInFunction) and o.function_def.funcname in ['sqrt']:
+        if isinstance(o.function_def, ast.FunctionDefBuiltIn) and o.function_def.funcname in ['powint','sqrt']:
+        #if isinstance(o.function_def, ast.FunctionDefBuiltIn) and o.function_def.funcname in ['sqrt']:
 
             if o.function_def.funcname == 'powint':
                 #assert False
@@ -594,12 +597,34 @@ class DimensionResolver(ASTVisitorBase):
 
             self.EnsureEqualDimensions([o, o.function_def])
 
+
+    def VisitFunctionDefUserInstantiation(self, o, **kwargs):
+
+        # Check the parameters tie up:
+        for p in o.parameters.values():
+            self.EnsureEqualDimensions([p.rhs_ast, p])
+            self.EnsureEqualDimensions([p, p._function_def_parameter])
+            self.EnsureEqualDimensions([p.rhs_ast, p._function_def_parameter])
+
+        # powint and sqrt need to  be handled differently, since thier
+        # dimensions depend on the input and output:
+       
+        self.EnsureEqualDimensions([o, o.function_def])
+
+
+
+
+
+
+
+
+
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         self.EnsureEqualDimensions([o, o.get_function_def_parameter(),
                                    o.rhs_ast],
                                    reason='Parameter Instantiation')
 
-    def VisitBuiltInFunction(self, o, **kwargs):
+    def VisitFunctionDefBuiltIn(self, o, **kwargs):
         dimensionless_functions = [
                 'sin','cos','tan',
                 'sinh','cosh','tanh',

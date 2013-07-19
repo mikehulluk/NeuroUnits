@@ -197,7 +197,7 @@ class FunctionWriter(ASTActionerDefaultIgnoreMissing):
     def __init__(self,):
         ASTActionerDefaultIgnoreMissing.__init__(self, action_predicates=[ SingleVisitPredicate() ] )
 
-    def ActionFunctionDef(self, o, modfilecontents,  build_parameters,**kwargs):
+    def ActionFunctionDefUser(self, o, modfilecontents,  build_parameters,**kwargs):
         if o.funcname in ['exp','sin','fabs','pow']:
             return False
 
@@ -319,10 +319,10 @@ class CStringWriter(ASTVisitorBase):
         raise NotImplementedError()
 
     # Function Definitions:
-    def VisitFunctionDef(self, o, **kwargs):
+    def VisitFunctionDefUser(self, o, **kwargs):
         panic()
 
-    def VisitBuiltInFunction(self, o, **kwargs):
+    def VisitFunctionDefBuiltIn(self, o, **kwargs):
         raise NotImplementedError()
 
     def VisitFunctionDefParameter(self, o, **kwargs):
@@ -431,9 +431,11 @@ class CStringWriter(ASTVisitorBase):
     def VisitExpOp(self, o, **kwargs):
         return "((%s)^%s )"%( self.visit(o.lhs,**kwargs), o.rhs )
 
-    def VisitFunctionDefInstantiation(self, o, **kwargs):
+
+    # TODO: HANDLE PROPERLY:
+    def _VisitFunctionDefInstantiation(self, o, **kwargs):
         import neurounits
-        if type(o.function_def) == neurounits.ast.astobjects.BuiltInFunction:
+        if type(o.function_def) == neurounits.ast.astobjects.FunctionDefBuiltIn:
 
             if o.function_def.funcname == "pow":
                 p0_rhs = self.visit(o.parameters['base'].rhs_ast)
@@ -446,7 +448,7 @@ class CStringWriter(ASTVisitorBase):
                 p0_rhs = self.visit(o.parameters.values()[0].rhs_ast)
                 r = "%s(%s)"%( o.function_def.funcname, p0_rhs )
                 return r
-        elif type(o.function_def) == neurounits.ast.astobjects.FunctionDef:
+        elif type(o.function_def) == neurounits.ast.astobjects.FunctionDefUser:
             #params = ",".join( self.visit(p.rhs_ast,varnames=varnames, varunits=varunits,**kwargs) for p in o.parameters.values()  )
             #func_call = "%s(%s)"%( varnames[o.function_def].raw_name, params)
             print 'T',  [ type(p.rhs_ast) for p in o.parameters.values()]
@@ -455,6 +457,14 @@ class CStringWriter(ASTVisitorBase):
             return func_call
         else:
             panic()
+
+    def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
+        return self._VisitFunctionDefInstantiation(o,**kwargs)
+    def VisitFunctionDefUserInstantiation(self, o, **kwargs):
+        return self._VisitFunctionDefInstantiation(o,**kwargs)
+
+
+
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         panic()
 

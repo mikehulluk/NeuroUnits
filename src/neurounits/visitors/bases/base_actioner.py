@@ -128,16 +128,16 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
 
     # Function Definitions:
-    def VisitFunctionDef(self, o, **kwargs):
+    def VisitFunctionDefUser(self, o, **kwargs):
         for p in o.parameters.values():
             self.visit(p, **kwargs)
         self.visit(o.rhs, **kwargs)
-        self._ActionFunctionDef(o, **kwargs)
+        self._ActionFunctionDefUser(o, **kwargs)
 
-    def VisitBuiltInFunction(self, o, **kwargs):
+    def VisitFunctionDefBuiltIn(self, o, **kwargs):
         for p in o.parameters.values():
             self.visit(p, **kwargs)
-        self._ActionBuiltInFunction(o, **kwargs)
+        self._ActionFunctionDefBuiltIn(o, **kwargs)
 
     def VisitFunctionDefParameter(self, o, **kwargs):
         self._ActionFunctionDefParameter(o, **kwargs)
@@ -212,11 +212,20 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         self.visit(o.lhs, **kwargs)
         self._ActionExpOp(o, **kwargs)
 
-    def VisitFunctionDefInstantiation(self, o, **kwargs):
+    def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
         for p in o.parameters.values():
             self.visit(p, **kwargs)
         self.visit(o.function_def, **kwargs)
-        self._ActionFunctionDefInstantiation(o, **kwargs)
+        self._ActionFunctionDefBuiltInInstantiation(o, **kwargs)
+
+    def VisitFunctionDefUserInstantiation(self, o, **kwargs):
+        for p in o.parameters.values():
+            self.visit(p, **kwargs)
+        self.visit(o.function_def, **kwargs)
+        self._ActionFunctionDefUserInstantiation(o, **kwargs)
+
+
+
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         self.visit(o.rhs_ast, **kwargs)
@@ -325,13 +334,13 @@ class ASTActionerDepthFirst(ASTVisitorBase):
             return self.ActionBoolNot(o, **kwargs)
 
 
-    def _ActionFunctionDef(self, o, **kwargs):
+    def _ActionFunctionDefUser(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
-            return self.ActionFunctionDef(o, **kwargs)
+            return self.ActionFunctionDefUser(o, **kwargs)
 
-    def _ActionBuiltInFunction(self, o, **kwargs):
+    def _ActionFunctionDefBuiltIn(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
-            return self.ActionBuiltInFunction(o, **kwargs)
+            return self.ActionFunctionDefBuiltIn(o, **kwargs)
 
     def _ActionFunctionDefParameter(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
@@ -402,9 +411,12 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionExpOp(o, **kwargs)
 
-    def _ActionFunctionDefInstantiation(self, o, **kwargs):
+    def _ActionFunctionDefUserInstantiation(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
-            return self.ActionFunctionDefInstantiation(o, **kwargs)
+            return self.ActionFunctionDefUserInstantiation(o, **kwargs)
+    def _ActionFunctionDefBuiltInInstantiation(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionFunctionDefBuiltInInstantiation(o, **kwargs)
 
     def _ActionFunctionDefInstantiationParater(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
@@ -514,10 +526,10 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         raise NotImplementedError()
 
     # Function Definitions:
-    def ActionFunctionDef(self, o, **kwargs):
+    def ActionFunctionDefUser(self, o, **kwargs):
         raise NotImplementedError()
 
-    def ActionBuiltInFunction(self, o, **kwargs):
+    def ActionFunctionDefBuiltIn(self, o, **kwargs):
         raise NotImplementedError()
 
     def ActionFunctionDefParameter(self, o, **kwargs):
@@ -570,8 +582,12 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def ActionExpOp(self, o, **kwargs):
         raise NotImplementedError()
 
-    def ActionFunctionDefInstantiation(self, o, **kwargs):
+    def ActionFunctionDefUserInstantiation(self, o, **kwargs):
         raise NotImplementedError()
+
+    def ActionFunctionDefBuiltInInstantiation(self, o, **kwargs):
+        raise NotImplementedError()
+
 
     def ActionFunctionDefInstantiationParater(self, o, **kwargs):
         raise NotImplementedError()

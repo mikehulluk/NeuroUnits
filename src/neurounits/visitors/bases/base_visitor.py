@@ -68,10 +68,10 @@ class ASTVisitorBase(object):
     def VisitBoolNot(self, o, **kwargs):
         raise NotImplementedError()
 
-    def VisitFunctionDef(self, o, **kwargs):
+    def VisitFunctionDefUser(self, o, **kwargs):
         raise NotImplementedError()
 
-    def VisitBuiltInFunction(self, o, **kwargs):
+    def VisitFunctionDefBuiltIn(self, o, **kwargs):
         raise NotImplementedError()
 
     def VisitFunctionDefParameter(self, o, **kwargs):
@@ -116,7 +116,10 @@ class ASTVisitorBase(object):
     def VisitExpOp(self, o, **kwargs):
         raise NotImplementedError()
 
-    def VisitFunctionDefInstantiation(self, o, **kwargs):
+    def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
+        print self, o
+        raise NotImplementedError()
+    def VisitFunctionDefUserInstantiation(self, o, **kwargs):
         raise NotImplementedError()
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):

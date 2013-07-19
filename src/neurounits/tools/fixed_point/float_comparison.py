@@ -210,22 +210,35 @@ class CBasedFloatWriter(ASTVisitorBase):
     def VisitInEquality(self, o):
         return "(%s < %s)" % ( self.visit(o.less_than), self.visit(o.greater_than) )
 
-    def VisitFunctionDefInstantiation(self,o):
+    def VisitFunctionDefUserInstantiation(self,o):
         print o.parameters
         param_list = sorted(o.parameters.values(), key=lambda p:p.symbol)
-        if o.function_def.is_builtin():
-            func_name = {
-                '__exp__': 'exp'
-                }[o.function_def.funcname]
-
-        else:
-            func_name = "user_%s" %  o.function_def.funcname
+        func_name = "user_%s" %  o.function_def.funcname
 
 
         return "%s(%s)" % (
                 func_name,
                 ",".join([self.visit(p.rhs_ast) for p in param_list])
                 )
+
+    def VisitFunctionDefBuiltInInstantiation(self,o):
+        print o.parameters
+        param_list = sorted(o.parameters.values(), key=lambda p:p.symbol)
+    
+        func_name = {
+            '__exp__': 'exp'
+            }[o.function_def.funcname]
+
+        return "%s(%s)" % (
+                func_name,
+                ",".join([self.visit(p.rhs_ast) for p in param_list])
+                )
+
+
+
+
+
+
     def VisitFunctionDefInstantiationParater(self, o):
         return o.symbol
 

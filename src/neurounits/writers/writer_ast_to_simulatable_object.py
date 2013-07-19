@@ -549,7 +549,7 @@ class FunctorGenerator(ASTVisitorBase):
             return not s1(**kw)
         return f
 
-    def VisitBuiltInFunction(self, o, **kwargs):
+    def VisitFunctionDefBuiltIn(self, o, **kwargs):
         if not self.as_float_in_si:
 
             def eFunc(state_data, func_params, **kw):
@@ -720,7 +720,7 @@ class FunctorGenerator(ASTVisitorBase):
             return f_lhs(**kw) ** o.rhs
         return eFunc
 
-    def VisitFunctionDefInstantiation(self, o, **kwargs):
+    def _VisitFunctionDefInstantiation(self, o, **kwargs):
 
         # Param Functors:
         param_functors = {}
@@ -738,13 +738,21 @@ class FunctorGenerator(ASTVisitorBase):
 
         return eFunc
 
+    def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
+        return self._VisitFunctionDefInstantiation(o, **kwargs)
+    def VisitFunctionDefUserInstantiation(self, o, **kwargs):
+        return self._VisitFunctionDefInstantiation(o, **kwargs)
+
+
+
+
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         f_rhs = self.visit(o.rhs_ast)
         def eFunc(**kw):
             return f_rhs(**kw)
         return eFunc
 
-    def VisitFunctionDef(self, o, **kwargs):
+    def VisitFunctionDefUser(self, o, **kwargs):
         f_rhs = self.visit(o.rhs)
         def eFunc(**kw):
             return f_rhs(**kw)

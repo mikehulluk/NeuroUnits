@@ -717,7 +717,7 @@ def p_function_definition_scope_open(p):
 
 def p_function_definition(p):
     """function_def : lhs_symbol LBRACKET function_def_params RBRACKET EQUALS open_funcdef_scope rhs_generic """
-    f = ast.FunctionDef(funcname=p[1], parameters=p[3], rhs=p[7])
+    f = ast.FunctionDefUser(funcname=p[1], parameters=p[3], rhs=p[7])
     p.parser.library_manager.get_current_block_builder().close_scope_and_create_function_def(f)
     p[0] = None
 
@@ -849,6 +849,7 @@ def p_bool_term4(p):
 
 def p_rhs_term_conditional(p):
     """rhs_term : LSQUAREBRACKET rhs_generic RSQUAREBRACKET IF LSQUAREBRACKET bool_expr RSQUAREBRACKET ELSE LSQUAREBRACKET rhs_generic RSQUAREBRACKET"""
+    #            | LBRACKET rhs_generic RBRACKET IF LBRACKET bool_expr RBRACKET ELSE LBRACKET rhs_generic RBRACKET"""
     p[0] = ast.IfThenElse(predicate=p[6],
                         if_true_ast=p[2],
                         if_false_ast=p[10])

@@ -80,7 +80,7 @@ class Library(Block):
         super(Library,self).__init__(library_manager=library_manager, builder=builder, name=name)
         import neurounits.ast as ast
 
-        self._function_defs = LookUpDict( builddata.funcdefs, accepted_obj_types=(ast.FunctionDef, ast.BuiltInFunction) )
+        self._function_defs = LookUpDict( builddata.funcdefs, accepted_obj_types=(ast.FunctionDefUser, ast.FunctionDefBuiltIn) )
         self._symbolicconstants = LookUpDict( builddata.symbolicconstants, accepted_obj_types=(ast.SymbolicConstant, ) )
         self._eqn_assignment = LookUpDict( builddata.assignments, accepted_obj_types=(ast.EqnAssignmentByRegime,) )
 
@@ -405,7 +405,7 @@ class NineMLComponent(Block):
         import neurounits.ast as ast
 
         # Top-level objects:
-        self._function_defs = LookUpDict( builddata.funcdefs, accepted_obj_types=(ast.FunctionDef) )
+        self._function_defs = LookUpDict( builddata.funcdefs, accepted_obj_types=(ast.FunctionDefUser) )
         self._symbolicconstants = LookUpDict( builddata.symbolicconstants, accepted_obj_types=(ast.SymbolicConstant, ) )
 
         self._eqn_assignment = LookUpDict( builddata.assignments, accepted_obj_types=(ast.EqnAssignmentByRegime,) )
@@ -669,7 +669,7 @@ class NineMLComponent(Block):
         # CONCEPTUALLY THIS IS VERY SIMPLE< BUT THE CODE
         # IS A HORRIBLE HACK!
 
-        no_remap = (ast.Interface, ast.InterfaceWireContinuous, ast.InterfaceWireEvent, ast.BuiltInFunction, ast.FunctionDefParameter)
+        no_remap = (ast.Interface, ast.InterfaceWireContinuous, ast.InterfaceWireEvent, ast.FunctionDefBuiltIn, ast.FunctionDefParameter)
         # First, lets clone each and every node:
         old_nodes = list(set(list( EqnsetVisitorNodeCollector(self).all() )))
         old_to_new_dict = {}

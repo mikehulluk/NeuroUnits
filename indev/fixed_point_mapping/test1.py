@@ -121,6 +121,9 @@ define_component simple_hh {
         kf_n = 0.0
     }
 
+
+    #my_variable = [[ alpha_na_h / (alpha_na_h + beta_na_h)  :: my_annotation ]]
+
 }
 
 

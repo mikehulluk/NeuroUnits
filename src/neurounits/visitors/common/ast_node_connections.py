@@ -139,14 +139,14 @@ class ASTAllConnections(ASTActionerDepthFirst):
     def VisitBoolNot(self, o, **kwargs):
         return [o.lhs]
 
-    def VisitFunctionDef(self, o, **kwargs):
+    def VisitFunctionDefUser(self, o, **kwargs):
         return list(chain(
             o.parameters.values(),
             [o.rhs]
             ))
 
 
-    def VisitBuiltInFunction(self, o, **kwargs):
+    def VisitFunctionDefBuiltIn(self, o, **kwargs):
         return o.parameters.values()
 
     def VisitFunctionDefParameter(self, o, **kwargs):
@@ -206,7 +206,9 @@ class ASTAllConnections(ASTActionerDepthFirst):
         return [o.lhs]
 
 
-    def VisitFunctionDefInstantiation(self, o, **kwargs):
+    def VisitFunctionDefUserInstantiation(self, o, **kwargs):
+        return list(chain([o.function_def], o.parameters.values() ))
+    def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
         return list(chain([o.function_def], o.parameters.values() ))
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):

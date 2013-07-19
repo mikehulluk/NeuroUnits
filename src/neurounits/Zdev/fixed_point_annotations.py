@@ -12,6 +12,7 @@ from neurounits import NeuroUnitParser
 
 
 
+
 class VarAnnot(object):
     def __init__(self, val_min = None, val_max = None ):
         from neurounits import NeuroUnitParser
@@ -152,7 +153,7 @@ class ASTDataAnnotator(ASTVisitorBase):
         for p in o.parameters.values():
             self.visit(p)
         # We should only have builtin functions by this point
-        assert o.function_def.is_builtin()
+        #assert o.function_def.is_builtin()
 
         # Handle exponents:
         assert o.function_def.funcname is '__exp__'
@@ -171,20 +172,8 @@ class ASTDataAnnotator(ASTVisitorBase):
         self.annotations[o] = VarAnnot(val_min=min, val_max=max)
         #assert False
 
-
-
-    def VisitFunctionDefUserInstantiation(self,o):
-        # We should only have builtin functions by this point
-        assert False
-
-
-
-
-
-
-
-
-
+	def VisitFunctionDefUserInstantiation(self,o):
+		assert False
 
 
 
@@ -395,9 +384,9 @@ class CalculateInternalStoragePerNode(ASTActionerDepthFirst):
 
     def ActionFunctionDefUserInstantiation(self, o):
         self.ActionNodeStd(o)
+
     def ActionFunctionDefBuiltInInstantiation(self, o):
         self.ActionNodeStd(o)
-
 
     def ActionFunctionDefInstantiationParater(self,o):
         self.ActionNodeStd(o)

@@ -169,11 +169,11 @@ class ActionerGetConnections(ASTActionerDefault):
     def ActionBoolNot(self, o, **kwargs):
         self.connections[o].append(o.lhs)
 
-    def ActionFunctionDef(self, o, **kwargs):
+    def ActionFunctionDefUser(self, o, **kwargs):
         self.connections[o].extend(o.parameters.values())
         self.connections[o].append(o.rhs)
 
-    def ActionBuiltInFunction(self, o, **kwargs):
+    def ActionFunctionDefBuiltIn(self, o, **kwargs):
         self.connections[o].extend(o.parameters.values())
 
     def ActionFunctionDefParameter(self, o, **kwargs):
@@ -229,7 +229,10 @@ class ActionerGetConnections(ASTActionerDefault):
     def ActionExpOp(self, o, **kwargs):
         self.connections[o].append(o.lhs)
 
-    def ActionFunctionDefInstantiation(self, o, **kwargs):
+    def ActionFunctionDefUserInstantiation(self, o, **kwargs):
+        self.connections[o].extend(o.parameters.values())
+        self.connections[o].append(o.function_def)
+    def ActionFunctionDefBuiltInInstantiation(self, o, **kwargs):
         self.connections[o].extend(o.parameters.values())
         self.connections[o].append(o.function_def)
 

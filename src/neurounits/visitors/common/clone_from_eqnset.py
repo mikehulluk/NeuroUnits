@@ -43,14 +43,14 @@ class CloneObject(object):
         return srcObj
 
     @classmethod
-    def FunctionDef(cls, srcObj, dst_symbol=None):
+    def FunctionDefUser(cls, srcObj, dst_symbol=None):
         fNew = _CloneFuncDef().visit(srcObj)
 
         # Over-ride the function name? ('import .. as..')
         if dst_symbol is not None:
             fNew.funcname = dst_symbol
 
-        assert isinstance(fNew, ast.FunctionDef)
+        assert isinstance(fNew, ast.FunctionDefUser)
         return fNew
 
 
@@ -87,13 +87,13 @@ class _CloneFuncDef(ASTVisitorBase):
     def VisitSuppliedValue(self, o, **kwargs):
         panic()
 
-    def VisitFunctionDef(self, o, **kwargs):
+    def VisitFunctionDefUser(self, o, **kwargs):
         params = {}
         for pName,pObj in o.parameters.iteritems():
              p = ast.FunctionDefParameter(symbol=pObj.symbol, dimension = pObj.get_dimension() ) #unitMH=pObj._unitMH)
              params[pName] = p
              self.func_param_map[pObj] = p
-        fDef = ast.FunctionDef(funcname=o.funcname, parameters=params, rhs=self.visit(o.rhs))
+        fDef = ast.FunctionDefUser(funcname=o.funcname, parameters=params, rhs=self.visit(o.rhs))
         return fDef
 
     def VisitIfThenElse(self, o, **kwargs):
@@ -132,7 +132,7 @@ class _CloneFuncDef(ASTVisitorBase):
     def VisitExpOp(self, o, **kwargs):
         return ast.ExpOp(self.visit(o.lhs), o.rhs)
 
-    def VisitBuiltInFunction(self, o, **kwargs):
+    def VisitFunctionDefBuiltIn(self, o, **kwargs):
         return o
 
     def VisitFunctionDefParameter(self, o, **kwargs):
@@ -144,7 +144,7 @@ class _CloneFuncDef(ASTVisitorBase):
     def VisitConstant(self, o, **kwargs):
         return ast.ConstValue(value=o.value)
 
-    def VisitFunctionDefInstantiation(self, o, **kwargs):
+    def VisitFunctionDefUserInstantiation(self, o, **kwargs):
 
         # Clone the defintion:
         newDef = self.visit(o.function_def)
@@ -156,7 +156,22 @@ class _CloneFuncDef(ASTVisitorBase):
             params[pName] = p
             self.func_param_map[pObj] = p
 
-        return ast.FunctionDefInstantiation(parameters=params, function_def=newDef)
+        return ast.FunctionDefUserInstantiation(parameters=params, function_def=newDef)
+
+    def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
+
+        # Clone the defintion:
+        newDef = self.visit(o.function_def)
+
+        params = {}
+        for (pName,pObj) in o.parameters.iteritems():
+            p = ast.FunctionDefParameterInstantiation(rhs_ast=self.visit(pObj.rhs_ast), symbol=pObj.symbol )
+            p.set_function_def_parameter(newDef.parameters[pName]  )
+            params[pName] = p
+            self.func_param_map[pObj] = p
+
+        return ast.FunctionDefBuiltInInstantiation(parameters=params, function_def=newDef)
+
 
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):

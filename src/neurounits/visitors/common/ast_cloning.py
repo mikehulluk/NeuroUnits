@@ -106,16 +106,16 @@ class ASTClone(object):
         return copy_std(o, new, )
 
 
-    def VisitFunctionDef(self, o, **kwargs):
-        new = ast.FunctionDef(
+    def VisitFunctionDefUser(self, o, **kwargs):
+        new = ast.FunctionDefUser(
                 funcname=o.funcname,
                 parameters=o.parameters.copy(),
                 rhs = o.rhs
                 )
         return copy_std(o, new, )
 
-    def VisitBuiltInFunction(self, o, **kwargs):
-        new = ast.BuiltInFunction(
+    def VisitFunctionDefBuiltIn(self, o, **kwargs):
+        new = ast.FunctionDefBuiltIn(
                 funcname = o.funcname,
                 parameters= o.parameters,
                 )
@@ -155,12 +155,20 @@ class ASTClone(object):
         return copy_std(o, new, )
 
 
-    def VisitFunctionDefInstantiation(self, o, **kwargs):
-        new =  ast.FunctionDefInstantiation(
+    def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
+        new =  ast.FunctionDefBuiltInInstantiation(
                 function_def = o.function_def,
                 parameters = o.parameters.copy()
                 )
         return copy_std(o, new, )
+
+    def VisitFunctionDefUserInstantiation(self, o, **kwargs):
+        new =  ast.FunctionDefUserInstantiation(
+                function_def = o.function_def,
+                parameters = o.parameters.copy()
+                )
+        return copy_std(o, new, )
+
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         new =  ast.FunctionDefParameterInstantiation(

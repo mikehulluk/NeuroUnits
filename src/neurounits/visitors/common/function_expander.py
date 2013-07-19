@@ -28,26 +28,30 @@ class _FunctionCloner(ASTVisitorBase):
         self.new_node = self.visit(self.functiondef_instantiation.function_def.rhs)
 
 
-    def VisitFunctionDefInstantiation(self, o):
+    def VisitFunctionDefBuiltInInstantiation(self, o):
 
-        if o.function_def.is_builtin():
+        #if o.function_def.is_builtin():
 
-            params_new = {}
-            # Clone the parameter objects:
-            for param_name, func_call_param in o.parameters.items():
-                pnew = ast.FunctionDefParameterInstantiation(
-                                            rhs_ast=self.visit(func_call_param.rhs_ast),
-                                            symbol=func_call_param.symbol,
-                                            function_def_parameter = func_call_param._function_def_parameter
-                                            )
-                params_new[param_name] = pnew
+        params_new = {}
+        # Clone the parameter objects:
+        for param_name, func_call_param in o.parameters.items():
+            pnew = ast.FunctionDefParameterInstantiation(
+                                        rhs_ast=self.visit(func_call_param.rhs_ast),
+                                        symbol=func_call_param.symbol,
+                                        function_def_parameter = func_call_param._function_def_parameter
+                                        )
+            params_new[param_name] = pnew
 
-            return ast.FunctionDefInstantiation( 
-                        function_def = o.function_def,
-                        parameters = params_new )
+        return ast.FunctionDefBuiltInInstantiation( 
+                    function_def = o.function_def,
+                    parameters = params_new )
 
+    def VisitFunctionDefUserInstantiation(self, o):
         print 'Function call:', repr(o)
         assert False, 'We shoudl not get here! we are doing depth first search'
+
+
+
 
     def VisitFunctionDefParameter(self, o ):
         print 'Searching:', o, 'in', self.params_old_to_new
@@ -102,9 +106,11 @@ class FunctionExpander(ASTActionerDefaultIgnoreMissing):
         #print 'Skipping', n
         pass
 
-    def ActionFunctionDefInstantiation(self,n):
-        if n.function_def.is_builtin():
-            return
+    def ActionFunctionDefBuiltInInstantiation(self,n):
+        return
+    def ActionFunctionDefUserInstantiation(self,n):
+#        if n.function_def.is_builtin():
+#            return
 
 
         new_node = _FunctionCloner(n).new_node

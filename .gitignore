@@ -1,3 +1,10 @@
+/cpp/_output/
+/cpp/boost_python_wrappers/py_fplib.os
+/cpp/fplib.so
+/cpp/libs/boost_python/libfplib.so
+/cpp/test/lut_test
+/cpp/test/lut_test.o
+/cpp/.sconsign.dblite
 /indev/fixed_point_mapping/c_deps/exp_out.txt
 /indev/fixed_point_mapping/c_deps/tmp.cpp
 /indev/fixed_point_mapping/out.txt

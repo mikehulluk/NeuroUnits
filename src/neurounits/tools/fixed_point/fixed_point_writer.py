@@ -491,11 +491,13 @@ class IntermediateNodeFinder(ASTActionerDefaultIgnoreMissing):
         assert False
         self.valid_nodes[o] = 3
 
-    def ActionFunctionDefInstantiation(self, o, **kwargs):
-        assert o.function_def.is_builtin()
+    def ActionFunctionDefBuiltInInstantiation(self, o, **kwargs):
+
         assert o.function_def.funcname == '__exp__'
         self.valid_nodes[o] = 2      
 
+    def ActionFunctionDefUserInstantiation(self, o, **kwargs):
+        assert False
 
 
 class CBasedFixedWriter(ASTVisitorBase):
@@ -574,7 +576,10 @@ class CBasedFixedWriter(ASTVisitorBase):
         return "(to_float(%s, %d) < to_float(%s, %d) )" % ( self.visit(o.less_than), ann_lt.fixed_scaling_power,  self.visit(o.greater_than), ann_gt.fixed_scaling_power )
 
 
-    def VisitFunctionDefInstantiation(self,o):        
+    def VisitFunctionDefUserInstantiation(self,o):        
+        assert False
+
+    def VisitFunctionDefBuiltInInstantiation(self,o):        
         assert o.function_def.is_builtin() and o.function_def.funcname == '__exp__'
         param = o.parameters.values()[0]
         param_term = self.visit(param.rhs_ast)
@@ -714,7 +719,7 @@ class CBasedEqnWriterFixedResultsProxy(object):
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
 
         from neurounits import ast
-        func_call_nodes = EqnsetVisitorNodeCollector(self.eqnwriter.component).nodes[ ast.FunctionDefInstantiation ]
+        func_call_nodes = EqnsetVisitorNodeCollector(self.eqnwriter.component).nodes[ ast.FunctionDefBuiltInInstantiation ]
         print func_call_nodes
         
         

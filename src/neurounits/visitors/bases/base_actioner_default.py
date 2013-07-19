@@ -59,10 +59,10 @@ class ASTActionerDefault(ASTActionerDepthFirst):
     def ActionBoolNot(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
-    def ActionFunctionDef(self, o, **kwargs):
+    def ActionFunctionDefUser(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
-    def ActionBuiltInFunction(self, o, **kwargs):
+    def ActionFunctionDefBuiltIn(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
     def ActionFunctionDefParameter(self, o, **kwargs):
@@ -122,7 +122,10 @@ class ASTActionerDefault(ASTActionerDepthFirst):
     def ActionExpOp(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
-    def ActionFunctionDefInstantiation(self, o, **kwargs):
+    def ActionFunctionDefBuiltInInstantiation(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
+
+    def ActionFunctionDefUserInstantiation(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
     def ActionFunctionDefInstantiationParater(self, o, **kwargs):

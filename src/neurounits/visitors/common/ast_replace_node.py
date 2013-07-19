@@ -227,13 +227,13 @@ class ReplaceNode(ASTVisitorBase):
         return o
 
     # Function Definitions:
-    def VisitFunctionDef(self, o, **kwargs):
+    def VisitFunctionDefUser(self, o, **kwargs):
         o.parameters = dict([(pName, self.replace_or_visit(p))
                             for (pName, p) in o.parameters.iteritems()])
         o.rhs = self.replace_or_visit(o.rhs)
         return o
 
-    def VisitBuiltInFunction(self, o, **kwargs):
+    def VisitFunctionDefBuiltIn(self, o, **kwargs):
         return o
 
     def VisitFunctionDefParameter(self, o, **kwargs):
@@ -302,11 +302,15 @@ class ReplaceNode(ASTVisitorBase):
         o.lhs = self.replace_or_visit(o.lhs)
         return o
 
-    def VisitFunctionDefInstantiation(self, o, **kwargs):
+    def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
         o.parameters = dict([(pName, self.replace_or_visit(p)) for (pName, p) in o.parameters.iteritems()])
         o.function_def = self.replace_or_visit(o.function_def)
-
         return o
+    def VisitFunctionDefUserInstantiation(self, o, **kwargs):
+        o.parameters = dict([(pName, self.replace_or_visit(p)) for (pName, p) in o.parameters.iteritems()])
+        o.function_def = self.replace_or_visit(o.function_def)
+        return o
+
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         o.rhs_ast = self.replace_or_visit(o.rhs_ast)

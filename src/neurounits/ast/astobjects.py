@@ -215,10 +215,10 @@ class SymbolicConstant(ASTExpressionObject):
         return '<SymbolicConstant: %s = %s>' % (self.symbol, self.value)
 
 
-class BuiltInFunction(ASTExpressionObject):
+class FunctionDefBuiltIn(ASTExpressionObject):
 
     def accept_visitor(self, v, **kwargs):
-        return v.VisitBuiltInFunction(self, **kwargs)
+        return v.VisitFunctionDefBuiltIn(self, **kwargs)
 
     def __init__(self, funcname, parameters, dimension=None, **kwargs):
         ASTExpressionObject.__init__(self,**kwargs)
@@ -227,16 +227,16 @@ class BuiltInFunction(ASTExpressionObject):
         if dimension is not None:
             self.set_dimensionality(dimension)
     def __repr__(self,):
-        return '<FunctionDef: %s>' % (self.funcname)
+        return '<BuiltinFunction: %s>' % (self.funcname)
 
     def is_builtin(self):
         return True
 
 
-class FunctionDef(ASTExpressionObject):
+class FunctionDefUser(ASTExpressionObject):
 
     def accept_visitor(self, v, **kwargs):
-        return v.VisitFunctionDef(self, **kwargs)
+        return v.VisitFunctionDefUser(self, **kwargs)
 
     def __init__(self, funcname, parameters, rhs, **kwargs):
         ASTExpressionObject.__init__(self,**kwargs)
@@ -245,7 +245,7 @@ class FunctionDef(ASTExpressionObject):
         self.rhs = rhs
     
     def __repr__(self,):
-        return '<FunctionDef: %s>' % (self.funcname)
+        return '<FunctionDefUser: %s>' % (self.funcname)
 
     def is_builtin(self):
         return False
@@ -265,18 +265,37 @@ class FunctionDefParameter(ASTExpressionObject):
         return "<FunctionDefParameter '%s'>" % self.symbol
 
 
-class FunctionDefInstantiation(ASTExpressionObject):
+class FunctionDefUserInstantiation(ASTExpressionObject):
 
     def accept_visitor(self, v, **kwargs):
-        return v.VisitFunctionDefInstantiation(self, **kwargs)
+        return v.VisitFunctionDefUserInstantiation(self, **kwargs)
 
     def __init__(self, parameters, function_def, **kwargs):
         ASTExpressionObject.__init__(self, **kwargs)
         self.function_def = function_def
         self.parameters = parameters
+        assert not function_def.is_builtin()
 
     def __repr__(self):
-        return "<FunctionDefInstantiation: '%s(%s)'>" % (self.function_def.funcname, "...")
+        return "<FunctionDefUserInstantiation: '%s(%s)'>" % (self.function_def.funcname, "...")
+
+
+class FunctionDefBuiltInInstantiation(ASTExpressionObject):
+
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitFunctionDefBuiltInInstantiation(self, **kwargs)
+
+    def __init__(self, parameters, function_def, **kwargs):
+        ASTExpressionObject.__init__(self, **kwargs)
+        self.function_def = function_def
+        self.parameters = parameters
+        assert function_def.is_builtin()
+
+    def __repr__(self):
+        return "<FunctionDefBuiltInInstantiation: '%s(%s)'>" % (self.function_def.funcname, "...")
+
+
+
 
 class FunctionDefParameterInstantiation(ASTExpressionObject):
 
