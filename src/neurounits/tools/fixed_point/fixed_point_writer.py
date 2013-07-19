@@ -45,9 +45,7 @@ typedef float T_hdf5_type_float;
 typedef std::int64_t int64;
 
 
-const int nbits = ${nbits};
-const int range_max = (1<<(nbits-1)) ;  
-
+const int VAR_NBITS = ${nbits};
 
 
 
@@ -63,8 +61,7 @@ const int range_max = (1<<(nbits-1)) ;
 
 
 // Save-data function
-typedef mh::FixedFloatConversion<nbits> FixedFloatConversion;
-
+typedef mh::FixedFloatConversion<VAR_NBITS> FixedFloatConversion;
 
 double to_float(int val, int upscale)
 {
@@ -96,7 +93,7 @@ struct LookUpTables
         : exponential(5, 3)    // (nbits, upscale)
     { }
     
-    LookUpTableExpPower2 exponential;
+    LookUpTableExpPower2<VAR_NBITS> exponential;
 
 
 };
@@ -184,7 +181,7 @@ int do_mul_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
    
     // Need to promote to 64 bit:
     int64 v12 = (int64)v1* (int64)v2;
-    int res_int = auto_shift64(v12, (up1+up2-up_local-(nbits-1)) );
+    int res_int = auto_shift64(v12, (up1+up2-up_local-(VAR_NBITS-1)) );
     
     //std::cout << "\nMul OP:" << res_fp << " and " << res_int  << "\n";
     int diff = res_int - res_fp;
@@ -215,13 +212,13 @@ int do_div_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     int64 v1_L = (int64) v1;
     int64 v2_L = (int64) v2;
     
-    v1_L = auto_shift64(v1_L, (nbits-1) );
+    v1_L = auto_shift64(v1_L, (VAR_NBITS-1) );
     
     
     int64 v = v1_L/v2_L;
     v = auto_shift64(v, up1-up2 - up_local);
     
-    assert( v < (1<<(nbits) ) );
+    assert( v < (1<<(VAR_NBITS) ) );
     
     
     int res_int = v; 

@@ -1,21 +1,14 @@
 
 
-//(-5.2621269, 6.3751221)
+
 #include <vector>
 #include <iostream>
-using namespace::std;
-
 #include <assert.h>
-
-
-
-
-
 #include <numeric>
-
 #include <algorithm>
 #include <cmath>
 
+using namespace::std;
 
 double my_fabs(double x) { return fabs(x); }
 
@@ -25,15 +18,24 @@ const float recip_ln_two = 1.44269504;
 
 
 
-
+#include "float_utils.h"
+using mh::auto_shift;
+using mh::auto_shift64;
 
 
 
 typedef int IntType;
 
 
-class LookUpTablePower2
+
+
+
+template<int NBIT_VARIABLES>
+class LookUpTableExpPower2
 {
+
+
+	typedef mh::FixedFloatConversion<NBIT_VARIABLES> FixedFloatConversion;
 
     vector<int> pData;
     vector<double> _x_vals;
@@ -48,7 +50,7 @@ public:
 
 
 
-        LookUpTablePower2(size_t nbits_table, int upscale)
+        LookUpTableExpPower2(size_t nbits_table, int upscale)
              : nbits_table(nbits_table), upscale(upscale), table_size(1<<(nbits_table)), table_size_half(1<<(nbits_table-1))
 
 
@@ -80,11 +82,11 @@ public:
                 int fp_upscale = recip_ln_two * x_value_double;
                 cout << "  -- fixed_point upscale: " << fp_upscale << "\n";
 
-                int res_as_int = from_float(res, fp_upscale);
+                int res_as_int = FixedFloatConversion::from_float(res, fp_upscale);
 
 
                 // Doube check we are not loosing too much precision here:
-                double res_as_float = to_float(res_as_int, fp_upscale);
+                double res_as_float = FixedFloatConversion::to_float(res_as_int, fp_upscale);
                 cout << "  -- Load/Save: " << res_as_float << "\n";
                 cout << "  -- As int: " << res_as_int << "\n";
 
@@ -108,7 +110,7 @@ public:
             cout << "\nget()";
 
 
-            double fp_xout = to_float(x,up_x) ;
+            double fp_xout = FixedFloatConversion::to_float(x,up_x) ;
             cout << "\nActual X: " << fp_xout;
             cout << "\nActual Out: " << exp(fp_xout);
 
@@ -125,14 +127,14 @@ public:
             cout << "\n -- index_0: " << index_0;
             */
 
-            int right_shift1 = nbits - up_x - 2;
+            int right_shift1 = NBIT_VARIABLES - up_x - 2;
             int index_0_signed = (x>>right_shift1) + table_size_half;
             size_t index_0 = index_0_signed;
 
             if(0)
             {
                 // Float check:
-                double orig_x_neg_1_to_1 = to_float(x, up_x) / table_size_half;
+                double orig_x_neg_1_to_1 = FixedFloatConversion::to_float(x, up_x) / table_size_half;
                 double orig_index_0_fl = (( orig_x_neg_1_to_1 + 0.5 ) * table_size );
                 size_t orig_index_0 = (int)  orig_index_0_fl;
                 assert(index_0 == orig_index_0);
@@ -166,7 +168,7 @@ public:
             assert(right_shift > 0);
 
             //// Lets upscale so that we keep as much precision as possible:
-            //int manual_upscale = -right_shift + (nbits-1 - nbits_table) ;
+            //int manual_upscale = -right_shift + (NBIT_VARIABLES-1 - nbits_table) ;
             ////double xn_new =  (double)( (int)index_0 * pow(2.0, -right_shift) ) - pow(2.0, upscale_int) ;
             //double xn_new =  (double)( (int)index_0 * pow(2.0, -right_shift+manual_upscale) ) - pow(2.0, upscale_int+manual_upscale) ;
             //double xn1_new =  xn_new + pow(2.0, upscale_int- (nbits_table_int-1) + manual_upscale) ;
@@ -174,7 +176,7 @@ public:
 
 
             // Lets upscale so that we keep as much precision as possible:
-            int manual_upscale = -right_shift + (nbits-1 - nbits_table) ;
+            int manual_upscale = -right_shift + (NBIT_VARIABLES-1 - nbits_table) ;
             assert(-right_shift+manual_upscale > 0);
 
 
@@ -229,7 +231,7 @@ public:
 
             //double res =  ( double(x) * pow(2.0, up_x) / double(range_max) )
 
-            int prop_to_next = ( (( double(x) * pow(2.0, up_x) / double(range_max) )  - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) ) ) * range_max ;
+            int prop_to_next = ( (( double(x) * pow(2.0, up_x) / double(FixedFloatConversion::cl_range_max) )  - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) ) ) * FixedFloatConversion::cl_range_max ;
 
             //float yn_fl = to_float(yn, fp_upscale_n);
             //float yn1_fl = to_float(yn1, fp_upscale_n1);
@@ -238,7 +240,7 @@ public:
             //( double(yn) * pow(2.0, fp_upscale_n) / double(range_max) )
             //( double(yn1) * pow(2.0, fp_upscale_n1) / double(range_max) )
             //
-            double dbl_range_max = range_max;
+            double dbl_range_max = FixedFloatConversion::cl_range_max;
             //float y_out = ( double(yn) * pow(2.0, fp_upscale_n) / dbl_range_max )
             //              +
             //              ( ((  ( double(yn1) * pow(2.0, fp_upscale_n1) / double(range_max) ) - ( double(yn) * pow(2.0, fp_upscale_n) / double(range_max) ) ) * prop_to_next) / range_max);
@@ -260,7 +262,7 @@ public:
                             ( ((  ( yn1 * pow(2.0, fp_upscale_n1)  ) - ( yn * pow(2.0, fp_upscale_n)  ) ) * prop_to_next) / dbl_range_max) )
                           ) / dbl_range_max ;
 
-            int res_int_proper_old = from_float(y_out, up_out);
+            int res_int_proper_old = FixedFloatConversion::from_float(y_out, up_out);
 
 
             //int res_int_proper =
@@ -372,7 +374,7 @@ public:
             //int manual_upscale = -right_shift + (nbits-1 - nbits_table) ;
             
             //int manual_upscale =  upscale_int  + nbits  - 2* nbits_table_int ;
-            assert(manual_upscale ==  ( upscale_int  + nbits  - 2* nbits_table_int ) ) ;
+            assert(manual_upscale ==  ( upscale_int  + NBIT_VARIABLES  - 2* nbits_table_int ) ) ;
 
             //double M1 = pow(2.0, -manual_upscale);
             //double N0 = pow(2.0, fp_upscale_n);
@@ -409,7 +411,7 @@ public:
 
             //double N1P_OVER_xdiff =  pow(2.0, fp_upscale_n1 - up_out) / pow(2.0, 2 * upscale_int + 1 + nbits  - 3* nbits_table);
             //double N1P_OVER_xdiff =  pow(2.0, (fp_upscale_n1 - up_out) -(2 * upscale_int + 1 + nbits  - 3* nbits_table_int));
-            int N1P_OVER_xdiff_pow =  fp_upscale_n1 - up_out -2 * upscale_int - 1 - nbits  + 3* nbits_table_int;
+            int N1P_OVER_xdiff_pow =  fp_upscale_n1 - up_out -2 * upscale_int - 1 - NBIT_VARIABLES  + 3* nbits_table_int;
             //double N1P_OVER_xdiff =  pow(2.0, N1P_OVER_xdiff_pow);
             
             //int res_int_proper =(yn*N0+ ( ( yn1*N1 - yn*N0 )*( x*X - xn_new*M1) / x_diff / M1) ) * P ;
@@ -470,12 +472,12 @@ public:
 
             {
             float prop_to_next = (fp_xout - (xn_new* pow(2.0, -manual_upscale) ) ) / ((xn1_new-xn_new) * pow(2.0, -manual_upscale) );
-            float yn_fl = to_float(yn, fp_upscale_n);
-            float yn1_fl = to_float(yn1, fp_upscale_n1);
+            float yn_fl = FixedFloatConversion::to_float(yn, fp_upscale_n);
+            float yn1_fl = FixedFloatConversion::to_float(yn1, fp_upscale_n1);
             cout << "\n -- yn_f1:" << yn_fl;
             cout << "\n -- yn1_f1:" << yn1_fl;
             float y_out = yn_fl + (yn1_fl-yn_fl) * prop_to_next;
-            int res_int_proper = from_float(y_out, up_out);
+            int res_int_proper = FixedFloatConversion::from_float(y_out, up_out);
             cout << "\n -- Interpolated y :" << y_out;
             cout << "\nBLAH" << res_int_proper;
             }
@@ -505,7 +507,7 @@ public:
 
 
 
-            int res_int = from_float(exp(fp_xout), up_out);
+            int res_int = FixedFloatConversion::from_float(exp(fp_xout), up_out);
 
 
             // Validate:
@@ -530,7 +532,7 @@ public:
 
 
 
-typedef LookUpTablePower2 LookUpTableExpPower2;
+//typedef LookUpTablePower2 LookUpTableExpPower2;
 
 
 
