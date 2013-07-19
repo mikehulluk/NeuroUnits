@@ -18,7 +18,7 @@ const int range_max = (1<<(nbits-1)) ;
 int main()
 {
     //LookUpTableExpPower2 exp_table( 12, 3);
-    LookUpTableExpPower2 exp_table( 8, 3);
+    LookUpTableExpPower2 exp_table( 5, 3);
 
     ofstream output("exp_out.txt");
 
