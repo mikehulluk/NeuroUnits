@@ -192,6 +192,7 @@ public:
 
         int get(int x_in, int up_x_in, int up_out_in)
         {
+            cout << "\n";
             cout << "\nget()";
             cout << "\ntable_size: " << table_size;
             cout << "\ntable_size_half: " << table_size_half;
@@ -214,35 +215,84 @@ public:
 
 
 
+            const double table_entry_width = pow(2.0, up_x+1 ) / pow(2.0, nbits_table );
 
-
-            double table_entry_width_float = pow(2.0, upscale+1-nbits_table); // pow(2.0, nbits_table);
-            double table_index_float = dbg_x_as_float / table_entry_width_float;
-            int table_index_float_floor_int = int( floor( table_index_float)) ;
-            int table_index = table_index_float_floor_int + table_size_half;
-
-
-            
-            cout << "\ntable_index_float: " << table_index_float;
-
-
-            // 1. Lets lookup the correct index in the loolup table:
-            IntType right_shift1 = nbit_variables - up_x - 2;
-            IntType index_n = (x>>right_shift1) + table_size_half;
+            // 1. Calculate the X-indices to use to lookup in the table with:
+            IntType rshift = -(up_x - nbit_variables -upscale+nbits_table);
+            IntType table_index = (x>>rshift) + table_size_half; 
 
             if(DEBUG)
             {
-                cout << "\n(x>>right_shift1): " << (x>>right_shift1);
-                cout << "\nright_shift1: " << right_shift1;
-                cout << "\nindex_n: " << index_n;
+                cout << "\nTable index: " << table_index;
+
                 assert( _x_vals[get_value(table_index)] <= dbg_x_as_float);
                 assert( _x_vals[get_value(table_index+1)] > dbg_x_as_float);
             }
 
 
+            // 2. Lookup the yvalues, and also account for differences in fixed point format:
+            IntType yn =  pData[get_value(table_index)];
+            IntType yn1 = pData[get_value(table_index)+1];
 
 
-            return 1;
+            // 2a.Find the x-values at the each:
+            IntType xn  = (((x>>rshift)+0) << rshift);
+            IntType xn1 = (((x>>rshift)+1) << rshift);
+
+            if(DEBUG)
+            {
+                double xn_dbl = FixedFloatConversion::to_float(get_value(xn), up_x_in) ;
+                double xn1_dbl = FixedFloatConversion::to_float(get_value(xn1), up_x_in);
+
+                cout << "\nxn_dbl: " << xn_dbl;
+                cout << "\nxn1_dbl: " << xn1_dbl;
+
+                assert( xn_dbl <= dbg_x_as_float);
+                assert( xn1_dbl > dbg_x_as_float);
+            }
+
+            double xn_dbl = FixedFloatConversion::to_float(get_value(xn), up_x_in) ;
+            double xn1_dbl = FixedFloatConversion::to_float(get_value(xn1), up_x_in);
+
+            // 2b. Use this to look up the upscaling factors for yn and yn1
+            int yn_upscale =  (int) ceil( recip_ln_two * xn_dbl );
+            int yn1_upscale = (int) ceil( recip_ln_two * xn1_dbl );
+
+            double yn_dbl = FixedFloatConversion::to_float( get_value(yn), yn_upscale);
+            double yn1_dbl = FixedFloatConversion::to_float( get_value(yn1), yn1_upscale);
+
+            if(DEBUG)
+            {
+                cout << "\nyn_dbl: " << yn_dbl;
+                cout << "\nyn1_dbl: " << yn1_dbl;
+
+                assert( yn_dbl <= exp(dbg_x_as_float) );
+                assert( yn1_dbl > exp(dbg_x_as_float) );
+            }
+
+
+
+            // 3. Perform the linear interpolation:
+            float prop = ((float)get_value(x-xn))/(float)(get_value(xn1-xn));
+            cout << "\nProp:" << prop;
+            assert( prop >=0 && prop <= 1.0);
+
+
+
+
+            double result_dbl = yn_dbl + (yn1_dbl-yn_dbl)*prop;
+
+            return  FixedFloatConversion::from_float(result_dbl, up_out_in);
+
+
+
+
+
+
+
+
+
+            //return 1;
 
 
         }

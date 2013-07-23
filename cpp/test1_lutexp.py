@@ -66,6 +66,13 @@ test_lut(lut_address_size=5, lut_input_range_upscale=3, input_range=(-6,-2), exp
 #
 test_lut(lut_address_size=7, lut_input_range_upscale=3, input_range=(-6,6), exp_out_scale=10)
 test_lut(lut_address_size=7, lut_input_range_upscale=3, input_range=(-6,-2), exp_out_scale=-2)
+#
+test_lut(lut_address_size=7, lut_input_range_upscale=4, input_range=(-15,-14), exp_out_scale=-19)
+
+test_lut(lut_address_size=10, lut_input_range_upscale=3, input_range=(-6,6), exp_out_scale=10)
+test_lut(lut_address_size=10, lut_input_range_upscale=3, input_range=(-6,-2), exp_out_scale=-2)
+#
+#test_lut(lut_address_size=7, lut_input_range_upscale=4, input_range=(10,14), exp_out_scale=21)
 
 #pylab.show()
 
