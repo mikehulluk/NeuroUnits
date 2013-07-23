@@ -219,7 +219,7 @@ public:
 
             // 1. Calculate the X-indices to use to lookup in the table with:
             IntType rshift = -(up_x - nbit_variables -upscale+nbits_table);
-            IntType table_index = (x>>rshift) + table_size_half; 
+            IntType table_index = (x>>rshift) + table_size_half;
 
             if(DEBUG)
             {
@@ -280,29 +280,15 @@ public:
             int yn_rel_upscale = yn1_upscale-yn_upscale;
             assert(yn_rel_upscale>=0);
             IntType yn_rescaled = (yn>>(IntType(yn_rel_upscale)) );
-            double ydiff = (double)(get_value(yn1 - yn_rescaled)) / pow(2.0, NBIT_VARIABLES-1) / pow(2.0, -yn1_upscale); 
 
-            double yn_dbl = get_value(yn)* pow(2.0, yn_upscale) / pow(2.0, NBIT_VARIABLES-1);
-            double result_dbl = yn_dbl + ydiff * ( (float)get_value(x-xn) ) / ( (float)get_value( IntType(1)<<rshift ) );
+
+
+            double result_dbl1 = (get_value(yn)* pow(2.0, yn_upscale)) + (double)(get_value(yn1 - yn_rescaled)) / pow(2.0, -yn1_upscale) * ( (float)get_value(x-xn) ) / ( (float)get_value( IntType(1)<<rshift ) );
+
+            return  result_dbl1 / pow(2.0, up_out_in);
+
 ;
 
-
-
-
-
-
-
-            return  FixedFloatConversion::from_float(result_dbl, up_out_in);
-
-
-
-
-
-
-
-
-
-            //return 1;
 
 
         }
