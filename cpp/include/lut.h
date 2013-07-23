@@ -255,14 +255,14 @@ public:
             double xn1_dbl = FixedFloatConversion::to_float(get_value(xn1), up_x_in);
 
             // 2b. Use this to look up the upscaling factors for yn and yn1
-            int yn_upscale =  (int) ceil( recip_ln_two * xn_dbl );
-            int yn1_upscale = (int) ceil( recip_ln_two * xn1_dbl );
+            IntType yn_upscale =  IntType( (int) ceil( recip_ln_two * xn_dbl ) );
+            IntType yn1_upscale = IntType( (int) ceil( recip_ln_two * xn1_dbl ) );
 
 
             if(DEBUG)
             {
-                double yn_dbl = FixedFloatConversion::to_float( get_value(yn), yn_upscale);
-                double yn1_dbl = FixedFloatConversion::to_float( get_value(yn1), yn1_upscale);
+                double yn_dbl = FixedFloatConversion::to_float( get_value(yn), get_value(yn_upscale));
+                double yn1_dbl = FixedFloatConversion::to_float( get_value(yn1), get_value(yn1_upscale));
 
                 cout << "\nyn_dbl: " << yn_dbl;
                 cout << "\nyn1_dbl: " << yn1_dbl;
@@ -277,23 +277,20 @@ public:
 
 
 
-            int yn_rel_upscale = yn1_upscale-yn_upscale;
+            IntType yn_rel_upscale = IntType(yn1_upscale-yn_upscale);
             assert(yn_rel_upscale>=0);
-            IntType yn_rescaled = (yn>>(IntType(yn_rel_upscale)) );
+            IntType yn_rescaled = (yn>>yn_rel_upscale);
 
 
 
             
             long xymul = (long)get_value(yn1 - yn_rescaled) *  get_value(x-xn);
 
-            double U  = pow(2.0, -up_out_in);
             return get_value( 
-                    auto_shift(yn, IntType(yn_upscale-up_out_in))
-                        + 
-                    xymul * pow(2.0, IntType(yn1_upscale-up_out_in) - rshift)
-                    //xymul * pow(2.0, yn1_upscale-up_out_in) / ( (float)get_value( IntType(1)<<rshift ) ) 
-                    //get_value(yn1 - yn_rescaled) * pow(2.0, yn1_upscale-up_out_in) *  get_value(x-xn)  / ( (float)get_value( IntType(1)<<rshift ) ) 
-                    //get_value(yn1 - yn_rescaled) * get_value(x-xn)  * pow(2.0, yn1_upscale-up_out_in) / ( (float)get_value( IntType(1)<<rshift ) ) 
+                    auto_shift(yn, yn_upscale-up_out)
+                        +
+                    auto_shift64(xymul, get_value( yn1_upscale - up_out - rshift) )
+                    //xymul * pow(2.0, yn1_upscale-up_out - rshift)
                     );
 
 
