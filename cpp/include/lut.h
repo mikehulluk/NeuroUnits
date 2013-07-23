@@ -284,14 +284,16 @@ public:
 
 
             
+            long xymul = (long)get_value(yn1 - yn_rescaled) *  get_value(x-xn);
 
             double U  = pow(2.0, -up_out_in);
-            //return ( (get_value(yn)* pow(2.0, yn_upscale)) + get_value(yn1 - yn_rescaled) * pow(2.0, yn1_upscale) * ( get_value(x-xn) )  / ( (float)get_value( IntType(1)<<rshift ) ) ) * U;
             return get_value( 
-                    (auto_shift(yn, IntType(yn_upscale-up_out_in)) ) 
+                    auto_shift(yn, IntType(yn_upscale-up_out_in))
                         + 
-                    get_value(yn1 - yn_rescaled) * pow(2.0, yn1_upscale) * ( get_value(x-xn) ) *U / ( (float)get_value( IntType(1)<<rshift ) ) 
-                    
+                    xymul * pow(2.0, IntType(yn1_upscale-up_out_in) - rshift)
+                    //xymul * pow(2.0, yn1_upscale-up_out_in) / ( (float)get_value( IntType(1)<<rshift ) ) 
+                    //get_value(yn1 - yn_rescaled) * pow(2.0, yn1_upscale-up_out_in) *  get_value(x-xn)  / ( (float)get_value( IntType(1)<<rshift ) ) 
+                    //get_value(yn1 - yn_rescaled) * get_value(x-xn)  * pow(2.0, yn1_upscale-up_out_in) / ( (float)get_value( IntType(1)<<rshift ) ) 
                     );
 
 
