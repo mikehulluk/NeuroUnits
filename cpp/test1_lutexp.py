@@ -1,3 +1,9 @@
+
+import os
+os.environ['MREORG_CONFIG'] = 'SAVEALL;NOSHOW'
+import mreorg
+
+
 import fplib
 import pylab
 import numpy as np
@@ -29,7 +35,7 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
 	
 	exp_in_scale = exp_in_scale if  exp_in_scale is not None else lut_input_range_upscale
 	
-	x = np.linspace(input_range[0],input_range[1],num=10000)
+	x = np.linspace(input_range[0],input_range[1],num=1000)
 	exp_x_int = getexp( from_float(x, exp_in_scale), exp_in_scale, exp_out_scale)
 	exp_x = to_float( exp_x_int, exp_out_scale )
 
@@ -53,13 +59,15 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
 
 
 
+
+
 test_lut(lut_address_size=5, lut_input_range_upscale=3, input_range=(-6,6), exp_out_scale=10)
 test_lut(lut_address_size=5, lut_input_range_upscale=3, input_range=(-6,-2), exp_out_scale=-2)
-
+#
 test_lut(lut_address_size=7, lut_input_range_upscale=3, input_range=(-6,6), exp_out_scale=10)
 test_lut(lut_address_size=7, lut_input_range_upscale=3, input_range=(-6,-2), exp_out_scale=-2)
 
-pylab.show()
+#pylab.show()
 
 
 

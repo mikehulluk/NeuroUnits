@@ -41,7 +41,7 @@ SafeInt32 auto_shift(SafeInt32 n, SafeInt32 m)
     {
             return n << m;
     }
-    else 
+    else
     {
        return n >> -m;
     }
@@ -106,8 +106,6 @@ public:
 
         LookUpTableExpPower2(int nbits_table, int upscale)
              : nbits_table(nbits_table), upscale(upscale), table_size(1<<(nbits_table)), table_size_half(1<<(nbits_table-1))
-
-
         {
 
 
@@ -115,11 +113,11 @@ public:
             //double upscale_factor_in =  pow(2.0, upscale);
 
             // Calculate the output values:
-            for(int i = 0; i < (int) table_size; i++)
+            for(int i = 0; i < table_size; i++)
             {
                 //int x_value_int = index_to_int(i);
-                cout << "x_int" << i-(int)table_size_half << "\n";
-                double x_value_double = (double)( i - (int) table_size_half) * pow(2.0, upscale) / table_size_half;
+                cout << "x_int" << i-table_size_half << "\n";
+                double x_value_double = (double)( i - table_size_half) * pow(2.0, upscale) / table_size_half;
 
                 double res = exp(x_value_double);
 
@@ -185,7 +183,82 @@ public:
 
 
 
+
+
+
+
+
+
+
         int get(int x_in, int up_x_in, int up_out_in)
+        {
+            cout << "\nget()";
+            cout << "\ntable_size: " << table_size;
+            cout << "\ntable_size_half: " << table_size_half;
+
+            IntType x = IntType(x_in);
+            IntType up_x = IntType(up_x_in);
+            IntType up_out = IntType(up_out_in);
+
+            const IntType nbit_variables = IntType(NBIT_VARIABLES);
+
+
+
+            const bool DEBUG = true;
+
+            // For debugging:
+            const double dbg_x_as_float = FixedFloatConversion::to_float(x_in, up_x_in) ;
+
+            cout << "\nx: " << x;
+            cout << "\ndbg_as_float: " << dbg_x_as_float;
+
+
+
+
+
+            double table_entry_width_float = pow(2.0, upscale+1-nbits_table); // pow(2.0, nbits_table);
+            double table_index_float = dbg_x_as_float / table_entry_width_float;
+            int table_index_float_floor_int = int( floor( table_index_float)) ;
+            int table_index = table_index_float_floor_int + table_size_half;
+
+
+            
+            cout << "\ntable_index_float: " << table_index_float;
+
+
+            // 1. Lets lookup the correct index in the loolup table:
+            IntType right_shift1 = nbit_variables - up_x - 2;
+            IntType index_n = (x>>right_shift1) + table_size_half;
+
+            if(DEBUG)
+            {
+                cout << "\n(x>>right_shift1): " << (x>>right_shift1);
+                cout << "\nright_shift1: " << right_shift1;
+                cout << "\nindex_n: " << index_n;
+                assert( _x_vals[get_value(table_index)] <= dbg_x_as_float);
+                assert( _x_vals[get_value(table_index+1)] > dbg_x_as_float);
+            }
+
+
+
+
+            return 1;
+
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+        int get_OLD(int x_in, int up_x_in, int up_out_in)
         {
             cout << "\nget()";
 
@@ -197,7 +270,7 @@ public:
 
             IntType nbit_variables = IntType(NBIT_VARIABLES);
 
-            
+
             double fp_xout = FixedFloatConversion::to_float(x_in, up_x_in) ;
             cout << "\nActual X: " << fp_xout;
             cout << "\nActual Out: " << exp(fp_xout);
@@ -205,12 +278,11 @@ public:
 
 
             // 1. Convert the x to an index
-
             IntType right_shift1 = nbit_variables - up_x - 2;
             IntType index_0_signed = (x>>right_shift1) + table_size_half;
             IntType index_0 = index_0_signed;
 
-            
+
 
 
             IntType upscale_int = upscale;
@@ -258,7 +330,7 @@ public:
 
 
             // Its possible that the two y values have different fixed point representations, so we should use the larger power,
-            // which will be the one for yn+1.            
+            // which will be the one for yn+1.
             assert( manual_upscale ==  ( upscale_int  + nbit_variables  - nbits_table_int*2 ) ) ;
 
             IntType X_OVER_M1_pow = up_x +1  + upscale_int   -  nbits_table_int *2 ;
