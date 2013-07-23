@@ -289,8 +289,7 @@ public:
             return get_value( 
                     auto_shift(yn, yn_upscale-up_out)
                         +
-                    auto_shift64(xymul, get_value( yn1_upscale - up_out - rshift) )
-                    //xymul * pow(2.0, yn1_upscale-up_out - rshift)
+                    auto_shift64( auto_shift64(xymul, -rshift), get_value( yn1_upscale - up_out) )
                     );
 
 
