@@ -258,11 +258,12 @@ public:
             int yn_upscale =  (int) ceil( recip_ln_two * xn_dbl );
             int yn1_upscale = (int) ceil( recip_ln_two * xn1_dbl );
 
-            double yn_dbl = FixedFloatConversion::to_float( get_value(yn), yn_upscale);
-            double yn1_dbl = FixedFloatConversion::to_float( get_value(yn1), yn1_upscale);
 
             if(DEBUG)
             {
+                double yn_dbl = FixedFloatConversion::to_float( get_value(yn), yn_upscale);
+                double yn1_dbl = FixedFloatConversion::to_float( get_value(yn1), yn1_upscale);
+
                 cout << "\nyn_dbl: " << yn_dbl;
                 cout << "\nyn1_dbl: " << yn1_dbl;
 
@@ -276,12 +277,12 @@ public:
 
 
 
-            //double ydiff =  (yn1_dbl-yn_dbl);
             int yn_rel_upscale = yn1_upscale-yn_upscale;
             assert(yn_rel_upscale>=0);
             IntType yn_rescaled = (yn>>(IntType(yn_rel_upscale)) );
-            double ydiff = (double)(get_value(yn1 - yn_rescaled)) / pow(2.0, NBIT_VARIABLES-1-yn1_upscale); 
+            double ydiff = (double)(get_value(yn1 - yn_rescaled)) / pow(2.0, NBIT_VARIABLES-1) / pow(2.0, -yn1_upscale); 
 
+            double yn_dbl = get_value(yn)* pow(2.0, yn_upscale) / pow(2.0, NBIT_VARIABLES-1);
             double result_dbl = yn_dbl + ydiff * ( (float)get_value(x-xn) ) / ( (float)get_value( IntType(1)<<rshift ) );
 ;
 
