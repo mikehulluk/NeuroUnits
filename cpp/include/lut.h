@@ -283,9 +283,15 @@ public:
 
 
 
-            double result_dbl1 = (get_value(yn)* pow(2.0, yn_upscale)) + (double)(get_value(yn1 - yn_rescaled)) / pow(2.0, -yn1_upscale) * ( (float)get_value(x-xn) ) / ( (float)get_value( IntType(1)<<rshift ) );
+            //double result_dbl1 = ((get_value(yn)* pow(2.0, yn_upscale)) + (double)(get_value(yn1 - yn_rescaled)) * pow(2.0, yn1_upscale) * ( (float)get_value(x-xn) ) ) / ( (float)get_value( IntType(1)<<rshift ) );
+            
+            //double result_dbl1 = (get_value(yn)* pow(2.0, yn_upscale)) + get_value(yn1 - yn_rescaled) * pow(2.0, yn1_upscale) * ( get_value(x-xn) )  / ( (float)get_value( IntType(1)<<rshift ) );
+            
 
-            return  result_dbl1 / pow(2.0, up_out_in);
+            double U  = pow(2.0, -up_out_in);
+            return ( (get_value(yn)* pow(2.0, yn_upscale)) + get_value(yn1 - yn_rescaled) * pow(2.0, yn1_upscale) * ( get_value(x-xn) )  / ( (float)get_value( IntType(1)<<rshift ) ) ) * U;
+
+            //return  result_dbl1 / pow(2.0, up_out_in);
 
 ;
 
