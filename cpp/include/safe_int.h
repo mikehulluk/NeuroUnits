@@ -141,12 +141,14 @@ namespace mh_int32
     SafeInt32 operator<<(const SafeInt32& a, const SafeInt32& b)
     {
         // TODO: Check for overflow/underflow here:
+        assert(b._value >= 0 );
         return SafeInt32( a._value << b._value);
     }
 
     SafeInt32 operator>>(const SafeInt32& a, const SafeInt32& b)
     {
         // TODO: Check for overflow/underflow here:
+        assert(b._value >= 0 );
         return SafeInt32( a._value >> b._value);
     }
 

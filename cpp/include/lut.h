@@ -273,14 +273,23 @@ public:
 
 
             // 3. Perform the linear interpolation:
-            float prop = ((float)get_value(x-xn))/(float)(get_value(xn1-xn));
-            cout << "\nProp:" << prop;
-            assert( prop >=0 && prop <= 1.0);
+
+
+
+            //double ydiff =  (yn1_dbl-yn_dbl);
+            int yn_rel_upscale = yn1_upscale-yn_upscale;
+            assert(yn_rel_upscale>=0);
+            IntType yn_rescaled = (yn>>(IntType(yn_rel_upscale)) );
+            double ydiff = (double)(get_value(yn1 - yn_rescaled)) / pow(2.0, NBIT_VARIABLES-1-yn1_upscale); 
+
+            double result_dbl = yn_dbl + ydiff * ( (float)get_value(x-xn) ) / ( (float)get_value( IntType(1)<<rshift ) );
+;
 
 
 
 
-            double result_dbl = yn_dbl + (yn1_dbl-yn_dbl)*prop;
+
+
 
             return  FixedFloatConversion::from_float(result_dbl, up_out_in);
 
