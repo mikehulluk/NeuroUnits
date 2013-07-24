@@ -121,9 +121,13 @@ public:
             //double res_fp_int = recip_ln_two_as_int * pow(2.0, -n_bits_recip_ln_two) *  (index - table_size_half) * pow(2.0, upscale +1) / pow(2.0, nbits_table);
             //double res_fp_int = recip_ln_two_as_int *(index - table_size_half) * pow(2.0, upscale+1-n_bits_recip_ln_two-nbits_table); //*   pow(2.0, upscale +1) / pow(2.0, nbits_table);
             IntType P = (upscale+1-n_bits_recip_ln_two-nbits_table) * -1;
-            double res_fp_int = recip_ln_two_as_int *(index - table_size_half) * pow(2.0, -P); 
-            int result_int = (int) ceil(res_fp_int) ;
+            assert(P<0);
+            
+            //double res_fp_int = recip_ln_two_as_int *(index - table_size_half) * pow(2.0, -P); 
+            //int result_int = (int) ceil(res_fp_int) ;
 
+            int result_int = ((recip_ln_two_as_int *(index - table_size_half) )>>P) + 1; // * pow(2.0, -P); 
+            //int result_int = (int) ceil(res_fp_int) ;
 
 
             cout << "\nR1: " << result_fp;
@@ -136,18 +140,6 @@ public:
 
 
 
-            //const int n_bits_recip_ln_two = 12;
-            //const IntType recip_ln_two_as_int = IntType( recip_ln_two * pow(2.0, n_bits_recip_ln_two) );
-
-            //int P  = (up_x_in-NBIT_VARIABLES+1 -n_bits_recip_ln_two) * -1;
-            //assert( P>0);
-            //#long int xnmul = get_value_long(recip_ln_two_as_int) * get_value(xn);
-            //long int xn1mul = get_value_long(recip_ln_two_as_int) * get_value(xn1);
-            //IntType yn_upscale =   IntType( (int) ceil( xnmul  * pow(2.0, P) ) );
-            //IntType yn1_upscale =  IntType( (int) ceil( xn1mul * pow(2.0, P) ) );
-
-            //IntType yn_upscale =   IntType( (int) ceil( (xnmul>>(-P) ) ) );
-            //IntType yn1_upscale =   IntType( (int) ceil( (xn1mul>>(-P)) ) ); 
 
 
 
