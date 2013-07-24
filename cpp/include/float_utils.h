@@ -16,6 +16,13 @@
 namespace mh
 {
 
+
+        class FixedFloatConversionError : public std::exception
+        {
+
+
+        };
+
         template<int cl_nbits>
         class FixedFloatConversion
         {
