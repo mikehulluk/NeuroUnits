@@ -106,51 +106,50 @@ public:
 
         int get_upscale_for_xindex(int index)
         {
+
+            // Calculate with floating point:
             double table_cell_width = pow(2.0, upscale +1) / pow(2.0, nbits_table);
-
             double xvalue = (index - table_size_half) * table_cell_width;
-
             double fp = recip_ln_two * xvalue;
+            int result_fp = (int) ceil(fp);
 
-            int result = (int) ceil(fp);
-
-            return result;
 
 
             
+            const int n_bits_recip_ln_two = 12;
+            const int recip_ln_two_as_int =  recip_ln_two * pow(2.0, n_bits_recip_ln_two) ;
+            //double res_fp_int = recip_ln_two_as_int * pow(2.0, -n_bits_recip_ln_two) *  (index - table_size_half) * pow(2.0, upscale +1) / pow(2.0, nbits_table);
+            //double res_fp_int = recip_ln_two_as_int *(index - table_size_half) * pow(2.0, upscale+1-n_bits_recip_ln_two-nbits_table); //*   pow(2.0, upscale +1) / pow(2.0, nbits_table);
+            IntType P = (upscale+1-n_bits_recip_ln_two-nbits_table) * -1;
+            double res_fp_int = recip_ln_two_as_int *(index - table_size_half) * pow(2.0, -P); 
+            int result_int = (int) ceil(res_fp_int) ;
+
+
+
+            cout << "\nR1: " << result_fp;
+            cout << "\nR2: " << result_int;
+            cout << "\n\n" << std::flush;
+            assert(result_fp==result_int);
+
+            return result_fp;
+
+
+
+
             //const int n_bits_recip_ln_two = 12;
             //const IntType recip_ln_two_as_int = IntType( recip_ln_two * pow(2.0, n_bits_recip_ln_two) );
 
             //int P  = (up_x_in-NBIT_VARIABLES+1 -n_bits_recip_ln_two) * -1;
             //assert( P>0);
-            //long int xnmul = get_value_long(recip_ln_two_as_int) * get_value(xn);
+            //#long int xnmul = get_value_long(recip_ln_two_as_int) * get_value(xn);
             //long int xn1mul = get_value_long(recip_ln_two_as_int) * get_value(xn1);
+            //IntType yn_upscale =   IntType( (int) ceil( xnmul  * pow(2.0, P) ) );
+            //IntType yn1_upscale =  IntType( (int) ceil( xn1mul * pow(2.0, P) ) );
+
+            //IntType yn_upscale =   IntType( (int) ceil( (xnmul>>(-P) ) ) );
+            //IntType yn1_upscale =   IntType( (int) ceil( (xn1mul>>(-P)) ) ); 
 
 
-            //double D1 = xnmul  * pow(2.0, -P);
-            //double D2 = xn1mul  * pow(2.0, -P);
-
-            ////int XN = (int) ceil( D1 );
-            ////int XN1 = (int) ceil( D2 );
-
-            //
-            //// Right shift rounds towards negative infinity, so lets add one:
-            //long int L1 = (xnmul >> P) + 1;
-            ////long int L2 = (xn1mul >> P) + 1;
-
-            //////if(L1>0) L1++;
-            //////if(L2>0) L2++;
-
-            ////cout << "\n:D1: " << D1;
-            ////cout << "\n:L1: " << L1;
-            ////cout << "\n:XN: " << XN;
-            ////cout << "\n" << flush;
-            //////assert( L1 == XN); //TODO FIX here!
-
-
-
-
-            //IntType yn_upscale =   IntType( L1 );
 
 
         }
@@ -184,34 +183,27 @@ public:
                 // which turns out to be linear in x (:
                 // fp =~ 1.4426 * x
                 // Careful with rounding:
-                double fp_upscale_dbl = recip_ln_two * x_value_double;
+                //double fp_upscale_dbl = recip_ln_two * x_value_double;
 
-                int fp_upscale =  (int) ceil( fp_upscale_dbl );
+                int fp_upscale = get_upscale_for_xindex(i);
 
-                int upscale_from_index = get_upscale_for_xindex(i);
-                assert( abs(fp_upscale-fp_upscale) <= 0);
-
-
-
-                cout << "\n  ++ Upscalings (dbl):" << fp_upscale_dbl;
-                cout << "\n  ++ Upscalings (int):" << fp_upscale;
-
-                cout << "  -- fixed_point upscale: " << fp_upscale << "\n";
+                //cout << "\n  ++ Upscalings (int):" << fp_upscale;
+                //cout << "  -- fixed_point upscale: " << fp_upscale << "\n";
 
                 int res_as_int = FixedFloatConversion::from_float(res, fp_upscale);
 
 
-                // Doube check we are not loosing too much precision here:
-                double res_as_float = FixedFloatConversion::to_float(res_as_int, fp_upscale);
-                cout << "  -- Load/Save: " << res_as_float << "\n";
-                cout << "  -- As int: " << res_as_int << "\n";
+                //// Doube check we are not loosing too much precision here:
+                //double res_as_float = FixedFloatConversion::to_float(res_as_int, fp_upscale);
+                //cout << "  -- Load/Save: " << res_as_float << "\n";
+                //cout << "  -- As int: " << res_as_int << "\n";
 
 
                 // Save the value:
-               pData.push_back( IntType(res_as_int));
+                pData.push_back( IntType(res_as_int));
 
-               if(_x_vals.size() > 0) assert( _x_vals.back() < x_value_double);
-               _x_vals.push_back(x_value_double);
+                if(_x_vals.size() > 0) assert( _x_vals.back() < x_value_double);
+                _x_vals.push_back(x_value_double);
             }
 
             assert( (int)pData.size() == table_size);
@@ -292,53 +284,15 @@ public:
                 assert( xn1_dbl > dbg_x_as_float);
             }
 
+            int L1 = get_upscale_for_xindex(get_value(table_index));
+            int L2 = get_upscale_for_xindex(get_value(table_index+1));
+
+            IntType yn_upscale =   IntType( L1 );
+            IntType yn1_upscale =  IntType( L2 );
 
 
 
 
-            const int n_bits_recip_ln_two = 12;
-            const IntType recip_ln_two_as_int = IntType( recip_ln_two * pow(2.0, n_bits_recip_ln_two) );
-
-            int P  = (up_x_in-NBIT_VARIABLES+1 -n_bits_recip_ln_two) * -1;
-            assert( P>0);
-            long int xnmul = get_value_long(recip_ln_two_as_int) * get_value(xn);
-            long int xn1mul = get_value_long(recip_ln_two_as_int) * get_value(xn1);
-
-
-            double D1 = xnmul  * pow(2.0, -P);
-            double D2 = xn1mul  * pow(2.0, -P);
-
-            int XN = (int) ceil( D1 );
-            int XN1 = (int) ceil( D2 );
-
-            
-            // Right shift rounds towards negative infinity, so lets add one:
-            long int L1 = (xnmul >> P) + 1;
-            long int L2 = (xn1mul >> P) + 1;
-
-            //if(L1>0) L1++;
-            //if(L2>0) L2++;
-
-            cout << "\n:D1: " << D1;
-            cout << "\n:L1: " << L1;
-            cout << "\n:XN: " << XN;
-            cout << "\n" << flush;
-            //assert( L1 == XN); //TODO FIX here!
-
-
-
-
-            IntType yn_upscale =   IntType( XN );
-            IntType yn1_upscale =  IntType( XN1 );
-
-
-
-
-            //IntType yn_upscale =   IntType( (int) ceil( xnmul  * pow(2.0, P) ) );
-            //IntType yn1_upscale =  IntType( (int) ceil( xn1mul * pow(2.0, P) ) );
-
-            //IntType yn_upscale =   IntType( (int) ceil( (xnmul>>(-P) ) ) );
-            //IntType yn1_upscale =   IntType( (int) ceil( (xn1mul>>(-P)) ) ); 
 
 
 
