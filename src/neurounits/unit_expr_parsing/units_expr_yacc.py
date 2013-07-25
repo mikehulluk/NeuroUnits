@@ -848,7 +848,8 @@ def p_bool_term4(p):
 
 
 def p_rhs_term_conditional(p):
-    """rhs_term : LSQUAREBRACKET rhs_generic RSQUAREBRACKET IF LSQUAREBRACKET bool_expr RSQUAREBRACKET ELSE LSQUAREBRACKET rhs_generic RSQUAREBRACKET"""
+    """rhs_term : LSQUAREBRACKET rhs_generic RSQUAREBRACKET IF LSQUAREBRACKET bool_expr RSQUAREBRACKET ELSE LSQUAREBRACKET rhs_generic RSQUAREBRACKET
+                | LBRACKET rhs_generic RBRACKET IF LBRACKET bool_expr RBRACKET ELSE LBRACKET rhs_generic RBRACKET"""
     p[0] = ast.IfThenElse(predicate=p[6],
                         if_true_ast=p[2],
                         if_false_ast=p[10])

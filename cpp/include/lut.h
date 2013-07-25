@@ -121,21 +121,23 @@ public:
             //double res_fp_int = recip_ln_two_as_int * pow(2.0, -n_bits_recip_ln_two) *  (index - table_size_half) * pow(2.0, upscale +1) / pow(2.0, nbits_table);
             //double res_fp_int = recip_ln_two_as_int *(index - table_size_half) * pow(2.0, upscale+1-n_bits_recip_ln_two-nbits_table); //*   pow(2.0, upscale +1) / pow(2.0, nbits_table);
             IntType P = (upscale+1-n_bits_recip_ln_two-nbits_table) * -1;
-            assert(P<0);
+            assert(get_value(P)>0);
             
             //double res_fp_int = recip_ln_two_as_int *(index - table_size_half) * pow(2.0, -P); 
             //int result_int = (int) ceil(res_fp_int) ;
 
-            int result_int = ((recip_ln_two_as_int *(index - table_size_half) )>>P) + 1; // * pow(2.0, -P); 
+            int result_int = ((recip_ln_two_as_int *(index - table_size_half) )>>get_value(P)) + 1; // * pow(2.0, -P); 
             //int result_int = (int) ceil(res_fp_int) ;
+            //
+            cout << "\nexp(x): " << exp(xvalue);
 
 
             cout << "\nR1: " << result_fp;
             cout << "\nR2: " << result_int;
             cout << "\n\n" << std::flush;
-            assert(result_fp==result_int);
+            assert( abs(result_fp-result_int) <=1);
 
-            return result_fp;
+            return result_int;
 
 
 
