@@ -49,6 +49,14 @@ class Block(ASTObject):
         self.name = name
         self.library_manager = library_manager
         self._builder = builder
+        
+        # Annotations:
+        from neurounits.ast_annotations import ASTTreeAnnotationManager, ASTNodeAnnotationData
+        self.annotation_mgr = ASTTreeAnnotationManager()
+
+        
+        
+
 
     @property
     def terminal_symbols(self):
@@ -67,7 +75,13 @@ class Block(ASTObject):
     @property
     def short_name(self):
         return self.name.split('.')[-1]
+    
 
+    def all_ast_nodes(self):
+        from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
+        c = EqnsetVisitorNodeCollector()
+        c.visit(self)
+        return itertools.chain( *c.nodes.values() )
 
 
 
@@ -130,6 +144,9 @@ class Library(Block):
 class NineMLComponent(Block):
     
     
+    
+    def annotate_ast(self, annotator):
+        annotator.annotate_ast(self)
     
     def run_sanity_checks(self):
         from neurounits.ast_builder.builder_visitor_propogate_dimensions import VerifyUnitsInTree
@@ -523,11 +540,7 @@ class NineMLComponent(Block):
 
 
 
-    def all_ast_nodes(self):
-        from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
-        c = EqnsetVisitorNodeCollector()
-        c.visit(self)
-        return itertools.chain( *c.nodes.values() )
+
 
 
 
@@ -669,7 +682,7 @@ class NineMLComponent(Block):
         # CONCEPTUALLY THIS IS VERY SIMPLE< BUT THE CODE
         # IS A HORRIBLE HACK!
 
-        no_remap = (ast.Interface, ast.InterfaceWireContinuous, ast.InterfaceWireEvent, ast.FunctionDefBuiltIn, ast.FunctionDefParameter)
+        no_remap = (ast.Interface, ast.InterfaceWireContinuous, ast.InterfaceWireEvent, ast.BuiltInFunction, ast.FunctionDefParameter)
         # First, lets clone each and every node:
         old_nodes = list(set(list( EqnsetVisitorNodeCollector(self).all() )))
         old_to_new_dict = {}

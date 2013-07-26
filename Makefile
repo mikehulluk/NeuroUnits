@@ -15,9 +15,9 @@ doc: force_look
 
 clean:
 	# Documentation:
-	make -C spec/latex/ clean
-	make -C doc/ clean
-	make -C src/ clean
+	#make -C spec/latex/ clean
+	#make -C doc/ clean
+	#make -C src/ clean
 	find . -name '*.new' -exec rm {} \;
 	find . -name '*.pyc' -exec rm {} \;
 	find . -name '*.pyo' -exec rm {} \;

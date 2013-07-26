@@ -300,6 +300,7 @@ class LibraryManager(object):
         self.open_block(LibraryBuilder(library_manager=self, name=name))
 
     def end_library_block(self):
+        print 'End library block'
         lib = self.pop_block()
         lib.finalise()
 
@@ -321,7 +322,7 @@ class LibraryManager(object):
     def end_component_block(self):
         component = self.pop_block()
         component.finalise()
-        self.add_component( component._astobject)
+        self.add_component(component._astobject)
 
 
     def summary(self, details=True):

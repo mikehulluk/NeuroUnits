@@ -34,9 +34,14 @@ class ASTObject(object):
 
     def __init__(self):
         self._metadata = None
+        self._annotations = None
 
     def set_metadata(self, md):
         self._metadata = md
+        
+        
+        
+        
 
     def __str__(self,):
         return 'ASTObject_%s_%s' %( id(self), type(self).__name__.split('.')[-1] )
@@ -44,3 +49,17 @@ class ASTObject(object):
 
     def get_dimension(self):
         return None
+
+
+    # Annotations:
+    @property
+    def annotations(self):
+        assert self._annotations is not None
+        return self._annotations
+        
+    @annotations.setter
+    def annotations(self, annotations):
+        assert self._annotations is None, 'Setting annotations twice on: %s' % self
+        self._annotations = annotations
+    
+    

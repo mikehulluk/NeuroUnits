@@ -36,7 +36,8 @@ class EqnAssignmentByRegime(ASTObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitEqnAssignmentByRegime(self, **kwargs)
 
-    def __init__(self, lhs, rhs_map, **kwargs):
+    def __init__(self, lhs, rhs_map):
+        super(EqnAssignmentByRegime, self).__init__()
         assert isinstance(rhs_map, EqnRegimeDispatchMap)
         self.lhs = lhs
         self.rhs_map = rhs_map
@@ -50,7 +51,8 @@ class EqnTimeDerivativeByRegime(ASTObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitTimeDerivativeByRegime(self, **kwargs)
 
-    def __init__(self, lhs, rhs_map, **kwargs):
+    def __init__(self, lhs, rhs_map):
+        super(EqnTimeDerivativeByRegime, self).__init__()
         self.lhs = lhs
         assert isinstance(rhs_map, EqnRegimeDispatchMap)
         self.rhs_map = rhs_map
@@ -216,6 +218,7 @@ class RTBlock(ASTObject):
 
 
     def __init__(self, name=None,):
+        super(RTBlock, self).__init__()
         self.name = name
         self.regimes = LookUpDict([Regime(None, parent_rt_graph=self)])
         self.default_regime = None

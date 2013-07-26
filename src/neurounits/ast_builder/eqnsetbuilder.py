@@ -629,7 +629,7 @@ class AbstractBlockBuilder(object):
         self.builddata._assigments_per_regime.append(a)
 
     def finalise(self):
-
+        print 'Finalising...', self
         # A few sanity checks....
         # ########################
         assert self.active_scope is None
@@ -700,6 +700,7 @@ class AbstractBlockBuilder(object):
             self.do_import(srclibrary=lib, tokens=[(token, symbol)])
 
 
+        
 
         ## Finish off resolving StateVariables:
         ## They might be defined on the left hand side on StateAssignments in transitions,
@@ -814,7 +815,7 @@ class AbstractBlockBuilder(object):
 
         # Lets build the Block Object!
         # ################################
-        #print self.block_type
+
         self._astobject = self.block_type(
                     library_manager=self.library_manager,
                     builder=self,
@@ -822,17 +823,15 @@ class AbstractBlockBuilder(object):
                     name=self.builddata.eqnset_name
                 )
 
-        self.post_construction_finalisation(self._astobject, io_data=io_data)
-        self.library_manager = None
+
 
         # The object exists, but is not complete and needs some polishing:
         # #################################################################
         self.post_construction_finalisation(self._astobject, io_data=io_data)
-        #self.library_manager = None
+        self.library_manager = None
 
 
         # Resolve the compound-connectors:
-
         for compoundport in self._interface_data:
             local_name, porttype, direction, wire_mapping_txts = compoundport
             self._astobject.build_interface_connector(local_name=local_name, porttype=porttype, direction=direction, wire_mapping_txts=wire_mapping_txts)
@@ -844,7 +843,7 @@ class AbstractBlockBuilder(object):
 
     @classmethod
     def post_construction_finalisation(cls, ast_object, io_data):
-        from neurounits.visitors.common.plot_networkx import ActionerPlotNetworkX
+        #from neurounits.visitors.common.plot_networkx import ActionerPlotNetworkX
         # ActionerPlotNetworkX(self._astobject)
 
         # 1. Resolve the SymbolProxies:
@@ -864,6 +863,17 @@ class AbstractBlockBuilder(object):
 
         # 4. Reduce simple assignments to symbolic constants:
         ReduceConstants().visit(ast_object)
+        
+        
+        # 5. Add the annotation infrastructure:
+        from neurounits.ast_annotations import ASTTreeAnnotationManager, ASTNodeAnnotationData
+        #ast_object.annotation_mgr = ASTTreeAnnotationManager()
+        print 'Finalising library:', ast_object
+        for node in set(ast_object.all_ast_nodes() ):
+            print 'Adding annotation to node', node
+            if node._annotations is None:
+                node.annotations = ASTNodeAnnotationData(mgr=ast_object.annotation_mgr, node=node)
+        
 
 
 # TODO: REMVOE HERE

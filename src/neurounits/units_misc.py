@@ -27,7 +27,7 @@
 # -------------------------------------------------------------------------------
 
 import os
-import UserDict
+#import UserDict
 
 import json
 

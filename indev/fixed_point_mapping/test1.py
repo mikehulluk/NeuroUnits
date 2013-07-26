@@ -11,7 +11,7 @@ from neurounits.visitors.bases.base_actioner import ASTActionerDepthFirst
 
 
 
-from fixed_point_annotations import VarAnnot, ASTDataAnnotator, CalculateInternalStoragePerNode
+from neurounits.Zdev.fixed_point_annotations import VarAnnot, ASTDataAnnotator, CalculateInternalStoragePerNode
 from neurounits.visitors.common.plot_networkx import ActionerPlotNetworkX
 
 from neurounits.tools.fixed_point import CBasedEqnWriterFixed
@@ -25,6 +25,7 @@ from neurounits.tools.fixed_point import CBasedEqnWriterFloat
 
 import os
 import time
+from neurounits.ast_annotations.common import NodeRangeAnnotator
 
 
 
@@ -368,11 +369,18 @@ print 'Looking at mappings:'
 print '===================='
 
 
+
+
+
+
 nbits = 24
 annotations = ASTDataAnnotator( comp, annotations_in = var_annots)
 CalculateInternalStoragePerNode(annotations=annotations, nbits=nbits).visit(comp)
 
 
+# New annotations
+comp.annotate_ast( NodeRangeAnnotator(var_annots) )
+comp.annotate_ast( NodeFixedPointFormatAnnotator() )
 
 
 
