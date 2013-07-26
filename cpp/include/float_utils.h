@@ -51,8 +51,8 @@ namespace mh
 
                                 //assert(0);
                         }
-                        //assert( fabs(val) <= pow(2.0, upscale) ); // Encoding out of range.
-                        //if(val <0 ) assert( fabs(val) / pow(2.0, upscale) < cl_range_max-1 );
+                        assert( fabs(val) <= pow(2.0, upscale) ); // Encoding out of range.
+                        if(val <0 ) assert( fabs(val) / pow(2.0, upscale) < cl_range_max-1 );
 
                         int res =  int(val * (double(cl_range_max) / pow(2.0, upscale) ) ) ;
                         return res;

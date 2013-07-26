@@ -35,7 +35,7 @@ src_text = """
 define_component simple_hh {
     from std.math import exp
 
-    iInj = [50pA] if [t > 50ms] else [0pA]
+    iInj = (50pA) if (t > 50ms) else (0pA)
     Cap = 10 pF
     gLk = 1.25 nS
     eLk = -50mV
@@ -120,6 +120,9 @@ define_component simple_hh {
         ks_n = 0.0
         kf_n = 0.0
     }
+
+
+    #my_variable = [[ alpha_na_h / (alpha_na_h + beta_na_h)  :: my_annotation ]]
 
 }
 
