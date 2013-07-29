@@ -386,32 +386,11 @@ class NodeRangeAnnotator(ASTTreeAnnotator):
         self._manual_range_annotations = manual_range_annotations
     
     def annotate_ast(self, ninemlcomponent ):
-        anns = NodeValueRangePropagator( ninemlcomponent, annotations_in = self._manual_range_annotations)
+        
+        # Propagate the values around the tree:
+        NodeValueRangePropagator( ninemlcomponent, annotations_in = self._manual_range_annotations)
         
         
-        #import neurounits.ast as ast
-        # Copy accross:
-        #for ast_node in ninemlcomponent.all_ast_nodes():
-            
-        #    print ast_node
-            
-            #if ast_node in anns._annotations:
-            #    ann = anns._annotations[ast_node]
-            #    assert ast_node.annotations['node-value-range'] is ann
-                
-                #ast_node.annotations.add_overwrite('node-value-range', NodeRange(min=ann.min,max=ann.max) )
-                                                                        
-        
-        #print anns
-        
-        
-
-
-
-
-
-
-
 
 
 
