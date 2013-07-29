@@ -13,6 +13,10 @@
 #include <stdlib.h>
 
 
+
+
+//#define DBG_RANGE
+
 namespace mh
 {
 
@@ -38,6 +42,7 @@ namespace mh
                 static int from_float(double val, int upscale)
                 {
 
+#ifdef DBG_RANGE
                         if( fabs(val)>pow(2.0, upscale))
                         {
                                 std::cout << "\nTrying to Encode: " << val << " using an upscale of " << upscale << ", which is outside the range!\n" << std::flush;
@@ -53,6 +58,7 @@ namespace mh
                         }
                         assert( fabs(val) <= pow(2.0, upscale) ); // Encoding out of range.
                         if(val <0 ) assert( fabs(val) / pow(2.0, upscale) < cl_range_max-1 );
+#endif
 
                         int res =  int(val * (double(cl_range_max) / pow(2.0, upscale) ) ) ;
                         return res;

@@ -35,13 +35,12 @@ src_text = """
 define_component simple_hh {
     from std.math import exp
 
-    iInj = (50pA) if (t > 50ms) else (0pA)
+    iInj = [50pA] if [t > 50ms] else [0pA]
     Cap = 10 pF
     gLk = 1.25 nS
     eLk = -50mV
 
     iLk = gLk * (eLk-V) * glk_noise
-    #V' = (1/Cap) * (iInj + iLk + iKs + iKf + iNa + iCa)
     V' = (1/Cap) * (iInj + iLk + iKs + iKf +iNa) #+ iNa)
 
 
