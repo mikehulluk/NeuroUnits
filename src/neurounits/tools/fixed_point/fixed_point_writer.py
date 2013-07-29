@@ -278,24 +278,14 @@ struct NrnData
 {
 
     // Parameters:
-
 % for p in parameter_defs_new:
     ${p.annotations['fixed-point-format'].datatype} ${p.symbol};      // Upscale: ${p.annotations['fixed-point-format'].upscale}
 % endfor
-
-##    // Parameters:
-##% for p_def in parameter_defs:
-##    ${p_def.datatype} ${p_def.name};      // Upscale: ${p_def.annotation.fixed_scaling_power}
-##% endfor
 
     // Assignments:
 % for ass in assignment_defs_new:
     ${ass.annotations['fixed-point-format'].datatype} ${ass.symbol};      // Upscale: ${ass.annotations['fixed-point-format'].upscale}
 % endfor
-
-##% for a_def in assignment_defs:
-##    ${a_def.datatype} ${a_def.name};      // Upscale: ${a_def.annotation.fixed_scaling_power}
-##% endfor
 
     // States:
 % for sv_def in state_var_defs_new:
@@ -303,10 +293,7 @@ struct NrnData
     ${sv_def.annotations['fixed-point-format'].datatype} d_${sv_def.symbol};
 % endfor
 
-##% for sv_def in state_var_defs:
-##    ${sv_def.datatype} ${sv_def.name};    // Upscale: ${sv_def.annotation.fixed_scaling_power}
-##    ${sv_def.datatype} d_${sv_def.name};
-##% endfor
+
 };
 
 
@@ -371,9 +358,10 @@ void sim_step(NrnData& d, int time_step)
 
 void initialise_statevars(NrnData& d)
 {          
-    % for sv_def in state_var_defs:
-    d.${sv_def.name} =  ${sv_def.annotation.initial_value};
+    % for sv_def in state_var_defs_new:
+    d.${sv_def.symbol} = auto_shift( ${sv_def.initial_value.annotations['fixed-point-format'].const_value_as_int},  ${sv_def.initial_value.annotations['fixed-point-format'].upscale} - ${sv_def.annotations['fixed-point-format'].upscale} );
     % endfor   
+   
 }
 
 
@@ -391,14 +379,14 @@ void setup_hdf5()
     file->get_group("simulation_fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
     
     // Storage for state-variables and assignments:
-    % for sv_def in state_var_defs:
-    file->get_group("simulation_fixed/float/variables/")->create_dataset("${sv_def.name}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
-    file->get_group("simulation_fixed/int/variables/")->create_dataset("${sv_def.name}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
+    % for sv_def in state_var_defs_new:
+    file->get_group("simulation_fixed/float/variables/")->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+    file->get_group("simulation_fixed/int/variables/")->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
     % endfor   
     
-    % for ass_def in assignment_defs:
-    file->get_group("simulation_fixed/float/variables/")->create_dataset("${ass_def.name}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
-    file->get_group("simulation_fixed/int/variables/")->create_dataset("${ass_def.name}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
+    % for ass_def in assignment_defs_new:
+    file->get_group("simulation_fixed/float/variables/")->create_dataset("${ass_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+    file->get_group("simulation_fixed/int/variables/")->create_dataset("${ass_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
     % endfor   
 
 
@@ -664,9 +652,9 @@ class CBasedEqnWriterFixed(object):
       
         cfile = Template(c_prog).render(
                     output_filename = output_filename,
-                    state_var_defs = self.state_var_defs,
-                    assignment_defs = self.assignment_defs,
-                    parameter_defs = self.parameter_defs,
+                    #state_var_defs = self.state_var_defs,
+                    #assignment_defs = self.assignment_defs,
+                    #parameter_defs = self.parameter_defs,
                     
                     parameter_defs_new = list(self.component.parameters),
                     state_var_defs_new = list(self.component.state_variables),

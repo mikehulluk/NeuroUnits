@@ -242,6 +242,7 @@ public:
 
             cout << "\nx: " << x;
             cout << "\ndbg_as_float: " << dbg_x_as_float;
+            assert( fabs(dbg_x_as_float) < pow(2.0, this->upscale) );
 
 
             // 1. Calculate the X-indices to use to lookup in the table with:
