@@ -618,10 +618,10 @@ class CBasedEqnWriterFixed(object):
         
         
         
-        from neurounits.visitors.common.node_label_with_integers import NodeToIntLabeller
+        #from neurounits.visitors.common.node_label_with_integers import NodeToIntLabeller
         
         
-        self.node_labeller = NodeToIntLabeller(component)
+        self.node_labeller = component.annotation_mgr._annotators['node-ids']
         self.node_labels = self.node_labeller.node_to_int
         intermediate_nodes = IntermediateNodeFinder(component).valid_nodes
         self.intermediate_store_locs = [("op%d" % self.node_labeller.node_to_int[o], o_number ) for (o, o_number) in intermediate_nodes.items()]
@@ -659,10 +659,19 @@ class CBasedEqnWriterFixed(object):
 
 
 
-        # Compile and run:
         for f in ['sim1.cpp','a.out',output_filename, 'debug.log',]:
             if os.path.exists(f):
                 os.unlink(f)
+
+        self.compile_and_run(cfile)
+
+
+
+
+    def compile_and_run(self, cfile):
+         
+        # Compile and run:
+
 
         with open( 'sim1.cpp','w') as f:
             f.write(cfile)
@@ -718,9 +727,6 @@ class CBasedEqnWriterFixedResultsProxy(object):
         func_call_nodes = EqnsetVisitorNodeCollector(self.eqnwriter.component).nodes[ ast.FunctionDefBuiltInInstantiation ]
         print func_call_nodes
         
-        
-        #node_locs = dict(self.eqnwriter.intermediate_store_locs)
-        #print node_locs 
         
         
         nbits = 10
@@ -789,47 +795,59 @@ class CBasedEqnWriterFixedResultsProxy(object):
         
         pylab.show()
     
-#     
-#     def plot_blah(self):
-#     
-#     
-# 
-# 
+     
+     
+     
+     
+     
+     
+    def plot_ranges(self):
+        
+        
+        
+        # Plot the variable values:
+        for ast_node in self.eqnwriter.component.assignedvalues:
+            print 'Plotting:', ast_node
+        
+     
+        assert False
+ 
+#  
 #         import pylab
 #         import numpy as np
 #         from collections import defaultdict
 #         import shutil
-# 
+#  
 #         if os.path.exists('output/'):
 #             shutil.rmtree("output/")
 #         if not os.path.exists('output/'):
 #             os.makedirs('output/')
-#         
-# 
-# 
-# 
+#          
+#  
+#  
+#  
 #         import numpy as np
 #         data_int = np.genfromtxt('res_int.txt_int', names=True, delimiter=',', dtype=int)
-#         
-#         
-#         
+#          
+#          
+#          
 #         #pylab.show()
 #         #pylab.plot(data_int['i'], data_int['tau_kf_n'] )
 #         #pylab.show()
-#         
-#         
+#          
+#          
 #         for index,name in enumerate(data_int.dtype.names):
 #             if name in ['i', 'f0']:
 #                 continue
-#             
+#              
 #             print 'Plotting:', name
 #             res = data_int[name]
-#             
+#              
 #             f = pylab.figure()
 #             ax = f.add_subplot(211)
-#             
+#              
 #             pc_of_dyn_range_used = ( float(np.ptp(res)) / 2**nbits ) * 100.0
-#             
+#              
 #             node = component.get_terminal_obj(name)
 #             ann = self.annotations[node]
 #             t1 = 'Distribution of values of: %s. (Using %.2f%% of possible range)' % (name,pc_of_dyn_range_used)
@@ -842,27 +860,27 @@ class CBasedEqnWriterFixedResultsProxy(object):
 #             ax.set_xlim(-ext*1.1,ext*1.1)
 #             ax.axvline(-ext)
 #             ax.axvline(ext)
-#             
+#              
 #             ax = f.add_subplot(212)
 #             ax.plot(data_int['i'], res )
-#             
+#              
 #             pylab.savefig('output/variables_dynamicranges_%03d.png' % index)
 #             pylab.close()
-#             
+#              
 #         print data_int
-#         
+#          
 #         #res_int.txt_int
-#         
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
+#          
+#  
+#  
+#  
+#  
+#  
+#  
+#  
+#  
+#  
+#  
 #         import re
 #         r = re.compile(r"""OP\{(\d+)\}: (.*) => (.*) """, re.VERBOSE)
 #         # Lets plot the graphs of ranges of each operation:
@@ -872,70 +890,70 @@ class CBasedEqnWriterFixedResultsProxy(object):
 #                 m = r.match(l)
 #                 #print 
 #                 op, operands, res = int(m.group(1)), m.group(2), int(m.group(3))
-#                  
+#                   
 #                 op_data[ op ].append( (operands, res) )
 #                 #assert m
 #         op_data = [ (op, zip(*t)) for (op,t) in sorted(op_data.items()) ]
-#         
-#         
-#         
-# 
-#         
-#             
-#             
+#          
+#          
+#          
+#  
+#          
+#              
+#              
 #         for index, (op, (operands,res) ) in enumerate(op_data):    
 #             print 'Operator: ', op, 'Results found:', len(res)
 #             node = node_labeller.int_to_node[op]
 #             ann = self.annotations[node] 
 #             print node
-#             
+#              
 #             res = np.array( [int(r) for r in res] )
-#             
-#             
+#              
+#              
 #             pc_of_dyn_range_used = ( float(np.ptp(res)) / 2**nbits ) * 100.0
 #             f = pylab.figure()
 #             ax = f.add_subplot(111)
-#             
+#              
 #             t1 = 'Distribution of values from operator: %s -- %.2f%% of range used -- [%d]' % ( repr(node), pc_of_dyn_range_used, op) 
 #             t2 = "Infered range: %s to %s" % (ann.val_min,  ann.val_max)
 #             f.suptitle(t1 + '\n' + t2)
+#               
 #              
-#             
 #             #res_index = np.linspace( 0, 1.0, num=len(res)  )
 #             print res
-#             
-#             
-#             
+#              
+#              
+#              
 #             ext = 2**(nbits-1)-1
 #             ax.hist(res, range=(-ext,ext), bins=50 )
 #             ax.axvspan( np.min(res), np.max(res), alpha=0.3, color='green')
 #             ax.set_xlim(-ext*1.1,ext*1.1)
 #             ax.axvline(-ext)
 #             ax.axvline(ext)
-#             
-#             
+#              
+#              
 #             pylab.savefig('output/operators_dynamicrange_%03d.png' % index)
-#             
+#              
 #             pylab.close()
 #             #ax.scatter(res_index, res)
 #             #pylab.show()
-#             
+#              
+#           
+#           
+#           
+#          
+#        
 #          
 #          
 #          
-#         
-#       
-#         
-#         
-#         
-#         
-#         
+#          
+#          
 #         #assert False
-#         
-#         
-# 
-# 
-# 
-# 
-# 
+#          
+#          
+#  
+#  
+#  
+ 
+ 
 

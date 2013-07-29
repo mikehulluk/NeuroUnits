@@ -26,7 +26,7 @@ from neurounits.tools.fixed_point import CBasedEqnWriterFloat
 import os
 import time
 from neurounits.ast_annotations.common import NodeRangeAnnotator, NodeFixedPointFormatAnnotator,\
-    NodeRange
+    NodeRange, NodeToIntAnnotator
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 
 
@@ -406,20 +406,8 @@ nbits = 24
 
 # New annotations
 comp.annotate_ast( NodeRangeAnnotator(var_annots) )
-
-
-for node in comp.all_ast_nodes():
-    print node, node.annotations
-
 comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits) )
-
-
-
-
-for node in comp.all_ast_nodes():
-    print node, node.annotations
-    
-#assert False
+comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 
 
 print
@@ -441,7 +429,7 @@ time_array = results.h5file.root._f_getChild('/simulation_fixed/float/time')
 
 
 
-
+fixed_sim_res.plot_ranges()
 
 
 

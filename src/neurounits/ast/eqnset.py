@@ -54,6 +54,14 @@ class Block(ASTObject):
         from neurounits.ast_annotations import ASTTreeAnnotationManager, ASTNodeAnnotationData
         self.annotation_mgr = ASTTreeAnnotationManager()
 
+
+    def annotate_ast(self, annotator, ast_label=None):
+        annotator.annotate_ast(self)
+        
+        if ast_label is not None:
+            self.annotation_mgr.add_annotator(ast_label, annotator)
+
+
         
     @property
     def terminal_symbols(self):
@@ -138,12 +146,13 @@ class Library(Block):
 
 
 
+
+
 class NineMLComponent(Block):
     
     
     
-    def annotate_ast(self, annotator):
-        annotator.annotate_ast(self)
+
     
     def run_sanity_checks(self):
         from neurounits.ast_builder.builder_visitor_propogate_dimensions import VerifyUnitsInTree
@@ -440,7 +449,7 @@ class NineMLComponent(Block):
 
 
 
-
+        
 
 
 

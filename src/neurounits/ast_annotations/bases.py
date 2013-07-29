@@ -4,8 +4,11 @@
 
 class ASTTreeAnnotationManager(object):
     def __init__(self, ):
-        pass
+        self._annotators = {}
 
+    def add_annotator(self, name, annotator):
+        assert not name in self._annotators 
+        self._annotators[name] = annotator
 
 
 class ASTNodeAnnotationData():

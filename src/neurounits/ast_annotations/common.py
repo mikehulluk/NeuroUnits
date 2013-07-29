@@ -61,7 +61,6 @@ class NodeValueRangePropagator(ASTVisitorBase):
 
     def __init__(self, component, annotations_in):
         self.component = component
-
         self._annotations = {}
 
         # Change string to node:
@@ -138,7 +137,7 @@ class NodeValueRangePropagator(ASTVisitorBase):
         var_annots = [ self.get_annotation(v) for v in  o.rhs_map.values() ]
         mins =   sorted( [ann.min for ann in var_annots if ann.min is not None] )
         maxes =  sorted( [ann.max for ann in var_annots if ann.max is not None] )
-
+        
         if not mins:
             mins = [None]
         if not maxes:
@@ -390,7 +389,6 @@ class NodeRangeAnnotator(ASTTreeAnnotator):
         # Propagate the values around the tree:
         NodeValueRangePropagator( ninemlcomponent, annotations_in = self._manual_range_annotations)
         
-        
 
 
 
@@ -458,15 +456,7 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         print ' --Value int:', res
         return res
 
-    
-    
-    
-    #def ActionNode(self, node):
-    #    print 'Calculating storage for: ', node
-        
-        
-        
-    
+            
     def ActionNodeStd(self, o):
         print
         print repr(o)
@@ -579,6 +569,35 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         
         
         
+        
+        
+        
+
+
+
+
+
+from neurounits.visitors.bases.base_actioner_default import ASTActionerDefault
+class NodeToIntAnnotator(ASTActionerDefault):
+    
+    
+    def __init__(self):
+        self.node_to_int = {}
+        self.int_to_node = {}
+        super(ASTActionerDefault,self).__init__()
+        
+        
+    def annotate_ast(self, component):
+        assert self.node_to_int == {}
+        self.visit(component)
+    
+    def ActionNode(self, n, **kwargs):
+        if n in self.node_to_int:
+            return
+        
+        val = len(self.node_to_int)
+        self.node_to_int[n] = val
+        self.int_to_node[val] = n 
         
         
         

@@ -84,6 +84,17 @@ typedef SafeInt32 IntType;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 template<int NBIT_VARIABLES>
 class LookUpTableExpPower2
 {
