@@ -401,8 +401,6 @@ print '===================='
 
 
 nbits = 24
-annotations = ASTDataAnnotator( comp, annotations_in = var_annots)
-CalculateInternalStoragePerNode(annotations=annotations, nbits=nbits).visit(comp)
 
 
 # New annotations
@@ -432,19 +430,7 @@ print '===================='
 
 
 
-fixed_sim_res = CBasedEqnWriterFixed(comp, output_filename='output.hd5',  annotations=annotations, nbits=nbits).results
-
-
-
-#fixed_sim_res.plot_func_exp()
-
-#assert False
-
-
-
-
-
-
+fixed_sim_res = CBasedEqnWriterFixed(comp, output_filename='output.hd5',  nbits=nbits).results
 
 
 results = HDF5SimulationResultFile("output.hd5")

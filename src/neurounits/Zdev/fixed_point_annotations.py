@@ -315,147 +315,148 @@ class ASTDataAnnotator(ASTVisitorBase):
 
 
 
-class CalculateInternalStoragePerNode(ASTActionerDepthFirst):
-
-    def __init__(self, annotations, nbits):
-        super(CalculateInternalStoragePerNode, self).__init__()
-        self.annotations = annotations
-        self.nbits = nbits
-
-    def encode_value(self, value, upscaling_pow):
-        #print
-        print 'Encoding', value, "using upscaling power:", upscaling_pow
-        value_scaled = value * ( 2**(-upscaling_pow))
-        print ' --Value Scaled:', value_scaled
-        res = int( round( value_scaled * (2**(self.nbits-1) ) ) )
-        print ' --Value int:', res
-        return res
-
-
-
-
-    def ActionNodeStd(self, o):
-        print
-        print repr(o)
-        print '-' * len(repr(o))
-        ann = self.annotations.annotations[o]
-        print ann
-
-        # Lets go symmetrical, about 0:
-        vmin = ann.val_min.float_in_si()
-        vmax = ann.val_max.float_in_si()
-        ext = max( [np.abs(vmin),np.abs(vmax) ] )   
-        if ext != 0.0:
-            #Include some padding:
-            upscaling_pow = int( np.ceil( np.log2(ext ) ) )
-        else:
-            upscaling_pow = 0
-
-        # Lets remap the limits:
-        upscaling_val = 2 ** (-upscaling_pow)
-        vmin_scaled  = vmin * upscaling_val
-        vmax_scaled  = vmax * upscaling_val
-
-        print 'vMin, vMax', vmin, vmax
-        print 'Scaling:', '2**', upscaling_pow, ' ->', upscaling_val
-        print 'vMin_scaled, vMax_scaled', vmin_scaled, vmax_scaled
-
-
-        ann.fixed_scaling_power = upscaling_pow
-
-        assert 0.1 < max( [np.fabs(vmin_scaled), np.fabs(vmax_scaled) ] ) <= 1.0 or  vmin_scaled == vmax_scaled == 0.0
-
-
-
-
-
-
-
-
-    def ActionAddOp(self, o):
-        self.ActionNodeStd(o)
-    def ActionSubOp(self, o):
-        self.ActionNodeStd(o)
-    def ActionMulOp(self, o):
-        self.ActionNodeStd(o)
-    def ActionDivOp(self, o):
-        self.ActionNodeStd(o)
-
-    def ActionFunctionDefUserInstantiation(self, o):
-        self.ActionNodeStd(o)
-
-    def ActionFunctionDefBuiltInInstantiation(self, o):
-        self.ActionNodeStd(o)
-
-    def ActionFunctionDefInstantiationParater(self,o):
-        self.ActionNodeStd(o)
-
-
-    def ActionInEquality(self, o):
-        pass
-
-    def ActionIfThenElse(self, o ):
-        self.ActionNodeStd(o)
-
-
-
-    def ActionFunctionDefParameter(self, o):
-        pass
-
-    def ActionFunctionDefBuiltIn(self, o):
-        pass
-
-    def ActionAssignedVariable(self, o):
-        self.ActionNodeStd(o)
-    def ActionStateVariable(self, o, **kwargs):
-        self.ActionNodeStd(o)
-        
-        # Convert the initial value:
-        if o.initial_value:
-            ann = self.annotations[o]
-            ann.initial_value = self.encode_value(o.initial_value.value.float_in_si(), ann.fixed_scaling_power)
-            
-        
-        
-            
-        
-
-    def ActionSuppliedValue(self, o):
-        self.ActionNodeStd(o)
-
-    def ActionConstant(self, o):
-        print
-        print 'Converting: ', o, o.value
-
-        v = o.value.float_in_si()
-        ann = self.annotations.annotations[o]
-        if o.value.magnitude == 0.0:
-            upscaling_pow = 0
-            ann.fixed_scaling_power = upscaling_pow
-            ann.value_as_int = self.encode_value(v, upscaling_pow)
-
-        else:
-            upscaling_pow = int( np.ceil( np.log2(np.fabs(v)) ) )
-            ann.fixed_scaling_power = upscaling_pow
-            ann.value_as_int = self.encode_value(v, upscaling_pow)
-
-    def ActionSymbolicConstant(self, o):
-        self.ActionConstant(o)
-
-    def ActionRegimeDispatchMap(self, o):
-        self.ActionNodeStd(o)
-
-    def ActionEqnAssignmentByRegime(self, o):
-        pass
-    def ActionTimeDerivativeByRegime(self, o):
-        pass
-
-
-
-
-    def ActionRegime(self,o):
-        pass
-    def ActionRTGraph(self, o):
-        pass
-    def ActionNineMLComponent(self, o):
-        pass
+# class CalculateInternalStoragePerNode(ASTActionerDepthFirst):
+# 
+#     def __init__(self, annotations, nbits):
+#         assert False
+#         super(CalculateInternalStoragePerNode, self).__init__()
+#         self.annotations = annotations
+#         self.nbits = nbits
+# 
+#     def encode_value(self, value, upscaling_pow):
+#         #print
+#         print 'Encoding', value, "using upscaling power:", upscaling_pow
+#         value_scaled = value * ( 2**(-upscaling_pow))
+#         print ' --Value Scaled:', value_scaled
+#         res = int( round( value_scaled * (2**(self.nbits-1) ) ) )
+#         print ' --Value int:', res
+#         return res
+# 
+# 
+# 
+# 
+#     def ActionNodeStd(self, o):
+#         print
+#         print repr(o)
+#         print '-' * len(repr(o))
+#         ann = self.annotations.annotations[o]
+#         print ann
+# 
+#         # Lets go symmetrical, about 0:
+#         vmin = ann.val_min.float_in_si()
+#         vmax = ann.val_max.float_in_si()
+#         ext = max( [np.abs(vmin),np.abs(vmax) ] )   
+#         if ext != 0.0:
+#             #Include some padding:
+#             upscaling_pow = int( np.ceil( np.log2(ext ) ) )
+#         else:
+#             upscaling_pow = 0
+# 
+#         # Lets remap the limits:
+#         upscaling_val = 2 ** (-upscaling_pow)
+#         vmin_scaled  = vmin * upscaling_val
+#         vmax_scaled  = vmax * upscaling_val
+# 
+#         print 'vMin, vMax', vmin, vmax
+#         print 'Scaling:', '2**', upscaling_pow, ' ->', upscaling_val
+#         print 'vMin_scaled, vMax_scaled', vmin_scaled, vmax_scaled
+# 
+# 
+#         ann.fixed_scaling_power = upscaling_pow
+# 
+#         assert 0.1 < max( [np.fabs(vmin_scaled), np.fabs(vmax_scaled) ] ) <= 1.0 or  vmin_scaled == vmax_scaled == 0.0
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+#     def ActionAddOp(self, o):
+#         self.ActionNodeStd(o)
+#     def ActionSubOp(self, o):
+#         self.ActionNodeStd(o)
+#     def ActionMulOp(self, o):
+#         self.ActionNodeStd(o)
+#     def ActionDivOp(self, o):
+#         self.ActionNodeStd(o)
+# 
+#     def ActionFunctionDefUserInstantiation(self, o):
+#         self.ActionNodeStd(o)
+# 
+#     def ActionFunctionDefBuiltInInstantiation(self, o):
+#         self.ActionNodeStd(o)
+# 
+#     def ActionFunctionDefInstantiationParater(self,o):
+#         self.ActionNodeStd(o)
+# 
+# 
+#     def ActionInEquality(self, o):
+#         pass
+# 
+#     def ActionIfThenElse(self, o ):
+#         self.ActionNodeStd(o)
+# 
+# 
+# 
+#     def ActionFunctionDefParameter(self, o):
+#         pass
+# 
+#     def ActionFunctionDefBuiltIn(self, o):
+#         pass
+# 
+#     def ActionAssignedVariable(self, o):
+#         self.ActionNodeStd(o)
+#     def ActionStateVariable(self, o, **kwargs):
+#         self.ActionNodeStd(o)
+#         
+#         # Convert the initial value:
+#         if o.initial_value:
+#             ann = self.annotations[o]
+#             ann.initial_value = self.encode_value(o.initial_value.value.float_in_si(), ann.fixed_scaling_power)
+#             
+#         
+#         
+#             
+#         
+# 
+#     def ActionSuppliedValue(self, o):
+#         self.ActionNodeStd(o)
+# 
+#     def ActionConstant(self, o):
+#         print
+#         print 'Converting: ', o, o.value
+# 
+#         v = o.value.float_in_si()
+#         ann = self.annotations.annotations[o]
+#         if o.value.magnitude == 0.0:
+#             upscaling_pow = 0
+#             ann.fixed_scaling_power = upscaling_pow
+#             ann.value_as_int = self.encode_value(v, upscaling_pow)
+# 
+#         else:
+#             upscaling_pow = int( np.ceil( np.log2(np.fabs(v)) ) )
+#             ann.fixed_scaling_power = upscaling_pow
+#             ann.value_as_int = self.encode_value(v, upscaling_pow)
+# 
+#     def ActionSymbolicConstant(self, o):
+#         self.ActionConstant(o)
+# 
+#     def ActionRegimeDispatchMap(self, o):
+#         self.ActionNodeStd(o)
+# 
+#     def ActionEqnAssignmentByRegime(self, o):
+#         pass
+#     def ActionTimeDerivativeByRegime(self, o):
+#         pass
+# 
+# 
+# 
+# 
+#     def ActionRegime(self,o):
+#         pass
+#     def ActionRTGraph(self, o):
+#         pass
+#     def ActionNineMLComponent(self, o):
+#         pass

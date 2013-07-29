@@ -315,18 +315,13 @@ void sim_step(NrnData& d, int time_step)
 
     // Calculate assignments:
 % for eqn in eqns_assignments:
-    ##d.${eqn.lhs} = from_float( to_float( ${eqn.rhs},  ${eqn.rhs_annotation.fixed_scaling_power}), ${eqn.lhs_annotation.fixed_scaling_power}) ;
-    d.${eqn.node.lhs.symbol} = from_float( to_float( ${eqn.rhs},  ${eqn.node.rhs_map.annotations['fixed-point-format'].upscale}), ${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ;
+    d.${eqn.node.lhs.symbol} = from_float( to_float( ${eqn.rhs_cstr},  ${eqn.node.rhs_map.annotations['fixed-point-format'].upscale}), ${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ;
 % endfor
 
     // Calculate delta's for all state-variables:
 % for eqn in eqns_timederivatives:
-    ##float d_${eqn.lhs} = to_float( ${eqn.rhs} , ${eqn.rhs_annotation.fixed_scaling_power}) * dt;
-    ##d.${eqn.lhs} += from_float( ( d_${eqn.lhs} ),  ${eqn.lhs_annotation.fixed_scaling_power} );
-    
-    float d_${eqn.node.lhs.symbol} = to_float( ${eqn.rhs} , ${eqn.node.rhs_map.annotations['fixed-point-format'].upscale} ) * dt;
+    float d_${eqn.node.lhs.symbol} = to_float( ${eqn.rhs_cstr} , ${eqn.node.rhs_map.annotations['fixed-point-format'].upscale} ) * dt;
     d.${eqn.node.lhs.symbol} += from_float( ( d_${eqn.node.lhs.symbol} ),  ${eqn.node.lhs.annotations['fixed-point-format'].upscale} );
-    
 % endfor    
 
 
@@ -345,13 +340,13 @@ void sim_step(NrnData& d, int time_step)
     
     // Storage for state-variables and assignments:
     % for eqn in eqns_assignments:
-    file->get_dataset("simulation_fixed/int/variables/${eqn.lhs}")->append<T_hdf5_type_int>( d.${eqn.lhs} );
-    file->get_dataset("simulation_fixed/float/variables/${eqn.lhs}")->append<T_hdf5_type_float>( to_float(  d.${eqn.lhs},  ${eqn.lhs_annotation.fixed_scaling_power} ) );
+    file->get_dataset("simulation_fixed/int/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_int>( d.${eqn.node.lhs.symbol} );
+    file->get_dataset("simulation_fixed/float/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_float>( to_float(  d.${eqn.node.lhs.symbol},  ${eqn.node.lhs.annotations['fixed-point-format'].upscale} ) );
     % endfor   
     
     % for eqn in eqns_timederivatives:
-    file->get_dataset("simulation_fixed/int/variables/${eqn.lhs}")->append<T_hdf5_type_int>( d.${eqn.lhs} );
-    file->get_dataset("simulation_fixed/float/variables/${eqn.lhs}")->append<T_hdf5_type_float>( to_float(  d.${eqn.lhs},  ${eqn.lhs_annotation.fixed_scaling_power} ) );
+    file->get_dataset("simulation_fixed/int/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_int>( d.${eqn.node.lhs.symbol} );
+    file->get_dataset("simulation_fixed/float/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_float>( to_float(  d.${eqn.node.lhs.symbol},  ${eqn.node.lhs.annotations['fixed-point-format'].upscale} ) );
     % endfor   
     /* -------------------------------------------------------------------------------------------- */
 
@@ -457,21 +452,14 @@ import os
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase 
 
 
-#class VarDef(object):
-#    def __init__(self, name, annotation):
-#        self.name = name
-#        self.annotation = annotation
-#        self.datatype = 'int'
+
         
         
 class Eqn(object):
-    def __init__(self, node, lhs, rhs, lhs_annotation, rhs_annotation):
+    def __init__(self, node, rhs_cstr):
         self.node = node
-        self.lhs = lhs
-        self.rhs = rhs
-        
-        self.lhs_annotation = lhs_annotation 
-        self.rhs_annotation = rhs_annotation
+        self.rhs_cstr = rhs_cstr
+
 
 
 
@@ -499,7 +487,6 @@ class IntermediateNodeFinder(ASTActionerDefaultIgnoreMissing):
         self.valid_nodes[o] = 3
 
     def ActionFunctionDefBuiltInInstantiation(self, o, **kwargs):
-
         assert o.function_def.funcname == '__exp__'
         self.valid_nodes[o] = 2      
 
@@ -627,7 +614,7 @@ class CBasedFixedWriter(ASTVisitorBase):
     
 
 class CBasedEqnWriterFixed(object):
-    def __init__(self, component, output_filename, annotations, nbits):
+    def __init__(self, component, output_filename, nbits):
         
         
         
@@ -643,19 +630,16 @@ class CBasedEqnWriterFixed(object):
         
         self.component = component
         self.float_type = 'int'
-        self.annotations = annotations
 
         self.writer = CBasedFixedWriter(component=component, node_int_labels=self.node_labeller.node_to_int)
 
 
-        #self.parameter_defs =[ VarDef(p.symbol, annotation=self.annotations[p]) for p in self.component.parameters]
-        #self.state_var_defs =[ VarDef(sv.symbol, annotation=self.annotations[sv]) for sv in self.component.state_variables]
-        #self.assignment_defs =[ VarDef(ass.symbol, annotation=self.annotations[ass]) for ass in self.component.assignedvalues]
+
 
         ordered_assignments = self.component.ordered_assignments_by_dependancies
-        self.ass_eqns =[ Eqn(td, td.lhs.symbol, self.writer.to_c(td.rhs_map), lhs_annotation=self.annotations[td.lhs], rhs_annotation=self.annotations[td.rhs_map]) for td in ordered_assignments]
-        self.td_eqns = [ Eqn(td, td.lhs.symbol, self.writer.to_c(td.rhs_map), lhs_annotation=self.annotations[td.lhs], rhs_annotation=self.annotations[td.rhs_map]) for td in self.component.timederivatives]
-        self.td_eqns = sorted(self.td_eqns, key=lambda o: o.lhs.lower())
+        self.ass_eqns =[ Eqn(node=td, rhs_cstr=self.writer.to_c(td.rhs_map) ) for td in ordered_assignments]
+        self.td_eqns = [ Eqn(node=td, rhs_cstr=self.writer.to_c(td.rhs_map) ) for td in self.component.timederivatives]
+        self.td_eqns = sorted(self.td_eqns, key=lambda o: o.node.lhs.symbol.lower())
                 
       
         cfile = Template(c_prog).render(
