@@ -100,6 +100,8 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         self.dependancies = {}
 
 
+
+
     @classmethod
     def build_direct_dependancy_graph(cls, component):
         import neurounits.ast as ast
@@ -251,8 +253,6 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         #return list( chain(*[self.visit(p) for p in o.parameters]) )
     def VisitOnEventDefParameter(self,o):
         return []
-        print repr(o)
-        assert False
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         return self.visit(o.rhs_map) 

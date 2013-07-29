@@ -11,7 +11,7 @@ from neurounits.visitors.bases.base_actioner import ASTActionerDepthFirst
 
 
 
-from neurounits.Zdev.fixed_point_annotations import VarAnnot, ASTDataAnnotator, CalculateInternalStoragePerNode
+#from neurounits.Zdev.fixed_point_annotations import #VarAnnot, ASTDataAnnotator#, CalculateInternalStoragePerNode#
 from neurounits.visitors.common.plot_networkx import ActionerPlotNetworkX
 
 from neurounits.tools.fixed_point import CBasedEqnWriterFixed
@@ -25,7 +25,8 @@ from neurounits.tools.fixed_point import CBasedEqnWriterFloat
 
 import os
 import time
-from neurounits.ast_annotations.common import NodeRangeAnnotator, NodeFixedPointFormatAnnotator
+from neurounits.ast_annotations.common import NodeRangeAnnotator, NodeFixedPointFormatAnnotator,\
+    NodeRange
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 
 
@@ -192,71 +193,71 @@ define_component simple_exp {
 
 
 var_annots_dIN = {
-    't'             : VarAnnot(val_min="0ms", val_max = "1.1s"),
-    'alpha_ca_m'    : VarAnnot(val_min=None, val_max = None),
-    'alpha_kf_n'    : VarAnnot(val_min=None, val_max = None),
-    'alpha_ks_n'    : VarAnnot(val_min=None, val_max = None),
-    'alpha_na_h'    : VarAnnot(val_min=None, val_max = None),
-    'alpha_na_m'    : VarAnnot(val_min=None, val_max = None),
-    'beta_ca_m'     : VarAnnot(val_min=None, val_max = None),
-    'beta_ca_m_1'   : VarAnnot(val_min=None, val_max = None),
-    'beta_ca_m_2'   : VarAnnot(val_min=None, val_max = None),
-    'beta_kf_n'     : VarAnnot(val_min=None, val_max = None),
-    'beta_ks_n'     : VarAnnot(val_min=None, val_max = None),
-    'beta_na_h'     : VarAnnot(val_min=None, val_max = None),
-    'beta_na_m'     : VarAnnot(val_min=None, val_max = None),
-    'exp_neg_nu'    : VarAnnot(val_min=None, val_max = None),
-    'iCa2'          : VarAnnot(val_min=None, val_max = None),
-    'iInj'          : VarAnnot(val_min=None, val_max = None),
-    'iKf'           : VarAnnot(val_min='-500pA', val_max='500pA'),
-    'iKs'           : VarAnnot(val_min='-100pA', val_max='100pA'),
-    'iLk'           : VarAnnot(val_min=None, val_max = None),
-    'iNa'           : VarAnnot(val_min='0nA', val_max = '1nA'),
-    'inf_ca_m'      : VarAnnot(val_min="0", val_max = "1.5" ),
-    'inf_kf_n'      : VarAnnot(val_min="0", val_max = "1.5" ),
-    'inf_ks_n'      : VarAnnot(val_min="0", val_max = "1.5" ),
-    'inf_na_h'      : VarAnnot(val_min="0", val_max = "1.5" ),
-    'inf_na_m'      : VarAnnot(val_min="0", val_max = "1.5" ),
-    'nu'            : VarAnnot(val_min="0", val_max = "1.5" ),
-    'tau_ca_m'      : VarAnnot(val_min="0.01ms", val_max = None),
-    'tau_kf_n'      : VarAnnot(val_min="0.01ms", val_max = "1.5ms"),
-    'tau_ks_n'      : VarAnnot(val_min="0.01ms", val_max = "25ms"),
-    'tau_na_h'      : VarAnnot(val_min="0.01ms", val_max = '10ms'),
-    'tau_na_m'      : VarAnnot(val_min="0.01ms", val_max = '1ms'),
-    'V'             : VarAnnot(val_min="-100mV", val_max = "50mV"),
-    'ca_m'          : VarAnnot(val_min="0", val_max = "1.5"),
-    'kf_n'          : VarAnnot(val_min="0", val_max = "1.5"),
-    'ks_n'          : VarAnnot(val_min="0", val_max = "1.5"),
-    'na_h'          : VarAnnot(val_min="0", val_max = "1.5"),
-    'na_m'          : VarAnnot(val_min="0", val_max = "1.5"),
+    't'             : NodeRange(min="0ms", max = "1.1s"),
+    'alpha_ca_m'    : NodeRange(min=None, max = None),
+    'alpha_kf_n'    : NodeRange(min=None, max = None),
+    'alpha_ks_n'    : NodeRange(min=None, max = None),
+    'alpha_na_h'    : NodeRange(min=None, max = None),
+    'alpha_na_m'    : NodeRange(min=None, max = None),
+    'beta_ca_m'     : NodeRange(min=None, max = None),
+    'beta_ca_m_1'   : NodeRange(min=None, max = None),
+    'beta_ca_m_2'   : NodeRange(min=None, max = None),
+    'beta_kf_n'     : NodeRange(min=None, max = None),
+    'beta_ks_n'     : NodeRange(min=None, max = None),
+    'beta_na_h'     : NodeRange(min=None, max = None),
+    'beta_na_m'     : NodeRange(min=None, max = None),
+    'exp_neg_nu'    : NodeRange(min=None, max = None),
+    'iCa2'          : NodeRange(min=None, max = None),
+    'iInj'          : NodeRange(min=None, max = None),
+    'iKf'           : NodeRange(min='-500pA', max='500pA'),
+    'iKs'           : NodeRange(min='-100pA', max='100pA'),
+    'iLk'           : NodeRange(min=None, max = None),
+    'iNa'           : NodeRange(min='0nA', max = '1nA'),
+    'inf_ca_m'      : NodeRange(min="0", max = "1.5" ),
+    'inf_kf_n'      : NodeRange(min="0", max = "1.5" ),
+    'inf_ks_n'      : NodeRange(min="0", max = "1.5" ),
+    'inf_na_h'      : NodeRange(min="0", max = "1.5" ),
+    'inf_na_m'      : NodeRange(min="0", max = "1.5" ),
+    'nu'            : NodeRange(min="0", max = "1.5" ),
+    'tau_ca_m'      : NodeRange(min="0.01ms", max = None),
+    'tau_kf_n'      : NodeRange(min="0.01ms", max = "1.5ms"),
+    'tau_ks_n'      : NodeRange(min="0.01ms", max = "25ms"),
+    'tau_na_h'      : NodeRange(min="0.01ms", max = '10ms'),
+    'tau_na_m'      : NodeRange(min="0.01ms", max = '1ms'),
+    'V'             : NodeRange(min="-100mV", max = "50mV"),
+    'ca_m'          : NodeRange(min="0", max = "1.5"),
+    'kf_n'          : NodeRange(min="0", max = "1.5"),
+    'ks_n'          : NodeRange(min="0", max = "1.5"),
+    'na_h'          : NodeRange(min="0", max = "1.5"),
+    'na_m'          : NodeRange(min="0", max = "1.5"),
 }
 
 var_annots_test = {
-    't'    : VarAnnot(val_min="0ms", val_max = "1s"),
+    't'    : NodeRange(min="0ms", max = "1s"),
     #'a'    : VarAnnot(val_min=None, val_max = None),
     #'b'    : VarAnnot(val_min=None, val_max = None),
 
-    'iInj' : VarAnnot(val_min=None, val_max = None),
-    'iLk'  : VarAnnot(val_min=None, val_max = None),
-    'V'    : VarAnnot(val_min="-100mV", val_max = "60mV"),
+    'iInj' : NodeRange(min=None, max = None),
+    'iLk'  : NodeRange(min=None, max = None),
+    'V'    : NodeRange(min="-100mV", max = "60mV"),
     #'V2'    : VarAnnot(val_min="-100mV", val_max = "60mV"),
 
-    'alpha_kf_n'   : VarAnnot(val_min=None, val_max = None),
-    'beta_kf_n'    : VarAnnot(val_min=None, val_max = None),
-    'inf_kf_n'     : VarAnnot(val_min="0.0", val_max = "1.0"),
-    'tau_kf_n'     : VarAnnot(val_min="0.0ms", val_max = "10ms"),
-    'iKf'          : VarAnnot(val_min=None, val_max = None),
-    'iKf2'          : VarAnnot(val_min=None, val_max = None),
-    'kf_n'          : VarAnnot(val_min="0", val_max = "1"),
+    'alpha_kf_n'   : NodeRange(min=None, max = None),
+    'beta_kf_n'    : NodeRange(min=None, max = None),
+    'inf_kf_n'     : NodeRange(min="0.0", max = "1.0"),
+    'tau_kf_n'     : NodeRange(min="0.0ms", max = "10ms"),
+    'iKf'          : NodeRange(min=None, max = None),
+    'iKf2'          : NodeRange(min=None, max = None),
+    'kf_n'          : NodeRange(min="0", max = "1"),
 }
 
 
 
 
 var_annots_exp = {
-    't'    : VarAnnot(val_min="0ms", val_max = "1.1s"),
-    'A'          : VarAnnot(val_min="0", val_max = "1.75"),
-    'a'          : VarAnnot(val_min="0", val_max = "1.75"),
+    't'          : NodeRange(min="0ms",max = "1.1s"),
+    'A'          : NodeRange(min="0",  max = "1.75"),
+    'a'          : NodeRange(min="0",  max = "1.75"),
 }
 
 
