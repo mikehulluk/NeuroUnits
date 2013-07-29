@@ -292,7 +292,6 @@ class ASTDataAnnotator(ASTVisitorBase):
         self.annotations[o] = VarAnnot(val_min=o.value, val_max=o.value)
 
 
-    # Handled in the __init__ function:
     def VisitStateVariable(self, o):
         if o.initial_value:
             self.visit(o.initial_value)

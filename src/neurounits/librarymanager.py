@@ -281,9 +281,6 @@ class LibraryManager(object):
         return ls[0]
 
     def get_library(self, libname):
-
-        
-
         lib = SeqUtils.expect_single([l for l in chain(self.libraries, self._stdlib_cache.libraries) if l.name == libname])
         return lib
 

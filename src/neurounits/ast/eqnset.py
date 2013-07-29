@@ -55,9 +55,6 @@ class Block(ASTObject):
         self.annotation_mgr = ASTTreeAnnotationManager()
 
         
-        
-
-
     @property
     def terminal_symbols(self):
         raise NotImplementedError()

@@ -34,7 +34,9 @@ class ASTObject(object):
 
     def __init__(self):
         self._metadata = None
-        self._annotations = None
+        
+        from neurounits.ast_annotations import ASTTreeAnnotationManager, ASTNodeAnnotationData
+        self._annotations = ASTNodeAnnotationData(node=self) 
 
     def set_metadata(self, md):
         self._metadata = md
@@ -57,9 +59,9 @@ class ASTObject(object):
         assert self._annotations is not None
         return self._annotations
         
-    @annotations.setter
-    def annotations(self, annotations):
-        assert self._annotations is None, 'Setting annotations twice on: %s' % self
-        self._annotations = annotations
+    #@annotations.setter
+    #def annotations(self, annotations):
+    #    assert self._annotations is None, 'Setting annotations twice on: %s' % self
+    #    self._annotations = annotations
     
     

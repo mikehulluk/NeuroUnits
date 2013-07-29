@@ -25,7 +25,8 @@ from neurounits.tools.fixed_point import CBasedEqnWriterFloat
 
 import os
 import time
-from neurounits.ast_annotations.common import NodeRangeAnnotator
+from neurounits.ast_annotations.common import NodeRangeAnnotator, NodeFixedPointFormatAnnotator
+from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 
 
 
@@ -290,15 +291,42 @@ var_annots = {
 
 
 
-
-
-
-
-
-
-
-
-
+# 
+# 
+# class MyNodeColors(ASTVisitorBase):
+# 
+#     def VisitLibrary(self, o, **kwargs):
+#         return 'green'
+# 
+#     def visit(self, o):
+# 
+# #         if isinstance(o, SymbolProxy):
+# #             return 'red'
+# #         if isinstance(o, OnEventStateAssignment):
+# #             return 'orange'
+# #         if isinstance(o, ast.NineMLComponent):
+# #             return 'yellow'
+# #         if isinstance(o, ast.OnEventTransition):
+# #             return 'pink'
+# #         if isinstance(o, ast.OnTriggerTransition):
+# #             return 'cyan'
+# #         if isinstance(o, ast.CompoundPortConnector):
+# #             return 'red'
+# 
+#         try:
+#             print o.annotations
+#             return 'green'
+#         except:
+#             return 'red'
+# 
+# 
+# for node in comp.all_ast_nodes():
+#     print node, node._annotations
+# 
+# 
+# ActionerPlotNetworkX(comp, colors=MyNodeColors() )
+# pylab.show()
+# 
 
 
 
@@ -378,13 +406,21 @@ CalculateInternalStoragePerNode(annotations=annotations, nbits=nbits).visit(comp
 
 
 # New annotations
-#comp.annotate_ast( NodeRangeAnnotator(var_annots) )
-#comp.annotate_ast( NodeFixedPointFormatAnnotator() )
+comp.annotate_ast( NodeRangeAnnotator(var_annots) )
+
+
+for node in comp.all_ast_nodes():
+    print node, node.annotations
+
+comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits) )
 
 
 
 
-
+for node in comp.all_ast_nodes():
+    print node, node.annotations
+    
+assert False
 
 
 print

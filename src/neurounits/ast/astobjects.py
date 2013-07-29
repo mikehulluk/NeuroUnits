@@ -200,6 +200,8 @@ class ConstValueZero(ASTExpressionObject):
 
 
 
+
+
 class SymbolicConstant(ASTExpressionObject):
 
     def accept_visitor(self, v, **kwargs):
@@ -213,6 +215,9 @@ class SymbolicConstant(ASTExpressionObject):
 
     def __repr__(self):
         return '<SymbolicConstant: %s = %s>' % (self.symbol, self.value)
+
+
+
 
 
 class FunctionDefBuiltIn(ASTExpressionObject):

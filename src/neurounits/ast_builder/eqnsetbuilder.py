@@ -868,11 +868,12 @@ class AbstractBlockBuilder(object):
         # 5. Add the annotation infrastructure:
         from neurounits.ast_annotations import ASTTreeAnnotationManager, ASTNodeAnnotationData
         #ast_object.annotation_mgr = ASTTreeAnnotationManager()
-        print 'Finalising library:', ast_object
-        for node in set(ast_object.all_ast_nodes() ):
-            print 'Adding annotation to node', node
-            if node._annotations is None:
-                node.annotations = ASTNodeAnnotationData(mgr=ast_object.annotation_mgr, node=node)
+        #print 'Finalising library:', ast_object
+        #for node in set(ast_object.all_ast_nodes() ):
+        #    print 'Adding annotation to node', node
+        #    if node._annotations is None:
+        #        print ' ** Actually doing it!', node
+        #        node.annotations = ASTNodeAnnotationData(mgr=ast_object.annotation_mgr, node=node)
         
 
 

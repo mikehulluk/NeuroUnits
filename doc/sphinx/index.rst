@@ -1,5 +1,14 @@
 
+QuickStart
+============
 
+.. toctree::
+     :maxdepth: 2
+
+     doc/quickstart
+
+Ref
+====
 
 .. toctree::
      :maxdepth: 2

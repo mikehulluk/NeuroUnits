@@ -13,7 +13,8 @@ import itertools
 import collections
 
 
-class NodeColor(ASTVisitorBase):
+
+class DefaultNodeColors(ASTVisitorBase):
 
     def VisitLibrary(self, o, **kwargs):
         return 'green'
@@ -65,8 +66,12 @@ class ActionerPlotNetworkX(object):
             colors = [ color_lut.get(node,'white') for node in graph]
 
         if colors == None:
-            nc = NodeColor()
+            nc = DefaultNodeColors()
             colors = [nc.visit(v) for v in graph]
+        
+        elif isinstance( colors, ASTVisitorBase):
+            colors = [colors.visit(v) for v in graph]
+
 
         if isinstance(labels, dict):
             for node in  graph.nodes_iter():
