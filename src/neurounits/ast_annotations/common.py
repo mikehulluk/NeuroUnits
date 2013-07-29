@@ -69,7 +69,8 @@ class NodeRangeAnnotator(ASTTreeAnnotator):
 
 
 class FixedPointData(object):
-    def __init__(self, upscale, const_value_as_int=None):
+    def __init__(self, datatype, upscale, const_value_as_int=None):
+        self.datatype = datatype
         self.upscale = upscale
         self.const_value_as_int = const_value_as_int
         
@@ -81,9 +82,10 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
     
     annotator_dependancies = [NodeRangeAnnotator] 
     
-    def __init__(self, nbits):
+    def __init__(self, nbits, datatype='int'):
         super(NodeFixedPointFormatAnnotator, self ).__init__()
         self.nbits = nbits
+        self.datatype=datatype
         
         
     def annotate_ast(self, ninemlcomponent):
@@ -141,7 +143,7 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
 
 
         #ann.fixed_scaling_power = upscaling_pow
-        o.annotations['fixed-point-format'] = FixedPointData( upscale = upscaling_pow) 
+        o.annotations['fixed-point-format'] = FixedPointData( upscale = upscaling_pow,  datatype=self.datatype) 
         
         assert 0.1 < max( [np.fabs(vmin_scaled), np.fabs(vmax_scaled) ] ) <= 1.0 or  vmin_scaled == vmax_scaled == 0.0
 
@@ -217,7 +219,7 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         else:
             upscaling_pow = int( np.ceil( np.log2(np.fabs(v)) ) )
 
-        o.annotations['fixed-point-format'] = FixedPointData( upscale = upscaling_pow, const_value_as_int = self.encode_value(v, upscaling_pow))
+        o.annotations['fixed-point-format'] = FixedPointData( upscale = upscaling_pow, const_value_as_int = self.encode_value(v, upscaling_pow) ,  datatype=self.datatype)
 
     def ActionSymbolicConstant(self, o):
         self.ActionConstant(o)

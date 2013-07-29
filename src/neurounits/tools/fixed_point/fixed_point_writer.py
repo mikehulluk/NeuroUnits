@@ -244,14 +244,7 @@ int do_div_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
 int int_exp(int v1, int up1, int up_local, int expr_id)
 {
 
-    int res_fp = from_float( exp( to_float(v1,up1) ), up_local );
-    
-    ##double X = to_float(v1,up1);
-    ##cout << "\nint_exp::X " << X;
-    
-    ##double x_out = lookuptables.exponential.get( x );
-    ##int res_int = from_float(x_out, up_local);
-    
+    int res_fp = from_float( exp( to_float(v1,up1) ), up_local );    
     int res_int = lookuptables.exponential.get( v1, up1, up_local ); 
     
     
@@ -273,7 +266,7 @@ int int_exp(int v1, int up1, int up_local, int expr_id)
     ##        DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) v1 | (T_hdf5_type_int) (res_int) ) ;
     
     
-    return res_fp;
+    return res_int;
 
 }
 
@@ -283,21 +276,37 @@ int int_exp(int v1, int up1, int up_local, int expr_id)
 // Define the data-structures:
 struct NrnData
 {
+
     // Parameters:
-% for p_def in parameter_defs:
-    ${p_def.datatype} ${p_def.name};      // Upscale: ${p_def.annotation.fixed_scaling_power}
+
+% for p in parameter_defs_new:
+    ${p.annotations['fixed-point-format'].datatype} ${p.symbol};      // Upscale: ${p.annotations['fixed-point-format'].upscale}
 % endfor
+
+##    // Parameters:
+##% for p_def in parameter_defs:
+##    ${p_def.datatype} ${p_def.name};      // Upscale: ${p_def.annotation.fixed_scaling_power}
+##% endfor
 
     // Assignments:
-% for a_def in assignment_defs:
-    ${a_def.datatype} ${a_def.name};      // Upscale: ${a_def.annotation.fixed_scaling_power}
+% for ass in assignment_defs_new:
+    ${ass.annotations['fixed-point-format'].datatype} ${ass.symbol};      // Upscale: ${ass.annotations['fixed-point-format'].upscale}
 % endfor
 
+##% for a_def in assignment_defs:
+##    ${a_def.datatype} ${a_def.name};      // Upscale: ${a_def.annotation.fixed_scaling_power}
+##% endfor
+
     // States:
-% for sv_def in state_var_defs:
-    ${sv_def.datatype} ${sv_def.name};    // Upscale: ${sv_def.annotation.fixed_scaling_power}
-    ${sv_def.datatype} d_${sv_def.name};
+% for sv_def in state_var_defs_new:
+    ${sv_def.annotations['fixed-point-format'].datatype} ${sv_def.symbol};    // Upscale: ${sv_def.annotations['fixed-point-format'].upscale} 
+    ${sv_def.annotations['fixed-point-format'].datatype} d_${sv_def.symbol};
 % endfor
+
+##% for sv_def in state_var_defs:
+##    ${sv_def.datatype} ${sv_def.name};    // Upscale: ${sv_def.annotation.fixed_scaling_power}
+##    ${sv_def.datatype} d_${sv_def.name};
+##% endfor
 };
 
 
@@ -458,6 +467,8 @@ class VarDef(object):
         self.name = name
         self.annotation = annotation
         self.datatype = 'int'
+        
+        
 class Eqn(object):
     def __init__(self, lhs, rhs, lhs_annotation, rhs_annotation):
         self.lhs = lhs
@@ -500,11 +511,12 @@ class IntermediateNodeFinder(ASTActionerDefaultIgnoreMissing):
         assert False
 
 
+
+
+
 class CBasedFixedWriter(ASTVisitorBase):
     
-    def __init__(self, annotations, component, node_int_labels):
-        self.annotations = annotations
-        
+    def __init__(self, component, node_int_labels):
        
         self.intlabels = node_int_labels 
         
@@ -521,21 +533,17 @@ class CBasedFixedWriter(ASTVisitorBase):
     def get_var_str(self, name):
         return "d.%s" % name
 
+    def DoOpOpComplex(self, o, op): 
 
-
-    def DoOpOpComplex(self, o, op):        
-        scale_lhs = self.annotations[o.lhs].fixed_scaling_power
-        scale_rhs = self.annotations[o.rhs].fixed_scaling_power  
-        scale_self = self.annotations[o].fixed_scaling_power
         expr_lhs = self.visit(o.lhs)
         expr_rhs = self.visit(o.rhs)
         expr_num = self.intlabels[o]
-        print expr_num,  scale_self
         res = "do_%s_op( %s, %d, %s, %d, %d, %d)" % (
                                             op,
-                                            expr_lhs, scale_lhs,
-                                            expr_rhs, scale_rhs,
-                                            scale_self, expr_num,
+                                            expr_lhs, o.lhs.annotations['fixed-point-format'].upscale,
+                                            expr_rhs, o.rhs.annotations['fixed-point-format'].upscale,
+                                            o.annotations['fixed-point-format'].upscale, 
+                                            expr_num,
                                                      )
         return res
 
@@ -560,10 +568,10 @@ class CBasedFixedWriter(ASTVisitorBase):
         return "from_float( (%s) ? to_float(%s, %d) : to_float(%s, %d), %d )" % (
                     self.visit(o.predicate),
                     self.visit(o.if_true_ast),
-                    self.annotations[o.if_true_ast].fixed_scaling_power,
+                    o.if_true_ast.annotations['fixed-point-format'].upscale, 
                     self.visit(o.if_false_ast),
-                    self.annotations[o.if_false_ast].fixed_scaling_power,
-                    self.annotations[o].fixed_scaling_power,
+                    o.if_false_ast.annotations['fixed-point-format'].upscale, 
+                    o.annotations['fixed-point-format'].upscale, 
                 ) 
         
         
@@ -571,9 +579,9 @@ class CBasedFixedWriter(ASTVisitorBase):
         
 
     def VisitInEquality(self, o):
-        ann_lt = self.annotations[o.less_than]
-        ann_gt = self.annotations[o.greater_than]   
-        return "(to_float(%s, %d) < to_float(%s, %d) )" % ( self.visit(o.less_than), ann_lt.fixed_scaling_power,  self.visit(o.greater_than), ann_gt.fixed_scaling_power )
+        ann_lt_upscale = o.less_than.annotations['fixed-point-format'].upscale 
+        ann_gt_upscale = o.greater_than.annotations['fixed-point-format'].upscale    
+        return "(to_float(%s, %d) < to_float(%s, %d) )" % ( self.visit(o.less_than), ann_lt_upscale,  self.visit(o.greater_than), ann_gt_upscale )
 
 
     def VisitFunctionDefUserInstantiation(self,o):        
@@ -583,11 +591,11 @@ class CBasedFixedWriter(ASTVisitorBase):
         assert o.function_def.is_builtin() and o.function_def.funcname == '__exp__'
         param = o.parameters.values()[0]
         param_term = self.visit(param.rhs_ast)
-        ann_func = self.annotations[o]
-        ann_param = self.annotations[param.rhs_ast]
+        ann_func_upscale = o.annotations['fixed-point-format'].upscale 
+        ann_param_upscale = param.rhs_ast.annotations['fixed-point-format'].upscale 
         expr_num = self.intlabels[o]
         
-        return """ int_exp( %s, %d, %d, %d )""" %(param_term, ann_param.fixed_scaling_power, ann_func.fixed_scaling_power, expr_num ) 
+        return """ int_exp( %s, %d, %d, %d )""" %(param_term, ann_param_upscale, ann_func_upscale, expr_num ) 
 
     def VisitFunctionDefInstantiationParater(self, o):
         assert False
@@ -604,15 +612,13 @@ class CBasedFixedWriter(ASTVisitorBase):
         return self.get_var_str(o.symbol)
 
     def VisitSymbolicConstant(self, o):
-        return "%d" % self.annotations[o].value_as_int
-        #return (o.value.float_in_si())
-
+        return "%d" % o.annotations['fixed-point-format'].const_value_as_int
+        
     def VisitAssignedVariable(self, o):
         return self.get_var_str(o.symbol)
 
     def VisitConstant(self, o):
-        return "%d" % self.annotations[o].value_as_int
-        #return "%e" % (o.value.float_in_si())
+        return "%d" % o.annotations['fixed-point-format'].const_value_as_int
 
     def VisitSuppliedValue(self, o):
         return o.symbol
@@ -643,7 +649,7 @@ class CBasedEqnWriterFixed(object):
         self.float_type = 'int'
         self.annotations = annotations
 
-        self.writer = CBasedFixedWriter(annotations=annotations, component=component, node_int_labels=self.node_labeller.node_to_int)
+        self.writer = CBasedFixedWriter(component=component, node_int_labels=self.node_labeller.node_to_int)
 
 
         self.parameter_defs =[ VarDef(p.symbol, annotation=self.annotations[p]) for p in self.component.parameters]
@@ -661,6 +667,11 @@ class CBasedEqnWriterFixed(object):
                     state_var_defs = self.state_var_defs,
                     assignment_defs = self.assignment_defs,
                     parameter_defs = self.parameter_defs,
+                    
+                    parameter_defs_new = list(self.component.parameters),
+                    state_var_defs_new = list(self.component.state_variables),
+                    assignment_defs_new = list(self.component.assignedvalues),
+                    
                     eqns_timederivatives = self.td_eqns,
                     eqns_assignments = self.ass_eqns,
                     floattype = self.float_type,
@@ -697,6 +708,13 @@ class CBasedEqnWriterFixed(object):
         self.results = CBasedEqnWriterFixedResultsProxy(self)
 
         return 
+    
+    
+    
+    
+    
+    
+    
     
     
     

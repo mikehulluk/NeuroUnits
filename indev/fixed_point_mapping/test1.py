@@ -420,7 +420,7 @@ comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits) )
 for node in comp.all_ast_nodes():
     print node, node.annotations
     
-assert False
+#assert False
 
 
 print
