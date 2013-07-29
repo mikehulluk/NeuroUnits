@@ -378,8 +378,8 @@ CalculateInternalStoragePerNode(annotations=annotations, nbits=nbits).visit(comp
 
 
 # New annotations
-comp.annotate_ast( NodeRangeAnnotator(var_annots) )
-comp.annotate_ast( NodeFixedPointFormatAnnotator() )
+#comp.annotate_ast( NodeRangeAnnotator(var_annots) )
+#comp.annotate_ast( NodeFixedPointFormatAnnotator() )
 
 
 
