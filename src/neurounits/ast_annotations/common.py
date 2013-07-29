@@ -40,7 +40,7 @@ def do_op(a,b,op):
 
 propagation_rules = """
 
-AddOp [self.min = lhs.min + rhs.min], [self.rhs = self.min - rhs.min], [self.lhs = self.min - lhs.min]
+AddOp [self.min <= lhs.min + rhs.min], [self.rhs <= self.min - rhs.min], [self.lhs <= self.min - lhs.min]
 
 
 """
@@ -51,24 +51,18 @@ class NodeValueRangePropagator(ASTVisitorBase):
 
 
     def get_annotation(self, node):
-        return self.annotations[node]
+        return self._annotations[node]
         
     def set_annotation(self, node, ann):
-        self.annotations[node] = ann
+        self._annotations[node] = ann
+        node.annotations.add_overwrite('node-value-range', ann )
         
-        
-    #def __getitem__(self, k):
-    #    assert False
-    #    return self.annotations[k]
-
-
-
-
 
 
     def __init__(self, component, annotations_in):
         self.component = component
-        self.annotations = {}
+
+        self._annotations = {}
 
         # Change string to node:
         for ann,val in annotations_in.items():
@@ -76,11 +70,8 @@ class NodeValueRangePropagator(ASTVisitorBase):
                 continue
             
             assert isinstance(ann, basestring)
-            self.annotations[component.get_terminal_obj(ann)] = val
-            
-            #else:
-            #    assert False
-            #    self.annotations[ann] = val
+            self.set_annotation(component.get_terminal_obj(ann), val)
+
 
         self.visit(component)
 
@@ -102,8 +93,9 @@ class NodeValueRangePropagator(ASTVisitorBase):
         self.visit(o.lhs)
 
 
-        ann_lhs = self.annotations[o.lhs]
-        ann_rhs = self.annotations[o.rhs_map]
+        ann_lhs = self.get_annotation(o.lhs)
+        ann_rhs = self.get_annotation(o.rhs_map)
+        #ann_rhs = self.annotations[o.rhs_map]
 
         #Min:
         if ann_lhs.min is None and  ann_rhs.min is not None:
@@ -120,8 +112,10 @@ class NodeValueRangePropagator(ASTVisitorBase):
         self.visit(o.lhs)
 
 
-        ann_lhs = self.annotations[o.lhs]
-        ann_rhs = self.annotations[o.rhs_map]
+        #ann_lhs = self.annotations[o.lhs]
+        #ann_rhs = self.annotations[o.rhs_map]
+        ann_lhs = self.get_annotation(o.lhs)
+        ann_rhs = self.get_annotation(o.rhs_map)
 
         # Need to be a bit careful here - because  rememeber that rhs is multiplied by dt!
         
@@ -141,7 +135,7 @@ class NodeValueRangePropagator(ASTVisitorBase):
         for v in o.rhs_map.values():
             self.visit( v )
 
-        var_annots = [ self.annotations[v] for v in  o.rhs_map.values() ]
+        var_annots = [ self.get_annotation(v) for v in  o.rhs_map.values() ]
         mins =   sorted( [ann.min for ann in var_annots if ann.min is not None] )
         maxes =  sorted( [ann.max for ann in var_annots if ann.max is not None] )
 
@@ -150,7 +144,7 @@ class NodeValueRangePropagator(ASTVisitorBase):
         if not maxes:
             maxes = [None]
 
-        self.annotations[o] = NodeRange( mins[0], maxes[-1] )
+        self.set_annotation(o, NodeRange( mins[0], maxes[-1] ) ) 
         #self.annotations[o] = self.visit( o.rhs_map.values()[0])
 
 
@@ -164,7 +158,7 @@ class NodeValueRangePropagator(ASTVisitorBase):
 
         # Handle exponents:
         assert o.function_def.funcname is '__exp__'
-        param_node_ann = self.annotations[ o.parameters.values()[0].rhs_ast ]
+        param_node_ann = self.get_annotation( o.parameters.values()[0].rhs_ast )
         print param_node_ann
 
         min=None
@@ -176,7 +170,7 @@ class NodeValueRangePropagator(ASTVisitorBase):
             v = param_node_ann.max.dimensionless()
             max = MMQuantity( np.exp(v),  MMUnit() )
 
-        self.annotations[o] = NodeRange(min=min, max=max)
+        self.set_annotation(o, NodeRange(min=min, max=max) )
         #assert False
 
     def VisitFunctionDefUserInstantiation(self,o):
@@ -186,8 +180,8 @@ class NodeValueRangePropagator(ASTVisitorBase):
 
     def VisitFunctionDefInstantiationParater(self, o):
         self.visit(o.rhs_ast)
-        ann = self.annotations[o.rhs_ast]
-        self.annotations[o] =  NodeRange(min=ann.min, max=ann.max)
+        ann = self.get_annotation(o.rhs_ast)
+        self.set_annotation(o, NodeRange(min=ann.min, max=ann.max) )
 
 
 
@@ -197,8 +191,8 @@ class NodeValueRangePropagator(ASTVisitorBase):
     def _VisitBinOp(self, o, op):
         self.visit(o.lhs)
         self.visit(o.rhs)
-        ann1 = self.annotations[o.lhs]
-        ann2 = self.annotations[o.rhs]
+        ann1 = self.get_annotation(o.lhs)
+        ann2 = self.get_annotation(o.rhs)
 
         extremes = [
             do_op(ann1.min, ann2.min, op ),
@@ -207,7 +201,7 @@ class NodeValueRangePropagator(ASTVisitorBase):
             do_op(ann1.max, ann2.max, op ),
             ]
         extremes = sorted([e for e in extremes if e is not None])
-        
+        assert len(extremes)==4
         print extremes
 
         if len(extremes) < 2:
@@ -217,7 +211,7 @@ class NodeValueRangePropagator(ASTVisitorBase):
             min = extremes[0]
             max = extremes[-1]
 
-        self.annotations[o] = NodeRange(min=min, max=max)
+        self.set_annotation(o, NodeRange(min=min, max=max) )
 
 
 
@@ -241,8 +235,8 @@ class NodeValueRangePropagator(ASTVisitorBase):
         self.visit(o.if_false_ast)
         self.visit(o.predicate)
 
-        ann1 = self.annotations[o.if_true_ast]
-        ann2 = self.annotations[o.if_false_ast]
+        ann1 = self.get_annotation(o.if_true_ast)
+        ann2 = self.get_annotation(o.if_false_ast)
 
         extremes = [
             ann1.min,
@@ -251,6 +245,7 @@ class NodeValueRangePropagator(ASTVisitorBase):
             ann2.max,
                 ]
         extremes = sorted([e for e in extremes if e is not None])
+        assert len(extremes)==4
 
         if len(extremes) < 2:
             min = None
@@ -259,7 +254,7 @@ class NodeValueRangePropagator(ASTVisitorBase):
             min = extremes[0]
             max = extremes[-1]
 
-        self.annotations[o] = NodeRange(min=min, max=max)
+        self.set_annotation(o, NodeRange(min=min, max=max) )
 
 
 
@@ -268,8 +263,8 @@ class NodeValueRangePropagator(ASTVisitorBase):
         self.visit(o.less_than)
         self.visit(o.greater_than)
 
-        ann1 = self.annotations[o.less_than]
-        ann2 = self.annotations[o.greater_than]
+        ann1 = self.get_annotation(o.less_than)
+        ann2 = self.get_annotation(o.greater_than)
 
         extremes = [
             ann1.min,
@@ -278,6 +273,7 @@ class NodeValueRangePropagator(ASTVisitorBase):
             ann2.max,
                 ]
         extremes = sorted([e for e in extremes if e is not None])
+        assert len(extremes)==4
 
         if len(extremes) < 2:
             min = None
@@ -286,17 +282,16 @@ class NodeValueRangePropagator(ASTVisitorBase):
             min = extremes[0]
             max = extremes[-1]
 
-        self.annotations[o] = NodeRange(min=min, max=max)
+        self.set_annotation(o, NodeRange(min=min, max=max) )
 
 
 
 
     def VisitParameter(self, o):
         pass
-        #return self.get_var_str(o.symbol)
 
     def VisitSymbolicConstant(self, o):
-        self.annotations[o] = NodeRange(min=o.value, max=o.value)
+        self.set_annotation(o, NodeRange(min=o.value, max=o.value) )
 
 
     def VisitStateVariable(self, o):
@@ -305,15 +300,13 @@ class NodeValueRangePropagator(ASTVisitorBase):
 
     def VisitAssignedVariable(self, o):
         pass
-        #return self.get_var_str(o.symbol)
 
     def VisitConstant(self, o):
-        print 'Visiting Constant: ', o
-        self.annotations[o] = NodeRange(min=o.value, max=o.value)
+        self.set_annotation(o, NodeRange(min=o.value, max=o.value) )
 
     def VisitSuppliedValue(self, o):
         pass
-        #return o.symbol
+
 
 
 
@@ -396,18 +389,20 @@ class NodeRangeAnnotator(ASTTreeAnnotator):
         anns = NodeValueRangePropagator( ninemlcomponent, annotations_in = self._manual_range_annotations)
         
         
-        import neurounits.ast as ast
+        #import neurounits.ast as ast
         # Copy accross:
-        for ast_node in ninemlcomponent.all_ast_nodes():
+        #for ast_node in ninemlcomponent.all_ast_nodes():
             
-            print ast_node
+        #    print ast_node
             
-            if ast_node in anns.annotations:
-                ann = anns.annotations[ast_node]
-                ast_node.annotations.add('node-value-range', NodeRange(min=ann.min,max=ann.max) )
+            #if ast_node in anns._annotations:
+            #    ann = anns._annotations[ast_node]
+            #    assert ast_node.annotations['node-value-range'] is ann
+                
+                #ast_node.annotations.add_overwrite('node-value-range', NodeRange(min=ann.min,max=ann.max) )
                                                                         
         
-        print anns
+        #print anns
         
         
 

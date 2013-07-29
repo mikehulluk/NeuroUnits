@@ -21,6 +21,8 @@ class ASTNodeAnnotationData():
     def add(self, key, value):
         assert not key in self._data
         self._data[key] = value
+    def add_overwrite(self, key, value):
+        self._data[key] = value
         
     def __getitem__(self, key):
         return self._data[key]
