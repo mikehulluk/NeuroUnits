@@ -42,7 +42,6 @@ define_component simple_hh {
     eLk = -50mV
 
     iLk = gLk * (eLk-V) * glk_noise
-    #V' = (1/Cap) * (iInj + iLk + iKs + iKf + iNa + iCa)
     V' = (1/Cap) * (iInj + iLk + iKs + iKf +iNa) #+ iNa)
 
 
