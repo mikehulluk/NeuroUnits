@@ -315,14 +315,21 @@ void sim_step(NrnData& d, int time_step)
 
     // Calculate assignments:
 % for eqn in eqns_assignments:
-    d.${eqn.lhs} = from_float( to_float( ${eqn.rhs},  ${eqn.rhs_annotation.fixed_scaling_power}), ${eqn.lhs_annotation.fixed_scaling_power}) ;
+    ##d.${eqn.lhs} = from_float( to_float( ${eqn.rhs},  ${eqn.rhs_annotation.fixed_scaling_power}), ${eqn.lhs_annotation.fixed_scaling_power}) ;
+    d.${eqn.node.lhs.symbol} = from_float( to_float( ${eqn.rhs},  ${eqn.node.rhs_map.annotations['fixed-point-format'].upscale}), ${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ;
 % endfor
 
     // Calculate delta's for all state-variables:
 % for eqn in eqns_timederivatives:
-    float d_${eqn.lhs} = to_float( ${eqn.rhs} , ${eqn.rhs_annotation.fixed_scaling_power}) * dt;
-    d.${eqn.lhs} += from_float( ( d_${eqn.lhs} ),  ${eqn.lhs_annotation.fixed_scaling_power} );
+    ##float d_${eqn.lhs} = to_float( ${eqn.rhs} , ${eqn.rhs_annotation.fixed_scaling_power}) * dt;
+    ##d.${eqn.lhs} += from_float( ( d_${eqn.lhs} ),  ${eqn.lhs_annotation.fixed_scaling_power} );
+    
+    float d_${eqn.node.lhs.symbol} = to_float( ${eqn.rhs} , ${eqn.node.rhs_map.annotations['fixed-point-format'].upscale} ) * dt;
+    d.${eqn.node.lhs.symbol} += from_float( ( d_${eqn.node.lhs.symbol} ),  ${eqn.node.lhs.annotations['fixed-point-format'].upscale} );
+    
 % endfor    
+
+
     
     
     
@@ -450,15 +457,16 @@ import os
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase 
 
 
-class VarDef(object):
-    def __init__(self, name, annotation):
-        self.name = name
-        self.annotation = annotation
-        self.datatype = 'int'
+#class VarDef(object):
+#    def __init__(self, name, annotation):
+#        self.name = name
+#        self.annotation = annotation
+#        self.datatype = 'int'
         
         
 class Eqn(object):
-    def __init__(self, lhs, rhs, lhs_annotation, rhs_annotation):
+    def __init__(self, node, lhs, rhs, lhs_annotation, rhs_annotation):
+        self.node = node
         self.lhs = lhs
         self.rhs = rhs
         
@@ -640,13 +648,13 @@ class CBasedEqnWriterFixed(object):
         self.writer = CBasedFixedWriter(component=component, node_int_labels=self.node_labeller.node_to_int)
 
 
-        self.parameter_defs =[ VarDef(p.symbol, annotation=self.annotations[p]) for p in self.component.parameters]
-        self.state_var_defs =[ VarDef(sv.symbol, annotation=self.annotations[sv]) for sv in self.component.state_variables]
-        self.assignment_defs =[ VarDef(ass.symbol, annotation=self.annotations[ass]) for ass in self.component.assignedvalues]
+        #self.parameter_defs =[ VarDef(p.symbol, annotation=self.annotations[p]) for p in self.component.parameters]
+        #self.state_var_defs =[ VarDef(sv.symbol, annotation=self.annotations[sv]) for sv in self.component.state_variables]
+        #self.assignment_defs =[ VarDef(ass.symbol, annotation=self.annotations[ass]) for ass in self.component.assignedvalues]
 
         ordered_assignments = self.component.ordered_assignments_by_dependancies
-        self.ass_eqns =[ Eqn(td.lhs.symbol, self.writer.to_c(td.rhs_map), lhs_annotation=self.annotations[td.lhs], rhs_annotation=self.annotations[td.rhs_map]) for td in ordered_assignments]
-        self.td_eqns = [ Eqn(td.lhs.symbol, self.writer.to_c(td.rhs_map), lhs_annotation=self.annotations[td.lhs], rhs_annotation=self.annotations[td.rhs_map]) for td in self.component.timederivatives]
+        self.ass_eqns =[ Eqn(td, td.lhs.symbol, self.writer.to_c(td.rhs_map), lhs_annotation=self.annotations[td.lhs], rhs_annotation=self.annotations[td.rhs_map]) for td in ordered_assignments]
+        self.td_eqns = [ Eqn(td, td.lhs.symbol, self.writer.to_c(td.rhs_map), lhs_annotation=self.annotations[td.lhs], rhs_annotation=self.annotations[td.rhs_map]) for td in self.component.timederivatives]
         self.td_eqns = sorted(self.td_eqns, key=lambda o: o.lhs.lower())
                 
       
@@ -662,6 +670,12 @@ class CBasedEqnWriterFixed(object):
                     
                     eqns_timederivatives = self.td_eqns,
                     eqns_assignments = self.ass_eqns,
+                    
+                    
+                    eqns_timederivatives_new = sorted( self.component.timederivatives, key= lambda o: o.lhs.symbol),
+                    eqns_assignments_new = self.component.ordered_assignments_by_dependancies,
+                    
+                    
                     floattype = self.float_type,
                     nbits=nbits,
                     intermediate_store_locs=self.intermediate_store_locs
