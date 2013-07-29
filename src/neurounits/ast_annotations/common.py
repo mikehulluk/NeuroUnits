@@ -33,11 +33,37 @@ def do_op(a,b,op):
 
 
 
+
+
+
+
+
+propagation_rules = """
+
+AddOp [self.min = lhs.min + rhs.min], [self.rhs = self.min - rhs.min], [self.lhs = self.min - lhs.min]
+
+
+"""
+
+
 class NodeValueRangePropagator(ASTVisitorBase):
 
 
-    def __getitem__(self, k):
-        return self.annotations[k]
+
+    def get_annotation(self, node):
+        return self.annotations[node]
+        
+    def set_annotation(self, node, ann):
+        self.annotations[node] = ann
+        
+        
+    #def __getitem__(self, k):
+    #    assert False
+    #    return self.annotations[k]
+
+
+
+
 
 
     def __init__(self, component, annotations_in):
@@ -48,10 +74,13 @@ class NodeValueRangePropagator(ASTVisitorBase):
         for ann,val in annotations_in.items():
             if not component.has_terminal_obj(ann):
                 continue
-            if isinstance(ann, basestring):
-                self.annotations[component.get_terminal_obj(ann)] = val
-            else:
-                self.annotations[ann] = val
+            
+            assert isinstance(ann, basestring)
+            self.annotations[component.get_terminal_obj(ann)] = val
+            
+            #else:
+            #    assert False
+            #    self.annotations[ann] = val
 
         self.visit(component)
 
