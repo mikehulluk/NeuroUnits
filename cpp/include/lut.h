@@ -26,55 +26,6 @@ using mh::auto_shift64;
 #include "safe_int.h"
 
 
-//double pow(double x, SafeInt32 rhs)
-/*{
-    return pow(x, rhs.get_value() );
-}
-*/
-
-SafeInt32 auto_shift(SafeInt32 n, SafeInt32 m)
-{
-    if(m.get_value()==0)
-    {
-            return n;
-    }
-    if(m.get_value()>0)
-    {
-            return n << m;
-    }
-    else
-    {
-       return n >> -m;
-    }
-
-}
-
-ostream& operator<<(ostream& o, SafeInt32 v)
-{
-    o << v.get_value();
-    return o;
-}
-
-int get_value(int i)
-{
-    return i;
-}
-
-long get_value_long(int i)
-{
-    return i;
-}
-
-int get_value(SafeInt32 i)
-{
-    return i.get_value();
-}
-
-long get_value_long(SafeInt32 i)
-{
-    return i.get_value();
-}
-
 
 
 
@@ -218,7 +169,7 @@ public:
 
 
 
-        int get(int x_in, int up_x_in, int up_out_in)
+        IntType get(IntType x_in, IntType up_x_in, IntType up_out_in)
         {
             const bool DEBUG = false;
 
@@ -341,11 +292,11 @@ public:
             IntType yn_rescaled = (yn>>yn_rel_upscale);
 
             long xymul = (long)get_value(yn1 - yn_rescaled) *  get_value(x-xn);
-            return get_value(
+            return //get_value(
                     auto_shift(yn, yn_upscale-up_out)
                     +
                     auto_shift64(xymul, get_value(  yn1_upscale - up_out-rshift ) )
-                    );
+                    //);
 
 ;
 
@@ -374,113 +325,6 @@ public:
 
 
 
-
-        /*
-        int get_OLD(int x_in, int up_x_in, int up_out_in)
-        {
-            cout << "\nget()";
-
-            IntType x = IntType(x_in);
-            IntType up_x = IntType(up_x_in);
-            IntType up_out = IntType(up_out_in);
-
-
-
-            IntType nbit_variables = IntType(NBIT_VARIABLES);
-
-
-            double fp_xout = FixedFloatConversion::to_float(x_in, up_x_in) ;
-            cout << "\nActual X: " << fp_xout;
-            cout << "\nActual Out: " << exp(fp_xout);
-
-
-
-            // 1. Convert the x to an index
-            IntType right_shift1 = nbit_variables - up_x - 2;
-            IntType index_0_signed = (x>>right_shift1) + table_size_half;
-            IntType index_0 = index_0_signed;
-
-
-
-
-            IntType upscale_int = upscale;
-            IntType nbits_table_int = nbits_table;
-
-            IntType right_shift = nbits_table_int - upscale_int -1 ;
-            assert(right_shift > 0);
-
-            // Lets upscale so that we keep as much precision as possible:
-            IntType manual_upscale =  (nbit_variables-1 - nbits_table)  - right_shift;
-            assert(manual_upscale-right_shift > 0);
-
-            IntType xn_new =  ( index_0<<(manual_upscale-right_shift) )  - (IntType(1)<<(upscale_int+manual_upscale) );
-            IntType xn1_new =  xn_new + (IntType(1)<< (upscale_int- (nbits_table_int-1) + manual_upscale) ) ;
-
-
-
-
-
-            cout << "\n =====>> xn_new: " << xn_new;
-
-
-            // How do we represent ln(2) as an integer?
-            int _recip_ln_two_nbits = 10; //4096 ~ (5dp??)
-            IntType recip_ln_two_int = IntType( recip_ln_two * (1<<_recip_ln_two_nbits)    );
-            IntType recip_ln_two_nbits = IntType(_recip_ln_two_nbits);
-
-            // TODO: Check here - are we getting close to integer overflow??
-            //double t = SafeInt32(3) *2.0;
-            IntType fp_upscale_n =  IntType( (int) (ceil( get_value(recip_ln_two_int) *  get_value(xn_new) *  pow(2.0, -(manual_upscale+recip_ln_two_nbits)) ) ) );
-            IntType fp_upscale_n1 = IntType( (int) (ceil( get_value(recip_ln_two_int) *  get_value(xn1_new) * pow(2.0, -(manual_upscale+recip_ln_two_nbits)) ) ) ) ;
-
-
-            IntType yn = pData[ get_value(index_0)];
-            IntType yn1 = pData[get_value(index_0)+1] ;
-
-
-
-
-            cout << "\n -- y_n int: " << yn;
-            cout << "\n -- y_n1 int: " << yn1;
-            cout << "\n -- y_n Scaling int: " << fp_upscale_n;
-            cout << "\n -- y_n1 Scaling int: " << fp_upscale_n1;
-
-
-
-            // Its possible that the two y values have different fixed point representations, so we should use the larger power,
-            // which will be the one for yn+1.
-            assert( manual_upscale ==  ( upscale_int  + nbit_variables  - nbits_table_int*2 ) ) ;
-
-            IntType X_OVER_M1_pow = up_x +1  + upscale_int   -  nbits_table_int *2 ;
-            IntType diffN = fp_upscale_n1 - fp_upscale_n;
-            assert (diffN >= 0);
-
-            IntType N1P_OVER_xdiff_pow =  fp_upscale_n1 - up_out - upscale_int*2 - 1 - nbit_variables  + nbits_table_int*3;
-            IntType v2 = auto_shift( x, X_OVER_M1_pow);
-
-            cout << "\n";
-
-
-            // ** SOURCE OF TRUNCATION ERRORS! **
-            //IntType res_int_proper = auto_shift(yn, fp_upscale_n-up_out) + auto_shift64(((long)(yn1 - (yn>>diffN) )*(long)(v2 - xn_new)), N1P_OVER_xdiff_pow );
-            IntType res_int_proper = auto_shift(yn, fp_upscale_n-up_out) + auto_shift64((get_value_long(yn1 - (yn>>diffN) ) *get_value_long(v2 - xn_new)), get_value_long(N1P_OVER_xdiff_pow) );
-
-
-            int res_int = FixedFloatConversion::from_float(exp(fp_xout), up_out_in);
-
-
-            // Validate:
-            int diff = get_value(res_int_proper) - res_int;
-            if(diff < 0) diff = -diff;
-            float error = ((float)diff / get_value(res_int_proper));
-            cout << "\n -- Error y: " << error * 100. << "%";
-            cout << "\n  -- diff: " << diff;
-            cout << "\n\n";
-
-            return get_value(res_int_proper);
-
-        }
-        */
 
 
 

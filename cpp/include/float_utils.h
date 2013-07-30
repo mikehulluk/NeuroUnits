@@ -15,7 +15,7 @@
 
 
 
-//#define DBG_RANGE
+#define DBG_RANGE
 
 namespace mh
 {
@@ -33,6 +33,7 @@ namespace mh
         public:
                 static const int cl_range_max = (1<<(cl_nbits-1));
         public:
+
                 static double to_float(int val, int upscale)
                 {
                         double res =  ( double(val) * pow(2.0, upscale) / double(cl_range_max) );
@@ -62,6 +63,24 @@ namespace mh
 
                         int res =  int(val * (double(cl_range_max) / pow(2.0, upscale) ) ) ;
                         return res;
+                }
+
+
+
+
+
+                // Wrappers:
+                static double to_float(SafeInt32 val, SafeInt32 upscale)
+                {
+                    return to_float( get_value(val), get_value(upscale) );
+                }
+                static double to_float(int val, SafeInt32 upscale)
+                {
+                    return to_float( val, get_value(upscale) );
+                }
+                static double to_float(SafeInt32 val, int upscale)
+                {
+                    return to_float( get_value(val), upscale );
                 }
         };
 

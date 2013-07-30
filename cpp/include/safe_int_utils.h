@@ -1,4 +1,11 @@
 
+#ifndef __SAFE_INT_UTILS_H__
+#define __SAFE_INT_UTILS_H__
+
+#include <ostream>
+
+
+
 #include "safe_int.h"
 
 
@@ -42,7 +49,7 @@ SafeInt32 auto_shift(SafeInt32 n, SafeInt32 m)
 
 }
 
-ostream& operator<<(ostream& o, SafeInt32 v)
+std::ostream& operator<<(std::ostream& o, SafeInt32 v)
 {
     o << v.get_value();
     return o;
@@ -53,3 +60,7 @@ double pow(double x, SafeInt32 rhs)
 {
     return pow(x, rhs.get_value() );
 }
+
+
+
+#endif // __SAFE_INT_UTILS_H__
