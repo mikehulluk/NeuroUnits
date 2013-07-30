@@ -26,10 +26,11 @@ using mh::auto_shift64;
 #include "safe_int.h"
 
 
-double pow(double x, SafeInt32 rhs)
-{
+//double pow(double x, SafeInt32 rhs)
+/*{
     return pow(x, rhs.get_value() );
 }
+*/
 
 SafeInt32 auto_shift(SafeInt32 n, SafeInt32 m)
 {
@@ -78,8 +79,6 @@ long get_value_long(SafeInt32 i)
 
 
 
-typedef SafeInt32 IntType;
-//typedef int IntType;
 
 
 
@@ -94,8 +93,7 @@ typedef SafeInt32 IntType;
 
 
 
-
-template<int NBIT_VARIABLES>
+template<int NBIT_VARIABLES, typename IntType>
 class LookUpTableExpPower2
 {
 

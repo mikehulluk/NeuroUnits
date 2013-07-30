@@ -19,7 +19,7 @@ char const* greet()
 class MyCPPException //: public std::exception
 {
 public:
-    const char* what() const 
+    const char* what() const
     {
         return "AHHHHGHH!";
     }
@@ -32,7 +32,7 @@ namespace bp = boost::python;
 PyObject *exceptionType=NULL; // will be initialised inside BOOST_PYTHON_MODULE(...) using createExceptionClass(...)
 
 void translator(const MyCPPException &x) {
-	
+
 	bp::object exc(x);
 
 	bp::object exc_t(bp::handle<>(bp::borrowed(exceptionType)));
@@ -43,7 +43,7 @@ void translator(const MyCPPException &x) {
 
 
 
-PyObject* createExceptionClass(const char* name, PyObject* baseTypeObj = 
+PyObject* createExceptionClass(const char* name, PyObject* baseTypeObj =
 PyExc_Exception)
 {
     //char*
@@ -86,7 +86,7 @@ BOOST_PYTHON_MODULE(fplib)
     def("from_float24", FixedFloatConversion24::from_float);
 
 
-    typedef LookUpTableExpPower2<24> LUTExp24;
+    typedef LookUpTableExpPower2<24, SafeInt32> LUTExp24;
     class_<LUTExp24>( "LUTExp24", init<int, int>() )
                 .def("get", &LUTExp24::get)
                 ;

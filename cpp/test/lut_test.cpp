@@ -19,7 +19,7 @@ const int nbits = 24;
 int main()
 {
     //LookUpTableExpPower2 exp_table( 12, 3);
-    LookUpTableExpPower2<24> exp_table( 5, 3);
+    LookUpTableExpPower2<24, SafeInt32> exp_table( 5, 3);
 
 	typedef mh::FixedFloatConversion<24> FixedFloatConversion;
 	
