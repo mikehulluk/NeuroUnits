@@ -1,6 +1,7 @@
 
 
 import mreorg
+mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG,mreorg.FigFormat.SVG]
 
 import neurounits
 
@@ -195,15 +196,15 @@ define_component simple_exp {
 var_annots_dIN = {
     't'             : NodeRange(min="0ms", max = "1.1s"),
     'alpha_ca_m'    : NodeRange(min=None, max = None),
-    'alpha_kf_n'    : NodeRange(min=None, max = None),
-    'alpha_ks_n'    : NodeRange(min=None, max = None),
+    'alpha_kf_n'    : NodeRange(min='0.1e-3ms-1', max = None),#NodeRange(min=None, max = None),
+    'alpha_ks_n'    : NodeRange(min='0.1e-3ms-1', max = None),
     'alpha_na_h'    : NodeRange(min=None, max = None),
     'alpha_na_m'    : NodeRange(min=None, max = None),
     'beta_ca_m'     : NodeRange(min=None, max = None),
     'beta_ca_m_1'   : NodeRange(min=None, max = None),
     'beta_ca_m_2'   : NodeRange(min=None, max = None),
-    'beta_kf_n'     : NodeRange(min=None, max = None),
-    'beta_ks_n'     : NodeRange(min=None, max = None),
+    'beta_kf_n'     : NodeRange(min='0.1e-3ms-1', max = None),# NodeRange(min=None, max = None),
+    'beta_ks_n'     : NodeRange(min='0.1e-3ms-1', max = None),
     'beta_na_h'     : NodeRange(min=None, max = None),
     'beta_na_m'     : NodeRange(min=None, max = None),
     'exp_neg_nu'    : NodeRange(min=None, max = None),
@@ -428,7 +429,10 @@ time_array = results.h5file.root._f_getChild('/simulation_fixed/float/time')
 
 
 
-
+for node in comp.all_ast_nodes():
+    print node, node.annotations
+    
+    
 fixed_sim_res.plot_ranges()
 
 

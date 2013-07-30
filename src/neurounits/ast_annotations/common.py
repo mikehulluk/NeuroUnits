@@ -25,11 +25,11 @@ import operator
 def do_op(a,b,op):
     if a is None or b is None:
         return None
-    try:
-        return op(a,b)
-    except ZeroDivisionError:
-        assert False
-        return None
+    
+    return op(a,b)
+    #except ZeroDivisionError:
+    #    assert False
+    #    return None
 
 
 
@@ -51,11 +51,16 @@ class NodeValueRangePropagator(ASTVisitorBase):
 
 
     def get_annotation(self, node):
-        return self._annotations[node]
+        return node.annotations['node-value-range']
+        #return self._annotations[node]
         
     def set_annotation(self, node, ann):
-        self._annotations[node] = ann
+        #self._annotations[node] = ann
         node.annotations.add_overwrite('node-value-range', ann )
+        
+        print 'Setting Annotation:'
+        print '  Node: ', node
+        print '  Ann:  ', ann
         
 
 
@@ -204,14 +209,19 @@ class NodeValueRangePropagator(ASTVisitorBase):
         print extremes
 
         if len(extremes) < 2:
-            min = None
-            max = None
+            _min = None
+            _max = None
         else:
-            min = extremes[0]
-            max = extremes[-1]
+            _min = extremes[0]
+            _max = extremes[-1]
 
-        self.set_annotation(o, NodeRange(min=min, max=max) )
 
+        
+        self.set_annotation(o, NodeRange(min=_min, max=_max) )
+        print 'Finding limits for: ', o, self.get_annotation(o)
+        print '   (LHS): ', o.lhs, self.get_annotation(o.lhs)
+        print '   (RHS): ', o.rhs, self.get_annotation(o.rhs)
+        
 
 
     def VisitAddOp(self, o):
@@ -247,13 +257,13 @@ class NodeValueRangePropagator(ASTVisitorBase):
         assert len(extremes)==4
 
         if len(extremes) < 2:
-            min = None
-            max = None
+            _min = None
+            _max = None
         else:
-            min = extremes[0]
-            max = extremes[-1]
+            _min = extremes[0]
+            _max = extremes[-1]
 
-        self.set_annotation(o, NodeRange(min=min, max=max) )
+        self.set_annotation(o, NodeRange(min=_min, max=_max) )
 
 
 
@@ -275,13 +285,13 @@ class NodeValueRangePropagator(ASTVisitorBase):
         assert len(extremes)==4
 
         if len(extremes) < 2:
-            min = None
-            max = None
+            _min = None
+            _max = None
         else:
-            min = extremes[0]
-            max = extremes[-1]
+            _min = extremes[0]
+            _max = extremes[-1]
 
-        self.set_annotation(o, NodeRange(min=min, max=max) )
+        self.set_annotation(o, NodeRange(min=_min, max=_max) )
 
 
 

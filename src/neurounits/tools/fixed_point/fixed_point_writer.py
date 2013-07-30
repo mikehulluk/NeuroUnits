@@ -57,6 +57,10 @@ const int VAR_NBITS = ${nbits};
 
 
 
+
+
+
+
 #include "float_utils.h"
 
 
@@ -84,6 +88,10 @@ using mh::auto_shift64;
 
 
 //#include "c_deps/lut.h"
+
+
+
+typedef int IntType
 
 struct LookUpTables
 {
@@ -117,7 +125,8 @@ int do_add_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     
     if(CALCULATE_FLOAT)
     {
-        int res_fp = from_float(to_float(v1,up1) + to_float(v2,up2), up_local);
+        float res_fp_fl = to_float(v1,up1) + to_float(v2,up2);
+        int res_fp = from_float(res_fp_fl, up_local);
         
         if( CHECK_INT_FLOAT_COMPARISON )
         {
@@ -129,7 +138,7 @@ int do_add_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
         if( SAVE_HDF5_FLOAT )
         {
             HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% expr_id ).str())->append_buffer( 
-                    DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp) ) ;
+                    DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
         }    
     }
    
@@ -151,7 +160,10 @@ int do_sub_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     
     // Check the results:
     // //////////////////
-    int res_fp = from_float(to_float(v1,up1) - to_float(v2,up2), up_local);
+    float res_fp_fl = to_float(v1,up1) - to_float(v2,up2);
+    int res_fp = from_float(res_fp_fl, up_local);
+        
+    //int res_fp = from_float(to_float(v1,up1) - to_float(v2,up2), up_local);
     int diff = res_int - res_fp;
     if(diff <0) diff = -diff;
     assert( (diff==0)  || (diff==1));
@@ -162,7 +174,7 @@ int do_sub_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     //////////////////
     // -- Floating point version: 
     HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% expr_id ).str())->append_buffer( 
-            DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp) ) ;
+            DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
     
     // -- Integer version: 
     HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% expr_id ).str())->append_buffer( 
@@ -174,8 +186,9 @@ int do_sub_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
 
 int do_mul_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
 {
-    int res_fp = from_float(to_float(v1,up1) * to_float(v2,up2), up_local);
-    
+    //int res_fp = from_float(to_float(v1,up1) * to_float(v2,up2), up_local);
+    float res_fp_fl = to_float(v1,up1) * to_float(v2,up2);
+    int res_fp = from_float(res_fp_fl, up_local);
     
     // Convert into integer operations:
    
@@ -194,7 +207,7 @@ int do_mul_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     //////////////////
     // -- Floating point version: 
     HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% expr_id ).str())->append_buffer( 
-            DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp) ) ;
+            DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
     
     // -- Integer version: 
     HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% expr_id ).str())->append_buffer( 
@@ -207,7 +220,8 @@ int do_mul_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
 
 int do_div_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
 {
-    int res_fp = from_float(to_float(v1,up1) / to_float(v2,up2), up_local);
+    float res_fp_fl = to_float(v1,up1) / to_float(v2,up2);
+    int res_fp = from_float(res_fp_fl, up_local);
     
     int64 v1_L = (int64) v1;
     int64 v2_L = (int64) v2;
@@ -232,7 +246,7 @@ int do_div_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
     //////////////////
     // -- Floating point version: 
     HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% expr_id ).str())->append_buffer( 
-            DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp) ) ;
+            DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
     
     // -- Integer version: 
     HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% expr_id ).str())->append_buffer( 
@@ -244,7 +258,9 @@ int do_div_op(int v1, int up1, int v2, int up2, int up_local, int expr_id)
 int int_exp(int v1, int up1, int up_local, int expr_id)
 {
 
-    int res_fp = from_float( exp( to_float(v1,up1) ), up_local );    
+    int res_fp_fl = exp( to_float(v1,up1) );
+    int res_fp = from_float( res_fp_fl, up_local);
+            
     int res_int = lookuptables.exponential.get( v1, up1, up_local ); 
     
     
@@ -259,7 +275,7 @@ int int_exp(int v1, int up1, int up_local, int expr_id)
     //////////////////
     // -- Floating point version: 
     HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% expr_id ).str())->append_buffer( 
-            DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) |  (T_hdf5_type_float) (res_fp) ) ;
+            DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) |  (T_hdf5_type_float) (res_fp_fl) ) ;
     
     ## // -- Integer version: 
     ## HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% expr_id ).str())->append_buffer( 
@@ -817,6 +833,7 @@ class CBasedEqnWriterFixedResultsProxy(object):
         time_array = h5file.root._f_getChild('/simulation_fixed/float/time').read()
         
         
+        downscale = 10
         # Plot the variable values:
         for ast_node in self.eqnwriter.component.assignedvalues+self.eqnwriter.component.state_variables:
             print 'Plotting:', ast_node
@@ -831,7 +848,7 @@ class CBasedEqnWriterFixedResultsProxy(object):
             ax3.set_ymargin(0.1)
             
             f.suptitle("Values of variable: %s" % ast_node.symbol)
-            ax1.plot(time_array, data)
+            ax1.plot(time_array[::downscale], data[::downscale], color='blue')
             node_min = ast_node.annotations['node-value-range'].min.float_in_si()
             node_max = ast_node.annotations['node-value-range'].max.float_in_si()
             node_upscale = ast_node.annotations['fixed-point-format'].upscale
@@ -839,15 +856,14 @@ class CBasedEqnWriterFixedResultsProxy(object):
             ax1.axhspan( pow(2,node_upscale), -pow(2,node_upscale), color='lightgreen', alpha=0.4  )
             
             
+            
+            
         # Plot the intermediate nodes values:
         for ast_node in self.eqnwriter.component.all_ast_nodes():
-            print 'Plotting Node:', ast_node
-            #data = h5file.root._f_getChild('/simulation_fixed/float/variables/%s' % ast_node.symbol).read()
+            
             try:
                 loc = '/simulation_fixed/float/operations/' + "op%d" % ast_node.annotations['node-id']
                 data = h5file.root._f_getChild(loc).read()
-                
-                
                 
                 f = pylab.figure()
                 ax1 = f.add_subplot(311)
@@ -858,20 +874,82 @@ class CBasedEqnWriterFixedResultsProxy(object):
                 ax3.set_ymargin(0.1)
                 
                 f.suptitle("Values of ast_node: %s" % str(ast_node))
-                ax1.plot(time_array, data)
+                ax1.plot(time_array[::downscale], data[::downscale,-1], color='blue')
                 node_min = ast_node.annotations['node-value-range'].min.float_in_si()
                 node_max = ast_node.annotations['node-value-range'].max.float_in_si()
                 node_upscale = ast_node.annotations['fixed-point-format'].upscale
                 ax1.axhspan(node_min, node_max, color='green', alpha=0.2  )
-                ax1.axhspan( pow(2,node_upscale), -pow(2,node_upscale), color='lightgreen', alpha=0.4  )
+                ax1.axhspan(pow(2,node_upscale), -pow(2,node_upscale), color='lightgreen', alpha=0.4  )
                     
                 
+                invalid_points_limits = np.logical_or( node_min > data[:,-1], data[:,-1]  > node_max).astype(int)
+                invalid_points_upscale = np.logical_or( -pow(2,node_upscale) > data[:,-1], data[:,-1]  > pow(2,node_upscale)).astype(int)
+                
+                
+                
+                def get_invalid_ranges(data):
+                    """Turn an array of integers into a list of pairs, denoting when we turn on and off"""
+                    data_switch_to_valid = np.where( np.diff(data) > 0 )[0]
+                    data_switch_to_invalid = np.where( np.diff(data) < 0 )[0]
+                    print data_switch_to_valid
+                    print data_switch_to_invalid
+
+                    assert np.fabs( len(data_switch_to_valid) - len(data_switch_to_invalid) ) <= 1
+                    
+                    if len(data_switch_to_valid) == len(data_switch_to_invalid) == 0:
+                        return [] 
+                    
+                    valid_invalid =  np.sort( np.concatenate([data_switch_to_valid, data_switch_to_invalid] ) ).tolist() 
+                    
+                    
+                    
+                    if len(data_switch_to_invalid)>0:
+                        if  len(data_switch_to_valid)>0:
+                            offset = 1 if data_switch_to_invalid[0] > data_switch_to_valid[0] else 0
+                        else:
+                            offset = 1
+                    else:
+                        offset = 0
+                    
+                    valid_invalid = [0] + valid_invalid + [len(data)-1]
+                    pairs = zip(valid_invalid[offset::2], valid_invalid[offset+1::2])
+                    print pairs
+                    
+                    #if pairs:
+                    #    print 'ERRORS!'
+                        
+                    return pairs
+                    
+                
+                
+                
+                print 'Plotting Node:', ast_node
+                print '  -', node_min, 'to', node_max
+                print data.shape
+                
+                print 'Invalid regions:'
+                invalid_ranges_limits = get_invalid_ranges(invalid_points_limits)
+                invalid_ranges_upscale = get_invalid_ranges(invalid_points_upscale)
+                
+                
+                for (x1,x2) in invalid_ranges_upscale:
+                    ax1.axvspan(time_array[x1],time_array[x2], color='red',alpha=0.6)
+                
+                
+                if invalid_ranges_upscale:
+                    print 'ERROR: Value falls out of upscale range!'
                 
                 
                 
                 
                 
                 print 'Recorded'
+                
+                
+                #pylab.show()
+                #pylab.close(f)
+                
+                
             except tables.exceptions.NoSuchNodeError:
                 print 'Not recorded'
         
