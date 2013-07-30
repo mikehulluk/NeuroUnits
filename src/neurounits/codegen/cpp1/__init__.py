@@ -1118,7 +1118,7 @@ class TriggerConditionGenerator(ASTVisitorBase):
         self.cpp_builddata = cpp_builddata
 
     def VisitInEquality(self, o, **kwargs):
-        return '(%s) - (%s)'  % ( self.visit(o.less_than), self.visit(o.greater_than) )
+        return '(%s) - (%s)'  % ( self.visit(o.lesser_than), self.visit(o.greater_than) )
 
 
     def VisitStateVariable(self, o, **kwargs):

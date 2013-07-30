@@ -105,7 +105,7 @@ class _CloneFuncDef(ASTVisitorBase):
 
     def VisitInEquality(self, o, **kwargs):
         return ast.InEquality(
-             less_than=self.visit(o.less_than,**kwargs),
+             lesser_than=self.visit(o.lesser_than,**kwargs),
              greater_than=self.visit(o.greater_than, **kwargs), 
                 )
     def VisitBoolAnd(self, o, **kwargs):

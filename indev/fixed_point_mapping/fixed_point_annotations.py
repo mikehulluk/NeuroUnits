@@ -269,10 +269,10 @@ class ASTDataAnnotator(ASTVisitorBase):
 
 
     def VisitInEquality(self, o):
-        self.visit(o.less_than)
+        self.visit(o.lesser_than)
         self.visit(o.greater_than)
 
-        ann1 = self.annotations[o.less_than]
+        ann1 = self.annotations[o.lesser_than]
         ann2 = self.annotations[o.greater_than]
 
         extremes = [

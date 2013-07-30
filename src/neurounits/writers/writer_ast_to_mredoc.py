@@ -218,7 +218,7 @@ class LatexEqnWriterN(ASTVisitorBase):
             % (s_if_true, s_predicate, s_if_false)
 
     def VisitInEquality(self, o, **kwargs):
-        return '%s < %s' % (self.visit(o.less_than),
+        return '%s < %s' % (self.visit(o.lesser_than),
                             self.visit(o.greater_than))
 
 

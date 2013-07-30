@@ -160,7 +160,7 @@ class ActionerGetConnections(ASTActionerDefault):
         self.connections[o].append(o.if_false_ast)
 
     def ActionInEquality(self, o, **kwargs):
-        self.connections[o].append(o.less_than)
+        self.connections[o].append(o.lesser_than)
         self.connections[o].append(o.greater_than)
 
     def ActionBoolAnd(self, o, **kwargs):

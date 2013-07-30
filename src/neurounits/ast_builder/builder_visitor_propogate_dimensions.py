@@ -393,7 +393,7 @@ class DimensionResolver(ASTVisitorBase):
         self.EnsureEqualDimensions([o, o.if_true_ast, o.if_false_ast])
 
     def VisitInEquality(self, o, **kwargs):
-        self.EnsureEqualDimensions([o.less_than, o.greater_than])
+        self.EnsureEqualDimensions([o.lesser_than, o.greater_than])
 
     def VisitBoolAnd(self, o, **kwargs):
         pass

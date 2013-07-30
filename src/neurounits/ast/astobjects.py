@@ -84,9 +84,9 @@ class InEquality(ASTObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitInEquality(self, **kwargs)
 
-    def __init__(self, less_than, greater_than, **kwargs):
+    def __init__(self, lesser_than, greater_than, **kwargs):
         ASTObject.__init__(self, **kwargs)
-        self.less_than = less_than
+        self.lesser_than = lesser_than
         self.greater_than = greater_than
 
 

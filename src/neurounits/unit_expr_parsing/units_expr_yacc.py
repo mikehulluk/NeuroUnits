@@ -811,12 +811,12 @@ def p_lhs(p):
 
 def p_bool_term_a(p):
     """bool_term : rhs_term LESSTHAN rhs_term"""
-    p[0] = ast.InEquality(less_than=p[1], greater_than=p[3])
+    p[0] = ast.InEquality(lesser_than=p[1], greater_than=p[3])
 
 
 def p_bool_term_b(p):
     """bool_term : rhs_term GREATERTHAN rhs_term"""
-    p[0] = ast.InEquality(less_than=p[3], greater_than=p[1])
+    p[0] = ast.InEquality(lesser_than=p[3], greater_than=p[1])
 
 
 def p_bool_term_c(p):

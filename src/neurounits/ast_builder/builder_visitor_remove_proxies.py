@@ -146,9 +146,9 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         self.visit(o.predicate)
 
     def VisitInEquality(self, o, **kwargs):
-        o.less_than = self.followSymbolProxy(o.less_than)
+        o.lesser_than = self.followSymbolProxy(o.lesser_than)
         o.greater_than = self.followSymbolProxy(o.greater_than)
-        self.visit(o.less_than)
+        self.visit(o.lesser_than)
         self.visit(o.greater_than)
 
     def VisitBoolAnd(self, o, **kwargs):

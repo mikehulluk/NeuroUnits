@@ -562,9 +562,9 @@ class CBasedFixedWriter(ASTVisitorBase):
         
 
     def VisitInEquality(self, o):
-        ann_lt_upscale = o.less_than.annotations['fixed-point-format'].upscale 
+        ann_lt_upscale = o.lesser_than.annotations['fixed-point-format'].upscale 
         ann_gt_upscale = o.greater_than.annotations['fixed-point-format'].upscale    
-        return "(to_float(%s, %d) < to_float(%s, %d) )" % ( self.visit(o.less_than), ann_lt_upscale,  self.visit(o.greater_than), ann_gt_upscale )
+        return "(to_float(%s, %d) < to_float(%s, %d) )" % ( self.visit(o.lesser_than), ann_lt_upscale,  self.visit(o.greater_than), ann_gt_upscale )
 
 
     def VisitFunctionDefUserInstantiation(self,o):        

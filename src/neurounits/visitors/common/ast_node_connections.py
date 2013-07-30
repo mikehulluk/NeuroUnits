@@ -129,7 +129,7 @@ class ASTAllConnections(ASTActionerDepthFirst):
         return [o.predicate, o.if_true_ast, o.if_false_ast]
 
     def VisitInEquality(self, o, **kwargs):
-        return [o.less_than, o.greater_than]
+        return [o.lesser_than, o.greater_than]
 
     def VisitBoolAnd(self, o, **kwargs):
         return [o.lhs, o.rhs]

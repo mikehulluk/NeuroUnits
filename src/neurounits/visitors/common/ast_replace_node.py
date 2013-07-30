@@ -208,7 +208,7 @@ class ReplaceNode(ASTVisitorBase):
         return o
 
     def VisitInEquality(self, o, **kwargs):
-        o.less_than = self.replace_or_visit(o.less_than)
+        o.lesser_than = self.replace_or_visit(o.lesser_than)
         o.greater_than = self.replace_or_visit(o.greater_than)
         return o
 

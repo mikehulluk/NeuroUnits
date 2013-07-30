@@ -208,7 +208,7 @@ class CBasedFloatWriter(ASTVisitorBase):
                 )
 
     def VisitInEquality(self, o):
-        return "(%s < %s)" % ( self.visit(o.less_than), self.visit(o.greater_than) )
+        return "(%s < %s)" % ( self.visit(o.lesser_than), self.visit(o.greater_than) )
 
     def VisitFunctionDefUserInstantiation(self,o):
         print o.parameters

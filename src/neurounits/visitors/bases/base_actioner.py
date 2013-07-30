@@ -108,7 +108,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         self._ActionIfThenElse(o, **kwargs)
 
     def VisitInEquality(self, o, **kwargs):
-        self.visit(o.less_than, **kwargs)
+        self.visit(o.lesser_than, **kwargs)
         self.visit(o.greater_than, **kwargs)
         self._ActionInEquality(o, **kwargs)
 

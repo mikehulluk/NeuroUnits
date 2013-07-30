@@ -163,7 +163,7 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         return d1 + d2 + d3
 
     def VisitInEquality(self, o, **kwargs):
-        d1 = self.visit(o.less_than, **kwargs)
+        d1 = self.visit(o.lesser_than, **kwargs)
         d2 = self.visit(o.greater_than, **kwargs)
         return d1 + d2
 

@@ -303,13 +303,13 @@ class CStringWriter(ASTVisitorBase):
     def VisitIfThenElse(self, o, **kwargs):
         assert isinstance( o.predicate, InEquality), "Only simple if supported"
         return """ifthenelse( %s, %s, %s, %s)"""%(
-                self.visit(o.predicate.less_than),
+                self.visit(o.predicate.lesser_than),
                 self.visit(o.predicate.greater_than),
                 self.visit(o.if_true_ast),
                 self.visit(o.if_false_ast) )
         #raise NotImplementedError()
     def VisitInEquality(self, o,**kwargs):
-        return "%s < %s"%( self.visit(o.less_than), self.visit(o.greater_than))
+        return "%s < %s"%( self.visit(o.lesser_than), self.visit(o.greater_than))
 
     def VisitBoolAnd(self, o, **kwargs):
         raise NotImplementedError()

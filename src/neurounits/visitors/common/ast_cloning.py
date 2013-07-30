@@ -197,7 +197,7 @@ class ASTClone(object):
 
     def VisitInEquality(self, o, **kwargs):
         new = ast.InEquality(
-                less_than=o.less_than,
+                lesser_than=o.lesser_than,
                 greater_than=o.greater_than
                 )
         return copy_std(o, new, )

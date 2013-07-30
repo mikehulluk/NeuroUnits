@@ -259,10 +259,10 @@ class NodeValueRangePropagator(ASTVisitorBase):
 
 
     def VisitInEquality(self, o):
-        self.visit(o.less_than)
+        self.visit(o.lesser_than)
         self.visit(o.greater_than)
 
-        ann1 = self.get_annotation(o.less_than)
+        ann1 = self.get_annotation(o.lesser_than)
         ann2 = self.get_annotation(o.greater_than)
 
         extremes = [

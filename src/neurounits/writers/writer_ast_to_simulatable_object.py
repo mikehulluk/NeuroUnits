@@ -517,7 +517,7 @@ class FunctorGenerator(ASTVisitorBase):
 
 
     def VisitInEquality(self, o ,**kwargs):
-        lt = self.visit( o.less_than )
+        lt = self.visit( o.lesser_than )
         gt = self.visit( o.greater_than )
         def f5(**kw):
             lhs = lt(**kw)
