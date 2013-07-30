@@ -801,14 +801,87 @@ class CBasedEqnWriterFixedResultsProxy(object):
      
      
      
+     
+     
+    
+     
+     
     def plot_ranges(self):
+        import tables
+        import sys
         
+        
+        h5file = tables.openFile("output.hd5")
+        
+        float_group = h5file.root._f_getChild('/simulation_fixed/float/variables/')
+        time_array = h5file.root._f_getChild('/simulation_fixed/float/time').read()
         
         
         # Plot the variable values:
-        for ast_node in self.eqnwriter.component.assignedvalues:
+        for ast_node in self.eqnwriter.component.assignedvalues+self.eqnwriter.component.state_variables:
             print 'Plotting:', ast_node
+            data = h5file.root._f_getChild('/simulation_fixed/float/variables/%s' % ast_node.symbol).read()
+            
+            f = pylab.figure()
+            ax1 = f.add_subplot(311)
+            ax2 = f.add_subplot(312)
+            ax3 = f.add_subplot(313)
+            ax1.set_ymargin(0.1)
+            ax2.set_ymargin(0.1)
+            ax3.set_ymargin(0.1)
+            
+            f.suptitle("Values of variable: %s" % ast_node.symbol)
+            ax1.plot(time_array, data)
+            node_min = ast_node.annotations['node-value-range'].min.float_in_si()
+            node_max = ast_node.annotations['node-value-range'].max.float_in_si()
+            node_upscale = ast_node.annotations['fixed-point-format'].upscale
+            ax1.axhspan(node_min, node_max, color='green', alpha=0.2  )
+            ax1.axhspan( pow(2,node_upscale), -pow(2,node_upscale), color='lightgreen', alpha=0.4  )
+            
+            
+        # Plot the intermediate nodes values:
+        for ast_node in self.eqnwriter.component.all_ast_nodes():
+            print 'Plotting Node:', ast_node
+            #data = h5file.root._f_getChild('/simulation_fixed/float/variables/%s' % ast_node.symbol).read()
+            try:
+                loc = '/simulation_fixed/float/operations/' + "op%d" % ast_node.annotations['node-id']
+                data = h5file.root._f_getChild(loc).read()
+                
+                
+                
+                f = pylab.figure()
+                ax1 = f.add_subplot(311)
+                ax2 = f.add_subplot(312)
+                ax3 = f.add_subplot(313)
+                ax1.set_ymargin(0.1)
+                ax2.set_ymargin(0.1)
+                ax3.set_ymargin(0.1)
+                
+                f.suptitle("Values of ast_node: %s" % str(ast_node))
+                ax1.plot(time_array, data)
+                node_min = ast_node.annotations['node-value-range'].min.float_in_si()
+                node_max = ast_node.annotations['node-value-range'].max.float_in_si()
+                node_upscale = ast_node.annotations['fixed-point-format'].upscale
+                ax1.axhspan(node_min, node_max, color='green', alpha=0.2  )
+                ax1.axhspan( pow(2,node_upscale), -pow(2,node_upscale), color='lightgreen', alpha=0.4  )
+                    
+                
+                
+                
+                
+                
+                
+                print 'Recorded'
+            except tables.exceptions.NoSuchNodeError:
+                print 'Not recorded'
         
+        
+        
+        
+            
+            
+        pylab.show()
+        sys.exit(0)
      
         assert False
  

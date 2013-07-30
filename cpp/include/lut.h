@@ -118,35 +118,28 @@ public:
         int get_upscale_for_xindex(int index)
         {
 
-            // Calculate with floating point:
-            double table_cell_width = pow(2.0, upscale +1) / pow(2.0, nbits_table);
-            double xvalue = (index - table_size_half) * table_cell_width;
-            double fp = recip_ln_two * xvalue;
-            int result_fp = (int) ceil(fp);
-
-
-
-            
             const int n_bits_recip_ln_two = 12;
             const int recip_ln_two_as_int =  recip_ln_two * pow(2.0, n_bits_recip_ln_two) ;
-            //double res_fp_int = recip_ln_two_as_int * pow(2.0, -n_bits_recip_ln_two) *  (index - table_size_half) * pow(2.0, upscale +1) / pow(2.0, nbits_table);
-            //double res_fp_int = recip_ln_two_as_int *(index - table_size_half) * pow(2.0, upscale+1-n_bits_recip_ln_two-nbits_table); //*   pow(2.0, upscale +1) / pow(2.0, nbits_table);
             IntType P = (upscale+1-n_bits_recip_ln_two-nbits_table) * -1;
             assert(get_value(P)>0);
-            
-            //double res_fp_int = recip_ln_two_as_int *(index - table_size_half) * pow(2.0, -P); 
-            //int result_int = (int) ceil(res_fp_int) ;
-
             int result_int = ((recip_ln_two_as_int *(index - table_size_half) )>>get_value(P)) + 1; // * pow(2.0, -P); 
-            //int result_int = (int) ceil(res_fp_int) ;
-            //
+
+
+            /*
             cout << "\nexp(x): " << exp(xvalue);
-
-
             cout << "\nR1: " << result_fp;
             cout << "\nR2: " << result_int;
             cout << "\n\n" << std::flush;
-            assert( abs(result_fp-result_int) <=1);
+            */
+            if(0)
+            {
+                // Calculate with floating point:
+                double table_cell_width = pow(2.0, upscale +1) / pow(2.0, nbits_table);
+                double xvalue = (index - table_size_half) * table_cell_width;
+                double fp = recip_ln_two * xvalue;
+                int result_fp = (int) ceil(fp);
+                assert( abs(result_fp-result_int) <=1);
+            }
 
             return result_int;
 
@@ -163,10 +156,6 @@ public:
         LookUpTableExpPower2(int nbits_table, int upscale)
              : nbits_table(nbits_table), upscale(upscale), table_size(1<<(nbits_table)), table_size_half(1<<(nbits_table-1))
         {
-
-
-
-            //double upscale_factor_in =  pow(2.0, upscale);
 
             // Calculate the output values:
             for(int i = 0; i < table_size; i++)
@@ -233,10 +222,15 @@ public:
 
         int get(int x_in, int up_x_in, int up_out_in)
         {
-            cout << "\n";
-            cout << "\nget()";
-            cout << "\ntable_size: " << table_size;
-            cout << "\ntable_size_half: " << table_size_half;
+            const bool DEBUG = false;
+
+            if(DEBUG)
+            {
+                cout << "\n";
+                cout << "\nget()";
+                cout << "\ntable_size: " << table_size;
+                cout << "\ntable_size_half: " << table_size_half;
+            }
 
             IntType x = IntType(x_in);
             IntType up_x = IntType(up_x_in);
@@ -246,14 +240,16 @@ public:
 
 
 
-            const bool DEBUG = true;
 
             // For debugging:
             const double dbg_x_as_float = FixedFloatConversion::to_float(x_in, up_x_in) ;
 
+            if(DEBUG)
+            {
             cout << "\nx: " << x;
             cout << "\ndbg_as_float: " << dbg_x_as_float;
             assert( fabs(dbg_x_as_float) < pow(2.0, this->upscale) );
+            }
 
 
             // 1. Calculate the X-indices to use to lookup in the table with:
@@ -303,6 +299,7 @@ public:
 
 
 
+            if(DEBUG)
             {
             // Double Check:
             double xn_dbl_old = FixedFloatConversion::to_float(get_value(xn), up_x_in) ;
@@ -310,9 +307,12 @@ public:
             IntType yn_upscale_old =  IntType( (int) ceil( recip_ln_two * xn_dbl_old ) );
             IntType yn1_upscale_old = IntType( (int) ceil( recip_ln_two * xn1_dbl_old ) );
 
-            cout << "\nyn_upscale_old/ yn_upscale: " << yn_upscale_old << "/" << yn_upscale ;
-            cout << "\nyn1_upscale_old/ yn1_upscale: " << yn1_upscale_old << "/" << yn1_upscale ;
-            cout << std::flush;
+            if(DEBUG)
+            {
+                cout << "\nyn_upscale_old/ yn_upscale: " << yn_upscale_old << "/" << yn_upscale ;
+                cout << "\nyn1_upscale_old/ yn1_upscale: " << yn1_upscale_old << "/" << yn1_upscale ;
+                cout << std::flush;
+            }
             //assert( yn_upscale_old == yn_upscale);
             //assert( yn1_upscale_old == yn1_upscale);
             }

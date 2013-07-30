@@ -598,6 +598,7 @@ class NodeToIntAnnotator(ASTActionerDefault):
         val = len(self.node_to_int)
         self.node_to_int[n] = val
         self.int_to_node[val] = n 
+        n.annotations['node-id'] = val
         
         
         
