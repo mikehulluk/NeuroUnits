@@ -397,7 +397,7 @@ comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 fixed_sim_res = CBasedEqnWriterFixed(comp, output_filename='output.hd5',  nbits=nbits).results
 
 
-fixed_sim_res.plot_ranges()
+#fixed_sim_res.plot_ranges()
 
 
 

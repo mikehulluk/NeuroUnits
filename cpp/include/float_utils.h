@@ -27,12 +27,14 @@ namespace mh
 
         };
 
+
+
+
         template<int cl_nbits>
         class FixedFloatConversion
         {
         public:
                 static const int cl_range_max = (1<<(cl_nbits-1));
-        public:
 
                 static double to_float(int val, int upscale)
                 {
@@ -82,6 +84,12 @@ namespace mh
                 {
                     return to_float( get_value(val), upscale );
                 }
+
+                static int from_float(double val, SafeInt32 upscale)
+                {
+                    return from_float(val, get_value(upscale));
+                }
+
         };
 
 

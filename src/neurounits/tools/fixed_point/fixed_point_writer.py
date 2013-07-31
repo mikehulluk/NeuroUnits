@@ -50,29 +50,40 @@ typedef float T_hdf5_type_float;
 
 
 
-#define USE_SAFEINT
 
-
-#ifdef USE_SAFEINT
+//typedef int IntType;
 typedef SafeInt32 IntType;
 
-IntType inttype_from_long(long val)
-{
-    return SafeInt32::from_long(val);
-}
-#else
 
-typedef int IntType;
-IntType inttype_from_long(long val)
+
+template<typename T> 
+T inttype_from_long(long value)
 {
-    return val;
+    assert(0);
 }
-#endif
+
+template<> 
+int inttype_from_long(long value)
+{
+   return value;
+}
+
+template<> 
+SafeInt32 inttype_from_long(long value)
+{
+   return SafeInt32::from_long(value);
+}
+
+
+
+
+
+
+
+
 
 
 typedef std::int64_t int64;
-
-
 const int VAR_NBITS = ${nbits};
 
 
@@ -82,7 +93,7 @@ const int VAR_NBITS = ${nbits};
 #define SAVE_HDF5_INT true
 
 #define CHECK_INT_FLOAT_COMPARISON true
-
+const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT = 100;
 
 
 
@@ -97,12 +108,12 @@ typedef mh::FixedFloatConversion<VAR_NBITS> FixedFloatConversion;
 
 double to_float(IntType val, IntType upscale)
 {
-    return FixedFloatConversion::to_float(get_value(val), get_value(upscale));
+    return FixedFloatConversion::to_float(val, upscale);
 }
 
 IntType from_float(double val, IntType upscale)
 {
-    return IntType(FixedFloatConversion::from_float(val, get_value(upscale)));
+    return IntType(FixedFloatConversion::from_float(val, upscale));
 }
 
 using mh::auto_shift;
@@ -132,15 +143,24 @@ struct LookUpTables
 
 
 };
+
+
+
 LookUpTables lookuptables;
 
-const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT = 100;
+
+
+
+
+
+
 
 
 IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id)
 {
 
     IntType res_int = auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local);
+
 
     if( SAVE_HDF5_INT )
     {
@@ -156,7 +176,7 @@ IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
         if( CHECK_INT_FLOAT_COMPARISON )
         {
             IntType diff = res_int - res_fp;
-            cout << "diff" << diff << "\n" << flush; 
+            //cout << "diff" << diff << "\n" << flush; 
             if(diff <0) diff = -diff;
             assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
         }
@@ -168,6 +188,7 @@ IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
         }
     }
 
+
     return res_int;
 }
 
@@ -176,6 +197,7 @@ IntType do_sub_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
 {
 
     IntType res_int = auto_shift(v1, up1-up_local) - auto_shift(v2, up2-up_local);
+
 
     if( SAVE_HDF5_INT )
     {
@@ -191,7 +213,7 @@ IntType do_sub_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
         if( CHECK_INT_FLOAT_COMPARISON )
         {
             IntType diff = res_int - res_fp;
-            cout << "diff" << diff << "\n" << flush; 
+            //cout << "diff" << diff << "\n" << flush; 
             if(diff <0) diff = -diff;
             assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
         }
@@ -210,7 +232,8 @@ IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
 {
     // Need to promote to 64 bit:
     int64 v12 = (int64) get_value(v1) * (int64) get_value(v2);
-    IntType res_int = inttype_from_long( auto_shift64(v12, get_value(up1+up2-up_local-(VAR_NBITS-1)) ) ) ;
+    IntType res_int = inttype_from_long<IntType>( auto_shift64(v12, get_value(up1+up2-up_local-(VAR_NBITS-1)) ) ) ;
+
 
 
     if( SAVE_HDF5_INT )
@@ -227,7 +250,7 @@ IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
         if( CHECK_INT_FLOAT_COMPARISON )
         {
             IntType diff = res_int - res_fp;
-            cout << "diff" << diff << "\n" << flush; 
+            //cout << "diff" << diff << "\n" << flush; 
             if(diff <0) diff = -diff;
             assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
         }
@@ -238,6 +261,8 @@ IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
                     DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
         }
     }
+
+    
 
     return res_int;
 
@@ -255,8 +280,9 @@ IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
     int64 v = v1_L/v2_L;
     v = auto_shift64(v, get_value( up1-up2 - up_local) );
     assert( v < (1<<(VAR_NBITS) ) );
-    IntType res_int = inttype_from_long(v);
+    IntType res_int = inttype_from_long<IntType>(v);
     
+
 
     if( SAVE_HDF5_INT )
     {
@@ -272,7 +298,7 @@ IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
         if( CHECK_INT_FLOAT_COMPARISON )
         {
             IntType diff = res_int - res_fp;
-            cout << "diff" << "\n" << diff << flush; 
+            //cout << "diff" << "\n" << diff << flush; 
             if(diff <0) diff = -diff;
             assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
         }
@@ -283,6 +309,7 @@ IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
                     DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
         }
     }
+
 
     return res_int;
 
@@ -310,10 +337,12 @@ IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id)
     HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
             DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) |  (T_hdf5_type_float) (res_fp_fl) ) ;
 
+    if( SAVE_HDF5_INT )
+    {
     // -- Integer version:
     HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(res_int) ) ;
-
+    }
 
     return res_int;
 
@@ -497,6 +526,8 @@ int main()
 
 
     printf("Simulation Complete\n");
+    //assert(0);
+    
 }
 
 
@@ -607,15 +638,25 @@ class CBasedFixedWriter(ASTVisitorBase):
 
 
     def VisitIfThenElse(self, o):
-
-        return "from_float( (%s) ? to_float(%s, IntType(%d)) : to_float(%s, IntType(%d)), IntType(%d) )" % (
+        return "( (%s) ? auto_shift(%s, IntType(%d)) : auto_shift(%s, IntType(%d)) )" % (
                     self.visit(o.predicate),
                     self.visit(o.if_true_ast),
-                    o.if_true_ast.annotations['fixed-point-format'].upscale,
+                    o.annotations['fixed-point-format'].upscale - o.if_true_ast.annotations['fixed-point-format'].upscale,
                     self.visit(o.if_false_ast),
-                    o.if_false_ast.annotations['fixed-point-format'].upscale,
-                    o.annotations['fixed-point-format'].upscale,
+                    o.annotations['fixed-point-format'].upscale - o.if_false_ast.annotations['fixed-point-format'].upscale,
+                    
                 )
+
+
+
+        #return "from_float( (%s) ? to_float(%s, IntType(%d)) : to_float(%s, IntType(%d)), IntType(%d) )" % (
+        #            self.visit(o.predicate),
+        #            self.visit(o.if_true_ast),
+        #            o.if_true_ast.annotations['fixed-point-format'].upscale,
+        #            self.visit(o.if_false_ast),
+        #            o.if_false_ast.annotations['fixed-point-format'].upscale,
+        #            o.annotations['fixed-point-format'].upscale,
+        #        )
 
 
 
@@ -624,7 +665,13 @@ class CBasedFixedWriter(ASTVisitorBase):
     def VisitInEquality(self, o):
         ann_lt_upscale = o.lesser_than.annotations['fixed-point-format'].upscale
         ann_gt_upscale = o.greater_than.annotations['fixed-point-format'].upscale
-        return "(to_float(%s, IntType(%d)) < to_float(%s, IntType(%d)) )" % ( self.visit(o.lesser_than), ann_lt_upscale,  self.visit(o.greater_than), ann_gt_upscale )
+        
+        if ann_lt_upscale < ann_gt_upscale:
+            return "( ((%s)>>IntType(%d)) < ( (%s)) )" %( self.visit(o.lesser_than), (ann_gt_upscale-ann_lt_upscale),  self.visit(o.greater_than) )
+        elif ann_lt_upscale > ann_gt_upscale:
+            return "( (%s) < ( (%s)>>IntType(%d)))" %( self.visit(o.lesser_than), self.visit(o.greater_than), (ann_lt_upscale-ann_gt_upscale) )
+        else:
+            return "( (%s) < (%s) )" %( self.visit(o.lesser_than), self.visit(o.greater_than), (ann_gt_upscale-ann_lt_upscale) )
 
 
     def VisitFunctionDefUserInstantiation(self,o):

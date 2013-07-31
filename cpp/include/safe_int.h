@@ -92,6 +92,10 @@ namespace mh_int32
             return _value == rhs._value;
         }
 
+        bool operator<(const SafeInt32& rhs) const
+        {
+            return _value < rhs._value;
+        }
 
         // Comparisons against ints:
         bool operator==(int rhs) const
