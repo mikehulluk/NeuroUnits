@@ -33,8 +33,7 @@ c_prog = r"""
 #include <boost/format.hpp>
 
 
-#include "safe_int.h"
-#include "safe_int_utils.h"
+
 
 
 
@@ -53,28 +52,6 @@ typedef float T_hdf5_type_float;
 
 
 
-//typedef int IntType;
-typedef SafeInt32 IntType;
-
-
-
-template<typename T> 
-T inttype_from_long(long value)
-{
-    assert(0);
-}
-
-template<> 
-int inttype_from_long(long value)
-{
-   return value;
-}
-
-template<> 
-SafeInt32 inttype_from_long(long value)
-{
-   return SafeInt32::from_long(value);
-}
 
 
 
@@ -86,16 +63,38 @@ SafeInt32 inttype_from_long(long value)
 
 
 typedef std::int64_t int64;
-const int VAR_NBITS = ${nbits};
 
 
 
 
+/* Set or unset this variable: */
+#define ON_NIOS true
+#define DISPLAY_LOOP_INFO false
 
+
+
+#if ON_NIOS
+#define CALCULATE_FLOAT false
+#define USE_HDF false
+#define SAVE_HDF5_FLOAT false
+#define SAVE_HDF5_INT false
+#define SAFEINT false 
+
+#else
 #define CALCULATE_FLOAT true
+#define USE_HDF true
 #define SAVE_HDF5_FLOAT true
 #define SAVE_HDF5_INT true
+#define SAFEINT true
+#endif
 
+
+
+
+
+
+
+/* ------- General  ----------- */ 
 #define CHECK_INT_FLOAT_COMPARISON true
 #define CHECK_INT_FLOAT_COMPARISON_FOR_EXP false
 
@@ -107,9 +106,8 @@ const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP = 300;
 
 
 #include "float_utils.h"
-
-#include "lut.h"
-
+const int VAR_NBITS = ${nbits};
+typedef mh::FixedFloatConversion<VAR_NBITS> FixedFloatConversion;
 
 using mh::auto_shift;
 using mh::auto_shift64;
@@ -118,7 +116,35 @@ using mh::auto_shift64;
 
 
 
+#if SAFEINT
+#include "safe_int.h"
+#include "safe_int_utils.h"
+#endif 
 
+
+// Templates for allowing return types to change based on IntType
+template<typename T>T inttype_from_long(long value){ assert(0); }
+template<> int inttype_from_long(long value){ return value;}
+
+#if SAFEINT
+template<> SafeInt32 inttype_from_long(long value) { return SafeInt32::from_long(value); }
+#endif 
+
+
+#if SAFEINT 
+typedef SafeInt32 IntType;
+#else 
+typedef int IntType;
+#endif
+
+
+#include "safe_int_proxying.h"
+
+
+
+
+
+#include "lut.h"
 
 
 
@@ -154,14 +180,15 @@ IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
 
     IntType res_int = auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local);
 
-
-    if( SAVE_HDF5_INT && expr_id != -1)
+    #if USE_HDF && SAVE_HDF5_INT 
+    if( expr_id != -1)
     {
         HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
             DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(v2) | (T_hdf5_type_int) get_value(res_int) ) ;
     }
+    #endif
 
-    if(CALCULATE_FLOAT)
+    #if CALCULATE_FLOAT
     {
         float res_fp_fl = FixedFloatConversion::to_float(v1,up1) + FixedFloatConversion::to_float(v2,up2);
         IntType res_fp = IntType(FixedFloatConversion::from_float(res_fp_fl, up_local));
@@ -173,13 +200,16 @@ IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
             if(diff <0) diff = -diff;
             assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
         }
-
-        if( SAVE_HDF5_FLOAT && expr_id != -1)
+        
+        #if USE_HDF && SAVE_HDF5_FLOAT 
+        if( expr_id != -1)
         {
             HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
                     DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) | (T_hdf5_type_float) (FixedFloatConversion::to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
         }
+        #endif
     }
+    #endif
 
 
     return res_int;
@@ -191,14 +221,15 @@ IntType do_sub_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
 
     IntType res_int = auto_shift(v1, up1-up_local) - auto_shift(v2, up2-up_local);
 
-
-    if( SAVE_HDF5_INT )
+    #if USE_HDF && SAVE_HDF5_INT 
+    if( expr_id != -1)
     {
         HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
             DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(v2) | (T_hdf5_type_int) get_value(res_int) ) ;
     }
+    #endif
 
-    if(CALCULATE_FLOAT)
+    #if CALCULATE_FLOAT
     {
         float res_fp_fl = FixedFloatConversion::to_float(v1,up1) - FixedFloatConversion::to_float(v2,up2);
         IntType res_fp = IntType(FixedFloatConversion::from_float(res_fp_fl, up_local));
@@ -211,12 +242,15 @@ IntType do_sub_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
             assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
         }
 
-        if( SAVE_HDF5_FLOAT )
+        #if USE_HDF && SAVE_HDF5_FLOAT 
+        if( expr_id != -1)
         {
             HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
                     DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) | (T_hdf5_type_float) (FixedFloatConversion::to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
         }
+        #endif
     }
+    #endif
 
     return res_int;
 }
@@ -229,13 +263,15 @@ IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
 
 
 
-    if( SAVE_HDF5_INT && expr_id != -1)
+    #if USE_HDF && SAVE_HDF5_INT 
+    if( expr_id != -1)
     {
         HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
             DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(v2) | (T_hdf5_type_int) get_value(res_int) ) ;
     }
+    #endif
 
-    if(CALCULATE_FLOAT)
+    #if CALCULATE_FLOAT
     {
         float res_fp_fl = FixedFloatConversion::to_float(v1,up1) * FixedFloatConversion::to_float(v2,up2);
         IntType res_fp = IntType(FixedFloatConversion::from_float(res_fp_fl, up_local));
@@ -248,12 +284,15 @@ IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
             assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
         }
 
-        if( SAVE_HDF5_FLOAT && expr_id != -1 )
+        #if USE_HDF && SAVE_HDF5_FLOAT 
+        if( expr_id != -1)
         {
             HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
                     DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) | (T_hdf5_type_float) (FixedFloatConversion::to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
         }
+        #endif
     }
+    #endif
 
     
 
@@ -277,13 +316,15 @@ IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
     
 
 
-    if( SAVE_HDF5_INT && expr_id != -1 )
+    #if USE_HDF && SAVE_HDF5_INT 
+    if( expr_id != -1)
     {
         HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
             DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(v2) | (T_hdf5_type_int) get_value(res_int) ) ;
     }
+    #endif
 
-    if(CALCULATE_FLOAT)
+    #if CALCULATE_FLOAT
     {
         float res_fp_fl = FixedFloatConversion::to_float(v1,up1) / FixedFloatConversion::to_float(v2,up2);
         IntType res_fp = IntType(FixedFloatConversion::from_float(res_fp_fl, up_local));
@@ -296,12 +337,15 @@ IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
             assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
         }
 
-        if( SAVE_HDF5_FLOAT && expr_id != -1 )
+        #if USE_HDF && SAVE_HDF5_FLOAT 
+        if( expr_id != -1)
         {
             HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
                     DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) | (T_hdf5_type_float) (FixedFloatConversion::to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
         }
+        #endif
     }
+    #endif
 
 
     return res_int;
@@ -310,31 +354,18 @@ IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
 inline
 IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id)
 {
-
-    
-
     IntType res_int = lookuptables.exponential.get( v1, up1, up_local );
 
 
-    //IntType diff = res_int - res_fp;
-    //if(diff <0) diff = -diff;
-    //cout << "Diff: " << diff;
-    //assert( (diff==0)  || (diff==1) || (diff==2) );
-
-
-
-    // Write to HDF5:
-    //////////////////
-    
-
-    if( SAVE_HDF5_INT )
+    #if USE_HDF && SAVE_HDF5_INT 
+    if( expr_id != -1)
     {
-        // -- Integer version:
         HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
-               DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(res_int) ) ;
+            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(v2) | (T_hdf5_type_int) get_value(res_int) ) ;
     }
+    #endif
     
-    if(CALCULATE_FLOAT)
+    #if CALCULATE_FLOAT
     {
         float res_fp_fl = exp( FixedFloatConversion::to_float(v1,up1) );
         IntType res_fp = IntType(FixedFloatConversion::from_float( res_fp_fl, up_local));
@@ -347,13 +378,16 @@ IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id)
             assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP );
         }
         
-        if( SAVE_HDF5_FLOAT && expr_id != -1 )
+        #if USE_HDF && SAVE_HDF5_FLOAT 
+        if( expr_id != -1)
         {
         // -- Floating point version:
             HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
                 DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) |  (T_hdf5_type_float) (res_fp_fl) ) ;
         }
+        #endif
     }
+    #endif
     
     return res_int;
 }
@@ -411,11 +445,13 @@ void sim_step(NrnData& d, IntType time_step)
     const IntType t = inttype_from_long<IntType>( auto_shift64( get_value_long(dt_int) * get_value_long(time_step), get_value_long(dt_upscale- time_upscale ) ));
 
 
+    #if DISPLAY_LOOP_INFO
     if(get_value(time_step)%100 == 0)
     {
         std::cout << "Loop: " << time_step << "\n";
         std::cout << "t: " << t << "\n";
     }
+    #endif
 
     // Calculate assignments:
     % for eqn in eqns_assignments:
@@ -429,7 +465,7 @@ void sim_step(NrnData& d, IntType time_step)
     % endfor
 
 
-    if( SAVE_HDF5_INT)
+    #if USE_HDF && SAVE_HDF5_INT
     {
         HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
         file->get_dataset("simulation_fixed/int/time")->append<T_hdf5_type_int>(get_value(t));
@@ -442,8 +478,10 @@ void sim_step(NrnData& d, IntType time_step)
         file->get_dataset("simulation_fixed/int/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_int>(get_value( d.${eqn.node.lhs.symbol}));
         % endfor
     }
+    #endif
 
-    if( SAVE_HDF5_FLOAT)
+    
+    #if USE_HDF && SAVE_HDF5_FLOAT
     { 
         const double dt_float = FixedFloatConversion::to_float(IntType(dt_int), IntType(${dt_upscale}));  
         const double t_float = get_value(time_step) * dt_float;
@@ -457,6 +495,7 @@ void sim_step(NrnData& d, IntType time_step)
         file->get_dataset("simulation_fixed/float/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_float>( FixedFloatConversion::to_float(  d.${eqn.node.lhs.symbol},  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ) );
         % endfor
     }
+    #endif
 
 }
 
@@ -474,13 +513,11 @@ void initialise_statevars(NrnData& d)
 
 
 
-
+#if USE_HDF5
 void setup_hdf5()
 {
 
     HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
-
-
 
     // Time
     file->get_group("simulation_fixed/float")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
@@ -504,8 +541,8 @@ void setup_hdf5()
     file->get_group("simulation_fixed/float/operations/")->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size}, hdf5_type_float) );
     file->get_group("simulation_fixed/int/operations/")->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size},  hdf5_type_int) );
     %endfor
-
 }
+#endif
 
 
 
@@ -520,28 +557,32 @@ int main()
 
 
 
-
+    #if USE_HDF5
     setup_hdf5();
+    #endif
 
     NrnData data;
     initialise_statevars(data);
 
 
 
-    for(int i=0;i<3000;i++)
+    
+    for(int k=0;k<2000;k++)
     {
-
-
-        sim_step(data, IntType(i));
-
+        if(k%100==0) cout << "Loop: " << k << "\n" << flush;
+        
+        for(int i=0;i<3000;i++)
+        {
+            sim_step(data, IntType(i));
+        }
     }
-
 
 
 
     printf("Simulation Complete\n");
     //assert(0);
     
+    //assert(0);
 }
 
 
@@ -814,7 +855,7 @@ class CBasedEqnWriterFixed(object):
                                                 additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/') ], 
                                                 additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/")], 
                                                 libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl'],
-                                                compile_flags=['-Wall -Werror -Wfatal-errors -std=gnu++0x -g']),
+                                                compile_flags=['-Wall -Werror -Wfatal-errors -std=gnu++0x -g -O2']),
                                    run=True)
 
         self.results = CBasedEqnWriterFixedResultsProxy(self)

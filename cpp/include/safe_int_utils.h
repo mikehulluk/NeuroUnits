@@ -7,18 +7,11 @@
 
 
 #include "safe_int.h"
+#include "safe_int_proxying.h"
 
 
-int get_value(int i)
-{
-    return i;
-}
 
-long get_value_long(int i)
-{
-    return i;
-}
-
+#if SAFEINT
 int get_value(SafeInt32 i)
 {
     return i.get_value();
@@ -60,7 +53,7 @@ double pow(double x, SafeInt32 rhs)
 {
     return pow(x, rhs.get_value() );
 }
-
+#endif
 
 
 #endif // __SAFE_INT_UTILS_H__

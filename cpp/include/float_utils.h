@@ -72,6 +72,7 @@ namespace mh
 
 
                 // Wrappers:
+#if SAFEINT
                 static double to_float(SafeInt32 val, SafeInt32 upscale)
                 {
                     return to_float( get_value(val), get_value(upscale) );
@@ -89,6 +90,7 @@ namespace mh
                 {
                     return from_float(val, get_value(upscale));
                 }
+#endif
 
         };
 
