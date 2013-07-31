@@ -733,31 +733,44 @@ class CBasedEqnWriterFixed(object):
 
     def compile_and_run(self, cfile):
 
-        # Compile and run:
-
-
-        with open( 'sim1.cpp','w') as f:
-            f.write(cfile)
-        print
-        print 'Compiling & Running:'
-
-
-
-        hdfjive_path_incl = os.path.expanduser("~/hw/hdf-jive/include")
-        hdfjive_path_lib = os.path.expanduser("~/hw/hdf-jive/lib/")
-
-
-        c1 = "g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror -Wfatal-errors -std=gnu++0x -I%s -L%s -lhdfjive -lhdf5 -lhdf5_hl -I../../cpp/include/  " % (hdfjive_path_incl, hdfjive_path_lib)
-        c2 = 'export LD_LIBRARY_PATH="%s:$LD_LIBRARY_PATH"; ./a.out' % hdfjive_path_lib
-
-        #os.system("g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror && ./a.out > /dev/null")
-        subprocess.check_call(c1, shell=True)
-        subprocess.check_call(c2, shell=True)
-
+        from neurounits.tools.c_compilation import CCompiler, CCompilationSettings
+        
+        CCompiler.build_executable(src_text=cfile, 
+                                   compilation_settings = CCompilationSettings(
+                                                additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/') ], 
+                                                additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/")], 
+                                                libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl'],
+                                                compile_flags=['-Wall -Werror -Wfatal-errors -std=gnu++0x']),
+                                   run=True)
 
         self.results = CBasedEqnWriterFixedResultsProxy(self)
-
         return
+# 
+#         # Compile and run:
+# 
+# 
+#         with open( 'sim1.cpp','w') as f:
+#             f.write(cfile)
+#         print
+#         print 'Compiling & Running:'
+# 
+# 
+# 
+#         hdfjive_path_incl = os.path.expanduser("~/hw/hdf-jive/include")
+#         hdfjive_path_lib = os.path.expanduser("~/hw/hdf-jive/lib/")
+# 
+# 
+#         c1 = "g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror -Wfatal-errors -std=gnu++0x -I%s -L%s -lhdfjive -lhdf5 -lhdf5_hl -I../../cpp/include/  " % (hdfjive_path_incl, hdfjive_path_lib)
+#         c2 = 'export LD_LIBRARY_PATH="%s:$LD_LIBRARY_PATH"; ./a.out' % hdfjive_path_lib
+# 
+#         #os.system("g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror && ./a.out > /dev/null")
+#         subprocess.check_call(c1, shell=True)
+#         subprocess.check_call(c2, shell=True)
+# 
+# 
+#         self.results = CBasedEqnWriterFixedResultsProxy(self)
+# 
+#         return
 
 
 
