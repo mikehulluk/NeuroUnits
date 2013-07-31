@@ -386,7 +386,7 @@ print '===================='
 
 
 
-nbits = 24
+nbits = 30
 
 
 # Setup the annotations:

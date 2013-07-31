@@ -21,12 +21,18 @@ typedef signed long SL;
 namespace mh_int32
 {
 
-    const long int32_max = (1l<<(32-1)) - 1;
-    const long int32_min = -(1l<<(32-1)) - 1;
 
 
     class SafeInt32
     {
+
+
+        static const int nbits = 32;
+        //static const int nbits = 25;
+        static const long int32_max = (1l<<(nbits-1)) - 1;
+        static const long int32_min = -(1l<<(nbits-1)) - 1;
+
+
         int _value;
 
     public:
@@ -42,12 +48,12 @@ namespace mh_int32
             return SafeInt32(v);
         }
 
-        int get_value()
+        int get_value() const
         {
             return _value;
         }
 
-        long get_value_long()
+        long get_value_long() const
         {
             return _value;
         }
@@ -59,6 +65,11 @@ namespace mh_int32
             {
                 throw SafeIntException();
             }
+
+            //assert(0);
+            // Check fits with 24 bits:
+
+
         }
 
         bool is_positive() const
@@ -76,30 +87,30 @@ namespace mh_int32
         friend SafeInt32 operator-(SafeInt32 a, int b);
         friend SafeInt32 operator*(SafeInt32 a, int b);
 
-        bool operator==(const SafeInt32& rhs)
+        bool operator==(const SafeInt32& rhs) const
         {
             return _value == rhs._value;
         }
 
 
         // Comparisons against ints:
-        bool operator==(int rhs)
+        bool operator==(int rhs) const
         {
             return _value == rhs;
         }
-        bool operator>(int b)
+        bool operator>(int b) const
         {
             return _value > b;
         }
-        bool operator<(int b)
+        bool operator<(int b) const
         {
             return _value < b;
         }
-        bool operator>=(int b)
+        bool operator>=(int b) const
         {
             return _value >= b;
         }
-        SafeInt32 operator-()  
+        SafeInt32 operator-() const
         {
             return SafeInt32(-_value);
         }
@@ -115,7 +126,7 @@ namespace mh_int32
             if( b.is_positive() )
             {
                 // Check for overflow:
-                if( (SL)int32_max - (SL) a._value  < (SL) b._value )
+                if( (SL)SafeInt32::int32_max - (SL) a._value  < (SL) b._value )
                 {
                     std::cout << "\n\nEh Oh! (SafeInt32 operator+(SafeInt32 a, SafeInt32 b)) Overflow detected! ( " << (SL) a._value << " + " << (SL) b._value << " )\n\n";
                     throw SafeIntException();
@@ -139,7 +150,7 @@ namespace mh_int32
                 // (-) + (-)
                 // Check for underflow:
                 //std::cout << "int32_min: " << int32_min << "\n" << std::flush;
-                if( (SL)int32_min + ((SL) b._value ) * -1  > (SL)a._value )
+                if( (SL)SafeInt32::int32_min + ((SL) b._value ) * -1  > (SL)a._value )
                 {
                     throw SafeIntException();
                 }

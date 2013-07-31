@@ -11,6 +11,12 @@ from neurounits.visitors.bases.base_actioner_default_ignoremissing import ASTAct
 
 import numpy as np
 
+import os
+from neurounits.visitors.bases.base_visitor import ASTVisitorBase
+
+
+
+
 
 c_prog = r"""
 
@@ -128,7 +134,7 @@ struct LookUpTables
 };
 LookUpTables lookuptables;
 
-
+const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT = 100;
 
 
 IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id)
@@ -142,8 +148,6 @@ IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
             DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(v2) | (T_hdf5_type_int) get_value(res_int) ) ;
     }
 
-
-
     if(CALCULATE_FLOAT)
     {
         float res_fp_fl = to_float(v1,up1) + to_float(v2,up2);
@@ -152,8 +156,9 @@ IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
         if( CHECK_INT_FLOAT_COMPARISON )
         {
             IntType diff = res_int - res_fp;
+            cout << "diff" << diff << "\n" << flush; 
             if(diff <0) diff = -diff;
-            assert( (diff==0)  || (diff==1));
+            assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
         }
 
         if( SAVE_HDF5_FLOAT )
@@ -170,111 +175,117 @@ IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
 IntType do_sub_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id)
 {
 
-
-
-
-
     IntType res_int = auto_shift(v1, up1-up_local) - auto_shift(v2, up2-up_local);
 
-
-    //std::cout << "\nSub OP:" << res_fp << " and " << res_int  << "\n";
-
-    // Check the results:
-    // //////////////////
-    float res_fp_fl = to_float(v1,up1) - to_float(v2,up2);
-    IntType res_fp = from_float(res_fp_fl, up_local);
-
-    //IntType res_fp = from_float(to_float(v1,up1) - to_float(v2,up2), up_local);
-    IntType diff = res_int - res_fp;
-    if(diff <0) diff = -diff;
-    assert( (diff==0)  || (diff==1));
-
-
-
-    // Write to HDF5:
-    //////////////////
-    // -- Floating point version:
-    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
-            DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
-
-    // -- Integer version:
-    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
+    if( SAVE_HDF5_INT )
+    {
+        HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
             DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(v2) | (T_hdf5_type_int) get_value(res_int) ) ;
+    }
 
+    if(CALCULATE_FLOAT)
+    {
+        float res_fp_fl = to_float(v1,up1) - to_float(v2,up2);
+        IntType res_fp = from_float(res_fp_fl, up_local);
+
+        if( CHECK_INT_FLOAT_COMPARISON )
+        {
+            IntType diff = res_int - res_fp;
+            cout << "diff" << diff << "\n" << flush; 
+            if(diff <0) diff = -diff;
+            assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
+        }
+
+        if( SAVE_HDF5_FLOAT )
+        {
+            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
+                    DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
+        }
+    }
 
     return res_int;
 }
 
 IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id)
 {
-    //IntType res_fp = from_float(to_float(v1,up1) * to_float(v2,up2), up_local);
-    float res_fp_fl = to_float(v1,up1) * to_float(v2,up2);
-    IntType res_fp = from_float(res_fp_fl, up_local);
-
-    // Convert into integer operations:
-
     // Need to promote to 64 bit:
     int64 v12 = (int64) get_value(v1) * (int64) get_value(v2);
     IntType res_int = inttype_from_long( auto_shift64(v12, get_value(up1+up2-up_local-(VAR_NBITS-1)) ) ) ;
-    //IntType res_int = auto_shift64(v12, get_value(up1+up2-up_local-(VAR_NBITS-1)) );
-
-    //std::cout << "\nMul OP:" << res_fp << " and " << res_int  << "\n";
-    IntType diff = res_int - res_fp;
-    if(diff <0) diff = -diff;
-    assert( (diff==0)  || (diff==1));
 
 
-
-    // Write to HDF5:
-    //////////////////
-    // -- Floating point version:
-    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
-            DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
-
-    // -- Integer version:
-    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
+    if( SAVE_HDF5_INT )
+    {
+        HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
             DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(v2) | (T_hdf5_type_int) get_value(res_int) ) ;
+    }
+
+    if(CALCULATE_FLOAT)
+    {
+        float res_fp_fl = to_float(v1,up1) * to_float(v2,up2);
+        IntType res_fp = from_float(res_fp_fl, up_local);
+
+        if( CHECK_INT_FLOAT_COMPARISON )
+        {
+            IntType diff = res_int - res_fp;
+            cout << "diff" << diff << "\n" << flush; 
+            if(diff <0) diff = -diff;
+            assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
+        }
+
+        if( SAVE_HDF5_FLOAT )
+        {
+            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
+                    DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
+        }
+    }
 
     return res_int;
+
 }
 
 
 
 IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id)
 {
-    float res_fp_fl = to_float(v1,up1) / to_float(v2,up2);
-    IntType res_fp = from_float(res_fp_fl, up_local);
 
     int64 v1_L = (int64) get_value(v1);
     int64 v2_L = (int64) get_value(v2);
 
     v1_L = auto_shift64(v1_L, (VAR_NBITS-1) );
-
-
     int64 v = v1_L/v2_L;
     v = auto_shift64(v, get_value( up1-up2 - up_local) );
-
     assert( v < (1<<(VAR_NBITS) ) );
-
-
     IntType res_int = inttype_from_long(v);
+    
 
-    IntType diff = res_int - res_fp;
-    if(diff <0) diff = -diff;
-    //assert( (diff==0)  || (diff==1));
-
-
-    // Write to HDF5:
-    //////////////////
-    // -- Floating point version:
-    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
-            DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
-
-    // -- Integer version:
-    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
+    if( SAVE_HDF5_INT )
+    {
+        HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
             DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(v2) | (T_hdf5_type_int) get_value(res_int) ) ;
+    }
+
+    if(CALCULATE_FLOAT)
+    {
+        float res_fp_fl = to_float(v1,up1) / to_float(v2,up2);
+        IntType res_fp = from_float(res_fp_fl, up_local);
+
+        if( CHECK_INT_FLOAT_COMPARISON )
+        {
+            IntType diff = res_int - res_fp;
+            cout << "diff" << "\n" << diff << flush; 
+            if(diff <0) diff = -diff;
+            assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
+        }
+
+        if( SAVE_HDF5_FLOAT )
+        {
+            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
+                    DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
+        }
+    }
 
     return res_int;
+
 }
 
 IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id)
@@ -299,9 +310,9 @@ IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id)
     HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
             DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) |  (T_hdf5_type_float) (res_fp_fl) ) ;
 
-    ## // -- Integer version:
-    ## HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
-    ##        DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(res_int) ) ;
+    // -- Integer version:
+    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
+           DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(res_int) ) ;
 
 
     return res_int;
@@ -346,17 +357,6 @@ struct NrnData
     NrnData()
     : ${cons} 
     {}
-##% for p in parameter_defs_new:
-##    ${p.symbol}(0),
-##% endfor
-##% for ass in assignment_defs_new:
-##    ${ass.symbol}(0),
-##% endfor
-##% for sv_def in state_var_defs_new:
-##    ${sv_def.symbol}(0), 
-##    d_${sv_def.symbol}(0),
-##% endfor
-##    {}
 };
 
 
@@ -510,9 +510,6 @@ int main()
 
 
 
-
-import os
-from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 
 
 
@@ -681,8 +678,6 @@ class CBasedEqnWriterFixed(object):
 
 
 
-        #from neurounits.visitors.common.node_label_with_integers import NodeToIntLabeller
-
 
         self.node_labeller = component.annotation_mgr._annotators['node-ids']
         self.node_labels = self.node_labeller.node_to_int
@@ -695,7 +690,7 @@ class CBasedEqnWriterFixed(object):
         self.float_type = 'int'
 
         self.writer = CBasedFixedWriter(component=component, node_int_labels=self.node_labeller.node_to_int)
-
+        self.nbits = nbits
 
 
 
@@ -740,37 +735,11 @@ class CBasedEqnWriterFixed(object):
                                                 additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/') ], 
                                                 additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/")], 
                                                 libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl'],
-                                                compile_flags=['-Wall -Werror -Wfatal-errors -std=gnu++0x']),
+                                                compile_flags=['-Wall -Werror -Wfatal-errors -std=gnu++0x -g']),
                                    run=True)
 
         self.results = CBasedEqnWriterFixedResultsProxy(self)
         return
-# 
-#         # Compile and run:
-# 
-# 
-#         with open( 'sim1.cpp','w') as f:
-#             f.write(cfile)
-#         print
-#         print 'Compiling & Running:'
-# 
-# 
-# 
-#         hdfjive_path_incl = os.path.expanduser("~/hw/hdf-jive/include")
-#         hdfjive_path_lib = os.path.expanduser("~/hw/hdf-jive/lib/")
-# 
-# 
-#         c1 = "g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror -Wfatal-errors -std=gnu++0x -I%s -L%s -lhdfjive -lhdf5 -lhdf5_hl -I../../cpp/include/  " % (hdfjive_path_incl, hdfjive_path_lib)
-#         c2 = 'export LD_LIBRARY_PATH="%s:$LD_LIBRARY_PATH"; ./a.out' % hdfjive_path_lib
-# 
-#         #os.system("g++ -g sim1.cpp -lgmpxx -lgmp -Wall -Werror && ./a.out > /dev/null")
-#         subprocess.check_call(c1, shell=True)
-#         subprocess.check_call(c2, shell=True)
-# 
-# 
-#         self.results = CBasedEqnWriterFixedResultsProxy(self)
-# 
-#         return
 
 
 
@@ -788,89 +757,6 @@ import pylab as plt
 class CBasedEqnWriterFixedResultsProxy(object):
     def __init__(self, eqnwriter):
         self.eqnwriter = eqnwriter
-
-
-    def plot_func_exp(self):
-        import tables
-        h5file = tables.openFile("output.hd5")
-
-        float_group = h5file.root._f_getChild('/simulation_fixed/float/variables/')
-        time_array = h5file.root._f_getChild('/simulation_fixed/float/time').read()
-
-        from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
-
-        from neurounits import ast
-        func_call_nodes = EqnsetVisitorNodeCollector(self.eqnwriter.component).nodes[ ast.FunctionDefBuiltInInstantiation ]
-        print func_call_nodes
-
-
-
-        nbits = 10
-        LUT_size = 2**nbits
-
-        in_min_max = None
-
-        for func_call_node in func_call_nodes:
-
-            try:
-                node_loc = self.eqnwriter.node_labels[ func_call_node ]
-
-                data = h5file.root._f_getChild('/simulation_fixed/float/operations/' + "op%d" % node_loc).read()
-
-                print data.shape
-                print time_array.shape
-
-
-                in_data = data[:,0]
-                out_data = data[:,1]
-
-                in_min = np.min(in_data)
-                in_max = np.max(in_data)
-                out_min = np.min(out_data)
-                out_max = np.max(out_data)
-
-
-                if in_min_max == None:
-                    in_min_max = (in_min, in_max)
-                else:
-                    in_min_max = (np.min([in_min,in_min_max[0]]), np.max([in_max, in_min_max[1]]) )
-
-
-
-                f = pylab.figure()
-                ax1 = f.add_subplot(3,1,1)
-                ax2 = f.add_subplot(3,1,2)
-                ax3 = f.add_subplot(3,1,3)
-
-
-
-                x_space = np.linspace( in_min, in_max, num=2**(nbits+8))
-                x_space_binned = np.linspace( in_min, in_max, num=LUT_size)
-
-
-
-
-                ax1.plot(time_array, in_data, label='in_data (in: %f to %f)' % (in_min, in_max) )
-                ax2.plot(time_array, out_data, label='out_data (in: %f to %f)' % (out_min, out_max) )
-                ax1.legend()
-                ax2.legend()
-
-                ax3.plot( x_space, np.exp(x_space) )
-                #fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharex=True, sharey=True)
-
-
-
-
-                pylab.legend()
-
-            except tables.exceptions.NoSuchNodeError, e :
-                print 'Not such group!: ', e
-
-
-        print 'In_min_max = ', in_min_max
-
-        pylab.show()
-
 
 
 
@@ -897,7 +783,8 @@ class CBasedEqnWriterFixedResultsProxy(object):
         # Plot the variable values:
         for ast_node in self.eqnwriter.component.assignedvalues+self.eqnwriter.component.state_variables:
             print 'Plotting:', ast_node
-            data = h5file.root._f_getChild('/simulation_fixed/float/variables/%s' % ast_node.symbol).read()
+            data_float = h5file.root._f_getChild('/simulation_fixed/float/variables/%s' % ast_node.symbol).read()
+            data_int   = h5file.root._f_getChild('/simulation_fixed/int/variables/%s' % ast_node.symbol).read()
 
             f = pylab.figure()
             ax1 = f.add_subplot(311)
@@ -907,13 +794,26 @@ class CBasedEqnWriterFixedResultsProxy(object):
             ax2.set_ymargin(0.1)
             ax3.set_ymargin(0.1)
 
+            # Plot the floating-point values: 
             f.suptitle("Values of variable: %s" % ast_node.symbol)
-            ax1.plot(time_array[::downscale], data[::downscale], color='blue')
+            ax1.plot(time_array[::downscale], data_float[::downscale], color='blue')
             node_min = ast_node.annotations['node-value-range'].min.float_in_si()
             node_max = ast_node.annotations['node-value-range'].max.float_in_si()
             node_upscale = ast_node.annotations['fixed-point-format'].upscale
             ax1.axhspan(node_min, node_max, color='green', alpha=0.2  )
             ax1.axhspan( pow(2,node_upscale), -pow(2,node_upscale), color='lightgreen', alpha=0.4  )
+
+
+            # Plot the integer values:
+            nbits = self.eqnwriter.nbits
+            _min = -pow(2.0, nbits-1)
+            _max =  pow(2.0, nbits-1)
+            ax2.plot( time_array, data_int[:,-1], color='blue')
+            ax2.axhspan( _min, _max, color='lightgreen', alpha=0.4  )
+            
+            ax3.hist(data_int[:,-1], range = (_min * 1.1 , _max * 1.1), bins=1024)
+            ax3.axvline( _min, color='black', ls='--')
+            ax3.axvline( _max, color='black', ls='--')
 
 
 
@@ -922,8 +822,9 @@ class CBasedEqnWriterFixedResultsProxy(object):
         for ast_node in self.eqnwriter.component.all_ast_nodes():
 
             try:
-                loc = '/simulation_fixed/float/operations/' + "op%d" % ast_node.annotations['node-id']
-                data = h5file.root._f_getChild(loc).read()
+                
+                data_float = h5file.root._f_getChild('/simulation_fixed/float/operations/' + "op%d" % ast_node.annotations['node-id']).read()
+                data_int = h5file.root._f_getChild('/simulation_fixed/int/operations/' + "op%d" % ast_node.annotations['node-id']).read()
 
                 f = pylab.figure()
                 ax1 = f.add_subplot(311)
@@ -934,18 +835,27 @@ class CBasedEqnWriterFixedResultsProxy(object):
                 ax3.set_ymargin(0.1)
 
                 f.suptitle("Values of ast_node: %s" % str(ast_node))
-                ax1.plot(time_array[::downscale], data[::downscale,-1], color='blue')
+                ax1.plot(time_array[::downscale], data_float[::downscale,-1], color='blue')
                 node_min = ast_node.annotations['node-value-range'].min.float_in_si()
                 node_max = ast_node.annotations['node-value-range'].max.float_in_si()
                 node_upscale = ast_node.annotations['fixed-point-format'].upscale
                 ax1.axhspan(node_min, node_max, color='green', alpha=0.2  )
                 ax1.axhspan(pow(2,node_upscale), -pow(2,node_upscale), color='lightgreen', alpha=0.4  )
 
+                            # Plot the integer values:
+                _min = -pow(2.0, nbits-1)
+                _max =  pow(2.0, nbits-1)
+                ax2.plot( time_array, data_int[:,-1], color='blue')
+                ax2.axhspan( _min, _max, color='lightgreen', alpha=0.4  )
+                
+                ax3.hist(data_int[:,-1], range = (_min * 1.1 , _max * 1.1), bins=1024)
+                ax3.axvline( _min, color='black', ls='--')
+                ax3.axvline( _max, color='black', ls='--')
 
                 
 
-                invalid_points_limits = np.logical_or( node_min > data[:,-1], data[:,-1]  > node_max).astype(int)
-                invalid_points_upscale = np.logical_or( -pow(2,node_upscale) > data[:,-1], data[:,-1]  > pow(2,node_upscale)).astype(int)
+                invalid_points_limits = np.logical_or( node_min > data_float[:,-1], data_float[:,-1]  > node_max).astype(int)
+                invalid_points_upscale = np.logical_or( -pow(2,node_upscale) > data_float[:,-1], data_float[:,-1]  > pow(2,node_upscale)).astype(int)
 
 
 
@@ -987,7 +897,7 @@ class CBasedEqnWriterFixedResultsProxy(object):
 
                 print 'Plotting Node:', ast_node
                 print '  -', node_min, 'to', node_max
-                print data.shape
+                print data_float.shape
 
                 print 'Invalid regions:'
                 invalid_ranges_limits = get_invalid_ranges(invalid_points_limits)
@@ -1010,7 +920,7 @@ class CBasedEqnWriterFixedResultsProxy(object):
 
 
                 #pylab.show()
-                pylab.close(f)
+                #pylab.close(f)
 
 
             except tables.exceptions.NoSuchNodeError:
@@ -1025,149 +935,3 @@ class CBasedEqnWriterFixedResultsProxy(object):
         sys.exit(0)
 
         assert False
-
-#
-#         import pylab
-#         import numpy as np
-#         from collections import defaultdict
-#         import shutil
-#
-#         if os.path.exists('output/'):
-#             shutil.rmtree("output/")
-#         if not os.path.exists('output/'):
-#             os.makedirs('output/')
-#
-#
-#
-#
-#         import numpy as np
-#         data_int = np.genfromtxt('res_int.txt_int', names=True, delimiter=',', dtype=int)
-#
-#
-#
-#         #pylab.show()
-#         #pylab.plot(data_int['i'], data_int['tau_kf_n'] )
-#         #pylab.show()
-#
-#
-#         for index,name in enumerate(data_int.dtype.names):
-#             if name in ['i', 'f0']:
-#                 continue
-#
-#             print 'Plotting:', name
-#             res = data_int[name]
-#
-#             f = pylab.figure()
-#             ax = f.add_subplot(211)
-#
-#             pc_of_dyn_range_used = ( float(np.ptp(res)) / 2**nbits ) * 100.0
-#
-#             node = component.get_terminal_obj(name)
-#             ann = self.annotations[node]
-#             t1 = 'Distribution of values of: %s. (Using %.2f%% of possible range)' % (name,pc_of_dyn_range_used)
-#             t2 = "Infered range: %s to %s" % (ann.val_min,  ann.val_max)
-#             f.suptitle(t1 + "\n" + t2)
-#             ext = 2**(nbits-1)-1
-#             ax.hist(res, range=(-ext,ext), bins=50 )
-#             ax.axvspan( np.min(res), np.max(res), alpha=0.3, color='green')
-#             #ax.set_xlim(-ext,ext)
-#             ax.set_xlim(-ext*1.1,ext*1.1)
-#             ax.axvline(-ext)
-#             ax.axvline(ext)
-#
-#             ax = f.add_subplot(212)
-#             ax.plot(data_int['i'], res )
-#
-#             pylab.savefig('output/variables_dynamicranges_%03d.png' % index)
-#             pylab.close()
-#
-#         print data_int
-#
-#         #res_int.txt_int
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#         import re
-#         r = re.compile(r"""OP\{(\d+)\}: (.*) => (.*) """, re.VERBOSE)
-#         # Lets plot the graphs of ranges of each operation:
-#         op_data = defaultdict(list)
-#         with open('debug.log') as f:
-#             for l in f.readlines():
-#                 m = r.match(l)
-#                 #print
-#                 op, operands, res = int(m.group(1)), m.group(2), int(m.group(3))
-#
-#                 op_data[ op ].append( (operands, res) )
-#                 #assert m
-#         op_data = [ (op, zip(*t)) for (op,t) in sorted(op_data.items()) ]
-#
-#
-#
-#
-#
-#
-#
-#         for index, (op, (operands,res) ) in enumerate(op_data):
-#             print 'Operator: ', op, 'Results found:', len(res)
-#             node = node_labeller.int_to_node[op]
-#             ann = self.annotations[node]
-#             print node
-#
-#             res = np.array( [int(r) for r in res] )
-#
-#
-#             pc_of_dyn_range_used = ( float(np.ptp(res)) / 2**nbits ) * 100.0
-#             f = pylab.figure()
-#             ax = f.add_subplot(111)
-#
-#             t1 = 'Distribution of values from operator: %s -- %.2f%% of range used -- [%d]' % ( repr(node), pc_of_dyn_range_used, op)
-#             t2 = "Infered range: %s to %s" % (ann.val_min,  ann.val_max)
-#             f.suptitle(t1 + '\n' + t2)
-#
-#
-#             #res_index = np.linspace( 0, 1.0, num=len(res)  )
-#             print res
-#
-#
-#
-#             ext = 2**(nbits-1)-1
-#             ax.hist(res, range=(-ext,ext), bins=50 )
-#             ax.axvspan( np.min(res), np.max(res), alpha=0.3, color='green')
-#             ax.set_xlim(-ext*1.1,ext*1.1)
-#             ax.axvline(-ext)
-#             ax.axvline(ext)
-#
-#
-#             pylab.savefig('output/operators_dynamicrange_%03d.png' % index)
-#
-#             pylab.close()
-#             #ax.scatter(res_index, res)
-#             #pylab.show()
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#         #assert False
-#
-#
-#
-#
-#
-
-
-
