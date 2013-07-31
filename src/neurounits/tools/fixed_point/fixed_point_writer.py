@@ -722,7 +722,7 @@ class CBasedFixedWriter(ASTVisitorBase):
     def VisitTimeDerivativeByRegime(self, o):
         
         # Assume the delta_StateVariable format is the same as the state vairable:
-        delta_upscale = o.lhs.annotations['fixed-point-format'].upscale -3
+        delta_upscale = o.lhs.annotations['fixed-point-format'].delta_upscale
     
         c1 = "from_float(  to_float( %s , IntType( %d )) * dt, IntType(%d)) " % ( self.visit(o.rhs_map), o.rhs_map.annotations['fixed-point-format'].upscale, delta_upscale  )
         c2 = "from_float( to_float( ( d_%s ), IntType(%d) ),  IntType(%d) )" % ( o.lhs.symbol, delta_upscale, o.lhs.annotations['fixed-point-format'].upscale)
