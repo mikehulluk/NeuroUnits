@@ -119,6 +119,16 @@ namespace mh_int32
             return SafeInt32(-_value);
         }
 
+
+        SafeInt32& operator+=(const SafeInt32& rhs)
+        {
+            SafeInt32 s = *this + rhs;
+            this->_value = s._value;
+            return *this;
+
+        }
+
+
     };
 
 

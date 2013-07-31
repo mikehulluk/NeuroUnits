@@ -407,13 +407,13 @@ void sim_step(NrnData& d, IntType time_step)
 
     // Calculate assignments:
 % for eqn in eqns_assignments:
-    d.${eqn.node.lhs.symbol} = from_float( to_float( ${eqn.rhs_cstr},  IntType(${eqn.node.rhs_map.annotations['fixed-point-format'].upscale})), IntType( ${eqn.node.lhs.annotations['fixed-point-format'].upscale})) ;
+    d.${eqn.node.lhs.symbol} = ${eqn.rhs_cstr} ;
 % endfor
 
     // Calculate delta's for all state-variables:
 % for eqn in eqns_timederivatives:
-    float d_${eqn.node.lhs.symbol} = to_float( ${eqn.rhs_cstr} , IntType(${eqn.node.rhs_map.annotations['fixed-point-format'].upscale} )) * dt;
-    d.${eqn.node.lhs.symbol} = d.${eqn.node.lhs.symbol}  + from_float( ( d_${eqn.node.lhs.symbol} ),  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) );
+    IntType d_${eqn.node.lhs.symbol} = ${eqn.rhs_cstr[0]} ;
+    d.${eqn.node.lhs.symbol} += ${eqn.rhs_cstr[1]} ;
 % endfor
 
 
@@ -714,6 +714,23 @@ class CBasedFixedWriter(ASTVisitorBase):
         return o.symbol
 
 
+    def VisitEqnAssignmentByRegime(self, o):
+        rhs_c = self.visit(o.rhs_map)
+        return " auto_shift( %s, IntType(%d) )" % (rhs_c, o.rhs_map.annotations['fixed-point-format'].upscale - o.lhs.annotations['fixed-point-format'].upscale )
+
+
+    def VisitTimeDerivativeByRegime(self, o):
+        
+        # Assume the delta_StateVariable format is the same as the state vairable:
+        delta_upscale = o.lhs.annotations['fixed-point-format'].upscale -3
+    
+        c1 = "from_float(  to_float( %s , IntType( %d )) * dt, IntType(%d)) " % ( self.visit(o.rhs_map), o.rhs_map.annotations['fixed-point-format'].upscale, delta_upscale  )
+        c2 = "from_float( to_float( ( d_%s ), IntType(%d) ),  IntType(%d) )" % ( o.lhs.symbol, delta_upscale, o.lhs.annotations['fixed-point-format'].upscale)
+        
+        return c1, c2
+        #float d_${eqn.node.lhs.symbol} = to_float( ${eqn.rhs_cstr} , IntType(${eqn.node.rhs_map.annotations['fixed-point-format'].upscale} )) * dt;
+        #d.${eqn.node.lhs.symbol} = d.${eqn.node.lhs.symbol}  + from_float( ( d_${eqn.node.lhs.symbol} ),  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) );
+
 
 
 
@@ -742,8 +759,12 @@ class CBasedEqnWriterFixed(object):
 
 
         ordered_assignments = self.component.ordered_assignments_by_dependancies
-        self.ass_eqns =[ Eqn(node=td, rhs_cstr=self.writer.to_c(td.rhs_map) ) for td in ordered_assignments]
-        self.td_eqns = [ Eqn(node=td, rhs_cstr=self.writer.to_c(td.rhs_map) ) for td in self.component.timederivatives]
+        #self.ass_eqns =[ Eqn(node=td, rhs_cstr=self.writer.to_c(td.rhs_map) ) for td in ordered_assignments]
+        #self.td_eqns = [ Eqn(node=td, rhs_cstr=self.writer.to_c(td.rhs_map) ) for td in self.component.timederivatives]
+        
+        self.ass_eqns =[ Eqn(node=td, rhs_cstr=self.writer.to_c(td) ) for td in ordered_assignments]
+        self.td_eqns = [ Eqn(node=td, rhs_cstr=self.writer.to_c(td) ) for td in self.component.timederivatives]
+        
         self.td_eqns = sorted(self.td_eqns, key=lambda o: o.node.lhs.symbol.lower())
 
 
@@ -754,9 +775,10 @@ class CBasedEqnWriterFixed(object):
                     state_var_defs_new = list(self.component.state_variables),
                     assignment_defs_new = list(self.component.assignedvalues),
 
+                    
                     eqns_timederivatives = self.td_eqns,
                     eqns_assignments = self.ass_eqns,
-
+                    
                     floattype = self.float_type,
                     nbits=nbits,
                     intermediate_store_locs=self.intermediate_store_locs
