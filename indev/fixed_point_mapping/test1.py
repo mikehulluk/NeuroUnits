@@ -391,7 +391,7 @@ nbits = 30
 
 # Setup the annotations:
 comp.annotate_ast( NodeRangeAnnotator(var_annots) )
-comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits) )
+comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
 comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 
 fixed_sim_res = CBasedEqnWriterFixed(comp, output_filename='output.hd5',  nbits=nbits).results

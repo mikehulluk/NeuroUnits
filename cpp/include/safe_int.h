@@ -102,6 +102,10 @@ namespace mh_int32
         {
             return _value == rhs;
         }
+        bool operator!=(int rhs) const
+        {
+            return _value != rhs;
+        }
         bool operator>(int b) const
         {
             return _value > b;

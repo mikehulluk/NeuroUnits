@@ -37,6 +37,8 @@ c_prog = r"""
 #include "safe_int_utils.h"
 
 
+
+// For Saving the data to HDF5:
 #include "hdfjive.h"
 const string output_filename = "${output_filename}";
 
@@ -88,13 +90,17 @@ const int VAR_NBITS = ${nbits};
 
 
 
+
+
 #define CALCULATE_FLOAT true
 #define SAVE_HDF5_FLOAT true
 #define SAVE_HDF5_INT true
 
 #define CHECK_INT_FLOAT_COMPARISON true
-const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT = 100;
+#define CHECK_INT_FLOAT_COMPARISON_FOR_EXP false
 
+const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT = 100;
+const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP = 300;
 
 
 
@@ -102,19 +108,8 @@ const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT = 100;
 
 #include "float_utils.h"
 
+#include "lut.h"
 
-// Save-data function
-typedef mh::FixedFloatConversion<VAR_NBITS> FixedFloatConversion;
-
-double to_float(IntType val, IntType upscale)
-{
-    return FixedFloatConversion::to_float(val, upscale);
-}
-
-IntType from_float(double val, IntType upscale)
-{
-    return IntType(FixedFloatConversion::from_float(val, upscale));
-}
 
 using mh::auto_shift;
 using mh::auto_shift64;
@@ -122,8 +117,6 @@ using mh::auto_shift64;
 
 
 
-#include "float_utils.h"
-#include "lut.h"
 
 
 
@@ -155,14 +148,14 @@ LookUpTables lookuptables;
 
 
 
-
+inline
 IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id)
 {
 
     IntType res_int = auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local);
 
 
-    if( SAVE_HDF5_INT )
+    if( SAVE_HDF5_INT && expr_id != -1)
     {
         HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
             DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(v2) | (T_hdf5_type_int) get_value(res_int) ) ;
@@ -170,8 +163,8 @@ IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
 
     if(CALCULATE_FLOAT)
     {
-        float res_fp_fl = to_float(v1,up1) + to_float(v2,up2);
-        IntType res_fp = from_float(res_fp_fl, up_local);
+        float res_fp_fl = FixedFloatConversion::to_float(v1,up1) + FixedFloatConversion::to_float(v2,up2);
+        IntType res_fp = IntType(FixedFloatConversion::from_float(res_fp_fl, up_local));
 
         if( CHECK_INT_FLOAT_COMPARISON )
         {
@@ -181,10 +174,10 @@ IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
             assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
         }
 
-        if( SAVE_HDF5_FLOAT )
+        if( SAVE_HDF5_FLOAT && expr_id != -1)
         {
             HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
-                    DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
+                    DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) | (T_hdf5_type_float) (FixedFloatConversion::to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
         }
     }
 
@@ -192,7 +185,7 @@ IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
     return res_int;
 }
 
-
+inline
 IntType do_sub_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id)
 {
 
@@ -207,8 +200,8 @@ IntType do_sub_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
 
     if(CALCULATE_FLOAT)
     {
-        float res_fp_fl = to_float(v1,up1) - to_float(v2,up2);
-        IntType res_fp = from_float(res_fp_fl, up_local);
+        float res_fp_fl = FixedFloatConversion::to_float(v1,up1) - FixedFloatConversion::to_float(v2,up2);
+        IntType res_fp = IntType(FixedFloatConversion::from_float(res_fp_fl, up_local));
 
         if( CHECK_INT_FLOAT_COMPARISON )
         {
@@ -221,13 +214,13 @@ IntType do_sub_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
         if( SAVE_HDF5_FLOAT )
         {
             HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
-                    DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
+                    DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) | (T_hdf5_type_float) (FixedFloatConversion::to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
         }
     }
 
     return res_int;
 }
-
+inline
 IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id)
 {
     // Need to promote to 64 bit:
@@ -236,7 +229,7 @@ IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
 
 
 
-    if( SAVE_HDF5_INT )
+    if( SAVE_HDF5_INT && expr_id != -1)
     {
         HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
             DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(v2) | (T_hdf5_type_int) get_value(res_int) ) ;
@@ -244,8 +237,8 @@ IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
 
     if(CALCULATE_FLOAT)
     {
-        float res_fp_fl = to_float(v1,up1) * to_float(v2,up2);
-        IntType res_fp = from_float(res_fp_fl, up_local);
+        float res_fp_fl = FixedFloatConversion::to_float(v1,up1) * FixedFloatConversion::to_float(v2,up2);
+        IntType res_fp = IntType(FixedFloatConversion::from_float(res_fp_fl, up_local));
 
         if( CHECK_INT_FLOAT_COMPARISON )
         {
@@ -255,10 +248,10 @@ IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
             assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
         }
 
-        if( SAVE_HDF5_FLOAT )
+        if( SAVE_HDF5_FLOAT && expr_id != -1 )
         {
             HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
-                    DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
+                    DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) | (T_hdf5_type_float) (FixedFloatConversion::to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
         }
     }
 
@@ -269,7 +262,7 @@ IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
 }
 
 
-
+inline
 IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id)
 {
 
@@ -284,7 +277,7 @@ IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
     
 
 
-    if( SAVE_HDF5_INT )
+    if( SAVE_HDF5_INT && expr_id != -1 )
     {
         HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
             DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(v2) | (T_hdf5_type_int) get_value(res_int) ) ;
@@ -292,8 +285,8 @@ IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
 
     if(CALCULATE_FLOAT)
     {
-        float res_fp_fl = to_float(v1,up1) / to_float(v2,up2);
-        IntType res_fp = from_float(res_fp_fl, up_local);
+        float res_fp_fl = FixedFloatConversion::to_float(v1,up1) / FixedFloatConversion::to_float(v2,up2);
+        IntType res_fp = IntType(FixedFloatConversion::from_float(res_fp_fl, up_local));
 
         if( CHECK_INT_FLOAT_COMPARISON )
         {
@@ -303,10 +296,10 @@ IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
             assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
         }
 
-        if( SAVE_HDF5_FLOAT )
+        if( SAVE_HDF5_FLOAT && expr_id != -1 )
         {
             HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
-                    DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) | (T_hdf5_type_float) (to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
+                    DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) | (T_hdf5_type_float) (FixedFloatConversion::to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
         }
     }
 
@@ -314,18 +307,17 @@ IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
     return res_int;
 
 }
-
+inline
 IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id)
 {
 
-    float res_fp_fl = exp( to_float(v1,up1) );
-    IntType res_fp = from_float( res_fp_fl, up_local);
+    
 
     IntType res_int = lookuptables.exponential.get( v1, up1, up_local );
 
 
-    IntType diff = res_int - res_fp;
-    if(diff <0) diff = -diff;
+    //IntType diff = res_int - res_fp;
+    //if(diff <0) diff = -diff;
     //cout << "Diff: " << diff;
     //assert( (diff==0)  || (diff==1) || (diff==2) );
 
@@ -333,19 +325,37 @@ IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id)
 
     // Write to HDF5:
     //////////////////
-    // -- Floating point version:
-    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
-            DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (to_float(v1,up1)) |  (T_hdf5_type_float) (res_fp_fl) ) ;
+    
 
     if( SAVE_HDF5_INT )
     {
-    // -- Integer version:
-    HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
-           DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(res_int) ) ;
+        // -- Integer version:
+        HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
+               DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(res_int) ) ;
     }
-
+    
+    if(CALCULATE_FLOAT)
+    {
+        float res_fp_fl = exp( FixedFloatConversion::to_float(v1,up1) );
+        IntType res_fp = IntType(FixedFloatConversion::from_float( res_fp_fl, up_local));
+        
+        if( CHECK_INT_FLOAT_COMPARISON_FOR_EXP )
+        {
+            IntType diff = res_int - res_fp;
+            cout << "diff" << "\n" << diff << flush; 
+            if(diff <0) diff = -diff;
+            assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP );
+        }
+        
+        if( SAVE_HDF5_FLOAT && expr_id != -1 )
+        {
+        // -- Floating point version:
+            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
+                DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) |  (T_hdf5_type_float) (res_fp_fl) ) ;
+        }
+    }
+    
     return res_int;
-
 }
 
 
@@ -395,9 +405,11 @@ struct NrnData
 // Update-function
 void sim_step(NrnData& d, IntType time_step)
 {
-    const double dt = 0.1e-3;
-    const double t_float = get_value(time_step) * dt;
-    const IntType t = from_float(t_float, IntType(1));
+    const IntType dt_int = IntType(${dt_int});
+    const IntType dt_upscale = IntType(${dt_upscale});
+    const IntType time_upscale = IntType(${time_upscale});
+    const IntType t = inttype_from_long<IntType>( auto_shift64( get_value_long(dt_int) * get_value_long(time_step), get_value_long(dt_upscale- time_upscale ) ));
+
 
     if(get_value(time_step)%100 == 0)
     {
@@ -406,42 +418,45 @@ void sim_step(NrnData& d, IntType time_step)
     }
 
     // Calculate assignments:
-% for eqn in eqns_assignments:
+    % for eqn in eqns_assignments:
     d.${eqn.node.lhs.symbol} = ${eqn.rhs_cstr} ;
-% endfor
+    % endfor
 
     // Calculate delta's for all state-variables:
-% for eqn in eqns_timederivatives:
+    % for eqn in eqns_timederivatives:
     IntType d_${eqn.node.lhs.symbol} = ${eqn.rhs_cstr[0]} ;
     d.${eqn.node.lhs.symbol} += ${eqn.rhs_cstr[1]} ;
-% endfor
-
-
-
-
-
-
-
-    // Write to HDF5
-    /* -------------------------------------------------------------------------------------------- */
-    HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
-
-    // Time
-    file->get_dataset("simulation_fixed/int/time")->append<T_hdf5_type_int>( get_value(t));
-    file->get_dataset("simulation_fixed/float/time")->append<T_hdf5_type_float>(t_float);
-
-    // Storage for state-variables and assignments:
-    % for eqn in eqns_assignments:
-    file->get_dataset("simulation_fixed/int/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_int>( get_value( d.${eqn.node.lhs.symbol} ) );
-    file->get_dataset("simulation_fixed/float/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_float>( to_float(  d.${eqn.node.lhs.symbol},  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ) );
     % endfor
 
-    % for eqn in eqns_timederivatives:
-    file->get_dataset("simulation_fixed/int/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_int>( get_value( d.${eqn.node.lhs.symbol} ) );
-    file->get_dataset("simulation_fixed/float/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_float>( to_float(  d.${eqn.node.lhs.symbol},  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ) );
-    % endfor
-    /* -------------------------------------------------------------------------------------------- */
 
+    if( SAVE_HDF5_INT)
+    {
+        HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
+        file->get_dataset("simulation_fixed/int/time")->append<T_hdf5_type_int>(get_value(t));
+    
+        % for eqn in eqns_assignments:
+        file->get_dataset("simulation_fixed/int/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_int>(get_value( d.${eqn.node.lhs.symbol}));
+        % endfor
+
+        % for eqn in eqns_timederivatives:
+        file->get_dataset("simulation_fixed/int/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_int>(get_value( d.${eqn.node.lhs.symbol}));
+        % endfor
+    }
+
+    if( SAVE_HDF5_FLOAT)
+    { 
+        const double dt_float = FixedFloatConversion::to_float(IntType(dt_int), IntType(${dt_upscale}));  
+        const double t_float = get_value(time_step) * dt_float;
+    
+        HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
+        file->get_dataset("simulation_fixed/float/time")->append<T_hdf5_type_float>(t_float);
+        % for eqn in eqns_timederivatives:
+        file->get_dataset("simulation_fixed/float/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_float>( FixedFloatConversion::to_float(  d.${eqn.node.lhs.symbol},  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ) );
+        % endfor
+        % for eqn in eqns_assignments:
+        file->get_dataset("simulation_fixed/float/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_float>( FixedFloatConversion::to_float(  d.${eqn.node.lhs.symbol},  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ) );
+        % endfor
+    }
 
 }
 
@@ -455,7 +470,6 @@ void initialise_statevars(NrnData& d)
     % for sv_def in state_var_defs_new:
     d.${sv_def.symbol} = auto_shift( IntType(${sv_def.initial_value.annotations['fixed-point-format'].const_value_as_int}),  IntType(${sv_def.initial_value.annotations['fixed-point-format'].upscale} - ${sv_def.annotations['fixed-point-format'].upscale} ) );
     % endfor
-
 }
 
 
@@ -590,16 +604,15 @@ class IntermediateNodeFinder(ASTActionerDefaultIgnoreMissing):
 
 class CBasedFixedWriter(ASTVisitorBase):
 
-    def __init__(self, component, node_int_labels, dt, dt_upscale):
+    def __init__(self, component, node_int_labels, dt_int, dt_upscale):
 
 
         self.intlabels = node_int_labels
         
         
-        self.dt = dt
-        self.dt_upscale = dt_upscale
-        
-        
+
+    
+    
         
         super(CBasedFixedWriter, self).__init__()
 
@@ -714,16 +727,16 @@ class CBasedFixedWriter(ASTVisitorBase):
 
     def VisitTimeDerivativeByRegime(self, o):
         
-        # Assume the delta_StateVariable format is the same as the state vairable:
+        
         delta_upscale = o.lhs.annotations['fixed-point-format'].delta_upscale
     
-        c1 = "from_float(  to_float( %s , IntType( %d )) * dt, IntType(%d)) " % ( self.visit(o.rhs_map), o.rhs_map.annotations['fixed-point-format'].upscale, delta_upscale  )
-        c2 = "from_float( to_float( ( d_%s ), IntType(%d) ),  IntType(%d) )" % ( o.lhs.symbol, delta_upscale, o.lhs.annotations['fixed-point-format'].upscale)
+        #c1 = "from_float(  to_float( %s , IntType( %d )) * to_float(IntType(dt_int), IntType(dt_upscale)), IntType(%d)) " % ( self.visit(o.rhs_map), o.rhs_map.annotations['fixed-point-format'].upscale, delta_upscale  )
+        #c2 = "from_float( to_float( ( d_%s ), IntType(%d) ),  IntType(%d) )" % ( o.lhs.symbol, delta_upscale, o.lhs.annotations['fixed-point-format'].upscale)
         
+        c1 = "do_mul_op(%s , IntType( %d ), dt_int, IntType(dt_upscale), IntType(%d), IntType(-1) ) " % ( self.visit(o.rhs_map), o.rhs_map.annotations['fixed-point-format'].upscale, delta_upscale  )
+        c2 = "auto_shift( d_%s, IntType(%d) - IntType(%d) )" % ( o.lhs.symbol, delta_upscale, o.lhs.annotations['fixed-point-format'].upscale)
         return c1, c2
-        #float d_${eqn.node.lhs.symbol} = to_float( ${eqn.rhs_cstr} , IntType(${eqn.node.rhs_map.annotations['fixed-point-format'].upscale} )) * dt;
-        #d.${eqn.node.lhs.symbol} = d.${eqn.node.lhs.symbol}  + from_float( ( d_${eqn.node.lhs.symbol} ),  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) );
-
+        
 
 
 
@@ -733,10 +746,11 @@ class CBasedFixedWriter(ASTVisitorBase):
 class CBasedEqnWriterFixed(object):
     def __init__(self, component, output_filename, nbits,):
 
+        self.dt_float = 0.1e-3
+        self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
+        self.dt_int = component.annotation_mgr._annotators['fixed-point-format-ann'].encode_value(self.dt_float, self.dt_upscale)
 
-        self.dt = 0.1e-3
-        self.dt_upscale = int( np.ceil( np.log2 (self.dt)) )
-
+        
 
         self.node_labeller = component.annotation_mgr._annotators['node-ids']
         self.node_labels = self.node_labeller.node_to_int
@@ -748,7 +762,7 @@ class CBasedEqnWriterFixed(object):
         self.component = component
         self.float_type = 'int'
 
-        self.writer = CBasedFixedWriter(component=component, node_int_labels=self.node_labeller.node_to_int, dt=self.dt, dt_upscale=self.dt_upscale)
+        self.writer = CBasedFixedWriter(component=component, node_int_labels=self.node_labeller.node_to_int, dt_int=self.dt_int, dt_upscale=self.dt_upscale)
         self.nbits = nbits
 
 
@@ -766,6 +780,11 @@ class CBasedEqnWriterFixed(object):
                     state_var_defs_new = list(self.component.state_variables),
                     assignment_defs_new = list(self.component.assignedvalues),
 
+                    dt_float = self.dt_float,
+                    dt_int = self.dt_int,
+                    dt_upscale = self.dt_upscale,
+                    
+                    time_upscale = self.component.get_terminal_obj('t').annotations['fixed-point-format'].upscale,
                     
                     eqns_timederivatives = self.td_eqns,
                     eqns_assignments = self.ass_eqns,
