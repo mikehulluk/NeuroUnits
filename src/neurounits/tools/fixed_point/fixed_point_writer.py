@@ -590,11 +590,17 @@ class IntermediateNodeFinder(ASTActionerDefaultIgnoreMissing):
 
 class CBasedFixedWriter(ASTVisitorBase):
 
-    def __init__(self, component, node_int_labels):
+    def __init__(self, component, node_int_labels, dt, dt_upscale):
+
 
         self.intlabels = node_int_labels
-
-
+        
+        
+        self.dt = dt
+        self.dt_upscale = dt_upscale
+        
+        
+        
         super(CBasedFixedWriter, self).__init__()
 
     def to_c(self, obj):
@@ -646,19 +652,6 @@ class CBasedFixedWriter(ASTVisitorBase):
                     o.annotations['fixed-point-format'].upscale - o.if_false_ast.annotations['fixed-point-format'].upscale,
                     
                 )
-
-
-
-        #return "from_float( (%s) ? to_float(%s, IntType(%d)) : to_float(%s, IntType(%d)), IntType(%d) )" % (
-        #            self.visit(o.predicate),
-        #            self.visit(o.if_true_ast),
-        #            o.if_true_ast.annotations['fixed-point-format'].upscale,
-        #            self.visit(o.if_false_ast),
-        #            o.if_false_ast.annotations['fixed-point-format'].upscale,
-        #            o.annotations['fixed-point-format'].upscale,
-        #        )
-
-
 
 
 
@@ -738,9 +731,11 @@ class CBasedFixedWriter(ASTVisitorBase):
 
 
 class CBasedEqnWriterFixed(object):
-    def __init__(self, component, output_filename, nbits):
+    def __init__(self, component, output_filename, nbits,):
 
 
+        self.dt = 0.1e-3
+        self.dt_upscale = int( np.ceil( np.log2 (self.dt)) )
 
 
         self.node_labeller = component.annotation_mgr._annotators['node-ids']
@@ -753,18 +748,14 @@ class CBasedEqnWriterFixed(object):
         self.component = component
         self.float_type = 'int'
 
-        self.writer = CBasedFixedWriter(component=component, node_int_labels=self.node_labeller.node_to_int)
+        self.writer = CBasedFixedWriter(component=component, node_int_labels=self.node_labeller.node_to_int, dt=self.dt, dt_upscale=self.dt_upscale)
         self.nbits = nbits
 
 
 
         ordered_assignments = self.component.ordered_assignments_by_dependancies
-        #self.ass_eqns =[ Eqn(node=td, rhs_cstr=self.writer.to_c(td.rhs_map) ) for td in ordered_assignments]
-        #self.td_eqns = [ Eqn(node=td, rhs_cstr=self.writer.to_c(td.rhs_map) ) for td in self.component.timederivatives]
-        
         self.ass_eqns =[ Eqn(node=td, rhs_cstr=self.writer.to_c(td) ) for td in ordered_assignments]
-        self.td_eqns = [ Eqn(node=td, rhs_cstr=self.writer.to_c(td) ) for td in self.component.timederivatives]
-        
+        self.td_eqns = [ Eqn(node=td, rhs_cstr=self.writer.to_c(td) ) for td in self.component.timederivatives]        
         self.td_eqns = sorted(self.td_eqns, key=lambda o: o.node.lhs.symbol.lower())
 
 
