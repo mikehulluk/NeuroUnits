@@ -154,12 +154,12 @@ using mh::auto_shift64;
 
 
 // Templates for allowing return types to change based on IntType
-template<typename T>T inttype_from_long(long value){ assert(0); }
-template<> int inttype_from_long(long value){ return value;}
-template<> long long inttype_from_long(long value){ return value;}
+template<typename T>T inttype_from_long(NativeInt64 value){ assert(0); }
+template<> int inttype_from_long(NativeInt64 value){ return value;}
+template<> long long inttype_from_long(NativeInt64 value){ return value;}
 
 #if SAFEINT
-template<> SafeInt32 inttype_from_long(long value) { return SafeInt32::from_long(value); }
+template<> SafeInt32 inttype_from_long(NativeInt64 value) { return SafeInt32::from_long(value); }
 #endif 
 
 
@@ -473,7 +473,7 @@ void sim_step(NrnData& d, IntType time_step)
     const IntType dt_int = IntType(${dt_int});
     const IntType dt_upscale = IntType(${dt_upscale});
     const IntType time_upscale = IntType(${time_upscale});
-    const IntType t = inttype_from_long<IntType>( auto_shift64( get_value_long(dt_int) * get_value_long(time_step), get_value_long(dt_upscale- time_upscale ) ));
+    const IntType t = inttype_from_long<IntType>( auto_shift64( get_value64(dt_int) * get_value64(time_step), get_value64(dt_upscale- time_upscale ) ));
 
 
     #if DISPLAY_LOOP_INFO

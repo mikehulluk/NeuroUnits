@@ -29,8 +29,8 @@ namespace mh_int32
 
         static const NativeInt32 nbits = 32;
         //static const int nbits = 25;
-        static const long int32_max = (1l<<(nbits-1)) - 1;
-        static const long int32_min = -(1l<<(nbits-1)) - 1;
+        static const NativeInt64 int32_max = (1l<<(nbits-1)) - 1;
+        static const NativeInt64 int32_min = -(1l<<(nbits-1)) - 1;
 
 
         int _value;
@@ -38,12 +38,12 @@ namespace mh_int32
     public:
 
 
-        static SafeInt32 from_long(long value)
+        static SafeInt32 from_long(NativeInt64 value)
         {
             assert( value < int32_max && value > int32_min);
 
             NativeInt32 v = value;
-            assert( (long) v == value);
+            assert( v == value);
 
             return SafeInt32(v);
         }
@@ -53,14 +53,14 @@ namespace mh_int32
             return _value;
         }
 
-        long get_value_long() const
+        NativeInt64 get_value64() const
         {
             return _value;
         }
 
 
         static
-        void check_value(long value)
+        void check_value(NativeInt64 value)
         {
             //cout << "\nChecking value: " << value;
 
@@ -68,7 +68,7 @@ namespace mh_int32
 
             if(value < 0) value = -value;
 
-            long masked = (value & 0xFFFFFFFF);
+            NativeInt64 masked = (value & 0xFFFFFFFF);
             if( value != masked )
             {
 

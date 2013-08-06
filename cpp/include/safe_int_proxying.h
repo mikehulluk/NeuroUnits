@@ -7,7 +7,7 @@ NativeInt32 get_value32(NativeInt32 i)
     return i;
 }
 
-long get_value_long(NativeInt32 i)
+NativeInt64 get_value64(NativeInt32 i)
 {
     return i;
 }

@@ -17,7 +17,7 @@ NativeInt32 get_value32(SafeInt32 i)
     return i.get_value32();
 }
 
-long get_value_long(SafeInt32 i)
+NativeInt64 get_value64(SafeInt32 i)
 {
     return i.get_value32();
 }

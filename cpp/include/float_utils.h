@@ -126,7 +126,7 @@ namespace mh
         }
 
 
-        long auto_shift64(long n, NativeInt32 m)
+        NativeInt64 auto_shift64(NativeInt64 n, NativeInt32 m)
         {
                 if(m==0)
                 {

@@ -30,7 +30,7 @@ using mh::auto_shift64;
 
 
 
-double pow(double a, long long int b)
+double pow(double a, NativeInt64 b)
 {
     return pow(a, (double)b);
 
@@ -297,7 +297,7 @@ public:
             assert(yn_rel_upscale>=0);
             IntType yn_rescaled = (yn>>yn_rel_upscale);
 
-            long xymul = (long)get_value32(yn1 - yn_rescaled) *  get_value32(x-xn);
+            NativeInt64 xymul = get_value64(yn1 - yn_rescaled) *  get_value32(x-xn);
             return //get_value(
                     auto_shift(yn, yn_upscale-up_out)
                     +
