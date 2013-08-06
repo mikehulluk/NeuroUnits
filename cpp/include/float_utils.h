@@ -5,17 +5,25 @@
 
 #include <stdio.h>
 #include <math.h>
-#include <cinttypes>
+//#include <cinttypes>
 #include <assert.h>
-#include <stdio.h>
-#include <execinfo.h>
-#include <signal.h>
+//#include <stdio.h>
+//#include <execinfo.h>
+//#include <signal.h>
 #include <stdlib.h>
 
 
 
+#if SAFEINT
+#include "safe_int.h"
+#include "safe_int_proxying.h"
+#include "safe_int_utils.h"
+#endif
+//#define DBG_RANGE
 
-#define DBG_RANGE
+
+
+
 
 namespace mh
 {

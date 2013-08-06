@@ -58,9 +58,31 @@ namespace mh_int32
             return _value;
         }
 
+
+        static
+        void check_value(long value)
+        {
+            //cout << "\nChecking value: " << value;
+
+
+
+            if(value < 0) value = -value;
+
+            long masked = (value & 0xFFFFFFFF);
+            if( value != masked )
+            {
+
+                cout << "\n ** Truncation Error! ** \n";
+                assert(0);
+
+            }
+        };
+
+
         explicit SafeInt32(int value)
             : _value(value)
         {
+            check_value(value);
             if( (SL)_value > (SL)int32_max || (SL)_value < (SL) int32_min )
             {
                 throw SafeIntException();
@@ -129,9 +151,15 @@ namespace mh_int32
             SafeInt32 s = *this + rhs;
             this->_value = s._value;
             return *this;
-
         }
 
+        SafeInt32 operator++(int)
+        {
+            SafeInt32 temp(this->_value);
+            SafeInt32 new_val = *this + SafeInt32(1);
+            this->_value = new_val._value;
+            return temp;
+        }
 
     };
 
@@ -187,27 +215,56 @@ namespace mh_int32
     SafeInt32 operator*(SafeInt32 a, SafeInt32 b)
     {
         // TODO: Check for overflow/underflow here:
-        return SafeInt32( a._value * b._value);
+        SafeInt32 res = SafeInt32( a._value * b._value);
+
+        // Simple sanity check:
+        SafeInt32::check_value(a._value);
+        SafeInt32::check_value(b._value);
+        SafeInt32::check_value(res._value);
+
+        return res;
     }
 
     SafeInt32 operator/(SafeInt32 a, SafeInt32 b)
     {
         // TODO: Check for overflow/underflow here:
-        return SafeInt32( a._value / b._value);
+        SafeInt32 res = SafeInt32( a._value / b._value);
+
+        // Simple sanity check:
+        SafeInt32::check_value(a._value);
+        SafeInt32::check_value(b._value);
+        SafeInt32::check_value(res._value);
+
+        return res;
+
     }
 
     SafeInt32 operator<<(const SafeInt32& a, const SafeInt32& b)
     {
         // TODO: Check for overflow/underflow here:
         assert(b._value >= 0 );
-        return SafeInt32( a._value << b._value);
+        SafeInt32 res = SafeInt32( a._value << b._value);
+
+        // Simple sanity check:
+        SafeInt32::check_value(a._value);
+        SafeInt32::check_value(b._value);
+        SafeInt32::check_value(res._value);
+
+        return res;
     }
 
     SafeInt32 operator>>(const SafeInt32& a, const SafeInt32& b)
     {
         // TODO: Check for overflow/underflow here:
         assert(b._value >= 0 );
-        return SafeInt32( a._value >> b._value);
+        SafeInt32 res = SafeInt32( a._value >> b._value);
+        
+        // Simple sanity check:
+        SafeInt32::check_value(a._value);
+        SafeInt32::check_value(b._value);
+        SafeInt32::check_value(res._value);
+
+        return res;
     }
 
 

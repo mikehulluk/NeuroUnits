@@ -30,6 +30,11 @@ using mh::auto_shift64;
 
 
 
+double pow(double a, long long int b)
+{
+    return pow(a, (double)b);
+
+}
 
 
 
@@ -143,6 +148,7 @@ public:
 
 
                 // Save the value:
+                cout << "\nres_as_int: " << res_as_int << "\n" << flush;
                 pData.push_back( IntType(res_as_int));
 
                 if(_x_vals.size() > 0) assert( _x_vals.back() < x_value_double);

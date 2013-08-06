@@ -386,7 +386,7 @@ print '===================='
 
 
 
-nbits = 30
+nbits = 24
 
 
 # Setup the annotations:
@@ -394,7 +394,13 @@ comp.annotate_ast( NodeRangeAnnotator(var_annots) )
 comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
 comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 
-fixed_sim_res = CBasedEqnWriterFixed(comp, output_filename='output.hd5',  nbits=nbits).results
+
+# Just generate the file:
+#CBasedEqnWriterFixed(comp, output_filename='output.hd5', run=False, output_c_filename='/auto/homes/mh735/Desktop/tadpole1.cpp', compile=False, CPPFLAGS='-DON_NIOS=true')
+#assert False
+
+
+fixed_sim_res = CBasedEqnWriterFixed(comp, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false').results
 
 
 #fixed_sim_res.plot_ranges()

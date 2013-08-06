@@ -20,56 +20,23 @@ from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 
 c_prog = r"""
 
-#include <stdio.h>
-#include <iostream>
-#include <fstream>
-#include <math.h>
-#include <gmpxx.h>
-#include <iomanip>
-#include <sstream>
-#include <assert.h>
-#include <cinttypes>
-#include <fenv.h>
-#include <boost/format.hpp>
-
-
-
-
-
-
-// For Saving the data to HDF5:
-#include "hdfjive.h"
-const string output_filename = "${output_filename}";
-
-// Data types used for storing in HDF5:
-const hid_t hdf5_type_int = H5T_NATIVE_INT;
-const hid_t hdf5_type_float = H5T_NATIVE_FLOAT;
-
-typedef int T_hdf5_type_int;
-typedef float T_hdf5_type_float;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-typedef std::int64_t int64;
 
 
 
 
 /* Set or unset this variable: */
-#define ON_NIOS true
-#define DISPLAY_LOOP_INFO false
+
+#ifndef ON_NIOS
+#define ON_NIOS false
+#endif
+#define DISPLAY_LOOP_INFO true
+
+
+
+#include "basic_types.h"
+
+
+
 
 
 
@@ -101,6 +68,71 @@ typedef std::int64_t int64;
 const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT = 100;
 const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP = 300;
 
+const int nsim_steps = 3000;
+
+
+
+
+
+
+
+
+#include <stdio.h>
+#include <iostream>
+#include <fstream>
+#include <math.h>
+#include <iomanip>
+#include <sstream>
+#include <assert.h>
+#include <climits>
+#include <stdint.h>
+
+// Headers to use when we are not on the NIOS:
+#if ON_NIOS
+#else
+#include <boost/format.hpp>
+#include <cinttypes>
+#include <fenv.h>
+#include <gmpxx.h>
+#endif
+
+
+
+
+#if USE_HDF
+// For Saving the data to HDF5:
+#include "hdfjive.h"
+const string output_filename = "${output_filename}";
+
+// Data types used for storing in HDF5:
+const hid_t hdf5_type_int = H5T_NATIVE_INT;
+const hid_t hdf5_type_float = H5T_NATIVE_FLOAT;
+
+typedef int T_hdf5_type_int;
+typedef float T_hdf5_type_float;
+#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//typedef std::int64_t int64;
+typedef long long int int64;
+
+
+
+
+
+
 
 
 
@@ -108,7 +140,6 @@ const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP = 300;
 #include "float_utils.h"
 const int VAR_NBITS = ${nbits};
 typedef mh::FixedFloatConversion<VAR_NBITS> FixedFloatConversion;
-
 using mh::auto_shift;
 using mh::auto_shift64;
 
@@ -125,6 +156,7 @@ using mh::auto_shift64;
 // Templates for allowing return types to change based on IntType
 template<typename T>T inttype_from_long(long value){ assert(0); }
 template<> int inttype_from_long(long value){ return value;}
+template<> long long inttype_from_long(long value){ return value;}
 
 #if SAFEINT
 template<> SafeInt32 inttype_from_long(long value) { return SafeInt32::from_long(value); }
@@ -134,7 +166,8 @@ template<> SafeInt32 inttype_from_long(long value) { return SafeInt32::from_long
 #if SAFEINT 
 typedef SafeInt32 IntType;
 #else 
-typedef int IntType;
+//typedef int IntType;
+typedef long long IntType;
 #endif
 
 
@@ -361,7 +394,7 @@ IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id)
     if( expr_id != -1)
     {
         HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
-            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(v2) | (T_hdf5_type_int) get_value(res_int) ) ;
+            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(res_int) ) ;
     }
     #endif
     
@@ -398,12 +431,6 @@ IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id)
 // Define the data-structures:
 struct NrnData
 {
-
-
-
-
-
-
     // Parameters:
 % for p in parameter_defs_new:
     IntType ${p.symbol};      // Upscale: ${p.annotations['fixed-point-format'].upscale}
@@ -420,7 +447,6 @@ struct NrnData
     IntType d_${sv_def.symbol};
 % endfor
 
-
 <%
     cons = ',\n      '.join( 
                     ['%s(0)' % o.symbol for o in parameter_defs_new + assignment_defs_new ] +
@@ -431,6 +457,11 @@ struct NrnData
     : ${cons} 
     {}
 };
+
+
+
+
+NrnData output_data[nsim_steps];
 
 
 
@@ -513,7 +544,7 @@ void initialise_statevars(NrnData& d)
 
 
 
-#if USE_HDF5
+#if USE_HDF
 void setup_hdf5()
 {
 
@@ -547,17 +578,53 @@ void setup_hdf5()
 
 
 
+
+
+
+void dump_results_from_NIOS()
+{
+// Assignments + states:
+% for ass in assignment_defs_new + state_var_defs_new:
+    cout << "\n!DATA{${ass.symbol}}(" << nsim_steps << ")\n";
+    for(IntType i=IntType(0);i<nsim_steps;i++) cout << output_data[ get_value(i)].${ass.symbol} << " ";
+    cout << "\n"; 
+      
+% endfor
+}
+
+
+
+
+
+
+
 int main()
 {
 
 
+    #if ON_NIOS
+    cout << "\nDataType sizes:";
+    cout << "\nINT_MIN: " << INT_MIN; 
+    cout << "\nINT_MAX: " << INT_MAX;
+    
+    cout << "\nLONG_MIN: " << LONG_MIN; 
+    cout << "\nLONG_MAX: " << LONG_MAX;
+    
+    cout << "\nsizeof(int): " << sizeof(IntType);
+    cout << "\nsizeof(int64): " << sizeof(int64);
+    cout << "\n";
+    //return 0;
+    #endif
+
+
     // Enable floating point exception trapping:
     //feenableexcept(-1);
+    #if !ON_NIOS
     feenableexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW | FE_INVALID);
+    #endif //!ON_NIOS
 
 
-
-    #if USE_HDF5
+    #if USE_HDF
     setup_hdf5();
     #endif
 
@@ -567,16 +634,22 @@ int main()
 
 
     
-    for(int k=0;k<2000;k++)
-    {
-        if(k%100==0) cout << "Loop: " << k << "\n" << flush;
+    //for(int k=0;k<2000;k++)
+    //{
+        //if(k%100==0) cout << "Loop: " << k << "\n" << flush;
         
-        for(int i=0;i<3000;i++)
+        for(IntType i=IntType(0);i<nsim_steps;i++)
         {
+             
             sim_step(data, IntType(i));
+            output_data[get_value(i)] = data;
+            
         }
-    }
+    //}
 
+    #if ON_NIOS
+    dump_results_from_NIOS();
+    #endif
 
 
     printf("Simulation Complete\n");
@@ -785,7 +858,7 @@ class CBasedFixedWriter(ASTVisitorBase):
 
 
 class CBasedEqnWriterFixed(object):
-    def __init__(self, component, output_filename, nbits,):
+    def __init__(self, component, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None):
 
         self.dt_float = 0.1e-3
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
@@ -804,7 +877,8 @@ class CBasedEqnWriterFixed(object):
         self.float_type = 'int'
 
         self.writer = CBasedFixedWriter(component=component, node_int_labels=self.node_labeller.node_to_int, dt_int=self.dt_int, dt_upscale=self.dt_upscale)
-        self.nbits = nbits
+        #self.nbits = nbits
+        self.nbits = component.annotation_mgr._annotators['fixed-point-format-ann'].nbits
 
 
 
@@ -831,7 +905,7 @@ class CBasedEqnWriterFixed(object):
                     eqns_assignments = self.ass_eqns,
                     
                     floattype = self.float_type,
-                    nbits=nbits,
+                    nbits=self.nbits,
                     intermediate_store_locs=self.intermediate_store_locs
                     )
 
@@ -841,21 +915,32 @@ class CBasedEqnWriterFixed(object):
             if os.path.exists(f):
                 os.unlink(f)
 
-        self.compile_and_run(cfile)
+
+        if not compile and output_c_filename:
+            with open(output_c_filename,'w') as f:
+                f.write(cfile)
+
+
+        if compile:
+            self.compile_and_run(cfile, output_c_filename=output_c_filename, run=run, CPPFLAGS=CPPFLAGS)
 
 
 
 
-    def compile_and_run(self, cfile):
+    def compile_and_run(self, cfile, output_c_filename, run,CPPFLAGS):
 
         from neurounits.tools.c_compilation import CCompiler, CCompilationSettings
+        
+        
+        #run=False,
+        #intermediate_filename='/tmp/nu/compilation/compile1.cpp',
         
         CCompiler.build_executable(src_text=cfile, 
                                    compilation_settings = CCompilationSettings(
                                                 additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/') ], 
                                                 additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/")], 
                                                 libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl'],
-                                                compile_flags=['-Wall -Werror -Wfatal-errors -std=gnu++0x -g -O2']),
+                                                compile_flags=['-Wall -Werror -Wfatal-errors -std=gnu++0x -g -p ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                    run=True)
 
         self.results = CBasedEqnWriterFixedResultsProxy(self)
