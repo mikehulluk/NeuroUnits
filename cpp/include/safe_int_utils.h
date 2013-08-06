@@ -12,14 +12,14 @@
 
 
 #if SAFEINT
-int get_value(SafeInt32 i)
+NativeInt32 get_value32(SafeInt32 i)
 {
-    return i.get_value();
+    return i.get_value32();
 }
 
 long get_value_long(SafeInt32 i)
 {
-    return i.get_value();
+    return i.get_value32();
 }
 
 
@@ -27,11 +27,11 @@ long get_value_long(SafeInt32 i)
 
 SafeInt32 auto_shift(SafeInt32 n, SafeInt32 m)
 {
-    if(m.get_value()==0)
+    if(m.get_value32()==0)
     {
             return n;
     }
-    if(m.get_value()>0)
+    if(m.get_value32()>0)
     {
             return n << m;
     }
@@ -44,14 +44,14 @@ SafeInt32 auto_shift(SafeInt32 n, SafeInt32 m)
 
 std::ostream& operator<<(std::ostream& o, SafeInt32 v)
 {
-    o << v.get_value();
+    o << v.get_value32();
     return o;
 }
 
 
 double pow(double x, SafeInt32 rhs)
 {
-    return pow(x, rhs.get_value() );
+    return pow(x, rhs.get_value32() );
 }
 #endif
 

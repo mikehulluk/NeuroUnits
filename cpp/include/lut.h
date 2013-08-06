@@ -69,14 +69,14 @@ public:
 
 
 
-        int get_upscale_for_xindex(int index)
+        NativeInt32 get_upscale_for_xindex(NativeInt32 index)
         {
 
-            const int n_bits_recip_ln_two = 12;
-            const int recip_ln_two_as_int =  recip_ln_two * pow(2.0, n_bits_recip_ln_two) ;
+            const NativeInt32 n_bits_recip_ln_two = 12;
+            const NativeInt32 recip_ln_two_as_int =  recip_ln_two * pow(2.0, n_bits_recip_ln_two) ;
             IntType P = (upscale+1-n_bits_recip_ln_two-nbits_table) * -1;
-            assert(get_value(P)>0);
-            int result_int = ((recip_ln_two_as_int *(index - table_size_half) )>>get_value(P)) + 1; // * pow(2.0, -P); 
+            assert(get_value32(P)>0);
+            NativeInt32 result_int = ((recip_ln_two_as_int *(index - table_size_half) )>>get_value32(P)) + 1; // * pow(2.0, -P); 
 
 
             /*
@@ -91,7 +91,7 @@ public:
                 double table_cell_width = pow(2.0, upscale +1) / pow(2.0, nbits_table);
                 double xvalue = (index - table_size_half) * table_cell_width;
                 double fp = recip_ln_two * xvalue;
-                int result_fp = (int) ceil(fp);
+                NativeInt32 result_fp = (NativeInt32) ceil(fp);
                 assert( abs(result_fp-result_int) <=1);
             }
 
@@ -112,7 +112,7 @@ public:
         {
 
             // Calculate the output values:
-            for(int i = 0; i < table_size; i++)
+            for(NativeInt32 i = 0; i < table_size; i++)
             {
                 //int x_value_int = index_to_int(i);
                 cout << "x_int" << i-table_size_half << "\n";
@@ -133,12 +133,12 @@ public:
                 // Careful with rounding:
                 //double fp_upscale_dbl = recip_ln_two * x_value_double;
 
-                int fp_upscale = get_upscale_for_xindex(i);
+                NativeInt32 fp_upscale = get_upscale_for_xindex(i);
 
                 //cout << "\n  ++ Upscalings (int):" << fp_upscale;
                 //cout << "  -- fixed_point upscale: " << fp_upscale << "\n";
 
-                int res_as_int = FixedFloatConversion::from_float(res, fp_upscale);
+                NativeInt32 res_as_int = FixedFloatConversion::from_float(res, fp_upscale);
 
 
                 //// Doube check we are not loosing too much precision here:
@@ -155,8 +155,8 @@ public:
                 _x_vals.push_back(x_value_double);
             }
 
-            assert( (int)pData.size() == table_size);
-            assert( (int)_x_vals.size() == table_size);
+            assert( (NativeInt32)pData.size() == table_size);
+            assert( (NativeInt32)_x_vals.size() == table_size);
 
 
 
@@ -215,14 +215,14 @@ public:
             {
                 cout << "\nTable index: " << table_index;
 
-                assert( _x_vals[get_value(table_index)] <= dbg_x_as_float);
-                assert( _x_vals[get_value(table_index+1)] > dbg_x_as_float);
+                assert( _x_vals[get_value32(table_index)] <= dbg_x_as_float);
+                assert( _x_vals[get_value32(table_index+1)] > dbg_x_as_float);
             }
 
 
             // 2. Lookup the yvalues, and also account for differences in fixed point format:
-            IntType yn =  pData[get_value(table_index)];
-            IntType yn1 = pData[get_value(table_index)+1];
+            IntType yn =  pData[get_value32(table_index)];
+            IntType yn1 = pData[get_value32(table_index)+1];
 
 
             // 2a.Find the x-values at the each:
@@ -231,8 +231,8 @@ public:
 
             if(DEBUG)
             {
-                double xn_dbl = FixedFloatConversion::to_float(get_value(xn), up_x_in) ;
-                double xn1_dbl = FixedFloatConversion::to_float(get_value(xn1), up_x_in);
+                double xn_dbl = FixedFloatConversion::to_float(get_value32(xn), up_x_in) ;
+                double xn1_dbl = FixedFloatConversion::to_float(get_value32(xn1), up_x_in);
 
                 cout << "\nxn_dbl: " << xn_dbl;
                 cout << "\nxn1_dbl: " << xn1_dbl;
@@ -241,8 +241,8 @@ public:
                 assert( xn1_dbl > dbg_x_as_float);
             }
 
-            int L1 = get_upscale_for_xindex(get_value(table_index));
-            int L2 = get_upscale_for_xindex(get_value(table_index+1));
+            NativeInt32 L1 = get_upscale_for_xindex(get_value32(table_index));
+            NativeInt32 L2 = get_upscale_for_xindex(get_value32(table_index+1));
 
             IntType yn_upscale =   IntType( L1 );
             IntType yn1_upscale =  IntType( L2 );
@@ -257,10 +257,10 @@ public:
             if(DEBUG)
             {
             // Double Check:
-            double xn_dbl_old = FixedFloatConversion::to_float(get_value(xn), up_x_in) ;
-            double xn1_dbl_old = FixedFloatConversion::to_float(get_value(xn1), up_x_in);
-            IntType yn_upscale_old =  IntType( (int) ceil( recip_ln_two * xn_dbl_old ) );
-            IntType yn1_upscale_old = IntType( (int) ceil( recip_ln_two * xn1_dbl_old ) );
+            double xn_dbl_old = FixedFloatConversion::to_float(get_value32(xn), up_x_in) ;
+            double xn1_dbl_old = FixedFloatConversion::to_float(get_value32(xn1), up_x_in);
+            IntType yn_upscale_old =  IntType( (NativeInt32) ceil( recip_ln_two * xn_dbl_old ) );
+            IntType yn1_upscale_old = IntType( (NativeInt32) ceil( recip_ln_two * xn1_dbl_old ) );
 
             if(DEBUG)
             {
@@ -281,8 +281,8 @@ public:
 
             if(DEBUG)
             {
-                double yn_dbl = FixedFloatConversion::to_float( get_value(yn), get_value(yn_upscale));
-                double yn1_dbl = FixedFloatConversion::to_float( get_value(yn1), get_value(yn1_upscale));
+                double yn_dbl = FixedFloatConversion::to_float( get_value32(yn), get_value32(yn_upscale));
+                double yn1_dbl = FixedFloatConversion::to_float( get_value32(yn1), get_value32(yn1_upscale));
 
                 cout << "\nyn_dbl: " << yn_dbl;
                 cout << "\nyn1_dbl: " << yn1_dbl;
@@ -297,11 +297,11 @@ public:
             assert(yn_rel_upscale>=0);
             IntType yn_rescaled = (yn>>yn_rel_upscale);
 
-            long xymul = (long)get_value(yn1 - yn_rescaled) *  get_value(x-xn);
+            long xymul = (long)get_value32(yn1 - yn_rescaled) *  get_value32(x-xn);
             return //get_value(
                     auto_shift(yn, yn_upscale-up_out)
                     +
-                    auto_shift64(xymul, get_value(  yn1_upscale - up_out-rshift ) )
+                    auto_shift64(xymul, get_value32(  yn1_upscale - up_out-rshift ) )
                     //);
 
 ;
@@ -315,7 +315,7 @@ public:
 
 
 
-        int get_correct(int x, int up_x, int up_out)
+        NativeInt32 get_correct(NativeInt32 x, NativeInt32 up_x, NativeInt32 up_out)
         {
             cout << "\nget()";
 

@@ -2,12 +2,12 @@
 #define __SAFE_INT_PROXY_H__
 
 
-int get_value(int i)
+NativeInt32 get_value32(NativeInt32 i)
 {
     return i;
 }
 
-long get_value_long(int i)
+long get_value_long(NativeInt32 i)
 {
     return i;
 }

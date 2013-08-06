@@ -27,7 +27,7 @@ namespace mh_int32
     {
 
 
-        static const int nbits = 32;
+        static const NativeInt32 nbits = 32;
         //static const int nbits = 25;
         static const long int32_max = (1l<<(nbits-1)) - 1;
         static const long int32_min = -(1l<<(nbits-1)) - 1;
@@ -42,13 +42,13 @@ namespace mh_int32
         {
             assert( value < int32_max && value > int32_min);
 
-            int v = value;
+            NativeInt32 v = value;
             assert( (long) v == value);
 
             return SafeInt32(v);
         }
 
-        int get_value() const
+        NativeInt32 get_value32() const
         {
             return _value;
         }
@@ -79,7 +79,7 @@ namespace mh_int32
         };
 
 
-        explicit SafeInt32(int value)
+        explicit SafeInt32(NativeInt32 value)
             : _value(value)
         {
             check_value(value);
@@ -105,9 +105,9 @@ namespace mh_int32
         friend SafeInt32 operator/(SafeInt32 a, SafeInt32 b);
         friend SafeInt32 operator<<(const SafeInt32& a, const SafeInt32& b);
         friend SafeInt32 operator>>(const SafeInt32& a, const SafeInt32& b);
-        friend SafeInt32 operator+(SafeInt32 a, int b);
-        friend SafeInt32 operator-(SafeInt32 a, int b);
-        friend SafeInt32 operator*(SafeInt32 a, int b);
+        friend SafeInt32 operator+(SafeInt32 a, NativeInt32 b);
+        friend SafeInt32 operator-(SafeInt32 a, NativeInt32 b);
+        friend SafeInt32 operator*(SafeInt32 a, NativeInt32 b);
 
         bool operator==(const SafeInt32& rhs) const
         {
@@ -120,23 +120,23 @@ namespace mh_int32
         }
 
         // Comparisons against ints:
-        bool operator==(int rhs) const
+        bool operator==(NativeInt32 rhs) const
         {
             return _value == rhs;
         }
-        bool operator!=(int rhs) const
+        bool operator!=(NativeInt32 rhs) const
         {
             return _value != rhs;
         }
-        bool operator>(int b) const
+        bool operator>(NativeInt32 b) const
         {
             return _value > b;
         }
-        bool operator<(int b) const
+        bool operator<(NativeInt32 b) const
         {
             return _value < b;
         }
-        bool operator>=(int b) const
+        bool operator>=(NativeInt32 b) const
         {
             return _value >= b;
         }
@@ -268,17 +268,17 @@ namespace mh_int32
     }
 
 
-    SafeInt32 operator+(SafeInt32 a, int b)
+    SafeInt32 operator+(SafeInt32 a, NativeInt32 b)
     {
         return a + SafeInt32(b);
     }
 
-    SafeInt32 operator-(SafeInt32 a, int b)
+    SafeInt32 operator-(SafeInt32 a, NativeInt32 b)
     {
         return a - SafeInt32(b);
     }
 
-    SafeInt32 operator*(SafeInt32 a, int b)
+    SafeInt32 operator*(SafeInt32 a, NativeInt32 b)
     {
         return a * SafeInt32(b);
     }
@@ -296,6 +296,7 @@ namespace mh_int32
 
 
 
+/*
 
 namespace mh_uint32
 {
@@ -389,10 +390,10 @@ namespace mh_uint32
 };
 
 
+*/
 
 
-
-using namespace mh_uint32;
+//using namespace mh_uint32;
 using namespace mh_int32;
 
 

@@ -5,11 +5,7 @@
 
 #include <stdio.h>
 #include <math.h>
-//#include <cinttypes>
 #include <assert.h>
-//#include <stdio.h>
-//#include <execinfo.h>
-//#include <signal.h>
 #include <stdlib.h>
 
 
@@ -42,15 +38,15 @@ namespace mh
         class FixedFloatConversion
         {
         public:
-                static const int cl_range_max = (1<<(cl_nbits-1));
+                static const NativeInt64 cl_range_max = (1<<(cl_nbits-1));
 
-                static double to_float(int val, int upscale)
+                static double to_float(NativeInt32 val, NativeInt32 upscale)
                 {
                         double res =  ( double(val) * pow(2.0, upscale) / double(cl_range_max) );
                         return res;
                 }
 
-                static int from_float(double val, int upscale)
+                static NativeInt32 from_float(double val, NativeInt32 upscale)
                 {
 
 #ifdef DBG_RANGE
@@ -71,7 +67,7 @@ namespace mh
                         if(val <0 ) assert( fabs(val) / pow(2.0, upscale) < cl_range_max-1 );
 #endif
 
-                        int res =  int(val * (double(cl_range_max) / pow(2.0, upscale) ) ) ;
+                        NativeInt32 res =  NativeInt32(val * (double(cl_range_max) / pow(2.0, upscale) ) ) ;
                         return res;
                 }
 
@@ -83,20 +79,20 @@ namespace mh
 #if SAFEINT
                 static double to_float(SafeInt32 val, SafeInt32 upscale)
                 {
-                    return to_float( get_value(val), get_value(upscale) );
+                    return to_float( get_value32(val), get_value32(upscale) );
                 }
                 static double to_float(int val, SafeInt32 upscale)
                 {
-                    return to_float( val, get_value(upscale) );
+                    return to_float( val, get_value32(upscale) );
                 }
                 static double to_float(SafeInt32 val, int upscale)
                 {
-                    return to_float( get_value(val), upscale );
+                    return to_float( get_value32(val), upscale );
                 }
 
                 static int from_float(double val, SafeInt32 upscale)
                 {
-                    return from_float(val, get_value(upscale));
+                    return from_float(val, get_value32(upscale));
                 }
 #endif
 
@@ -113,7 +109,7 @@ namespace mh
 
 
 
-        int auto_shift(int n, int m)
+        NativeInt32 auto_shift(NativeInt32 n, NativeInt32 m)
         {
                 if(m==0)
                 {
@@ -130,7 +126,7 @@ namespace mh
         }
 
 
-        long auto_shift64(long n, int m)
+        long auto_shift64(long n, NativeInt32 m)
         {
                 if(m==0)
                 {

@@ -216,8 +216,8 @@ IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
     #if USE_HDF && SAVE_HDF5_INT 
     if( expr_id != -1)
     {
-        HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
-            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(v2) | (T_hdf5_type_int) get_value(res_int) ) ;
+        HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
+            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value32(v1) | (T_hdf5_type_int) get_value32(v2) | (T_hdf5_type_int) get_value32(res_int) ) ;
     }
     #endif
 
@@ -237,7 +237,7 @@ IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
         #if USE_HDF && SAVE_HDF5_FLOAT 
         if( expr_id != -1)
         {
-            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
+            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
                     DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) | (T_hdf5_type_float) (FixedFloatConversion::to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
         }
         #endif
@@ -257,8 +257,8 @@ IntType do_sub_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
     #if USE_HDF && SAVE_HDF5_INT 
     if( expr_id != -1)
     {
-        HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
-            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(v2) | (T_hdf5_type_int) get_value(res_int) ) ;
+        HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
+            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value32(v1) | (T_hdf5_type_int) get_value32(v2) | (T_hdf5_type_int) get_value32(res_int) ) ;
     }
     #endif
 
@@ -278,7 +278,7 @@ IntType do_sub_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
         #if USE_HDF && SAVE_HDF5_FLOAT 
         if( expr_id != -1)
         {
-            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
+            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
                     DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) | (T_hdf5_type_float) (FixedFloatConversion::to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
         }
         #endif
@@ -291,16 +291,16 @@ inline
 IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id)
 {
     // Need to promote to 64 bit:
-    int64 v12 = (int64) get_value(v1) * (int64) get_value(v2);
-    IntType res_int = inttype_from_long<IntType>( auto_shift64(v12, get_value(up1+up2-up_local-(VAR_NBITS-1)) ) ) ;
+    int64 v12 = (int64) get_value32(v1) * (int64) get_value32(v2);
+    IntType res_int = inttype_from_long<IntType>( auto_shift64(v12, get_value32(up1+up2-up_local-(VAR_NBITS-1)) ) ) ;
 
 
 
     #if USE_HDF && SAVE_HDF5_INT 
     if( expr_id != -1)
     {
-        HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
-            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(v2) | (T_hdf5_type_int) get_value(res_int) ) ;
+        HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
+            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value32(v1) | (T_hdf5_type_int) get_value32(v2) | (T_hdf5_type_int) get_value32(res_int) ) ;
     }
     #endif
 
@@ -320,7 +320,7 @@ IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
         #if USE_HDF && SAVE_HDF5_FLOAT 
         if( expr_id != -1)
         {
-            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
+            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
                     DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) | (T_hdf5_type_float) (FixedFloatConversion::to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
         }
         #endif
@@ -338,12 +338,12 @@ inline
 IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id)
 {
 
-    int64 v1_L = (int64) get_value(v1);
-    int64 v2_L = (int64) get_value(v2);
+    int64 v1_L = (int64) get_value32(v1);
+    int64 v2_L = (int64) get_value32(v2);
 
     v1_L = auto_shift64(v1_L, (VAR_NBITS-1) );
     int64 v = v1_L/v2_L;
-    v = auto_shift64(v, get_value( up1-up2 - up_local) );
+    v = auto_shift64(v, get_value32( up1-up2 - up_local) );
     assert( v < (1<<(VAR_NBITS) ) );
     IntType res_int = inttype_from_long<IntType>(v);
     
@@ -352,8 +352,8 @@ IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
     #if USE_HDF && SAVE_HDF5_INT 
     if( expr_id != -1)
     {
-        HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
-            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(v2) | (T_hdf5_type_int) get_value(res_int) ) ;
+        HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
+            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value32(v1) | (T_hdf5_type_int) get_value32(v2) | (T_hdf5_type_int) get_value32(res_int) ) ;
     }
     #endif
 
@@ -373,7 +373,7 @@ IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
         #if USE_HDF && SAVE_HDF5_FLOAT 
         if( expr_id != -1)
         {
-            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
+            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
                     DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) | (T_hdf5_type_float) (FixedFloatConversion::to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
         }
         #endif
@@ -393,8 +393,8 @@ IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id)
     #if USE_HDF && SAVE_HDF5_INT 
     if( expr_id != -1)
     {
-        HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
-            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value(v1) | (T_hdf5_type_int) get_value(res_int) ) ;
+        HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
+            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value32(v1) | (T_hdf5_type_int) get_value32(res_int) ) ;
     }
     #endif
     
@@ -415,7 +415,7 @@ IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id)
         if( expr_id != -1)
         {
         // -- Floating point version:
-            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value(expr_id) ).str())->append_buffer(
+            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
                 DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) |  (T_hdf5_type_float) (res_fp_fl) ) ;
         }
         #endif
@@ -477,7 +477,7 @@ void sim_step(NrnData& d, IntType time_step)
 
 
     #if DISPLAY_LOOP_INFO
-    if(get_value(time_step)%100 == 0)
+    if(get_value32(time_step)%100 == 0)
     {
         std::cout << "Loop: " << time_step << "\n";
         std::cout << "t: " << t << "\n";
@@ -499,14 +499,14 @@ void sim_step(NrnData& d, IntType time_step)
     #if USE_HDF && SAVE_HDF5_INT
     {
         HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
-        file->get_dataset("simulation_fixed/int/time")->append<T_hdf5_type_int>(get_value(t));
+        file->get_dataset("simulation_fixed/int/time")->append<T_hdf5_type_int>(get_value32(t));
     
         % for eqn in eqns_assignments:
-        file->get_dataset("simulation_fixed/int/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_int>(get_value( d.${eqn.node.lhs.symbol}));
+        file->get_dataset("simulation_fixed/int/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_int>(get_value32( d.${eqn.node.lhs.symbol}));
         % endfor
 
         % for eqn in eqns_timederivatives:
-        file->get_dataset("simulation_fixed/int/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_int>(get_value( d.${eqn.node.lhs.symbol}));
+        file->get_dataset("simulation_fixed/int/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_int>(get_value32( d.${eqn.node.lhs.symbol}));
         % endfor
     }
     #endif
@@ -515,7 +515,7 @@ void sim_step(NrnData& d, IntType time_step)
     #if USE_HDF && SAVE_HDF5_FLOAT
     { 
         const double dt_float = FixedFloatConversion::to_float(IntType(dt_int), IntType(${dt_upscale}));  
-        const double t_float = get_value(time_step) * dt_float;
+        const double t_float = get_value32(time_step) * dt_float;
     
         HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
         file->get_dataset("simulation_fixed/float/time")->append<T_hdf5_type_float>(t_float);
@@ -586,7 +586,7 @@ void dump_results_from_NIOS()
 // Assignments + states:
 % for ass in assignment_defs_new + state_var_defs_new:
     cout << "\n!DATA{${ass.symbol}}(" << nsim_steps << ")\n";
-    for(IntType i=IntType(0);i<nsim_steps;i++) cout << output_data[ get_value(i)].${ass.symbol} << " ";
+    for(IntType i=IntType(0);i<nsim_steps;i++) cout << output_data[ get_value32(i)].${ass.symbol} << " ";
     cout << "\n"; 
       
 % endfor
@@ -642,7 +642,7 @@ int main()
         {
              
             sim_step(data, IntType(i));
-            output_data[get_value(i)] = data;
+            output_data[get_value32(i)] = data;
             
         }
     //}
