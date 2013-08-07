@@ -15,14 +15,14 @@ from neurounits.visitors.bases.base_actioner import ASTActionerDepthFirst
 #from neurounits.Zdev.fixed_point_annotations import #VarAnnot, ASTDataAnnotator#, CalculateInternalStoragePerNode#
 from neurounits.visitors.common.plot_networkx import ActionerPlotNetworkX
 
-from neurounits.tools.fixed_point import CBasedEqnWriterFixed
+from neurounits.tools.fixed_point import CBasedEqnWriterFixedComponent
 from hdfjive import HDF5SimulationResultFile
 import tables
 import numpy as np
 
 
 
-from neurounits.tools.fixed_point import CBasedEqnWriterFloat
+
 
 import os
 import time
@@ -196,14 +196,14 @@ define_component simple_exp {
 var_annots_dIN = {
     't'             : NodeRange(min="0ms", max = "1.1s"),
     'alpha_ca_m'    : NodeRange(min=None, max = None),
-    'alpha_kf_n'    : NodeRange(min='0.1e-3ms-1', max = None),#NodeRange(min=None, max = None),
+    'alpha_kf_n'    : NodeRange(min='0.1e-3ms-1', max = None),
     'alpha_ks_n'    : NodeRange(min='0.1e-3ms-1', max = None),
     'alpha_na_h'    : NodeRange(min=None, max = None),
     'alpha_na_m'    : NodeRange(min=None, max = None),
     'beta_ca_m'     : NodeRange(min=None, max = None),
     'beta_ca_m_1'   : NodeRange(min=None, max = None),
     'beta_ca_m_2'   : NodeRange(min=None, max = None),
-    'beta_kf_n'     : NodeRange(min='0.1e-3ms-1', max = None),# NodeRange(min=None, max = None),
+    'beta_kf_n'     : NodeRange(min='0.1e-3ms-1', max = None),
     'beta_ks_n'     : NodeRange(min='0.1e-3ms-1', max = None),
     'beta_na_h'     : NodeRange(min=None, max = None),
     'beta_na_m'     : NodeRange(min=None, max = None),
@@ -253,26 +253,17 @@ comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 
 
 
-from neurounits.tools.population_infrastructure import *
-
-n = Network()
-p = Population(name='LHSdIN', component=comp, size=30 )
-n.add(p)
-
-
 
 # Just generate the file:
-#CBasedEqnWriterFixed(comp, output_filename='output.hd5', run=False, output_c_filename='/auto/homes/mh735/Desktop/tadpole1.cpp', compile=False, CPPFLAGS='-DON_NIOS=true')
+CBasedEqnWriterFixedComponent(comp, output_filename='output.hd5', run=False, output_c_filename='/auto/homes/mh735/Desktop/tadpole1.cpp', compile=False, CPPFLAGS='-DON_NIOS=true')
 #assert False
 
 
-fixed_sim_res = CBasedEqnWriterFixed(comp, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false').results
+fixed_sim_res = CBasedEqnWriterFixedComponent(comp, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false').results
 
 results = HDF5SimulationResultFile("output.hd5")
 float_group = results.h5file.root._f_getChild('/simulation_fixed/float/variables/')
 time_array = results.h5file.root._f_getChild('/simulation_fixed/float/time')
-
-assert False
 
 
 def plot_set( ys, plot_index, plot_total, figure):

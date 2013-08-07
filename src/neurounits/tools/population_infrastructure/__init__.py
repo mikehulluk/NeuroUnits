@@ -5,6 +5,7 @@
 
 class Population(object):
     def __init__(self, name, component, size):
+        self.name = name
         self.component = component
         self.size = size
         

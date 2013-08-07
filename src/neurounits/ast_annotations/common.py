@@ -432,11 +432,10 @@ class NodeRangeAnnotator(ASTTreeAnnotator):
 
 
 class FixedPointData(object):
-    def __init__(self, datatype, upscale, const_value_as_int=None, delta_upscale=None):
+    def __init__(self, datatype, upscale, const_value_as_int=None, delta_upscale=None, ):
         self.datatype = datatype
         self.upscale = upscale
         self.const_value_as_int = const_value_as_int
-        
         self.delta_upscale = delta_upscale
         
     def __repr__(self):
@@ -457,9 +456,19 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         self.visit(ninemlcomponent)
         
     
+    @classmethod
+    def encore_value_cls(self, value, upscaling_pow, nbits):
+        #print
+        print 'Encoding', value, "using upscaling power:", upscaling_pow
+        value_scaled = value * ( 2**(-upscaling_pow))
+        print ' --Value Scaled:', value_scaled
+        res = int( round( value_scaled * (2**(nbits-1) ) ) )
+        print ' --Value int:', res
+        return res
 
 
     def encode_value(self, value, upscaling_pow):
+        return self.encore_value_cls(value, upscaling_pow, nbits=self.nbits)
         #print
         print 'Encoding', value, "using upscaling power:", upscaling_pow
         value_scaled = value * ( 2**(-upscaling_pow))

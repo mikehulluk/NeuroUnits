@@ -4,8 +4,8 @@
 import mako
 from mako.template import Template
 
-import subprocess
-from neurounits.visitors.bases.base_actioner_default import ASTActionerDefault
+#import subprocess
+#from neurounits.visitors.bases.base_actioner_default import ASTActionerDefault
 from neurounits.visitors.bases.base_actioner_default_ignoremissing import ASTActionerDefaultIgnoreMissing
 
 
@@ -13,12 +13,13 @@ import numpy as np
 
 import os
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase
+from mako import exceptions
+from neurounits.ast_annotations.common import NodeFixedPointFormatAnnotator
 
 
 
 
-
-c_prog = r"""
+c_prog_header_tmpl = r"""
 
 
 
@@ -174,8 +175,16 @@ inline IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_i
     return tmpl_fp_ops::int_exp(v1, up1, up_local, expr_id, lookuptables.exponential);
 }
 
+"""
 
 
+
+c_population_details_tmpl = r"""
+
+
+
+namespace NS_${population.name}
+{
 
 // Define the data-structures:
 struct NrnData
@@ -261,11 +270,11 @@ void sim_step(NrnData& d, IntType time_step)
         file->get_dataset("simulation_fixed/int/time")->append<T_hdf5_type_int>(get_value32(t));
     
         % for eqn in eqns_assignments:
-        file->get_dataset("simulation_fixed/int/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_int>(get_value32( d.${eqn.node.lhs.symbol}));
+        file->get_dataset("simulation_fixed/int/${population.name}/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_int>(get_value32( d.${eqn.node.lhs.symbol}));
         % endfor
 
         % for eqn in eqns_timederivatives:
-        file->get_dataset("simulation_fixed/int/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_int>(get_value32( d.${eqn.node.lhs.symbol}));
+        file->get_dataset("simulation_fixed/int/${population.name}/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_int>(get_value32( d.${eqn.node.lhs.symbol}));
         % endfor
     }
     #endif
@@ -279,10 +288,10 @@ void sim_step(NrnData& d, IntType time_step)
         HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
         file->get_dataset("simulation_fixed/float/time")->append<T_hdf5_type_float>(t_float);
         % for eqn in eqns_timederivatives:
-        file->get_dataset("simulation_fixed/float/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_float>( FixedFloatConversion::to_float(  d.${eqn.node.lhs.symbol},  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ) );
+        file->get_dataset("simulation_fixed/float/${population.name}/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_float>( FixedFloatConversion::to_float(  d.${eqn.node.lhs.symbol},  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ) );
         % endfor
         % for eqn in eqns_assignments:
-        file->get_dataset("simulation_fixed/float/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_float>( FixedFloatConversion::to_float(  d.${eqn.node.lhs.symbol},  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ) );
+        file->get_dataset("simulation_fixed/float/${population.name}/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_float>( FixedFloatConversion::to_float(  d.${eqn.node.lhs.symbol},  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ) );
         % endfor
     }
     #endif
@@ -301,20 +310,16 @@ void setup_hdf5()
 {
     HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
 
-    // Time
-    file->get_group("simulation_fixed/float")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
-    file->get_group("simulation_fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
-
     // Storage for state-variables and assignments:
     % for sv_def in state_var_defs + assignment_defs:
-    file->get_group("simulation_fixed/float/variables/")->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
-    file->get_group("simulation_fixed/int/variables/")->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
+    file->get_group("simulation_fixed/float/${population.name}/variables/")->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+    file->get_group("simulation_fixed/int/${population.name}/variables/")->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
     % endfor
 
     // Storage for the intermediate values in calculations:
     %for intermediate_store_loc, size in intermediate_store_locs:
-    file->get_group("simulation_fixed/float/operations/")->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size}, hdf5_type_float) );
-    file->get_group("simulation_fixed/int/operations/")->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size},  hdf5_type_int) );
+    file->get_group("simulation_fixed/float/${population.name}/operations/")->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size}, hdf5_type_float) );
+    file->get_group("simulation_fixed/int/${population.name}/operations/")->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size},  hdf5_type_int) );
     %endfor
 }
 #endif
@@ -333,9 +338,27 @@ void print_results_from_NIOS()
 }
 
 
- 
+}
+
+""" 
 
 
+
+
+c_main_loop_tmpl = r"""
+
+
+
+#if USE_HDF
+void setup_hdf5()
+{
+    HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
+
+    // Time
+    file->get_group("simulation_fixed/float")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+    file->get_group("simulation_fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
+}
+#endif //USE_HDF
 
 
 
@@ -350,13 +373,15 @@ int main()
     #endif //!ON_NIOS
 
 
-    #if USE_HDF
     setup_hdf5();
+
+    %for pop in network.populations:
+    #if USE_HDF
+    NS_${pop.name}::setup_hdf5();
     #endif
-
-    NrnData data;
-    initialise_statevars(data);
-
+    NS_${pop.name}::NrnData data_${pop.name};
+    NS_${pop.name}::initialise_statevars(data_${pop.name});
+    %endfor
 
 
     #if NSIM_REPS
@@ -367,8 +392,11 @@ int main()
         
         for(IntType i=IntType(0);i<nsim_steps;i++)
         {
-            sim_step(data, IntType(i));
-            output_data[get_value32(i)] = data;    
+        
+            %for pop in network.populations:
+            NS_${pop.name}::sim_step( data_${pop.name}, IntType(i));
+            NS_${pop.name}::output_data[get_value32(i)] = data_${pop.name};
+            %endfor
         }
     
     #if NSIM_REPS
@@ -376,10 +404,11 @@ int main()
     #endif
     
     
-    
+     %for pop in network.populations:
     #if ON_NIOS
-    print_results_from_NIOS();
+    NS_${pop.name}::print_results_from_NIOS();
     #endif
+    %endfor
 
 
     printf("Simulation Complete\n");
@@ -396,239 +425,118 @@ int main()
 
 
 
+from fixed_point_common import Eqn, IntermediateNodeFinder, CBasedFixedWriter
 
 
 
 
-
-class Eqn(object):
-    def __init__(self, node, rhs_cstr):
-        self.node = node
-        self.rhs_cstr = rhs_cstr
-
-
-
-
-class IntermediateNodeFinder(ASTActionerDefaultIgnoreMissing):
-
-    def __init__(self, component):
-        self.valid_nodes = {}
-        super(IntermediateNodeFinder,self).__init__(component=component)
-
-    # How many values do we store per operation:
-    def ActionAddOp(self, o, **kwargs):
-        self.valid_nodes[o] = 3
-
-    def ActionSubOp(self, o, **kwargs):
-        self.valid_nodes[o] = 3
-
-    def ActionMulOp(self, o, **kwargs):
-        self.valid_nodes[o] = 3
-
-    def ActionDivOp(self, o, **kwargs):
-        self.valid_nodes[o] = 3
-
-    def ActionExpOp(self, o, **kwargs):
-        assert False
-        self.valid_nodes[o] = 3
-
-    def ActionFunctionDefBuiltInInstantiation(self, o, **kwargs):
-        assert o.function_def.funcname == '__exp__'
-        self.valid_nodes[o] = 2
-
-    def ActionFunctionDefUserInstantiation(self, o, **kwargs):
-        assert False
-
-
-
-
-
-class CBasedFixedWriter(ASTVisitorBase):
-
-    def __init__(self, component, ): #node_int_labels, dt_int, dt_upscale):
-
-
-        #self.intlabels = node_int_labels
-        super(CBasedFixedWriter, self).__init__()
-
-    def to_c(self, obj):
-        return self.visit(obj)
-
-    def VisitRegimeDispatchMap(self, o):
-        assert len (o.rhs_map) == 1
-        return self.visit(o.rhs_map.values()[0])
-
-    def get_var_str(self, name):
-        return "d.%s" % name
-
-    def DoOpOpComplex(self, o, op):
-
-        expr_lhs = self.visit(o.lhs)
-        expr_rhs = self.visit(o.rhs)
-        expr_num = o.annotations['node-id']#self.intlabels[o]
-        res = "do_%s_op( %s, IntType(%d), %s, IntType(%d), IntType(%d), IntType(%d))" % (
-                                            op,
-                                            expr_lhs, o.lhs.annotations['fixed-point-format'].upscale,
-                                            expr_rhs, o.rhs.annotations['fixed-point-format'].upscale,
-                                            o.annotations['fixed-point-format'].upscale,
-                                            expr_num,
-                                                     )
-        return res
-
-
-    def VisitAddOp(self, o):
-        return self.DoOpOpComplex(o, 'add')
-
-    def VisitSubOp(self, o):
-        return self.DoOpOpComplex(o, 'sub')
-
-    def VisitMulOp(self, o):
-        return self.DoOpOpComplex(o, 'mul')
-
-    def VisitDivOp(self, o):
-        return self.DoOpOpComplex(o, 'div')
-
-
-
-
-    def VisitIfThenElse(self, o):
-        return "( (%s) ? auto_shift(%s, IntType(%d)) : auto_shift(%s, IntType(%d)) )" % (
-                    self.visit(o.predicate),
-                    self.visit(o.if_true_ast),
-                    o.annotations['fixed-point-format'].upscale - o.if_true_ast.annotations['fixed-point-format'].upscale,
-                    self.visit(o.if_false_ast),
-                    o.annotations['fixed-point-format'].upscale - o.if_false_ast.annotations['fixed-point-format'].upscale,
-                    
-                )
-
-
-
-    def VisitInEquality(self, o):
-        ann_lt_upscale = o.lesser_than.annotations['fixed-point-format'].upscale
-        ann_gt_upscale = o.greater_than.annotations['fixed-point-format'].upscale
-        
-        if ann_lt_upscale < ann_gt_upscale:
-            return "( ((%s)>>IntType(%d)) < ( (%s)) )" %( self.visit(o.lesser_than), (ann_gt_upscale-ann_lt_upscale),  self.visit(o.greater_than) )
-        elif ann_lt_upscale > ann_gt_upscale:
-            return "( (%s) < ( (%s)>>IntType(%d)))" %( self.visit(o.lesser_than), self.visit(o.greater_than), (ann_lt_upscale-ann_gt_upscale) )
-        else:
-            return "( (%s) < (%s) )" %( self.visit(o.lesser_than), self.visit(o.greater_than), (ann_gt_upscale-ann_lt_upscale) )
-
-
-    def VisitFunctionDefUserInstantiation(self,o):
-        assert False
-
-    def VisitFunctionDefBuiltInInstantiation(self,o):
-        assert o.function_def.is_builtin() and o.function_def.funcname == '__exp__'
-        param = o.parameters.values()[0]
-        param_term = self.visit(param.rhs_ast)
-        ann_func_upscale = o.annotations['fixed-point-format'].upscale
-        ann_param_upscale = param.rhs_ast.annotations['fixed-point-format'].upscale
-        expr_num = o.annotations['node-id'] #self.intlabels[o]
-
-        return """ int_exp( %s, IntType(%d), IntType(%d), IntType(%d) )""" %(param_term, ann_param_upscale, ann_func_upscale, expr_num )
-
-    def VisitFunctionDefInstantiationParater(self, o):
-        assert False
-        return o.symbol
-
-    def VisitFunctionDefParameter(self, o):
-        assert False
-        return o.symbol
-
-    def VisitStateVariable(self, o):
-        return self.get_var_str(o.symbol)
-
-    def VisitParameter(self, o):
-        return self.get_var_str(o.symbol)
-
-    def VisitSymbolicConstant(self, o):
-        return "IntType(%d)" % o.annotations['fixed-point-format'].const_value_as_int
-
-    def VisitAssignedVariable(self, o):
-        return self.get_var_str(o.symbol)
-
-    def VisitConstant(self, o):
-        return "IntType(%d)" % o.annotations['fixed-point-format'].const_value_as_int
-
-    def VisitSuppliedValue(self, o):
-        return o.symbol
-
-
-    def VisitEqnAssignmentByRegime(self, o):
-        rhs_c = self.visit(o.rhs_map)
-        return " auto_shift( %s, IntType(%d) )" % (rhs_c, o.rhs_map.annotations['fixed-point-format'].upscale - o.lhs.annotations['fixed-point-format'].upscale )
-
-
-    def VisitTimeDerivativeByRegime(self, o):
-        
-        
-        delta_upscale = o.lhs.annotations['fixed-point-format'].delta_upscale
-    
-        #c1 = "from_float(  to_float( %s , IntType( %d )) * to_float(IntType(dt_int), IntType(dt_upscale)), IntType(%d)) " % ( self.visit(o.rhs_map), o.rhs_map.annotations['fixed-point-format'].upscale, delta_upscale  )
-        #c2 = "from_float( to_float( ( d_%s ), IntType(%d) ),  IntType(%d) )" % ( o.lhs.symbol, delta_upscale, o.lhs.annotations['fixed-point-format'].upscale)
-        
-        c1 = "do_mul_op(%s , IntType( %d ), dt_int, IntType(dt_upscale), IntType(%d), IntType(-1) ) " % ( self.visit(o.rhs_map), o.rhs_map.annotations['fixed-point-format'].upscale, delta_upscale  )
-        c2 = "auto_shift( d_%s, IntType(%d) - IntType(%d) )" % ( o.lhs.symbol, delta_upscale, o.lhs.annotations['fixed-point-format'].upscale)
-        return c1, c2
-        
-
-
-
-
-
-
-class CBasedEqnWriterFixed(object):
-    def __init__(self, component, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None):
+class CBasedEqnWriterFixedNetwork(object):
+    def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None):
 
         self.dt_float = 0.1e-3
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
-        self.dt_int = component.annotation_mgr._annotators['fixed-point-format-ann'].encode_value(self.dt_float, self.dt_upscale)
+        
+        
+        # Check all the components use the same floating point formats:
+        # NBITS:
+        nbits = set([ pop.component.annotation_mgr._annotators['fixed-point-format-ann'].nbits for pop in network.populations]) 
+        assert len(nbits) == 1
+        self.nbits = list(nbits)[0]
+        
+        #ENCODING OF TIME:
+        time_upscale = set([pop.component.get_terminal_obj('t').annotations['fixed-point-format'].upscale for pop in network.populations])
+        assert len(time_upscale) == 1
+        self.time_upscale = list(time_upscale)[0]
+        
+        
+        self.dt_int = NodeFixedPointFormatAnnotator.encore_value_cls(self.dt_float, self.dt_upscale, self.nbits )
+        #self.dt_int = network.populations[0].component.annotation_mgr._annotators['fixed-point-format-ann'].encode_value(self.dt_float, self.dt_upscale)
+        
+        
+        
+        std_variables = {
+            'nsim_steps' : 3000,  
+            'nbits':self.nbits,
+            'dt_float' : self.dt_float,
+            'dt_int' : self.dt_int,
+            'dt_upscale' : self.dt_upscale,
+            'time_upscale' : self.time_upscale,  
+            'output_filename' : output_filename,
+            'network':network,
+                         }
+        
+        code_per_pop = []
+        
+        for population in network.populations:
+            
+            intermediate_nodes = IntermediateNodeFinder(population.component).valid_nodes
+            self.intermediate_store_locs = [("op%d" % o.annotations['node-id'], o_number) for (o, o_number) in intermediate_nodes.items()]
+    
+            self.component = population.component
+            
+    
+            self.writer = CBasedFixedWriter(component=population.component) 
+        
+    
+    
+    
+            ordered_assignments = self.component.ordered_assignments_by_dependancies
+            self.ass_eqns =[ Eqn(node=td, rhs_cstr=self.writer.to_c(td) ) for td in ordered_assignments]
+            self.td_eqns = [ Eqn(node=td, rhs_cstr=self.writer.to_c(td) ) for td in self.component.timederivatives]        
+            self.td_eqns = sorted(self.td_eqns, key=lambda o: o.node.lhs.symbol.lower())
 
         
-
-        self.node_labeller = component.annotation_mgr._annotators['node-ids']
-        intermediate_nodes = IntermediateNodeFinder(component).valid_nodes
-        self.intermediate_store_locs = [("op%d" % o.annotations['node-id'], o_number) for (o, o_number) in intermediate_nodes.items()]
-
-        self.component = component
+            try:
+                cfile = Template(c_population_details_tmpl).render(
+                            output_filename = output_filename,
         
-
-        self.writer = CBasedFixedWriter(component=component) 
-        self.nbits = component.annotation_mgr._annotators['fixed-point-format-ann'].nbits
-
-
-
-        ordered_assignments = self.component.ordered_assignments_by_dependancies
-        self.ass_eqns =[ Eqn(node=td, rhs_cstr=self.writer.to_c(td) ) for td in ordered_assignments]
-        self.td_eqns = [ Eqn(node=td, rhs_cstr=self.writer.to_c(td) ) for td in self.component.timederivatives]        
-        self.td_eqns = sorted(self.td_eqns, key=lambda o: o.node.lhs.symbol.lower())
-
+                            parameter_defs = list(self.component.parameters),
+                            state_var_defs = list(self.component.state_variables),
+                            assignment_defs = list(self.component.assignedvalues),
         
-
-        cfile = Template(c_prog).render(
-                    output_filename = output_filename,
-
-                    parameter_defs = list(self.component.parameters),
-                    state_var_defs = list(self.component.state_variables),
-                    assignment_defs = list(self.component.assignedvalues),
-
-                    dt_float = self.dt_float,
-                    dt_int = self.dt_int,
-                    dt_upscale = self.dt_upscale,
-                    
-                    time_upscale = self.component.get_terminal_obj('t').annotations['fixed-point-format'].upscale,
-                    
-                    eqns_timederivatives = self.td_eqns,
-                    eqns_assignments = self.ass_eqns,
-                    
-                    nbits=self.nbits,
-                    intermediate_store_locs=self.intermediate_store_locs,
-                    
-                    nsim_steps = 3000,
-                    )
+                            dt_float = self.dt_float,
+                            dt_int = self.dt_int,
+                            dt_upscale = self.dt_upscale,
+                            
+                            time_upscale = self.component.get_terminal_obj('t').annotations['fixed-point-format'].upscale,
+                            
+                            eqns_timederivatives = self.td_eqns,
+                            eqns_assignments = self.ass_eqns,
+                            
+                            nbits=self.nbits,
+                            intermediate_store_locs=self.intermediate_store_locs,
+                            
+                            nsim_steps = 3000,  
+                            population=population,
+                            )
+            except:
+                print exceptions.html_error_template().render()
+                raise
+                
+            code_per_pop.append(cfile)
 
 
+
+        try:
+            c_prog_header = Template(c_prog_header_tmpl).render(
+                          ** std_variables                         
+                        )
+        except:
+            print exceptions.html_error_template().render()
+            raise
+            
+        try:
+            c_main_loop = Template(c_main_loop_tmpl).render(
+                        ** std_variables    
+                        )
+        except:
+            print exceptions.html_error_template().render()
+            raise
+
+            
+            
+
+        cfile = '\n'.join([c_prog_header] + code_per_pop + [c_main_loop])
 
         for f in ['sim1.cpp','a.out',output_filename, 'debug.log',]:
             if os.path.exists(f):
@@ -650,9 +558,6 @@ class CBasedEqnWriterFixed(object):
 
         from neurounits.tools.c_compilation import CCompiler, CCompilationSettings
         
-        
-        #run=False,
-        #intermediate_filename='/tmp/nu/compilation/compile1.cpp',
         
         CCompiler.build_executable(src_text=cfile, 
                                    compilation_settings = CCompilationSettings(
@@ -681,15 +586,6 @@ import pylab as plt
 class CBasedEqnWriterFixedResultsProxy(object):
     def __init__(self, eqnwriter):
         self.eqnwriter = eqnwriter
-
-
-
-
-
-
-
-
-
 
 
     def plot_ranges(self):
