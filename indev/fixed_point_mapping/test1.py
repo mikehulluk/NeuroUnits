@@ -233,45 +233,8 @@ var_annots_dIN = {
     'na_m'          : NodeRange(min="0", max = "1.5"),
 }
 
-var_annots_test = {
-    't'    : NodeRange(min="0ms", max = "1s"),
-    #'a'    : VarAnnot(val_min=None, val_max = None),
-    #'b'    : VarAnnot(val_min=None, val_max = None),
-
-    'iInj' : NodeRange(min=None, max = None),
-    'iLk'  : NodeRange(min=None, max = None),
-    'V'    : NodeRange(min="-100mV", max = "60mV"),
-    #'V2'    : VarAnnot(val_min="-100mV", val_max = "60mV"),
-
-    'alpha_kf_n'   : NodeRange(min=None, max = None),
-    'beta_kf_n'    : NodeRange(min=None, max = None),
-    'inf_kf_n'     : NodeRange(min="0.0", max = "1.0"),
-    'tau_kf_n'     : NodeRange(min="0.0ms", max = "10ms"),
-    'iKf'          : NodeRange(min=None, max = None),
-    'iKf2'          : NodeRange(min=None, max = None),
-    'kf_n'          : NodeRange(min="0", max = "1"),
-}
-
-
-
-
-var_annots_exp = {
-    't'          : NodeRange(min="0ms",max = "1.1s"),
-    'A'          : NodeRange(min="0",  max = "1.75"),
-    'a'          : NodeRange(min="0",  max = "1.75"),
-}
-
-
-
-
-
-
-
-
 component_name = 'simple_hh'
-#component_name = 'simple_test'
-#component_name = 'simple_test'
-#component_name = 'simple_exp'
+
 
 
 library_manager = neurounits.NeuroUnitParser.Parse9MLFile( src_text)
@@ -280,62 +243,11 @@ comp.expand_all_function_calls()
 
 
 
-var_annots = {
-              'simple_hh': var_annots_dIN,
-              'simple_test': var_annots_test,
-              'simple_exp': var_annots_exp,
-             }[component_name]
+var_annots =var_annots_dIN
+
+ 
 
 
-
-
-
-
-
-
-# 
-# 
-# class MyNodeColors(ASTVisitorBase):
-# 
-#     def VisitLibrary(self, o, **kwargs):
-#         return 'green'
-# 
-#     def visit(self, o):
-# 
-# #         if isinstance(o, SymbolProxy):
-# #             return 'red'
-# #         if isinstance(o, OnEventStateAssignment):
-# #             return 'orange'
-# #         if isinstance(o, ast.NineMLComponent):
-# #             return 'yellow'
-# #         if isinstance(o, ast.OnEventTransition):
-# #             return 'pink'
-# #         if isinstance(o, ast.OnTriggerTransition):
-# #             return 'cyan'
-# #         if isinstance(o, ast.CompoundPortConnector):
-# #             return 'red'
-# 
-#         try:
-#             print o.annotations
-#             return 'green'
-#         except:
-#             return 'red'
-# 
-# 
-# for node in comp.all_ast_nodes():
-#     print node, node._annotations
-# 
-# 
-# ActionerPlotNetworkX(comp, colors=MyNodeColors() )
-# pylab.show()
-# 
-
-
-
-
-
-#import os
-#from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 
 
 

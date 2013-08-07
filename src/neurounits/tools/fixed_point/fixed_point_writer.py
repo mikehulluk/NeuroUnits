@@ -68,13 +68,7 @@ c_prog = r"""
 const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT = 100;
 const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP = 300;
 
-const int nsim_steps = 3000;
-
-
-
-
-
-
+const int nsim_steps = ${nsim_steps};
 
 
 #include <stdio.h>
@@ -117,26 +111,6 @@ typedef float T_hdf5_type_float;
 
 
 
-
-
-
-
-
-
-
-
-//typedef std::int64_t int64;
-typedef long long int int64;
-
-
-
-
-
-
-
-
-
-
 #include "float_utils.h"
 const int VAR_NBITS = ${nbits};
 typedef mh::FixedFloatConversion<VAR_NBITS> FixedFloatConversion;
@@ -153,30 +127,7 @@ using mh::auto_shift64;
 #endif 
 
 
-// Templates for allowing return types to change based on IntType
-template<typename T>T inttype_from_long(NativeInt64 value){ assert(0); }
-template<> int inttype_from_long(NativeInt64 value){ return value;}
-template<> long long inttype_from_long(NativeInt64 value){ return value;}
-
-#if SAFEINT
-template<> SafeInt32 inttype_from_long(NativeInt64 value) { return SafeInt32::from_long(value); }
-#endif 
-
-
-#if SAFEINT 
-typedef SafeInt32 IntType;
-#else 
-//typedef int IntType;
-typedef long long IntType;
-#endif
-
-
 #include "safe_int_proxying.h"
-
-
-
-
-
 #include "lut.h"
 
 
@@ -185,15 +136,12 @@ typedef long long IntType;
 
 struct LookUpTables
 {
-
     LookUpTables()
         //: exponential(8, 3)    // (nbits, upscale)
         : exponential(5, 3)    // (nbits, upscale)
     { }
 
     LookUpTableExpPower2<VAR_NBITS, IntType> exponential;
-
-
 };
 
 
@@ -203,226 +151,25 @@ LookUpTables lookuptables;
 
 
 
+#include "fixed_point_operations.h"
 
-
-
-
-inline
-IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id)
-{
-
-    IntType res_int = auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local);
-
-    #if USE_HDF && SAVE_HDF5_INT 
-    if( expr_id != -1)
-    {
-        HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
-            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value32(v1) | (T_hdf5_type_int) get_value32(v2) | (T_hdf5_type_int) get_value32(res_int) ) ;
-    }
-    #endif
-
-    #if CALCULATE_FLOAT
-    {
-        float res_fp_fl = FixedFloatConversion::to_float(v1,up1) + FixedFloatConversion::to_float(v2,up2);
-        IntType res_fp = IntType(FixedFloatConversion::from_float(res_fp_fl, up_local));
-
-        if( CHECK_INT_FLOAT_COMPARISON )
-        {
-            IntType diff = res_int - res_fp;
-            //cout << "diff" << diff << "\n" << flush; 
-            if(diff <0) diff = -diff;
-            assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
-        }
-        
-        #if USE_HDF && SAVE_HDF5_FLOAT 
-        if( expr_id != -1)
-        {
-            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
-                    DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) | (T_hdf5_type_float) (FixedFloatConversion::to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
-        }
-        #endif
-    }
-    #endif
-
-
-    return res_int;
+inline IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
+    return tmpl_fp_ops::do_add_op(v1, up1, v2, up2, up_local, expr_id);
+}
+inline IntType do_sub_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
+   return tmpl_fp_ops::do_sub_op(v1, up1, v2, up2, up_local, expr_id);
 }
 
-inline
-IntType do_sub_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id)
-{
-
-    IntType res_int = auto_shift(v1, up1-up_local) - auto_shift(v2, up2-up_local);
-
-    #if USE_HDF && SAVE_HDF5_INT 
-    if( expr_id != -1)
-    {
-        HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
-            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value32(v1) | (T_hdf5_type_int) get_value32(v2) | (T_hdf5_type_int) get_value32(res_int) ) ;
-    }
-    #endif
-
-    #if CALCULATE_FLOAT
-    {
-        float res_fp_fl = FixedFloatConversion::to_float(v1,up1) - FixedFloatConversion::to_float(v2,up2);
-        IntType res_fp = IntType(FixedFloatConversion::from_float(res_fp_fl, up_local));
-
-        if( CHECK_INT_FLOAT_COMPARISON )
-        {
-            IntType diff = res_int - res_fp;
-            //cout << "diff" << diff << "\n" << flush; 
-            if(diff <0) diff = -diff;
-            assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
-        }
-
-        #if USE_HDF && SAVE_HDF5_FLOAT 
-        if( expr_id != -1)
-        {
-            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
-                    DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) | (T_hdf5_type_float) (FixedFloatConversion::to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
-        }
-        #endif
-    }
-    #endif
-
-    return res_int;
-}
-inline
-IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id)
-{
-    // Need to promote to 64 bit:
-    int64 v12 = (int64) get_value32(v1) * (int64) get_value32(v2);
-    IntType res_int = inttype_from_long<IntType>( auto_shift64(v12, get_value32(up1+up2-up_local-(VAR_NBITS-1)) ) ) ;
-
-
-
-    #if USE_HDF && SAVE_HDF5_INT 
-    if( expr_id != -1)
-    {
-        HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
-            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value32(v1) | (T_hdf5_type_int) get_value32(v2) | (T_hdf5_type_int) get_value32(res_int) ) ;
-    }
-    #endif
-
-    #if CALCULATE_FLOAT
-    {
-        float res_fp_fl = FixedFloatConversion::to_float(v1,up1) * FixedFloatConversion::to_float(v2,up2);
-        IntType res_fp = IntType(FixedFloatConversion::from_float(res_fp_fl, up_local));
-
-        if( CHECK_INT_FLOAT_COMPARISON )
-        {
-            IntType diff = res_int - res_fp;
-            //cout << "diff" << diff << "\n" << flush; 
-            if(diff <0) diff = -diff;
-            assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
-        }
-
-        #if USE_HDF && SAVE_HDF5_FLOAT 
-        if( expr_id != -1)
-        {
-            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
-                    DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) | (T_hdf5_type_float) (FixedFloatConversion::to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
-        }
-        #endif
-    }
-    #endif
-
-    
-
-    return res_int;
-
+inline IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
+    return tmpl_fp_ops::do_mul_op(v1, up1, v2, up2, up_local, expr_id);
 }
 
-
-inline
-IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id)
-{
-
-    int64 v1_L = (int64) get_value32(v1);
-    int64 v2_L = (int64) get_value32(v2);
-
-    v1_L = auto_shift64(v1_L, (VAR_NBITS-1) );
-    int64 v = v1_L/v2_L;
-    v = auto_shift64(v, get_value32( up1-up2 - up_local) );
-    assert( v < (1<<(VAR_NBITS) ) );
-    IntType res_int = inttype_from_long<IntType>(v);
-    
-
-
-    #if USE_HDF && SAVE_HDF5_INT 
-    if( expr_id != -1)
-    {
-        HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
-            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value32(v1) | (T_hdf5_type_int) get_value32(v2) | (T_hdf5_type_int) get_value32(res_int) ) ;
-    }
-    #endif
-
-    #if CALCULATE_FLOAT
-    {
-        float res_fp_fl = FixedFloatConversion::to_float(v1,up1) / FixedFloatConversion::to_float(v2,up2);
-        IntType res_fp = IntType(FixedFloatConversion::from_float(res_fp_fl, up_local));
-
-        if( CHECK_INT_FLOAT_COMPARISON )
-        {
-            IntType diff = res_int - res_fp;
-            //cout << "diff" << "\n" << diff << flush; 
-            if(diff <0) diff = -diff;
-            assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
-        }
-
-        #if USE_HDF && SAVE_HDF5_FLOAT 
-        if( expr_id != -1)
-        {
-            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
-                    DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) | (T_hdf5_type_float) (FixedFloatConversion::to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
-        }
-        #endif
-    }
-    #endif
-
-
-    return res_int;
-
+inline IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
+    return tmpl_fp_ops::do_div_op(v1, up1, v2, up2, up_local, expr_id);
 }
-inline
-IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id)
-{
-    IntType res_int = lookuptables.exponential.get( v1, up1, up_local );
 
-
-    #if USE_HDF && SAVE_HDF5_INT 
-    if( expr_id != -1)
-    {
-        HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
-            DataBuffer<T_hdf5_type_int>() | (T_hdf5_type_int) get_value32(v1) | (T_hdf5_type_int) get_value32(res_int) ) ;
-    }
-    #endif
-    
-    #if CALCULATE_FLOAT
-    {
-        float res_fp_fl = exp( FixedFloatConversion::to_float(v1,up1) );
-        IntType res_fp = IntType(FixedFloatConversion::from_float( res_fp_fl, up_local));
-        
-        if( CHECK_INT_FLOAT_COMPARISON_FOR_EXP )
-        {
-            IntType diff = res_int - res_fp;
-            cout << "diff" << "\n" << diff << flush; 
-            if(diff <0) diff = -diff;
-            assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP );
-        }
-        
-        #if USE_HDF && SAVE_HDF5_FLOAT 
-        if( expr_id != -1)
-        {
-        // -- Floating point version:
-            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
-                DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) |  (T_hdf5_type_float) (res_fp_fl) ) ;
-        }
-        #endif
-    }
-    #endif
-    
-    return res_int;
+inline IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id) {
+    return tmpl_fp_ops::int_exp(v1, up1, up_local, expr_id, lookuptables.exponential);
 }
 
 
@@ -473,7 +220,7 @@ void sim_step(NrnData& d, IntType time_step)
     const IntType dt_int = IntType(${dt_int});
     const IntType dt_upscale = IntType(${dt_upscale});
     const IntType time_upscale = IntType(${time_upscale});
-    const IntType t = inttype_from_long<IntType>( auto_shift64( get_value64(dt_int) * get_value64(time_step), get_value64(dt_upscale- time_upscale ) ));
+    const IntType t = inttype32_from_inttype64<IntType>( auto_shift64( get_value64(dt_int) * get_value64(time_step), get_value64(dt_upscale- time_upscale ) ));
 
 
     #if DISPLAY_LOOP_INFO
@@ -547,7 +294,6 @@ void initialise_statevars(NrnData& d)
 #if USE_HDF
 void setup_hdf5()
 {
-
     HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
 
     // Time
@@ -565,9 +311,7 @@ void setup_hdf5()
     file->get_group("simulation_fixed/int/variables/")->create_dataset("${ass_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
     % endfor
 
-
     // Storage for the intermediate values in calculations:
-
     %for intermediate_store_loc, size in intermediate_store_locs:
     file->get_group("simulation_fixed/float/operations/")->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size}, hdf5_type_float) );
     file->get_group("simulation_fixed/int/operations/")->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size},  hdf5_type_int) );
@@ -581,16 +325,33 @@ void setup_hdf5()
 
 
 
-void dump_results_from_NIOS()
+void print_results_from_NIOS()
 {
 // Assignments + states:
 % for ass in assignment_defs_new + state_var_defs_new:
-    cout << "\n!DATA{${ass.symbol}}(" << nsim_steps << ")\n";
+    cout << "\n#!DATA{ 'name':'${ass.symbol}' } {'size': ${nsim_steps},  'fixed_point': {'upscale':${ass.annotations['fixed-point-format'].upscale}, 'nbits':${nbits}} } [";
     for(IntType i=IntType(0);i<nsim_steps;i++) cout << output_data[ get_value32(i)].${ass.symbol} << " ";
-    cout << "\n"; 
-      
+    cout << "]\n"; 
 % endfor
+
+    cout << "\n#! FINISHED\n";  
 }
+
+
+ void setup_NIOS_cout()
+ {
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ }
 
 
 
@@ -601,8 +362,9 @@ void dump_results_from_NIOS()
 int main()
 {
 
-
+    
     #if ON_NIOS
+    /*
     cout << "\nDataType sizes:";
     cout << "\nINT_MIN: " << INT_MIN; 
     cout << "\nINT_MAX: " << INT_MAX;
@@ -610,10 +372,10 @@ int main()
     cout << "\nLONG_MIN: " << LONG_MIN; 
     cout << "\nLONG_MAX: " << LONG_MAX;
     
-    cout << "\nsizeof(int): " << sizeof(IntType);
-    cout << "\nsizeof(int64): " << sizeof(int64);
+    cout << "\nsizeof(NativeInt32): " << sizeof(NativeInt32);
+    cout << "\nsizeof(NativeInt64): " << sizeof(NativeInt64);
     cout << "\n";
-    //return 0;
+    */
     #endif
 
 
@@ -648,14 +410,11 @@ int main()
     //}
 
     #if ON_NIOS
-    dump_results_from_NIOS();
+    print_results_from_NIOS();
     #endif
 
 
     printf("Simulation Complete\n");
-    //assert(0);
-    
-    //assert(0);
 }
 
 
@@ -906,7 +665,9 @@ class CBasedEqnWriterFixed(object):
                     
                     floattype = self.float_type,
                     nbits=self.nbits,
-                    intermediate_store_locs=self.intermediate_store_locs
+                    intermediate_store_locs=self.intermediate_store_locs,
+                    
+                    nsim_steps = 3000,
                     )
 
 

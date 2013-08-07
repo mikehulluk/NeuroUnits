@@ -73,7 +73,7 @@ public:
         {
 
             const NativeInt32 n_bits_recip_ln_two = 12;
-            const NativeInt32 recip_ln_two_as_int =  recip_ln_two * pow(2.0, n_bits_recip_ln_two) ;
+            const NativeInt32 recip_ln_two_as_int =  NativeInt32( ceil(recip_ln_two * pow(2.0, n_bits_recip_ln_two) ) );
             IntType P = (upscale+1-n_bits_recip_ln_two-nbits_table) * -1;
             assert(get_value32(P)>0);
             NativeInt32 result_int = ((recip_ln_two_as_int *(index - table_size_half) )>>get_value32(P)) + 1; // * pow(2.0, -P); 
