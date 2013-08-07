@@ -233,78 +233,32 @@ var_annots_dIN = {
     'na_m'          : NodeRange(min="0", max = "1.5"),
 }
 
-component_name = 'simple_hh'
-
-
-
-library_manager = neurounits.NeuroUnitParser.Parse9MLFile( src_text)
-comp = library_manager[component_name]
-comp.expand_all_function_calls()
-
-
-
-var_annots =var_annots_dIN
-
  
 
 
 
-
-
-
-
-
-
-
-
-
-
-test_c = False
-if test_c:
-
-    CBasedEqnWriterFloat(comp, float_type='float',     output_filename='res_float.txt',  annotations=[] )
-    CBasedEqnWriterFloat(comp, float_type='double',    output_filename='res_double.txt', annotations=[] )
-    CBasedEqnWriterFloat(comp, float_type='mpf_class', output_filename='res_gmp.txt',    annotations=[] )
-
-
-
-    data_float = np.loadtxt('res_gmp.txt')
-    data_double = np.loadtxt('res_double.txt')
-    data_gmp = np.loadtxt('res_gmp.txt')
-
-    pylab.plot(data_float[:,0], data_float[:,1], label='float' )
-    pylab.plot(data_double[:,0], data_double[:,1], label='double' )
-    pylab.plot(data_gmp[:,0], data_gmp[:,1], label='gmp' )
-    pylab.show()
-
-
-
-
-
-
-
-
-
-
-
-
-print
-print
-print 'Looking at mappings:'
-print '===================='
-
-
-
-
+library_manager = neurounits.NeuroUnitParser.Parse9MLFile( src_text)
+comp = library_manager['simple_hh']
+comp.expand_all_function_calls()
 
 
 nbits = 24
 
 
 # Setup the annotations:
-comp.annotate_ast( NodeRangeAnnotator(var_annots) )
+comp.annotate_ast( NodeRangeAnnotator(var_annots_dIN) )
 comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
 comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
+
+
+
+
+from neurounits.tools.population_infrastructure import *
+
+n = Network()
+p = Population(name='LHSdIN', component=comp, size=30 )
+n.add(p)
+
 
 
 # Just generate the file:
@@ -314,15 +268,11 @@ comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 
 fixed_sim_res = CBasedEqnWriterFixed(comp, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false').results
 
-
-#fixed_sim_res.plot_ranges()
-
-
-
 results = HDF5SimulationResultFile("output.hd5")
 float_group = results.h5file.root._f_getChild('/simulation_fixed/float/variables/')
 time_array = results.h5file.root._f_getChild('/simulation_fixed/float/time')
 
+assert False
 
 
 def plot_set( ys, plot_index, plot_total, figure):

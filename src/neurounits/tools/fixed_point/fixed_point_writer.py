@@ -58,6 +58,8 @@ c_prog = r"""
 
 
 
+//#define NSIM_REPS 200
+
 
 
 
@@ -179,25 +181,25 @@ inline IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_i
 struct NrnData
 {
     // Parameters:
-% for p in parameter_defs_new:
+% for p in parameter_defs:
     IntType ${p.symbol};      // Upscale: ${p.annotations['fixed-point-format'].upscale}
 % endfor
 
     // Assignments:
-% for ass in assignment_defs_new:
+% for ass in assignment_defs:
     IntType ${ass.symbol};      // Upscale: ${ass.annotations['fixed-point-format'].upscale}
 % endfor
 
     // States:
-% for sv_def in state_var_defs_new:
+% for sv_def in state_var_defs:
     IntType ${sv_def.symbol};    // Upscale: ${sv_def.annotations['fixed-point-format'].upscale}
     IntType d_${sv_def.symbol};
 % endfor
 
 <%
     cons = ',\n      '.join( 
-                    ['%s(0)' % o.symbol for o in parameter_defs_new + assignment_defs_new ] +
-                    ['%s(0),\n      d_%s(0)' % (o.symbol, o.symbol) for o in state_var_defs_new ] 
+                    ['%s(0)' % o.symbol for o in parameter_defs + assignment_defs ] +
+                    ['%s(0),\n      d_%s(0)' % (o.symbol, o.symbol) for o in state_var_defs ] 
                     )
 %>
     NrnData()
@@ -209,6 +211,16 @@ struct NrnData
 
 
 NrnData output_data[nsim_steps];
+
+
+
+
+void initialise_statevars(NrnData& d)
+{
+    % for sv_def in state_var_defs:
+    d.${sv_def.symbol} = auto_shift( IntType(${sv_def.initial_value.annotations['fixed-point-format'].const_value_as_int}),  IntType(${sv_def.initial_value.annotations['fixed-point-format'].upscale} - ${sv_def.annotations['fixed-point-format'].upscale} ) );
+    % endfor
+}
 
 
 
@@ -282,13 +294,6 @@ void sim_step(NrnData& d, IntType time_step)
 
 
 
-void initialise_statevars(NrnData& d)
-{
-    % for sv_def in state_var_defs_new:
-    d.${sv_def.symbol} = auto_shift( IntType(${sv_def.initial_value.annotations['fixed-point-format'].const_value_as_int}),  IntType(${sv_def.initial_value.annotations['fixed-point-format'].upscale} - ${sv_def.annotations['fixed-point-format'].upscale} ) );
-    % endfor
-}
-
 
 
 #if USE_HDF
@@ -301,14 +306,9 @@ void setup_hdf5()
     file->get_group("simulation_fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
 
     // Storage for state-variables and assignments:
-    % for sv_def in state_var_defs_new:
+    % for sv_def in state_var_defs + assignment_defs:
     file->get_group("simulation_fixed/float/variables/")->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
     file->get_group("simulation_fixed/int/variables/")->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
-    % endfor
-
-    % for ass_def in assignment_defs_new:
-    file->get_group("simulation_fixed/float/variables/")->create_dataset("${ass_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
-    file->get_group("simulation_fixed/int/variables/")->create_dataset("${ass_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
     % endfor
 
     // Storage for the intermediate values in calculations:
@@ -320,39 +320,20 @@ void setup_hdf5()
 #endif
 
 
-
-
-
-
-
 void print_results_from_NIOS()
 {
-// Assignments + states:
-% for ass in assignment_defs_new + state_var_defs_new:
+    // Assignments + states:
+    % for ass in assignment_defs + state_var_defs:
     cout << "\n#!DATA{ 'name':'${ass.symbol}' } {'size': ${nsim_steps},  'fixed_point': {'upscale':${ass.annotations['fixed-point-format'].upscale}, 'nbits':${nbits}} } [";
     for(IntType i=IntType(0);i<nsim_steps;i++) cout << output_data[ get_value32(i)].${ass.symbol} << " ";
     cout << "]\n"; 
-% endfor
+    % endfor
 
     cout << "\n#! FINISHED\n";  
 }
 
 
- void setup_NIOS_cout()
- {
  
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- }
-
 
 
 
@@ -361,23 +342,6 @@ void print_results_from_NIOS()
 
 int main()
 {
-
-    
-    #if ON_NIOS
-    /*
-    cout << "\nDataType sizes:";
-    cout << "\nINT_MIN: " << INT_MIN; 
-    cout << "\nINT_MAX: " << INT_MAX;
-    
-    cout << "\nLONG_MIN: " << LONG_MIN; 
-    cout << "\nLONG_MAX: " << LONG_MAX;
-    
-    cout << "\nsizeof(NativeInt32): " << sizeof(NativeInt32);
-    cout << "\nsizeof(NativeInt64): " << sizeof(NativeInt64);
-    cout << "\n";
-    */
-    #endif
-
 
     // Enable floating point exception trapping:
     //feenableexcept(-1);
@@ -395,20 +359,24 @@ int main()
 
 
 
-    
-    //for(int k=0;k<2000;k++)
-    //{
-        //if(k%100==0) cout << "Loop: " << k << "\n" << flush;
+    #if NSIM_REPS
+    for(int k=0;k<NSIM_REPS;k++)
+    {
+        if(k%100==0) cout << "Loop: " << k << "\n" << flush;
+    #endif
         
         for(IntType i=IntType(0);i<nsim_steps;i++)
         {
-             
             sim_step(data, IntType(i));
-            output_data[get_value32(i)] = data;
-            
+            output_data[get_value32(i)] = data;    
         }
-    //}
-
+    
+    #if NSIM_REPS
+    }
+    #endif
+    
+    
+    
     #if ON_NIOS
     print_results_from_NIOS();
     #endif
@@ -477,16 +445,10 @@ class IntermediateNodeFinder(ASTActionerDefaultIgnoreMissing):
 
 class CBasedFixedWriter(ASTVisitorBase):
 
-    def __init__(self, component, node_int_labels, dt_int, dt_upscale):
+    def __init__(self, component, ): #node_int_labels, dt_int, dt_upscale):
 
 
-        self.intlabels = node_int_labels
-        
-        
-
-    
-    
-        
+        #self.intlabels = node_int_labels
         super(CBasedFixedWriter, self).__init__()
 
     def to_c(self, obj):
@@ -503,7 +465,7 @@ class CBasedFixedWriter(ASTVisitorBase):
 
         expr_lhs = self.visit(o.lhs)
         expr_rhs = self.visit(o.rhs)
-        expr_num = self.intlabels[o]
+        expr_num = o.annotations['node-id']#self.intlabels[o]
         res = "do_%s_op( %s, IntType(%d), %s, IntType(%d), IntType(%d), IntType(%d))" % (
                                             op,
                                             expr_lhs, o.lhs.annotations['fixed-point-format'].upscale,
@@ -562,7 +524,7 @@ class CBasedFixedWriter(ASTVisitorBase):
         param_term = self.visit(param.rhs_ast)
         ann_func_upscale = o.annotations['fixed-point-format'].upscale
         ann_param_upscale = param.rhs_ast.annotations['fixed-point-format'].upscale
-        expr_num = self.intlabels[o]
+        expr_num = o.annotations['node-id'] #self.intlabels[o]
 
         return """ int_exp( %s, IntType(%d), IntType(%d), IntType(%d) )""" %(param_term, ann_param_upscale, ann_func_upscale, expr_num )
 
@@ -626,17 +588,13 @@ class CBasedEqnWriterFixed(object):
         
 
         self.node_labeller = component.annotation_mgr._annotators['node-ids']
-        self.node_labels = self.node_labeller.node_to_int
         intermediate_nodes = IntermediateNodeFinder(component).valid_nodes
-        self.intermediate_store_locs = [("op%d" % self.node_labeller.node_to_int[o], o_number ) for (o, o_number) in intermediate_nodes.items()]
-
-
+        self.intermediate_store_locs = [("op%d" % o.annotations['node-id'], o_number) for (o, o_number) in intermediate_nodes.items()]
 
         self.component = component
-        self.float_type = 'int'
+        
 
-        self.writer = CBasedFixedWriter(component=component, node_int_labels=self.node_labeller.node_to_int, dt_int=self.dt_int, dt_upscale=self.dt_upscale)
-        #self.nbits = nbits
+        self.writer = CBasedFixedWriter(component=component) 
         self.nbits = component.annotation_mgr._annotators['fixed-point-format-ann'].nbits
 
 
@@ -646,13 +604,14 @@ class CBasedEqnWriterFixed(object):
         self.td_eqns = [ Eqn(node=td, rhs_cstr=self.writer.to_c(td) ) for td in self.component.timederivatives]        
         self.td_eqns = sorted(self.td_eqns, key=lambda o: o.node.lhs.symbol.lower())
 
+        
 
         cfile = Template(c_prog).render(
                     output_filename = output_filename,
 
-                    parameter_defs_new = list(self.component.parameters),
-                    state_var_defs_new = list(self.component.state_variables),
-                    assignment_defs_new = list(self.component.assignedvalues),
+                    parameter_defs = list(self.component.parameters),
+                    state_var_defs = list(self.component.state_variables),
+                    assignment_defs = list(self.component.assignedvalues),
 
                     dt_float = self.dt_float,
                     dt_int = self.dt_int,
@@ -663,7 +622,6 @@ class CBasedEqnWriterFixed(object):
                     eqns_timederivatives = self.td_eqns,
                     eqns_assignments = self.ass_eqns,
                     
-                    floattype = self.float_type,
                     nbits=self.nbits,
                     intermediate_store_locs=self.intermediate_store_locs,
                     
