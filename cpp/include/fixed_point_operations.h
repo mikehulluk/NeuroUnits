@@ -14,7 +14,7 @@ IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
 
     IntType res_int = auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local);
 
-    #if USE_HDF && SAVE_HDF5_INT 
+    #if USE_HDF && SAVE_HDF5_INT && SAVE_HDF5_PER_OPERATION
     if( expr_id != -1)
     {
         HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
@@ -35,7 +35,7 @@ IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
             assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
         }
         
-        #if USE_HDF && SAVE_HDF5_FLOAT 
+        #if USE_HDF && SAVE_HDF5_FLOAT  && SAVE_HDF5_PER_OPERATION
         if( expr_id != -1)
         {
             HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
@@ -55,7 +55,8 @@ IntType do_sub_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
 
     IntType res_int = auto_shift(v1, up1-up_local) - auto_shift(v2, up2-up_local);
 
-    #if USE_HDF && SAVE_HDF5_INT 
+    #if USE_HDF && SAVE_HDF5_INT && SAVE_HDF5_PER_OPERATION
+
     if( expr_id != -1)
     {
         HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
@@ -76,7 +77,7 @@ IntType do_sub_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
             assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
         }
 
-        #if USE_HDF && SAVE_HDF5_FLOAT 
+        #if USE_HDF && SAVE_HDF5_FLOAT && SAVE_HDF5_PER_OPERATION
         if( expr_id != -1)
         {
             HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
@@ -97,7 +98,8 @@ IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
 
 
 
-    #if USE_HDF && SAVE_HDF5_INT 
+    #if USE_HDF && SAVE_HDF5_INT && SAVE_HDF5_PER_OPERATION
+
     if( expr_id != -1)
     {
         HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
@@ -118,7 +120,7 @@ IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
             assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
         }
 
-        #if USE_HDF && SAVE_HDF5_FLOAT 
+        #if USE_HDF && SAVE_HDF5_FLOAT && SAVE_HDF5_PER_OPERATION
         if( expr_id != -1)
         {
             HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
@@ -150,7 +152,8 @@ IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
     
 
 
-    #if USE_HDF && SAVE_HDF5_INT 
+    #if USE_HDF && SAVE_HDF5_INT && SAVE_HDF5_PER_OPERATION
+
     if( expr_id != -1)
     {
         HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
@@ -171,7 +174,7 @@ IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
             assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
         }
 
-        #if USE_HDF && SAVE_HDF5_FLOAT 
+        #if USE_HDF && SAVE_HDF5_FLOAT && SAVE_HDF5_PER_OPERATION
         if( expr_id != -1)
         {
             HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
@@ -193,7 +196,8 @@ inline IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_i
     IntType res_int = exponential_lut.get( v1, up1, up_local );
 
 
-    #if USE_HDF && SAVE_HDF5_INT 
+    #if USE_HDF && SAVE_HDF5_INT && SAVE_HDF5_PER_OPERATION
+
     if( expr_id != -1)
     {
         HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/int/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
@@ -214,7 +218,7 @@ inline IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_i
             assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP );
         }
         
-        #if USE_HDF && SAVE_HDF5_FLOAT 
+        #if USE_HDF && SAVE_HDF5_FLOAT && SAVE_HDF5_PER_OPERATION
         if( expr_id != -1)
         {
         // -- Floating point version:

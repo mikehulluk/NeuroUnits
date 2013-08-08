@@ -271,99 +271,24 @@ CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', run=False, ou
 fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false').results
 
 results = HDF5SimulationResultFile("output.hd5")
-float_group = results.h5file.root._f_getChild('/simulation_fixed/float/variables/')
-time_array = results.h5file.root._f_getChild('/simulation_fixed/float/time')
-
-assert False
-
-
-def plot_set( ys, plot_index, plot_total, figure):
-
-    ax = figure.add_subplot(plot_total, 1, plot_index, )
-    for y in ys:
-        try:
-            #ax.plot(data_int[x], data_int[y], label=y )
-            ax.plot(time_array.read(), float_group._f_getChild(y).read(), label=y )
-        except KeyError, e:
-            print e
-        except ValueError, e:
-            print e
-        except tables.exceptions.NoSuchNodeError,e:
-            print e
-
-    ax.legend()
-
-
-
-## Check it works:
-simulate = True
-#simulate = False
-res = None
-if simulate:
-    res = comp.simulate( times = np.arange(0, 0.2,0.0001) )
-    res.auto_plot()
-    #pylab.show()
 
 
 
 
 
+time_array = results.h5file.root._f_getChild('/simulation_fixed/float/time').read()
 
 
+V_LHS = results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/variables/V').read()
+V_RHS = results.h5file.root._f_getChild('/simulation_fixed/float/RHSdIN/variables/V').read()
 
+print 'time: ', time_array.shape
+print 'V_LHS: ', V_LHS.shape
+print 'V_RHS: ', V_RHS.shape
 
-
-
-
-fig = pylab.figure()
-
-
-
-plot_set( ['alpha_kf_n', 'beta_kf_n'], 1, 5, fig)
-
-plot_set( ['kf_n', 'inf_kf_n'],  2, 5, fig)
-plot_set( ['iInj','iLk','iKf'], 3, 5, fig)
-
-plot_set( ['tau_kf_n'],  4, 5, fig)
-plot_set( ['V','V2'],  5, 5, fig )
-
-
-
-
-
-
-
-
-
-data_names1 = [ass.symbol for ass in comp.assignedvalues]
-data_names2 = [sv.symbol for sv in comp.state_variables]
-data_names = data_names1 + data_names2 
-
-
-data_names = ['V']
-
-
-for data_name in data_names: 
-    did_plot = False
-    try:
-        pylab.figure()
-        if res:
-            pylab.plot(res.get_time(), res.get_data(data_name),'r-',  alpha=0.4, lw=10 )
-            pylab.plot(res.get_time(), res.get_data(data_name),'r-x', label='ref-%s'%data_name, )
-        #pylab.plot(data_int['i']/10000., data_int[data_name], 'bx',label='fixed-%s'%data_name )
-        pylab.plot(time_array.read()+0.1e-3, float_group._f_getChild(data_name).read(), label='fixed-%s'%data_name )
-        
-        pylab.legend()
-        did_plot=True
-    except KeyError, e:
-        print e
-    except ValueError, e:
-        print e
-    except AssertionError, e:
-        print e
-    if not did_plot:
-        pylab.close()
-
+pylab.plot(time_array, V_LHS, label='lhs')
+pylab.plot(time_array, V_RHS, label='rhs')
+pylab.legend()
 pylab.show()
 
 
@@ -371,9 +296,89 @@ pylab.show()
 
 
 
-
-
-
-
-
+# 
+# 
+# 
+# float_group = results.h5file.root._f_getChild('/simulation_fixed/float/variables/')
+# time_array = results.h5file.root._f_getChild('/simulation_fixed/float/time')
+# 
+# def plot_set( ys, plot_index, plot_total, figure):
+# 
+#     ax = figure.add_subplot(plot_total, 1, plot_index, )
+#     for y in ys:
+#         try:
+#             #ax.plot(data_int[x], data_int[y], label=y )
+#             ax.plot(time_array.read(), float_group._f_getChild(y).read(), label=y )
+#         except KeyError, e:
+#             print e
+#         except ValueError, e:
+#             print e
+#         except tables.exceptions.NoSuchNodeError,e:
+#             print e
+# 
+#     ax.legend()
+# 
+# 
+# 
+# 
+# 
+# fig = pylab.figure()
+# 
+# 
+# 
+# plot_set( ['alpha_kf_n', 'beta_kf_n'], 1, 5, fig)
+# plot_set( ['kf_n', 'inf_kf_n'],  2, 5, fig)
+# plot_set( ['iInj','iLk','iKf'], 3, 5, fig)
+# plot_set( ['tau_kf_n'],  4, 5, fig)
+# plot_set( ['V','V2'],  5, 5, fig )
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# data_names1 = [ass.symbol for ass in comp.assignedvalues]
+# data_names2 = [sv.symbol for sv in comp.state_variables]
+# data_names = data_names1 + data_names2 
+# 
+# 
+# data_names = ['V']
+# 
+# 
+# for data_name in data_names: 
+#     did_plot = False
+#     try:
+#         pylab.figure()
+#         if res:
+#             pylab.plot(res.get_time(), res.get_data(data_name),'r-',  alpha=0.4, lw=10 )
+#             pylab.plot(res.get_time(), res.get_data(data_name),'r-x', label='ref-%s'%data_name, )
+#         #pylab.plot(data_int['i']/10000., data_int[data_name], 'bx',label='fixed-%s'%data_name )
+#         pylab.plot(time_array.read()+0.1e-3, float_group._f_getChild(data_name).read(), label='fixed-%s'%data_name )
+#         
+#         pylab.legend()
+#         did_plot=True
+#     except KeyError, e:
+#         print e
+#     except ValueError, e:
+#         print e
+#     except AssertionError, e:
+#         print e
+#     if not did_plot:
+#         pylab.close()
+# 
+# pylab.show()
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
 
