@@ -49,6 +49,15 @@ define_component simple_hh {
 
 
     glk_noise = 1.1
+    
+    glk_noise1 = ~RV::uniform(0.8,1.2)(when=NOW, share=PER_NEURON]
+    glk_noise2 = ~RV::uniform(0.8,1.2)(when=SIM:INIT,share=PER_POPULATION]
+    glk_noise3 = ~RV::uniform(0.8,1.2)(when=SIM:PER_STEP,share=PER_POPULATION]
+    glk_noise4 = ~RV::uniform(0.8,1.2)(when=SIM:ON_EVENT(name),share=PER_NEURON]
+    
+    glk_noise = (glk_noise1 + glk_noise2 + glk_noise3 + glk_noise4) / 4.0 
+    
+    glk_noise = 1.1
 
     AlphaBetaFunc(v, A,B,C,D,E) = (A+B*v) / (C + exp( (D+v)/E))
 
@@ -256,8 +265,8 @@ comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 from neurounits.tools.population_infrastructure import *
 
 network = Network()
-p1 = Population(name='LHSdIN', component=comp, size=30 )
-p2 = Population(name='RHSdIN', component=comp, size=30 )
+p1 = Population(name='LHSdIN', component=comp, size=3 )
+p2 = Population(name='RHSdIN', component=comp, size=3 )
 network.add(p1)
 network.add(p2)
 
@@ -279,8 +288,8 @@ results = HDF5SimulationResultFile("output.hd5")
 time_array = results.h5file.root._f_getChild('/simulation_fixed/float/time').read()
 
 
-V_LHS = results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/variables/V').read()
-V_RHS = results.h5file.root._f_getChild('/simulation_fixed/float/RHSdIN/variables/V').read()
+V_LHS = results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/000/variables/V').read()
+V_RHS = results.h5file.root._f_getChild('/simulation_fixed/float/RHSdIN/000/variables/V').read()
 
 print 'time: ', time_array.shape
 print 'V_LHS: ', V_LHS.shape

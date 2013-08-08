@@ -210,33 +210,23 @@ namespace NS_${population.name}
 struct NrnPopData
 {
     static const int size = ${population.size};
+
     // Parameters:
 % for p in parameter_defs:
-    IntType ${p.symbol};      // Upscale: ${p.annotations['fixed-point-format'].upscale}
+    IntType ${p.symbol}[size];      // Upscale: ${p.annotations['fixed-point-format'].upscale}
 % endfor
 
     // Assignments:
 % for ass in assignment_defs:
-    IntType ${ass.symbol};      // Upscale: ${ass.annotations['fixed-point-format'].upscale}
+    IntType ${ass.symbol}[size];      // Upscale: ${ass.annotations['fixed-point-format'].upscale}
 % endfor
 
     // States:
 % for sv_def in state_var_defs:
-    IntType ${sv_def.symbol};    // Upscale: ${sv_def.annotations['fixed-point-format'].upscale}
-    IntType d_${sv_def.symbol};
+    IntType ${sv_def.symbol}[size];    // Upscale: ${sv_def.annotations['fixed-point-format'].upscale}
+    IntType d_${sv_def.symbol}[size];
 % endfor
-
-<%
-    cons = ',\n      '.join( 
-                    ['%s(0)' % o.symbol for o in parameter_defs + assignment_defs ] +
-                    ['%s(0),\n      d_%s(0)' % (o.symbol, o.symbol) for o in state_var_defs ] 
-                    )
-%>
-    NrnPopData()
-    : ${cons} 
-    {}
 };
-
 
 
 
@@ -247,9 +237,12 @@ NrnPopData output_data[nsim_steps];
 
 void initialise_statevars(NrnPopData& d)
 {
-    % for sv_def in state_var_defs:
-    d.${sv_def.symbol} = auto_shift( IntType(${sv_def.initial_value.annotations['fixed-point-format'].const_value_as_int}),  IntType(${sv_def.initial_value.annotations['fixed-point-format'].upscale} - ${sv_def.annotations['fixed-point-format'].upscale} ) );
-    % endfor
+    for(int i=0;i<NrnPopData::size;i++)
+    {
+        % for sv_def in state_var_defs:
+        d.${sv_def.symbol}[i] = auto_shift( IntType(${sv_def.initial_value.annotations['fixed-point-format'].const_value_as_int}),  IntType(${sv_def.initial_value.annotations['fixed-point-format'].upscale} - ${sv_def.annotations['fixed-point-format'].upscale} ) );
+        % endfor
+    }
 }
 
 
@@ -261,60 +254,57 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
 {
 
     const IntType t = time_info.time_int;
-    const IntType time_step = time_info.time_step;
+    ##const IntType time_step = time_info.time_step;
 
-    #if DISPLAY_LOOP_INFO
-    if(get_value32(time_step)%100 == 0)
+
+
+    for(int i=0;i<NrnPopData::size;i++)
     {
-        std::cout << "Loop: " << time_step << "\n";
-        std::cout << "t: " << t << "\n";
+        // Calculate assignments:
+        % for eqn in eqns_assignments:
+        d.${eqn.node.lhs.symbol}[i] = ${eqn.rhs_cstr} ;
+        % endfor
+    
+        // Calculate delta's for all state-variables:
+        % for eqn in eqns_timederivatives:
+        IntType d_${eqn.node.lhs.symbol} = ${eqn.rhs_cstr[0]} ;
+        d.${eqn.node.lhs.symbol}[i] += ${eqn.rhs_cstr[1]} ;
+        % endfor
+
     }
-    #endif
 
-    // Calculate assignments:
-    % for eqn in eqns_assignments:
-    d.${eqn.node.lhs.symbol} = ${eqn.rhs_cstr} ;
-    % endfor
-
-    // Calculate delta's for all state-variables:
-    % for eqn in eqns_timederivatives:
-    IntType d_${eqn.node.lhs.symbol} = ${eqn.rhs_cstr[0]} ;
-    d.${eqn.node.lhs.symbol} += ${eqn.rhs_cstr[1]} ;
-    % endfor
 
 
     #if USE_HDF && SAVE_HDF5_INT
+    for(int i=0;i<NrnPopData::size;i++)
     {
         HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
-        ##file->get_dataset("simulation_fixed/int/time")->append<T_hdf5_type_int>(get_value32(t));
     
-        % for eqn in eqns_assignments:
-        file->get_dataset("simulation_fixed/int/${population.name}/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_int>(get_value32( d.${eqn.node.lhs.symbol}));
+        % for eqn in eqns_assignments + eqns_timederivatives:
+        file->get_dataset((boost::format("simulation_fixed/int/${population.name}/%03d/variables/${eqn.node.lhs.symbol}")%i).str())->append<T_hdf5_type_int>(get_value32( d.${eqn.node.lhs.symbol}[i]));
         % endfor
 
-        % for eqn in eqns_timederivatives:
-        file->get_dataset("simulation_fixed/int/${population.name}/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_int>(get_value32( d.${eqn.node.lhs.symbol}));
-        % endfor
+        ##% for eqn in :
+        ##file->get_dataset((boost::format("simulation_fixed/int/${population.name}/%03d/variables/${eqn.node.lhs.symbol}")%i).str())->append<T_hdf5_type_int>(get_value32( d.${eqn.node.lhs.symbol}[i]));
+        ##% endfor
     }
     #endif
 
     
     #if USE_HDF && SAVE_HDF5_FLOAT
+    for(int i=0;i<NrnPopData::size;i++)
     { 
-        ##const double dt_float = FixedFloatConversion::to_float(IntType(dt_int), IntType(${dt_upscale}));  
-        ##const double t_float = get_value32(time_step) * dt_float;
-    
+   
         HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
         ##file->get_dataset("simulation_fixed/float/time")->append<T_hdf5_type_float>(t_float);
-        % for eqn in eqns_timederivatives:
-        file->get_dataset("simulation_fixed/float/${population.name}/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_float>( FixedFloatConversion::to_float(  d.${eqn.node.lhs.symbol},  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ) );
+        % for eqn in eqns_timederivatives + eqns_assignments:
+        file->get_dataset((boost::format("simulation_fixed/float/${population.name}/%03d/variables/${eqn.node.lhs.symbol}")%i).str() )->append<T_hdf5_type_float>( FixedFloatConversion::to_float(  d.${eqn.node.lhs.symbol}[i],  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ) );
         % endfor
-        % for eqn in eqns_assignments:
-        file->get_dataset("simulation_fixed/float/${population.name}/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_float>( FixedFloatConversion::to_float(  d.${eqn.node.lhs.symbol},  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ) );
-        % endfor
+        ##% for eqn in :
+        ##file->get_dataset((boost::format("simulation_fixed/float/${population.name}/%03d/variables/${eqn.node.lhs.symbol}")%i).str() )->append<T_hdf5_type_float>( FixedFloatConversion::to_float(  d.${eqn.node.lhs.symbol}[i],  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ) );
+        ##% endfor
     }
     #endif
-
 }
 
 
@@ -329,20 +319,23 @@ void setup_hdf5()
 {
 #if USE_HDF
     HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
-
-    // Storage for state-variables and assignments:
-    % for sv_def in state_var_defs + assignment_defs:
-    file->get_group("simulation_fixed/float/${population.name}/variables/")->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
-    file->get_group("simulation_fixed/int/${population.name}/variables/")->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
-    % endfor
-
-    // Storage for the intermediate values in calculations:
-    #if SAVE_HDF5_PER_OPERATION
-    %for intermediate_store_loc, size in intermediate_store_locs:
-    file->get_group("simulation_fixed/float/${population.name}/operations/")->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size}, hdf5_type_float) );
-    file->get_group("simulation_fixed/int/${population.name}/operations/")->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size},  hdf5_type_int) );
-    %endfor
-    #endif
+    
+    for(int i=0;i<NrnPopData::size;i++)
+    {
+        // Storage for state-variables and assignments:
+        % for sv_def in state_var_defs + assignment_defs:
+        file->get_group((boost::format("simulation_fixed/float/${population.name}/%03d/variables/")%i).str())->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+        file->get_group((boost::format("simulation_fixed/int/${population.name}/%03d/variables/")%i).str())->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
+        % endfor
+    
+        // Storage for the intermediate values in calculations:
+        #if SAVE_HDF5_PER_OPERATION
+        %for intermediate_store_loc, size in intermediate_store_locs:
+        file->get_group((boost::format("simulation_fixed/float/${population.name}/%03d/operations/")%i).str())->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size}, hdf5_type_float) );
+        file->get_group((boost::format("simulation_fixed/int/${population.name}/%03d/operations/")%i).str())->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size},  hdf5_type_int) );
+        %endfor
+        #endif
+    }
 #endif
 }
 
@@ -439,11 +432,21 @@ int main()
         if(k%100==0) cout << "Loop: " << k << "\n" << flush;
     #endif
         
-        for(IntType i=IntType(0);i<nsim_steps;i++)
+        for(IntType time_step=IntType(0);time_step<nsim_steps;time_step++)
         {
         
-            TimeInfo time_info(i);
+            TimeInfo time_info(time_step);
             write_time_to_hdf5(time_info);
+            
+            #if DISPLAY_LOOP_INFO
+            if(get_value32(time_step)%100 == 0)
+            {
+                std::cout << "Loop: " << time_step << "\n";
+                std::cout << "t: " << time_info.time_int << "\n";
+            }
+            #endif
+
+
             
             
             // A. Electrical coupling:
@@ -452,7 +455,7 @@ int main()
             // B. Integrate all the state_variables of all the neurons:
             %for pop in network.populations:
             NS_${pop.name}::sim_step( data_${pop.name}, time_info);
-            NS_${pop.name}::output_data[get_value32(i)] = data_${pop.name};
+            NS_${pop.name}::output_data[get_value32(time_step)] = data_${pop.name};
             %endfor
             
             
@@ -539,7 +542,7 @@ class CBasedEqnWriterFixedNetwork(object):
             self.component = population.component
             
     
-            self.writer = CBasedFixedWriter(component=population.component) 
+            self.writer = CBasedFixedWriter(component=population.component, population_access_index='i') 
         
     
     
@@ -628,7 +631,9 @@ class CBasedEqnWriterFixedNetwork(object):
                                                 additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/') ], 
                                                 additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/")], 
                                                 libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl'],
-                                                compile_flags=['-Wall -Werror -Wfatal-errors -std=gnu++0x -g -p ' + (CPPFLAGS if CPPFLAGS else '') ]),
+                                                compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x -g -p ' + (CPPFLAGS if CPPFLAGS else '') ]),
+                                   
+                                                # 
                                    run=True)
 
         self.results = CBasedEqnWriterFixedResultsProxy(self)

@@ -56,9 +56,10 @@ class IntermediateNodeFinder(ASTActionerDefaultIgnoreMissing):
 
 class CBasedFixedWriter(ASTVisitorBase):
 
-    def __init__(self, component, ): 
+    def __init__(self, component, population_access_index=None ): 
         super(CBasedFixedWriter, self).__init__()
-
+        self.population_access_index=population_access_index
+    
     def to_c(self, obj):
         return self.visit(obj)
 
@@ -67,7 +68,10 @@ class CBasedFixedWriter(ASTVisitorBase):
         return self.visit(o.rhs_map.values()[0])
 
     def get_var_str(self, name):
-        return "d.%s" % name
+        s =  "d.%s" % name
+        if self.population_access_index!=None:
+            s += '[%s]'%self.population_access_index
+        return s
 
     def DoOpOpComplex(self, o, op):
 

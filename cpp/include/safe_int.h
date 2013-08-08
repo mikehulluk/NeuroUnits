@@ -34,6 +34,7 @@ namespace mh_int32
 
 
         int _value;
+        bool is_valid;
 
     public:
 
@@ -64,7 +65,7 @@ namespace mh_int32
         {
             //cout << "\nChecking value: " << value;
 
-
+            
 
             if(value < 0) value = -value;
 
@@ -80,19 +81,25 @@ namespace mh_int32
 
 
         explicit SafeInt32(NativeInt32 value)
-            : _value(value)
+            : _value(value), is_valid(true)
         {
             check_value(value);
             if( (SL)_value > (SL)int32_max || (SL)_value < (SL) int32_min )
             {
                 throw SafeIntException();
             }
+        }
 
-            //assert(0);
-            // Check fits with 24 bits:
 
+        explicit SafeInt32()
+            : _value(0), is_valid(false)
+        {
 
         }
+
+
+
+
 
         bool is_positive() const
         {
@@ -111,43 +118,52 @@ namespace mh_int32
 
         bool operator==(const SafeInt32& rhs) const
         {
+            assert(this->is_valid && rhs.is_valid);
             return _value == rhs._value;
         }
 
         bool operator<(const SafeInt32& rhs) const
         {
+            assert(this->is_valid && rhs.is_valid);
             return _value < rhs._value;
         }
 
         // Comparisons against ints:
         bool operator==(NativeInt32 rhs) const
         {
+            assert(this->is_valid);
             return _value == rhs;
         }
         bool operator!=(NativeInt32 rhs) const
         {
+            assert(this->is_valid);
             return _value != rhs;
         }
         bool operator>(NativeInt32 b) const
         {
+            assert(this->is_valid);
             return _value > b;
         }
         bool operator<(NativeInt32 b) const
         {
+            assert(this->is_valid);
             return _value < b;
         }
         bool operator>=(NativeInt32 b) const
         {
+            assert(this->is_valid);
             return _value >= b;
         }
         SafeInt32 operator-() const
         {
+            assert(this->is_valid);
             return SafeInt32(-_value);
         }
 
 
         SafeInt32& operator+=(const SafeInt32& rhs)
         {
+            assert(this->is_valid && rhs.is_valid);
             SafeInt32 s = *this + rhs;
             this->_value = s._value;
             return *this;
@@ -166,6 +182,7 @@ namespace mh_int32
 
     SafeInt32 operator+(SafeInt32 a, SafeInt32 b)
     {
+        assert(a.is_valid && b.is_valid);
 
         if(a.is_positive() )
         {
@@ -208,12 +225,14 @@ namespace mh_int32
 
     SafeInt32 operator-(SafeInt32 a, SafeInt32 b)
     {
+        assert(a.is_valid && b.is_valid);
         // TODO: Check for overflow/underflow here:
         return SafeInt32( a._value - b._value);
     }
 
     SafeInt32 operator*(SafeInt32 a, SafeInt32 b)
     {
+        assert(a.is_valid && b.is_valid);
         // TODO: Check for overflow/underflow here:
         SafeInt32 res = SafeInt32( a._value * b._value);
 
@@ -227,6 +246,7 @@ namespace mh_int32
 
     SafeInt32 operator/(SafeInt32 a, SafeInt32 b)
     {
+        assert(a.is_valid && b.is_valid);
         // TODO: Check for overflow/underflow here:
         SafeInt32 res = SafeInt32( a._value / b._value);
 
@@ -241,6 +261,7 @@ namespace mh_int32
 
     SafeInt32 operator<<(const SafeInt32& a, const SafeInt32& b)
     {
+        assert(a.is_valid && b.is_valid);
         // TODO: Check for overflow/underflow here:
         assert(b._value >= 0 );
         SafeInt32 res = SafeInt32( a._value << b._value);
@@ -255,6 +276,7 @@ namespace mh_int32
 
     SafeInt32 operator>>(const SafeInt32& a, const SafeInt32& b)
     {
+        assert(a.is_valid && b.is_valid);
         // TODO: Check for overflow/underflow here:
         assert(b._value >= 0 );
         SafeInt32 res = SafeInt32( a._value >> b._value);
@@ -270,16 +292,19 @@ namespace mh_int32
 
     SafeInt32 operator+(SafeInt32 a, NativeInt32 b)
     {
+        assert(a.is_valid);
         return a + SafeInt32(b);
     }
 
     SafeInt32 operator-(SafeInt32 a, NativeInt32 b)
     {
+        assert(a.is_valid);
         return a - SafeInt32(b);
     }
 
     SafeInt32 operator*(SafeInt32 a, NativeInt32 b)
     {
+        assert(a.is_valid);
         return a * SafeInt32(b);
     }
 
