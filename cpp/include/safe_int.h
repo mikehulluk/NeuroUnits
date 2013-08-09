@@ -63,7 +63,6 @@ namespace mh_int32
         static
         void check_value(NativeInt64 value)
         {
-            //cout << "\nChecking value: " << value;
 
             
 
@@ -73,7 +72,7 @@ namespace mh_int32
             if( value != masked )
             {
 
-                cout << "\n ** Truncation Error! ** \n";
+                std::cout << "\n ** Truncation Error! ** \n";
                 assert(0);
 
             }

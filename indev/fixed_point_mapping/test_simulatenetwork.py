@@ -45,27 +45,33 @@ define_component simple_hh {
     eLk = -50mV
 
     iLk = gLk * (eLk-V) * glk_noise
-    V' = (1/Cap) * (iInj + iLk + iKs + iKf +iNa) #+ iNa)
+    V' = (1/Cap) * (iInj + iLk + iKs + iKf +iNa) 
 
 
-    glk_noise = 1.1
     
-    glk_noise1 = ~RV::uniform(0.8,1.2)(when=NOW, share=PER_NEURON]
-    glk_noise2 = ~RV::uniform(0.8,1.2)(when=SIM:INIT,share=PER_POPULATION]
-    glk_noise3 = ~RV::uniform(0.8,1.2)(when=SIM:PER_STEP,share=PER_POPULATION]
-    glk_noise4 = ~RV::uniform(0.8,1.2)(when=SIM:ON_EVENT(name),share=PER_NEURON]
+    noise_min = 0.5
+    noise_max = 1.5
+    
+    glk_noise1 =  ~uniform(min=noise_min, max=noise_max)[when=SIM_INIT, share=PER_NEURON]
+    glk_noise2 =  ~uniform(min=noise_min, max=noise_max + eK/{1V})[when=SIM_INIT, share=PER_POPULATION]
+    glk_noise3 =  ~uniform(min=noise_min, max=noise_max)[when=SIM_INIT, share=PER_POPULATION]
+    glk_noise4 =  ~uniform(min=noise_min, max=noise_max)[when=SIM_INIT, share=PER_NEURON]
+    
     
     glk_noise = (glk_noise1 + glk_noise2 + glk_noise3 + glk_noise4) / 4.0 
     
-    glk_noise = 1.1
+
 
     AlphaBetaFunc(v, A,B,C,D,E) = (A+B*v) / (C + exp( (D+v)/E))
 
     eK = -80mV
-    eNa = 50mV
+    eNa = 50mV 
     gKs = 10.0 nS
     gKf = 12.5 nS
     gNa = 250 nS
+    
+    
+    
 
     # Slow Potassium (Ks):
     alpha_ks_n = AlphaBetaFunc(v=V, A=0.462ms-1, B=8.2e-3ms-1 mV-1, C=4.59, D=-4.21mV,E=-11.97mV)
@@ -97,7 +103,7 @@ define_component simple_hh {
     tau_na_h = 1.0 / (alpha_na_h + beta_na_h)
     na_h' = (inf_na_h - na_h) / tau_na_h
 
-    iNa = gNa * (eNa-V) * na_m * na_m * na_m * na_h
+    iNa = gNa * (eNa-V) * na_m * na_m * na_m * na_h * glk_noise1
     
 
     # Calcium:
@@ -240,6 +246,12 @@ var_annots_dIN = {
     'ks_n'          : NodeRange(min="0", max = "1.5"),
     'na_h'          : NodeRange(min="0", max = "1.5"),
     'na_m'          : NodeRange(min="0", max = "1.5"),
+    'glk_noise'     : NodeRange(min="0", max = "1.2"),
+    'glk_noise1'     : NodeRange(min="0", max = "3"),
+    'glk_noise2'     : NodeRange(min="0", max = "3"),
+    'glk_noise3'     : NodeRange(min="0", max = "3"),
+    'glk_noise4'     : NodeRange(min="0", max = "3"),
+    
 }
 
  
@@ -263,21 +275,34 @@ comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 
 
 from neurounits.tools.population_infrastructure import *
-
 network = Network()
-p1 = Population(name='LHSdIN', component=comp, size=3 )
-p2 = Population(name='RHSdIN', component=comp, size=3 )
+p1 = Population(name='LHSdIN', component=comp, size=30 )
+p2 = Population(name='RHSdIN', component=comp, size=1 )
 network.add(p1)
 network.add(p2)
 
 
+e1 = ElectricalSynapseProjection(src_population=p1, dst_population=p1, connection_probability=0.2, strength_ohm=300e6)
+network.add(e1)
+
+
+
+
+
+
+
+
+
+
 
 # Just generate the file:
-CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', run=False, output_c_filename='/auto/homes/mh735/Desktop/tadpole1.cpp', compile=False, CPPFLAGS='-DON_NIOS=true')
+CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', run=False, output_c_filename='/auto/homes/mh735/Desktop/tadpole1.cpp', compile=False, CPPFLAGS='-DON_NIOS=true', record_symbols=['V'] )
 #assert False
 
 
-fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false').results
+fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false', record_symbols=['V']).results
+
+
 
 results = HDF5SimulationResultFile("output.hd5")
 
@@ -288,14 +313,33 @@ results = HDF5SimulationResultFile("output.hd5")
 time_array = results.h5file.root._f_getChild('/simulation_fixed/float/time').read()
 
 
-V_LHS = results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/000/variables/V').read()
+for i in range(30):
+    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/V' % i).read(), label='lhs-%03d' % i)
+pylab.legend()
+pylab.show()
+
+
+
+
+
+
+
+V_LHS000 = results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/000/variables/V').read()
+V_LHS001 = results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/001/variables/V').read()
+V_LHS002 = results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/002/variables/V').read()
+
+
+
 V_RHS = results.h5file.root._f_getChild('/simulation_fixed/float/RHSdIN/000/variables/V').read()
 
 print 'time: ', time_array.shape
-print 'V_LHS: ', V_LHS.shape
+print 'V_LHS: ', V_LHS000.shape
 print 'V_RHS: ', V_RHS.shape
 
-pylab.plot(time_array, V_LHS, label='lhs')
+pylab.plot(time_array, V_LHS000, label='lhs-000')
+pylab.plot(time_array, V_LHS001, label='lhs-001')
+pylab.plot(time_array, V_LHS002, label='lhs-002')
+
 pylab.plot(time_array, V_RHS, label='rhs')
 pylab.legend()
 pylab.show()

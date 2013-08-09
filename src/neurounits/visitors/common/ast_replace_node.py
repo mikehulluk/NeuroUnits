@@ -33,6 +33,7 @@ from neurounits.ast.astobjects import ASTObject
 from neurounits.ast.eqnset import Block
 
 from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
+from neurounits.units_misc import LookUpDict
 
 class ReplaceNode(ASTVisitorBase):
 
@@ -139,8 +140,6 @@ class ReplaceNode(ASTVisitorBase):
         o.interface_def = self.replace_or_visit(o.interface_def)
         return o
 
-        assert False
-
 
     def VisitLibrary(self, o, **kwargs):
         o._eqn_assignment = self._replace_within_new_lut(o._eqn_assignment)
@@ -161,14 +160,9 @@ class ReplaceNode(ASTVisitorBase):
 
         o._event_port_connections = self._replace_within_new_lut(o._event_port_connections)
 
-
-        #if o is self.srcObj:
-        #    return self.dstObj
-
         return o
 
     def VisitRTGraph(self, o, **kwargs):
-        #print o.regimes
         if o.default_regime:
             assert o.default_regime in o.regimes
         o.regimes = self._replace_within_new_lut(o.regimes)
@@ -180,8 +174,7 @@ class ReplaceNode(ASTVisitorBase):
 
     def VisitRegime(self, o, **kwargs):
         # This is not a parent, so lets prevenmt recursion:
-       o.parent_rt_graph  = self.replace(o.parent_rt_graph) #== self.srcObj:
-            #o.parent_rt_graph = self.dstObj
+       o.parent_rt_graph  = self.replace(o.parent_rt_graph) 
        return o
 
 
@@ -238,6 +231,25 @@ class ReplaceNode(ASTVisitorBase):
 
     def VisitFunctionDefParameter(self, o, **kwargs):
         return o
+
+
+
+    # Random Variables:
+    def VisitRandomVariable(self, o, **kwargs):
+        o.parameters = LookUpDict([ self.replace_or_visit(p) for p in o.parameters])
+        return o
+
+    def VisitRandomVariableParameter(self, p, **kwargs):
+        p.rhs_ast = self.replace_or_visit(p.rhs_ast)
+        return p
+
+        
+
+
+
+
+
+
 
     # Terminals:
     def VisitStateVariable(self, o, **kwargs):

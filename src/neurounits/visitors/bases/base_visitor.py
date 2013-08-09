@@ -124,5 +124,8 @@ class ASTVisitorBase(object):
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         raise NotImplementedError()
-
+    def VisitRandomVariable(self, o, **kwargs):
+        raise NotImplementedError()
+    def VisitRandomVariableParameter(self, o, **kwargs):
+        raise NotImplementedError()
 

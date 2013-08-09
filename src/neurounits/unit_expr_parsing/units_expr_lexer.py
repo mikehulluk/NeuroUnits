@@ -68,6 +68,7 @@ class UnitExprLexer(object):
         'and':'AND_KW',
         'or':'OR_KW',
         'not':'NOT_KW',
+        
         }
 
     tokens = [
@@ -107,6 +108,9 @@ class UnitExprLexer(object):
         'AND_SYM',
         'OR_SYM',
         'NOT_SYM',
+
+        'TILDE',
+
         ] + list(reserved.values())
 
 
@@ -168,6 +172,7 @@ class UnitExprLexer(object):
     t_NOT_SYM = r"""!""" + WS
     t_AND_SYM = r"""&""" + WS
     t_OR_SYM = r"""\|""" + WS
+    t_TILDE = r"""~""" + WS
 
 
 

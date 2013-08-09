@@ -290,6 +290,19 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
 
 
+    def VisitRandomVariable(self, o, **kwargs):
+        for p in o.parameters:
+            self.visit(p, **kwargs)
+        self._ActionRandomVariable(o)
+        
+    def VisitRandomVariableParameter(self, o, **kwargs):
+        self.visit(o.rhs_ast)
+        self.ActionRandomVariableParameter(o)
+        
+        
+
+
+
 
     def _ActionPredicate(self, o, **kwargs):
         for p in self.action_predicates:
@@ -490,8 +503,19 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionCompoundPortConnector(o, **kwargs)
 
+    def _ActionRandomVariable(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionRandomVariable(o, **kwargs)
+    def _ActionRandomVariableParameter(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionRandomVariableParameter(o, **kwargs)
 
 
+
+    def ActionRandomVariable(self, o, **kwargs):
+        raise NotImplementedError()
+    def ActionRandomVariableParameter(self, o, **kwargs):
+        raise NotImplementedError()
 
 
 

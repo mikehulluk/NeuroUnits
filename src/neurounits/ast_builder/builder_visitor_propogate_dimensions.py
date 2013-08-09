@@ -289,6 +289,11 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
         pass
 
 
+    def VisitRandomVariable(self, o):
+        pass
+    def VisitRandomVariableParameter(self, o):
+        pass
+
 
 
 
@@ -626,21 +631,17 @@ class DimensionResolver(ASTVisitorBase):
 
     def VisitFunctionDefBuiltIn(self, o, **kwargs):
         dimensionless_functions = [
-                'sin','cos','tan',
-                'sinh','cosh','tanh',
-                'asin','acos','atan','atan2',
-                'exp','ln','log2','log10',
-                'pow','ceil','fabs','floor',
+                '__sin__','__cos__','__tan__',
+                '__sinh__','__cosh__','__tanh__',
+                '__asin__','__acos__','__atan__','__atan2__',
+                '__exp__','__ln__','__log2__','__log10__',
+                '__pow__','__ceil__','__fabs__','__floor__', '__abs__'
                 ]
         if o.funcname in dimensionless_functions:
             return
 
-        return
-        print 'Dealing with special'
-        raise NotImplementedError()
-        assert o.funcname in dimensionless_functions
+        assert False, 'Unexpected function: %s'% o.funcname
 
-        return
 
     def VisitOnTransitionTrigger(self, o, **kwargs):
         for a in o.actions:
@@ -690,6 +691,15 @@ class DimensionResolver(ASTVisitorBase):
         pass
     def VisitCompoundPortConnector(self, o):
         pass
+
+
+    def VisitRandomVariable(self, o):
+        for p in o.parameters:
+            self.visit(p)
+
+    def VisitRandomVariableParameter(self, p):
+        self.EnsureEqualDimensions([p, p.rhs_ast],)
+        self.visit(p.rhs_ast)
 
 
 class PropogateDimensions(object):

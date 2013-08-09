@@ -166,8 +166,6 @@ class ReduceConstants(ASTVisitorBase):
 
     def VisitAssignedVariable(self, o, **kwargs):
         return None
-        assert False, 'Deprecated'
-        return self.visit(o.assignment_rhs)
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
         if len(o.rhs_map) == 1:
@@ -249,4 +247,17 @@ class ReduceConstants(ASTVisitorBase):
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         raise NotImplementedError()
 
+
+
+    def VisitRandomVariable(self, rv, **kwargs):
+        # Check that the parameters are all constants for the moment:
+        for p in rv.parameters:
+            assert self.visit(p) != None, 'Random Variable parameters must all be compile time resolves'
+        
+
+        # Don't reduce random variables:
+        return None
+
+    def VisitRandomVariableParameter(self, p):
+        return self.visit(p.rhs_ast)
 

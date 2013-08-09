@@ -39,22 +39,27 @@ c_prog_header_tmpl = r"""
 
 
 
-
+//#define ON_NIOS
 
 #if ON_NIOS
 #define CALCULATE_FLOAT false
 #define USE_HDF false
 #define SAVE_HDF5_FLOAT false
 #define SAVE_HDF5_INT false
-#define SAFEINT false 
+#define SAFEINT true
 
 #else
-#define CALCULATE_FLOAT true
+
+
+#define CALCULATE_FLOAT false
 #define USE_HDF true
 #define SAVE_HDF5_FLOAT true
 #define SAVE_HDF5_INT true
-#define SAFEINT true
+#define SAFEINT false
+
+
 #endif
+
 
 
 
@@ -64,7 +69,7 @@ c_prog_header_tmpl = r"""
 
 
 
-/* ------- General  ----------- */ 
+/* ------- General  ----------- */
 #define CHECK_INT_FLOAT_COMPARISON true
 #define CHECK_INT_FLOAT_COMPARISON_FOR_EXP false
 
@@ -72,6 +77,10 @@ const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT = 100;
 const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP = 300;
 
 const int nsim_steps = ${nsim_steps};
+
+
+// Define how often to record values: 
+const int record_rate = 1;
 
 
 #include <stdio.h>
@@ -97,6 +106,7 @@ const int nsim_steps = ${nsim_steps};
 
 
 #if USE_HDF
+#include <unordered_map>
 // For Saving the data to HDF5:
 #include "hdfjive.h"
 const string output_filename = "${output_filename}";
@@ -127,7 +137,7 @@ using mh::auto_shift64;
 #if SAFEINT
 #include "safe_int.h"
 #include "safe_int_utils.h"
-#endif 
+#endif
 
 
 #include "safe_int_proxying.h"
@@ -188,12 +198,47 @@ struct TimeInfo
     TimeInfo(IntType time_step)
         : time_step(time_step), time_int( inttype32_from_inttype64<IntType>( auto_shift64( get_value64(dt_int) * get_value64(time_step), get_value64(dt_upscale- time_upscale) )) )
     {
-    
+
     }
 
 };
 
 
+
+
+
+
+
+
+
+
+
+
+namespace rnd
+{
+
+    double rand_in_range(double min, double max)
+    {
+        double r = (double)rand() / INT_MAX;
+        return r * (max-min) + min;
+        
+    
+        //return max + min/2.0;
+        
+    }
+
+    IntType uniform(IntType up, IntType min, IntType min_scale, IntType max, IntType max_scale)
+    {
+        return IntType( FixedFloatConversion::from_float(
+            rand_in_range(FixedFloatConversion::to_float(min, min_scale), FixedFloatConversion::to_float(max, max_scale)), 
+            up) );
+        
+        //return IntType(1);
+    }
+
+
+
+}
 
 """
 
@@ -226,12 +271,89 @@ struct NrnPopData
     IntType ${sv_def.symbol}[size];    // Upscale: ${sv_def.annotations['fixed-point-format'].upscale}
     IntType d_${sv_def.symbol}[size];
 % endfor
+
+
+    
+    // Random Variable nodes
+    %for rv, _pstring in rv_per_population:
+    IntType RV${rv.annotations['node-id']};
+    %endfor 
+    %for rv, _pstring in rv_per_neuron:
+    IntType RV${rv.annotations['node-id']}[size];
+    %endfor
+    
 };
+
+
+
+
+
+#if USE_HDF
+// For faster lookup:
+typedef std::vector<HDF5DataSet2DStdPtr> HDF5DataSet2DStdPtrVector;
+std::unordered_map<NativeInt32, HDF5DataSet2DStdPtrVector> hdf_map_id_to_datasetptrs_int;
+std::unordered_map<NativeInt32, HDF5DataSet2DStdPtrVector> hdf_map_id_to_datasetptrs_float;
+#endif
+
+
+
+void setup_hdf5()
+{
+#if USE_HDF
+    HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
+
+
+    for(int i=0;i<NrnPopData::size;i++)
+    {
+        
+        // Storage for state-variables and assignments:
+        % for sv_def in state_var_defs + assignment_defs:
+        hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}].push_back( file->get_group((boost::format("simulation_fixed/float/${population.name}/%03d/variables/")%i).str())->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) ) );
+        hdf_map_id_to_datasetptrs_int[${sv_def.annotations['node-id']}].push_back( file->get_group((boost::format("simulation_fixed/int/${population.name}/%03d/variables/")%i).str())->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) ) );
+        % endfor
+
+        // Storage for the intermediate values in calculations:
+        #if SAVE_HDF5_PER_OPERATION
+        %for intermediate_store_loc, size in intermediate_store_locs:
+        hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}].push_back( file->get_group((boost::format("simulation_fixed/float/${population.name}/%03d/operations/")%i).str())->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size}, hdf5_type_float) ) );
+        hdf_map_id_to_datasetptrs_int[${sv_def.annotations['node-id']}].push_back(file->get_group((boost::format("simulation_fixed/int/${population.name}/%03d/operations/")%i).str())->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size},  hdf5_type_int) ) );
+        %endfor
+        #endif
+    }
+    
+    
+    
+    
+#endif
+}
+
+
+
+
 
 
 
 NrnPopData output_data[nsim_steps];
 
+
+void initialise_randomvariables(NrnPopData& d)
+{
+    // Random Variable nodes
+    %for rv, rv_param_string in rv_per_population:
+    ##d.RV${rv.annotations['node-id']} = IntType(1.0);
+    d.RV${rv.annotations['node-id']} = rnd::${rv.functionname}(IntType(${rv.annotations['fixed-point-format'].upscale}), ${rv_param_string});
+    %endfor
+     
+    for(int i=0;i<NrnPopData::size;i++)
+    {
+        %for rv, rv_param_string in rv_per_neuron:
+        ##d.RV${rv.annotations['node-id']}[i] = IntType(1.0);
+        d.RV${rv.annotations['node-id']}[i] = rnd::${rv.functionname}( IntType(${rv.annotations['fixed-point-format'].upscale}), ${rv_param_string});
+        %endfor
+    }
+}
+
+    
 
 
 
@@ -249,12 +371,16 @@ void initialise_statevars(NrnPopData& d)
 
 
 
+
+
+
+
 // Update-function
 void sim_step(NrnPopData& d, TimeInfo time_info)
 {
 
     const IntType t = time_info.time_int;
-    ##const IntType time_step = time_info.time_step;
+    
 
 
 
@@ -264,7 +390,7 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
         % for eqn in eqns_assignments:
         d.${eqn.node.lhs.symbol}[i] = ${eqn.rhs_cstr} ;
         % endfor
-    
+
         // Calculate delta's for all state-variables:
         % for eqn in eqns_timederivatives:
         IntType d_${eqn.node.lhs.symbol} = ${eqn.rhs_cstr[0]} ;
@@ -272,72 +398,36 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
         % endfor
 
     }
-
-
-
-    #if USE_HDF && SAVE_HDF5_INT
-    for(int i=0;i<NrnPopData::size;i++)
-    {
-        HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
-    
-        % for eqn in eqns_assignments + eqns_timederivatives:
-        file->get_dataset((boost::format("simulation_fixed/int/${population.name}/%03d/variables/${eqn.node.lhs.symbol}")%i).str())->append<T_hdf5_type_int>(get_value32( d.${eqn.node.lhs.symbol}[i]));
-        % endfor
-
-        ##% for eqn in :
-        ##file->get_dataset((boost::format("simulation_fixed/int/${population.name}/%03d/variables/${eqn.node.lhs.symbol}")%i).str())->append<T_hdf5_type_int>(get_value32( d.${eqn.node.lhs.symbol}[i]));
-        ##% endfor
-    }
-    #endif
-
-    
-    #if USE_HDF && SAVE_HDF5_FLOAT
-    for(int i=0;i<NrnPopData::size;i++)
-    { 
-   
-        HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
-        ##file->get_dataset("simulation_fixed/float/time")->append<T_hdf5_type_float>(t_float);
-        % for eqn in eqns_timederivatives + eqns_assignments:
-        file->get_dataset((boost::format("simulation_fixed/float/${population.name}/%03d/variables/${eqn.node.lhs.symbol}")%i).str() )->append<T_hdf5_type_float>( FixedFloatConversion::to_float(  d.${eqn.node.lhs.symbol}[i],  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ) );
-        % endfor
-        ##% for eqn in :
-        ##file->get_dataset((boost::format("simulation_fixed/float/${population.name}/%03d/variables/${eqn.node.lhs.symbol}")%i).str() )->append<T_hdf5_type_float>( FixedFloatConversion::to_float(  d.${eqn.node.lhs.symbol}[i],  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ) );
-        ##% endfor
-    }
-    #endif
 }
 
 
-
-
-
-
-
-
-
-void setup_hdf5()
+void write_step_to_hdf5(NrnPopData& d, TimeInfo time_info)
 {
-#if USE_HDF
-    HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
-    
-    for(int i=0;i<NrnPopData::size;i++)
-    {
-        // Storage for state-variables and assignments:
-        % for sv_def in state_var_defs + assignment_defs:
-        file->get_group((boost::format("simulation_fixed/float/${population.name}/%03d/variables/")%i).str())->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
-        file->get_group((boost::format("simulation_fixed/int/${population.name}/%03d/variables/")%i).str())->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
+   
+        #if USE_HDF && SAVE_HDF5_INT
+        % for eqn in eqns_assignments + eqns_timederivatives:
+        %if eqn.node.lhs.symbol in record_symbols:
+        {
+        HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_int[${eqn.node.lhs.annotations['node-id']}];
+        for(int i=0;i<NrnPopData::size;i++) {pVec[i]->append<T_hdf5_type_int>(get_value32( d.${eqn.node.lhs.symbol}[i])); }
+        }
+        % endif
         % endfor
-    
-        // Storage for the intermediate values in calculations:
-        #if SAVE_HDF5_PER_OPERATION
-        %for intermediate_store_loc, size in intermediate_store_locs:
-        file->get_group((boost::format("simulation_fixed/float/${population.name}/%03d/operations/")%i).str())->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size}, hdf5_type_float) );
-        file->get_group((boost::format("simulation_fixed/int/${population.name}/%03d/operations/")%i).str())->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size},  hdf5_type_int) );
-        %endfor
         #endif
-    }
-#endif
+
+        #if USE_HDF && SAVE_HDF5_FLOAT
+        % for eqn in eqns_assignments + eqns_timederivatives:
+        %if eqn.node.lhs.symbol in record_symbols:
+        {
+        HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_float[${eqn.node.lhs.annotations['node-id']}];
+        for(int i=0;i<NrnPopData::size;i++) {pVec[i]->append<T_hdf5_type_float>(FixedFloatConversion::to_float(  d.${eqn.node.lhs.symbol}[i],  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) )); }
+        }
+        % endif
+        % endfor
+        #endif
 }
+
+
 
 
 
@@ -347,16 +437,15 @@ void print_results_from_NIOS()
     % for ass in assignment_defs + state_var_defs:
     cout << "\n#!DATA{ 'name':'${ass.symbol}' } {'size': ${nsim_steps},  'fixed_point': {'upscale':${ass.annotations['fixed-point-format'].upscale}, 'nbits':${nbits}} } [";
     for(IntType i=IntType(0);i<nsim_steps;i++) cout << output_data[ get_value32(i)].${ass.symbol} << " ";
-    cout << "]\n"; 
+    cout << "]\n";
     % endfor
-
-    cout << "\n#! FINISHED\n";  
+    cout << "\n#! FINISHED\n";
 }
 
 
 }
 
-""" 
+"""
 
 
 
@@ -364,7 +453,8 @@ void print_results_from_NIOS()
 c_main_loop_tmpl = r"""
 
 
-
+HDF5DataSet2DStdPtr time_dataset_int;
+HDF5DataSet2DStdPtr time_dataset_float;
 
 void setup_hdf5()
 {
@@ -372,8 +462,8 @@ void setup_hdf5()
     HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
 
     // Time
-    file->get_group("simulation_fixed/float")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
-    file->get_group("simulation_fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
+    time_dataset_float = file->get_group("simulation_fixed/float")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+    time_dataset_int = file->get_group("simulation_fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
 #endif //USE_HDF
 }
 
@@ -383,17 +473,14 @@ void setup_hdf5()
 void write_time_to_hdf5(TimeInfo time_info)
 {
 #if USE_HDF
-
-    HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
-                    
     #if SAVE_HDF5_INT
-    file->get_dataset("simulation_fixed/int/time")->append<T_hdf5_type_int>(get_value32(time_info.time_int));
+    time_dataset_int->append<T_hdf5_type_int>(get_value32(time_info.time_int));
     #endif
-    
+
     #if SAVE_HDF5_FLOAT
-    const double dt_float = FixedFloatConversion::to_float(IntType(dt_int), dt_upscale);  
+    const double dt_float = FixedFloatConversion::to_float(IntType(dt_int), dt_upscale);
     const double t_float = get_value32(time_info.time_step) * dt_float;
-    file->get_dataset("simulation_fixed/float/time")->append<T_hdf5_type_float>(t_float);
+    time_dataset_float->append<T_hdf5_type_float>(t_float);
     #endif
 
 #endif //USE_HDF
@@ -417,11 +504,12 @@ int main()
     %for pop in network.populations:
     NS_${pop.name}::setup_hdf5();
     %endfor
-    
+
     // Setup the variables:
     %for pop in network.populations:
     NS_${pop.name}::NrnPopData data_${pop.name};
     NS_${pop.name}::initialise_statevars(data_${pop.name});
+    NS_${pop.name}::initialise_randomvariables(data_${pop.name});
     %endfor
 
 
@@ -431,13 +519,14 @@ int main()
     {
         if(k%100==0) cout << "Loop: " << k << "\n" << flush;
     #endif
-        
+
         for(IntType time_step=IntType(0);time_step<nsim_steps;time_step++)
         {
-        
+
             TimeInfo time_info(time_step);
-            write_time_to_hdf5(time_info);
             
+
+
             #if DISPLAY_LOOP_INFO
             if(get_value32(time_step)%100 == 0)
             {
@@ -447,30 +536,43 @@ int main()
             #endif
 
 
-            
-            
+
+
             // A. Electrical coupling:
-            
-            
+
+
             // B. Integrate all the state_variables of all the neurons:
             %for pop in network.populations:
             NS_${pop.name}::sim_step( data_${pop.name}, time_info);
             NS_${pop.name}::output_data[get_value32(time_step)] = data_${pop.name};
             %endfor
-            
-            
+
+
             // C. Look for spikes for each neuron:
-            
-            
+
+
             // D. Deliver spikes:
             
+            
+            
+            
+            
+            // Z. Record the states:
+            if(time_info.time_step % record_rate==0)
+            {
+                write_time_to_hdf5(time_info);
+                %for pop in network.populations:
+                NS_${pop.name}::write_step_to_hdf5( data_${pop.name}, time_info);
+                %endfor
+            }
+
         }
-    
+
     #if NSIM_REPS
     }
     #endif
-    
-    
+
+
      %for pop in network.populations:
     #if ON_NIOS
     NS_${pop.name}::print_results_from_NIOS();
@@ -498,110 +600,133 @@ from fixed_point_common import Eqn, IntermediateNodeFinder, CBasedFixedWriter
 
 
 class CBasedEqnWriterFixedNetwork(object):
-    def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None):
+    def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None, record_symbols=None):
 
         self.dt_float = 0.1e-3
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
-        
-        
+
+
         # Check all the components use the same floating point formats:
         # NBITS:
-        nbits = set([ pop.component.annotation_mgr._annotators['fixed-point-format-ann'].nbits for pop in network.populations]) 
+        nbits = set([ pop.component.annotation_mgr._annotators['fixed-point-format-ann'].nbits for pop in network.populations])
         assert len(nbits) == 1
         self.nbits = list(nbits)[0]
-        
+
         #ENCODING OF TIME:
         time_upscale = set([pop.component.get_terminal_obj('t').annotations['fixed-point-format'].upscale for pop in network.populations])
         assert len(time_upscale) == 1
         self.time_upscale = list(time_upscale)[0]
-        
-        
+
+
         self.dt_int = NodeFixedPointFormatAnnotator.encore_value_cls(self.dt_float, self.dt_upscale, self.nbits )
-        #self.dt_int = network.populations[0].component.annotation_mgr._annotators['fixed-point-format-ann'].encode_value(self.dt_float, self.dt_upscale)
+
+
         
-        
-        
+
         std_variables = {
-            'nsim_steps' : 3000,  
+            'nsim_steps' : 3000,
             'nbits':self.nbits,
             'dt_float' : self.dt_float,
             'dt_int' : self.dt_int,
             'dt_upscale' : self.dt_upscale,
-            'time_upscale' : self.time_upscale,  
+            'time_upscale' : self.time_upscale,
             'output_filename' : output_filename,
             'network':network,
                          }
-        
+
         code_per_pop = []
-        
+
         for population in network.populations:
-            
+
             intermediate_nodes = IntermediateNodeFinder(population.component).valid_nodes
             self.intermediate_store_locs = [("op%d" % o.annotations['node-id'], o_number) for (o, o_number) in intermediate_nodes.items()]
-    
-            self.component = population.component
-            
-    
-            self.writer = CBasedFixedWriter(component=population.component, population_access_index='i') 
-        
-    
-    
-    
-            ordered_assignments = self.component.ordered_assignments_by_dependancies
+
+            component = population.component
+
+
+            self.writer = CBasedFixedWriter(component=population.component, population_access_index='i')
+
+
+
+
+            ordered_assignments = component.ordered_assignments_by_dependancies
             self.ass_eqns =[ Eqn(node=td, rhs_cstr=self.writer.to_c(td) ) for td in ordered_assignments]
-            self.td_eqns = [ Eqn(node=td, rhs_cstr=self.writer.to_c(td) ) for td in self.component.timederivatives]        
+            self.td_eqns = [ Eqn(node=td, rhs_cstr=self.writer.to_c(td) ) for td in component.timederivatives]
             self.td_eqns = sorted(self.td_eqns, key=lambda o: o.node.lhs.symbol.lower())
 
-        
+
+            rv_per_neuron = []
+            rv_per_population = []
+            
+            for rv in component.random_variable_nodes:
+            
+                assert rv.functionname == 'uniform'
+                params = [ rv.parameters.get_single_obj_by(name='min'), rv.parameters.get_single_obj_by(name='max'), ]
+                param_string = ','.join( "%s, IntType(%d)" % (self.writer.visit( p.rhs_ast), p.rhs_ast.annotations['fixed-point-format'].upscale ) for p in params )
+
+                if rv.modes['share']=='PER_NEURON':
+                    rv_per_neuron.append( (rv,param_string) )
+                elif rv.modes['share']=='PER_POPULATION':
+                    rv_per_population.append( (rv,param_string) )
+                    
+            
+
+
+
+
             try:
                 cfile = Template(c_population_details_tmpl).render(
                             output_filename = output_filename,
-        
-                            parameter_defs = list(self.component.parameters),
-                            state_var_defs = list(self.component.state_variables),
-                            assignment_defs = list(self.component.assignedvalues),
-        
+                            component = population.component,
+                            parameter_defs = list(component.parameters),
+                            state_var_defs = list(component.state_variables),
+                            assignment_defs = list(component.assignedvalues),
+
                             dt_float = self.dt_float,
                             dt_int = self.dt_int,
                             dt_upscale = self.dt_upscale,
-                            
-                            time_upscale = self.component.get_terminal_obj('t').annotations['fixed-point-format'].upscale,
-                            
+
+                            time_upscale = component.get_terminal_obj('t').annotations['fixed-point-format'].upscale,
+
                             eqns_timederivatives = self.td_eqns,
                             eqns_assignments = self.ass_eqns,
-                            
+
                             nbits=self.nbits,
                             intermediate_store_locs=self.intermediate_store_locs,
-                            
-                            nsim_steps = 3000,  
+
+                            nsim_steps = 3000,
                             population=population,
+                            
+                            rv_per_neuron = rv_per_neuron,
+                            rv_per_population = rv_per_population,
+                            record_symbols = record_symbols if record_symbols else [o.symbol for o in  component.assignedvalues + component.state_variables ]
                             )
             except:
                 print exceptions.html_error_template().render()
                 raise
-                
+
             code_per_pop.append(cfile)
 
 
 
         try:
             c_prog_header = Template(c_prog_header_tmpl).render(
-                          ** std_variables                         
-                        )
-        except:
-            print exceptions.html_error_template().render()
-            raise
-            
-        try:
-            c_main_loop = Template(c_main_loop_tmpl).render(
-                        ** std_variables    
+                          ** std_variables
                         )
         except:
             print exceptions.html_error_template().render()
             raise
 
-            
-            
+        try:
+            c_main_loop = Template(c_main_loop_tmpl).render(
+                        ** std_variables
+                        )
+        except:
+            print exceptions.html_error_template().render()
+            raise
+
+
+
 
         cfile = '\n'.join([c_prog_header] + code_per_pop + [c_main_loop])
 
@@ -624,16 +749,16 @@ class CBasedEqnWriterFixedNetwork(object):
     def compile_and_run(self, cfile, output_c_filename, run,CPPFLAGS):
 
         from neurounits.tools.c_compilation import CCompiler, CCompilationSettings
-        
-        
-        CCompiler.build_executable(src_text=cfile, 
+
+
+        CCompiler.build_executable(src_text=cfile,
                                    compilation_settings = CCompilationSettings(
-                                                additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/') ], 
-                                                additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/")], 
+                                                additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/') ],
+                                                additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/")],
                                                 libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl'],
                                                 compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x -g -p ' + (CPPFLAGS if CPPFLAGS else '') ]),
-                                   
-                                                # 
+
+                                                #
                                    run=True)
 
         self.results = CBasedEqnWriterFixedResultsProxy(self)
@@ -683,7 +808,7 @@ class CBasedEqnWriterFixedResultsProxy(object):
             ax2.set_ymargin(0.1)
             ax3.set_ymargin(0.1)
 
-            # Plot the floating-point values: 
+            # Plot the floating-point values:
             f.suptitle("Values of variable: %s" % ast_node.symbol)
             ax1.plot(time_array[::downscale], data_float[::downscale], color='blue')
             node_min = ast_node.annotations['node-value-range'].min.float_in_si()
@@ -699,7 +824,7 @@ class CBasedEqnWriterFixedResultsProxy(object):
             _max =  pow(2.0, nbits-1)
             ax2.plot( time_array, data_int[:,-1], color='blue')
             ax2.axhspan( _min, _max, color='lightgreen', alpha=0.4  )
-            
+
             ax3.hist(data_int[:,-1], range = (_min * 1.1 , _max * 1.1), bins=1024)
             ax3.axvline( _min, color='black', ls='--')
             ax3.axvline( _max, color='black', ls='--')
@@ -711,7 +836,7 @@ class CBasedEqnWriterFixedResultsProxy(object):
         for ast_node in self.eqnwriter.component.all_ast_nodes():
 
             try:
-                
+
                 data_float = h5file.root._f_getChild('/simulation_fixed/float/operations/' + "op%d" % ast_node.annotations['node-id']).read()
                 data_int = h5file.root._f_getChild('/simulation_fixed/int/operations/' + "op%d" % ast_node.annotations['node-id']).read()
 
@@ -736,12 +861,12 @@ class CBasedEqnWriterFixedResultsProxy(object):
                 _max =  pow(2.0, nbits-1)
                 ax2.plot( time_array, data_int[:,-1], color='blue')
                 ax2.axhspan( _min, _max, color='lightgreen', alpha=0.4  )
-                
+
                 ax3.hist(data_int[:,-1], range = (_min * 1.1 , _max * 1.1), bins=1024)
                 ax3.axvline( _min, color='black', ls='--')
                 ax3.axvline( _max, color='black', ls='--')
 
-                
+
 
                 invalid_points_limits = np.logical_or( node_min > data_float[:,-1], data_float[:,-1]  > node_max).astype(int)
                 invalid_points_upscale = np.logical_or( -pow(2,node_upscale) > data_float[:,-1], data_float[:,-1]  > pow(2,node_upscale)).astype(int)
@@ -799,7 +924,7 @@ class CBasedEqnWriterFixedResultsProxy(object):
 
                 if invalid_ranges_upscale:
                     print 'ERROR: Value falls out of upscale range!'
-                
+
                 #f.close()
 
 

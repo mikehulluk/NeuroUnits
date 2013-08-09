@@ -174,5 +174,22 @@ class CBasedFixedWriter(ASTVisitorBase):
         return c1, c2
         
 
+    def VisitRandomVariable(self, o):
+        print o.modes
+
+        assert o.modes['when'] in ('SIM_INIT')
+        assert o.modes['share'] in ('PER_NEURON', 'PER_POPULATION')
+
+        node_name = 'RV%s' % o.annotations['node-id']
+
+        if o.modes['share'] =='PER_NEURON':
+            return 'd.%s[i]' % node_name
+
+        if o.modes['share'] == 'PER_POPULATION':
+            return 'd.%s' % node_name
+
+
+        assert False
+
 
 

@@ -178,7 +178,6 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         for p in o.parameters.values():
             self.visit(p)
 
-
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         o.rhs_ast = self.followSymbolProxy(o.rhs_ast)
         self.visit(o.rhs_ast)
@@ -201,7 +200,6 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         self.visit(o.trigger)
 
     def VisitOnTransitionEvent(self, o, **kwargs):
-
         o.parameters = LookUpDict( 
                 [self.followSymbolProxy(rhs) for rhs in o.parameters], 
                 accepted_obj_types=o.parameters.accepted_obj_types, 
@@ -232,3 +230,11 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
     def VisitOutEventPortParameter(self, o, **kwargs):
         pass
 
+
+    def VisitRandomVariable(self, o, **kwargs):
+        for p in o.parameters:
+            self.visit(p)
+
+    def VisitRandomVariableParameter(self, o, **kwargs):
+        o.rhs_ast = self.followSymbolProxy(o.rhs_ast)
+        self.visit(o.rhs_ast)

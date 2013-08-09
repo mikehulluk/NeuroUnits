@@ -41,9 +41,13 @@ class ASTAllConnectionsCheck(ASTActionerDefault):
 
         from neurounits.ast import Interface
         from neurounits.ast import EventPortConnection
+        from neurounits.ast import RandomVariable
         if isinstance(obj, Interface):
             return
         if isinstance(obj, EventPortConnection):
+            return
+        if isinstance(obj, RandomVariable):
+            # TODO - FIX this properly
             return
 
 
@@ -122,6 +126,16 @@ class ASTAllConnections(ASTActionerDepthFirst):
         return [o.parent_rt_graph]
     def VisitRTGraph(self, o, **kwargs):
         return list(o.regimes)
+
+
+
+    
+    def VisitRandomVariable(self, o, **kwargs):
+        return list(o.parameters)
+    
+    def VisitRandomVariableParameter(self, o, **kwargs):
+        return [o.rhs_ast]
+
 
 
 

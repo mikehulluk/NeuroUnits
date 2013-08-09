@@ -184,3 +184,10 @@ class ASTActionerDefault(ASTActionerDepthFirst):
     def ActionLibraryManager(self, o,**kwargs):
         return self.ActionNode(o, **kwargs)
 
+
+    def ActionRandomVariable(self,o,**kwargs):
+        return self.ActionNode(o, **kwargs)
+
+    def ActionRandomVariableParameter(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
+

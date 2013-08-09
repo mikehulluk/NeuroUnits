@@ -259,6 +259,14 @@ class NineMLComponent(Block):
         return self._analog_reduce_ports_lut
 
     @property
+    def random_variable_nodes(self):
+        from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
+        from neurounits.ast import RandomVariable
+        t = EqnsetVisitorNodeCollector(obj=self)
+        return LookUpDict(t.nodes[RandomVariable] )
+
+
+    @property
     def terminal_symbols(self):
         possible_objs = itertools.chain(
                         self._parameters_lut,
@@ -688,7 +696,7 @@ class NineMLComponent(Block):
         # CONCEPTUALLY THIS IS VERY SIMPLE< BUT THE CODE
         # IS A HORRIBLE HACK!
 
-        no_remap = (ast.Interface, ast.InterfaceWireContinuous, ast.InterfaceWireEvent, ast.BuiltInFunction, ast.FunctionDefParameter)
+        no_remap = (ast.Interface, ast.InterfaceWireContinuous, ast.InterfaceWireEvent, ast.FunctionDefBuiltIn, ast.FunctionDefParameter)
         # First, lets clone each and every node:
         old_nodes = list(set(list( EqnsetVisitorNodeCollector(self).all() )))
         old_to_new_dict = {}

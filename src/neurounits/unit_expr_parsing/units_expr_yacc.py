@@ -804,6 +804,80 @@ def p_rhs_term4(p):
 
 
 
+
+# Random Variables:
+# ==========================
+def p_rv_expr(p):
+    """ rhs_term : random_variable """
+    backend = p.parser.library_manager.backend
+    p[0] = ast.RandomVariable(
+            function_name='uniform',
+            parameters = [
+                ast.RandomVariableParameter(name='min',rhs_ast= ast.ConstValue( backend.Quantity(0.8, backend.Unit()) ) ),
+                ast.RandomVariableParameter(name='max',rhs_ast= ast.ConstValue( backend.Quantity(1.2, backend.Unit()) ) ),
+                ],
+            modes = {
+                'when':'SIM_INIT', 'share':'PER_NEURON'
+
+                }
+            )
+
+
+    #p[0] =  ast.ConstValue( backend.Quantity(1.0, backend.Unit()))
+
+
+
+
+def p_rv_expr1(p):
+    """ random_variable : TILDE ALPHATOKEN LBRACKET rv_params RBRACKET LSQUAREBRACKET rv_modes RSQUAREBRACKET"""
+    p[0] = ast.RandomVariable(
+            function_name=p[2],
+            parameters = p[4], 
+            modes = dict(p[7])
+            )
+
+def p_rv_expr_params0(p):
+    'rv_params : empty'
+    p[0] = []
+
+def p_rv_expr_params1(p):
+    'rv_params : rv_param'
+    p[0] = [p[1]]
+
+def p_rv_expr_params2(p):
+    'rv_params : rv_params COMMA rv_param'
+    p[0] = p[1] + [p[3]]
+
+def p_rv_expr_params3(p):
+    'rv_param : ALPHATOKEN EQUALS rhs_term'
+    p[0] = ast.RandomVariableParameter(name=p[1],rhs_ast= p[3])
+    
+
+
+def p_rv_expr_modes0(p):
+    'rv_modes : empty'
+    p[0] = []
+
+def p_rv_expr_modes1(p):
+    'rv_modes : rv_mode'
+    p[0] = [p[1]]
+
+def p_rv_expr_modes2(p):
+    'rv_modes : rv_modes COMMA rv_mode'
+    p[0] = p[1] + [p[3]]
+
+def p_rv_expr_modes3(p):
+    'rv_mode : ALPHATOKEN EQUALS ALPHATOKEN'
+    p[0] = (p[1],p[3])
+
+
+
+
+
+
+
+
+
 def p_lhs(p):
     """rhs_generic : rhs_term"""
     p[0] = p[1]

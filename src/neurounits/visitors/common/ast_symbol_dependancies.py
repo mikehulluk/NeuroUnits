@@ -131,7 +131,7 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
 
 
 
-        
+
 
 
 
@@ -146,11 +146,11 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
             self.dependancies[a.lhs] = self.visit(a)
 
         for rt_graph in o._rt_graphs:
-            self.dependancies[rt_graph] = [] # self.visit(rt_graph)
+            self.dependancies[rt_graph] = [] 
         for tr in o.transitions:
-            tr_deps =self.visit(tr) 
+            tr_deps =self.visit(tr)
             import neurounits.ast as ast
-            tr_deps = [o for o in tr_deps if not (isinstance(o, ast.SuppliedValue) and o.symbol=='t') ] 
+            tr_deps = [o for o in tr_deps if not (isinstance(o, ast.SuppliedValue) and o.symbol=='t') ]
             self.dependancies[tr.rt_graph].extend ( tr_deps)
 
     def VisitSymbolicConstant(self, o, **kwargs):
@@ -255,7 +255,7 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         return []
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
-        return self.visit(o.rhs_map) 
+        return self.visit(o.rhs_map)
 
     def VisitAddOp(self, o, **kwargs):
         return self.visit(o.lhs) + self.visit(o.rhs)
@@ -284,3 +284,8 @@ class VisitorFindDirectSymbolDependance(ASTVisitorBase):
         return [o] + list(itertools.chain( *[self.visit(a) for a in o.rhses]))
 
 
+    def VisitRandomVariable(self, o):
+        return list(itertools.chain( [self.visit(p) for p in o.parameters]))
+
+    def VisitRandomVariableParameter(self,o):
+        return self.visit(o.rhs_ast)

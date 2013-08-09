@@ -22,7 +22,12 @@ class ChemicalSynapseProjection(Projection):
     pass
 
 class ElectricalSynapseProjection(Projection):
-    pass
+    def __init__(self, connection_probability, strength_ohm, **kwargs):
+        super(ElectricalSynapseProjection, self).__init(**kwargs)
+        self, connection_prop
+        self.connection_probability = connection_probability
+        self.strength_ohm = strength_ohm
+        
 
 
 
@@ -39,5 +44,9 @@ class Network(object):
         if isinstance( obj, Population):
             self.populations.append(obj)
         
+        elif isinstance( obj, ElectricalSynapseProjection):
+            self.electrical_synapse_projections.append(obj)
+            
+            
         else:
             assert False

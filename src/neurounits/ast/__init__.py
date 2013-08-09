@@ -35,3 +35,4 @@ from astobjects_nineml import EqnRegimeDispatchMap
 
 from astobjects_nineml import *
 from compoundports import *
+from astobjects_randomvariables import *

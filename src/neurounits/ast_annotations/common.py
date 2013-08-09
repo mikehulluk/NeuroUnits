@@ -2,7 +2,7 @@
 
 
 
-from neurounits.ast_annotations.bases import ASTNodeAnnotationData, ASTTreeAnnotationManager, ASTTreeAnnotator 
+from neurounits.ast_annotations.bases import ASTNodeAnnotationData, ASTTreeAnnotationManager, ASTTreeAnnotator
 #from neurounits.Zdev.fixed_point_annotations import VarAnnot, ASTDataAnnotator#, CalculateInternalStoragePerNode
 from neurounits.visitors.bases.base_actioner_default import ASTActionerDefault
 
@@ -25,7 +25,7 @@ import operator
 def do_op(a,b,op):
     if a is None or b is None:
         return None
-    
+
     return op(a,b)
     #except ZeroDivisionError:
     #    assert False
@@ -53,15 +53,15 @@ class NodeValueRangePropagator(ASTVisitorBase):
     def get_annotation(self, node):
         return node.annotations['node-value-range']
         #return self._annotations[node]
-        
+
     def set_annotation(self, node, ann):
         #self._annotations[node] = ann
         node.annotations.add_overwrite('node-value-range', ann )
-        
+
         print 'Setting Annotation:'
         print '  Node: ', node
         print '  Ann:  ', ann
-        
+
 
 
     def __init__(self, component, annotations_in):
@@ -72,7 +72,7 @@ class NodeValueRangePropagator(ASTVisitorBase):
         for ann,val in annotations_in.items():
             if not component.has_terminal_obj(ann):
                 continue
-            
+
             assert isinstance(ann, basestring)
             self.set_annotation(component.get_terminal_obj(ann), val)
 
@@ -96,7 +96,7 @@ class NodeValueRangePropagator(ASTVisitorBase):
         self.visit(o.rhs_map)
         self.visit(o.lhs)
 
-
+        print repr(o.lhs)
         ann_lhs = self.get_annotation(o.lhs)
         ann_rhs = self.get_annotation(o.rhs_map)
         #ann_rhs = self.annotations[o.rhs_map]
@@ -122,10 +122,10 @@ class NodeValueRangePropagator(ASTVisitorBase):
         ann_rhs = self.get_annotation(o.rhs_map)
 
         # Need to be a bit careful here - because  rememeber that rhs is multiplied by dt!
-        
+
         ## Min:
         #if ann_lhs.min is None and  ann_rhs.min is not None:
-        #    ann_lhs.min = ann_rhs.min * 
+        #    ann_lhs.min = ann_rhs.min *
         #
         #if ann_lhs.max is None and  ann_rhs.max is not None:
             #ann_lhs.max = ann_rhs.max
@@ -142,13 +142,13 @@ class NodeValueRangePropagator(ASTVisitorBase):
         var_annots = [ self.get_annotation(v) for v in  o.rhs_map.values() ]
         mins =   sorted( [ann.min for ann in var_annots if ann.min is not None] )
         maxes =  sorted( [ann.max for ann in var_annots if ann.max is not None] )
-        
+
         if not mins:
             mins = [None]
         if not maxes:
             maxes = [None]
 
-        self.set_annotation(o, NodeRange( mins[0], maxes[-1] ) ) 
+        self.set_annotation(o, NodeRange( mins[0], maxes[-1] ) )
         #self.annotations[o] = self.visit( o.rhs_map.values()[0])
 
 
@@ -216,12 +216,12 @@ class NodeValueRangePropagator(ASTVisitorBase):
             _max = extremes[-1]
 
 
-        
+
         self.set_annotation(o, NodeRange(min=_min, max=_max) )
         print 'Finding limits for: ', o, self.get_annotation(o)
         print '   (LHS): ', o.lhs, self.get_annotation(o.lhs)
         print '   (RHS): ', o.rhs, self.get_annotation(o.rhs)
-        
+
 
 
     def VisitAddOp(self, o):
@@ -235,7 +235,7 @@ class NodeValueRangePropagator(ASTVisitorBase):
 
     def VisitDivOp(self, o):
         self._VisitBinOp(o, op=operator.div)
-        
+
 
 
 
@@ -317,7 +317,29 @@ class NodeValueRangePropagator(ASTVisitorBase):
         pass
 
 
+    def VisitRandomVariable(self, o):
+        assert o.functionname == 'uniform'
 
+        for p in o.parameters:
+            self.visit(p)
+
+        ann_min = self.get_annotation( o.parameters.get_single_obj_by(name='min') )
+        ann_max = self.get_annotation( o.parameters.get_single_obj_by(name='max') )
+
+        assert(ann_min.min != None and ann_min.max != None)
+        assert(ann_max.min != None and ann_max.max != None)
+
+        self.set_annotation( o, NodeRange( ann_min.min, ann_max.max) )
+
+        #print ann_min, ann_max
+
+        #assert False
+
+
+    def VisitRandomVariableParameter(self, o, **kwargs):
+        self.visit(o.rhs_ast)
+        ann = self.get_annotation(o.rhs_ast)
+        self.set_annotation(o, NodeRange( min=ann.min, max=ann.max) )
 
 
 
@@ -355,50 +377,49 @@ class NodeValueRangePropagator(ASTVisitorBase):
 
 class NodeRange(object):
     def __init__(self, min=None, max=None):
-        
+
         from neurounits import NeuroUnitParser
         if isinstance(min, basestring):
             min = NeuroUnitParser.QuantitySimple(min)
         if isinstance(max, basestring):
             max = NeuroUnitParser.QuantitySimple(max)
-        
+
         if(min is not None and max is not None):
             assert(min.is_compatible(max.unit))
-            
-            
+
+
         self._min = min
         self._max = max
-        
+
     def __repr__(self):
-        return "<NodeRange: %s to %s>" % (self._min, self._max) 
+        return "<NodeRange: %s to %s>" % (self._min, self._max)
 
     @property
     def min(self):
         return self._min
-    
+
     @min.setter
     def min(self, value):
         self._min = value
-    
+
     @property
     def max(self):
         return self._max
-    
+
     @max.setter
     def max(self, value):
         self._max = value
-    
+
 
 
 class NodeRangeAnnotator(ASTTreeAnnotator):
     def __init__(self, manual_range_annotations):
         self._manual_range_annotations = manual_range_annotations
-    
+
     def annotate_ast(self, ninemlcomponent ):
-        
         # Propagate the values around the tree:
         NodeValueRangePropagator( ninemlcomponent, annotations_in = self._manual_range_annotations)
-        
+
 
 
 
@@ -437,25 +458,25 @@ class FixedPointData(object):
         self.upscale = upscale
         self.const_value_as_int = const_value_as_int
         self.delta_upscale = delta_upscale
-        
+
     def __repr__(self):
         return "<FixedPointData: upscale=%s, const_value_as_int=%s>" % (self.upscale, self.const_value_as_int )
 
 
 class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
-    
-    annotator_dependancies = [NodeRangeAnnotator] 
-    
+
+    annotator_dependancies = [NodeRangeAnnotator]
+
     def __init__(self, nbits, datatype='int'):
         super(NodeFixedPointFormatAnnotator, self ).__init__()
         self.nbits = nbits
         self.datatype=datatype
-        
-        
+
+
     def annotate_ast(self, ninemlcomponent):
         self.visit(ninemlcomponent)
-        
-    
+
+
     @classmethod
     def encore_value_cls(self, value, upscaling_pow, nbits):
         #print
@@ -477,19 +498,19 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         print ' --Value int:', res
         return res
 
-            
+
     def ActionNodeStd(self, o):
         print
         print repr(o)
         print '-' * len(repr(o))
         #ann = self.annotations.annotations[o]
-        
+
         vmin = o.annotations['node-value-range'].min.float_in_si()
         vmax = o.annotations['node-value-range'].max.float_in_si()
         #print ann
 
         # Lets go symmetrical, about 0:
-        ext = max( [np.abs(vmin),np.abs(vmax) ] )   
+        ext = max( [np.abs(vmin),np.abs(vmax) ] )
         if ext != 0.0:
             upscaling_pow = int( np.ceil( np.log2(ext ) ) )
         else:
@@ -506,8 +527,8 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
 
 
         #ann.fixed_scaling_power = upscaling_pow
-        o.annotations['fixed-point-format'] = FixedPointData( upscale = upscaling_pow,  datatype=self.datatype) 
-        
+        o.annotations['fixed-point-format'] = FixedPointData( upscale = upscaling_pow,  datatype=self.datatype)
+
         assert 0.1 < max( [np.fabs(vmin_scaled), np.fabs(vmax_scaled) ] ) <= 1.0 or  vmin_scaled == vmax_scaled == 0.0
 
 
@@ -543,13 +564,13 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
 
     def ActionAssignedVariable(self, o):
         self.ActionNodeStd(o)
-        
+
     def ActionStateVariable(self, o, **kwargs):
         self.ActionNodeStd(o)
         # Assume that the delta needs the same range as the original data (safer, but maybe not optimal!)
         o.annotations['fixed-point-format'].delta_upscale = o.annotations['fixed-point-format'].upscale
-        
- 
+
+
     def ActionSuppliedValue(self, o):
         self.ActionNodeStd(o)
 
@@ -586,16 +607,21 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
     def ActionNineMLComponent(self, o):
         pass
 
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+
+    def ActionRandomVariable(self, o, **kwargs):
+        self.ActionNodeStd(o)
+    def ActionRandomVariableParameter(self, o, **kwargs):
+        self.ActionNodeStd(o)
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -603,34 +629,34 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
 
 from neurounits.visitors.bases.base_actioner_default import ASTActionerDefault
 class NodeToIntAnnotator(ASTActionerDefault):
-    
-    
+
+
     def __init__(self):
         self.node_to_int = {}
         self.int_to_node = {}
         super(ASTActionerDefault,self).__init__()
-        
-        
+
+
     def annotate_ast(self, component):
         assert self.node_to_int == {}
         self.visit(component)
-    
+
     def ActionNode(self, n, **kwargs):
         if n in self.node_to_int:
             return
-        
+
         val = len(self.node_to_int)
         self.node_to_int[n] = val
-        self.int_to_node[val] = n 
+        self.int_to_node[val] = n
         n.annotations['node-id'] = val
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
+
+
+
+
