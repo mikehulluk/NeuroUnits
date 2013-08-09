@@ -16,18 +16,32 @@ class Projection(object):
         self.name = name
         self.src_population = src_population
         self.dst_population = dst_population
+
+
+
+class ElectricalSynapseProjection(Projection):
+    def __init__(self, connection_probability, strength_ohm, injected_port_name, **kwargs):
+        super(ElectricalSynapseProjection, self).__init__(**kwargs)
+        self.connection_probability = connection_probability
+        self.strength_ohm = strength_ohm
+        self.injected_port_name = injected_port_name
+
+
         
 
 class ChemicalSynapseProjection(Projection):
     pass
 
-class ElectricalSynapseProjection(Projection):
-    def __init__(self, connection_probability, strength_ohm, **kwargs):
-        super(ElectricalSynapseProjection, self).__init(**kwargs)
-        self, connection_prop
-        self.connection_probability = connection_probability
-        self.strength_ohm = strength_ohm
-        
+
+
+
+
+
+#class EventSource(object):
+    
+    
+
+
 
 
 

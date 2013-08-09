@@ -159,7 +159,9 @@ class CBasedFixedWriter(ASTVisitorBase):
         return "IntType(%d)" % o.annotations['fixed-point-format'].const_value_as_int
 
     def VisitSuppliedValue(self, o):
-        return o.symbol
+        if o.symbol == 't': 
+            return 't'
+        return self.get_var_str(o.symbol)
 
 
     def VisitEqnAssignmentByRegime(self, o):
@@ -192,4 +194,11 @@ class CBasedFixedWriter(ASTVisitorBase):
         assert False
 
 
+    def VisitOnEventStateAssignment(self, o):
+        #return '// %s = %s' %(o.lhs.symbol, o.rhs)  
+        rhs_c = self.visit(o.rhs)
+        rhs_str = "%s = auto_shift( %s, IntType(%d) )" % (self.visit(o.lhs), rhs_c, o.rhs.annotations['fixed-point-format'].upscale - o.lhs.annotations['fixed-point-format'].upscale )
+        return rhs_str
 
+    def VisitEmitEvent(self, o):
+        return 'event_handlers::on_%s(i)'% o.port.symbol

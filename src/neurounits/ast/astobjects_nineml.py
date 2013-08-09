@@ -168,6 +168,7 @@ class EmitEvent(ASTObject):
         return v.VisitEmitEvent(self, **kwargs)
 
     def __init__(self, port, parameters, **kwargs):
+        super(EmitEvent,self).__init__(**kwargs)
         self.port = port
         self.parameters = parameters
         assert isinstance( self.parameters, LookUpDict)

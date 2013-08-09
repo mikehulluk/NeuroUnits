@@ -39,13 +39,14 @@ src_text = """
 define_component simple_hh {
     from std.math import exp
 
-    iInj = [50pA] if [t > 50ms] else [0pA]
+    iInj = [{50pA} * k] if [t > 50ms] else [0pA]
     Cap = 10 pF
     gLk = 1.25 nS
     eLk = -50mV
 
     iLk = gLk * (eLk-V) * glk_noise
-    V' = (1/Cap) * (iInj + iLk + iKs + iKf +iNa) 
+    V' = (1/Cap) * (iInj + iLk + iKs + iKf +iNa + i_injected)
+    #V' = (1/Cap) * (iInj + iLk + iKs + iKf +iNa )  
 
 
     
@@ -129,18 +130,45 @@ define_component simple_hh {
 
 
     <=> INPUT t:(ms)
+    <=> INPUT i_injected:(mA)
 
+    k'=0 s-1
+
+
+
+    regime sub{
+        on (V > 0V) {
+            k=0
+            emit spike()
+            transition_to super
+        };
+    }
+    regime super{
+       on (V < 0V) {
+           k=1
+        transition_to sub
+        };
+    }
+    
+    
+    on recv_ampa_spike(){
+    
+    
+    }
+    
+    
+    
     initial {
         V = -60mV
+        k=1
         na_m = 0.0
         #ca_m = 0.0
         na_h = 1.0
         ks_n = 0.0
         kf_n = 0.0
+        regime sub
     }
-
-
-    #my_variable = [[ alpha_na_h / (alpha_na_h + beta_na_h)  :: my_annotation ]]
+    
 
 }
 
@@ -251,7 +279,9 @@ var_annots_dIN = {
     'glk_noise2'     : NodeRange(min="0", max = "3"),
     'glk_noise3'     : NodeRange(min="0", max = "3"),
     'glk_noise4'     : NodeRange(min="0", max = "3"),
+    'i_injected'     : NodeRange(min="0nA", max = "10nA"),
     
+    'k'     : NodeRange(min="0", max = "1.1"),
 }
 
  
@@ -281,8 +311,8 @@ p2 = Population(name='RHSdIN', component=comp, size=1 )
 network.add(p1)
 network.add(p2)
 
-
-e1 = ElectricalSynapseProjection(src_population=p1, dst_population=p1, connection_probability=0.2, strength_ohm=300e6)
+# Electrical synapses:
+e1 = ElectricalSynapseProjection(src_population=p1, dst_population=p1, connection_probability=0.2, strength_ohm=300e6, name='ElecLHSdIN', injected_port_name='i_injected')
 network.add(e1)
 
 
@@ -295,12 +325,15 @@ network.add(e1)
 
 
 
+
+
 # Just generate the file:
-CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', run=False, output_c_filename='/auto/homes/mh735/Desktop/tadpole1.cpp', compile=False, CPPFLAGS='-DON_NIOS=true', record_symbols=['V'] )
+CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', run=False, output_c_filename='/auto/homes/mh735/Desktop/tadpole1.cpp', compile=False, CPPFLAGS='-DON_NIOS=true', record_symbols=['V','k','iInj'] )
+
 #assert False
 
 
-fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false', record_symbols=['V']).results
+fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false', record_symbols=['V','k','iInj']).results
 
 
 
@@ -313,9 +346,25 @@ results = HDF5SimulationResultFile("output.hd5")
 time_array = results.h5file.root._f_getChild('/simulation_fixed/float/time').read()
 
 
+pylab.figure()
 for i in range(30):
-    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/V' % i).read(), label='lhs-%03d' % i)
+    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/V' % i).read(), label='V:lhs-%03d' % i)
 pylab.legend()
+
+
+pylab.figure()
+for i in range(30):
+    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/k' % i).read(), label='k:lhs-%03d' % i)
+pylab.legend()
+
+
+pylab.figure()
+for i in range(30):
+    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/iInj' % i).read(), label='iInj-%03d' % i)
+pylab.legend()
+
+
+
 pylab.show()
 
 

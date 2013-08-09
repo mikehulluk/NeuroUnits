@@ -82,7 +82,7 @@ const int nsim_steps = ${nsim_steps};
 // Define how often to record values: 
 const int record_rate = 1;
 
-
+#include <list>
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
@@ -251,6 +251,8 @@ c_population_details_tmpl = r"""
 namespace NS_${population.name}
 {
 
+
+
 // Define the data-structures:
 struct NrnPopData
 {
@@ -273,17 +275,51 @@ struct NrnPopData
 % endfor
 
 
+    // Supplied:
+% for sv_def in component.suppliedvalues:
+% if sv_def.symbol != 't':
+    IntType ${sv_def.symbol}[size];    // Upscale: ${sv_def.annotations['fixed-point-format'].upscale}
+% endif
+% endfor
+
     
     // Random Variable nodes
-    %for rv, _pstring in rv_per_population:
+%for rv, _pstring in rv_per_population:
     IntType RV${rv.annotations['node-id']};
-    %endfor 
-    %for rv, _pstring in rv_per_neuron:
+%endfor 
+%for rv, _pstring in rv_per_neuron:
     IntType RV${rv.annotations['node-id']}[size];
+%endfor
+
+
+    
+    bool is_spike[size];
+    
+    
+    
+    %for rtgraph in population.component.rt_graphs:
+    %if len(rtgraph.regimes) > 1:
+    enum RegimeType${rtgraph.name} {
+    %for regime in rtgraph.regimes:
+        ${rtgraph.name}${regime.name},
+    %endfor
+    };
+    RegimeType${rtgraph.name} current_regime_${rtgraph.name}[size];
+    %endif
     %endfor
     
 };
 
+
+
+void set_supplied_values_to_zero(NrnPopData& d)
+{
+% for sv_def in component.suppliedvalues:
+% if sv_def.symbol != 't':    
+for(int i=0;i<NrnPopData::size;i++) d.${sv_def.symbol}[i] = IntType(0);
+% endif
+% endfor
+}
 
 
 
@@ -332,22 +368,23 @@ void setup_hdf5()
 
 
 
-
+// Global save:
 NrnPopData output_data[nsim_steps];
+
+
+
 
 
 void initialise_randomvariables(NrnPopData& d)
 {
     // Random Variable nodes
     %for rv, rv_param_string in rv_per_population:
-    ##d.RV${rv.annotations['node-id']} = IntType(1.0);
     d.RV${rv.annotations['node-id']} = rnd::${rv.functionname}(IntType(${rv.annotations['fixed-point-format'].upscale}), ${rv_param_string});
     %endfor
      
     for(int i=0;i<NrnPopData::size;i++)
     {
         %for rv, rv_param_string in rv_per_neuron:
-        ##d.RV${rv.annotations['node-id']}[i] = IntType(1.0);
         d.RV${rv.annotations['node-id']}[i] = rnd::${rv.functionname}( IntType(${rv.annotations['fixed-point-format'].upscale}), ${rv_param_string});
         %endfor
     }
@@ -364,12 +401,32 @@ void initialise_statevars(NrnPopData& d)
         % for sv_def in state_var_defs:
         d.${sv_def.symbol}[i] = auto_shift( IntType(${sv_def.initial_value.annotations['fixed-point-format'].const_value_as_int}),  IntType(${sv_def.initial_value.annotations['fixed-point-format'].upscale} - ${sv_def.annotations['fixed-point-format'].upscale} ) );
         % endfor
+    
+        // Initial regimes:
+        %for rtgraph in population.component.rt_graphs:
+        %if len(rtgraph.regimes) > 1:
+        d.current_regime_${rtgraph.name}[i] = NrnPopData::RegimeType${rtgraph.name}::${rtgraph.name}${rtgraph.default_regime.name};;
+        %endif
+        %endfor
     }
+    
+    
+    
 }
 
 
 
+namespace event_handlers
+{
+%for out_event_port in component.output_event_port_lut:
+    void on_${out_event_port.symbol}(IntType index /*Params*/)
+    {
+        std::cout << "\n on_${out_event_port.symbol}: " <<  index;
 
+
+    }
+%endfor
+}
 
 
 
@@ -381,9 +438,6 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
 
     const IntType t = time_info.time_int;
     
-
-
-
     for(int i=0;i<NrnPopData::size;i++)
     {
         // Calculate assignments:
@@ -396,8 +450,65 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
         IntType d_${eqn.node.lhs.symbol} = ${eqn.rhs_cstr[0]} ;
         d.${eqn.node.lhs.symbol}[i] += ${eqn.rhs_cstr[1]} ;
         % endfor
-
     }
+    
+    
+    
+    
+    for(int i=0;i<NrnPopData::size;i++)
+    {
+    
+        // Resolve transitions for each rt-graph: 
+        %for rtgraph in population.component.rt_graphs:
+        
+        
+        %if len(rtgraph.regimes) > 1:
+        // Non-trivial RT-graph
+        switch(d.current_regime_${rtgraph.name}[i])
+        {
+        %for regime in rtgraph.regimes:
+        case NrnPopData::RegimeType${rtgraph.name}::${rtgraph.name}${regime.name}:
+            % if len(rtgraph.regimes) > 1 and regime.name is None:
+            assert(0); // Should not be here - we should switch into a 'real' regime before we begin
+            %endif 
+            
+            %for tr in population.component.transitions_from_regime(regime):
+            if(${writer.to_c(tr.trigger)})
+            {
+                // Actions ...
+                %for action in tr.actions:
+                ${writer.to_c(action)};
+                %endfor 
+                
+                // Switch regime? 
+                %if tr.target_regime is not None:
+                d.current_regime_${rtgraph.name}[i] = NrnPopData::RegimeType${rtgraph.name}::${rtgraph.name}${tr.target_regime.name};
+                //std::cout << "Switching Regime to: RegimeType${rtgraph.name}::${rtgraph.name}${tr.target_regime.name} at: " << t << " \n"; 
+                %endif
+            }
+            %endfor
+            break;
+        %endfor
+        }
+        
+        %else:
+        
+            <% regime = rtgraph.get_regime(None) %>
+            %if population.component.transitions_from_regime(regime):
+                assert(0); // Transitions found, but not yet supported!;
+            %endif
+            
+        %endif:
+        
+        
+        
+        
+        %endfor
+    }
+    
+    
+    
+    
 }
 
 
@@ -446,6 +557,16 @@ void print_results_from_NIOS()
 }
 
 """
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -511,6 +632,11 @@ int main()
     NS_${pop.name}::initialise_statevars(data_${pop.name});
     NS_${pop.name}::initialise_randomvariables(data_${pop.name});
     %endfor
+    
+    // Setup the electical coupling:
+    %for proj in network.electrical_synapse_projections:
+    NS_${proj.name}::setup_electrical_coupling();
+    %endfor
 
 
 
@@ -536,9 +662,18 @@ int main()
             #endif
 
 
+            // 0. Reset the injected currents:
+            %for pop in network.populations:
+            NS_${pop.name}::set_supplied_values_to_zero(data_${pop.name});
+            %endfor
+
 
 
             // A. Electrical coupling:
+            %for proj in network.electrical_synapse_projections:
+            NS_${proj.name}::calculate_electrical_coupling( data_${proj.src_population.name}, data_${proj.dst_population.name} );
+            %endfor
+
 
 
             // B. Integrate all the state_variables of all the neurons:
@@ -590,6 +725,80 @@ int main()
 
 
 
+c_electrical_projection_tmpl = r"""
+
+// Electrical Coupling
+
+namespace NS_${projection.name}
+{
+
+
+    struct GapJunction
+    {
+        IntType i,j;
+        IntType strength;
+        
+        GapJunction(IntType i, IntType j, IntType strength)
+         : i(i), j(j), strength(strength)
+        {
+            
+        
+        }
+        
+    };
+    
+    
+    
+    typedef std::vector<GapJunction>  GJList;
+    GJList gap_junctions;
+    
+
+    void setup_electrical_coupling()
+    {
+    
+        // Sort out autapses:
+        for(int i=0;i<${projection.src_population.size}; i++)
+        {
+            for(int j=0;j<${projection.dst_population.size}; j++)
+            {
+                if(rnd::rand_in_range(0,1) < ${projection.connection_probability} )
+                {
+                    gap_junctions.push_back( GapJunction(i,j, ${projection.strength_ohm} ) );
+                    cout << "\nCreated gap junction"; 
+                }
+            }
+        }
+        
+    }
+
+    void calculate_electrical_coupling( NS_${projection.src_population.name}::NrnPopData& src, NS_${projection.dst_population.name}::NrnPopData& dst)
+    {
+        <% 
+        pre_V_node = projection.src_population.component.get_terminal_obj_or_port('V')
+        post_V_node = projection.dst_population.component.get_terminal_obj_or_port('V')
+        pre_iinj_node = projection.src_population.component.get_terminal_obj_or_port(projection.injected_port_name)
+        post_iinj_node = projection.dst_population.component.get_terminal_obj_or_port(projection.injected_port_name)
+        %>
+        IntType upscale_V_pre = IntType( ${pre_V_node.annotations['fixed-point-format'].upscale} );
+        IntType upscale_V_post = IntType(${pre_V_node.annotations['fixed-point-format'].upscale} );
+        
+        IntType upscale_iinj_pre = IntType(${pre_iinj_node.annotations['fixed-point-format'].upscale} );
+        IntType upscale_iinj_post = IntType(${post_iinj_node.annotations['fixed-point-format'].upscale} );
+        
+        for(GJList::iterator it = gap_junctions.begin(); it != gap_junctions.end();it++)
+        {
+            float V_float_pre  = FixedFloatConversion::to_float( src.V[it->i], upscale_V_pre);
+            float V_float_post = FixedFloatConversion::to_float( dst.V[it->j], upscale_V_post);
+            float i_fl = (V_float_post - V_float_pre) / ${projection.strength_ohm};
+            src.${post_iinj_node.symbol}[it->i] += FixedFloatConversion::from_float(i_fl, upscale_iinj_pre);
+            src.${post_iinj_node.symbol}[it->j] += FixedFloatConversion::from_float(-i_fl, upscale_iinj_post);
+        }
+    }
+}
+
+
+""" 
+
 
 
 
@@ -634,6 +843,21 @@ class CBasedEqnWriterFixedNetwork(object):
             'network':network,
                          }
 
+
+
+        code_per_electrical_projection = []
+        
+        for proj in network.electrical_synapse_projections:
+            c = Template(c_electrical_projection_tmpl).render(
+                                        projection=proj,
+                                        **std_variables
+                                            )
+            
+            code_per_electrical_projection.append(c)
+
+
+
+
         code_per_pop = []
 
         for population in network.populations:
@@ -669,11 +893,6 @@ class CBasedEqnWriterFixedNetwork(object):
                 elif rv.modes['share']=='PER_POPULATION':
                     rv_per_population.append( (rv,param_string) )
                     
-            
-
-
-
-
             try:
                 cfile = Template(c_population_details_tmpl).render(
                             output_filename = output_filename,
@@ -682,6 +901,7 @@ class CBasedEqnWriterFixedNetwork(object):
                             state_var_defs = list(component.state_variables),
                             assignment_defs = list(component.assignedvalues),
 
+                            writer = self.writer,
                             dt_float = self.dt_float,
                             dt_int = self.dt_int,
                             dt_upscale = self.dt_upscale,
@@ -728,7 +948,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
 
-        cfile = '\n'.join([c_prog_header] + code_per_pop + [c_main_loop])
+        cfile = '\n'.join([c_prog_header] + code_per_pop + code_per_electrical_projection + [c_main_loop])
 
         for f in ['sim1.cpp','a.out',output_filename, 'debug.log',]:
             if os.path.exists(f):
