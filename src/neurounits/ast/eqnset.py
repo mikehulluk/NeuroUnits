@@ -511,9 +511,29 @@ class NineMLComponent(Block):
     def transitions(self):
         return itertools.chain( self._transitions_triggers, self._transitions_events)
 
+    @property
+    def eventtransitions(self):
+        return self._transitions_events
+
+    @property
+    def triggertransitions(self):
+        return self._transitions_triggers
+
     def transitions_from_regime(self, regime):
         assert isinstance(regime,Regime)
         return [tr for tr in self.transitions if tr.src_regime == regime]
+
+    def eventtransitions_from_regime(self, regime):
+        assert isinstance(regime,Regime)
+        return [tr for tr in self.eventtransitions if tr.src_regime == regime]
+
+    def triggertransitions_from_regime(self, regime):
+        assert isinstance(regime,Regime)
+        return [tr for tr in self.triggertransitions if tr.src_regime == regime]
+
+
+
+
 
     def summarise(self):
         print

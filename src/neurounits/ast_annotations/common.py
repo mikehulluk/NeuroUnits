@@ -345,11 +345,18 @@ class NodeValueRangePropagator(ASTVisitorBase):
         self.set_annotation(o, NodeRange( min=ann.min, max=ann.max) )
 
 
+    def _VisitTransition(self, n):
+        for action in n.actions:
+            self.visit(action)
 
     def VisitOnTransitionTrigger(self, n):
         self.visit(n.trigger)
-        for action in n.actions:
-            self.visit(action)
+        self._VisitTransition(n)
+    
+    def VisitOnTransitionEvent(self, n):
+        for p in n.parameters:
+            self.visit(p)
+        self._VisitTransition(n)
 
     def VisitOnEventStateAssignment(self, o):
         self.visit(o.rhs)
@@ -365,6 +372,9 @@ class NodeValueRangePropagator(ASTVisitorBase):
         for p in o.parameters:
             self.visit(p)
         
+    def VisitInEventPort(self, o):
+        for p in o.parameters:
+            self.visit(p)
 
 
 
@@ -630,6 +640,8 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         pass
     def ActionOnTransitionTrigger(self, o):
         pass
+    def ActionOnTransitionEvent(self, o):
+        pass
 
     def ActionOnEventStateAssignment(self, o):
         self.ActionNodeStd(o)
@@ -641,6 +653,8 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
 
 
     def ActionOutEventPort(self, o):
+        pass
+    def ActionInEventPort(self, o):
         pass
     def ActionEmitEvent(self, o):
         pass

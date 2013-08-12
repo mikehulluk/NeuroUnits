@@ -472,7 +472,7 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
             assert(0); // Should not be here - we should switch into a 'real' regime before we begin
             %endif 
             
-            %for tr in population.component.transitions_from_regime(regime):
+            %for tr in population.component.triggertransitions_from_regime(regime):
             if(${writer.to_c(tr.trigger)})
             {
                 // Actions ...
