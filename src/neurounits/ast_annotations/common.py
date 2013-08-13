@@ -81,7 +81,7 @@ class NodeValueRangePropagator(ASTVisitorBase):
 
     def VisitNineMLComponent(self, component):
 
-        for i in range(2):
+        for i in range(4):
             for o in component.symbolicconstants:
                 self.visit(o)
             for o in component.ordered_assignments_by_dependancies:
@@ -296,7 +296,16 @@ class NodeValueRangePropagator(ASTVisitorBase):
         self.set_annotation(o, NodeRange(min=_min, max=_max) )
 
 
+    def VisitBoolAnd(self, o):
+        self.visit(o.lhs)
+        self.visit(o.rhs)
 
+    def VisitBoolOr(self, o):
+        self.visit(o.lhs)
+        self.visit(o.rhs)
+
+    def VisitBoolNot(self, o):
+        self.visit(o.lhs)
 
     def VisitParameter(self, o):
         pass
@@ -316,6 +325,10 @@ class NodeValueRangePropagator(ASTVisitorBase):
     def VisitConstant(self, o):
         self.set_annotation(o, NodeRange(min=o.value, max=o.value) )
 
+    def VisitConstantZero(self, o):
+        self.set_annotation(o, NodeRange(min='0',max='0')) 
+
+
     def VisitSuppliedValue(self, o):
         pass
 
@@ -334,9 +347,6 @@ class NodeValueRangePropagator(ASTVisitorBase):
 
         self.set_annotation( o, NodeRange( ann_min.min, ann_max.max) )
 
-        #print ann_min, ann_max
-
-        #assert False
 
 
     def VisitRandomVariableParameter(self, o, **kwargs):
@@ -620,8 +630,16 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
     def ActionRegimeDispatchMap(self, o):
         self.ActionNodeStd(o)
 
+    def ActionConstantZero(self, o):
+        self.ActionNodeStd(o)
 
 
+    def ActionBoolAnd(self, o):
+        pass
+    def ActionBoolOr(self, o):
+        pass
+    def ActionBoolNot(self, o):
+        pass
     def ActionInEquality(self, o):
         pass
     def ActionFunctionDefParameter(self, o):

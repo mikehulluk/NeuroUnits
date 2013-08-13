@@ -108,6 +108,8 @@ class EqnRegimeDispatchMap(ASTExpressionObject):
 class Transition(ASTObject):
     def __init__(self, src_regime, actions, target_regime=None,  **kwargs):
         super(Transition, self).__init__(**kwargs)
+        #if target_regime is not None:
+        #    assert target_regime.name is not None
         self.target_regime = target_regime
         self.src_regime = src_regime
         self.actions = actions
@@ -116,6 +118,9 @@ class Transition(ASTObject):
         rt_graphs = set( [self.src_regime.parent_rt_graph, self.target_regime.parent_rt_graph ])
         assert len(rt_graphs) == 1
         return list(rt_graphs)[0]
+
+    def changes_regime(self):
+        return self.src_regime != self.target_regime
 
 
 class OnTriggerTransition(Transition):

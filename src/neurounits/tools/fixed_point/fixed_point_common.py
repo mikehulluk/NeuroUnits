@@ -3,8 +3,6 @@
 import mako
 from mako.template import Template
 
-#import subprocess
-#from neurounits.visitors.bases.base_actioner_default import ASTActionerDefault
 from neurounits.visitors.bases.base_actioner_default_ignoremissing import ASTActionerDefaultIgnoreMissing
 
 
@@ -59,6 +57,22 @@ class CBasedFixedWriter(ASTVisitorBase):
     def __init__(self, component, population_access_index=None ): 
         super(CBasedFixedWriter, self).__init__()
         self.population_access_index=population_access_index
+        self.check_range = True
+
+
+    def add_range_check(self, node, expr):
+        print node, type(node)
+    
+        if self.check_range:
+            return """check_in_range(%s, %d, %f, %f, "%s")""" %(
+                        expr, 
+                        node.annotations['fixed-point-format'].upscale,
+                        node.annotations['node-value-range'].min.float_in_si(),
+                        node.annotations['node-value-range'].max.float_in_si(),
+                        repr(node)
+                    )
+        else:
+            return expr
     
     def to_c(self, obj):
         return self.visit(obj)
@@ -85,43 +99,61 @@ class CBasedFixedWriter(ASTVisitorBase):
                                             o.annotations['fixed-point-format'].upscale,
                                             expr_num,
                                                      )
-        return res
+        return self.add_range_check(o, res)
 
 
     def VisitAddOp(self, o):
-        return self.DoOpOpComplex(o, 'add')
+        res = self.DoOpOpComplex(o, 'add')
+        return self.add_range_check(o, res)
 
     def VisitSubOp(self, o):
-        return self.DoOpOpComplex(o, 'sub')
+        res = self.DoOpOpComplex(o, 'sub')
+        return self.add_range_check(o, res)
 
     def VisitMulOp(self, o):
-        return self.DoOpOpComplex(o, 'mul')
+        res = self.DoOpOpComplex(o, 'mul')
+        return self.add_range_check(o, res)
 
     def VisitDivOp(self, o):
-        return self.DoOpOpComplex(o, 'div')
+        res = self.DoOpOpComplex(o, 'div')
+        return self.add_range_check(o, res)
 
 
 
 
     def VisitIfThenElse(self, o):
-        return "( (%s) ? auto_shift(%s, IntType(%d)) : auto_shift(%s, IntType(%d)) )" % (
+        res = "( (%s) ? auto_shift(%s, IntType(%d)) : auto_shift(%s, IntType(%d)) )" % (
                     self.visit(o.predicate),
                     self.visit(o.if_true_ast),
                     o.annotations['fixed-point-format'].upscale - o.if_true_ast.annotations['fixed-point-format'].upscale,
                     self.visit(o.if_false_ast),
                     o.annotations['fixed-point-format'].upscale - o.if_false_ast.annotations['fixed-point-format'].upscale,
                 )
+        return self.add_range_check(o, res)
 
     def VisitInEquality(self, o):
         ann_lt_upscale = o.lesser_than.annotations['fixed-point-format'].upscale
         ann_gt_upscale = o.greater_than.annotations['fixed-point-format'].upscale
         
         if ann_lt_upscale < ann_gt_upscale:
-            return "( ((%s)>>IntType(%d)) < ( (%s)) )" %( self.visit(o.lesser_than), (ann_gt_upscale-ann_lt_upscale),  self.visit(o.greater_than) )
+            res= "( ((%s)>>IntType(%d)) < ( (%s)) )" %( self.visit(o.lesser_than), (ann_gt_upscale-ann_lt_upscale),  self.visit(o.greater_than) )
         elif ann_lt_upscale > ann_gt_upscale:
-            return "( (%s) < ( (%s)>>IntType(%d)))" %( self.visit(o.lesser_than), self.visit(o.greater_than), (ann_lt_upscale-ann_gt_upscale) )
+            res= "( (%s) < ( (%s)>>IntType(%d)))" %( self.visit(o.lesser_than), self.visit(o.greater_than), (ann_lt_upscale-ann_gt_upscale) )
         else:
-            return "( (%s) < (%s) )" %( self.visit(o.lesser_than), self.visit(o.greater_than), (ann_gt_upscale-ann_lt_upscale) )
+            res= "( (%s) < (%s) )" %( self.visit(o.lesser_than), self.visit(o.greater_than), (ann_gt_upscale-ann_lt_upscale) )
+        return res
+
+        
+
+    def VisitBoolAnd(self, o):
+        res = " ((%s) && (%s))"% (self.visit(o.lhs), self.visit(o.rhs))
+        return res
+    def VisitBoolOr(self, o):
+        res = " ((%s) || (%s))"% (self.visit(o.lhs), self.visit(o.rhs))
+        return res
+    def VisitBoolNot(self, o):
+        res = " (!(%s))"% (self.visit(o.lhs))
+        return res
 
     def VisitFunctionDefUserInstantiation(self,o):
         assert False
@@ -133,30 +165,43 @@ class CBasedFixedWriter(ASTVisitorBase):
         ann_func_upscale = o.annotations['fixed-point-format'].upscale
         ann_param_upscale = param.rhs_ast.annotations['fixed-point-format'].upscale
         expr_num = o.annotations['node-id'] 
-        return """ int_exp( %s, IntType(%d), IntType(%d), IntType(%d) )""" %(param_term, ann_param_upscale, ann_func_upscale, expr_num )
+        res = """ int_exp( %s, IntType(%d), IntType(%d), IntType(%d) )""" %(param_term, ann_param_upscale, ann_func_upscale, expr_num )
+        return self.add_range_check(o, res)
 
     def VisitFunctionDefInstantiationParater(self, o):
         assert False
-        return o.symbol
+        res = o.symbol
+        return self.add_range_check(o, res)
 
     def VisitFunctionDefParameter(self, o):
         assert False
-        return o.symbol
+        res = o.symbol
+        return self.add_range_check(o, res)
 
     def VisitStateVariable(self, o):
-        return self.get_var_str(o.symbol)
+        res = self.get_var_str(o.symbol)
+        return self.add_range_check(o, res)
 
     def VisitParameter(self, o):
-        return self.get_var_str(o.symbol)
+        res = self.get_var_str(o.symbol)
+        return self.add_range_check(o, res)
 
     def VisitSymbolicConstant(self, o):
-        return "IntType(%d)" % o.annotations['fixed-point-format'].const_value_as_int
+        res = "IntType(%d)" % o.annotations['fixed-point-format'].const_value_as_int
+        return self.add_range_check(o, res)
 
     def VisitAssignedVariable(self, o):
-        return self.get_var_str(o.symbol)
+        res = self.get_var_str(o.symbol)
+        return self.add_range_check(o, res)
 
     def VisitConstant(self, o):
-        return "IntType(%d)" % o.annotations['fixed-point-format'].const_value_as_int
+        res = "IntType(%d)" % o.annotations['fixed-point-format'].const_value_as_int
+        return self.add_range_check(o, res)
+
+    def VisitConstantZero(self, o):
+        res = "IntType(0)" 
+        return self.add_range_check(o, res)
+
 
     def VisitSuppliedValue(self, o):
         if o.symbol == 't': 
@@ -166,7 +211,8 @@ class CBasedFixedWriter(ASTVisitorBase):
 
     def VisitEqnAssignmentByRegime(self, o):
         rhs_c = self.visit(o.rhs_map)
-        return " auto_shift( %s, IntType(%d) )" % (rhs_c, o.rhs_map.annotations['fixed-point-format'].upscale - o.lhs.annotations['fixed-point-format'].upscale )
+        res =  " auto_shift( %s, IntType(%d) )" % (rhs_c, o.rhs_map.annotations['fixed-point-format'].upscale - o.lhs.annotations['fixed-point-format'].upscale )
+        return res
 
 
     def VisitTimeDerivativeByRegime(self, o):
@@ -185,19 +231,21 @@ class CBasedFixedWriter(ASTVisitorBase):
         node_name = 'RV%s' % o.annotations['node-id']
 
         if o.modes['share'] =='PER_NEURON':
-            return 'd.%s[i]' % node_name
+            res = 'd.%s[i]' % node_name
+        elif o.modes['share'] == 'PER_POPULATION':
+            res = 'd.%s' % node_name
+        else:
+            assert False
 
-        if o.modes['share'] == 'PER_POPULATION':
-            return 'd.%s' % node_name
 
-
-        assert False
+        return self.add_range_check(o, res)
 
 
     def VisitOnEventStateAssignment(self, o):
-        #return '// %s = %s' %(o.lhs.symbol, o.rhs)  
         rhs_c = self.visit(o.rhs)
-        rhs_str = "%s = auto_shift( %s, IntType(%d) )" % (self.visit(o.lhs), rhs_c, o.rhs.annotations['fixed-point-format'].upscale - o.lhs.annotations['fixed-point-format'].upscale )
+        rhs_str = "%s = auto_shift( %s, IntType(%d) )" % (
+                self.get_var_str(o.lhs.symbol),
+                rhs_c, o.rhs.annotations['fixed-point-format'].upscale - o.lhs.annotations['fixed-point-format'].upscale )
         return rhs_str
 
     def VisitEmitEvent(self, o):

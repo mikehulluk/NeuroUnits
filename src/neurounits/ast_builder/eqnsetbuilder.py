@@ -542,6 +542,7 @@ class AbstractBlockBuilder(object):
         if target_regime is None:
             target_regime = src_regime
         else:
+            assert target_regime.name is not None
             target_regime = self._current_rt_graph.get_or_create_regime(target_regime)
 
 

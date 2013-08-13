@@ -39,16 +39,23 @@ src_text = """
 define_component simple_hh {
     from std.math import exp
 
-    iInj = [{50pA} * k] if [t > 50ms] else [0pA]
+    iInj_local = [{50pA} * k] if [t > 75ms and t< 100ms] else [0pA]
     Cap = 10 pF
-    gLk = 1.25 nS
-    eLk = -50mV
 
-    iLk = gLk * (eLk-V) * glk_noise
-    V' = (1/Cap) * (iInj + iLk + iKs + iKf +iNa + i_injected)
-    #V' = (1/Cap) * (iInj + iLk + iKs + iKf +iNa )  
-
-
+    V' = (1/Cap) * (iInj_local + i_injected + iLk + iKs + iKf +iNa + i_nmda)
+    
+      
+    
+    # NMDA noise:
+    
+    i_nmda = g_nmda * (syn_nmda_B - syn_nmda_A) * (e_NMDA - V) * nmda_vdep
+    syn_nmda_A' = -syn_nmda_A / {4ms}
+    syn_nmda_B' = -syn_nmda_B / {80ms}
+    g_nmda = 300 pS
+    e_NMDA = 0mV
+    
+    v_scale = V/{-0.08mV}
+    nmda_vdep =  1.3 - t/{1e3s} #1./(1. + 0.1 * 0.5 * exp(v_scale) )
     
     noise_min = 0.5
     noise_max = 1.5
@@ -70,9 +77,11 @@ define_component simple_hh {
     gKs = 10.0 nS
     gKf = 12.5 nS
     gNa = 250 nS
-    
-    
-    
+    gLk = 1.25 nS
+    eLk = -50mV
+
+    # Leak
+    iLk = gLk * (eLk-V) * glk_noise
 
     # Slow Potassium (Ks):
     alpha_ks_n = AlphaBetaFunc(v=V, A=0.462ms-1, B=8.2e-3ms-1 mV-1, C=4.59, D=-4.21mV,E=-11.97mV)
@@ -151,10 +160,14 @@ define_component simple_hh {
     }
     
     
-    on recv_ampa_spike(){
-    
-    
+    on recv_nmda_spike(){
+        
+        syn_nmda_A = syn_nmda_A + 1.0
+        syn_nmda_B = syn_nmda_B + 1.0
     }
+    
+    
+    
     
     
     
@@ -166,69 +179,14 @@ define_component simple_hh {
         na_h = 1.0
         ks_n = 0.0
         kf_n = 0.0
+        
+        syn_nmda_B = 0.0
+        syn_nmda_A = 0.0
         regime sub
     }
     
 
 }
-
-
-define_component simple_test {
-
-    <=> INPUT t:(ms)
-
-
-    iInj = ([50pA] if [t > 100ms] else [0pA])
-    Cap = 10 pF
-    gLk = 1.25 nS
-    eLk = -50mV
-
-    iLk = gLk * (eLk-V) + ({0 pA/ms} * t)
-
-    
-    
-    
-    V' = (1/Cap) * (iInj + iLk +iKf)
-
-    eK = -80mV
-    gKf = 12.5 nS
-
-    AlphaBetaFunc(v, A,B,C,D,E) = (A+B*v) / (C + std.math.exp( (D+v)/E))
-    alpha_kf_n = AlphaBetaFunc(v=V, A=5.06ms-1, B=0.0666ms-1 mV-1, C=5.12, D=-18.396mV,E=-25.42mV)
-    beta_kf_n =  AlphaBetaFunc(v=V, A=0.505ms-1, B=0.0ms-1 mV-1, C=0.0, D=28.7mV, E=34.6mV)
-    inf_kf_n = alpha_kf_n / (alpha_kf_n + beta_kf_n)
-    tau_kf_n = 1.0 / (alpha_kf_n + beta_kf_n)
-    kf_n' = (inf_kf_n - kf_n) / tau_kf_n
-    iKf = gKf * (eK-V) * kf_n*kf_n * kf_n*kf_n
-    
-
-
-    
-    
-
-
-    initial {
-        V = -60mV
-        #V2 = -60mV
-        kf_n = 1.0
-    }
-
-
-    }
-    
-    
-define_component simple_exp {  
-    <=> INPUT t:(ms)  
-    a = [0] if [t<100ms] else [1.5]
-    A' = (a-A)/{20ms}
-
-    initial {
-        A = 0.0
-    }
-
-
-}
-
 
 
 
@@ -252,7 +210,7 @@ var_annots_dIN = {
     'beta_na_m'     : NodeRange(min=None, max = None),
     'exp_neg_nu'    : NodeRange(min=None, max = None),
     'iCa2'          : NodeRange(min=None, max = None),
-    'iInj'          : NodeRange(min=None, max = None),
+    'iInj_local'          : NodeRange(min=None, max = None),
     'iKf'           : NodeRange(min='-500pA', max='500pA'),
     'iKs'           : NodeRange(min='-100pA', max='100pA'),
     'iLk'           : NodeRange(min=None, max = None),
@@ -280,8 +238,14 @@ var_annots_dIN = {
     'glk_noise3'     : NodeRange(min="0", max = "3"),
     'glk_noise4'     : NodeRange(min="0", max = "3"),
     'i_injected'     : NodeRange(min="0nA", max = "10nA"),
-    
     'k'     : NodeRange(min="0", max = "1.1"),
+    'i_nmda' : NodeRange(min=None, max = None),
+    
+    'syn_nmda_A' :NodeRange(min='0', max ='30'),
+    'syn_nmda_B' :NodeRange(min='0', max ='30'),
+    
+    'nmda_vdep':NodeRange(min="0.1", max ='3'),
+    'v_scale': NodeRange(min="0.1", max ='3'),
 }
 
  
@@ -315,6 +279,9 @@ network.add(p2)
 e1 = ElectricalSynapseProjection(src_population=p1, dst_population=p1, connection_probability=0.2, strength_ohm=300e6, name='ElecLHSdIN', injected_port_name='i_injected')
 network.add(e1)
 
+# Chemical Synapses:
+s1 = EventPortConnector(p1,p1, src_port_name='spike', dst_port_name='recv_nmda_spike', connection_probability=0.1, name='Conn01' )
+network.add(s1)
 
 
 
@@ -324,16 +291,14 @@ network.add(e1)
 
 
 
-
-
-
+record_symbols = ['syn_nmda_A', 'syn_nmda_B', 'V','k','iInj_local','i_nmda', 'nmda_vdep']
 # Just generate the file:
-CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', run=False, output_c_filename='/auto/homes/mh735/Desktop/tadpole1.cpp', compile=False, CPPFLAGS='-DON_NIOS=true', record_symbols=['V','k','iInj'] )
+CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', run=False, output_c_filename='/auto/homes/mh735/Desktop/tadpole1.cpp', compile=False, CPPFLAGS='-DON_NIOS=true', record_symbols=record_symbols )
 
 #assert False
 
 
-fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false', record_symbols=['V','k','iInj']).results
+fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false', record_symbols=record_symbols).results
 
 
 
@@ -346,21 +311,34 @@ results = HDF5SimulationResultFile("output.hd5")
 time_array = results.h5file.root._f_getChild('/simulation_fixed/float/time').read()
 
 
+
+for symbol in record_symbols:
+    pylab.figure()
+    for i in range(30):
+        pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/%s' % (i, symbol)).read(), label='%s:lhs-%03d' % (symbol, i) )
+    pylab.legend()
+
+
+
+
 pylab.figure()
 for i in range(30):
     pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/V' % i).read(), label='V:lhs-%03d' % i)
 pylab.legend()
-
 
 pylab.figure()
 for i in range(30):
     pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/k' % i).read(), label='k:lhs-%03d' % i)
 pylab.legend()
 
+pylab.figure()
+for i in range(30):
+    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/iInj_local' % i).read(), label='iInj-%03d' % i)
+pylab.legend()
 
 pylab.figure()
 for i in range(30):
-    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/iInj' % i).read(), label='iInj-%03d' % i)
+    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/i_nmda' % i).read(), label='i_nmda-%03d' % i)
 pylab.legend()
 
 

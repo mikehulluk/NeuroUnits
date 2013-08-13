@@ -35,13 +35,14 @@ class ChemicalSynapseProjection(Projection):
 
 
 
-
-
-#class EventSource(object):
-    
-    
-
-
+class EventPortConnector(object):
+    def __init__(self, src_population, dst_population, src_port_name, dst_port_name, connection_probability, name):
+        self.name = name
+        self.src_population = src_population
+        self.dst_population = dst_population
+        self.src_port = src_population.component.output_event_port_lut.get_single_obj_by(symbol=src_port_name)
+        self.dst_port = src_population.component.input_event_port_lut.get_single_obj_by(symbol=dst_port_name)
+        self.connection_probability = connection_probability
 
 
 
@@ -50,7 +51,7 @@ class ChemicalSynapseProjection(Projection):
 class Network(object):
     def __init__(self, ):
         self.populations = []
-        self.chemical_synapse_projections = []
+        self.event_port_connectors = []
         self.electrical_synapse_projections = []
         
         
@@ -60,7 +61,9 @@ class Network(object):
         
         elif isinstance( obj, ElectricalSynapseProjection):
             self.electrical_synapse_projections.append(obj)
-            
+        
+        elif isinstance( obj, EventPortConnector):
+            self.event_port_connectors.append(obj)
             
         else:
             assert False

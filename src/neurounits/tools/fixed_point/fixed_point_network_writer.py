@@ -79,7 +79,7 @@ const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP = 300;
 const int nsim_steps = ${nsim_steps};
 
 
-// Define how often to record values: 
+// Define how often to record values:
 const int record_rate = 1;
 
 #include <list>
@@ -221,24 +221,68 @@ namespace rnd
     {
         double r = (double)rand() / INT_MAX;
         return r * (max-min) + min;
-        
-    
+
+
         //return max + min/2.0;
-        
+
     }
 
     IntType uniform(IntType up, IntType min, IntType min_scale, IntType max, IntType max_scale)
     {
         return IntType( FixedFloatConversion::from_float(
-            rand_in_range(FixedFloatConversion::to_float(min, min_scale), FixedFloatConversion::to_float(max, max_scale)), 
+            rand_in_range(FixedFloatConversion::to_float(min, min_scale), FixedFloatConversion::to_float(max, max_scale)),
             up) );
-        
+
         //return IntType(1);
     }
-
-
-
 }
+
+
+
+
+IntType check_in_range(IntType val, IntType upscale, double min, double max, const std::string& description)
+{
+    cout << "\nFor: " << description;
+    cout << "\n Checking: " << std::flush;
+    double value_float = FixedFloatConversion::to_float(val, upscale);
+    
+    cout << "value_float= " << value_float << " between(" << min << "," << max << ")?";
+    
+    double diff_max = max-value_float;
+    double diff_min = min-value_float;
+    cout << "\n diff_max: " << diff_max;
+    cout << "\n diff_min: " << diff_min;
+    
+    // Addsmall tolerance, to account for constants:
+    if(max > 0) max *= 1.0001;
+    else max /= 1.0001;
+    if(min < 0) min *= 1.0001;
+    else min /= 1.0001;
+     
+    assert( value_float <= max);
+    assert( value_float >= min);
+    return val;
+}
+
+
+
+
+
+
+
+
+    
+// Declarations:
+%for projection in network.event_port_connectors:    
+// Event Coupling:
+namespace NS_eventcoupling_${projection.name}
+{
+    void dispatch_event(IntType src_neuron);
+}
+%endfor
+    
+
+
 
 """
 
@@ -250,6 +294,41 @@ c_population_details_tmpl = r"""
 
 namespace NS_${population.name}
 {
+
+
+
+
+
+    // Input event types:
+    namespace input_event_types
+    {
+    %for in_port in component.input_event_port_lut:
+        struct Event_${in_port.symbol}
+        {
+
+            %for param in in_port.parameters:
+            IntType ${param.symbol};
+            %endfor
+            IntType delivery_time;
+
+            Event_${in_port.symbol}(
+                IntType delivery_time
+                %for param in in_port.parameters:
+                , IntType ${param.symbol},
+                %endfor
+            )
+            :
+              %for param in in_port.parameters:
+              ${param.symbol}(${param.symbol}),
+              %endfor
+              delivery_time(delivery_time)
+            { }
+
+
+        };
+    %endfor
+    }
+
 
 
 
@@ -282,32 +361,36 @@ struct NrnPopData
 % endif
 % endfor
 
-    
+
     // Random Variable nodes
 %for rv, _pstring in rv_per_population:
     IntType RV${rv.annotations['node-id']};
-%endfor 
+%endfor
 %for rv, _pstring in rv_per_neuron:
     IntType RV${rv.annotations['node-id']}[size];
 %endfor
 
 
-    
-    bool is_spike[size];
-    
-    
-    
+    // Regimes:
     %for rtgraph in population.component.rt_graphs:
     %if len(rtgraph.regimes) > 1:
     enum RegimeType${rtgraph.name} {
     %for regime in rtgraph.regimes:
         ${rtgraph.name}${regime.name},
     %endfor
+        NO_CHANGE
     };
     RegimeType${rtgraph.name} current_regime_${rtgraph.name}[size];
     %endif
     %endfor
-    
+
+
+    // Incoming event queues:
+    %for in_port in component.input_event_port_lut:
+    typedef std::list<input_event_types::Event_${in_port.symbol}>  EventQueueType_${in_port.symbol};
+    EventQueueType_${in_port.symbol} incoming_events_${in_port.symbol}[size];
+    %endfor
+
 };
 
 
@@ -315,9 +398,9 @@ struct NrnPopData
 void set_supplied_values_to_zero(NrnPopData& d)
 {
 % for sv_def in component.suppliedvalues:
-% if sv_def.symbol != 't':    
-for(int i=0;i<NrnPopData::size;i++) d.${sv_def.symbol}[i] = IntType(0);
-% endif
+    % if sv_def.symbol != 't':
+    for(int i=0;i<NrnPopData::size;i++) d.${sv_def.symbol}[i] = IntType(0);
+    % endif
 % endfor
 }
 
@@ -341,7 +424,7 @@ void setup_hdf5()
 
     for(int i=0;i<NrnPopData::size;i++)
     {
-        
+
         // Storage for state-variables and assignments:
         % for sv_def in state_var_defs + assignment_defs:
         hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}].push_back( file->get_group((boost::format("simulation_fixed/float/${population.name}/%03d/variables/")%i).str())->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) ) );
@@ -356,10 +439,10 @@ void setup_hdf5()
         %endfor
         #endif
     }
-    
-    
-    
-    
+
+
+
+
 #endif
 }
 
@@ -381,7 +464,7 @@ void initialise_randomvariables(NrnPopData& d)
     %for rv, rv_param_string in rv_per_population:
     d.RV${rv.annotations['node-id']} = rnd::${rv.functionname}(IntType(${rv.annotations['fixed-point-format'].upscale}), ${rv_param_string});
     %endfor
-     
+
     for(int i=0;i<NrnPopData::size;i++)
     {
         %for rv, rv_param_string in rv_per_neuron:
@@ -390,7 +473,7 @@ void initialise_randomvariables(NrnPopData& d)
     }
 }
 
-    
+
 
 
 
@@ -401,7 +484,7 @@ void initialise_statevars(NrnPopData& d)
         % for sv_def in state_var_defs:
         d.${sv_def.symbol}[i] = auto_shift( IntType(${sv_def.initial_value.annotations['fixed-point-format'].const_value_as_int}),  IntType(${sv_def.initial_value.annotations['fixed-point-format'].upscale} - ${sv_def.annotations['fixed-point-format'].upscale} ) );
         % endfor
-    
+
         // Initial regimes:
         %for rtgraph in population.component.rt_graphs:
         %if len(rtgraph.regimes) > 1:
@@ -409,9 +492,9 @@ void initialise_statevars(NrnPopData& d)
         %endif
         %endfor
     }
-    
-    
-    
+
+
+
 }
 
 
@@ -423,10 +506,92 @@ namespace event_handlers
     {
         std::cout << "\n on_${out_event_port.symbol}: " <<  index;
 
-
+        %if out_event_port in evt_src_to_evtportconns:
+        %for conn in evt_src_to_evtportconns[out_event_port]:
+        // Handle ${conn.name}
+        NS_eventcoupling_${conn.name}::dispatch_event(index);
+        %endfor
+        %endif
     }
 %endfor
 }
+
+
+
+
+
+
+
+## Template functions:
+## ===================
+<%def name="trigger_transition_block(tr, rtgraph)">
+            if(${writer.to_c(tr.trigger)})
+            {
+                // Actions ...
+                %for action in tr.actions:
+                ${writer.to_c(action)};
+                %endfor
+
+                // Switch regime?
+                %if tr.changes_regime():
+                if(next_regime != NrnPopData::RegimeType${rtgraph.name}::NO_CHANGE &&
+                   next_regime != NrnPopData::RegimeType${rtgraph.name}::${rtgraph.name}${tr.target_regime.name})
+                {
+                    assert(0); //Multiple transitions detected.
+                }
+                next_regime = NrnPopData::RegimeType${rtgraph.name}::${rtgraph.name}${tr.target_regime.name};
+                %endif
+            }
+</%def>
+
+
+
+
+
+
+
+<%def name="trigger_event_block(tr, rtgraph)">
+            while(true)
+            {
+                if( d.incoming_events_${tr.port.symbol}[i].size() == 0 ) break;
+                int evt_time = d.incoming_events_${tr.port.symbol}[i].front().delivery_time;
+                if(evt_time < time_info.time_int )
+                {
+                    // Handle the event:
+                    std::cout << "\n **** HANDLING EVENT (on ${tr.port.symbol}) *****";
+
+                     // Actions ...
+                    %for action in tr.actions:
+                    ${writer.to_c(action)};
+                    %endfor
+
+                    // Switch regime?
+                    %if tr.changes_regime():
+                    if(next_regime != NrnPopData::RegimeType${rtgraph.name}::NO_CHANGE &&
+                       next_regime != NrnPopData::RegimeType${rtgraph.name}::${rtgraph.name}${tr.target_regime.name})
+                    {
+                        assert(0); //Multiple transitions detected.
+                    }
+                    next_regime = NrnPopData::RegimeType${rtgraph.name}::${rtgraph.name}${tr.target_regime.name};
+                    %endif
+
+
+
+
+                    d.incoming_events_${tr.port.symbol}[i].pop_front();
+                }
+                else
+                {
+                    break;
+                }
+            }
+</%def>
+
+
+
+
+
+
 
 
 
@@ -437,7 +602,7 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
 {
 
     const IntType t = time_info.time_int;
-    
+
     for(int i=0;i<NrnPopData::size;i++)
     {
         // Calculate assignments:
@@ -451,70 +616,86 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
         d.${eqn.node.lhs.symbol}[i] += ${eqn.rhs_cstr[1]} ;
         % endfor
     }
-    
-    
-    
-    
+
+
+
+
     for(int i=0;i<NrnPopData::size;i++)
     {
-    
-        // Resolve transitions for each rt-graph: 
-        %for rtgraph in population.component.rt_graphs:
-        
-        
+    // Resolve transitions for each rt-graph:
+    %for rtgraph in population.component.rt_graphs:
+
+        NrnPopData::RegimeType${rtgraph.name} next_regime = NrnPopData::RegimeType${rtgraph.name}::NO_CHANGE;
+
         %if len(rtgraph.regimes) > 1:
+
         // Non-trivial RT-graph
         switch(d.current_regime_${rtgraph.name}[i])
         {
+        case NrnPopData::RegimeType${rtgraph.name}::NO_CHANGE:
+            assert(0); // This is an internal error - this regime is only used as a flag internally.
+
+        // Handle the transitions per regime:
         %for regime in rtgraph.regimes:
         case NrnPopData::RegimeType${rtgraph.name}::${rtgraph.name}${regime.name}:
             % if len(rtgraph.regimes) > 1 and regime.name is None:
             assert(0); // Should not be here - we should switch into a 'real' regime before we begin
-            %endif 
-            
+            %endif
+
+            // ==== Triggered Transitions: ====
             %for tr in population.component.triggertransitions_from_regime(regime):
-            if(${writer.to_c(tr.trigger)})
-            {
-                // Actions ...
-                %for action in tr.actions:
-                ${writer.to_c(action)};
-                %endfor 
-                
-                // Switch regime? 
-                %if tr.target_regime is not None:
-                d.current_regime_${rtgraph.name}[i] = NrnPopData::RegimeType${rtgraph.name}::${rtgraph.name}${tr.target_regime.name};
-                //std::cout << "Switching Regime to: RegimeType${rtgraph.name}::${rtgraph.name}${tr.target_regime.name} at: " << t << " \n"; 
-                %endif
-            }
+            ${trigger_transition_block(tr=tr, rtgraph=rtgraph)}
             %endfor
+
+            // ==== Event Transitions: ====
+            %for tr in population.component.eventtransitions_from_regime(regime):
+            ${trigger_event_block(tr, rtgraph)}
+            %endfor
+
             break;
         %endfor
+
         }
-        
+
+        // And the transitions from the 'global namespace':
+        // ==== Triggered Transitions: ====
+        %for tr in population.component.triggertransitions_from_regime(rtgraph.get_regime(None)):
+        ${trigger_transition_block(tr=tr, rtgraph=rtgraph)}
+        %endfor
+
+        // ==== Event Transitions: ====
+        %for tr in population.component.eventtransitions_from_regime(rtgraph.get_regime(None)):
+        ${trigger_event_block(tr, rtgraph)}
+        %endfor
+
+
+
+
         %else:
-        
             <% regime = rtgraph.get_regime(None) %>
             %if population.component.transitions_from_regime(regime):
                 assert(0); // Transitions found, but not yet supported!;
             %endif
-            
         %endif:
-        
-        
-        
-        
-        %endfor
+
+        // Update the next state:
+        if( next_regime != NrnPopData::RegimeType${rtgraph.name}::NO_CHANGE)
+        {
+            cout << "\nSWitching into Regime:" << next_regime;
+            d.current_regime_${rtgraph.name}[i] = next_regime;
+        }
+    %endfor
     }
-    
-    
-    
-    
+
+
+
+
 }
 
 
 void write_step_to_hdf5(NrnPopData& d, TimeInfo time_info)
 {
-   
+
         #if USE_HDF && SAVE_HDF5_INT
         % for eqn in eqns_assignments + eqns_timederivatives:
         %if eqn.node.lhs.symbol in record_symbols:
@@ -628,15 +809,28 @@ int main()
 
     // Setup the variables:
     %for pop in network.populations:
-    NS_${pop.name}::NrnPopData data_${pop.name};
+    //NS_${pop.name}::NrnPopData data_${pop.name};
     NS_${pop.name}::initialise_statevars(data_${pop.name});
     NS_${pop.name}::initialise_randomvariables(data_${pop.name});
     %endfor
-    
+
     // Setup the electical coupling:
     %for proj in network.electrical_synapse_projections:
     NS_${proj.name}::setup_electrical_coupling();
     %endfor
+
+    // Setup the event connections:
+    %for evt_conn in network.event_port_connectors:
+    NS_eventcoupling_${evt_conn.name}::setup_connections();
+    %endfor
+
+    // Add some events:
+    IntType dt = 41943;
+    for(int i=0;i<30;i++)
+    {
+        data_LHSdIN.incoming_events_recv_nmda_spike[0].push_back(NS_LHSdIN::input_event_types::Event_recv_nmda_spike(dt*i) );
+    }
+
 
 
 
@@ -650,7 +844,7 @@ int main()
         {
 
             TimeInfo time_info(time_step);
-            
+
 
 
             #if DISPLAY_LOOP_INFO
@@ -658,6 +852,8 @@ int main()
             {
                 std::cout << "Loop: " << time_step << "\n";
                 std::cout << "t: " << time_info.time_int << "\n";
+
+                std::cout << "QueueSize:" << data_LHSdIN.incoming_events_recv_nmda_spike[0].size() << "\n";
             }
             #endif
 
@@ -687,11 +883,11 @@ int main()
 
 
             // D. Deliver spikes:
-            
-            
-            
-            
-            
+
+
+
+
+
             // Z. Record the states:
             if(time_info.time_step % record_rate==0)
             {
@@ -737,25 +933,25 @@ namespace NS_${projection.name}
     {
         IntType i,j;
         IntType strength;
-        
+
         GapJunction(IntType i, IntType j, IntType strength)
          : i(i), j(j), strength(strength)
         {
-            
-        
+
+
         }
-        
+
     };
-    
-    
-    
+
+
+
     typedef std::vector<GapJunction>  GJList;
     GJList gap_junctions;
-    
+
 
     void setup_electrical_coupling()
     {
-    
+
         // Sort out autapses:
         for(int i=0;i<${projection.src_population.size}; i++)
         {
@@ -764,16 +960,16 @@ namespace NS_${projection.name}
                 if(rnd::rand_in_range(0,1) < ${projection.connection_probability} )
                 {
                     gap_junctions.push_back( GapJunction(i,j, ${projection.strength_ohm} ) );
-                    cout << "\nCreated gap junction"; 
+                    cout << "\nCreated gap junction";
                 }
             }
         }
-        
+
     }
 
     void calculate_electrical_coupling( NS_${projection.src_population.name}::NrnPopData& src, NS_${projection.dst_population.name}::NrnPopData& dst)
     {
-        <% 
+        <%
         pre_V_node = projection.src_population.component.get_terminal_obj_or_port('V')
         post_V_node = projection.dst_population.component.get_terminal_obj_or_port('V')
         pre_iinj_node = projection.src_population.component.get_terminal_obj_or_port(projection.injected_port_name)
@@ -781,10 +977,10 @@ namespace NS_${projection.name}
         %>
         IntType upscale_V_pre = IntType( ${pre_V_node.annotations['fixed-point-format'].upscale} );
         IntType upscale_V_post = IntType(${pre_V_node.annotations['fixed-point-format'].upscale} );
-        
+
         IntType upscale_iinj_pre = IntType(${pre_iinj_node.annotations['fixed-point-format'].upscale} );
         IntType upscale_iinj_post = IntType(${post_iinj_node.annotations['fixed-point-format'].upscale} );
-        
+
         for(GJList::iterator it = gap_junctions.begin(); it != gap_junctions.end();it++)
         {
             float V_float_pre  = FixedFloatConversion::to_float( src.V[it->i], upscale_V_pre);
@@ -797,9 +993,68 @@ namespace NS_${projection.name}
 }
 
 
-""" 
+"""
 
 
+
+c_event_projection_tmpl = r"""
+
+// Event Coupling:
+namespace NS_eventcoupling_${projection.name}
+{
+
+    typedef std::vector<IntType> TargetList;
+    TargetList projections[${projection.src_population.size}];
+
+
+    void setup_connections()
+    {
+        for(IntType i=IntType(0);i< IntType(${projection.src_population.size});i++)
+            for(IntType j=IntType(0);j<IntType(${projection.src_population.size});j++)
+            {
+                if(i==j) continue;
+                if(rnd::rand_in_range(0,1) < ${projection.connection_probability})
+                {
+                    projections[i].push_back(j);
+
+                }
+            }
+
+
+    }
+
+
+    void dispatch_event(IntType src_neuron)
+    {
+        for( TargetList::iterator it = projections[src_neuron].begin(); it!=projections[src_neuron].end();it++)
+        {
+            //IntType taget_index = (*it);
+            
+            NS_${projection.dst_population.name}::input_event_types::Event_${projection.dst_port.symbol} evt(0);
+            
+            data_${projection.dst_population.name}.incoming_events_${projection.dst_port.symbol}[get_value32(*it)].push_back( evt ) ;
+            cout << "\nDelivered event to: " << (*it);
+        }
+        
+        //assert(0);
+
+    }
+
+
+}
+
+
+"""
+
+
+popl_obj_tmpl = """
+
+// Setup the global variables:
+%for pop in network.populations:
+NS_${pop.name}::NrnPopData data_${pop.name};
+%endfor
+
+"""
 
 
 
@@ -830,7 +1085,15 @@ class CBasedEqnWriterFixedNetwork(object):
         self.dt_int = NodeFixedPointFormatAnnotator.encore_value_cls(self.dt_float, self.dt_upscale, self.nbits )
 
 
-        
+
+        # Make sure the events can be connected:
+        evt_src_to_evtportconns = {}
+        for evt_conn in network.event_port_connectors:
+            if not evt_conn.src_port in evt_src_to_evtportconns:
+                evt_src_to_evtportconns[evt_conn.src_port] = []
+            evt_src_to_evtportconns[evt_conn.src_port].append(evt_conn)
+
+
 
         std_variables = {
             'nsim_steps' : 3000,
@@ -841,19 +1104,31 @@ class CBasedEqnWriterFixedNetwork(object):
             'time_upscale' : self.time_upscale,
             'output_filename' : output_filename,
             'network':network,
+            'evt_src_to_evtportconns': evt_src_to_evtportconns,
                          }
 
 
 
         code_per_electrical_projection = []
-        
+
         for proj in network.electrical_synapse_projections:
             c = Template(c_electrical_projection_tmpl).render(
                                         projection=proj,
                                         **std_variables
                                             )
-            
             code_per_electrical_projection.append(c)
+
+
+
+        code_per_eventport_projection = []
+        for proj in network.event_port_connectors:
+            c = Template(c_event_projection_tmpl).render(
+                                        projection=proj,
+                                        **std_variables
+                                            )
+            code_per_eventport_projection.append(c)
+
+
 
 
 
@@ -881,9 +1156,9 @@ class CBasedEqnWriterFixedNetwork(object):
 
             rv_per_neuron = []
             rv_per_population = []
-            
+
             for rv in component.random_variable_nodes:
-            
+
                 assert rv.functionname == 'uniform'
                 params = [ rv.parameters.get_single_obj_by(name='min'), rv.parameters.get_single_obj_by(name='max'), ]
                 param_string = ','.join( "%s, IntType(%d)" % (self.writer.visit( p.rhs_ast), p.rhs_ast.annotations['fixed-point-format'].upscale ) for p in params )
@@ -892,34 +1167,36 @@ class CBasedEqnWriterFixedNetwork(object):
                     rv_per_neuron.append( (rv,param_string) )
                 elif rv.modes['share']=='PER_POPULATION':
                     rv_per_population.append( (rv,param_string) )
-                    
+
             try:
                 cfile = Template(c_population_details_tmpl).render(
-                            output_filename = output_filename,
+                            #output_filename = output_filename,
                             component = population.component,
                             parameter_defs = list(component.parameters),
                             state_var_defs = list(component.state_variables),
                             assignment_defs = list(component.assignedvalues),
 
                             writer = self.writer,
-                            dt_float = self.dt_float,
-                            dt_int = self.dt_int,
-                            dt_upscale = self.dt_upscale,
+                            #dt_float = self.dt_float,
+                            #dt_int = self.dt_int,
+                            #dt_upscale = self.dt_upscale,
 
-                            time_upscale = component.get_terminal_obj('t').annotations['fixed-point-format'].upscale,
+                            #time_upscale = component.get_terminal_obj('t').annotations['fixed-point-format'].upscale,
 
                             eqns_timederivatives = self.td_eqns,
                             eqns_assignments = self.ass_eqns,
 
-                            nbits=self.nbits,
+                            #nbits=self.nbits,
                             intermediate_store_locs=self.intermediate_store_locs,
 
-                            nsim_steps = 3000,
+                            #nsim_steps = 3000,
                             population=population,
-                            
+
                             rv_per_neuron = rv_per_neuron,
                             rv_per_population = rv_per_population,
-                            record_symbols = record_symbols if record_symbols else [o.symbol for o in  component.assignedvalues + component.state_variables ]
+                            record_symbols = record_symbols if record_symbols else [o.symbol for o in  component.assignedvalues + component.state_variables ],
+
+                            **std_variables
                             )
             except:
                 print exceptions.html_error_template().render()
@@ -946,9 +1223,18 @@ class CBasedEqnWriterFixedNetwork(object):
             raise
 
 
+        try:
+            popl_objs = Template(popl_obj_tmpl).render(
+                        ** std_variables
+                        )
+        except:
+            print exceptions.html_error_template().render()
+            raise
+        
 
 
-        cfile = '\n'.join([c_prog_header] + code_per_pop + code_per_electrical_projection + [c_main_loop])
+
+        cfile = '\n'.join([c_prog_header] +  code_per_pop + [popl_objs] + code_per_electrical_projection +  code_per_eventport_projection + [c_main_loop])
 
         for f in ['sim1.cpp','a.out',output_filename, 'debug.log',]:
             if os.path.exists(f):

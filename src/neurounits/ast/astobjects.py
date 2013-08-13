@@ -96,6 +96,7 @@ class BoolAnd(ASTObject):
         return v.VisitBoolAnd(self, **kwargs)
 
     def __init__(self, lhs, rhs, **kwargs):
+        super(BoolAnd, self).__init__(**kwargs)
         self.lhs = lhs
         self.rhs = rhs
 
@@ -106,6 +107,7 @@ class BoolOr(ASTObject):
         return v.VisitBoolOr(self, **kwargs)
 
     def __init__(self, lhs, rhs, **kwargs):
+        super(BoolOr, self).__init__(**kwargs)
         self.lhs = lhs
         self.rhs = rhs
 
@@ -116,6 +118,7 @@ class BoolNot(ASTObject):
         return v.VisitBoolNot(self, **kwargs)
 
     def __init__(self, lhs, **kwargs):
+        super(BoolNot, self).__init__(**kwargs)
         self.lhs = lhs
 
 
