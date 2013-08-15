@@ -1,3 +1,4 @@
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
@@ -30,93 +31,188 @@ from neurounits.visitors import ASTVisitorBase
 import itertools
 import networkx as nx
 from itertools import chain
+import pylab
 
 
 
-class VisitorFindDirectSymbolDependance_OLD(ASTVisitorBase):
-    """ Finds symbol dependance on one another, but does
-        not recurse over assignments. I.e
-        a = b+2
-        d = c+a
+import neurounits.ast as ast
 
-        Then 'b' will not be reported as a dependancy on 'd'
-    """
+    #@classmethod
+    #def get_assignment_dependancy_ordering(cls, eqnset):
+    #    from neurounits.ast.astobjects import AssignedVariable
+    #    deps = dict([(ass.lhs, VisitorFindDirectSymbolDependance_OLD().visit(ass.rhs_map)) for ass in eqnset.assignments])
+
+    #    ordered = []
+    #    to_order = set(deps.keys())
+
+    #    while to_order:
+    #        found = False
+    #        for o in sorted(to_order, key=lambda o:o.symbol):
+    #            o_deps = [d for d in deps[o] if type(d) == AssignedVariable]
+    #            o_deps_unsatisfied = [d for d in o_deps if not d in ordered]
+    #            if len(o_deps_unsatisfied) == 0:
+    #                ordered.append(o)
+    #                to_order.remove(o)
+    #                found = True
+    #                break
+    #        # Prevent recursion:
+    #        assert found == True, """Can't find the dependencies for: %s"""%",".join( [o.symbol for o in to_order] )
+
+    #    assert len(ordered) == len(eqnset._eqn_assignment)
+    #    return ordered
+
+    #@classmethod
+    #def get_assignment_dependancy_ordering_recursive(cls, eqnset, ass):
+    #    from neurounits.ast.astobjects import AssignedVariable
+    #    D = VisitorFindDirectSymbolDependance_OLD()
+    #    D.visit(eqnset)
+
+    #    def ass_deps(a):
+    #        return [t for t in D.dependancies[a] if isinstance(t, AssignedVariable)]
+
+    #    # resolved_deps = set()
+
+    #    required_deps = set(ass_deps(ass))
+
+    #    # required_deps = set()
+
+    #    # Find all the dependancies:
+    #    start_dep_len = None
+    #    while start_dep_len != len(required_deps):
+    #        start_dep_len = len(required_deps)
+    #        to_add = set()
+    #        for i in required_deps:
+    #            for i_dep in ass_deps(i):
+    #                if not i_dep in required_deps:
+    #                    to_add.add(i_dep)
+
+    #        required_deps = required_deps | to_add
+
+    #    op = [o for o in cls.get_assignment_dependancy_ordering(eqnset) if o in required_deps]
+    #    return op
+
+    #def __init__(self):
+    #    self.dependancies = {}
+
+#class SymbolDependance
+
+
+class VisitorSymbolDependance(object):
+
+
+
+    def __init__(self, component):
+        # Build the symbol dependancy graph:
+        self.component = component
+        self.direct_dependancy_graph = VisitorSymbolDependance.build_direct_dependancy_graph(component)
+
+    def get_assignment_ordering(self, component):
+        assert False
+
+    def get_terminal_dependancies(self, terminal, expand_assignments, include_random_variables=False, include_supplied_values=True):
+        """ Does not expand through states"""
+
+        if isinstance( terminal, ast.EqnAssignmentByRegime):
+            terminal = terminal.lhs
+        if isinstance( terminal, ast.EqnTimeDerivativeByRegime):
+            terminal = terminal.lhs
+
+
+
+        #print 'Resolving:', repr(terminal)
+        assert isinstance(terminal, (ast.StateVariable, ast.AssignedVariable) )
+
+
+        dependancies = nx.bfs_successors(self.direct_dependancy_graph, source=terminal)
+        #print 'All deps:'
+        #for k,v, in dependancies.items():
+        #    print ' --', repr(k), '-', v
+        dependancies = dependancies[terminal]
+        #print 'Depends:', dependancies
+        #print 'Dependancies ID', id(dependancies)
+
+        dependancies = [d for d in dependancies if not isinstance( d, ast.RTBlock)]
+
+        #print 'Top-level dependancies found: ', dependancies
+
+        if expand_assignments:
+            #print 'Expanding...'
+            dependancies_statevars =   set([dep for dep in dependancies if isinstance(dep, (ast.StateVariable, ast.RandomVariable, ast.SuppliedValue))])
+            unexpanded_assignment_dependancies = set([dep for dep in dependancies if isinstance(dep, ast.AssignedVariable)])
+            #print 'Unresolved variables', [u for u in dependancies if u not in dependancies_statevars|unexpanded_assignment_dependancies]
+            assert len(dependancies_statevars) + len(unexpanded_assignment_dependancies) == len(set(dependancies))
+
+
+            expanded_assignment_dependancies = set([terminal]) if isinstance(terminal, ast.AssignedVariable) else set([])
+
+            while unexpanded_assignment_dependancies:
+                
+                ass = unexpanded_assignment_dependancies.pop()
+                #print ' -- Resolving:', str(ass), repr(ass)
+                expanded_assignment_dependancies.add(ass)
+                ass_deps = nx.bfs_successors(self.direct_dependancy_graph, ass)[ass]
+                #print repr(ass_deps)
+
+                for ass_dep in ass_deps:
+                    #print '   -- Adding', ass_dep, repr(ass_dep)
+                    if isinstance( ass_dep, (ast.StateVariable, ast.RandomVariable, ast.SuppliedValue)):
+                        dependancies_statevars.add(ass_dep)
+                    elif isinstance( ass_dep, ast.AssignedVariable):
+                        if ass_dep in expanded_assignment_dependancies:
+                            continue
+                        elif ass_dep in unexpanded_assignment_dependancies:
+                            continue
+                        else:
+                            unexpanded_assignment_dependancies.add(ass_dep)
+                    else:
+                        if isinstance(ass_dep, ast.RTBlock):
+                                continue
+                        #print ass_dep
+                        assert False
+
+            dependancies = dependancies_statevars
+
+
+        if include_random_variables == False:
+            dependancies = [d for d in dependancies if not isinstance(d, ast.RandomVariable)]
+
+        #print 'Resolved dependencies', dependancies
+        return dependancies
+
+
+
+
+        assert False
+
+        #from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
+        #assert sym in self.terminal_symbols
+
+        #if isinstance(sym, AssignedVariable):
+        #    sym = self._eqn_assignment.get_single_obj_by(lhs=sym)
+        #if isinstance(sym, StateVariable):
+        #    sym = self._eqn_time_derivatives.get_single_obj_by(lhs=sym)
+
+        #d = VisitorFindDirectSymbolDependance_OLD()
+        #
+        #res = d.visit(sym)
+        #print res
+        #return list(set(res))
+        #pass
+
+
+
+
+
+
 
     @classmethod
-    def get_assignment_dependancy_ordering(cls, eqnset):
-        assert False, 'Move to new version of this class!'
-        from neurounits.ast.astobjects import AssignedVariable
-        deps = dict([(ass.lhs, VisitorFindDirectSymbolDependance_OLD().visit(ass.rhs_map)) for ass in eqnset.assignments])
-
-        ordered = []
-        to_order = set(deps.keys())
-
-        while to_order:
-            found = False
-            for o in sorted(to_order, key=lambda o:o.symbol):
-                o_deps = [d for d in deps[o] if type(d) == AssignedVariable]
-                o_deps_unsatisfied = [d for d in o_deps if not d in ordered]
-                if len(o_deps_unsatisfied) == 0:
-                    ordered.append(o)
-                    to_order.remove(o)
-                    found = True
-                    break
-            # Prevent recursion:
-            assert found == True, """Can't find the dependencies for: %s"""%",".join( [o.symbol for o in to_order] )
-
-        assert len(ordered) == len(eqnset._eqn_assignment)
-        return ordered
-
-    @classmethod
-    def get_assignment_dependancy_ordering_recursive(cls, eqnset, ass):
-        assert False, 'Move to new version of this class!'
-        from neurounits.ast.astobjects import AssignedVariable
-        D = VisitorFindDirectSymbolDependance_OLD()
-        D.visit(eqnset)
-
-        def ass_deps(a):
-            return [t for t in D.dependancies[a] if isinstance(t, AssignedVariable)]
-
-        # resolved_deps = set()
-
-        required_deps = set(ass_deps(ass))
-
-        # required_deps = set()
-
-        # Find all the dependancies:
-        start_dep_len = None
-        while start_dep_len != len(required_deps):
-            start_dep_len = len(required_deps)
-            to_add = set()
-            for i in required_deps:
-                for i_dep in ass_deps(i):
-                    if not i_dep in required_deps:
-                        to_add.add(i_dep)
-
-            required_deps = required_deps | to_add
-
-        op = [o for o in cls.get_assignment_dependancy_ordering(eqnset) if o in required_deps]
-        return op
-
-    def __init__(self):
-        assert False, 'Move to new version of this class!'
-        
-        self.dependancies = {}
-
-
-
-
-    @classmethod
-    def build_direct_dependancy_graph(cls, component):
-        assert False, 'Move to new version of this class!'
+    def build_direct_dependancy_graph(cls, component, plot=False):
         import neurounits.ast as ast
-        dep_find = VisitorFindDirectSymbolDependance_OLD()
+        dep_find = _DependancyFinder(component)
         dep_find.visit(component)
 
         g = nx.DiGraph()
-
         all_objs = set( list(chain(*dep_find.dependancies.values()))  + dep_find.dependancies.keys() )
-
         for o in all_objs:
             color_lut = {
                     ast.AssignedVariable: 'green',
@@ -125,12 +221,16 @@ class VisitorFindDirectSymbolDependance_OLD(ASTVisitorBase):
 
             g.add_node(o, label=repr(o), color=color)
 
-
-
         for k,v in dep_find.dependancies.items():
             for c in v:
                 g.add_edge(k,c)
 
+
+
+        if plot or True:
+            #pylab.ion()
+            nx.draw_networkx(g, with_labels=True, labels={n:repr(n) for n in all_objs} )
+            #pylab.show()
 
         return g
 
@@ -142,10 +242,12 @@ class VisitorFindDirectSymbolDependance_OLD(ASTVisitorBase):
 
 
 
-
+class _DependancyFinder(ASTVisitorBase):
+    
+    def __init__(self, component):
+        self.dependancies = {}
 
     def VisitNineMLComponent(self, o, **kwargs):
-        assert False, 'Move to new version of this class!'
         for a in o.assignments:
             self.dependancies[a.lhs] = self.visit(a)
         for a in o.timederivatives:
@@ -291,7 +393,8 @@ class VisitorFindDirectSymbolDependance_OLD(ASTVisitorBase):
 
 
     def VisitRandomVariable(self, o):
-        return list(itertools.chain( *[self.visit(p) for p in o.parameters]))
+        #print 'Found RV:', o
+        return list(itertools.chain( *[self.visit(p) for p in o.parameters])) + [o]
 
     def VisitRandomVariableParameter(self,o):
         return self.visit(o.rhs_ast)

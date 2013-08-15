@@ -210,7 +210,7 @@ var_annots_dIN = {
     'beta_na_m'     : NodeRange(min=None, max = None),
     'exp_neg_nu'    : NodeRange(min=None, max = None),
     'iCa2'          : NodeRange(min=None, max = None),
-    'iInj_local'          : NodeRange(min=None, max = None),
+    'iInj_local'    : NodeRange(min=None, max = None),
     'iKf'           : NodeRange(min='-500pA', max='500pA'),
     'iKs'           : NodeRange(min='-100pA', max='100pA'),
     'iLk'           : NodeRange(min=None, max = None),
@@ -248,6 +248,20 @@ var_annots_dIN = {
     'v_scale': NodeRange(min="0.1", max ='3'),
 }
 
+var_annots_dIN = {
+    't'             : NodeRange(min="0ms", max = "1.1s"),
+    'i_injected'     : NodeRange(min="0nA", max = "10nA"),
+    
+    'V'             : NodeRange(min="-100mV", max = "50mV"),
+    'k'     : NodeRange(min="0", max = "1.1"),
+    'ca_m'          : NodeRange(min="0", max = "1.5"),
+    'kf_n'          : NodeRange(min="0", max = "1.5"),
+    'ks_n'          : NodeRange(min="0", max = "1.5"),
+    'na_h'          : NodeRange(min="0", max = "1.5"),
+    'na_m'          : NodeRange(min="0", max = "1.5"),
+    'syn_nmda_A' :NodeRange(min='0', max ='30'),
+    'syn_nmda_B' :NodeRange(min='0', max ='30'),
+    }
  
 
 

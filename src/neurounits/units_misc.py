@@ -120,6 +120,11 @@ class LookUpDict(object):
         possible_objs = self.get_objs_by(**kwargs)
         return [ getattr(p, attr) for p in possible_objs]
 
+    
+    def get_single_obj(self,):
+        assert len(self._objs) == 1
+        return list(self._objs)[0]
+
     def __iter__(self):
         return iter(self._objs)
 

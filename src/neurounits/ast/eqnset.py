@@ -213,10 +213,10 @@ class NineMLComponent(Block):
 
     @property
     def ordered_assignments_by_dependancies(self,):
-        from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
-        #from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
+        from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance_OLD
+        #from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance_OLD
         #from neurounits.units_misc import LookUpDict
-        ordered_assigned_values =  VisitorFindDirectSymbolDependance.get_assignment_dependancy_ordering(self)
+        ordered_assigned_values =  VisitorFindDirectSymbolDependance_OLD.get_assignment_dependancy_ordering(self)
         ordered_assignments =  [LookUpDict(self.assignments).get_single_obj_by(lhs=av) for av in ordered_assigned_values]
         return ordered_assignments
 
@@ -376,37 +376,31 @@ class NineMLComponent(Block):
 
     # These should be tidied up:
     def getSymbolDependancicesDirect(self, sym, include_constants=False):
-        from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
-        assert sym in self.terminal_symbols
-
-        if isinstance(sym, AssignedVariable):
-            sym = self._eqn_assignment.get_single_obj_by(lhs=sym)
-        if isinstance(sym, StateVariable):
-            sym = self._eqn_time_derivatives.get_single_obj_by(lhs=sym)
-
-        d = VisitorFindDirectSymbolDependance()
-
-        return list(set(d.visit(sym)))
+        from neurounits.visitors.common.ast_symbol_dependancies_new import VisitorSymbolDependance
+        return VisitorSymbolDependance(self).get_terminal_dependancies(sym, expand_assignments=False)
 
     def getSymbolDependancicesIndirect(self, sym,include_constants=False, include_ass_in_output=False):
-        res_deps = []
-        un_res_deps =  self.getSymbolDependancicesDirect(sym, include_constants=include_constants)
+        from neurounits.visitors.common.ast_symbol_dependancies_new import VisitorSymbolDependance
+        return VisitorSymbolDependance(self).get_terminal_dependancies(sym, expand_assignments=True)
 
-        while un_res_deps:
-            p = un_res_deps.pop()
+        #res_deps = []
+        #un_res_deps =  self.getSymbolDependancicesDirect(sym, include_constants=include_constants)
 
-            if p is sym:
-                continue
-            if p in res_deps:
-                continue
+        #while un_res_deps:
+        #    p = un_res_deps.pop()
 
-            p_deps = self.getSymbolDependancicesIndirect(p, include_constants=include_constants)
-            un_res_deps.extend(p_deps)
-            res_deps.append(p)
+        #    if p is sym:
+        #        continue
+        #    if p in res_deps:
+        #        continue
 
-        if not include_ass_in_output:
-            res_deps = [d for d in res_deps if not isinstance(d,AssignedVariable) ]
-        return res_deps
+        #    p_deps = self.getSymbolDependancicesIndirect(p, include_constants=include_constants)
+        #    un_res_deps.extend(p_deps)
+        #    res_deps.append(p)
+
+        #if not include_ass_in_output:
+        #    res_deps = [d for d in res_deps if not isinstance(d,AssignedVariable) ]
+        #return res_deps
 
 
 

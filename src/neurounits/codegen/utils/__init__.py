@@ -6,7 +6,7 @@ import pylab as plt
 
 
 import networkx as nx
-from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
+from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance_OLD
 
 import neurounits.ast as ast
 
@@ -126,7 +126,7 @@ class EventIntegrationBlock(object):
 
 def build_analog_integration_blks(component):
     # Build the original dependance graph:
-    graph = VisitorFindDirectSymbolDependance.build_direct_dependancy_graph(component)
+    graph = VisitorFindDirectSymbolDependance_OLD.build_direct_dependancy_graph(component)
 
     # Also, add in the RT graphs, that aren't direct dependents of anything, so
     # that the aprpriate AnalogIntegrationBlocks are created. (This might
@@ -184,7 +184,7 @@ def build_event_blks(component, analog_blks):
     # =================================================================
     # 1. Make a map dependancies 'rt_graph -> state_variable/assignments'
     rt_graph_deps_triggers = defaultdict(set)
-    dep_finder = VisitorFindDirectSymbolDependance()
+    dep_finder = VisitorFindDirectSymbolDependance_OLD()
     for tr in component._transitions_triggers:
         #print 'TRANSITION:', repr(tr)
         trigger_deps = dep_finder.visit(tr.trigger)
@@ -211,7 +211,7 @@ def build_event_blks(component, analog_blks):
     # OK, now lets build a new dependancy graph to work out transition/event
     # dependancies:
     # A. Start with the analog graph:
-    graph = VisitorFindDirectSymbolDependance.build_direct_dependancy_graph(component)
+    graph = VisitorFindDirectSymbolDependance_OLD.build_direct_dependancy_graph(component)
     # B. Add the RT-graph nodes:
     for rt_graph in component._rt_graphs:
         graph.add_node(rt_graph, label=repr(rt_graph), color='orange')

@@ -29,7 +29,7 @@ from neurounits.visitors.bases.base_actioner import SingleVisitPredicate
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 from neurounits.unit_errors import panic
 from neurounits.tools.nmodl.neuron_constants import NeuronSuppliedValues
-from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
+from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance_OLD
 from neurounits.ast.astobjects import AssignedVariable, StateVariable, \
     SymbolicConstant, SuppliedValue, InEquality, Parameter
 import string
@@ -133,14 +133,14 @@ class AssignmentWriter(ASTActionerDefaultIgnoreMissing):
 
         # 1. Initialisation:
         # We perform all assignments in order:
-        assignments_ordered = VisitorFindDirectSymbolDependance.get_assignment_dependancy_ordering( eqnset)
+        assignments_ordered = VisitorFindDirectSymbolDependance_OLD.get_assignment_dependancy_ordering( eqnset)
         for ass in assignments_ordered:
             modfilecontents.section_INITIAL.append( self.assigment_statements[ass] )
 
         # 2. Find which assignments are used by the states:
 
         required_assignments = []
-        dependancies = VisitorFindDirectSymbolDependance()
+        dependancies = VisitorFindDirectSymbolDependance_OLD()
         dependancies.VisitEqnSet(eqnset)
 
         for s in eqnset.timederivatives:
@@ -150,7 +150,7 @@ class AssignmentWriter(ASTActionerDefaultIgnoreMissing):
 
         all_deps = []
         for i in required_assignments:
-            a = VisitorFindDirectSymbolDependance().get_assignment_dependancy_ordering_recursive(eqnset=eqnset, ass=i)
+            a = VisitorFindDirectSymbolDependance_OLD().get_assignment_dependancy_ordering_recursive(eqnset=eqnset, ass=i)
             all_deps.extend(a)
             all_deps.append(i)
 
@@ -167,7 +167,7 @@ class AssignmentWriter(ASTActionerDefaultIgnoreMissing):
         # 3. Find the dependancies of the current variables:
         all_deps = []
         for c in build_parameters.currents:
-            a = VisitorFindDirectSymbolDependance().get_assignment_dependancy_ordering_recursive(eqnset=eqnset, ass=c)
+            a = VisitorFindDirectSymbolDependance_OLD().get_assignment_dependancy_ordering_recursive(eqnset=eqnset, ass=c)
             all_deps.extend(a)
             all_deps.append(c)
 

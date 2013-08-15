@@ -26,7 +26,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-from .ast_symbol_dependancies import VisitorFindDirectSymbolDependance
+from .ast_symbol_dependancies import VisitorFindDirectSymbolDependance_OLD
 
 
 from neurounits.visitors.common.function_expander import FunctionExpander
