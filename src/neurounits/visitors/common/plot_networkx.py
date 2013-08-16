@@ -277,3 +277,8 @@ class ActionerGetConnections(ASTActionerDefault):
     def ActionCompoundPortConnector(self, o, **kwargs):
         self.connections[o].extend([o.interface_def] + list(o.wire_mappings))
 
+    def ActionRandomVariable(self, o, **kwargs):
+        self.connections[o].extend( o.parameters)
+
+    def ActionRandomVariableParameter(self, o, **kwargs):
+        self.connections[o].append( o.rhs_ast)

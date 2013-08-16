@@ -51,11 +51,11 @@ c_prog_header_tmpl = r"""
 #else
 
 
-#define CALCULATE_FLOAT false
+#define CALCULATE_FLOAT true
 #define USE_HDF true
 #define SAVE_HDF5_FLOAT true
 #define SAVE_HDF5_INT true
-#define SAFEINT false
+#define SAFEINT true
 
 
 #endif
@@ -245,20 +245,20 @@ IntType check_in_range(IntType val, IntType upscale, double min, double max, con
     cout << "\nFor: " << description;
     cout << "\n Checking: " << std::flush;
     double value_float = FixedFloatConversion::to_float(val, upscale);
-    
+
     cout << "value_float= " << value_float << " between(" << min << "," << max << ")?";
-    
+
     double diff_max = max-value_float;
     double diff_min = min-value_float;
     cout << "\n diff_max: " << diff_max;
     cout << "\n diff_min: " << diff_min;
-    
+
     // Addsmall tolerance, to account for constants:
     if(max > 0) max *= 1.0001;
     else max /= 1.0001;
     if(min < 0) min *= 1.0001;
     else min /= 1.0001;
-     
+
     assert( value_float <= max);
     assert( value_float >= min);
     return val;
@@ -271,16 +271,16 @@ IntType check_in_range(IntType val, IntType upscale, double min, double max, con
 
 
 
-    
+
 // Declarations:
-%for projection in network.event_port_connectors:    
+%for projection in network.event_port_connectors:
 // Event Coupling:
 namespace NS_eventcoupling_${projection.name}
 {
     void dispatch_event(IntType src_neuron);
 }
 %endfor
-    
+
 
 
 
@@ -427,8 +427,11 @@ void setup_hdf5()
 
         // Storage for state-variables and assignments:
         % for sv_def in state_var_defs + assignment_defs:
+        %if sv_def.symbol in record_symbols:
+        // Setup ${sv_def.symbol}:
         hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}].push_back( file->get_group((boost::format("simulation_fixed/float/${population.name}/%03d/variables/")%i).str())->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) ) );
         hdf_map_id_to_datasetptrs_int[${sv_def.annotations['node-id']}].push_back( file->get_group((boost::format("simulation_fixed/int/${population.name}/%03d/variables/")%i).str())->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) ) );
+        %endif
         % endfor
 
         // Storage for the intermediate values in calculations:
@@ -554,7 +557,7 @@ namespace event_handlers
             while(true)
             {
                 if( d.incoming_events_${tr.port.symbol}[i].size() == 0 ) break;
-                int evt_time = d.incoming_events_${tr.port.symbol}[i].front().delivery_time;
+                IntType evt_time = d.incoming_events_${tr.port.symbol}[i].front().delivery_time;
                 if(evt_time < time_info.time_int )
                 {
                     // Handle the event:
@@ -630,7 +633,7 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
         %if len(rtgraph.regimes) > 1:
 
         // Non-trivial RT-graph
-        switch(d.current_regime_${rtgraph.name}[i])
+        switch(d.current_regime_${rtgraph.name}[get_value32(i)])
         {
         case NrnPopData::RegimeType${rtgraph.name}::NO_CHANGE:
             assert(0); // This is an internal error - this regime is only used as a flag internally.
@@ -697,25 +700,59 @@ void write_step_to_hdf5(NrnPopData& d, TimeInfo time_info)
 {
 
         #if USE_HDF && SAVE_HDF5_INT
-        % for eqn in eqns_assignments + eqns_timederivatives:
-        %if eqn.node.lhs.symbol in record_symbols:
+        ##% for eqn in eqns_assignments + eqns_timederivatives:
+        % for sv_def in state_var_defs + assignment_defs:
+        %if sv_def.symbol in record_symbols:
         {
-        HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_int[${eqn.node.lhs.annotations['node-id']}];
-        for(int i=0;i<NrnPopData::size;i++) {pVec[i]->append<T_hdf5_type_int>(get_value32( d.${eqn.node.lhs.symbol}[i])); }
+        HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_int[${sv_def.annotations['node-id']}];
+        for(int i=0;i<NrnPopData::size;i++) {pVec[i]->append<T_hdf5_type_int>(get_value32( d.${sv_def.symbol}[i])); }
         }
         % endif
         % endfor
+
+
+        % for node in population.component.suppliedvalues:
+        %if node.symbol in record_symbols:
+        {
+        HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_int[${node.annotations['node-id']}];
+        for(int i=0;i<NrnPopData::size;i++) {pVec[i]->append<T_hdf5_type_int>(get_value32( d.${node.symbol}[i])); }
+        }
+        % endif
+        % endfor
+
+
         #endif
 
         #if USE_HDF && SAVE_HDF5_FLOAT
-        % for eqn in eqns_assignments + eqns_timederivatives:
-        %if eqn.node.lhs.symbol in record_symbols:
+        ##cout << "\nSavind Floating (Data)";
+        % for sv_def in state_var_defs + assignment_defs:
+        %if sv_def.symbol in record_symbols:
         {
-        HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_float[${eqn.node.lhs.annotations['node-id']}];
-        for(int i=0;i<NrnPopData::size;i++) {pVec[i]->append<T_hdf5_type_float>(FixedFloatConversion::to_float(  d.${eqn.node.lhs.symbol}[i],  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) )); }
+        HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}];
+        for(int i=0;i<NrnPopData::size;i++) {
+            ##cout << "\nWriting: ${sv_def.symbol}";
+            pVec[i]->append<T_hdf5_type_float>(FixedFloatConversion::to_float(  d.${sv_def.symbol}[i],  IntType(${sv_def.annotations['fixed-point-format'].upscale}) ));  
+            }
         }
         % endif
         % endfor
+
+
+        % for node in population.component.suppliedvalues:
+        %if node.symbol in record_symbols:
+        {
+        // For ${node.symbol}
+        HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_float[${node.annotations['node-id']}];
+        for(int i=0;i<NrnPopData::size;i++) {
+            pVec[i]->append<T_hdf5_type_float>(FixedFloatConversion::to_float(  d.${node.symbol}[i],  IntType(${node.annotations['fixed-point-format'].upscale}) ));  
+            }
+        }
+        % endif
+        % endfor
+
+
+
+
         #endif
 }
 
@@ -824,12 +861,12 @@ int main()
     NS_eventcoupling_${evt_conn.name}::setup_connections();
     %endfor
 
-    // Add some events:
-    IntType dt = 41943;
-    for(int i=0;i<30;i++)
-    {
-        data_LHSdIN.incoming_events_recv_nmda_spike[0].push_back(NS_LHSdIN::input_event_types::Event_recv_nmda_spike(dt*i) );
-    }
+    //// Add some events:
+    //IntType dt = 41943;
+    //for(int i=0;i<30;i++)
+    //{
+    //    data_LHSdIN.incoming_events_recv_nmda_spike[0].push_back(NS_LHSdIN::input_event_types::Event_recv_nmda_spike(dt*i) );
+    //}
 
 
 
@@ -889,7 +926,7 @@ int main()
 
 
             // Z. Record the states:
-            if(time_info.time_step % record_rate==0)
+            if(get_value32(time_info.time_step) % get_value32(record_rate)==0)
             {
                 write_time_to_hdf5(time_info);
                 %for pop in network.populations:
@@ -959,7 +996,7 @@ namespace NS_${projection.name}
             {
                 if(rnd::rand_in_range(0,1) < ${projection.connection_probability} )
                 {
-                    gap_junctions.push_back( GapJunction(i,j, ${projection.strength_ohm} ) );
+                    gap_junctions.push_back( GapJunction(IntType(i),IntType(j), IntType(${projection.strength_ohm}) ) );
                     cout << "\nCreated gap junction";
                 }
             }
@@ -983,11 +1020,11 @@ namespace NS_${projection.name}
 
         for(GJList::iterator it = gap_junctions.begin(); it != gap_junctions.end();it++)
         {
-            float V_float_pre  = FixedFloatConversion::to_float( src.V[it->i], upscale_V_pre);
-            float V_float_post = FixedFloatConversion::to_float( dst.V[it->j], upscale_V_post);
+            float V_float_pre  = FixedFloatConversion::to_float( src.V[get_value32(it->i)], upscale_V_pre);
+            float V_float_post = FixedFloatConversion::to_float( dst.V[get_value32(it->j)], upscale_V_post);
             float i_fl = (V_float_post - V_float_pre) / ${projection.strength_ohm};
-            src.${post_iinj_node.symbol}[it->i] += FixedFloatConversion::from_float(i_fl, upscale_iinj_pre);
-            src.${post_iinj_node.symbol}[it->j] += FixedFloatConversion::from_float(-i_fl, upscale_iinj_post);
+            src.${post_iinj_node.symbol}[get_value32(it->i)] = src.${post_iinj_node.symbol}[get_value32(it->i)] + FixedFloatConversion::from_float(i_fl, upscale_iinj_pre);
+            src.${post_iinj_node.symbol}[get_value32(it->j)] = src.${post_iinj_node.symbol}[get_value32(it->j)] + FixedFloatConversion::from_float(-i_fl, upscale_iinj_post);
         }
     }
 }
@@ -1015,7 +1052,7 @@ namespace NS_eventcoupling_${projection.name}
                 if(i==j) continue;
                 if(rnd::rand_in_range(0,1) < ${projection.connection_probability})
                 {
-                    projections[i].push_back(j);
+                    projections[get_value32(i)].push_back(j);
 
                 }
             }
@@ -1026,16 +1063,16 @@ namespace NS_eventcoupling_${projection.name}
 
     void dispatch_event(IntType src_neuron)
     {
-        for( TargetList::iterator it = projections[src_neuron].begin(); it!=projections[src_neuron].end();it++)
+        for( TargetList::iterator it = projections[get_value32(src_neuron)].begin(); it!=projections[get_value32(src_neuron)].end();it++)
         {
             //IntType taget_index = (*it);
-            
-            NS_${projection.dst_population.name}::input_event_types::Event_${projection.dst_port.symbol} evt(0);
-            
+
+            NS_${projection.dst_population.name}::input_event_types::Event_${projection.dst_port.symbol} evt(IntType(0));
+
             data_${projection.dst_population.name}.incoming_events_${projection.dst_port.symbol}[get_value32(*it)].push_back( evt ) ;
             cout << "\nDelivered event to: " << (*it);
         }
-        
+
         //assert(0);
 
     }
@@ -1230,7 +1267,7 @@ class CBasedEqnWriterFixedNetwork(object):
         except:
             print exceptions.html_error_template().render()
             raise
-        
+
 
 
 

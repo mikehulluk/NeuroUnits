@@ -48,10 +48,10 @@ define_component simple_hh {
     
     # NMDA noise:
     
-    i_nmda = g_nmda * (syn_nmda_B - syn_nmda_A) * (e_NMDA - V) * nmda_vdep
+    i_nmda = g_nmda * (syn_nmda_B - syn_nmda_A) * (e_NMDA - V) * nmda_vdep * 0.5
     syn_nmda_A' = -syn_nmda_A / {4ms}
     syn_nmda_B' = -syn_nmda_B / {80ms}
-    g_nmda = 300 pS
+    g_nmda = 0pS #300 pS
     e_NMDA = 0mV
     
     v_scale = V/{-0.08mV}
@@ -66,7 +66,7 @@ define_component simple_hh {
     glk_noise4 =  ~uniform(min=noise_min, max=noise_max)[when=SIM_INIT, share=PER_NEURON]
     
     
-    glk_noise = (glk_noise1 + glk_noise2 + glk_noise3 + glk_noise4) / 4.0 
+    glk_noise = (glk_noise1 + glk_noise2 ) / 4.0 
     
 
 
@@ -98,7 +98,8 @@ define_component simple_hh {
     inf_kf_n = alpha_kf_n / (alpha_kf_n + beta_kf_n)
     tau_kf_n = 1.0 / (alpha_kf_n + beta_kf_n)
     kf_n' = (inf_kf_n - kf_n) / tau_kf_n
-    iKf = gKf * (eK-V) * kf_n*kf_n * kf_n*kf_n
+    iKf = gKf * (eK-V) * kf_n2 #kf_n*kf_n * kf_n*kf_n
+    kf_n2 = kf_n*kf_n * kf_n * kf_n
 
     # Sodium (Kf):
     alpha_na_m = AlphaBetaFunc(v=V, A=8.67ms-1, B=0.0ms-1 mV-1, C=1.0, D=-1.01mV,E=-12.56mV)
@@ -194,59 +195,6 @@ define_component simple_hh {
 
 
 
-var_annots_dIN = {
-    't'             : NodeRange(min="0ms", max = "1.1s"),
-    'alpha_ca_m'    : NodeRange(min=None, max = None),
-    'alpha_kf_n'    : NodeRange(min='0.1e-3ms-1', max = None),
-    'alpha_ks_n'    : NodeRange(min='0.1e-3ms-1', max = None),
-    'alpha_na_h'    : NodeRange(min=None, max = None),
-    'alpha_na_m'    : NodeRange(min=None, max = None),
-    'beta_ca_m'     : NodeRange(min=None, max = None),
-    'beta_ca_m_1'   : NodeRange(min=None, max = None),
-    'beta_ca_m_2'   : NodeRange(min=None, max = None),
-    'beta_kf_n'     : NodeRange(min='0.1e-3ms-1', max = None),
-    'beta_ks_n'     : NodeRange(min='0.1e-3ms-1', max = None),
-    'beta_na_h'     : NodeRange(min=None, max = None),
-    'beta_na_m'     : NodeRange(min=None, max = None),
-    'exp_neg_nu'    : NodeRange(min=None, max = None),
-    'iCa2'          : NodeRange(min=None, max = None),
-    'iInj_local'    : NodeRange(min=None, max = None),
-    'iKf'           : NodeRange(min='-500pA', max='500pA'),
-    'iKs'           : NodeRange(min='-100pA', max='100pA'),
-    'iLk'           : NodeRange(min=None, max = None),
-    'iNa'           : NodeRange(min='0nA', max = '1nA'),
-    'inf_ca_m'      : NodeRange(min="0", max = "1.5" ),
-    'inf_kf_n'      : NodeRange(min="0", max = "1.5" ),
-    'inf_ks_n'      : NodeRange(min="0", max = "1.5" ),
-    'inf_na_h'      : NodeRange(min="0", max = "1.5" ),
-    'inf_na_m'      : NodeRange(min="0", max = "1.5" ),
-    'nu'            : NodeRange(min="0", max = "1.5" ),
-    'tau_ca_m'      : NodeRange(min="0.01ms", max = None),
-    'tau_kf_n'      : NodeRange(min="0.01ms", max = "1.5ms"),
-    'tau_ks_n'      : NodeRange(min="0.01ms", max = "25ms"),
-    'tau_na_h'      : NodeRange(min="0.01ms", max = '10ms'),
-    'tau_na_m'      : NodeRange(min="0.01ms", max = '1ms'),
-    'V'             : NodeRange(min="-100mV", max = "50mV"),
-    'ca_m'          : NodeRange(min="0", max = "1.5"),
-    'kf_n'          : NodeRange(min="0", max = "1.5"),
-    'ks_n'          : NodeRange(min="0", max = "1.5"),
-    'na_h'          : NodeRange(min="0", max = "1.5"),
-    'na_m'          : NodeRange(min="0", max = "1.5"),
-    'glk_noise'     : NodeRange(min="0", max = "1.2"),
-    'glk_noise1'     : NodeRange(min="0", max = "3"),
-    'glk_noise2'     : NodeRange(min="0", max = "3"),
-    'glk_noise3'     : NodeRange(min="0", max = "3"),
-    'glk_noise4'     : NodeRange(min="0", max = "3"),
-    'i_injected'     : NodeRange(min="0nA", max = "10nA"),
-    'k'     : NodeRange(min="0", max = "1.1"),
-    'i_nmda' : NodeRange(min=None, max = None),
-    
-    'syn_nmda_A' :NodeRange(min='0', max ='30'),
-    'syn_nmda_B' :NodeRange(min='0', max ='30'),
-    
-    'nmda_vdep':NodeRange(min="0.1", max ='3'),
-    'v_scale': NodeRange(min="0.1", max ='3'),
-}
 
 var_annots_dIN = {
     't'             : NodeRange(min="0ms", max = "1.1s"),
@@ -305,7 +253,8 @@ network.add(s1)
 
 
 
-record_symbols = ['syn_nmda_A', 'syn_nmda_B', 'V','k','iInj_local','i_nmda', 'nmda_vdep']
+record_symbols = ['syn_nmda_A', 'syn_nmda_B', 'V','k','iInj_local','i_nmda', 'nmda_vdep', 'iLk','iKf']
+record_symbols = ['syn_nmda_A', 'syn_nmda_B', 'V','k','i_nmda', 'nmda_vdep' , 'iLk','iKf','kf_n' , 'iInj_local']
 # Just generate the file:
 CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', run=False, output_c_filename='/auto/homes/mh735/Desktop/tadpole1.cpp', compile=False, CPPFLAGS='-DON_NIOS=true', record_symbols=record_symbols )
 
@@ -328,32 +277,35 @@ time_array = results.h5file.root._f_getChild('/simulation_fixed/float/time').rea
 
 for symbol in record_symbols:
     pylab.figure()
+    print 'Plotting:', symbol
     for i in range(30):
-        pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/%s' % (i, symbol)).read(), label='%s:lhs-%03d' % (symbol, i) )
+        res = results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/%s' % (i, symbol)).read()
+        pylab.plot(time_array, res, label='%s:lhs-%03d' % (symbol, i) )
+        print np.min(res), np.max(res)
     pylab.legend()
 
 
 
 
-pylab.figure()
-for i in range(30):
-    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/V' % i).read(), label='V:lhs-%03d' % i)
-pylab.legend()
-
-pylab.figure()
-for i in range(30):
-    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/k' % i).read(), label='k:lhs-%03d' % i)
-pylab.legend()
-
-pylab.figure()
-for i in range(30):
-    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/iInj_local' % i).read(), label='iInj-%03d' % i)
-pylab.legend()
-
-pylab.figure()
-for i in range(30):
-    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/i_nmda' % i).read(), label='i_nmda-%03d' % i)
-pylab.legend()
+#pylab.figure()
+#for i in range(30):
+#    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/V' % i).read(), label='V:lhs-%03d' % i)
+#pylab.legend()
+#
+#pylab.figure()
+#for i in range(30):
+#    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/k' % i).read(), label='k:lhs-%03d' % i)
+#pylab.legend()
+#
+#pylab.figure()
+#for i in range(30):
+#    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/iInj_local' % i).read(), label='iInj-%03d' % i)
+#pylab.legend()
+#
+#pylab.figure()
+#for i in range(30):
+#    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/i_nmda' % i).read(), label='i_nmda-%03d' % i)
+#pylab.legend()
 
 
 

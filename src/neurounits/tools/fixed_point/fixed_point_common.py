@@ -61,14 +61,15 @@ class CBasedFixedWriter(ASTVisitorBase):
 
 
     def add_range_check(self, node, expr):
+        return expr
         print node, type(node)
     
         if self.check_range:
             return """check_in_range(%s, %d, %f, %f, "%s")""" %(
                         expr, 
                         node.annotations['fixed-point-format'].upscale,
-                        node.annotations['node-value-range'].min.float_in_si(),
-                        node.annotations['node-value-range'].max.float_in_si(),
+                        node.annotations['node-value-range'].min,
+                        node.annotations['node-value-range'].max,
                         repr(node)
                     )
         else:
@@ -249,4 +250,4 @@ class CBasedFixedWriter(ASTVisitorBase):
         return rhs_str
 
     def VisitEmitEvent(self, o):
-        return 'event_handlers::on_%s(i)'% o.port.symbol
+        return 'event_handlers::on_%s(IntType(i))'% o.port.symbol

@@ -23,11 +23,11 @@ import itertools
 
 
 import operator
-def do_op(a,b,op):
-    if a is None or b is None:
-        return None
-
-    return op(a,b)
+#def do_op(a,b,op):
+#    if a is None or b is None:
+#        return None
+#
+#    return op(a,b)
     #except ZeroDivisionError:
     #    assert False
     #    return None
@@ -45,15 +45,84 @@ def do_op(a,b,op):
 #
 #
 #"""
+class _NodeRangeFloat(object):
+    def __init__(self, min_, max_):
+        self.min_=min_
+        self.max_=max_
+    def __repr__(self, ):
+        return "<NodeRangeFloat: %s, %s>" %(self.min_, self.max_)
+
+    @property
+    def min(self):
+        return self.min_
+    @property
+    def max(self):
+        return self.max_
 
 
-def check_array_returned(func):
-    def new_func(*args,**kwargs):
-        array = func(*args,**kwargs)
+
+def set_minmax_for_node(func):
+    def new_func(self, o, *args,**kwargs):
+        array = func(self, o, *args, **kwargs)
         #print func
-        assert isinstance(array, np.ndarray)
+        #print array, type(array)
+        assert isinstance(array, (np.ndarray,np.float64))
+        print array.dtype
+        assert array.dtype in (np.float64, bool)
+        #assert False
+        assert not np.isnan(array).any()
+        min_val = np.min(array)
+        max_val = np.max(array)
+
+        
+
+        if 'node-value-range' not in o.annotations:
+            o.annotations['node-value-range'] = _NodeRangeFloat(min_=min_val, max_=max_val)
+            o.annotations['node-value-range'].array =array
+            o.annotations['node-value-range'].sv_order = self.sv_order
+            o.annotations['node-value-range'].sv_values = self.sv_values
+
+
+        else:
+            if not (o.annotations['node-value-range'].min == min_val and o.annotations['node-value-range'].max == max_val):
+                print 'Node', o
+                print repr(o.lhs), repr(o.rhs)
+
+                print 'Min/Max mismatch:'
+                print 'min'
+                print  '  - Old', o.annotations['node-value-range'].min
+                print  '  - New', min_val
+                print 'max'
+                print  '  - Old', o.annotations['node-value-range'].max
+                print  '  - New', max_val
+
+                print 'sv_order'
+                print  '  - Old', o.annotations['node-value-range'].sv_order
+                print  '  - New', self.sv_order
+
+                print 'sv_values'
+                #print  '  - Old', o.annotations['node-value-range'].sv_order
+                print  '  - New', self.sv_values
+
+                print 
+                print o
+                print "o.annotations['node-value-range'].min", type( o.annotations['node-value-range'].min ),  o.annotations['node-value-range'].min 
+                print "min_val", type(min_val), min_val
+                assert  o.annotations['node-value-range'].min == min_val
+                assert  o.annotations['node-value-range'].max == max_val
+
         return array
     return new_func
+
+
+
+
+#def check_array_returned(func):
+#    def new_func(*args,**kwargs):
+#        array = func(*args,**kwargs)
+#        assert isinstance(array, np.ndarray)
+#        return array
+#    return new_func
 
 class LargeArrayPropagator(ASTVisitorBase):
     def __init__(self, component, assignment_node, sv_order, sv_values):
@@ -63,29 +132,49 @@ class LargeArrayPropagator(ASTVisitorBase):
         self.sv_order = sv_order
         self.sv_values = sv_values
 
-        #print 'LARGE ARRAY PROPAGATION FOR: ', repr(assignment_node)
-        array = self.visit(assignment_node.rhs_map)
-        #print assignment_node.rhs_map
-        #print array
 
-        assert isinstance(array, np.ndarray)
-        #print array
+        self.visit(assignment_node)
 
-        min_val = np.min(array)
-        max_val = np.max(array)
+        if  not isinstance(assignment_node, ast.OnTriggerTransition):
+            print 'For %s, limits are: %s' %(repr(assignment_node), repr(assignment_node.annotations['node-value-range']) )
 
-        print 'For %s, min/max are: %s %s' %(repr(assignment_node), min_val, max_val)
 
-        #assert False
+        ##print array
+        #assert isinstance(array, (np.ndarray,np.float64))
 
-    @check_array_returned
+        #min_val = np.min(array)
+        #max_val = np.max(array)
+
+        #print 'For %s, min/max are: %s %s' %(repr(assignment_node), min_val, max_val)
+
+
+
+    # Top level objects:
+    # ======================
+    @set_minmax_for_node
+    def VisitTimeDerivativeByRegime(self, o):
+        return self.visit(o.rhs_map)
+    @set_minmax_for_node
+    def VisitEqnAssignmentByRegime(self, o):
+        return self.visit(o.rhs_map)
+    @set_minmax_for_node
+    def VisitOnEventStateAssignment(self,o):
+        return self.visit(o.rhs)
+    # ======================
+
+
+
+
+
+
+
+    @set_minmax_for_node
     def VisitRegimeDispatchMap(self,o):
         assert len(o.rhs_map) == 1
         r = self.visit( list(o.rhs_map.values())[0] )
-
         return r
 
-    @check_array_returned
+    @set_minmax_for_node
     def VisitAddOp(self, o):
         a1 = self.visit(o.lhs)
         a2 = self.visit(o.rhs)
@@ -93,8 +182,8 @@ class LargeArrayPropagator(ASTVisitorBase):
         assert a1.shape == a2.shape
         assert a3.shape == a2.shape
         return a3
-    
-    @check_array_returned
+
+    @set_minmax_for_node
     def VisitSubOp(self, o):
         a1 = self.visit(o.lhs)
         a2 = self.visit(o.rhs)
@@ -103,7 +192,7 @@ class LargeArrayPropagator(ASTVisitorBase):
         assert a3.shape == a2.shape
         return a3
 
-    @check_array_returned
+    @set_minmax_for_node
     def VisitMulOp(self, o):
         a1 = self.visit(o.lhs)
         a2 = self.visit(o.rhs)
@@ -112,7 +201,7 @@ class LargeArrayPropagator(ASTVisitorBase):
         assert a3.shape == a2.shape
         return a3
 
-    @check_array_returned
+    @set_minmax_for_node
     def VisitDivOp(self, o):
         a1 = self.visit(o.lhs)
         a2 = self.visit(o.rhs)
@@ -121,24 +210,23 @@ class LargeArrayPropagator(ASTVisitorBase):
         assert a3.shape == a2.shape
         return a3
 
-    @check_array_returned
+    @set_minmax_for_node
     def VisitConstant(self, o):
-        return self._VisitConstant( o)
-    @check_array_returned
+        res = self._VisitConstant( o)
+        #print res
+        return res
+    @set_minmax_for_node
     def VisitSymbolicConstant(self, o):
         return self._VisitConstant( o)
-    
-    @check_array_returned
+
+    @set_minmax_for_node
     def _VisitConstant(self, o):
-        # print 'Constructing const-array'
         new_array = np.ones( [len(self.sv_values[sv]) for sv in self.sv_order] ) * o.value.float_in_si()
-        #print 'OK!'
         return new_array
-        assert False
 
 
 
-    @check_array_returned
+    @set_minmax_for_node
     def VisitAssignedVariable(self, o):
         '''March straight through assigned variables'''
         return self.visit( self.component._eqn_assignment.get_single_obj_by(lhs=o).rhs_map )
@@ -151,50 +239,54 @@ class LargeArrayPropagator(ASTVisitorBase):
         assert o in self.sv_order
         o_vals = self.sv_values[o].copy()
         shape = tuple( [(len(o_vals) if sv==o else 1) for sv in self.sv_order] )
-        o_vals = o_vals.reshape( shape ) 
-        o_tile = tuple( [(len(self.sv_values[sv]) if sv!=o else 1) for sv in self.sv_order] ) 
+        o_vals = o_vals.reshape( shape )
+        o_tile = tuple( [(len(self.sv_values[sv]) if sv!=o else 1) for sv in self.sv_order] )
         mat = np.tile(o_vals, o_tile)
         return mat
 
     def VisitStateVariable(self, o):
         return self._fixed_array(o)
-    
+
     def VisitRandomVariable(self, o):
         return self._fixed_array(o)
 
     def VisitSuppliedValue(self, o):
         return self._fixed_array(o)
 
-    @check_array_returned
+    @set_minmax_for_node
     def VisitFunctionDefBuiltInInstantiation(self, o):
         if o.function_def.funcname != '__exp__':
             assert False
-        
+
         p = o.parameters.values()[0]
-        a = self.visit(p.rhs_ast)
+        a = self.visit(p)
 
         return np.exp(a)
         assert False
 
 
+    @set_minmax_for_node
+    def VisitFunctionDefInstantiationParater(self, o):
+        return self.visit(o.rhs_ast)
 
 
+    @set_minmax_for_node
     def VisitIfThenElse(self, o):
         pred = self.visit(o.predicate)
         if_true = self.visit(o.if_true_ast)
         if_false = self.visit(o.if_false_ast)
-        
+
         res = if_false.copy()
         res[pred] = if_true[pred]
 
         return res
-        #assert False
 
 
     def VisitBoolAnd(self, o):
         return np.logical_and( self.visit(o.lhs), self.visit(o.rhs))
 
-    
+
+    @set_minmax_for_node
     def VisitInEquality(self, o):
         a1 = self.visit(o.greater_than)
         a2 = self.visit(o.lesser_than)
@@ -202,6 +294,10 @@ class LargeArrayPropagator(ASTVisitorBase):
         assert a1.shape == a2.shape
         assert a3.shape == a2.shape
         return a3
+
+
+    def VisitOnTransitionTrigger(self,o):
+        self.visit(o.trigger)
 
 
 
@@ -225,6 +321,7 @@ class NodeValueRangePropagator(ASTVisitorBase):
 
     def __init__(self, component, annotations_in):
         self.component = component
+        self.n_values_tested = 3
 
         # Change string to node:
         for ann,val in annotations_in.items():
@@ -232,390 +329,133 @@ class NodeValueRangePropagator(ASTVisitorBase):
                 continue
 
             assert isinstance(ann, basestring)
-            self.set_annotation(component.get_terminal_obj(ann), val)
+            self.set_annotation(component.get_terminal_obj(ann), _NodeRangeFloat(min_=val.min.float_in_si(), max_=val.max.float_in_si(),  ) )
 
 
         self.visit(component)
 
     def VisitNineMLComponent(self, component):
+        from neurounits.visitors.common.ast_symbol_dependancies_new import VisitorSymbolDependance
 
 
         # Constants should be fine:
+        print '======== A ==========='
         for o in component.symbolicconstants:
             self.visit(o)
 
         # Constants should be fine:
+        print '======== B ==========='
         for o in component.random_variable_nodes:
             self.visit(o)
 
         # Parameters & supplied values need to have thier ranges supplied:
+        print '======== C ==========='
         for o in list(component.parameters) + list(component.suppliedvalues):
             assert self.has_annotation(o)
 
-        # State varaibles all need an annotation, since this is difficult to infer reliably:
+        # State variables all need an annotation, since this is difficult to infer reliably:
+        print '======== D ==========='
         for o in list(component.state_variables) :
             assert self.has_annotation(o), "Not annotation given for state variable: %s" % o.symbol
-
-
+            self.visit(o.initial_value)
 
         # This now leaves the assignments, and the delta-state variables to calculate:
-        from neurounits.visitors.common.ast_symbol_dependancies_new import VisitorSymbolDependance
+        print '======== E ==========='
         deps = VisitorSymbolDependance(component)
-        for ass in sorted(component.assignments, key=lambda o:o.lhs.symbol):
+        for ass in sorted(component.assignments+component.timederivatives, key=lambda o:o.lhs.symbol):
+            print "PROPAGATING THROUGH: ", repr(ass)
             ass_deps = list(deps.get_terminal_dependancies(ass, expand_assignments=True, include_random_variables=True))
 
             # Work out the values to test for each state variable:
-            n_values_tested = 5
             tested_vals = {}
-            for sv in ass_deps:
+            for sv in sorted(ass_deps, key=lambda o:o.symbol if hasattr(o,'symbol') else id(o)):
                 assert isinstance(sv, (ast.RandomVariable, ast.StateVariable, ast.SuppliedValue))
-                tested_vals[sv] = np.linspace( sv.annotations['node-value-range'].min.float_in_si(), sv.annotations['node-value-range'].max.float_in_si(), num=n_values_tested)
+                tested_vals[sv] = np.linspace( sv.annotations['node-value-range'].min, sv.annotations['node-value-range'].max, num=self.n_values_tested)
 
             # And propagate the array through the tree!
             LargeArrayPropagator(component=component, assignment_node=ass, sv_order=ass_deps, sv_values=tested_vals)
 
+            # Copy the assignment node value into the assignedvariable range:
+            if isinstance(ass, ast.EqnAssignmentByRegime):
+                ass.lhs.annotations['node-value-range'] = ass.annotations['node-value-range']
 
 
+        # And the state-assignments:
+        print '======== F ==========='
+        for transition in component.transitions:
+            for state_assignment in transition.state_assignments:
 
+                sa_deps = list(deps.get_terminal_dependancies(state_assignment, expand_assignments=True, include_random_variables=True))
 
-            #sv_dependancies = component.getSymbolDependancicesIndirect(ass.lhs, include_ass_in_output=False)
-            #print sv_dependancies
-        #while unresolved_terminals:
-        #    node_resolved = False
-        #
-        #    # Try and resolve symbols:
-        #    for terminal in unresolved_terminals:
-        #        print 'Trying to resolve terminal:', repr(terminal)
-        #        dependancies = component.getSymbolDependancicesDirect(terminal)
-        #        print dependancies
-        #        unresolved_dependancies = [d for d in dependancies if not self.has_annotation(d)]
-        #        print 'Unresolved:', unresolved_dependancies
-        #        if not unresolved_dependancies:
-        #
+                # Work out the values to test for each state variable:
+                tested_vals = {}
+                for sv in sa_deps:
+                    assert isinstance(sv, (ast.RandomVariable, ast.StateVariable, ast.SuppliedValue))
+                    tested_vals[sv] = np.linspace( sv.annotations['node-value-range'].min, sv.annotations['node-value-range'].max, num=self.n_values_tested)
 
+                # And propagate the array through the tree!
+                LargeArrayPropagator(component=component, assignment_node=state_assignment, sv_order=sa_deps, sv_values=tested_vals)
 
+        # And the triggered-transitions:
+        for triggered_transition in component.triggertransitions:
+            sa_deps = list(deps.get_terminal_dependancies(triggered_transition, expand_assignments=True, include_random_variables=True))
+            # Work out the values to test for each state variable:
+            tested_vals = {}
+            for sv in sa_deps:
+                assert isinstance(sv, (ast.RandomVariable, ast.StateVariable, ast.SuppliedValue))
+                tested_vals[sv] = np.linspace( sv.annotations['node-value-range'].min, sv.annotations['node-value-range'].max, num=self.n_values_tested)
 
-        #    if node_resolved==False:
-        #        print 'Unable to resolve the ranges of the nodes!'
-        #        print unresolved_terminals
-        #        assert False
+            # And propagate the array through the tree!
+            LargeArrayPropagator(component=component, assignment_node=triggered_transition, sv_order=sa_deps, sv_values=tested_vals)
+            
 
 
-        assert False
 
+        #import neurounits.visitors.common
+        #from neurounits.visitors.common.plot_networkx import ActionerPlotNetworkX
+        #colors = {node:('blue' if 'node-value-range' in node.annotations else 'red' )for node in self.component.all_ast_nodes() }
+        #ActionerPlotNetworkX(self.component, colors=colors)
 
 
+        for node in component.all_ast_nodes():
+            if isinstance(node, (ast.FunctionDefParameter,ast.FunctionDefBuiltIn) ):
+                continue
 
-    #    for i in range(4):
-    #        for o in component.symbolicconstants:
-    #            self.visit(o)
-    #        for o in component.ordered_assignments_by_dependancies:
-    #            self.visit(o)
-    #        for o in component.timederivatives:
-    #            self.visit(o)
-    #        for tr in component.transitions:
-    #            self.visit(tr)
+            if isinstance(node, ast.ASTExpressionObject):
+                print
+                print 'Node ', node, repr(node)
 
+                print 'Node limits', node.annotations._data.get('node-value-range', 'OHHHH NOOOOOO!')
+                print 'Node limits', node.annotations['node-value-range']
 
 
-
-    #def VisitEqnAssignmentByRegime(self, o):
-    #    self.visit(o.rhs_map)
-    #    self.visit(o.lhs)
-
-    #    print repr(o.lhs)
-    #    ann_lhs = self.get_annotation(o.lhs)
-    #    ann_rhs = self.get_annotation(o.rhs_map)
-    #    #ann_rhs = self.annotations[o.rhs_map]
-
-    #    #Min:
-    #    if ann_lhs.min is None and  ann_rhs.min is not None:
-    #        ann_lhs.min = ann_rhs.min
-
-    #    if ann_lhs.max is None and  ann_rhs.max is not None:
-    #        ann_lhs.max = ann_rhs.max
-
-
-
-
-    #def VisitTimeDerivativeByRegime(self, o):
-    #    self.visit(o.rhs_map)
-    #    self.visit(o.lhs)
-
-
-    #    #ann_lhs = self.annotations[o.lhs]
-    #    #ann_rhs = self.annotations[o.rhs_map]
-    #    ann_lhs = self.get_annotation(o.lhs)
-    #    ann_rhs = self.get_annotation(o.rhs_map)
-
-    #    # Need to be a bit careful here - because  rememeber that rhs is multiplied by dt!
-
-    #    ## Min:
-    #    #if ann_lhs.min is None and  ann_rhs.min is not None:
-    #    #    ann_lhs.min = ann_rhs.min *
-    #    #
-    #    #if ann_lhs.max is None and  ann_rhs.max is not None:
-    #        #ann_lhs.max = ann_rhs.max
-
-
-
-
-    #def VisitRegimeDispatchMap(self, o):
-    #    assert len(o.rhs_map) == 1
-    #    # Don't worry about regime maps:
-    #    for v in o.rhs_map.values():
-    #        self.visit( v )
-
-    #    var_annots = [ self.get_annotation(v) for v in  o.rhs_map.values() ]
-    #    mins =   sorted( [ann.min for ann in var_annots if ann.min is not None] )
-    #    maxes =  sorted( [ann.max for ann in var_annots if ann.max is not None] )
-
-    #    if not mins:
-    #        mins = [None]
-    #    if not maxes:
-    #        maxes = [None]
-
-    #    self.set_annotation(o, NodeRange( mins[0], maxes[-1] ) )
-    #    #self.annotations[o] = self.visit( o.rhs_map.values()[0])
-
-
-
-    #def VisitFunctionDefBuiltInInstantiation(self,o):
-    #    print
-    #    for p in o.parameters.values():
-    #        self.visit(p)
-    #    # We should only have builtin functions by this point
-    #    #assert o.function_def.is_builtin()
-
-    #    # Handle exponents:
-    #    assert o.function_def.funcname is '__exp__'
-    #    param_node_ann = self.get_annotation( o.parameters.values()[0].rhs_ast )
-    #    print param_node_ann
-
-    #    min=None
-    #    max=None
-    #    if param_node_ann.min is not None:
-    #        v = param_node_ann.min.dimensionless()
-    #        min = MMQuantity( np.exp(v),  MMUnit() )
-    #    if param_node_ann.max is not None:
-    #        v = param_node_ann.max.dimensionless()
-    #        max = MMQuantity( np.exp(v),  MMUnit() )
-
-    #    self.set_annotation(o, NodeRange(min=min, max=max) )
-    #    #assert False
-
-    #def VisitFunctionDefUserInstantiation(self,o):
-    #    assert False
-
-
-
-    #def VisitFunctionDefInstantiationParater(self, o):
-    #    self.visit(o.rhs_ast)
-    #    ann = self.get_annotation(o.rhs_ast)
-    #    self.set_annotation(o, NodeRange(min=ann.min, max=ann.max) )
-
-
-
-
-
-
-    #def _VisitBinOp(self, o, op):
-    #    self.visit(o.lhs)
-    #    self.visit(o.rhs)
-    #    ann1 = self.get_annotation(o.lhs)
-    #    ann2 = self.get_annotation(o.rhs)
-
-    #    extremes = [
-    #        do_op(ann1.min, ann2.min, op ),
-    #        do_op(ann1.min, ann2.max, op ),
-    #        do_op(ann1.max, ann2.min, op ),
-    #        do_op(ann1.max, ann2.max, op ),
-    #        ]
-    #    extremes = sorted([e for e in extremes if e is not None])
-    #    assert len(extremes)==4
-    #    print extremes
-
-    #    if len(extremes) < 2:
-    #        _min = None
-    #        _max = None
-    #    else:
-    #        _min = extremes[0]
-    #        _max = extremes[-1]
-
-
-
-    #    self.set_annotation(o, NodeRange(min=_min, max=_max) )
-    #    print 'Finding limits for: ', o, self.get_annotation(o)
-    #    print '   (LHS): ', o.lhs, self.get_annotation(o.lhs)
-    #    print '   (RHS): ', o.rhs, self.get_annotation(o.rhs)
-
-
-
-    #def VisitAddOp(self, o):
-    #    self._VisitBinOp(o, op=operator.add)
-
-    #def VisitSubOp(self, o):
-    #    self._VisitBinOp(o, op=operator.sub)
-
-    #def VisitMulOp(self, o):
-    #    self._VisitBinOp(o, op=operator.mul)
-
-    #def VisitDivOp(self, o):
-    #    self._VisitBinOp(o, op=operator.div)
-
-
-
-
-    #def VisitIfThenElse(self, o):
-    #    self.visit(o.if_true_ast)
-    #    self.visit(o.if_false_ast)
-    #    self.visit(o.predicate)
-
-    #    ann1 = self.get_annotation(o.if_true_ast)
-    #    ann2 = self.get_annotation(o.if_false_ast)
-
-    #    extremes = [
-    #        ann1.min,
-    #        ann1.max,
-    #        ann2.min,
-    #        ann2.max,
-    #            ]
-    #    extremes = sorted([e for e in extremes if e is not None])
-    #    assert len(extremes)==4
-
-    #    if len(extremes) < 2:
-    #        _min = None
-    #        _max = None
-    #    else:
-    #        _min = extremes[0]
-    #        _max = extremes[-1]
-
-    #    self.set_annotation(o, NodeRange(min=_min, max=_max) )
-
-
-
-
-    #def VisitInEquality(self, o):
-    #    self.visit(o.lesser_than)
-    #    self.visit(o.greater_than)
-
-    #    ann1 = self.get_annotation(o.lesser_than)
-    #    ann2 = self.get_annotation(o.greater_than)
-
-    #    extremes = [
-    #        ann1.min,
-    #        ann1.max,
-    #        ann2.min,
-    #        ann2.max,
-    #            ]
-    #    extremes = sorted([e for e in extremes if e is not None])
-    #    assert len(extremes)==4
-
-    #    if len(extremes) < 2:
-    #        _min = None
-    #        _max = None
-    #    else:
-    #        _min = extremes[0]
-    #        _max = extremes[-1]
-
-    #    self.set_annotation(o, NodeRange(min=_min, max=_max) )
-
-
-    #def VisitBoolAnd(self, o):
-    #    self.visit(o.lhs)
-    #    self.visit(o.rhs)
-
-    #def VisitBoolOr(self, o):
-    #    self.visit(o.lhs)
-    #    self.visit(o.rhs)
-
-    #def VisitBoolNot(self, o):
-    #    self.visit(o.lhs)
-
-    #def VisitParameter(self, o):
-    #    pass
+        #assert False
 
     def VisitSymbolicConstant(self, o):
-        self.set_annotation(o, NodeRange(min=o.value, max=o.value) )
-
-
-    #def VisitStateVariable(self, o):
-    #    assert o.initial_value
-    #    if o.initial_value:
-    #        self.visit(o.initial_value)
-
-    #def VisitAssignedVariable(self, o):
-    #    pass
-
-    #def VisitConstant(self, o):
-    #    self.set_annotation(o, NodeRange(min=o.value, max=o.value) )
-
-    #def VisitConstantZero(self, o):
-    #    self.set_annotation(o, NodeRange(min='0',max='0'))
-
-
-    #def VisitSuppliedValue(self, o):
-    #    pass
+        self.set_annotation(o, _NodeRangeFloat(min_=o.value.float_in_si(), max_=o.value.float_in_si()) )
+    def VisitConstant(self, o):
+        self.set_annotation(o, _NodeRangeFloat(min_=o.value.float_in_si(), max_=o.value.float_in_si()) )
 
 
     def VisitRandomVariable(self, o):
         assert o.functionname == 'uniform'
 
-        min_rhs = o.parameters.get_single_obj_by(name='min').rhs_ast
-        max_rhs = o.parameters.get_single_obj_by(name='max').rhs_ast
-        assert isinstance(min_rhs, ast.ConstValue)
-        assert isinstance(max_rhs, ast.ConstValue)
-        #assert isinstance(o.parameters.get_single_obj_by(name='min').rhs_ast, ast.ConstValue)
-        #assert isinstance(o.parameters.get_single_obj_by(name='max').rhs_ast, ast.ConstValue)
-        #for p in o.parameters:
-        #    self.visit(p)
+        for p in o.parameters:
+            self.visit(p)
 
-        #ann_min = self.get_annotation( o.parameters.get_single_obj_by(name='min') )
-        #ann_max = self.get_annotation( o.parameters.get_single_obj_by(name='max') )
-
-        #assert(ann_min.min != None and ann_min.max != None)
-        #assert(ann_max.min != None and ann_max.max != None)
-
-        self.set_annotation( o, NodeRange( min_rhs.value, max_rhs.value) )
-
-
+        self.set_annotation( o,
+                _NodeRangeFloat(
+                    o.parameters.get_single_obj_by(name='min').annotations['node-value-range'].min,
+                    o.parameters.get_single_obj_by(name='max').annotations['node-value-range'].max,
+                    )
+                )
 
     def VisitRandomVariableParameter(self, o, **kwargs):
         self.visit(o.rhs_ast)
         ann = self.get_annotation(o.rhs_ast)
-        self.set_annotation(o, NodeRange( min=ann.min, max=ann.max) )
+        self.set_annotation(o, _NodeRangeFloat( min_=ann.min, max_=ann.max) )
 
 
-    #def _VisitTransition(self, n):
-    #    for action in n.actions:
-    #        self.visit(action)
-
-    #def VisitOnTransitionTrigger(self, n):
-    #    self.visit(n.trigger)
-    #    self._VisitTransition(n)
-
-    #def VisitOnTransitionEvent(self, n):
-    #    for p in n.parameters:
-    #        self.visit(p)
-    #    self._VisitTransition(n)
-
-    #def VisitOnEventStateAssignment(self, o):
-    #    self.visit(o.rhs)
-    #    ann_rhs = self.get_annotation(o.rhs)
-    #    self.set_annotation(o, NodeRange(min=ann_rhs.min, max=ann_rhs.max))
-
-    #def VisitEmitEvent(self, o):
-    #    for p in o.parameters:
-    #        self.visit(p)
-    #    self.visit(o.port)
-
-    #def VisitOutEventPort(self, o):
-    #    for p in o.parameters:
-    #        self.visit(p)
-
-    #def VisitInEventPort(self, o):
-    #    for p in o.parameters:
-    #        self.visit(p)
 
 
 
@@ -778,8 +618,8 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         print '-' * len(repr(o))
         #ann = self.annotations.annotations[o]
 
-        vmin = o.annotations['node-value-range'].min.float_in_si()
-        vmax = o.annotations['node-value-range'].max.float_in_si()
+        vmin = o.annotations['node-value-range'].min#.float_in_si()
+        vmax = o.annotations['node-value-range'].max#.float_in_si()
         #print ann
 
         # Lets go symmetrical, about 0:

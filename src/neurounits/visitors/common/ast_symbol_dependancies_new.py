@@ -106,8 +106,40 @@ class VisitorSymbolDependance(object):
         self.component = component
         self.direct_dependancy_graph = VisitorSymbolDependance.build_direct_dependancy_graph(component)
 
-    def get_assignment_ordering(self, component):
-        assert False
+    def get_assignment_dependancy_ordering(self):
+        return self.get_assignment_ordering()
+
+    def get_assignment_ordering(self, ):
+        # Copy the graph, and add nodes from assigned variables to thier right hand sides:
+        #graph = self.direct_dependancy_graph.copy()
+
+        #for assignment in self.component.assignments:
+        #    print 'Removing:', repr(assignment)
+        #    graph.remove_node(assignment)
+        #    #graph.add_edge(assignment.lhs, assignment)
+
+        #nx.draw_networkx(graph, with_labels=True, labels={n:repr(n) for n in graph.nodes()} )
+        #pylab.show()
+        #t = nx.topological_sort(graph)
+
+        #print t
+        graph = nx.DiGraph()
+        for assignment in self.component.assignments:
+            deps = self.get_terminal_dependancies(assignment, expand_assignments=False, include_random_variables=False, include_supplied_values=False)
+            graph.add_node(assignment.lhs)
+            for dep in deps:
+                print dep
+                assert isinstance(dep, (ast.StateVariable,ast.AssignedVariable))
+                if isinstance(dep, ast.AssignedVariable):
+                    graph.add_edge(assignment.lhs, dep)
+
+
+        assigned_ordering = list( reversed( list(nx.topological_sort(graph)) ) )
+        print assigned_ordering
+
+        assert len(assigned_ordering) == len(self.component.assignments)
+        return assigned_ordering
+
 
     def get_terminal_dependancies(self, terminal, expand_assignments, include_random_variables=False, include_supplied_values=True):
         """ Does not expand through states"""
@@ -117,44 +149,47 @@ class VisitorSymbolDependance(object):
         if isinstance( terminal, ast.EqnTimeDerivativeByRegime):
             terminal = terminal.lhs
 
+        assert isinstance(terminal, (ast.StateVariable, ast.AssignedVariable, ast.OnEventStateAssignment, ast.OnTriggerTransition) )
+
+        # Switch lhs to the assignment/time deriatives
+        if isinstance( terminal, ast.StateVariable):
+            terminal = self.component._eqn_time_derivatives.get_single_obj_by(lhs=terminal)
+        if isinstance( terminal, ast.AssignedVariable):
+            terminal = self.component._eqn_assignment.get_single_obj_by(lhs=terminal)
+        if isinstance( terminal, ast.OnTriggerTransition):
+            terminal = terminal.trigger
 
 
-        #print 'Resolving:', repr(terminal)
-        assert isinstance(terminal, (ast.StateVariable, ast.AssignedVariable) )
+        return self._get_dependancies(node=terminal, expand_assignments=expand_assignments, include_random_variables=include_random_variables, include_supplied_values=include_supplied_values)
 
 
-        dependancies = nx.bfs_successors(self.direct_dependancy_graph, source=terminal)
-        #print 'All deps:'
-        #for k,v, in dependancies.items():
-        #    print ' --', repr(k), '-', v
-        dependancies = dependancies[terminal]
-        #print 'Depends:', dependancies
-        #print 'Dependancies ID', id(dependancies)
+    def _get_dependancies(self, node, expand_assignments, include_random_variables=False, include_supplied_values=True):
+
+        dependancies = nx.bfs_successors(self.direct_dependancy_graph, source=node)
+        if node in dependancies:
+            dependancies = dependancies[node]
+        else:
+            assert node in self.direct_dependancy_graph.nodes()
+            dependancies = []
 
         dependancies = [d for d in dependancies if not isinstance( d, ast.RTBlock)]
 
-        #print 'Top-level dependancies found: ', dependancies
-
         if expand_assignments:
-            #print 'Expanding...'
             dependancies_statevars =   set([dep for dep in dependancies if isinstance(dep, (ast.StateVariable, ast.RandomVariable, ast.SuppliedValue))])
             unexpanded_assignment_dependancies = set([dep for dep in dependancies if isinstance(dep, ast.AssignedVariable)])
-            #print 'Unresolved variables', [u for u in dependancies if u not in dependancies_statevars|unexpanded_assignment_dependancies]
             assert len(dependancies_statevars) + len(unexpanded_assignment_dependancies) == len(set(dependancies))
 
-
-            expanded_assignment_dependancies = set([terminal]) if isinstance(terminal, ast.AssignedVariable) else set([])
+            expanded_assignment_dependancies = set([node]) if isinstance(node, ast.AssignedVariable) else set([])
 
             while unexpanded_assignment_dependancies:
-                
+
                 ass = unexpanded_assignment_dependancies.pop()
-                #print ' -- Resolving:', str(ass), repr(ass)
                 expanded_assignment_dependancies.add(ass)
-                ass_deps = nx.bfs_successors(self.direct_dependancy_graph, ass)[ass]
-                #print repr(ass_deps)
+
+                assignment_node = self.component._eqn_assignment.get_single_obj_by(lhs=ass)
+                ass_deps = nx.bfs_successors(self.direct_dependancy_graph, assignment_node )[assignment_node]
 
                 for ass_dep in ass_deps:
-                    #print '   -- Adding', ass_dep, repr(ass_dep)
                     if isinstance( ass_dep, (ast.StateVariable, ast.RandomVariable, ast.SuppliedValue)):
                         dependancies_statevars.add(ass_dep)
                     elif isinstance( ass_dep, ast.AssignedVariable):
@@ -167,7 +202,6 @@ class VisitorSymbolDependance(object):
                     else:
                         if isinstance(ass_dep, ast.RTBlock):
                                 continue
-                        #print ass_dep
                         assert False
 
             dependancies = dependancies_statevars
@@ -175,29 +209,15 @@ class VisitorSymbolDependance(object):
 
         if include_random_variables == False:
             dependancies = [d for d in dependancies if not isinstance(d, ast.RandomVariable)]
+        if include_supplied_values == False:
+            dependancies = [d for d in dependancies if not isinstance(d, ast.SuppliedValue)]
 
-        #print 'Resolved dependencies', dependancies
+
+        assert len(dependancies) == len(set(dependancies))
         return dependancies
 
 
 
-
-        assert False
-
-        #from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
-        #assert sym in self.terminal_symbols
-
-        #if isinstance(sym, AssignedVariable):
-        #    sym = self._eqn_assignment.get_single_obj_by(lhs=sym)
-        #if isinstance(sym, StateVariable):
-        #    sym = self._eqn_time_derivatives.get_single_obj_by(lhs=sym)
-
-        #d = VisitorFindDirectSymbolDependance_OLD()
-        #
-        #res = d.visit(sym)
-        #print res
-        #return list(set(res))
-        #pass
 
 
 
@@ -242,24 +262,45 @@ class VisitorSymbolDependance(object):
 
 
 
+
+
+
+
+
 class _DependancyFinder(ASTVisitorBase):
-    
+
     def __init__(self, component):
         self.dependancies = {}
 
     def VisitNineMLComponent(self, o, **kwargs):
         for a in o.assignments:
             self.dependancies[a.lhs] = self.visit(a)
+            self.dependancies[a] = self.visit(a)
         for a in o.timederivatives:
-            self.dependancies[a.lhs] = self.visit(a)
+            self.dependancies[a] = self.visit(a)
+            self.dependancies[a.lhs] = [a]
 
         for rt_graph in o._rt_graphs:
-            self.dependancies[rt_graph] = [] 
+            self.dependancies[rt_graph] = []
+
+
         for tr in o.transitions:
-            tr_deps =self.visit(tr)
-            import neurounits.ast as ast
-            tr_deps = [o for o in tr_deps if not (isinstance(o, ast.SuppliedValue) and o.symbol=='t') ]
-            self.dependancies[tr.rt_graph].extend ( tr_deps)
+            for state_assignment in tr.state_assignments:
+                self.dependancies[state_assignment] = self.visit(state_assignment.rhs)
+                print 'SETTING DEPS FOR ASSIGNMENT!!'
+                print state_assignment
+                print 'deps: ', self.dependancies[state_assignment]
+
+            for emitted_event in tr.emitted_events:
+                self.dependancies[emitted_event] = self.visit(emitted_event)
+
+        for tr in o.triggertransitions:
+            self.dependancies[tr.trigger]=self.visit(tr.trigger)
+
+            #tr_deps =self.visit(tr)
+            #import neurounits.ast as ast
+            #tr_deps = [o for o in tr_deps if not (isinstance(o, ast.SuppliedValue) and o.symbol=='t') ]
+            #self.dependancies[tr.rt_graph].extend ( tr_deps)
 
     def VisitSymbolicConstant(self, o, **kwargs):
         return []
@@ -332,7 +373,7 @@ class _DependancyFinder(ASTVisitorBase):
         return symbols + ([o.get_rt_graph()] if len(o.rhs_map) > 1 else [] )
 
     def VisitRTGraph(self, o, **kwargs):
-        return [] 
+        return []
 
 
     def visit_trans(self,o):
@@ -347,18 +388,15 @@ class _DependancyFinder(ASTVisitorBase):
     def VisitOnTransitionEvent(self, o, **kwargs):
         return [o.rt_graph] + self.visit_trans(o)
 
-    def VisitOnEventStateAssignment(self,o, rt_graph, **kwargs):
-        # In the case of state assignements, then the state-variable is now dependant on the RT-grpah
-        assert o.lhs in self.dependancies
-        self.dependancies[o.lhs].append(rt_graph)
-        return [o.lhs] + self.visit(o.rhs)
+    def VisitOnEventStateAssignment(self, o, **kwargs):
+        return self.visit(o.rhs)
 
-    def VisitEmitEvent(self, o, rt_graph):
+    def VisitEmitEvent(self, o,):
         return list( chain(*[self.visit(p) for p in o.parameters]) )
 
     def VisitEmitEventParameter(self, o):
         return self.visit(o.rhs)
-        #return list( chain(*[self.visit(p) for p in o.parameters]) )
+
     def VisitOnEventDefParameter(self,o):
         return []
 
@@ -381,8 +419,10 @@ class _DependancyFinder(ASTVisitorBase):
         return self.visit(o.lhs)
 
     def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
+        #assert False
         return list(itertools.chain(*[self.visit(p) for p in o.parameters.values()]))
     def VisitFunctionDefUserInstantiation(self, o, **kwargs):
+        assert False
         return list(itertools.chain(*[self.visit(p) for p in o.parameters.values()]))
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
@@ -393,7 +433,6 @@ class _DependancyFinder(ASTVisitorBase):
 
 
     def VisitRandomVariable(self, o):
-        #print 'Found RV:', o
         return list(itertools.chain( *[self.visit(p) for p in o.parameters])) + [o]
 
     def VisitRandomVariableParameter(self,o):

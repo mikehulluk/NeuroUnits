@@ -213,10 +213,8 @@ class NineMLComponent(Block):
 
     @property
     def ordered_assignments_by_dependancies(self,):
-        from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance_OLD
-        #from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance_OLD
-        #from neurounits.units_misc import LookUpDict
-        ordered_assigned_values =  VisitorFindDirectSymbolDependance_OLD.get_assignment_dependancy_ordering(self)
+        from neurounits.visitors.common.ast_symbol_dependancies_new import VisitorSymbolDependance
+        ordered_assigned_values =  VisitorSymbolDependance(self).get_assignment_dependancy_ordering()
         ordered_assignments =  [LookUpDict(self.assignments).get_single_obj_by(lhs=av) for av in ordered_assigned_values]
         return ordered_assignments
 
@@ -422,6 +420,13 @@ class NineMLComponent(Block):
     def accept_visitor(self, visitor, **kwargs):
         return visitor.VisitNineMLComponent(self, **kwargs)
 
+
+
+    def assignedvariable_to_assignment(self, assignedvariable):
+        from neurounits import ast
+        assert isinstance(assignedvariable, ast.AssignedVariable)
+        return self._eqn_assignment.get_single_obj_by(lhs=assignedvariable)
+        
 
     def __init__(self,  library_manager, builder, builddata, name=None):
         super(NineMLComponent,self).__init__(library_manager=library_manager, builder=builder,  name=name)

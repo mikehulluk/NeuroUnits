@@ -32,6 +32,7 @@ IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
             IntType diff = res_int - res_fp;
             //cout << "diff" << diff << "\n" << flush; 
             if(diff <0) diff = -diff;
+            cout << "\ndiff: " << diff << std::flush;
             assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
         }
         

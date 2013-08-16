@@ -108,8 +108,6 @@ class EqnRegimeDispatchMap(ASTExpressionObject):
 class Transition(ASTObject):
     def __init__(self, src_regime, actions, target_regime=None,  **kwargs):
         super(Transition, self).__init__(**kwargs)
-        #if target_regime is not None:
-        #    assert target_regime.name is not None
         self.target_regime = target_regime
         self.src_regime = src_regime
         self.actions = actions
@@ -121,6 +119,17 @@ class Transition(ASTObject):
 
     def changes_regime(self):
         return self.src_regime != self.target_regime
+
+    @property
+    def emitted_events(self,):
+        import neurounits.ast as ast
+        return [a for a in self.actions if isinstance(a, ast.EmitEvent)]
+
+    @property
+    def state_assignments(self,):
+        import neurounits.ast as ast
+        return [a for a in self.actions if isinstance(a, ast.OnEventStateAssignment)]
+
 
 
 class OnTriggerTransition(Transition):
