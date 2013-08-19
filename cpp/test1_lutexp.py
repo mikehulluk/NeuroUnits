@@ -22,7 +22,7 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
                 return lut.get( int(a),int(b), int(c) )
 
         def _from_float(x,scale):
-                return fplib.from_float24(float(x), int(scale))
+                return fplib.from_float24(double(x), int(scale))
                 
         def _to_float(x,scale):
                 return fplib.to_float24(int(x), int(scale))
@@ -52,7 +52,7 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
 
         ax1.plot(x,exp_x,'x-', label='LUT', ms=2)
         ax1.plot(x,np.exp(x), lw=10, alpha=0.4, label='Builtin exp()')
-        ax2.plot(x,err_diff_float_prop * 100,'x', label='Proportional error (float) in %' )
+        ax2.plot(x,err_diff_float_prop * 100,'x', label='Proportional error (double) in %' )
         ax3.plot(x,err_diff_int,'x', label='Absolute error (int)')
 
         for ax in [ax1,ax2,ax3]: ax.legend()

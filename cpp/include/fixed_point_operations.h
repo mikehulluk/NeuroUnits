@@ -24,7 +24,7 @@ IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
 
     #if CALCULATE_FLOAT
     {
-        float res_fp_fl = FixedFloatConversion::to_float(v1,up1) + FixedFloatConversion::to_float(v2,up2);
+        double res_fp_fl = FixedFloatConversion::to_float(v1,up1) + FixedFloatConversion::to_float(v2,up2);
         IntType res_fp = IntType(FixedFloatConversion::from_float(res_fp_fl, up_local));
 
         if( CHECK_INT_FLOAT_COMPARISON )
@@ -32,7 +32,7 @@ IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
             IntType diff = res_int - res_fp;
             //cout << "diff" << diff << "\n" << flush; 
             if(diff <0) diff = -diff;
-            cout << "\ndiff: " << diff << std::flush;
+            //cout << "\ndiff: " << diff << std::flush;
             assert( diff< ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT );
         }
         
@@ -67,7 +67,7 @@ IntType do_sub_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
 
     #if CALCULATE_FLOAT
     {
-        float res_fp_fl = FixedFloatConversion::to_float(v1,up1) - FixedFloatConversion::to_float(v2,up2);
+        double res_fp_fl = FixedFloatConversion::to_float(v1,up1) - FixedFloatConversion::to_float(v2,up2);
         IntType res_fp = IntType(FixedFloatConversion::from_float(res_fp_fl, up_local));
 
         if( CHECK_INT_FLOAT_COMPARISON )
@@ -81,7 +81,7 @@ IntType do_sub_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
         #if USE_HDF && SAVE_HDF5_FLOAT && SAVE_HDF5_PER_OPERATION
         if( expr_id != -1)
         {
-            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
+            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/double/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
                     DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) | (T_hdf5_type_float) (FixedFloatConversion::to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
         }
         #endif
@@ -110,7 +110,7 @@ IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
 
     #if CALCULATE_FLOAT
     {
-        float res_fp_fl = FixedFloatConversion::to_float(v1,up1) * FixedFloatConversion::to_float(v2,up2);
+        double res_fp_fl = FixedFloatConversion::to_float(v1,up1) * FixedFloatConversion::to_float(v2,up2);
         IntType res_fp = IntType(FixedFloatConversion::from_float(res_fp_fl, up_local));
 
         if( CHECK_INT_FLOAT_COMPARISON )
@@ -124,7 +124,7 @@ IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
         #if USE_HDF && SAVE_HDF5_FLOAT && SAVE_HDF5_PER_OPERATION
         if( expr_id != -1)
         {
-            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/float/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
+            HDFManager::getInstance().get_file(output_filename)->get_dataset((boost::format("simulation_fixed/double/operations/op%s")% get_value32(expr_id) ).str())->append_buffer(
                     DataBuffer<T_hdf5_type_float>() | (T_hdf5_type_float) (FixedFloatConversion::to_float(v1,up1)) | (T_hdf5_type_float) (FixedFloatConversion::to_float(v2,up2)) | (T_hdf5_type_float) (res_fp_fl) ) ;
         }
         #endif
@@ -164,7 +164,7 @@ IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
 
     #if CALCULATE_FLOAT
     {
-        float res_fp_fl = FixedFloatConversion::to_float(v1,up1) / FixedFloatConversion::to_float(v2,up2);
+        double res_fp_fl = FixedFloatConversion::to_float(v1,up1) / FixedFloatConversion::to_float(v2,up2);
         IntType res_fp = IntType(FixedFloatConversion::from_float(res_fp_fl, up_local));
 
         if( CHECK_INT_FLOAT_COMPARISON )
@@ -208,7 +208,7 @@ inline IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_i
     
     #if CALCULATE_FLOAT
     {
-        float res_fp_fl = exp( FixedFloatConversion::to_float(v1,up1) );
+        double res_fp_fl = exp( FixedFloatConversion::to_float(v1,up1) );
         IntType res_fp = IntType(FixedFloatConversion::from_float( res_fp_fl, up_local));
         
         if( CHECK_INT_FLOAT_COMPARISON_FOR_EXP )

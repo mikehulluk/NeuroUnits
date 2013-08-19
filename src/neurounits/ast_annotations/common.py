@@ -221,7 +221,10 @@ class LargeArrayPropagator(ASTVisitorBase):
 
     @set_minmax_for_node
     def _VisitConstant(self, o):
-        new_array = np.ones( [len(self.sv_values[sv]) for sv in self.sv_order] ) * o.value.float_in_si()
+        if len(self.sv_order)==0:
+            return np.float64( o.value.float_in_si() )
+        else:
+            new_array = np.ones( [len(self.sv_values[sv]) for sv in self.sv_order] ) * float( o.value.float_in_si() )
         return new_array
 
 
@@ -279,11 +282,21 @@ class LargeArrayPropagator(ASTVisitorBase):
         res = if_false.copy()
         res[pred] = if_true[pred]
 
+        #print 'pred'
+        #print pred
+
+        #print 'iftrue'
+        #print if_true
+
+        #print 'iffalse'
+        #print if_false
         return res
 
 
     def VisitBoolAnd(self, o):
         return np.logical_and( self.visit(o.lhs), self.visit(o.rhs))
+    def VisitBoolOr(self, o):
+        return np.logical_or( self.visit(o.lhs), self.visit(o.rhs))
 
 
     @set_minmax_for_node
@@ -363,8 +376,12 @@ class NodeValueRangePropagator(ASTVisitorBase):
         print '======== E ==========='
         deps = VisitorSymbolDependance(component)
         for ass in sorted(component.assignments+component.timederivatives, key=lambda o:o.lhs.symbol):
+            print
             print "PROPAGATING THROUGH: ", repr(ass)
-            ass_deps = list(deps.get_terminal_dependancies(ass, expand_assignments=True, include_random_variables=True))
+            ass_deps = list(deps.get_terminal_dependancies(ass, expand_assignments=True, include_random_variables=True, include_supplied_values=True))
+            print ass_deps
+
+
 
             # Work out the values to test for each state variable:
             tested_vals = {}
@@ -372,6 +389,7 @@ class NodeValueRangePropagator(ASTVisitorBase):
                 assert isinstance(sv, (ast.RandomVariable, ast.StateVariable, ast.SuppliedValue))
                 tested_vals[sv] = np.linspace( sv.annotations['node-value-range'].min, sv.annotations['node-value-range'].max, num=self.n_values_tested)
 
+            print tested_vals
             # And propagate the array through the tree!
             LargeArrayPropagator(component=component, assignment_node=ass, sv_order=ass_deps, sv_values=tested_vals)
 
@@ -385,20 +403,33 @@ class NodeValueRangePropagator(ASTVisitorBase):
         for transition in component.transitions:
             for state_assignment in transition.state_assignments:
 
-                sa_deps = list(deps.get_terminal_dependancies(state_assignment, expand_assignments=True, include_random_variables=True))
+                sa_deps = list(deps.get_terminal_dependancies(state_assignment, expand_assignments=True, include_random_variables=True, include_supplied_values=True))
+
+
+                matrix_size = 10.e6
+                n_deps = len(sa_deps)
+                if n_deps > 0:
+                    n_vals = int( np.floor( np.power( matrix_size, 1./n_deps )) )
+                    assert n_vals > 2
+                else:
+                    n_vals=None
+                print sa_deps
+                print n_vals
+                #assert False
 
                 # Work out the values to test for each state variable:
                 tested_vals = {}
                 for sv in sa_deps:
                     assert isinstance(sv, (ast.RandomVariable, ast.StateVariable, ast.SuppliedValue))
-                    tested_vals[sv] = np.linspace( sv.annotations['node-value-range'].min, sv.annotations['node-value-range'].max, num=self.n_values_tested)
+                    #tested_vals[sv] = np.linspace( sv.annotations['node-value-range'].min, sv.annotations['node-value-range'].max, num=self.n_values_tested)
+                    tested_vals[sv] = np.linspace( sv.annotations['node-value-range'].min, sv.annotations['node-value-range'].max, num=n_vals)
 
                 # And propagate the array through the tree!
                 LargeArrayPropagator(component=component, assignment_node=state_assignment, sv_order=sa_deps, sv_values=tested_vals)
 
         # And the triggered-transitions:
         for triggered_transition in component.triggertransitions:
-            sa_deps = list(deps.get_terminal_dependancies(triggered_transition, expand_assignments=True, include_random_variables=True))
+            sa_deps = list(deps.get_terminal_dependancies(triggered_transition, expand_assignments=True, include_random_variables=True, include_supplied_values=True))
             # Work out the values to test for each state variable:
             tested_vals = {}
             for sv in sa_deps:

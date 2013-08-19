@@ -32,14 +32,14 @@ from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 
 
 
-
+#assert False, 'FIXED NMDA voltage dependance'
 
 
 src_text = """
 define_component simple_hh {
     from std.math import exp
 
-    iInj_local = [{50pA} * k] if [t > 75ms and t< 100ms] else [0pA]
+    iInj_local = [{50pA} * k] if [t > 75ms and t< 100ms or t<1ms] else [0pA]
     Cap = 10 pF
 
     V' = (1/Cap) * (iInj_local + i_injected + iLk + iKs + iKf +iNa + i_nmda)
@@ -51,11 +51,13 @@ define_component simple_hh {
     i_nmda = g_nmda * (syn_nmda_B - syn_nmda_A) * (e_NMDA - V) * nmda_vdep * 0.5
     syn_nmda_A' = -syn_nmda_A / {4ms}
     syn_nmda_B' = -syn_nmda_B / {80ms}
-    g_nmda = 0pS #300 pS
+    g_nmda = 300pS #0pS #300 pS
     e_NMDA = 0mV
     
     v_scale = V/{-0.08mV}
-    nmda_vdep =  1.3 - t/{1e3s} #1./(1. + 0.1 * 0.5 * exp(v_scale) )
+    #nmda_vdep =  1.3 - t/{1e3s} #1./(1. + 0.1 * 0.5 * exp(v_scale) )
+    nmda_vdep_re =  1./(1. + 0.1 * 0.5 * exp(v_scale) )
+    nmda_vdep=1.0
     
     noise_min = 0.5
     noise_max = 1.5
@@ -271,7 +273,7 @@ results = HDF5SimulationResultFile("output.hd5")
 
 
 
-time_array = results.h5file.root._f_getChild('/simulation_fixed/float/time').read()
+time_array = results.h5file.root._f_getChild('/simulation_fixed/double/time').read()
 
 
 
@@ -279,7 +281,7 @@ for symbol in record_symbols:
     pylab.figure()
     print 'Plotting:', symbol
     for i in range(30):
-        res = results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/%s' % (i, symbol)).read()
+        res = results.h5file.root._f_getChild('/simulation_fixed/double/LHSdIN/%03d/variables/%s' % (i, symbol)).read()
         pylab.plot(time_array, res, label='%s:lhs-%03d' % (symbol, i) )
         print np.min(res), np.max(res)
     pylab.legend()
@@ -289,22 +291,22 @@ for symbol in record_symbols:
 
 #pylab.figure()
 #for i in range(30):
-#    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/V' % i).read(), label='V:lhs-%03d' % i)
+#    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/double/LHSdIN/%03d/variables/V' % i).read(), label='V:lhs-%03d' % i)
 #pylab.legend()
 #
 #pylab.figure()
 #for i in range(30):
-#    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/k' % i).read(), label='k:lhs-%03d' % i)
+#    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/double/LHSdIN/%03d/variables/k' % i).read(), label='k:lhs-%03d' % i)
 #pylab.legend()
 #
 #pylab.figure()
 #for i in range(30):
-#    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/iInj_local' % i).read(), label='iInj-%03d' % i)
+#    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/double/LHSdIN/%03d/variables/iInj_local' % i).read(), label='iInj-%03d' % i)
 #pylab.legend()
 #
 #pylab.figure()
 #for i in range(30):
-#    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/%03d/variables/i_nmda' % i).read(), label='i_nmda-%03d' % i)
+#    pylab.plot(time_array, results.h5file.root._f_getChild('/simulation_fixed/double/LHSdIN/%03d/variables/i_nmda' % i).read(), label='i_nmda-%03d' % i)
 #pylab.legend()
 
 
@@ -317,13 +319,13 @@ pylab.show()
 
 
 
-V_LHS000 = results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/000/variables/V').read()
-V_LHS001 = results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/001/variables/V').read()
-V_LHS002 = results.h5file.root._f_getChild('/simulation_fixed/float/LHSdIN/002/variables/V').read()
+V_LHS000 = results.h5file.root._f_getChild('/simulation_fixed/double/LHSdIN/000/variables/V').read()
+V_LHS001 = results.h5file.root._f_getChild('/simulation_fixed/double/LHSdIN/001/variables/V').read()
+V_LHS002 = results.h5file.root._f_getChild('/simulation_fixed/double/LHSdIN/002/variables/V').read()
 
 
 
-V_RHS = results.h5file.root._f_getChild('/simulation_fixed/float/RHSdIN/000/variables/V').read()
+V_RHS = results.h5file.root._f_getChild('/simulation_fixed/double/RHSdIN/000/variables/V').read()
 
 print 'time: ', time_array.shape
 print 'V_LHS: ', V_LHS000.shape
@@ -345,8 +347,8 @@ pylab.show()
 # 
 # 
 # 
-# float_group = results.h5file.root._f_getChild('/simulation_fixed/float/variables/')
-# time_array = results.h5file.root._f_getChild('/simulation_fixed/float/time')
+# float_group = results.h5file.root._f_getChild('/simulation_fixed/double/variables/')
+# time_array = results.h5file.root._f_getChild('/simulation_fixed/double/time')
 # 
 # def plot_set( ys, plot_index, plot_total, figure):
 # 

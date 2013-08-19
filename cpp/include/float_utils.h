@@ -15,10 +15,16 @@
 #include "safe_int_proxying.h"
 #include "safe_int_utils.h"
 #endif
+
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <execinfo.h>
+#include <cxxabi.h>
+
+
 //#define DBG_RANGE
-
-
-
 
 
 namespace mh
@@ -67,7 +73,9 @@ namespace mh
                         if(val <0 ) assert( fabs(val) / pow(2.0, upscale) < cl_range_max-1 );
 #endif
 
-                        NativeInt32 res =  NativeInt32(val * (double(cl_range_max) / pow(2.0, upscale) ) ) ;
+                        double t1 = (double(cl_range_max) / pow(2.0, upscale) );
+                        double t2 =  val * t1;
+                        NativeInt32 res =  NativeInt32( t2 ) ;
                         return res;
                 }
 

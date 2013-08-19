@@ -58,19 +58,20 @@ class CBasedFixedWriter(ASTVisitorBase):
         super(CBasedFixedWriter, self).__init__()
         self.population_access_index=population_access_index
         self.check_range = True
+        self.check_range = False
 
 
     def add_range_check(self, node, expr):
-        return expr
-        print node, type(node)
+        #return expr
+        #print node, type(node)
     
         if self.check_range:
-            return """check_in_range(%s, %d, %f, %f, "%s")""" %(
+            return """check_in_range(%s, IntType(%d), %g, %g, "%s")""" %(
                         expr, 
                         node.annotations['fixed-point-format'].upscale,
                         node.annotations['node-value-range'].min,
                         node.annotations['node-value-range'].max,
-                        repr(node)
+                        repr(node)+str(node)+' ID: ' + str(node.annotations['node-id'])
                     )
         else:
             return expr

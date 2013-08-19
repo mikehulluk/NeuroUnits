@@ -113,10 +113,10 @@ const string output_filename = "${output_filename}";
 
 // Data types used for storing in HDF5:
 const hid_t hdf5_type_int = H5T_NATIVE_INT;
-const hid_t hdf5_type_float = H5T_NATIVE_FLOAT;
+const hid_t hdf5_type_float = H5T_NATIVE_DOUBLE;
 
 typedef int T_hdf5_type_int;
-typedef float T_hdf5_type_float;
+typedef double T_hdf5_type_float;
 #endif
 
 
@@ -242,11 +242,12 @@ namespace rnd
 
 IntType check_in_range(IntType val, IntType upscale, double min, double max, const std::string& description)
 {
+    cout << "\n";
     cout << "\nFor: " << description;
     cout << "\n Checking: " << std::flush;
     double value_float = FixedFloatConversion::to_float(val, upscale);
 
-    cout << "value_float= " << value_float << " between(" << min << "," << max << ")?";
+    cout << "value_float= " << value_float << " between(" << min << "," << max << ")?" << std::flush;
 
     double diff_max = max-value_float;
     double diff_min = min-value_float;
@@ -259,8 +260,10 @@ IntType check_in_range(IntType val, IntType upscale, double min, double max, con
     if(min < 0) min *= 1.0001;
     else min /= 1.0001;
 
-    assert( value_float <= max);
-    assert( value_float >= min);
+    //assert( value_float <= max);
+    //assert( value_float >= min || min >0);
+
+    cout << "\nOK!";
     return val;
 }
 
@@ -429,7 +432,7 @@ void setup_hdf5()
         % for sv_def in state_var_defs + assignment_defs:
         %if sv_def.symbol in record_symbols:
         // Setup ${sv_def.symbol}:
-        hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}].push_back( file->get_group((boost::format("simulation_fixed/float/${population.name}/%03d/variables/")%i).str())->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) ) );
+        hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}].push_back( file->get_group((boost::format("simulation_fixed/double/${population.name}/%03d/variables/")%i).str())->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) ) );
         hdf_map_id_to_datasetptrs_int[${sv_def.annotations['node-id']}].push_back( file->get_group((boost::format("simulation_fixed/int/${population.name}/%03d/variables/")%i).str())->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) ) );
         %endif
         % endfor
@@ -437,7 +440,7 @@ void setup_hdf5()
         // Storage for the intermediate values in calculations:
         #if SAVE_HDF5_PER_OPERATION
         %for intermediate_store_loc, size in intermediate_store_locs:
-        hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}].push_back( file->get_group((boost::format("simulation_fixed/float/${population.name}/%03d/operations/")%i).str())->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size}, hdf5_type_float) ) );
+        hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}].push_back( file->get_group((boost::format("simulation_fixed/double/${population.name}/%03d/operations/")%i).str())->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size}, hdf5_type_float) ) );
         hdf_map_id_to_datasetptrs_int[${sv_def.annotations['node-id']}].push_back(file->get_group((boost::format("simulation_fixed/int/${population.name}/%03d/operations/")%i).str())->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size},  hdf5_type_int) ) );
         %endfor
         #endif
@@ -801,7 +804,7 @@ void setup_hdf5()
     HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
 
     // Time
-    time_dataset_float = file->get_group("simulation_fixed/float")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+    time_dataset_float = file->get_group("simulation_fixed/double")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
     time_dataset_int = file->get_group("simulation_fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
 #endif //USE_HDF
 }
@@ -1020,9 +1023,9 @@ namespace NS_${projection.name}
 
         for(GJList::iterator it = gap_junctions.begin(); it != gap_junctions.end();it++)
         {
-            float V_float_pre  = FixedFloatConversion::to_float( src.V[get_value32(it->i)], upscale_V_pre);
-            float V_float_post = FixedFloatConversion::to_float( dst.V[get_value32(it->j)], upscale_V_post);
-            float i_fl = (V_float_post - V_float_pre) / ${projection.strength_ohm};
+            double V_float_pre  = FixedFloatConversion::to_float( src.V[get_value32(it->i)], upscale_V_pre);
+            double V_float_post = FixedFloatConversion::to_float( dst.V[get_value32(it->j)], upscale_V_post);
+            double i_fl = (V_float_post - V_float_pre) / ${projection.strength_ohm};
             src.${post_iinj_node.symbol}[get_value32(it->i)] = src.${post_iinj_node.symbol}[get_value32(it->i)] + FixedFloatConversion::from_float(i_fl, upscale_iinj_pre);
             src.${post_iinj_node.symbol}[get_value32(it->j)] = src.${post_iinj_node.symbol}[get_value32(it->j)] + FixedFloatConversion::from_float(-i_fl, upscale_iinj_post);
         }
@@ -1046,6 +1049,7 @@ namespace NS_eventcoupling_${projection.name}
 
     void setup_connections()
     {
+        
         for(IntType i=IntType(0);i< IntType(${projection.src_population.size});i++)
             for(IntType j=IntType(0);j<IntType(${projection.src_population.size});j++)
             {
@@ -1283,6 +1287,25 @@ class CBasedEqnWriterFixedNetwork(object):
                 f.write(cfile)
 
 
+
+
+        # Print out the Node-expressions:
+        print '\n\n\n'
+        for node in population.component.all_ast_nodes():
+            print repr(node), node.annotations['node-id']
+            try:
+                print ' -> ', self.writer.visit(node)
+                print ' -> ', node.annotations['node-value-range']
+            except:
+                print 'Skipped'
+            print 
+        print '\n\n\n'
+        import sys
+        sys.stdout.flush()
+        sys.stderr.flush()
+
+
+
         if compile:
             self.compile_and_run(cfile, output_c_filename=output_c_filename, run=run, CPPFLAGS=CPPFLAGS)
 
@@ -1332,15 +1355,15 @@ class CBasedEqnWriterFixedResultsProxy(object):
 
         h5file = tables.openFile("output.hd5")
 
-        float_group = h5file.root._f_getChild('/simulation_fixed/float/variables/')
-        time_array = h5file.root._f_getChild('/simulation_fixed/float/time').read()
+        float_group = h5file.root._f_getChild('/simulation_fixed/double/variables/')
+        time_array = h5file.root._f_getChild('/simulation_fixed/double/time').read()
 
 
         downscale = 10
         # Plot the variable values:
         for ast_node in self.eqnwriter.component.assignedvalues+self.eqnwriter.component.state_variables:
             print 'Plotting:', ast_node
-            data_float = h5file.root._f_getChild('/simulation_fixed/float/variables/%s' % ast_node.symbol).read()
+            data_float = h5file.root._f_getChild('/simulation_fixed/double/variables/%s' % ast_node.symbol).read()
             data_int   = h5file.root._f_getChild('/simulation_fixed/int/variables/%s' % ast_node.symbol).read()
 
             f = pylab.figure()
@@ -1380,7 +1403,7 @@ class CBasedEqnWriterFixedResultsProxy(object):
 
             try:
 
-                data_float = h5file.root._f_getChild('/simulation_fixed/float/operations/' + "op%d" % ast_node.annotations['node-id']).read()
+                data_float = h5file.root._f_getChild('/simulation_fixed/double/operations/' + "op%d" % ast_node.annotations['node-id']).read()
                 data_int = h5file.root._f_getChild('/simulation_fixed/int/operations/' + "op%d" % ast_node.annotations['node-id']).read()
 
                 f = pylab.figure()

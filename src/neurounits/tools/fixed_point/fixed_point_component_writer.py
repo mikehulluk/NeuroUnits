@@ -107,7 +107,7 @@ const hid_t hdf5_type_int = H5T_NATIVE_INT;
 const hid_t hdf5_type_float = H5T_NATIVE_FLOAT;
 
 typedef int T_hdf5_type_int;
-typedef float T_hdf5_type_float;
+typedef double T_hdf5_type_float;
 #endif
 
 
@@ -279,12 +279,12 @@ void sim_step(NrnData& d, IntType time_step)
         const double t_float = get_value32(time_step) * dt_float;
     
         HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
-        file->get_dataset("simulation_fixed/float/time")->append<T_hdf5_type_float>(t_float);
+        file->get_dataset("simulation_fixed/double/time")->append<T_hdf5_type_float>(t_float);
         % for eqn in eqns_timederivatives:
-        file->get_dataset("simulation_fixed/float/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_float>( FixedFloatConversion::to_float(  d.${eqn.node.lhs.symbol},  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ) );
+        file->get_dataset("simulation_fixed/double/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_float>( FixedFloatConversion::to_float(  d.${eqn.node.lhs.symbol},  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ) );
         % endfor
         % for eqn in eqns_assignments:
-        file->get_dataset("simulation_fixed/float/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_float>( FixedFloatConversion::to_float(  d.${eqn.node.lhs.symbol},  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ) );
+        file->get_dataset("simulation_fixed/double/variables/${eqn.node.lhs.symbol}")->append<T_hdf5_type_float>( FixedFloatConversion::to_float(  d.${eqn.node.lhs.symbol},  IntType(${eqn.node.lhs.annotations['fixed-point-format'].upscale}) ) );
         % endfor
     }
     #endif
@@ -304,18 +304,18 @@ void setup_hdf5()
     HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
 
     // Time
-    file->get_group("simulation_fixed/float")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+    file->get_group("simulation_fixed/double")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
     file->get_group("simulation_fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
 
     // Storage for state-variables and assignments:
     % for sv_def in state_var_defs + assignment_defs:
-    file->get_group("simulation_fixed/float/variables/")->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+    file->get_group("simulation_fixed/double/variables/")->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
     file->get_group("simulation_fixed/int/variables/")->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
     % endfor
 
     // Storage for the intermediate values in calculations:
     %for intermediate_store_loc, size in intermediate_store_locs:
-    file->get_group("simulation_fixed/float/operations/")->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size}, hdf5_type_float) );
+    file->get_group("simulation_fixed/double/operations/")->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size}, hdf5_type_float) );
     file->get_group("simulation_fixed/int/operations/")->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size},  hdf5_type_int) );
     %endfor
 }
@@ -510,15 +510,15 @@ class CBasedEqnWriterFixedResultsProxy(object):
 
         h5file = tables.openFile("output.hd5")
 
-        float_group = h5file.root._f_getChild('/simulation_fixed/float/variables/')
-        time_array = h5file.root._f_getChild('/simulation_fixed/float/time').read()
+        float_group = h5file.root._f_getChild('/simulation_fixed/double/variables/')
+        time_array = h5file.root._f_getChild('/simulation_fixed/double/time').read()
 
 
         downscale = 10
         # Plot the variable values:
         for ast_node in self.eqnwriter.component.assignedvalues+self.eqnwriter.component.state_variables:
             print 'Plotting:', ast_node
-            data_float = h5file.root._f_getChild('/simulation_fixed/float/variables/%s' % ast_node.symbol).read()
+            data_float = h5file.root._f_getChild('/simulation_fixed/double/variables/%s' % ast_node.symbol).read()
             data_int   = h5file.root._f_getChild('/simulation_fixed/int/variables/%s' % ast_node.symbol).read()
 
             f = pylab.figure()
@@ -558,7 +558,7 @@ class CBasedEqnWriterFixedResultsProxy(object):
 
             try:
                 
-                data_float = h5file.root._f_getChild('/simulation_fixed/float/operations/' + "op%d" % ast_node.annotations['node-id']).read()
+                data_float = h5file.root._f_getChild('/simulation_fixed/double/operations/' + "op%d" % ast_node.annotations['node-id']).read()
                 data_int = h5file.root._f_getChild('/simulation_fixed/int/operations/' + "op%d" % ast_node.annotations['node-id']).read()
 
                 f = pylab.figure()

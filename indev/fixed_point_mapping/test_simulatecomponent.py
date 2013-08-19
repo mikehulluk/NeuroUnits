@@ -262,8 +262,8 @@ CBasedEqnWriterFixedComponent(comp, output_filename='output.hd5', run=False, out
 fixed_sim_res = CBasedEqnWriterFixedComponent(comp, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false').results
 
 results = HDF5SimulationResultFile("output.hd5")
-float_group = results.h5file.root._f_getChild('/simulation_fixed/float/variables/')
-time_array = results.h5file.root._f_getChild('/simulation_fixed/float/time')
+float_group = results.h5file.root._f_getChild('/simulation_fixed/double/variables/')
+time_array = results.h5file.root._f_getChild('/simulation_fixed/double/time')
 
 
 def plot_set( ys, plot_index, plot_total, figure):
