@@ -646,7 +646,7 @@ class AbstractBlockBuilder(object):
 
         for (sv, tds) in maps_tds.items():
 
-            statevar_obj = ast.StateVariable(sv)
+            statevar_obj = ast.StateVariable(symbol=sv)
             self._resolve_global_symbol(sv, statevar_obj)
 
 
@@ -674,7 +674,7 @@ class AbstractBlockBuilder(object):
 
         for (ass_var, tds) in maps_asses.items():
 
-            assvar_obj = ast.AssignedVariable(ass_var)
+            assvar_obj = ast.AssignedVariable(symbol=ass_var)
             self._resolve_global_symbol(ass_var, assvar_obj)
 
             mapping = dict([ (reg, rhs) for (reg,rhs) in tds.items()] )

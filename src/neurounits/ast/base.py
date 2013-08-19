@@ -26,6 +26,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
+import string
 
 class ASTObject(object):
 
@@ -34,19 +35,33 @@ class ASTObject(object):
 
     def __init__(self):
         self._metadata = None
-        
-        from neurounits.ast_annotations import ASTTreeAnnotationManager, ASTNodeAnnotationData
-        self._annotations = ASTNodeAnnotationData(node=self) 
+
+        from neurounits.ast_annotations import ASTNodeAnnotationData
+        self._annotations = ASTNodeAnnotationData(node=self)
 
     def set_metadata(self, md):
         self._metadata = md
-        
-        
-        
-        
 
-    def __str__(self,):
-        return 'ASTObject_%s_%s' %( id(self), type(self).__name__.split('.')[-1] )
+
+
+
+
+
+    def __str__(self):
+        return unicode(self)
+    def __repr__(self):
+        return unicode(self)
+
+    def __unicode__(self):
+        node_data = self.summarise_node() if hasattr(self, 'summarise_node') else '[??]' #'[]'
+        annotation_data = self._annotations.get_summary_str() #str(self._annotations)
+        s  = string.Template('<${class_name} [id:${id}] ${node_data} ${annotation_data}>').substitute(
+                class_name=type(self).__name__.split('.')[-1],
+                id=id(self),
+                node_data = node_data,
+                annotation_data = annotation_data,
+                )
+        return s
 
 
     def get_dimension(self):
@@ -58,10 +73,6 @@ class ASTObject(object):
     def annotations(self):
         assert self._annotations is not None
         return self._annotations
-        
-    #@annotations.setter
-    #def annotations(self, annotations):
-    #    assert self._annotations is None, 'Setting annotations twice on: %s' % self
-    #    self._annotations = annotations
-    
-    
+
+
+

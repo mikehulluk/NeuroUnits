@@ -82,6 +82,13 @@ const int nsim_steps = ${nsim_steps};
 // Define how often to record values:
 const int record_rate = 1;
 
+
+const int n_results_total = nsim_steps / record_rate;
+const int n_results_written = 0;
+
+
+
+
 #include <list>
 #include <stdio.h>
 #include <iostream>
@@ -458,8 +465,10 @@ void setup_hdf5()
 
 
 // Global save:
-NrnPopData output_data[nsim_steps];
+NrnPopData output_data[n_results_total];
 
+//const int n_results_total = nsim_steps / record_rate;
+//const int n_results_written = 0;
 
 
 
@@ -699,11 +708,26 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
 }
 
 
+
+
+
+void write_all_results_to_hdf5(NrnPopData* d)
+{
+
+
+
+}
+
+
+
+
+
+
 void write_step_to_hdf5(NrnPopData& d, TimeInfo time_info)
 {
 
         #if USE_HDF && SAVE_HDF5_INT
-        ##% for eqn in eqns_assignments + eqns_timederivatives:
+        ##% for eqn in eqns_assignments + eqns_timederivatives + list(population.component.suppliedvalues):
         % for sv_def in state_var_defs + assignment_defs:
         %if sv_def.symbol in record_symbols:
         {
@@ -712,23 +736,11 @@ void write_step_to_hdf5(NrnPopData& d, TimeInfo time_info)
         }
         % endif
         % endfor
-
-
-        % for node in population.component.suppliedvalues:
-        %if node.symbol in record_symbols:
-        {
-        HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_int[${node.annotations['node-id']}];
-        for(int i=0;i<NrnPopData::size;i++) {pVec[i]->append<T_hdf5_type_int>(get_value32( d.${node.symbol}[i])); }
-        }
-        % endif
-        % endfor
-
-
         #endif
 
         #if USE_HDF && SAVE_HDF5_FLOAT
         ##cout << "\nSavind Floating (Data)";
-        % for sv_def in state_var_defs + assignment_defs:
+        % for sv_def in state_var_defs + assignment_defs + list(population.component.suppliedvalues):
         %if sv_def.symbol in record_symbols:
         {
         HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}];
@@ -739,22 +751,6 @@ void write_step_to_hdf5(NrnPopData& d, TimeInfo time_info)
         }
         % endif
         % endfor
-
-
-        % for node in population.component.suppliedvalues:
-        %if node.symbol in record_symbols:
-        {
-        // For ${node.symbol}
-        HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_float[${node.annotations['node-id']}];
-        for(int i=0;i<NrnPopData::size;i++) {
-            pVec[i]->append<T_hdf5_type_float>(FixedFloatConversion::to_float(  d.${node.symbol}[i],  IntType(${node.annotations['fixed-point-format'].upscale}) ));  
-            }
-        }
-        % endif
-        % endfor
-
-
-
 
         #endif
 }
@@ -936,6 +932,11 @@ int main()
                 NS_${pop.name}::write_step_to_hdf5( data_${pop.name}, time_info);
                 %endfor
             }
+
+            //ZZ. Save the states:
+
+
+
 
         }
 
@@ -1137,7 +1138,8 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
         std_variables = {
-            'nsim_steps' : 3000,
+            #'nsim_steps' : 3000,
+            'nsim_steps' : 10000,
             'nbits':self.nbits,
             'dt_float' : self.dt_float,
             'dt_int' : self.dt_int,

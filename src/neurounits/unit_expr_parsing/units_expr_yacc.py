@@ -798,7 +798,7 @@ def p_quantity_func_params_term_l3(p):
 def p_rhs_term4(p):
     """ rhs_term : MINUS rhs_term """
     backend = p.parser.library_manager.backend
-    neg_one = ast.ConstValue( backend.Quantity(-1.0, backend.Unit()))
+    neg_one = ast.ConstValue( value=backend.Quantity(-1.0, backend.Unit()))
     p[0] = ast.MulOp(neg_one, p[2])
 
 
@@ -813,8 +813,8 @@ def p_rv_expr(p):
     p[0] = ast.RandomVariable(
             function_name='uniform',
             parameters = [
-                ast.RandomVariableParameter(name='min',rhs_ast= ast.ConstValue( backend.Quantity(0.8, backend.Unit()) ) ),
-                ast.RandomVariableParameter(name='max',rhs_ast= ast.ConstValue( backend.Quantity(1.2, backend.Unit()) ) ),
+                ast.RandomVariableParameter(name='min',rhs_ast= ast.ConstValue( value=backend.Quantity(0.8, backend.Unit()) ) ),
+                ast.RandomVariableParameter(name='max',rhs_ast= ast.ConstValue( value=backend.Quantity(1.2, backend.Unit()) ) ),
                 ],
             modes = {
                 'when':'SIM_INIT', 'share':'PER_NEURON'
@@ -982,7 +982,7 @@ def p_rhs_term1(p):
 
 def p_rhs_term2(p):
     """ rhs_term : quantity """
-    p[0] = ast.ConstValue(p[1])
+    p[0] = ast.ConstValue(value=p[1])
 
 def p_lhs_variable(p):
     """ rhs_variable : rhs_symbol"""
@@ -990,7 +990,7 @@ def p_lhs_variable(p):
 
 def p_lhs_unit_expr(p):
     """ rhs_quantity_expr : LCURLYBRACKET quantity RCURLYBRACKET"""
-    p[0] = ast.ConstValue( p[2] )
+    p[0] = ast.ConstValue( value=p[2] )
 
 
 

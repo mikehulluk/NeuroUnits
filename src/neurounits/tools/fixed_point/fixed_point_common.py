@@ -42,7 +42,7 @@ class IntermediateNodeFinder(ASTActionerDefaultIgnoreMissing):
         self.valid_nodes[o] = 3
 
     def ActionFunctionDefBuiltInInstantiation(self, o, **kwargs):
-        assert o.function_def.funcname == '__exp__'
+        assert o.function_def.funcname in ['__exp__', '__ln__']
         self.valid_nodes[o] = 2
 
     def ActionFunctionDefUserInstantiation(self, o, **kwargs):

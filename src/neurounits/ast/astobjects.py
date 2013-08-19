@@ -79,6 +79,7 @@ class IfThenElse(ASTExpressionObject):
 
 
 
+
 class InEquality(ASTObject):
 
     def accept_visitor(self, v, **kwargs):
@@ -122,102 +123,118 @@ class BoolNot(ASTObject):
         self.lhs = lhs
 
 
-class AssignedVariable(ASTExpressionObject):
+
+
+
+# Base class:
+# ===============
+class ASTSymbolNode(ASTExpressionObject):
+    def __init__(self, symbol, **kwargs):
+        super(ASTSymbolNode, self).__init__(**kwargs)
+        self.symbol = symbol
+
+    def summarise_node(self):
+        return "Symbol: '%s'" % self.symbol
+
+class ASTConstNode(ASTExpressionObject):
+    def __init__(self, value, **kwargs):
+        super(ASTConstNode, self).__init__(**kwargs)
+        self.value = value
+        self.set_dimensionality(value.units.with_no_powerten())
+
+    def summarise_node(self):
+        return "Value: '%s'" % self.value
+# ===============
+
+
+
+
+
+
+
+
+class AssignedVariable(ASTSymbolNode):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitAssignedVariable(self, **kwargs)
 
-    def __init__(self, symbol, **kwargs):
-        ASTExpressionObject.__init__(self, **kwargs)
-        self.symbol = symbol
-
-    def __repr__(self):
-        return "<AssignedVariable: '%s'>" % self.symbol
+    def __init__(self,  **kwargs):
+        super(AssignedVariable, self).__init__(**kwargs)
 
 
-class SuppliedValue(ASTExpressionObject):
+class SuppliedValue(ASTSymbolNode):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitSuppliedValue(self, **kwargs)
 
-    def __init__(self, symbol, **kwargs):
-        ASTExpressionObject.__init__(self, **kwargs)
-        self.symbol = symbol
-
-    def __repr__(self):
-        return "<SuppliedValue: '%s'>" % self.symbol
+    def __init__(self, **kwargs):
+        super(SuppliedValue, self).__init__(**kwargs)
 
 
-class StateVariable(ASTExpressionObject):
+class StateVariable(ASTSymbolNode):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitStateVariable(self, **kwargs)
 
-    def __init__(self, symbol, **kwargs):
-        ASTExpressionObject.__init__(self, **kwargs)
-        self.symbol = symbol
+    def __init__(self, **kwargs):
+        super(StateVariable, self).__init__(**kwargs)
         self.initial_value = None
-
-    def __repr__(self):
-        return "<StateVariable: '%s'>" % self.symbol
 
     @property
     def default(self):
         return self.initial_value
 
 
-class Parameter(ASTExpressionObject):
+class Parameter(ASTSymbolNode):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitParameter(self, **kwargs)
 
-    def __init__(self, symbol, **kwargs):
-        ASTExpressionObject.__init__(self, **kwargs)
-        self.symbol = symbol
-
-    def __repr__(self):
-        return "<Parameter: '%s'>" % self.symbol
+    def __init__(self,  **kwargs):
+        super(Parameter, self).__init__(**kwargs)
 
 
-class ConstValue(ASTExpressionObject):
+
+
+
+
+class ConstValue(ASTConstNode):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitConstant(self, **kwargs)
 
-    def __init__(self, value, **kwargs):
-        ASTExpressionObject.__init__(self, **kwargs)
-        self.value = value
-
-        self.set_dimensionality(value.units.with_no_powerten())
-
-    def __repr__(self):
-        return "<Const: '%s'>" % self.value
+    def __init__(self,  **kwargs):
+        super(ConstValue, self).__init__(**kwargs)
 
 
 class ConstValueZero(ASTExpressionObject):
     def __init__(self, **kwargs):
-        ASTExpressionObject.__init__(self, **kwargs)
+        super(ConstValueZero, self).__init__(**kwargs)
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitConstantZero(self, **kwargs)
 
 
 
-
-
-class SymbolicConstant(ASTExpressionObject):
+class SymbolicConstant(ASTConstNode, ASTSymbolNode):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitSymbolicConstant(self, **kwargs)
 
-    def __init__(self, symbol, value, **kwargs):
-        ASTExpressionObject.__init__(self, **kwargs)
-        self.symbol = symbol
-        self.value = value
-        self.set_dimensionality(value.units.with_no_powerten())
+    def __init__(self,**kwargs):
+        super(SymbolicConstant, self).__init__(**kwargs)
 
-    def __repr__(self):
-        return '<SymbolicConstant: %s = %s>' % (self.symbol, self.value)
+    def summarise_node(self):
+        return '%s %s' % (
+                ASTConstNode.summarise_node(self),
+                ASTSymbolNode.summarise_node(self)
+                )
+
+
+
+
+
+
 
 
 
@@ -299,8 +316,11 @@ class FunctionDefBuiltInInstantiation(ASTExpressionObject):
         self.parameters = parameters
         assert function_def.is_builtin()
 
-    def __repr__(self):
-        return "<FunctionDefBuiltInInstantiation: '%s(%s)'>" % (self.function_def.funcname, "...")
+
+    def summarise_node(self):
+        assert len(self.parameters) == 1
+        return '{%s( <id:%s>)}' % (self.function_def.funcname, id(list(self.parameters.values())[0].rhs_ast) )
+
 
 
 

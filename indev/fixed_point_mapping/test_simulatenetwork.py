@@ -37,45 +37,48 @@ from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 
 src_text = """
 define_component simple_hh {
-    from std.math import exp
+    from std.math import exp, ln
 
     iInj_local = [{50pA} * k] if [t > 75ms and t< 100ms or t<1ms] else [0pA]
     Cap = 10 pF
 
     V' = (1/Cap) * (iInj_local + i_injected + iLk + iKs + iKf +iNa + i_nmda)
-    
-      
-    
+
+
+
     # NMDA noise:
-    
-    i_nmda = g_nmda * (syn_nmda_B - syn_nmda_A) * (e_NMDA - V) * nmda_vdep * 0.5
-    syn_nmda_A' = -syn_nmda_A / {4ms}
-    syn_nmda_B' = -syn_nmda_B / {80ms}
-    g_nmda = 300pS #0pS #300 pS
+
+    syn_nmda_A_tau = 4ms
+    syn_nmda_B_tau = 80ms
+    i_nmda = g_nmda * (syn_nmda_B - syn_nmda_A) * (e_NMDA - V) * nmda_vdep # * 0.5
+    syn_nmda_A' = -syn_nmda_A / syn_nmda_A_tau
+    syn_nmda_B' = -syn_nmda_B / syn_nmda_B_tau
+    # TOOO: 
+    nmda_tc_max = (syn_nmda_A_tau * syn_nmda_B_tau) * ln( syn_nmda_B_tau / syn_nmda_A_tau)
+    g_nmda = 300pS 
     e_NMDA = 0mV
-    
-    v_scale = V/{-0.08mV}
-    #nmda_vdep =  1.3 - t/{1e3s} #1./(1. + 0.1 * 0.5 * exp(v_scale) )
-    nmda_vdep_re =  1./(1. + 0.1 * 0.5 * exp(v_scale) )
-    nmda_vdep=1.0
-    
+
+    v_scale = V * {-0.08mV-1}
+    nmda_vdep =  1./(1. + 0.1 * 0.5 * exp(v_scale) )
+
+
     noise_min = 0.5
     noise_max = 1.5
-    
+
     glk_noise1 =  ~uniform(min=noise_min, max=noise_max)[when=SIM_INIT, share=PER_NEURON]
     glk_noise2 =  ~uniform(min=noise_min, max=noise_max + eK/{1V})[when=SIM_INIT, share=PER_POPULATION]
     glk_noise3 =  ~uniform(min=noise_min, max=noise_max)[when=SIM_INIT, share=PER_POPULATION]
     glk_noise4 =  ~uniform(min=noise_min, max=noise_max)[when=SIM_INIT, share=PER_NEURON]
-    
-    
-    glk_noise = (glk_noise1 + glk_noise2 ) / 4.0 
-    
+
+
+    glk_noise = (glk_noise1 + glk_noise2 ) / 4.0
+
 
 
     AlphaBetaFunc(v, A,B,C,D,E) = (A+B*v) / (C + exp( (D+v)/E))
 
     eK = -80mV
-    eNa = 50mV 
+    eNa = 50mV
     gKs = 10.0 nS
     gKf = 12.5 nS
     gNa = 250 nS
@@ -117,7 +120,7 @@ define_component simple_hh {
     na_h' = (inf_na_h - na_h) / tau_na_h
 
     iNa = gNa * (eNa-V) * na_m * na_m * na_m * na_h * glk_noise1
-    
+
 
     # Calcium:
     #alpha_ca_m = AlphaBetaFunc(v=V, A=4.05ms-1, B=0.0ms-1 mV-1, C=1.0, D=-15.32mV,E=-13.57mV)
@@ -161,19 +164,19 @@ define_component simple_hh {
         transition_to sub
         };
     }
-    
-    
+
+
     on recv_nmda_spike(){
-        
+
         syn_nmda_A = syn_nmda_A + 1.0
         syn_nmda_B = syn_nmda_B + 1.0
     }
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
     initial {
         V = -60mV
         k=1
@@ -182,12 +185,12 @@ define_component simple_hh {
         na_h = 1.0
         ks_n = 0.0
         kf_n = 0.0
-        
+
         syn_nmda_B = 0.0
         syn_nmda_A = 0.0
         regime sub
     }
-    
+
 
 }
 
@@ -200,19 +203,18 @@ define_component simple_hh {
 
 var_annots_dIN = {
     't'             : NodeRange(min="0ms", max = "1.1s"),
-    'i_injected'     : NodeRange(min="0nA", max = "10nA"),
-    
+    'i_injected'    : NodeRange(min="0nA", max = "10nA"),
     'V'             : NodeRange(min="-100mV", max = "50mV"),
-    'k'     : NodeRange(min="0", max = "1.1"),
+    'k'             : NodeRange(min="0", max = "1.1"),
     'ca_m'          : NodeRange(min="0", max = "1.5"),
     'kf_n'          : NodeRange(min="0", max = "1.5"),
     'ks_n'          : NodeRange(min="0", max = "1.5"),
     'na_h'          : NodeRange(min="0", max = "1.5"),
     'na_m'          : NodeRange(min="0", max = "1.5"),
-    'syn_nmda_A' :NodeRange(min='0', max ='30'),
-    'syn_nmda_B' :NodeRange(min='0', max ='30'),
+    'syn_nmda_A'    : NodeRange(min='0', max ='30'),
+    'syn_nmda_B'    : NodeRange(min='0', max ='30'),
     }
- 
+
 
 
 
@@ -228,6 +230,13 @@ nbits = 24
 comp.annotate_ast( NodeRangeAnnotator(var_annots_dIN) )
 comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
 comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
+
+
+
+
+
+
+
 
 
 
@@ -278,7 +287,7 @@ time_array = results.h5file.root._f_getChild('/simulation_fixed/double/time').re
 
 
 for symbol in record_symbols:
-    pylab.figure()
+    pylab.figure(figsize=(20,16))
     print 'Plotting:', symbol
     for i in range(30):
         res = results.h5file.root._f_getChild('/simulation_fixed/double/LHSdIN/%03d/variables/%s' % (i, symbol)).read()
@@ -344,14 +353,14 @@ pylab.show()
 
 
 
-# 
-# 
-# 
+#
+#
+#
 # float_group = results.h5file.root._f_getChild('/simulation_fixed/double/variables/')
 # time_array = results.h5file.root._f_getChild('/simulation_fixed/double/time')
-# 
+#
 # def plot_set( ys, plot_index, plot_total, figure):
-# 
+#
 #     ax = figure.add_subplot(plot_total, 1, plot_index, )
 #     for y in ys:
 #         try:
@@ -363,40 +372,40 @@ pylab.show()
 #             print e
 #         except tables.exceptions.NoSuchNodeError,e:
 #             print e
-# 
+#
 #     ax.legend()
-# 
-# 
-# 
-# 
-# 
+#
+#
+#
+#
+#
 # fig = pylab.figure()
-# 
-# 
-# 
+#
+#
+#
 # plot_set( ['alpha_kf_n', 'beta_kf_n'], 1, 5, fig)
 # plot_set( ['kf_n', 'inf_kf_n'],  2, 5, fig)
 # plot_set( ['iInj','iLk','iKf'], 3, 5, fig)
 # plot_set( ['tau_kf_n'],  4, 5, fig)
 # plot_set( ['V','V2'],  5, 5, fig )
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
+#
+#
+#
+#
+#
+#
+#
+#
+#
 # data_names1 = [ass.symbol for ass in comp.assignedvalues]
 # data_names2 = [sv.symbol for sv in comp.state_variables]
-# data_names = data_names1 + data_names2 
-# 
-# 
+# data_names = data_names1 + data_names2
+#
+#
 # data_names = ['V']
-# 
-# 
-# for data_name in data_names: 
+#
+#
+# for data_name in data_names:
 #     did_plot = False
 #     try:
 #         pylab.figure()
@@ -405,7 +414,7 @@ pylab.show()
 #             pylab.plot(res.get_time(), res.get_data(data_name),'r-x', label='ref-%s'%data_name, )
 #         #pylab.plot(data_int['i']/10000., data_int[data_name], 'bx',label='fixed-%s'%data_name )
 #         pylab.plot(time_array.read()+0.1e-3, float_group._f_getChild(data_name).read(), label='fixed-%s'%data_name )
-#         
+#
 #         pylab.legend()
 #         did_plot=True
 #     except KeyError, e:
@@ -416,17 +425,17 @@ pylab.show()
 #         print e
 #     if not did_plot:
 #         pylab.close()
-# 
+#
 # pylab.show()
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
 

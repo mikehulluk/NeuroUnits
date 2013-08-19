@@ -258,14 +258,16 @@ class LargeArrayPropagator(ASTVisitorBase):
 
     @set_minmax_for_node
     def VisitFunctionDefBuiltInInstantiation(self, o):
-        if o.function_def.funcname != '__exp__':
-            assert False
+        if o.function_def.funcname == '__exp__':
+            p = o.parameters.values()[0]
+            a = self.visit(p)
+            return np.exp(a)
 
-        p = o.parameters.values()[0]
-        a = self.visit(p)
-
-        return np.exp(a)
-        assert False
+        if o.function_def.funcname == '__ln__':
+            p = o.parameters.values()[0]
+            a = self.visit(p)
+            return np.log(a)
+        assert False, 'Not implemented for: %s' % ( o.function_def.funcname )
 
 
     @set_minmax_for_node

@@ -36,6 +36,11 @@ class ASTNodeAnnotationData():
     def __contains__(self, key):
         return key in self._data
         
+
+    def get_summary_str(self):
+        if not self._data:
+            return ''
+        return '[Anns: ' + str(self._data) + ']'
     
     
     

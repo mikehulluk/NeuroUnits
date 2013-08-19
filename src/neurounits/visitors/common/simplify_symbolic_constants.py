@@ -211,6 +211,7 @@ class ReduceConstants(ASTVisitorBase):
 
     def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
         # Check if the parameters are constant
+        assert False
         params = {}
         for p in o.parameters.values():
             pres = self.visit(p.rhs_ast)
@@ -222,12 +223,15 @@ class ReduceConstants(ASTVisitorBase):
         # Not Implmented how to calculate it yet!
         print 'We can evalute function:' , o.function_def.funcname
         print 'BUT THE LOGIC IS MISSING :)'
-        #assert False
+        assert False
         return None
         raise NotImplementedError()
 
     def VisitFunctionDefUserInstantiation(self, o, **kwargs):
         # Check if the parameters are constant
+        #self.visit(o.rhs_ast)
+
+        #assert False
         params = {}
         for p in o.parameters.values():
             pres = self.visit(p.rhs_ast)
