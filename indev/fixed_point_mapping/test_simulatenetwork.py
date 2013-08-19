@@ -7,39 +7,22 @@ import neurounits
 
 import numpy as np
 import pylab
-from neurounits.units_backends.mh import MMQuantity, MMUnit
-from neurounits.visitors.bases.base_actioner import ASTActionerDepthFirst
-
-
-
-#from neurounits.Zdev.fixed_point_annotations import #VarAnnot, ASTDataAnnotator#, CalculateInternalStoragePerNode#
-from neurounits.visitors.common.plot_networkx import ActionerPlotNetworkX
 
 from neurounits.tools.fixed_point import CBasedEqnWriterFixedNetwork
 from hdfjive import HDF5SimulationResultFile
-import tables
-import numpy as np
 
-
-
-from neurounits.tools.fixed_point import CBasedEqnWriterFixedNetwork
-
-import os
-import time
 from neurounits.ast_annotations.common import NodeRangeAnnotator, NodeFixedPointFormatAnnotator,\
     NodeRange, NodeToIntAnnotator
-from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 
 
 
-#assert False, 'FIXED NMDA voltage dependance'
 
 
 src_text = """
 define_component simple_hh {
     from std.math import exp, ln
 
-    iInj_local = [{50pA} * k] if [t > 75ms and t< 100ms or t<1ms] else [0pA]
+    iInj_local = [{50pA} * k] if [t > 75ms and t< 85ms or t<1ms] else [0pA]
     Cap = 10 pF
 
     V' = (1/Cap) * (iInj_local + i_injected + iLk + iKs + iKf +iNa + i_nmda)
@@ -50,11 +33,11 @@ define_component simple_hh {
 
     syn_nmda_A_tau = 4ms
     syn_nmda_B_tau = 80ms
-    i_nmda = g_nmda * (syn_nmda_B - syn_nmda_A) * (e_NMDA - V) * nmda_vdep # * 0.5
+    i_nmda = g_nmda * (syn_nmda_B - syn_nmda_A) * (e_NMDA - V) * nmda_vdep  * 0.5
     syn_nmda_A' = -syn_nmda_A / syn_nmda_A_tau
     syn_nmda_B' = -syn_nmda_B / syn_nmda_B_tau
     # TOOO: 
-    nmda_tc_max = (syn_nmda_A_tau * syn_nmda_B_tau) * ln( syn_nmda_B_tau / syn_nmda_A_tau)
+    #nmda_tc_max = (syn_nmda_A_tau * syn_nmda_B_tau) * ln( syn_nmda_B_tau / syn_nmda_A_tau)
     g_nmda = 300pS 
     e_NMDA = 0mV
 
@@ -186,7 +169,7 @@ define_component simple_hh {
         ks_n = 0.0
         kf_n = 0.0
 
-        syn_nmda_B = 0.0
+       syn_nmda_B = 0.0
         syn_nmda_A = 0.0
         regime sub
     }

@@ -39,6 +39,12 @@ c_prog_header_tmpl = r"""
 
 
 
+
+#define PC_DEBUG  false
+
+
+
+
 //#define ON_NIOS
 
 #if ON_NIOS
@@ -51,11 +57,21 @@ c_prog_header_tmpl = r"""
 #else
 
 
+#if PC_DEBUG
 #define CALCULATE_FLOAT true
 #define USE_HDF true
 #define SAVE_HDF5_FLOAT true
 #define SAVE_HDF5_INT true
 #define SAFEINT true
+
+#else
+#define CALCULATE_FLOAT true
+#define USE_HDF true
+#define SAVE_HDF5_FLOAT true
+#define SAVE_HDF5_INT false
+#define SAFEINT false
+#endif // (PC_DEBUG)
+
 
 
 #endif
@@ -84,7 +100,7 @@ const int record_rate = 1;
 
 
 const int n_results_total = nsim_steps / record_rate;
-const int n_results_written = 0;
+int n_results_written = 0;
 
 
 
@@ -249,17 +265,16 @@ namespace rnd
 
 IntType check_in_range(IntType val, IntType upscale, double min, double max, const std::string& description)
 {
-    cout << "\n";
-    cout << "\nFor: " << description;
-    cout << "\n Checking: " << std::flush;
+    //cout << "\n";
+    //cout << "\nFor: " << description;
+    //cout << "\n Checking: " << std::flush;
     double value_float = FixedFloatConversion::to_float(val, upscale);
 
-    cout << "value_float= " << value_float << " between(" << min << "," << max << ")?" << std::flush;
 
-    double diff_max = max-value_float;
-    double diff_min = min-value_float;
-    cout << "\n diff_max: " << diff_max;
-    cout << "\n diff_min: " << diff_min;
+    //double diff_max = max-value_float;
+    //double diff_min = min-value_float;
+    //cout << "\n diff_max: " << diff_max;
+    //cout << "\n diff_min: " << diff_min;
 
     // Addsmall tolerance, to account for constants:
     if(max > 0) max *= 1.0001;
@@ -267,10 +282,26 @@ IntType check_in_range(IntType val, IntType upscale, double min, double max, con
     if(min < 0) min *= 1.0001;
     else min /= 1.0001;
 
-    //assert( value_float <= max);
-    //assert( value_float >= min || min >0);
+    if(!( value_float <= max))
+    {
+        cout << "\n\nOverflow on:" << description;
+        cout << "\nvalue_float= " << value_float << " between(" << min << "," << max << ")?" << std::flush;
+        float pc_out = (value_float - max) / (max-min) * 100;
+        cout << "\n  --> Amount out: " << pc_out << "%";
+        cout << "\n";
 
-    cout << "\nOK!";
+    }
+    if( !( value_float >= min || min >0))
+    {
+
+        cout << "\n\nOverflow on:" << description;
+        cout << "\nvalue_float= " << value_float << " between(" << min << "," << max << ")?" << std::flush;
+        float pc_out = (min - value_float) / (max-min) * 100;
+        cout << "\n  --> Amount out: " << pc_out << "%";
+        cout << "\n";
+    }
+
+    //cout << "\nOK!";
     return val;
 }
 
@@ -714,6 +745,65 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
 void write_all_results_to_hdf5(NrnPopData* d)
 {
 
+        #if USE_HDF && SAVE_HDF5_INT
+        {
+        int* pData = new int[n_results_written];
+        % for sv_def in list(population.component.assignedvalues) + list(population.component.state_variables) + list(population.component.suppliedvalues):
+        %if sv_def.symbol in record_symbols:
+        {
+            HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_int[${sv_def.annotations['node-id']}];
+        // Copy the data into the array:
+        for(int i=0;i<NrnPopData::size;i++) {
+            for(int j=0;j<n_results_written;j++) { pData[j] = get_value32( d[j].${sv_def.symbol}[i]); }
+            pVec[i]->set_data(n_results_written, 1, pData);
+        }
+        }
+        % endif
+        % endfor
+        delete[] pData;
+        }
+        #endif
+
+
+        #if USE_HDF && SAVE_HDF5_FLOAT
+        {
+        double* pData = new double[n_results_written];
+        % for sv_def in list(population.component.assignedvalues) + list(population.component.state_variables) + list(population.component.suppliedvalues):
+        %if sv_def.symbol in record_symbols:
+        {
+        HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}];
+        // Copy the data into the array:
+        for(int i=0;i<NrnPopData::size;i++) {
+            for(int j=0;j<n_results_written;j++) { pData[j] = FixedFloatConversion::to_float(  d[j].${sv_def.symbol}[i],  IntType(${sv_def.annotations['fixed-point-format'].upscale}) ); }
+            pVec[i]->set_data(n_results_written, 1, pData);
+            }
+        }
+        % endif
+        % endfor
+        delete[] pData;
+        }
+        #endif
+
+
+
+
+
+        ## #if USE_HDF && SAVE_HDF5_FLOAT
+        ## ##cout << "\nSavind Floating (Data)";
+        ## % for sv_def in state_var_defs + assignment_defs + list(population.component.suppliedvalues):
+        ## %if sv_def.symbol in record_symbols:
+        ## {
+        ## HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}];
+        ## for(int i=0;i<NrnPopData::size;i++) {
+        ##     pVec[i]->append<T_hdf5_type_float>(FixedFloatConversion::to_float(  d.${sv_def.symbol}[i],  IntType(${sv_def.annotations['fixed-point-format'].upscale}) ));
+        ##     }
+        ## }
+        ## % endif
+        ## % endfor
+
+        ## #endif
+
+
 
 
 }
@@ -727,8 +817,7 @@ void write_step_to_hdf5(NrnPopData& d, TimeInfo time_info)
 {
 
         #if USE_HDF && SAVE_HDF5_INT
-        ##% for eqn in eqns_assignments + eqns_timederivatives + list(population.component.suppliedvalues):
-        % for sv_def in state_var_defs + assignment_defs:
+        % for eqn in eqns_assignments + eqns_timederivatives + list(population.component.suppliedvalues):
         %if sv_def.symbol in record_symbols:
         {
         HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_int[${sv_def.annotations['node-id']}];
@@ -745,8 +834,7 @@ void write_step_to_hdf5(NrnPopData& d, TimeInfo time_info)
         {
         HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}];
         for(int i=0;i<NrnPopData::size;i++) {
-            ##cout << "\nWriting: ${sv_def.symbol}";
-            pVec[i]->append<T_hdf5_type_float>(FixedFloatConversion::to_float(  d.${sv_def.symbol}[i],  IntType(${sv_def.annotations['fixed-point-format'].upscale}) ));  
+            pVec[i]->append<T_hdf5_type_float>(FixedFloatConversion::to_float(  d.${sv_def.symbol}[i],  IntType(${sv_def.annotations['fixed-point-format'].upscale}) ));
             }
         }
         % endif
@@ -876,6 +964,7 @@ int main()
         if(k%100==0) cout << "Loop: " << k << "\n" << flush;
     #endif
 
+        n_results_written=0;
         for(IntType time_step=IntType(0);time_step<nsim_steps;time_step++)
         {
 
@@ -911,16 +1000,8 @@ int main()
             // B. Integrate all the state_variables of all the neurons:
             %for pop in network.populations:
             NS_${pop.name}::sim_step( data_${pop.name}, time_info);
-            NS_${pop.name}::output_data[get_value32(time_step)] = data_${pop.name};
+            //NS_${pop.name}::output_data[get_value32(time_step)] = data_${pop.name};
             %endfor
-
-
-            // C. Look for spikes for each neuron:
-
-
-            // D. Deliver spikes:
-
-
 
 
 
@@ -929,11 +1010,12 @@ int main()
             {
                 write_time_to_hdf5(time_info);
                 %for pop in network.populations:
-                NS_${pop.name}::write_step_to_hdf5( data_${pop.name}, time_info);
+                NS_${pop.name}::output_data[n_results_written] = data_${pop.name};
+                ##NS_${pop.name}::write_step_to_hdf5( data_${pop.name}, time_info);
                 %endfor
+                n_results_written++;
             }
 
-            //ZZ. Save the states:
 
 
 
@@ -944,6 +1026,11 @@ int main()
     }
     #endif
 
+     // Dump to HDF5
+    cout << "\nWriting HDF5 output" << std::flush;
+    %for pop in network.populations:
+    NS_${pop.name}::write_all_results_to_hdf5(NS_${pop.name}::output_data);
+    %endfor
 
      %for pop in network.populations:
     #if ON_NIOS
@@ -1050,7 +1137,7 @@ namespace NS_eventcoupling_${projection.name}
 
     void setup_connections()
     {
-        
+
         for(IntType i=IntType(0);i< IntType(${projection.src_population.size});i++)
             for(IntType j=IntType(0);j<IntType(${projection.src_population.size});j++)
             {
@@ -1138,8 +1225,8 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
         std_variables = {
-            #'nsim_steps' : 3000,
-            'nsim_steps' : 10000,
+            'nsim_steps' : 3000,
+            #'nsim_steps' : 1500,
             'nbits':self.nbits,
             'dt_float' : self.dt_float,
             'dt_int' : self.dt_int,
@@ -1300,7 +1387,7 @@ class CBasedEqnWriterFixedNetwork(object):
                 print ' -> ', node.annotations['node-value-range']
             except:
                 print 'Skipped'
-            print 
+            print
         print '\n\n\n'
         import sys
         sys.stdout.flush()
