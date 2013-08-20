@@ -258,7 +258,7 @@ class VisitorSymbolDependance(object):
 
 
 
-        if plot or True:
+        if plot:
             #pylab.ion()
             nx.draw_networkx(g, with_labels=True, labels={n:repr(n) for n in all_objs} )
             #pylab.show()

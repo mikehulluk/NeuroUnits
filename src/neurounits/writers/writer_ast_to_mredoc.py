@@ -76,7 +76,7 @@ def FormatDimensionality(dim):
 def include_id_in_overbrace(func):
     def new_func(self, o, *args,**kwargs):
         res = func(self, o, *args, **kwargs)
-        return r'\overbrace{%s}^{ID:%s}' % (res, id(o)) #o.function_def.funcname.replace("_",r"\_"), ','.join(p), id(o))
+        return r'\overbrace{%s}^{ID:%s}' % (res, id(o)) 
     return new_func
 
 class LatexEqnWriterN(ASTVisitorBase):

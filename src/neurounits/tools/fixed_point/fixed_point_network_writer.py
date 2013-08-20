@@ -61,7 +61,7 @@ c_prog_header_tmpl = r"""
 #define CALCULATE_FLOAT true
 #define USE_HDF true
 #define SAVE_HDF5_FLOAT true
-#define SAVE_HDF5_INT true
+#define SAVE_HDF5_INT false
 #define SAFEINT true
 
 #else
@@ -229,6 +229,38 @@ struct TimeInfo
 
 
 
+HDF5DataSet2DStdPtr time_dataset_int;
+HDF5DataSet2DStdPtr time_dataset_float;
+
+void setup_hdf5()
+{
+#if USE_HDF
+    HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
+
+    // Time
+    time_dataset_float = file->get_group("simulation_fixed/double")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+    time_dataset_int = file->get_group("simulation_fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
+#endif //USE_HDF
+}
+
+
+
+
+void write_time_to_hdf5(TimeInfo time_info)
+{
+#if USE_HDF
+    #if SAVE_HDF5_INT
+    time_dataset_int->append<T_hdf5_type_int>(get_value32(time_info.time_int));
+    #endif
+
+    #if SAVE_HDF5_FLOAT
+    const double dt_float = FixedFloatConversion::to_float(IntType(dt_int), dt_upscale);
+    const double t_float = get_value32(time_info.time_step) * dt_float;
+    time_dataset_float->append<T_hdf5_type_float>(t_float);
+    #endif
+
+#endif //USE_HDF
+}
 
 
 
@@ -470,16 +502,31 @@ void setup_hdf5()
         % for sv_def in population.component.state_variables + population.component.assignedvalues:
         %if sv_def.symbol in record_symbols:
         // Setup ${sv_def.symbol}:
-        hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}].push_back( file->get_group((boost::format("simulation_fixed/double/${population.name}/%03d/variables/")%i).str())->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) ) );
-        hdf_map_id_to_datasetptrs_int[${sv_def.annotations['node-id']}].push_back( file->get_group((boost::format("simulation_fixed/int/${population.name}/%03d/variables/")%i).str())->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) ) );
+        {
+        #if SAVE_HDF5_FLOAT
+        HDF5GroupPtr pGroup_float = file->get_group((boost::format("simulation_fixed/double/${population.name}/%03d/variables/${sv_def.symbol}")%i).str());
+        pGroup_float->add_attribute("hdf-jive","true");
+        pGroup_float->add_attribute("hdf-jive:tags",(boost::format("fixed-float,${sv_def.symbol},POP:${population.name},POPINDEX:%03d,")%i).str());
+        pGroup_float->get_subgroup("raw")->create_softlink(time_dataset_float, "time");
+        hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}].push_back( pGroup_float->get_subgroup("raw")->create_dataset("data", HDF5DataSet2DStdSettings(1, hdf5_type_float) ) );
+        #endif // SAVE_HDF5_FLOAT
+
+        #if SAVE_HDF5_INT
+        HDF5GroupPtr pGroup_int = file->get_group((boost::format("simulation_fixed/int/${population.name}/%03d/variables/${sv_def.symbol}")%i).str());
+        pGroup_int->add_attribute("hdf-jive","true");
+        pGroup_int->add_attribute("hdf-jive:tags",boost::format(("fixed-int,${sv_def.symbol},POP:${population.name},POPINDEX:%03d,")%i).str());
+        pGroup_int->get_subgroup("raw")->create_softlink(time_dataset_int, "time");
+        hdf_map_id_to_datasetptrs_int[${sv_def.annotations['node-id']}].push_back(pGroup_int->get_subgroup("raw")->create_dataset("data", HDF5DataSet2DStdSettings(1, hdf5_type_int) ) );
+        #endif // SAVE_HDF5_INT
+        }
         %endif
         % endfor
 
         // Storage for the intermediate values in calculations:
         #if SAVE_HDF5_PER_OPERATION
         %for intermediate_store_loc, size in intermediate_store_locs:
-        hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}].push_back( file->get_group((boost::format("simulation_fixed/double/${population.name}/%03d/operations/")%i).str())->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size}, hdf5_type_float) ) );
-        hdf_map_id_to_datasetptrs_int[${sv_def.annotations['node-id']}].push_back(file->get_group((boost::format("simulation_fixed/int/${population.name}/%03d/operations/")%i).str())->create_dataset("${intermediate_store_loc}", HDF5DataSet2DStdSettings(${size},  hdf5_type_int) ) );
+        hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}].push_back( file->get_group((boost::format("simulation_fixed/double/${population.name}/%03d/operations/${intermediate_store_loc}/raw")%i).str())->create_dataset("data", HDF5DataSet2DStdSettings(${size}, hdf5_type_float) ) );
+        hdf_map_id_to_datasetptrs_int[${sv_def.annotations['node-id']}].push_back(file->get_group((boost::format("simulation_fixed/int/${population.name}/%03d/operations/${intermediate_store_loc}/raw/")%i).str())->create_dataset("data", HDF5DataSet2DStdSettings(${size},  hdf5_type_int) ) );
         %endfor
         #endif
     }
@@ -498,8 +545,6 @@ void setup_hdf5()
 // Global save:
 NrnPopData output_data[n_results_total];
 
-//const int n_results_total = nsim_steps / record_rate;
-//const int n_results_written = 0;
 
 
 
@@ -863,38 +908,6 @@ void print_results_from_NIOS()
 c_main_loop_tmpl = r"""
 
 
-HDF5DataSet2DStdPtr time_dataset_int;
-HDF5DataSet2DStdPtr time_dataset_float;
-
-void setup_hdf5()
-{
-#if USE_HDF
-    HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
-
-    // Time
-    time_dataset_float = file->get_group("simulation_fixed/double")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
-    time_dataset_int = file->get_group("simulation_fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
-#endif //USE_HDF
-}
-
-
-
-
-void write_time_to_hdf5(TimeInfo time_info)
-{
-#if USE_HDF
-    #if SAVE_HDF5_INT
-    time_dataset_int->append<T_hdf5_type_int>(get_value32(time_info.time_int));
-    #endif
-
-    #if SAVE_HDF5_FLOAT
-    const double dt_float = FixedFloatConversion::to_float(IntType(dt_int), dt_upscale);
-    const double t_float = get_value32(time_info.time_step) * dt_float;
-    time_dataset_float->append<T_hdf5_type_float>(t_float);
-    #endif
-
-#endif //USE_HDF
-}
 
 
 

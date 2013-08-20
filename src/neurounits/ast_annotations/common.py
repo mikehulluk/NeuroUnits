@@ -36,6 +36,53 @@ import operator
 
 
 
+
+class NodeTagger(ASTActionerDefault):
+    def __init__(self, manual_tags):
+        self.manual_tags = manual_tags
+
+    def ActionNode(self,o):
+        o.annotations['tags'] = []
+        
+        if not isinstance(o, ast.ASTSymbolNode):
+            return
+        if o.symbol in self.manual_tags:
+            o.annotations['tags'] +=self.manual_tags[o.symbol].split(",")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 from neurounits.visitors import ASTActionerDefault
 class RangeExpander(ASTActionerDefault):
 
@@ -425,10 +472,10 @@ class NodeValueRangePropagator(ASTVisitorBase):
         print '======== E ==========='
         deps = VisitorSymbolDependance(component)
         for ass in sorted(component.assignments+component.timederivatives, key=lambda o:o.lhs.symbol):
-            print
-            print "PROPAGATING THROUGH: ", repr(ass)
+            #print
+            #print "PROPAGATING THROUGH: ", repr(ass)
             ass_deps = list(deps.get_terminal_dependancies(ass, expand_assignments=True, include_random_variables=True, include_supplied_values=True))
-            print ass_deps
+            #print ass_deps
 
 
 
@@ -438,7 +485,7 @@ class NodeValueRangePropagator(ASTVisitorBase):
                 assert isinstance(sv, (ast.RandomVariable, ast.StateVariable, ast.SuppliedValue))
                 tested_vals[sv] = np.linspace( sv.annotations['node-value-range'].min, sv.annotations['node-value-range'].max, num=self.n_values_tested)
 
-            print tested_vals
+            #print tested_vals
             # And propagate the array through the tree!
             LargeArrayPropagator(component=component, assignment_node=ass, sv_order=ass_deps, sv_values=tested_vals)
 
@@ -462,8 +509,8 @@ class NodeValueRangePropagator(ASTVisitorBase):
                     assert n_vals > 2
                 else:
                     n_vals=None
-                print sa_deps
-                print n_vals
+                #print sa_deps
+                #print n_vals
                 #assert False
 
                 # Work out the values to test for each state variable:
@@ -497,16 +544,16 @@ class NodeValueRangePropagator(ASTVisitorBase):
         #ActionerPlotNetworkX(self.component, colors=colors)
 
 
-        for node in component.all_ast_nodes():
-            if isinstance(node, (ast.FunctionDefParameter,ast.FunctionDefBuiltIn) ):
-                continue
+        #for node in component.all_ast_nodes():
+        #    if isinstance(node, (ast.FunctionDefParameter,ast.FunctionDefBuiltIn) ):
+        #        continue
 
-            if isinstance(node, ast.ASTExpressionObject):
-                print
-                print 'Node ', node, repr(node)
+        #    if isinstance(node, ast.ASTExpressionObject):
+        #        print
+        #        print 'Node ', node, repr(node)
 
-                print 'Node limits', node.annotations._data.get('node-value-range', 'OHHHH NOOOOOO!')
-                print 'Node limits', node.annotations['node-value-range']
+        #        print 'Node limits', node.annotations._data.get('node-value-range', 'OHHHH NOOOOOO!')
+        #        print 'Node limits', node.annotations['node-value-range']
 
 
         #assert False

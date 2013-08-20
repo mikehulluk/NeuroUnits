@@ -184,7 +184,7 @@ define_component simple_hh {
 
 
 
-var_annots_dIN = {
+var_annots_ranges = {
     't'             : NodeRange(min="0ms", max = "1.1s"),
     'i_injected'    : NodeRange(min="0nA", max = "10nA"),
     'V'             : NodeRange(min="-100mV", max = "50mV"),
@@ -198,6 +198,21 @@ var_annots_dIN = {
     'syn_nmda_B'    : NodeRange(min='0', max ='30'),
     }
 
+var_annots_tags = {
+    'V': 'Voltage',
+    'V': 'Voltage',
+
+
+    'syn_nmda_A':'',
+    'syn_nmda_B' : '',
+    'i_nmda' : '',
+    'nmda_vdep' :'',
+    'iLk' : '',
+    'iKf' : '',
+    'kf_n': '',
+    'iInj_local': '',
+
+}
 
 
 
@@ -213,10 +228,8 @@ from neurounits.writers import MRedocWriterVisitor
 MRedocWriterVisitor().visit(comp).to_pdf('op.pdf')
 
 # Setup the annotations:
-comp.annotate_ast( NodeRangeAnnotator(var_annots_dIN) )
+comp.annotate_ast( NodeRangeAnnotator(var_annots_ranges) )
 RangeExpander().visit(comp)
-
-
 comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
 comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 
@@ -270,18 +283,32 @@ results = HDF5SimulationResultFile("output.hd5")
 
 
 
-time_array = results.h5file.root._f_getChild('/simulation_fixed/double/time').read()
+#time_array = results.h5file.root._f_getChild('/simulation_fixed/double/time').read()
 
 
 
 for symbol in record_symbols:
     pylab.figure(figsize=(20,16))
     print 'Plotting:', symbol
-    for i in range(30):
-        res = results.h5file.root._f_getChild('/simulation_fixed/double/LHSdIN/%03d/variables/%s' % (i, symbol)).read()
-        pylab.plot(time_array, res, label='%s:lhs-%03d' % (symbol, i) )
+
+    for res in results.filter(symbol):
+
+        pylab.plot(res.raw_data.time_pts, res.raw_data.data_pts, label=','.join(res.tags)  )
+
+        #res = results.h5file.root._f_getChild('/simulation_fixed/double/LHSdIN/%03d/variables/%s/raw/data' % (i, symbol)).read()
+        #pylab.plot(time_array, res, label='%s:lhs-%03d' % (symbol, i) )
         print np.min(res), np.max(res)
     pylab.legend()
+
+
+    #for i in range(30):
+
+    #    pylab.plot(time_array, res, label='%s:lhs-%03d' % (symbol, i) )
+
+    #    res = results.h5file.root._f_getChild('/simulation_fixed/double/LHSdIN/%03d/variables/%s/raw/data' % (i, symbol)).read()
+    #    pylab.plot(time_array, res, label='%s:lhs-%03d' % (symbol, i) )
+    #    print np.min(res), np.max(res)
+    #pylab.legend()
 
 
 
@@ -313,28 +340,6 @@ pylab.show()
 
 
 
-
-
-
-V_LHS000 = results.h5file.root._f_getChild('/simulation_fixed/double/LHSdIN/000/variables/V').read()
-V_LHS001 = results.h5file.root._f_getChild('/simulation_fixed/double/LHSdIN/001/variables/V').read()
-V_LHS002 = results.h5file.root._f_getChild('/simulation_fixed/double/LHSdIN/002/variables/V').read()
-
-
-
-V_RHS = results.h5file.root._f_getChild('/simulation_fixed/double/RHSdIN/000/variables/V').read()
-
-print 'time: ', time_array.shape
-print 'V_LHS: ', V_LHS000.shape
-print 'V_RHS: ', V_RHS.shape
-
-pylab.plot(time_array, V_LHS000, label='lhs-000')
-pylab.plot(time_array, V_LHS001, label='lhs-001')
-pylab.plot(time_array, V_LHS002, label='lhs-002')
-
-pylab.plot(time_array, V_RHS, label='rhs')
-pylab.legend()
-pylab.show()
 
 
 
