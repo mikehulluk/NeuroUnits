@@ -343,7 +343,7 @@ namespace NS_${population.name}
     // Input event types:
     namespace input_event_types
     {
-    %for in_port in component.input_event_port_lut:
+    %for in_port in population.component.input_event_port_lut:
         struct Event_${in_port.symbol}
         {
 
@@ -379,24 +379,24 @@ struct NrnPopData
     static const int size = ${population.size};
 
     // Parameters:
-% for p in parameter_defs:
+% for p in population.component.parameters:
     IntType ${p.symbol}[size];      // Upscale: ${p.annotations['fixed-point-format'].upscale}
 % endfor
 
     // Assignments:
-% for ass in assignment_defs:
+% for ass in population.component.assignedvalues:
     IntType ${ass.symbol}[size];      // Upscale: ${ass.annotations['fixed-point-format'].upscale}
 % endfor
 
     // States:
-% for sv_def in state_var_defs:
+% for sv_def in population.component.state_variables:
     IntType ${sv_def.symbol}[size];    // Upscale: ${sv_def.annotations['fixed-point-format'].upscale}
     IntType d_${sv_def.symbol}[size];
 % endfor
 
 
     // Supplied:
-% for sv_def in component.suppliedvalues:
+% for sv_def in population.component.suppliedvalues:
 % if sv_def.symbol != 't':
     IntType ${sv_def.symbol}[size];    // Upscale: ${sv_def.annotations['fixed-point-format'].upscale}
 % endif
@@ -427,7 +427,7 @@ struct NrnPopData
 
 
     // Incoming event queues:
-    %for in_port in component.input_event_port_lut:
+    %for in_port in population.component.input_event_port_lut:
     typedef std::list<input_event_types::Event_${in_port.symbol}>  EventQueueType_${in_port.symbol};
     EventQueueType_${in_port.symbol} incoming_events_${in_port.symbol}[size];
     %endfor
@@ -438,7 +438,7 @@ struct NrnPopData
 
 void set_supplied_values_to_zero(NrnPopData& d)
 {
-% for sv_def in component.suppliedvalues:
+% for sv_def in population.component.suppliedvalues:
     % if sv_def.symbol != 't':
     for(int i=0;i<NrnPopData::size;i++) d.${sv_def.symbol}[i] = IntType(0);
     % endif
@@ -467,7 +467,7 @@ void setup_hdf5()
     {
 
         // Storage for state-variables and assignments:
-        % for sv_def in state_var_defs + assignment_defs:
+        % for sv_def in population.component.state_variables + population.component.assignedvalues:
         %if sv_def.symbol in record_symbols:
         // Setup ${sv_def.symbol}:
         hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}].push_back( file->get_group((boost::format("simulation_fixed/double/${population.name}/%03d/variables/")%i).str())->create_dataset("${sv_def.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) ) );
@@ -527,7 +527,7 @@ void initialise_statevars(NrnPopData& d)
 {
     for(int i=0;i<NrnPopData::size;i++)
     {
-        % for sv_def in state_var_defs:
+        % for sv_def in population.component.state_variables:
         d.${sv_def.symbol}[i] = auto_shift( IntType(${sv_def.initial_value.annotations['fixed-point-format'].const_value_as_int}),  IntType(${sv_def.initial_value.annotations['fixed-point-format'].upscale} - ${sv_def.annotations['fixed-point-format'].upscale} ) );
         % endfor
 
@@ -547,7 +547,7 @@ void initialise_statevars(NrnPopData& d)
 
 namespace event_handlers
 {
-%for out_event_port in component.output_event_port_lut:
+%for out_event_port in population.component.output_event_port_lut:
     void on_${out_event_port.symbol}(IntType index /*Params*/)
     {
         std::cout << "\n on_${out_event_port.symbol}: " <<  index;
@@ -788,21 +788,6 @@ void write_all_results_to_hdf5(NrnPopData* d)
 
 
 
-        ## #if USE_HDF && SAVE_HDF5_FLOAT
-        ## ##cout << "\nSavind Floating (Data)";
-        ## % for sv_def in state_var_defs + assignment_defs + list(population.component.suppliedvalues):
-        ## %if sv_def.symbol in record_symbols:
-        ## {
-        ## HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}];
-        ## for(int i=0;i<NrnPopData::size;i++) {
-        ##     pVec[i]->append<T_hdf5_type_float>(FixedFloatConversion::to_float(  d.${sv_def.symbol}[i],  IntType(${sv_def.annotations['fixed-point-format'].upscale}) ));
-        ##     }
-        ## }
-        ## % endif
-        ## % endfor
-
-        ## #endif
-
 
 
 
@@ -828,8 +813,7 @@ void write_step_to_hdf5(NrnPopData& d, TimeInfo time_info)
         #endif
 
         #if USE_HDF && SAVE_HDF5_FLOAT
-        ##cout << "\nSavind Floating (Data)";
-        % for sv_def in state_var_defs + assignment_defs + list(population.component.suppliedvalues):
+        % for sv_def in population.component.state_variables + population.component.assignedvalues + list(population.component.suppliedvalues):
         %if sv_def.symbol in record_symbols:
         {
         HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}];
@@ -850,7 +834,7 @@ void write_step_to_hdf5(NrnPopData& d, TimeInfo time_info)
 void print_results_from_NIOS()
 {
     // Assignments + states:
-    % for ass in assignment_defs + state_var_defs:
+    % for ass in population.component.assignedvalues + population.component.state_variables:
     cout << "\n#!DATA{ 'name':'${ass.symbol}' } {'size': ${nsim_steps},  'fixed_point': {'upscale':${ass.annotations['fixed-point-format'].upscale}, 'nbits':${nbits}} } [";
     for(IntType i=IntType(0);i<nsim_steps;i++) cout << output_data[ get_value32(i)].${ass.symbol} << " ";
     cout << "]\n";
@@ -948,12 +932,6 @@ int main()
     NS_eventcoupling_${evt_conn.name}::setup_connections();
     %endfor
 
-    //// Add some events:
-    //IntType dt = 41943;
-    //for(int i=0;i<30;i++)
-    //{
-    //    data_LHSdIN.incoming_events_recv_nmda_spike[0].push_back(NS_LHSdIN::input_event_types::Event_recv_nmda_spike(dt*i) );
-    //}
 
 
 
@@ -977,7 +955,6 @@ int main()
             {
                 std::cout << "Loop: " << time_step << "\n";
                 std::cout << "t: " << time_info.time_int << "\n";
-
                 std::cout << "QueueSize:" << data_LHSdIN.incoming_events_recv_nmda_spike[0].size() << "\n";
             }
             #endif
@@ -1011,7 +988,6 @@ int main()
                 write_time_to_hdf5(time_info);
                 %for pop in network.populations:
                 NS_${pop.name}::output_data[n_results_written] = data_${pop.name};
-                ##NS_${pop.name}::write_step_to_hdf5( data_${pop.name}, time_info);
                 %endfor
                 n_results_written++;
             }
@@ -1225,8 +1201,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
         std_variables = {
-            'nsim_steps' : 3000,
-            #'nsim_steps' : 1500,
+            'nsim_steps' : 5000,
             'nbits':self.nbits,
             'dt_float' : self.dt_float,
             'dt_int' : self.dt_int,
@@ -1300,27 +1275,14 @@ class CBasedEqnWriterFixedNetwork(object):
 
             try:
                 cfile = Template(c_population_details_tmpl).render(
-                            #output_filename = output_filename,
-                            component = population.component,
-                            parameter_defs = list(component.parameters),
-                            state_var_defs = list(component.state_variables),
-                            assignment_defs = list(component.assignedvalues),
+                            population=population,
 
                             writer = self.writer,
-                            #dt_float = self.dt_float,
-                            #dt_int = self.dt_int,
-                            #dt_upscale = self.dt_upscale,
-
-                            #time_upscale = component.get_terminal_obj('t').annotations['fixed-point-format'].upscale,
 
                             eqns_timederivatives = self.td_eqns,
                             eqns_assignments = self.ass_eqns,
 
-                            #nbits=self.nbits,
                             intermediate_store_locs=self.intermediate_store_locs,
-
-                            #nsim_steps = 3000,
-                            population=population,
 
                             rv_per_neuron = rv_per_neuron,
                             rv_per_population = rv_per_population,

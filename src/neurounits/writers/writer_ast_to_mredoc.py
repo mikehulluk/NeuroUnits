@@ -71,6 +71,14 @@ def FormatDimensionality(dim):
     return dim.FormatLatex()
 
 
+
+
+def include_id_in_overbrace(func):
+    def new_func(self, o, *args,**kwargs):
+        res = func(self, o, *args, **kwargs)
+        return r'\overbrace{%s}^{ID:%s}' % (res, id(o)) #o.function_def.funcname.replace("_",r"\_"), ','.join(p), id(o))
+    return new_func
+
 class LatexEqnWriterN(ASTVisitorBase):
 
     def FormatTerminalSymbol(self, symbol):
@@ -167,40 +175,46 @@ class LatexEqnWriterN(ASTVisitorBase):
     def VisitAnalogReducePort(self, o, **kwargs):
         return self.FormatTerminalSymbol(o.symbol)
 
+    @include_id_in_overbrace
     def VisitAddOp(self, o, **kwargs):
         return '(%s + %s)' % (self.visit(o.lhs), self.visit(o.rhs))
 
+    @include_id_in_overbrace
     def VisitSubOp(self, o, **kwargs):
         return '(%s - %s)' % (self.visit(o.lhs), self.visit(o.rhs))
 
+    @include_id_in_overbrace
     def VisitMulOp(self, o, **kwargs):
         return '%s \cdot %s' % (self.visit(o.lhs), self.visit(o.rhs))
 
+    @include_id_in_overbrace
     def VisitDivOp(self, o, **kwargs):
         return '\dfrac{%s}{%s}' % (self.visit(o.lhs), self.visit(o.rhs))
 
+    @include_id_in_overbrace
     def VisitExpOp(self, o, **kwargs):
         return '%s ^{ %s }' % (self.visit(o.lhs), o.rhs)
 
     def VisitBoolAnd(self, o, **kwargs):
-        raise NotImplementedError()
-        return '(%s && %s)' % (self.visit(o.lhs), self.visit(o.rhs))
+        return '(%s AND %s)' % (self.visit(o.lhs), self.visit(o.rhs))
 
     def VisitBoolOr(self, o, **kwargs):
-        raise NotImplementedError()
-        return '(%s || %s)' % (self.visit(o.lhs), self.visit(o.rhs))
+        return '(%s OR %s)' % (self.visit(o.lhs), self.visit(o.rhs))
 
     def VisitBoolNot(self, o, **kwargs):
-        raise NotImplementedError()
-        return '(! %s)' % self.visit(o.lhs)
+        return '(NOT %s)' % self.visit(o.lhs)
 
     def VisitFunctionDefUserInstantiation(self, o, **kwargs):
         p = [self.visit(p) for p in o.parameters.values()]
         return '\\textrm{%s}(%s)' % (o.function_def.funcname.replace("_",r"\_"), ','.join(p))
 
+    @include_id_in_overbrace
     def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
         p = [self.visit(p) for p in o.parameters.values()]
         return '\\textrm{%s}(%s)' % (o.function_def.funcname.replace("_",r"\_"), ','.join(p))
+
+    def VisitRandomVariable(self, o, **kwargs):
+        return 'RANDOMVARIBLE'
 
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):

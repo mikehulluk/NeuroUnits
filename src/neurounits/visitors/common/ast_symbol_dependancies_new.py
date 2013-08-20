@@ -123,21 +123,32 @@ class VisitorSymbolDependance(object):
         #t = nx.topological_sort(graph)
 
         #print t
+        #print 'Building dependancy graph:'
+        #print '=========================='
         graph = nx.DiGraph()
         for assignment in self.component.assignments:
+            #print 'Assignment', assignment.lhs
             deps = self.get_terminal_dependancies(assignment, expand_assignments=False, include_random_variables=False, include_supplied_values=False)
+            #print '  --deps:', deps
             graph.add_node(assignment.lhs)
             for dep in deps:
-                print dep
+                #print dep
                 assert isinstance(dep, (ast.StateVariable,ast.AssignedVariable))
                 if isinstance(dep, ast.AssignedVariable):
                     graph.add_edge(assignment.lhs, dep)
+            #print 
 
 
         assigned_ordering = list( reversed( list(nx.topological_sort(graph)) ) )
-        print assigned_ordering
+        #print assigned_ordering
 
         assert len(assigned_ordering) == len(self.component.assignments)
+
+        #print assigned_ordering
+        #print 'Assignment ordering:'
+        #for ass_ord in assigned_ordering:
+        #    print ass_ord
+        #assert False
         return assigned_ordering
 
 

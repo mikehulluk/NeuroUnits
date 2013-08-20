@@ -36,6 +36,41 @@ import operator
 
 
 
+from neurounits.visitors import ASTActionerDefault
+class RangeExpander(ASTActionerDefault):
+
+    def __init__(self, ):
+        super(RangeExpander, self).__init__()
+        self.expand_by = 0.1
+    def ActionNode(self,o):
+        if not 'node-value-range' in o.annotations:
+            return
+
+        if o.annotations['node-value-range'].min == o.annotations['node-value-range'] .max:
+            val = o.annotations['node-value-range'].min
+            if val > 0:
+                min_ = val * (1-self.expand_by)
+                max_ = val * (1+self.expand_by)
+            else:
+                min_ = val * (1+self.expand_by)
+                max_ = val * (1-self.expand_by)
+        else:
+            rng = o.annotations['node-value-range']
+            rng_width = rng.max - rng.min
+            assert rng_width > 0
+            min_ = rng.min - rng_width * self.expand_by
+            max_ = rng.max + rng_width * self.expand_by
+        
+        o.annotations['node-value-range'] = _NodeRangeFloat(
+            min_ = min_,
+            max_ = max_
+        )
+        print o, o.annotations
+        print 'Min:',  o.annotations['node-value-range'].min
+        print 'Max:',  o.annotations['node-value-range'].max
+        assert (o.annotations['node-value-range'].min < o.annotations['node-value-range'].max) or ( o.annotations['node-value-range'].min == o.annotations['node-value-range'].max == 0)
+
+
 
 
 
@@ -74,6 +109,16 @@ def set_minmax_for_node(func):
         min_val = np.min(array)
         max_val = np.max(array)
 
+        ## Add 10% leeway:
+        #if min_val > 0:
+        #    min_val *= 0.9
+        #else:
+        #    min_val *= 1.1
+
+        #if max_val > 0:
+        #    max_val *= 0.9
+        #else:
+        #    max_val *= 1.1
         
 
         if 'node-value-range' not in o.annotations:
@@ -84,9 +129,12 @@ def set_minmax_for_node(func):
 
 
         else:
+
+
+            
             if not (o.annotations['node-value-range'].min == min_val and o.annotations['node-value-range'].max == max_val):
                 print 'Node', o
-                print repr(o.lhs), repr(o.rhs)
+                #print repr(o.lhs), repr(o.rhs)
 
                 print 'Min/Max mismatch:'
                 print 'min'
@@ -97,7 +145,7 @@ def set_minmax_for_node(func):
                 print  '  - New', max_val
 
                 print 'sv_order'
-                print  '  - Old', o.annotations['node-value-range'].sv_order
+                #print  '  - Old', o.annotations['node-value-range'].sv_order
                 print  '  - New', self.sv_order
 
                 print 'sv_values'
@@ -213,7 +261,6 @@ class LargeArrayPropagator(ASTVisitorBase):
     @set_minmax_for_node
     def VisitConstant(self, o):
         res = self._VisitConstant( o)
-        #print res
         return res
     @set_minmax_for_node
     def VisitSymbolicConstant(self, o):

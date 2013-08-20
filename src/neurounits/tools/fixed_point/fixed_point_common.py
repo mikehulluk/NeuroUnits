@@ -58,7 +58,7 @@ class CBasedFixedWriter(ASTVisitorBase):
         super(CBasedFixedWriter, self).__init__()
         self.population_access_index=population_access_index
         self.check_range = True
-        #self.check_range = False
+        self.check_range = False
 
 
     def add_range_check(self, node, expr):
@@ -164,6 +164,12 @@ class CBasedFixedWriter(ASTVisitorBase):
         assert o.function_def.is_builtin() and o.function_def.funcname == '__exp__'
         param = o.parameters.values()[0]
         param_term = self.visit(param.rhs_ast)
+
+
+        # Add range checking:
+        param_term = self.add_range_check(param, param_term)
+
+
         ann_func_upscale = o.annotations['fixed-point-format'].upscale
         ann_param_upscale = param.rhs_ast.annotations['fixed-point-format'].upscale
         expr_num = o.annotations['node-id'] 

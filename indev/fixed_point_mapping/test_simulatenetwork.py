@@ -12,7 +12,7 @@ from neurounits.tools.fixed_point import CBasedEqnWriterFixedNetwork
 from hdfjive import HDF5SimulationResultFile
 
 from neurounits.ast_annotations.common import NodeRangeAnnotator, NodeFixedPointFormatAnnotator,\
-    NodeRange, NodeToIntAnnotator
+    NodeRange, NodeToIntAnnotator, _NodeRangeFloat, RangeExpander
 
 
 
@@ -36,13 +36,13 @@ define_component simple_hh {
     i_nmda = g_nmda * (syn_nmda_B - syn_nmda_A) * (e_NMDA - V) * nmda_vdep  * 0.5
     syn_nmda_A' = -syn_nmda_A / syn_nmda_A_tau
     syn_nmda_B' = -syn_nmda_B / syn_nmda_B_tau
-    # TOOO: 
+    # TOOO:
     #nmda_tc_max = (syn_nmda_A_tau * syn_nmda_B_tau) * ln( syn_nmda_B_tau / syn_nmda_A_tau)
-    g_nmda = 300pS 
+    g_nmda = 300pS
     e_NMDA = 0mV
 
     v_scale = V * {-0.08mV-1}
-    nmda_vdep =  1./(1. + 0.1 * 0.5 * exp(v_scale) )
+    nmda_vdep =  1./(1. + 0.05 * exp(v_scale) )
 
 
     noise_min = 0.5
@@ -209,15 +209,20 @@ comp.expand_all_function_calls()
 nbits = 24
 
 
+from neurounits.writers import MRedocWriterVisitor
+MRedocWriterVisitor().visit(comp).to_pdf('op.pdf')
+
 # Setup the annotations:
 comp.annotate_ast( NodeRangeAnnotator(var_annots_dIN) )
+RangeExpander().visit(comp)
+
+
 comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
 comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 
 
 
-
-
+#assert False
 
 
 
