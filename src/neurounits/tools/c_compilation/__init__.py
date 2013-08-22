@@ -9,14 +9,14 @@ import subprocess
 
 
 class CCompilationSettings(object):
-    
-    
-        
+
+
+
     def __init__(self, additional_include_paths=None, additional_library_paths=None, libraries=[], compile_flags=None ):
-        
+
         self.additional_include_paths = additional_include_paths
-        self.additional_library_paths = additional_library_paths  
-        self.libraries = libraries  
+        self.additional_library_paths = additional_library_paths
+        self.libraries = libraries
         self.compile_flags = compile_flags
 
 
@@ -31,8 +31,8 @@ class CCompilationSettings(object):
 
 
 class CCompiler(object):
-    
-    
+
+
     @classmethod
     def prepare_to_create_file(cls, filename):
         output_dir = os.path.dirname(filename)
@@ -40,7 +40,7 @@ class CCompiler(object):
             os.makedirs(output_dir)
         if os.path.exists(filename):
             os.unlink(filename)
-    
+
 
     @classmethod
     def build_executable(self,
@@ -51,16 +51,16 @@ class CCompiler(object):
                            intermediate_filename='/tmp/nu/compilation/compile1.cpp',
                            output_filename = '/tmp/nu/compilation/exec.x'
                         ):
-        
+
         # Only one form of input:
         assert  bool(src_text) != bool(src_files)
         compile_single_file = bool(src_text)
-        
-        
+
+
         if compilation_settings is None:
             compilation_settings = CCompilationSettings.default()
-        
-                
+
+
         # Write the src_text to a file:
         if compile_single_file:
             CCompiler.prepare_to_create_file(intermediate_filename)
@@ -68,12 +68,12 @@ class CCompiler(object):
                 f.write(src_text)
             src_files = [intermediate_filename]
             src_text = None
-        
+
         # Ensure we can write to the output-files:
         CCompiler.prepare_to_create_file(output_filename)
 
-        
-        
+
+
         # OK, lets compile!
         compilation_dict = {
             'CC': 'g++',
@@ -85,7 +85,7 @@ class CCompiler(object):
             'OUTPUT_FILE' : output_filename,
         }
 
-                
+
         compilation_string = string.Template("""${CC} -o ${OUTPUT_FILE} ${INPUT_FILES} ${CXX_FLAGS} ${CXX_INCL_PATHS} ${CXX_LIB_PATHS} ${CXX_LIBS} """).substitute(compilation_dict)
 
         print 'Compiling:'
@@ -95,7 +95,7 @@ class CCompiler(object):
 
         if run:
             LD_LIB_PATH = 'export LD_LIBRARY_PATH="%s:$LD_LIBRARY_PATH"' % ':'.join(compilation_settings.additional_library_paths)
-            exec_cmd = LD_LIB_PATH + "; " + os.path.abspath( output_filename ) 
+            exec_cmd = LD_LIB_PATH + "; " + os.path.abspath( output_filename )
             print 'Running:', exec_cmd
             subprocess.check_call(exec_cmd, shell=True)
-            
+

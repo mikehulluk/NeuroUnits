@@ -46,12 +46,14 @@ namespace mh
         public:
                 static const NativeInt64 cl_range_max = (1<<(cl_nbits-1));
 
+                inline
                 static double to_float(NativeInt32 val, NativeInt32 upscale)
                 {
                         double res =  ( double(val) * pow(2.0, upscale) / double(cl_range_max) );
                         return res;
                 }
 
+                inline
                 static NativeInt32 from_float(double val, NativeInt32 upscale)
                 {
 
@@ -85,19 +87,23 @@ namespace mh
 
                 // Wrappers:
 #if SAFEINT
+                inline
                 static double to_float(SafeInt32 val, SafeInt32 upscale)
                 {
                     return to_float( get_value32(val), get_value32(upscale) );
                 }
+                inline
                 static double to_float(int val, SafeInt32 upscale)
                 {
                     return to_float( val, get_value32(upscale) );
                 }
+                inline
                 static double to_float(SafeInt32 val, int upscale)
                 {
                     return to_float( get_value32(val), upscale );
                 }
 
+                inline
                 static int from_float(double val, SafeInt32 upscale)
                 {
                     return from_float(val, get_value32(upscale));
@@ -116,14 +122,14 @@ namespace mh
 
 
 
-
+        inline
         NativeInt32 auto_shift(NativeInt32 n, NativeInt32 m)
         {
                 if(m==0)
                 {
                         return n;
                 }
-                if( m>0)
+                else if( m>0)
                 {
                         return n << m;
                 }
@@ -134,13 +140,14 @@ namespace mh
         }
 
 
+        inline
         NativeInt64 auto_shift64(NativeInt64 n, NativeInt32 m)
         {
                 if(m==0)
                 {
                         return n;
                 }
-                if( m>0)
+                else if( m>0)
                 {
                         return n << m;
                 }

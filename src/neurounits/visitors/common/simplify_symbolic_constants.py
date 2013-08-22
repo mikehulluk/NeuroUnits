@@ -34,42 +34,42 @@ from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNode
 
 class ReduceConstants(ASTVisitorBase):
 
-    def visit(self, o, **kwargs):
-        return o.accept_visitor(self, **kwargs)
+    #def visit(self, o, **kwargs):
+    #    return o.accept_visitor(self, **kwargs)
 
-    def _res_assignments(self, o, **kwargs):
-        removed = []
-        for aKey in o._eqn_assignment.keys():
-            a = o._eqn_assignment[aKey]
-            alhs = a.lhs
-            fixed_value = self.visit(a.rhs_map)
-            if fixed_value:
+    #def _res_assignments(self, o, **kwargs):
+    #    removed = []
+    #    for aKey in o._eqn_assignment.keys():
+    #        a = o._eqn_assignment[aKey]
+    #        alhs = a.lhs
+    #        fixed_value = self.visit(a.rhs_map)
+    #        if fixed_value:
 
-                sym_suffix = '_as_symconst'
-                sym_suffix = ''
-                s = ast.SymbolicConstant(symbol=aKey.symbol
-                        + sym_suffix, value=fixed_value)
+    #            sym_suffix = '_as_symconst'
+    #            sym_suffix = ''
+    #            s = ast.SymbolicConstant(symbol=aKey.symbol
+    #                    + sym_suffix, value=fixed_value)
 
-                #ReplaceNode(a.lhs, s).visit(o)
-                ReplaceNode.replace_and_check(srcObj=a.lhs, dstObj=s, root = o)
+    #            #ReplaceNode(a.lhs, s).visit(o)
+    #            ReplaceNode.replace_and_check(srcObj=a.lhs, dstObj=s, root = o)
 
 
 
-                o._symbolicconstants[aKey.symbol] = s
+    #            o._symbolicconstants[aKey.symbol] = s
 
-                from neurounits.misc import SeqUtils
-                old_ass = SeqUtils.filter_expect_single( o._eqn_assignment, lambda o:o.symbol == aKey.symbol )
-                del o._eqn_assignment[ old_ass ] #o.get_terminal_obj(aKey.symbol) ]
+    #            from neurounits.misc import SeqUtils
+    #            old_ass = SeqUtils.filter_expect_single( o._eqn_assignment, lambda o:o.symbol == aKey.symbol )
+    #            del o._eqn_assignment[ old_ass ] #o.get_terminal_obj(aKey.symbol) ]
 
-                #del o._eqn_assignment[ o.get_terminal_obj(aKey.symbol) ]
+    #            #del o._eqn_assignment[ o.get_terminal_obj(aKey.symbol) ]
 
-                removed.append(alhs)
+    #            removed.append(alhs)
 
-        # Double check they have gone:
-        for a in removed:
-            nc = EqnsetVisitorNodeCollector()
-            nc.visit(o)
-            assert not a in nc.all()
+    #    # Double check they have gone:
+    #    for a in removed:
+    #        nc = EqnsetVisitorNodeCollector()
+    #        nc.visit(o)
+    #        assert not a in nc.all()
 
 
 
@@ -86,7 +86,6 @@ class ReduceConstants(ASTVisitorBase):
 
                 # Replace the 'Assigned' object with a 'SymbolicConst' in the tree:
                 sym_node = ast.SymbolicConstant(symbol=assignment.lhs.symbol, value=fixed_value)
-                #ReplaceNode(assignment.lhs, sym_node).visit(o)
                 ReplaceNode.replace_and_check(srcObj=assignment.lhs, dstObj=sym_node, root = o)
 
                 # Remove the Assignment equation:

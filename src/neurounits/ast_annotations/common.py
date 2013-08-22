@@ -16,21 +16,8 @@ from neurounits.visitors.bases.base_actioner import ASTActionerDepthFirst
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 from neurounits import ast
 from neurounits import NeuroUnitParser
-
-
-
 import itertools
-
-
 import operator
-#def do_op(a,b,op):
-#    if a is None or b is None:
-#        return None
-#
-#    return op(a,b)
-    #except ZeroDivisionError:
-    #    assert False
-    #    return None
 
 
 

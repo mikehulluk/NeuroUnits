@@ -216,6 +216,8 @@ class NineMLComponent(Block):
         from neurounits.visitors.common.ast_symbol_dependancies_new import VisitorSymbolDependance
         ordered_assigned_values =  VisitorSymbolDependance(self).get_assignment_dependancy_ordering()
         ordered_assignments =  [LookUpDict(self.assignments).get_single_obj_by(lhs=av) for av in ordered_assigned_values]
+        assert len(ordered_assignments) == len(self.assignments)
+        assert set(ordered_assignments) == set(self.assignments)
         return ordered_assignments
 
 

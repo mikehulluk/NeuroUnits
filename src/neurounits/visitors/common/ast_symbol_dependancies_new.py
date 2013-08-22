@@ -128,7 +128,7 @@ class VisitorSymbolDependance(object):
         graph = nx.DiGraph()
         for assignment in self.component.assignments:
             #print 'Assignment', assignment.lhs
-            deps = self.get_terminal_dependancies(assignment, expand_assignments=False, include_random_variables=False, include_supplied_values=False)
+            deps = self.get_terminal_dependancies(assignment, expand_assignments=False, include_random_variables=False, include_supplied_values=False, include_symbolic_constants=False)
             #print '  --deps:', deps
             graph.add_node(assignment.lhs)
             for dep in deps:
@@ -136,7 +136,7 @@ class VisitorSymbolDependance(object):
                 assert isinstance(dep, (ast.StateVariable,ast.AssignedVariable))
                 if isinstance(dep, ast.AssignedVariable):
                     graph.add_edge(assignment.lhs, dep)
-            #print 
+            #print
 
 
         assigned_ordering = list( reversed( list(nx.topological_sort(graph)) ) )
@@ -152,7 +152,7 @@ class VisitorSymbolDependance(object):
         return assigned_ordering
 
 
-    def get_terminal_dependancies(self, terminal, expand_assignments, include_random_variables=False, include_supplied_values=True):
+    def get_terminal_dependancies(self, terminal, expand_assignments, include_random_variables=False, include_supplied_values=True,include_symbolic_constants=True):
         """ Does not expand through states"""
 
         if isinstance( terminal, ast.EqnAssignmentByRegime):
@@ -160,6 +160,10 @@ class VisitorSymbolDependance(object):
         if isinstance( terminal, ast.EqnTimeDerivativeByRegime):
             terminal = terminal.lhs
 
+        if isinstance(terminal, ast.SymbolicConstant):
+            return []
+
+        #print terminal
         assert isinstance(terminal, (ast.StateVariable, ast.AssignedVariable, ast.OnEventStateAssignment, ast.OnTriggerTransition) )
 
         # Switch lhs to the assignment/time deriatives
@@ -171,10 +175,15 @@ class VisitorSymbolDependance(object):
             terminal = terminal.trigger
 
 
-        return self._get_dependancies(node=terminal, expand_assignments=expand_assignments, include_random_variables=include_random_variables, include_supplied_values=include_supplied_values)
+        return self._get_dependancies(
+                node=terminal,
+                expand_assignments=expand_assignments,
+                include_random_variables=include_random_variables,
+                include_supplied_values=include_supplied_values,
+                include_symbolic_constants=include_symbolic_constants)
 
 
-    def _get_dependancies(self, node, expand_assignments, include_random_variables=False, include_supplied_values=True):
+    def _get_dependancies(self, node, expand_assignments, include_random_variables=False, include_supplied_values=True, include_symbolic_constants=True):
 
         dependancies = nx.bfs_successors(self.direct_dependancy_graph, source=node)
         if node in dependancies:
@@ -222,7 +231,8 @@ class VisitorSymbolDependance(object):
             dependancies = [d for d in dependancies if not isinstance(d, ast.RandomVariable)]
         if include_supplied_values == False:
             dependancies = [d for d in dependancies if not isinstance(d, ast.SuppliedValue)]
-
+        if include_symbolic_constants == False:
+            dependancies = [d for d in dependancies if not isinstance(d, ast.SymbolicConstant)]
 
         assert len(dependancies) == len(set(dependancies))
         return dependancies
@@ -433,7 +443,7 @@ class _DependancyFinder(ASTVisitorBase):
         #assert False
         return list(itertools.chain(*[self.visit(p) for p in o.parameters.values()]))
     def VisitFunctionDefUserInstantiation(self, o, **kwargs):
-        assert False
+        #assert False
         return list(itertools.chain(*[self.visit(p) for p in o.parameters.values()]))
 
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):

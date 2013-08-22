@@ -147,12 +147,6 @@ def get_dIN(nbits):
         }
 
 
-
-
-
-
-
-
         initial {
             V = -60mV
             k=1
@@ -213,10 +207,18 @@ def get_dIN(nbits):
     comp = library_manager['simple_hh']
     comp.expand_all_function_calls()
 
+
+    # Optimise the equations, to turn constant-divisions into multiplications:
+    from neurounits.visitors.common.equation_optimisations import OptimiseEquations
+    OptimiseEquations(comp)
+
     comp.annotate_ast( NodeRangeAnnotator(var_annots_ranges) )
     RangeExpander().visit(comp)
     comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
     comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
+
+    from neurounits.ast_annotations.common import NodeTagger
+    #NodeTagger(var_annots_tags).visit(comp)
 
     return comp
 

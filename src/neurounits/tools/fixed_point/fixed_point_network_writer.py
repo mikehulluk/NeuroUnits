@@ -67,7 +67,7 @@ c_prog_header_tmpl = r"""
 #else
 #define CALCULATE_FLOAT false
 #define USE_HDF true
-#define SAVE_HDF5_FLOAT false
+#define SAVE_HDF5_FLOAT true
 #define SAVE_HDF5_INT false
 #define SAFEINT false
 #endif // (PC_DEBUG)
@@ -152,6 +152,53 @@ const int VAR_NBITS = ${nbits};
 typedef mh::FixedFloatConversion<VAR_NBITS> FixedFloatConversion;
 using mh::auto_shift;
 using mh::auto_shift64;
+
+
+
+//#define auto_shift(n,m)     ( (((NativeInt32) (m) )==0)  ? ((NativeInt32)(n)) : ( ((((NativeInt32)(m))>0) ? (((NativeInt32)(n))<<((NativeInt32)(m))) : (((NativeInt32)(n))>>(-((NativeInt32)(m))) ) ) ) ) 
+
+//#define auto_shift(n,m)     ( (((NativeInt32) (m) )==0)  ? ((NativeInt32)(n)) : ( ((((NativeInt32)(m))>0) ? (((NativeInt32)(n))<<((NativeInt32)(m))) : ((NativeInt32)(n))>>(-((NativeInt32)(m))) ) ) ) 
+//#define auto_shift64(n,m) ( ((m)==0)  ? (m) : ( ((m)>0) ? ((n)<<(m)) : (n)>>(-(m)) ) ) 
+
+
+//        inline
+//        NativeInt32 auto_shift(NativeInt32 n, NativeInt32 m)
+//        {
+//                if(m==0)
+//                {
+//                        return n;
+//                }
+//                else if( m>0)
+//                {
+//                        return n << m;
+//                }
+//                else
+//                {
+//                   return n >> -m;
+//                }
+//        }
+//
+//
+//        inline
+//        NativeInt64 auto_shift64(NativeInt64 n, NativeInt32 m)
+//        {
+//                if(m==0)
+//                {
+//                        return n;
+//                }
+//                else if( m>0)
+//                {
+//                        return n << m;
+//                }
+//                else
+//                {
+//                   return n >> -m;
+//                }
+//        }
+
+
+
+
 
 
 
@@ -540,7 +587,7 @@ namespace event_handlers
     //Events emitted from: ${population.name}
     void on_${out_event_port.symbol}(IntType index /*Params*/)
     {
-        std::cout << "\n on_${out_event_port.symbol}: " <<  index;
+        //std::cout << "\n on_${out_event_port.symbol}: " <<  index;
 
         %if (population,out_event_port) in evt_src_to_evtportconns:
         %for conn in evt_src_to_evtportconns[(population,out_event_port)]:
@@ -594,7 +641,7 @@ namespace event_handlers
                 if(evt_time < time_info.time_int )
                 {
                     // Handle the event:
-                    std::cout << "\n **** HANDLING EVENT (on ${tr.port.symbol}) *****";
+                    //std::cout << "\n **** HANDLING EVENT (on ${tr.port.symbol}) *****";
 
                      // Actions ...
                     %for action in tr.actions:
@@ -717,7 +764,7 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
         // Update the next state:
         if( next_regime != NrnPopData::RegimeType${rtgraph.name}::NO_CHANGE)
         {
-            cout << "\nSWitching into Regime:" << next_regime;
+            ##cout << "\nSWitching into Regime:" << next_regime;
             d.current_regime_${rtgraph.name}[i] = next_regime;
         }
     %endfor
@@ -763,7 +810,7 @@ void setup_hdf5()
         #if SAVE_HDF5_INT
         HDF5GroupPtr pGroup_int = file->get_group((boost::format("simulation_fixed/int/${population.name}/%03d/variables/${sv_def.symbol}")%i).str());
         pGroup_int->add_attribute("hdf-jive","true");
-        pGroup_int->add_attribute("hdf-jive:tags",boost::format(("fixed-int,${sv_def.symbol},POP:${population.name},POPINDEX:%03d,")%i).str());
+        pGroup_int->add_attribute("hdf-jive:tags",(boost::format("fixed-int,${sv_def.symbol},POP:${population.name},POPINDEX:%03d,")%i).str());
         pGroup_int->get_subgroup("raw")->create_softlink(time_dataset_int, "time");
         hdf_map_id_to_datasetptrs_int[${sv_def.annotations['node-id']}].push_back(pGroup_int->get_subgroup("raw")->create_dataset("data", HDF5DataSet2DStdSettings(1, hdf5_type_int) ) );
         #endif // SAVE_HDF5_INT
@@ -949,6 +996,9 @@ int main()
     %for evt_conn in network.event_port_connectors:
     NS_eventcoupling_${evt_conn.name}::setup_connections();
     %endfor
+    
+    cout << "\n" << std::flush;
+    assert(0);
 
 
 
@@ -1081,7 +1131,7 @@ namespace NS_${projection.name}
                 if(rnd::rand_in_range(0,1) < ${projection.connection_probability} )
                 {
                     gap_junctions.push_back( GapJunction(IntType(i),IntType(j), IntType(${projection.strength_ohm}) ) );
-                    cout << "\nCreated gap junction";
+                    //cout << "\nCreated gap junction";
                 }
             }
         }
@@ -1131,30 +1181,35 @@ namespace NS_eventcoupling_${projection.name}
     void setup_connections()
     {
 
+        size_t n_connections = 0;
         for(IntType i=IntType(0);i< IntType(${projection.src_population.size});i++)
+        {
             for(IntType j=IntType(0);j<IntType(${projection.src_population.size});j++)
             {
                 if(i==j) continue;
                 if(rnd::rand_in_range(0,1) < ${projection.connection_probability})
                 {
                     projections[get_value32(i)].push_back(j);
+                    n_connections++;
 
                 }
             }
+        }
 
+        cout << "\n Projection: ${projection.name} contains: " << n_connections << std::flush;
 
     }
 
 
     void dispatch_event(IntType src_neuron)
     {
-        cout << "\nDispatch_event: " << src_neuron;
-        cout << "\nDelivering to:";
+        //cout << "\nDispatch_event: " << src_neuron;
+        //cout << "\nDelivering to:";
         TargetList& targets = projections[get_value32(src_neuron)];
         for( TargetList::iterator it = targets.begin(); it!=targets.end();it++)
         {
-            IntType target_index = (*it);
-            cout << " " << target_index;
+            //IntType target_index = (*it);
+            //cout << " " << target_index;
 
             NS_${projection.dst_population.name}::input_event_types::Event_${projection.dst_port.symbol} evt(IntType(0));
 
@@ -1162,7 +1217,6 @@ namespace NS_eventcoupling_${projection.name}
             //cout << "\nDelivered event to: " << (*it);
         }
 
-        //assert(0);
 
     }
 
@@ -1393,16 +1447,29 @@ class CBasedEqnWriterFixedNetwork(object):
         from neurounits.tools.c_compilation import CCompiler, CCompilationSettings
 
 
+        ## The preprocessed C++ output:
+        #CCompiler.build_executable(src_text=cfile,
+        #                           compilation_settings = CCompilationSettings(
+        #                                        additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/') ],
+        #                                        additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/")],
+        #                                        libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl'],
+        #                                        compile_flags=[' -E  -std=gnu++0x ' + (CPPFLAGS if CPPFLAGS else '') ]),
+        #                           output_filename = '/tmp/nu/compilation/compile1.cpp.preprocessedx',
+        #                                        #
+        #                           run=False)
+
+        # The executable:
         CCompiler.build_executable(src_text=cfile,
                                    compilation_settings = CCompilationSettings(
                                                 additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/') ],
                                                 additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/")],
                                                 libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl'],
-                                                compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x -g -p  ' + (CPPFLAGS if CPPFLAGS else '') ]),
-
+                                                compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
+                                                #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x -O3  -g -march=native ' + (CPPFLAGS if CPPFLAGS else '') ]),
+                                                #compile_flags=['-Wall -Wfatal-errors -std=gnu++0x -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
+                                    
                                                 #
                                    run=True)
-
         self.results = CBasedEqnWriterFixedResultsProxy(self)
         return
 

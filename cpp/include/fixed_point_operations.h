@@ -189,9 +189,9 @@ IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
     return res_int;
 
 }
-
 template<typename EXPLUT_TYPE>
-inline IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id, EXPLUT_TYPE exponential_lut)
+inline 
+IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id, const EXPLUT_TYPE& exponential_lut)
 {
     //IntType res_int = lookuptables.exponential.get( v1, up1, up_local );
     IntType res_int = exponential_lut.get( v1, up1, up_local );
@@ -210,6 +210,7 @@ inline IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_i
     {
         double res_fp_fl = exp( FixedFloatConversion::to_float(v1,up1) );
         IntType res_fp = IntType(FixedFloatConversion::from_float( res_fp_fl, up_local));
+        assert(0); //DEBUGGING disabled
         
         if( CHECK_INT_FLOAT_COMPARISON_FOR_EXP )
         {
