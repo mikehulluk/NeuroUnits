@@ -47,14 +47,15 @@ e1 = ElectricalSynapseProjection(src_population=p1, dst_population=p1, connectio
 network.add(e1)
 
 # Chemical Synapses:
-s1 = EventPortConnector(p1,p1, src_port_name='spike', dst_port_name='recv_nmda_spike', connection_probability=0.3, name='Conn01' )
-network.add(s1)
+network.add(
+        EventPortConnector(p1,p1, src_port_name='spike', dst_port_name='recv_nmda_spike', name='Conn01', connector=AllToAllConnector(connection_probability=0.3) )
+        )
 
 network.add( 
-        EventPortConnector(p3,p4, src_port_name='spike', dst_port_name='recv_nmda_spike', connection_probability=0.3, name='ConnX02' )
+        EventPortConnector(p3,p4, src_port_name='spike', dst_port_name='recv_nmda_spike', name='ConnX02', connector=AllToAllConnector(connection_probability=0.3) )
         )
 network.add( 
-        EventPortConnector(p4,p3, src_port_name='spike', dst_port_name='recv_nmda_spike', connection_probability=0.3, name='ConnX03' )
+        EventPortConnector(p4,p3, src_port_name='spike', dst_port_name='recv_nmda_spike',  name='ConnX03', connector=AllToAllConnector(connection_probability=0.3) )
         )
 
 

@@ -997,8 +997,8 @@ int main()
     NS_eventcoupling_${evt_conn.name}::setup_connections();
     %endfor
     
-    cout << "\n" << std::flush;
-    assert(0);
+    //cout << "\n" << std::flush;
+    //assert(0);
 
 
 
@@ -1181,23 +1181,14 @@ namespace NS_eventcoupling_${projection.name}
     void setup_connections()
     {
 
+        ${projection.connector.build_c( src_pop_size_expr=projection.src_population.size, 
+                                        dst_pop_size_expr=projection.dst_population.size, 
+                                        add_connection_functor=lambda i,j: "projections[get_value32(%s)].push_back(%s)" % (i,j),
+                                        ) }
+
         size_t n_connections = 0;
-        for(IntType i=IntType(0);i< IntType(${projection.src_population.size});i++)
-        {
-            for(IntType j=IntType(0);j<IntType(${projection.src_population.size});j++)
-            {
-                if(i==j) continue;
-                if(rnd::rand_in_range(0,1) < ${projection.connection_probability})
-                {
-                    projections[get_value32(i)].push_back(j);
-                    n_connections++;
-
-                }
-            }
-        }
-
+        for(size_t i=0;i<${projection.src_population.size};i++) n_connections+= projections[i].size();
         cout << "\n Projection: ${projection.name} contains: " << n_connections << std::flush;
-
     }
 
 
