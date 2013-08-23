@@ -717,13 +717,13 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
 
     def encode_value(self, value, upscaling_pow):
         return self.encore_value_cls(value, upscaling_pow, nbits=self.nbits)
-        #print
-        print 'Encoding', value, "using upscaling power:", upscaling_pow
-        value_scaled = value * ( 2**(-upscaling_pow))
-        print ' --Value Scaled:', value_scaled
-        res = int( round( value_scaled * (2**(self.nbits-1) ) ) )
-        print ' --Value int:', res
-        return res
+        ##print
+        #print 'Encoding', value, "using upscaling power:", upscaling_pow
+        #value_scaled = value * ( 2**(-upscaling_pow))
+        #print ' --Value Scaled:', value_scaled
+        #res = int( round( value_scaled * (2**(self.nbits-1) ) ) )
+        #print ' --Value int:', res
+        #return res
 
 
     def ActionNodeStd(self, o):

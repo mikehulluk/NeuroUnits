@@ -688,15 +688,18 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
 
     for(int i=0;i<NrnPopData::size;i++)
     {
+        cout << "\n";
         // Calculate assignments:
         % for eqn in eqns_assignments:
         d.${eqn.node.lhs.symbol}[i] = ${eqn.rhs_cstr} ;
+        cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; 
         % endfor
 
         // Calculate delta's for all state-variables:
         % for eqn in eqns_timederivatives:
         IntType d_${eqn.node.lhs.symbol} = ${eqn.rhs_cstr[0]} ;
         d.${eqn.node.lhs.symbol}[i] += ${eqn.rhs_cstr[1]} ;
+        cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; 
         % endfor
     }
 
@@ -1015,6 +1018,7 @@ int main()
         {
 
             TimeInfo time_info(time_step);
+            cout << "\n\nTIME:" << time_step << "\n";
 
 
 
@@ -1271,7 +1275,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
         std_variables = {
-            'nsim_steps' : 5000,
+            'nsim_steps' : 2000,
             'nbits':self.nbits,
             'dt_float' : self.dt_float,
             'dt_int' : self.dt_int,

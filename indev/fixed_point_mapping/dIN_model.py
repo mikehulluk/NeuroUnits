@@ -10,10 +10,11 @@ def get_dIN(nbits):
     define_component simple_hh {
         from std.math import exp, ln
 
-        iInj_local = [{50pA} * k] if [t > 75ms and t< 85ms or t<1ms] else [0pA]
+        #iInj_local = [{50pA} * k] if [t > 75ms and t< 85ms or t<1ms] else [0pA]
+        iInj_local = [{50pA} * k] if [t > 75ms and t< 185ms or t<1ms] else [0pA]
         Cap = 10 pF
 
-        V' = (1/Cap) * (iInj_local + i_injected + iLk + iKs + iKf +iNa + i_nmda)
+        V' = (1/Cap) * (iInj_local + i_injected + iLk + iKs + iKf +iNa + i_nmda )
 
 
 
@@ -104,25 +105,35 @@ def get_dIN(nbits):
 
 
         # Calcium:
-        #alpha_ca_m = AlphaBetaFunc(v=V, A=4.05ms-1, B=0.0ms-1 mV-1, C=1.0, D=-15.32mV,E=-13.57mV)
-        #beta_ca_m_1 =  AlphaBetaFunc(v=V, A=1.24ms-1, B=0.093ms-1 mV-1, C=-1.0, D=10.63mV, E=1.0mV)
-        #beta_ca_m_2 =  AlphaBetaFunc(v=V, A=1.28ms-1, B=0.0ms-1 mV-1, C=1.0, D=5.39mV, E=12.11mV)
         #beta_ca_m =  [beta_ca_m_1] if [ V<-25mV] else [beta_ca_m_2]
-        #inf_ca_m = alpha_ca_m / (alpha_ca_m + beta_ca_m)
-        #tau_ca_m = 1.0 / (alpha_ca_m + beta_ca_m)
-        #ca_m' = (inf_ca_m - ca_m) / tau_ca_m
+        #beta_ca_m =  [AlphaBetaFunc(v=V, A=1.24ms-1, B=0.093ms-1 mV-1, C=-1.0, D=10.63mV, E=1.0mV)] if [V<-25mV] else [beta_ca_m_2] 
+        #beta_ca_m_1 =  ({1.24ms-1} + {0.093ms-1 mV-1} * V) / (exp(({10.63mV}+V)/{1.0mV}) -{1.0})  
+        #ca_m' =  (ca_m_inf - ca_m) / tau_ca_m_cl
+        #ca_m' =  (ca_m_inf - ca_m) / tau_ca_m_cl
+        #tau_ca_m_cl = [tau_ca_m] if [tau_ca_m > 0.3ms] else [0.3ms]
+        #ca_m' = 0ms-1
 
-        pca = {0.16 (m m m)/s} * 1e-6
+        alpha_ca_m = AlphaBetaFunc(v=V, A=4.05ms-1, B=0.0ms-1 mV-1, C=1.0, D=-15.32mV,E=-13.57mV)
+        #beta_ca_m_1 =  AlphaBetaFunc(v=V, A=1.24ms-1, B=0.093ms-1 mV-1, C=-1.0, D=10.63mV, E=1.0mV)
+        beta_ca_m_1 =  V * {-0.0923 ms-1 mV-1} - {1.2 ms-1}
+        beta_ca_m_2 =  AlphaBetaFunc(v=V, A=1.28ms-1, B=0.0ms-1 mV-1, C=1.0, D=5.39mV, E=12.11mV)
+        beta_ca_m =  [beta_ca_m_1] if [V<-25mV] else [beta_ca_m_2] 
+        ca_m_inf = alpha_ca_m / (alpha_ca_m + beta_ca_m)
+        tau_ca_m = 1.0 / (alpha_ca_m + beta_ca_m)
+        ca_m' =  (ca_m_inf - ca_m) / tau_ca_m
+        
+
+        pca = {0.16 (m m m)/s} * 1e-6 * 1e-5
         F = 96485 C / mol
         R = 8.3144 J/ (mol K)
         T = 300K
         Cai = 100 nM
         Cao = 10 mM
-        #nu = ( (2.0 *  F) / (R*T) ) * V ;
-        #exp_neg_nu = exp( -1. * nu );
-        #iCa2 =  -2.0 * 1.e-3 * pca * nu * F * ( Cai - Cao*exp_neg_nu) / (1-exp_neg_nu) *  ca_m * ca_m
-        iCa2 = [4pA] if [t < 0ms] else [4pA]
-        iCa =  -3pA
+        nu = ( (2.0 *  F) / (R*T) ) * V ;
+        exp_neg_nu = exp( -1. * nu );
+        #iCa =  -2.0 * 1.e-3 * pca * nu * F * (( Cai - Cao*exp_neg_nu) / (1-exp_neg_nu)) *  ca_m * ca_m
+        iCa = [4pA] if [t < 0ms] else [4pA]
+        iCa2 =  -3pA
 
 
         <=> INPUT t:(ms)
@@ -151,13 +162,13 @@ def get_dIN(nbits):
             V = -60mV
             k=1
             na_m = 0.0
-            #ca_m = 0.0
+            ca_m = 0.0
             na_h = 1.0
             ks_n = 0.0
             kf_n = 0.0
 
            syn_nmda_B = 0.0
-            syn_nmda_A = 0.0
+           syn_nmda_A = 0.0
             regime sub
         }
 

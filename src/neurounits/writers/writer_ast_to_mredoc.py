@@ -76,7 +76,7 @@ def FormatDimensionality(dim):
 def include_id_in_overbrace(func):
     def new_func(self, o, *args,**kwargs):
         res = func(self, o, *args, **kwargs)
-        return r'\overbrace{%s}^{ID:%s}' % (res, id(o)) 
+        return r'\overbrace{%s}^{ID:%s, Upscale:%s}' % (res, id(o), o.annotations['fixed-point-format'].upscale) 
     return new_func
 
 class LatexEqnWriterN(ASTVisitorBase):
@@ -150,12 +150,14 @@ class LatexEqnWriterN(ASTVisitorBase):
         return "\mathit{%s}" % o.symbol.replace('_', '\\_')
 
 
+    @include_id_in_overbrace
     def VisitStateVariable(self, o, **kwargs):
         return self.FormatTerminalSymbol(o.symbol)
 
     def VisitParameter(self, o, **kwargs):
         return self.FormatTerminalSymbol(o.symbol)
 
+    @include_id_in_overbrace
     def VisitConstant(self, o, **kwargs):
         return self.FormatInlineConstant(o.value)
 
@@ -169,6 +171,7 @@ class LatexEqnWriterN(ASTVisitorBase):
     def VisitSuppliedValue(self, o, **kwargs):
         return self.FormatTerminalSymbol(o.symbol)
 
+    @include_id_in_overbrace
     def VisitSymbolicConstant(self, o, **kwargs):
         return self.FormatTerminalSymbol(o.symbol)
 

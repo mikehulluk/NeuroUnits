@@ -127,9 +127,9 @@ class CBasedFixedWriter(ASTVisitorBase):
         res = "( (%s) ? auto_shift(%s, IntType(%d)) : auto_shift(%s, IntType(%d)) )" % (
                     self.visit(o.predicate),
                     self.visit(o.if_true_ast),
-                    o.annotations['fixed-point-format'].upscale - o.if_true_ast.annotations['fixed-point-format'].upscale,
+                    -1* (o.annotations['fixed-point-format'].upscale - o.if_true_ast.annotations['fixed-point-format'].upscale),
                     self.visit(o.if_false_ast),
-                    o.annotations['fixed-point-format'].upscale - o.if_false_ast.annotations['fixed-point-format'].upscale,
+                    -1* (o.annotations['fixed-point-format'].upscale - o.if_false_ast.annotations['fixed-point-format'].upscale),
                 )
         return self.add_range_check(o, res)
 
