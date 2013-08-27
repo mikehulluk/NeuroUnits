@@ -31,8 +31,8 @@ MRedocWriterVisitor().visit(dIN_comp).to_pdf("op.pdf")
 
 from neurounits.tools.population_infrastructure import *
 network = Network()
-p1 = Population(name='LHSdIN', component=dIN_comp, size=1 )
-#p2 = Population(name='RHSdIN', component=dIN_comp, size=30 )
+p1 = Population(name='dINs', component=dIN_comp, size=100 )
+p2 = Population(name='NondINs', component=dIN_comp, size=30 )
 network.add(p1)
 #network.add(p2)
 
@@ -98,7 +98,7 @@ for symbol in record_symbols:
     for res in results.filter(symbol):
         pylab.plot(res.raw_data.time_pts, res.raw_data.data_pts * 1e12, label=symbol  )
 
-
+pylab.show()
 
 f = pylab.figure(figsize=(20,16))
 ax1 = f.add_subplot(211)

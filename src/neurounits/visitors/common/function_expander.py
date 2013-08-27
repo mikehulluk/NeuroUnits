@@ -15,11 +15,11 @@ class _FunctionCloner(ASTVisitorBase):
 
     def __init__(self, functiondef_instantiation):
 
-        print '\n\n'
+        #print '\n\n'
         self.functiondef_instantiation = functiondef_instantiation
-        print 'Cloning function-def rhs:', repr(self.functiondef_instantiation)
+        #print 'Cloning function-def rhs:', repr(self.functiondef_instantiation)
 
-        print 'Copying parameters:'
+        #print 'Copying parameters:'
         self.params_old_to_new = {}
         for sym, param_obj in functiondef_instantiation.parameters.items():
             self.params_old_to_new[param_obj.get_function_def_parameter()] = param_obj.rhs_ast
@@ -47,14 +47,14 @@ class _FunctionCloner(ASTVisitorBase):
                     parameters = params_new )
 
     def VisitFunctionDefUserInstantiation(self, o):
-        print 'Function call:', repr(o)
+        #print 'Function call:', repr(o)
         assert False, 'We shoudl not get here! we are doing depth first search'
 
 
 
 
     def VisitFunctionDefParameter(self, o ):
-        print 'Searching:', o, 'in', self.params_old_to_new
+        #print 'Searching:', o, 'in', self.params_old_to_new
         assert o in self.params_old_to_new
         return self.params_old_to_new[o]
         assert False

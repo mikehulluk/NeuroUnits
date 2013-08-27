@@ -177,9 +177,9 @@ public:
 
         IntType get(IntType x_in, IntType up_x_in, IntType up_out_in) const
         {
-            const double dbg_x_as_float = FixedFloatConversion::to_float(x_in, up_x_in) ;
-            return FixedFloatConversion::from_float( exp(dbg_x_as_float), up_out_in);
-            //const bool DEBUG = false;
+            //const double dbg_x_as_float = FixedFloatConversion::to_float(x_in, up_x_in) ;
+            //return FixedFloatConversion::from_float( exp(dbg_x_as_float), up_out_in);
+            ////const bool DEBUG = false;
             //
             //
             

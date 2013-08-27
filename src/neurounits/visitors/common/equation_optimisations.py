@@ -91,9 +91,9 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
 
 
     def _ActionBinOp(self, o, op):
-#        print 'BinOp'
-#        print '  -', o.lhs
-#        print '  -', o.rhs
+#        #print 'BinOp'
+#        #print '  -', o.lhs
+#        #print '  -', o.rhs
         if self.const_value[o.lhs] is None or self.const_value[o.rhs] is None:
             self.const_value[o] = None
         else:
@@ -310,10 +310,10 @@ class ReplaceWithOptimisedNodes(ASTVisitorBase):
 
     def VisitNineMLComponent(self, o):
         for td in o.timederivatives:
-            print 'Searching in: ', td.lhs
+            #print 'Searching in: ', td.lhs
             td.rhs_map = self.replace_or_visit(td.rhs_map)
         for ass in o.assignments:
-            print 'Searching in: ', ass.lhs
+            #print 'Searching in: ', ass.lhs
             ass.rhs_map = self.replace_or_visit(ass.rhs_map)
 
 

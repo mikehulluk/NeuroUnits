@@ -293,6 +293,13 @@ class _DependancyFinder(ASTVisitorBase):
     def __init__(self, component):
         self.dependancies = {}
 
+
+    def VisitLibrary(self, o, **kwargs):
+        for a in o.assignments:
+            self.dependancies[a.lhs] = self.visit(a)
+            self.dependancies[a] = self.visit(a)
+
+
     def VisitNineMLComponent(self, o, **kwargs):
         for a in o.assignments:
             self.dependancies[a.lhs] = self.visit(a)
@@ -308,9 +315,6 @@ class _DependancyFinder(ASTVisitorBase):
         for tr in o.transitions:
             for state_assignment in tr.state_assignments:
                 self.dependancies[state_assignment] = self.visit(state_assignment.rhs)
-                print 'SETTING DEPS FOR ASSIGNMENT!!'
-                print state_assignment
-                print 'deps: ', self.dependancies[state_assignment]
 
             for emitted_event in tr.emitted_events:
                 self.dependancies[emitted_event] = self.visit(emitted_event)
@@ -318,10 +322,6 @@ class _DependancyFinder(ASTVisitorBase):
         for tr in o.triggertransitions:
             self.dependancies[tr.trigger]=self.visit(tr.trigger)
 
-            #tr_deps =self.visit(tr)
-            #import neurounits.ast as ast
-            #tr_deps = [o for o in tr_deps if not (isinstance(o, ast.SuppliedValue) and o.symbol=='t') ]
-            #self.dependancies[tr.rt_graph].extend ( tr_deps)
 
     def VisitSymbolicConstant(self, o, **kwargs):
         return []

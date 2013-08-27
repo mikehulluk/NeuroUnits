@@ -174,6 +174,10 @@ class CBasedFixedWriter(ASTVisitorBase):
         ann_param_upscale = param.rhs_ast.annotations['fixed-point-format'].upscale
         expr_num = o.annotations['node-id'] 
         res = """ int_exp( %s, IntType(%d), IntType(%d), IntType(%d) )""" %(param_term, ann_param_upscale, ann_func_upscale, expr_num )
+
+
+
+
         return self.add_range_check(o, res)
 
     def VisitFunctionDefInstantiationParater(self, o):

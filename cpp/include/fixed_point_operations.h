@@ -1,5 +1,5 @@
-#ifndef __FIXED_POINT_OPS_H__
-#define __FIXED_POINT_OPS_H__
+#ifndef  __FIXED_POINT_OPS_H__
+#define  __FIXED_POINT_OPS_H__
 
 
 
@@ -148,7 +148,16 @@ IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
     v1_L = auto_shift64(v1_L, (VAR_NBITS-1) );
     NativeInt64 v = v1_L/v2_L;
     v = auto_shift64(v, get_value32( up1-up2 - up_local) );
-    assert( v < (1<<(VAR_NBITS) ) );
+    if (! ( v < (1<<(VAR_NBITS) ) ) )
+    {
+        cout << "\n Error in Division:";
+        cout << "\n Expr ID: " << expr_id;
+        cout << "\n Nom: " << FixedFloatConversion::to_float(v1,up1);
+        cout << "\n Denim: " << FixedFloatConversion::to_float(v2,up2);
+        cout << "\n" << std::flush;
+
+        assert(0);
+    }
     IntType res_int = inttype32_from_inttype64<IntType>(v);
     
 
