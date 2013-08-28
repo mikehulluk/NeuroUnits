@@ -9,39 +9,73 @@ def get_dIN(nbits):
     src_text = """
     define_component simple_hh {
         from std.math import exp, ln
+        
+        <=> INPUT t:(ms)
+        <=> INPUT i_injected:(mA)
 
         #iInj_local = [{50pA} * k] if [t > 75ms and t< 85ms or t<1ms] else [0pA]
-        iInj_local = [{50pA} * k] if [t > 75ms and t< 185ms or t<1ms] else [0pA]
+        #iInj_local = [{50pA} * k] if [t > 75ms and t< 185ms or t<1ms] else [0pA]
+        iInj_local = {0pA/ms} * t  
         Cap = 10 pF
 
-        V' = (1/Cap) * (iInj_local + i_injected + iLk + iKs + iKf +iNa + iCa + i_nmda )
+        V' = (1/Cap) * (iInj_local + i_injected + iLk + iKs + iKf +iNa + iCa + syn_nmda_i + syn_ampa_i )
 
 
+        syn_ff = 0.1
 
-        # NMDA noise:
+        # NMDA 
         # =======================
         syn_nmda_A_tau = 4ms
         syn_nmda_B_tau = 80ms
-        i_nmda = g_nmda * (syn_nmda_B - syn_nmda_A) * (e_NMDA - V) * nmda_vdep  * 0.5
+        syn_nmda_i = syn_nmda_g * (syn_nmda_B - syn_nmda_A) * (syn_nmda_erev - V) * nmda_vdep  * 0.5 * syn_ff
         syn_nmda_A' = -syn_nmda_A / syn_nmda_A_tau
         syn_nmda_B' = -syn_nmda_B / syn_nmda_B_tau
         # TOOO:
         #nmda_tc_max = (syn_nmda_A_tau * syn_nmda_B_tau) * ln( syn_nmda_B_tau / syn_nmda_A_tau)
-        g_nmda = 300pS
-        e_NMDA = 0mV
-
+        syn_nmda_g = 300pS
+        syn_nmda_erev = 0mV
         v_scale = V * {-0.08mV-1}
         nmda_vdep =  1./(1. + 0.05 * exp(v_scale) )
-
         on recv_nmda_spike(){
-
             syn_nmda_A = syn_nmda_A + 1.0
             syn_nmda_B = syn_nmda_B + 1.0
         }
         # ===========================
 
 
+        # AMPA 
+        # =======================
+        syn_ampa_A_tau = 0.1ms
+        syn_ampa_B_tau = 3ms
+        syn_ampa_i = syn_ampa_g * (syn_ampa_B - syn_ampa_A) * (syn_ampa_erev - V)  * syn_ff
+        syn_ampa_A' = -syn_ampa_A / syn_ampa_A_tau
+        syn_ampa_B' = -syn_ampa_B / syn_ampa_B_tau
+        # TOOO:
+        #ampa_tc_max = (syn_ampa_A_tau * syn_ampa_B_tau) * ln( syn_ampa_B_tau / syn_ampa_A_tau) * syn_ff
+        syn_ampa_g = 300pS
+        syn_ampa_erev = 0mV
+        on recv_ampa_spike(){
+            syn_ampa_A = syn_ampa_A + 1.0
+            syn_ampa_B = syn_ampa_B + 1.0
+        }
+        # ===========================
 
+        # Inhibitory 
+        # =======================
+        syn_inhib_A_tau = 1.5ms
+        syn_inhib_B_tau = 4ms
+        syn_inhib_i = syn_inhib_g * (syn_inhib_B - syn_inhib_A) * (syn_inhib_erev - V)  *syn_ff
+        syn_inhib_A' = -syn_inhib_A / syn_inhib_A_tau
+        syn_inhib_B' = -syn_inhib_B / syn_inhib_B_tau
+        # TOOO:
+        #inhib_tc_max = (syn_inhib_A_tau * syn_inhib_B_tau) * ln( syn_inhib_B_tau / syn_inhib_A_tau)
+        syn_inhib_g = 300pS
+        syn_inhib_erev = -60mV
+        on recv_inh_spike(){
+            syn_inhib_A = syn_inhib_A + 1.0
+            syn_inhib_B = syn_inhib_B + 1.0
+        }
+        # ===========================
 
 
         noise_min = 0.5
@@ -105,7 +139,6 @@ def get_dIN(nbits):
 
 
         # Calcium:
-
         alpha_ca_m = AlphaBetaFunc(v=V, A=4.05ms-1, B=0.0ms-1 mV-1, C=1.0, D=-15.32mV,E=-13.57mV)
         #beta_ca_m_1 =  AlphaBetaFunc(v=V, A=1.24ms-1, B=0.093ms-1 mV-1, C=-1.0, D=10.63mV, E=1.0mV)
         beta_ca_m_1 =  V * {-0.0923 ms-1 mV-1} - {1.2 ms-1}
@@ -114,7 +147,6 @@ def get_dIN(nbits):
         ca_m_inf = alpha_ca_m / (alpha_ca_m + beta_ca_m)
         tau_ca_m = 1.0 / (alpha_ca_m + beta_ca_m)
         ca_m' =  (ca_m_inf - ca_m) / tau_ca_m
-
 
         ff = 1.0 #1.5
         pca = {0.16 (mm3)/s} * 1e-6 * ff
@@ -131,17 +163,6 @@ def get_dIN(nbits):
         iCa =  iCa_ungated *  ca_m * ca_m
 
 
-        #iCa3 = pca * (2.0) * F * (Cai-Cao)
-
-        iCa2 =  -3pA
-
-
-        #iCa = [4pA] if [t < 0ms] else [4pA]
-        #myV = [1] if [ (V > ca_v_eps) or (V < ca_v_eps)] else [0]
-
-
-        <=> INPUT t:(ms)
-        <=> INPUT i_injected:(mA)
 
         k'=0 s-1
 
@@ -171,8 +192,13 @@ def get_dIN(nbits):
             ks_n = 0.0
             kf_n = 0.0
 
-           syn_nmda_B = 0.0
-           syn_nmda_A = 0.0
+            syn_nmda_B = 0.0
+            syn_nmda_A = 0.0
+            syn_ampa_B = 0.0
+            syn_ampa_A = 0.0
+            syn_inhib_B = 0.0
+            syn_inhib_A = 0.0
+        
             regime sub
         }
 
@@ -198,6 +224,10 @@ def get_dIN(nbits):
         'na_m'          : NodeRange(min="0", max = "1.5"),
         'syn_nmda_A'    : NodeRange(min='0', max ='30'),
         'syn_nmda_B'    : NodeRange(min='0', max ='30'),
+        'syn_ampa_A'    : NodeRange(min='0', max ='30'),
+        'syn_ampa_B'    : NodeRange(min='0', max ='30'),
+        'syn_inhib_A'    : NodeRange(min='0', max ='30'),
+        'syn_inhib_B'    : NodeRange(min='0', max ='30'),
         }
 
     var_annots_tags = {

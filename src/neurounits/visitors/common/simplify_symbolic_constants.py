@@ -34,51 +34,12 @@ from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNode
 
 class ReduceConstants(ASTVisitorBase):
 
-    #def visit(self, o, **kwargs):
-    #    return o.accept_visitor(self, **kwargs)
-
-    #def _res_assignments(self, o, **kwargs):
-    #    removed = []
-    #    for aKey in o._eqn_assignment.keys():
-    #        a = o._eqn_assignment[aKey]
-    #        alhs = a.lhs
-    #        fixed_value = self.visit(a.rhs_map)
-    #        if fixed_value:
-
-    #            sym_suffix = '_as_symconst'
-    #            sym_suffix = ''
-    #            s = ast.SymbolicConstant(symbol=aKey.symbol
-    #                    + sym_suffix, value=fixed_value)
-
-    #            #ReplaceNode(a.lhs, s).visit(o)
-    #            ReplaceNode.replace_and_check(srcObj=a.lhs, dstObj=s, root = o)
-
-
-
-    #            o._symbolicconstants[aKey.symbol] = s
-
-    #            from neurounits.misc import SeqUtils
-    #            old_ass = SeqUtils.filter_expect_single( o._eqn_assignment, lambda o:o.symbol == aKey.symbol )
-    #            del o._eqn_assignment[ old_ass ] #o.get_terminal_obj(aKey.symbol) ]
-
-    #            #del o._eqn_assignment[ o.get_terminal_obj(aKey.symbol) ]
-
-    #            removed.append(alhs)
-
-    #    # Double check they have gone:
-    #    for a in removed:
-    #        nc = EqnsetVisitorNodeCollector()
-    #        nc.visit(o)
-    #        assert not a in nc.all()
-
-
 
     def _res_assignments_new(self, o, **kwargs):
 
         removed = []
 
-        for assignment in o.ordered_assignments_by_dependancies: # sorted( list(o.assignments), key=lambda o:o.lhs.symbol ):
-        #for assignment in sorted( list(o.assignments), key=lambda o:o.lhs.symbol ):
+        for assignment in o.ordered_assignments_by_dependancies: 
             fixed_value = self.visit(assignment.rhs_map)
 
             print 'Is fixed? :', assignment.lhs.symbol, fixed_value
@@ -107,9 +68,6 @@ class ReduceConstants(ASTVisitorBase):
 
     def VisitNineMLComponent(self, o, **kwargs):
         self._res_assignments_new(o, **kwargs)
-
-    #def VisitEqnSet(self, o, **kwargs):
-    #    self._res_assignments(o, **kwargs)
 
     def VisitLibrary(self, o, **kwargs):
         self._res_assignments_new(o, **kwargs)

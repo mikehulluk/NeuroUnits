@@ -33,7 +33,8 @@ import scipy.integrate
 from neurounits.units_misc import safe_dict_merge
 
 import numpy as np
-from neurounits.visitors.common import VisitorFindDirectSymbolDependance_OLD
+#from neurounits.visitors.common import VisitorFindDirectSymbolDependance_OLD
+from neurounits.visitors.common import VisitorSymbolDependance
 
 from neurounits import ast
 from neurounits.units_backends.mh import MHUnitBackend
@@ -338,43 +339,15 @@ class FunctorGenerator(ASTVisitorBase):
     def VisitNineMLComponent(self, o, **kwargs):
         self.ast = o
 
-        deps = VisitorFindDirectSymbolDependance_OLD()
-        deps.visit(o)
-        self.assignee_to_assigment = {}
         for a in o.assignments:
             self.assignee_to_assigment[a.lhs] = a
 
-        assignment_deps = deps.dependancies
-        resolved = set()
+        for ass in o.ordered_assignments_by_dependancies:
+            self.visit(ass)
 
 
-
-        #print
-        #print 'Assignments:'
-        #for ass in o.assignments:
-            #print ass.lhs.symbol, ass.lhs
-
-
-
-        def resolve(assignment):
-            if assignment in resolved:
-                return
-
-            if type(assignment) != ast.AssignedVariable:
-                return
-            for dep in assignment_deps[assignment]:
-                resolve(dep)
-            self.visit(self.assignee_to_assigment[assignment])
-            resolved.add(assignment)
-
-        for a in o.assignments:
-            resolve(a.lhs)
-
-        for a in o.assignments:
-            self.visit(a)
 
         for a in o.timederivatives:
-            #print 'Time Derivative:', a, a.lhs.symbol
             self.visit(a)
 
         # Build a dictionary of predicates which detect whether a

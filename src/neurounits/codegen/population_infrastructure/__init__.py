@@ -34,6 +34,13 @@ class ElectricalSynapseProjection(Projection):
 
 
 
+#class CurrentInjector(object):
+#    def __init__(
+
+
+
+
+
 
 class EventPortConnector(object):
     def __init__(self, src_population, dst_population, src_port_name, dst_port_name, name, connector):
@@ -54,6 +61,8 @@ class Network(object):
         self.event_port_connectors = []
         self.electrical_synapse_projections = []
 
+        self.additional_events = []
+
 
     def add(self, obj):
         if isinstance( obj, Population):
@@ -69,12 +78,21 @@ class Network(object):
             assert False
 
 
+    def provide_events(self, population, event_port, evt_details ):
+        event_port = population.component.input_event_port_lut.get_single_obj_by(symbol=event_port)
+
+        self.additional_events.append( 
+            (population, event_port, evt_details )
+                )
+
 
 
 
 class PopulationConnector(object):
     def build_c(self, src_pop_size_expr, dst_pop_size_expr, add_connection_functor):
         raise NotImplementedError()
+
+
 
 class AllToAllConnector(PopulationConnector):
     def __init__(self, connection_probability):
@@ -105,3 +123,46 @@ class AllToAllConnector(PopulationConnector):
                 connection_probability = self.connection_probability, 
                 )
 
+
+from collections import defaultdict
+
+class ExplicitIndices(PopulationConnector):
+    def __init__(self, indices):
+        self.indices = indices
+
+    def build_c(self, src_pop_size_expr, dst_pop_size_expr, add_connection_functor):
+
+        src_tgt_map = defaultdict( set)
+        for i,j in self.indices:
+            src_tgt_map[i].add(j);
+        
+
+        
+        from mako.template import Template
+        tmpl = Template('''
+
+        ##//struct TargetList
+        ##//{
+        ##//    IntType num; ## = { ${tgt_str} };
+        ##//    IntType tgts[]; ## = { ${tgt_str} };
+        ##//};
+
+
+        %for src, tgts in src_tgt_map.items():
+            <%tgt_str = ','.join( [str(t) for t in tgts ] ) %>
+            IntType tgts_from_${src}[] = { ${tgt_str} };
+            IntType tgts_from_${src}_len = ${len(tgts)} ;
+
+            // # TODO: refactor this out properly:
+            projections[${src}].assign(tgts_from_${src}, tgts_from_${src} + tgts_from_${src}_len);
+        %endfor
+
+        ##%for i,j in indices:
+        ##    ${add_connection_functor(i,j)}; 
+        ##%endfor
+        ''')
+        return tmpl.render(
+                indices=self.indices,
+                add_connection_functor = add_connection_functor,
+                src_tgt_map=src_tgt_map
+                )

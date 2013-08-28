@@ -110,49 +110,25 @@ class VisitorSymbolDependance(object):
         return self.get_assignment_ordering()
 
     def get_assignment_ordering(self, ):
-        # Copy the graph, and add nodes from assigned variables to thier right hand sides:
-        #graph = self.direct_dependancy_graph.copy()
 
-        #for assignment in self.component.assignments:
-        #    print 'Removing:', repr(assignment)
-        #    graph.remove_node(assignment)
-        #    #graph.add_edge(assignment.lhs, assignment)
-
-        #nx.draw_networkx(graph, with_labels=True, labels={n:repr(n) for n in graph.nodes()} )
-        #pylab.show()
-        #t = nx.topological_sort(graph)
-
-        #print t
-        #print 'Building dependancy graph:'
-        #print '=========================='
         graph = nx.DiGraph()
         for assignment in self.component.assignments:
-            #print 'Assignment', assignment.lhs
-            deps = self.get_terminal_dependancies(assignment, expand_assignments=False, include_random_variables=False, include_supplied_values=False, include_symbolic_constants=False)
-            #print '  --deps:', deps
+            deps = self.get_terminal_dependancies(assignment, expand_assignments=False, include_random_variables=False, include_supplied_values=False, include_symbolic_constants=False, include_parameters=False, include_analog_input_ports=False)
             graph.add_node(assignment.lhs)
             for dep in deps:
-                #print dep
+                print dep
                 assert isinstance(dep, (ast.StateVariable,ast.AssignedVariable))
                 if isinstance(dep, ast.AssignedVariable):
                     graph.add_edge(assignment.lhs, dep)
-            #print
 
 
         assigned_ordering = list( reversed( list(nx.topological_sort(graph)) ) )
-        #print assigned_ordering
 
         assert len(assigned_ordering) == len(self.component.assignments)
-
-        #print assigned_ordering
-        #print 'Assignment ordering:'
-        #for ass_ord in assigned_ordering:
-        #    print ass_ord
-        #assert False
         return assigned_ordering
 
 
-    def get_terminal_dependancies(self, terminal, expand_assignments, include_random_variables=False, include_supplied_values=True,include_symbolic_constants=True):
+    def get_terminal_dependancies(self, terminal, expand_assignments, include_random_variables=False, include_supplied_values=True,include_symbolic_constants=True, include_parameters=True, include_analog_input_ports=True):
         """ Does not expand through states"""
 
         if isinstance( terminal, ast.EqnAssignmentByRegime):
@@ -163,7 +139,6 @@ class VisitorSymbolDependance(object):
         if isinstance(terminal, ast.SymbolicConstant):
             return []
 
-        #print terminal
         assert isinstance(terminal, (ast.StateVariable, ast.AssignedVariable, ast.OnEventStateAssignment, ast.OnTriggerTransition) )
 
         # Switch lhs to the assignment/time deriatives
@@ -180,10 +155,12 @@ class VisitorSymbolDependance(object):
                 expand_assignments=expand_assignments,
                 include_random_variables=include_random_variables,
                 include_supplied_values=include_supplied_values,
-                include_symbolic_constants=include_symbolic_constants)
+                include_symbolic_constants=include_symbolic_constants,
+                include_parameters=include_parameters,
+                include_analog_input_ports=include_analog_input_ports)
 
 
-    def _get_dependancies(self, node, expand_assignments, include_random_variables=False, include_supplied_values=True, include_symbolic_constants=True):
+    def _get_dependancies(self, node, expand_assignments, include_random_variables=False, include_supplied_values=True, include_symbolic_constants=True, include_parameters=True, include_analog_input_ports=True):
 
         dependancies = nx.bfs_successors(self.direct_dependancy_graph, source=node)
         if node in dependancies:
@@ -233,6 +210,10 @@ class VisitorSymbolDependance(object):
             dependancies = [d for d in dependancies if not isinstance(d, ast.SuppliedValue)]
         if include_symbolic_constants == False:
             dependancies = [d for d in dependancies if not isinstance(d, ast.SymbolicConstant)]
+        if include_parameters == False:
+            dependancies = [d for d in dependancies if not isinstance(d, ast.Parameter)]
+        if include_analog_input_ports == False:
+            dependancies = [d for d in dependancies if not isinstance(d, ast.AnalogReducePort)]
 
         assert len(dependancies) == len(set(dependancies))
         return dependancies

@@ -641,7 +641,7 @@ namespace event_handlers
                 if(evt_time < time_info.time_int )
                 {
                     // Handle the event:
-                    //std::cout << "\n **** HANDLING EVENT (on ${tr.port.symbol}) *****";
+                    std::cout << "\n **** HANDLING EVENT (on ${tr.port.symbol}) *****";
 
                      // Actions ...
                     %for action in tr.actions:
@@ -688,7 +688,7 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
 
     for(int i=0;i<NrnPopData::size;i++)
     {
-        cout << "\n";
+        //cout << "\n";
         // Calculate assignments:
         % for eqn in eqns_assignments:
         d.${eqn.node.lhs.symbol}[i] = ${eqn.rhs_cstr} ;
@@ -964,8 +964,14 @@ struct GlobalData {
 GlobalData global_data;
 
 
+#include <ctime>
+
 int main()
 {
+
+    // Start the clock:
+    clock_t begin_main = clock();
+
 
     // Enable floating point exception trapping:
     //feenableexcept(-1);
@@ -1000,11 +1006,24 @@ int main()
     NS_eventcoupling_${evt_conn.name}::setup_connections();
     %endfor
     
+
+
+    // Add manual events:
+    %for (population, event_port, evt_details) in network.additional_events:
+        // Addition events:
+        NS_${population.name}::input_event_types::Event_${event_port.symbol} evt(IntType(700000));
+        //for(int i=0;i<10;i++)
+        //{
+        data_${population.name}.incoming_events_${event_port.symbol}[169].push_back( evt ) ;
+        //}
+    %endfor
+
     //cout << "\n" << std::flush;
     //assert(0);
 
 
 
+    clock_t begin_sim = clock();
 
 
     #if NSIM_REPS
@@ -1027,7 +1046,7 @@ int main()
             {
                 std::cout << "Loop: " << time_step << "\n";
                 std::cout << "t: " << time_info.time_int << "\n";
-                std::cout << "QueueSize:" << data_LHSdIN.incoming_events_recv_nmda_spike[0].size() << "\n";
+                ##std::cout << "QueueSize:" << data_LHSdIN.incoming_events_recv_nmda_spike[0].size() << "\n";
             }
             #endif
 
@@ -1087,6 +1106,16 @@ int main()
 
 
     printf("Simulation Complete\n");
+
+    clock_t end_sim = clock();
+    double elapsed_secs_total = double(end_sim - begin_main) / CLOCKS_PER_SEC;
+    double elapsed_secs_sim = double(end_sim - begin_sim) / CLOCKS_PER_SEC;
+    double elapsed_secs_setup = double(begin_sim - begin_main) / CLOCKS_PER_SEC;
+    
+    cout << "\nTime taken (setup):" << elapsed_secs_setup;
+    cout << "\nTime taken (sim-total):"<< elapsed_secs_sim;
+    cout << "\nTime taken (combined):"<< elapsed_secs_total;
+
 }
 
 
@@ -1275,7 +1304,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
         std_variables = {
-            'nsim_steps' : 2000,
+            'nsim_steps' : 5000,
             'nbits':self.nbits,
             'dt_float' : self.dt_float,
             'dt_int' : self.dt_int,

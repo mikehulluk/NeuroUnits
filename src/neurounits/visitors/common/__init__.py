@@ -27,6 +27,7 @@
 # -------------------------------------------------------------------------------
 
 from .ast_symbol_dependancies import VisitorFindDirectSymbolDependance_OLD
+from .ast_symbol_dependancies_new import VisitorSymbolDependance
 
 
 from neurounits.visitors.common.function_expander import FunctionExpander
