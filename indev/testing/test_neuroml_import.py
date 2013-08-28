@@ -32,7 +32,7 @@ from neurounits.importers.neuroml.errors import NeuroUnitsImportNeuroMLNotImplem
 from neurounits.importers.neuroml import ChannelMLReader
 
 
-from neurounits.writers.writer_ast_to_mredoc import MRedocWriterVisitor
+from neurounits.visualisation.mredoc.writer_ast_to_mredoc import MRedocWriterVisitor
 from neurounits.tools import nmodl
 
 from util_test_locations import TestLocations

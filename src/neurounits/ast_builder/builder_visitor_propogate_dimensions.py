@@ -35,10 +35,10 @@ import pylab
 
 class ASTVisitorCollectorAll(ASTActionerDefault):
 
-    def __init__(self, eqnset, **kwargs):
+    def __init__(self, component, **kwargs):
         ASTActionerDefault.__init__(self, **kwargs)
         self.objects = set()
-        self.visit(eqnset)
+        self.visit(component)
 
     def ActionNode(self, o):
         self.objects.add(o)

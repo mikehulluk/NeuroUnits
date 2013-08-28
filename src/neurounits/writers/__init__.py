@@ -27,6 +27,7 @@
 # -------------------------------------------------------------------------------
 
 
-from writer_ast_to_mredoc import MRedocWriterVisitor
-from writer_ast_to_simulatable_object import EqnSimulator
+#from writer_ast_to_mredoc import MRedocWriterVisitor
+from neurorunits.visualisation.mredoc import MRedocWriterVisitor
+
 

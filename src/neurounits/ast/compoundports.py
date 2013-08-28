@@ -79,7 +79,7 @@ class Interface(base.ASTObject):
 
 
     def to_redoc(self):
-        from neurounits.writers import MRedocWriterVisitor
+        from neurounits.visualisation.mredoc import MRedocWriterVisitor
         return MRedocWriterVisitor.build(self)
 
 

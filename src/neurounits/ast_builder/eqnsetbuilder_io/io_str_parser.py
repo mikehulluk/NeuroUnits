@@ -27,7 +27,7 @@
 # -------------------------------------------------------------------------------
 
 import re
-from neurounits.io_types import IOType
+from neurounits.ast_builder.io_types import IOType
 from neurounits.units_misc import read_json
 
 

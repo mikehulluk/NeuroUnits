@@ -161,22 +161,22 @@ class MODLBuildParameters(object):
         self.symbol_units = symbol_units
 
     @classmethod
-    def InferFromEqnset(cls, eqnset):
+    def InferFromEqnset(cls, component):
 
         currents = {}
         supplied_values = {}
 
-        for io_info in [io_info for io_info in eqnset.io_data if io_info.iotype in (IOType.Output, IOType.Input)]:
+        for io_info in [io_info for io_info in component.io_data if io_info.iotype in (IOType.Output, IOType.Input)]:
             if not io_info.metadata or not 'mf' in io_info.metadata:
                 continue
             role = io_info.metadata['mf'].get('role', None)
 
             if role:
 
-                if not eqnset.has_terminal_obj(io_info.symbol):
+                if not component.has_terminal_obj(io_info.symbol):
                     continue
 
-                obj = eqnset.get_terminal_obj(io_info.symbol)
+                obj = component.get_terminal_obj(io_info.symbol)
 
                 # Outputs:
                 if role == "TRANSMEMBRANECURRENT":
@@ -198,7 +198,7 @@ class MODLBuildParameters(object):
                     assert False
 
         if not currents:
-            raise ValueError('Mechanism does not expose any currents! %s'% eqnset.name)
+            raise ValueError('Mechanism does not expose any currents! %s'% component.name)
 
         # PointProcess or Distributed  Process:
         mech_type = currents.values()[0].getCurrentType()
@@ -209,9 +209,9 @@ class MODLBuildParameters(object):
         # Work out the units of all the terminal symbols:
         symbol_units = {}
 
-        objs = eqnset.terminal_symbols
+        objs = component.terminal_symbols
         n = EqnsetVisitorNodeCollector()
-        n.visit(eqnset)
+        n.visit(component)
         objs = n.all()
         for s in objs:
 
@@ -240,7 +240,7 @@ class MODLBuildParameters(object):
 
         # Event Handling:
         assert False, 'Deprecated, needs rewrite'
-        zero_arg_events = [ev for ev in eqnset.onevents if len(ev.parameters) == 0]
+        zero_arg_events = [ev for ev in component.onevents if len(ev.parameters) == 0]
         if len(zero_arg_events) == 0:
             event_function = None
         elif len(zero_arg_events) == 1:
@@ -248,17 +248,17 @@ class MODLBuildParameters(object):
         else:
             raise ValueError('Multiple Zero-Param Events')
 
-        return MODLBuildParameters(mechanismtype=mech_type, currents=currents, supplied_values=supplied_values, suffix="nmmodl"+eqnset.name, symbol_units=symbol_units, event_function=event_function  )
+        return MODLBuildParameters(mechanismtype=mech_type, currents=currents, supplied_values=supplied_values, suffix="nmmodl"+component.name, symbol_units=symbol_units, event_function=event_function  )
 
 
 
 
 
 
-def WriteToNMODL(eqnset, buildparameters=None, initial_values=None, neuron_suffix=None):
+def WriteToNMODL(component, buildparameters=None, initial_values=None, neuron_suffix=None):
 
     if buildparameters is None:
-        buildparameters = MODLBuildParameters.InferFromEqnset(eqnset)
+        buildparameters = MODLBuildParameters.InferFromEqnset(component)
 
     # Overloading the neuron-suffix:
     if neuron_suffix is not None:
@@ -267,19 +267,19 @@ def WriteToNMODL(eqnset, buildparameters=None, initial_values=None, neuron_suffi
     m = ModFileContents()
 
     # Write the header:
-    NeuronBlockWriter(eqnset=eqnset,  build_parameters=buildparameters,  modfilecontents=m,   )
-    NeuronInterfaceWriter().visit(eqnset, build_parameters=buildparameters, modfilecontents=m)
+    NeuronBlockWriter(component=component,  build_parameters=buildparameters,  modfilecontents=m,   )
+    NeuronInterfaceWriter().visit(component, build_parameters=buildparameters, modfilecontents=m)
 
     # Write the sections (order is important for Assignment Block):
-    ParameterWriter().visit(eqnset,modfilecontents=m,build_parameters=buildparameters, )
-    SuppliedValuesWriter().visit(eqnset,modfilecontents=m, build_parameters=buildparameters, buildparameters=buildparameters)
-    AssignmentWriter().visit(eqnset,modfilecontents=m, build_parameters=buildparameters)
-    StateWriter().visit(eqnset,modfilecontents=m,build_parameters=buildparameters, )
-    FunctionWriter().visit(eqnset,modfilecontents=m, build_parameters=buildparameters, )
-    ConstantWriter().visit(eqnset,modfilecontents=m, build_parameters=buildparameters, )
-    OnEventWriter().visit(eqnset,modfilecontents=m, build_parameters=buildparameters)
+    ParameterWriter().visit(component,modfilecontents=m,build_parameters=buildparameters, )
+    SuppliedValuesWriter().visit(component,modfilecontents=m, build_parameters=buildparameters, buildparameters=buildparameters)
+    AssignmentWriter().visit(component,modfilecontents=m, build_parameters=buildparameters)
+    StateWriter().visit(component,modfilecontents=m,build_parameters=buildparameters, )
+    FunctionWriter().visit(component,modfilecontents=m, build_parameters=buildparameters, )
+    ConstantWriter().visit(component,modfilecontents=m, build_parameters=buildparameters, )
+    OnEventWriter().visit(component,modfilecontents=m, build_parameters=buildparameters)
 
-    #print len(eqnset.onevents)
+    #print len(component.onevents)
 
     txt = m.to_text()
 

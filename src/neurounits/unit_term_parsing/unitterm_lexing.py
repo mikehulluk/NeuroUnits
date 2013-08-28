@@ -33,7 +33,7 @@ import ply.lex as lex
 from ..unit_errors import UnitError
 
 
-from ..units_data_unitterms import UnitTermData
+from neurounits.unit_data.units_data_unitterms import UnitTermData
 
 
 

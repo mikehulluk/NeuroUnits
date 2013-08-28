@@ -28,7 +28,7 @@
 
 
 
-from units_misc import safe_dict_merge
+
 
 
 class UnitTermData(object):
@@ -68,6 +68,7 @@ class UnitTermData(object):
 
     @classmethod
     def getMultiplierLUT(cls, backend):
+        from neurounits.units_misc import safe_dict_merge
         return safe_dict_merge(cls.getMultiplierLUTShort(backend=backend),
                                cls.getMultiplierLUTLong(backend=backend))
 
@@ -115,6 +116,7 @@ class UnitTermData(object):
 
     @classmethod
     def getUnitLUT(cls, backend):
+        from neurounits.units_misc import safe_dict_merge
         return safe_dict_merge(cls.getUnitLUTShort(backend=backend),
                                cls.getUnitLUTLong(backend=backend))
 

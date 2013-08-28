@@ -29,9 +29,9 @@ import ply
 
 from ..unit_errors import UnitError, InvalidUnitTermError
 from .unitterm_lexing import UnitTermLexer
-from ..units_data_unitterms import UnitTermData
 from ..units_misc import EnsureExisits
 
+from neurounits.unit_data.units_data_unitterms import UnitTermData
 
 
 

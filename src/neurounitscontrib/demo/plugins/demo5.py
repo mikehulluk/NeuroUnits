@@ -1,6 +1,6 @@
 
 from neurounits import NeuroUnitParser
-from neurounits.writers.writer_ast_to_simulatable_object import EqnSimulator
+#from neurounits.writers.writer_ast_to_simulatable_object import EqnSimulator
 import numpy as np
 import pylab
 

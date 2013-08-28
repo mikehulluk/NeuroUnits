@@ -31,7 +31,7 @@ from neurounits.visitors import ASTVisitorBase
 from neurounits.ast.astobjects import SuppliedValue
 from neurounits.ast.astobjects import Parameter, StateVariable
 from neurounits.ast import AnalogReducePort
-from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator
+#from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator
 
 import quantities as pq
 import numpy as np

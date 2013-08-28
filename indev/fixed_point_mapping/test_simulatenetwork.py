@@ -24,7 +24,7 @@ import dIN_model
 dIN_comp = dIN_model.get_dIN(nbits=24)
 
 
-from neurounits.writers import MRedocWriterVisitor
+from neurounits.visualisation.mredoc import MRedocWriterVisitor
 MRedocWriterVisitor().visit(dIN_comp).to_pdf("op.pdf")
 
 

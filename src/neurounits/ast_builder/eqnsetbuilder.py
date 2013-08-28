@@ -28,7 +28,7 @@
 
 import itertools
 from neurounits import ast
-from neurounits.io_types import IOType
+from .io_types import IOType
 from neurounits.units_misc import SingleSetDict
 from .eqnsetbuilder_io import parse_io_line
 from .builder_visitor_propogate_dimensions import PropogateDimensions

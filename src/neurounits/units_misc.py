@@ -150,3 +150,32 @@ class LookUpDict(object):
 
 
 
+
+import sys
+
+class DebugScope(object):
+
+    nesting_depth = 0
+
+    def __init__(self, s ):
+        self.s = s
+    def __enter__(self):
+        DebugScope.nesting_depth = DebugScope.nesting_depth + 1
+
+    def __exit__(self, *args):
+        DebugScope.nesting_depth = DebugScope.nesting_depth - 1
+
+
+std_out_orig = sys.stdout
+
+class MyWriter(object):
+    def write(self, s):
+        s1 = '  '  * DebugScope.nesting_depth
+        std_out_orig.write(s1)
+        return std_out_orig.write(s)
+
+    def flush(self, *args, **kwargs):
+        return std_out_orig.flush(*args, **kwargs)
+
+sys.stdout = MyWriter()
+

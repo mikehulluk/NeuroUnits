@@ -74,7 +74,7 @@ class Block(ASTObject):
         raise NotImplementedError()
 
     def to_redoc(self):
-        from neurounits.writers import MRedocWriterVisitor
+        from neurounits.visualisation.mredoc import MRedocWriterVisitor
         return MRedocWriterVisitor.build(self)
 
     @property
@@ -204,7 +204,7 @@ class NineMLComponent(Block):
 
 
     def simulate(self, **kwargs):
-        from neurounits.simulation.simulate_component import simulate_component
+        from neurounits.codegen.python_functor.simulate_component import simulate_component
         return simulate_component( self, **kwargs)
 
     @classmethod

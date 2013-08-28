@@ -26,282 +26,17 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
+
+
+
 from neurounits.visitors import ASTVisitorBase
-
-import scipy
-import scipy.integrate
-from neurounits.units_misc import safe_dict_merge
-
 import numpy as np
-#from neurounits.visitors.common import VisitorFindDirectSymbolDependance_OLD
-from neurounits.visitors.common import VisitorSymbolDependance
-
 from neurounits import ast
 from neurounits.units_backends.mh import MHUnitBackend
-import neurounits
-
-
-from functools import partial
-import traceback
 from collections import defaultdict
-import sys
+from neurounits.units_misc import DebugScope
 
 
-
-class DebugScope(object):
-
-    nesting_depth = 0
-
-    def __init__(self, s ):
-        self.s = s
-    def __enter__(self):
-        DebugScope.nesting_depth = DebugScope.nesting_depth + 1
-
-    def __exit__(self, *args):
-        DebugScope.nesting_depth = DebugScope.nesting_depth - 1
-
-
-std_out_orig = sys.stdout
-
-class MyWriter(object):
-    def write(self, s):
-        s1 = '  '  * DebugScope.nesting_depth
-        std_out_orig.write(s1)
-        return std_out_orig.write(s)
-
-    def flush(self, *args, **kwargs):
-        return std_out_orig.flush(*args, **kwargs)
-
-sys.stdout = MyWriter()
-
-
-
-
-
-
-def get_as_si(o):
-    if isinstance(o, (float, int)):
-        return o
-    return o.float_in_si()
-
-
-
-
-def rebuild_kw_dict(raw_state_data, params, t0, timederivatives):
-    kw_states = dict([(td.lhs.symbol, y) for (td, y) in zip(timederivatives, raw_state_data)])
-    #print t0, 'kw_states', kw_states
-    kw = safe_dict_merge(kw_states, params)
-    kw['t'] = t0
-    return kw
-
-def evaluate_gradient(y, t0, params, timederivatives_evaluators, timederivatives):
-    # Create a dictionary containing the current states and
-    # the parameters:
-    kw = rebuild_kw_dict(raw_state_data=y, params=params,t0=t0, timederivatives=timederivatives)
-    return [ev(**kw) for ev in timederivatives_evaluators]
-
-
-
-
-class EqnSimulator(object):
-
-    """A class to allow the evaluation of eqnsets.
-    A simulator object is created using
-    """
-
-    def __init__(self, ast):
-
-        self.ast = ast
-        self.fObj = FunctorGenerator(ast, as_float_in_si=True)
-
-        # Set the variable order:
-        self.timederivatives = list(ast.timederivatives)
-        self.timederivatives_evaluators = [self.fObj.timederivative_evaluators[td.lhs.symbol] for td in self.timederivatives]
-
-
-
-
-    def build_redoc( self, time_data, traces=None, phase_plots=None, params={}, state0In={}, default_state0=None):
-        import mredoc
-        res = self.__call__(time_data=time_data, params=params, default_state0=default_state0)
-
-        # What traces do we plot:
-
-        if traces is False:
-            traces = []
-        if traces is None:
-            traces = res.keys()
-
-        # What phase plots shall we draw:
-
-        if phase_plots is False:
-            phase_plots = []
-        if phase_plots is None:
-            phase_plots = []
-            for r in res.keys():
-                for s in res.keys():
-                    if r != s:
-                        phase_plots.append((r, s))
-
-        def build_trace_plot(sym):
-
-            import pylab
-            f = pylab.figure()
-            pylab.plot(res['t'], res[sym])
-            pylab.xlabel('Time (s)')
-            pylab.ylabel('Symbol: %s')
-            return mredoc.Figure(f)
-
-        def build_phase_plot(sym1, sym2):
-            import pylab
-            f = pylab.figure()
-            pylab.plot(res[sym1], res[sym2])
-            pylab.xlabel('Symbol: %s' % sym1)
-            pylab.ylabel('Symbol: %s' % sym2)
-            return mredoc.Figure(f)
-
-
-        return mredoc.Section( "Simulation Results for: %s" % self.ast.name,
-                 [ build_trace_plot(tr) for tr in traces ] + [ build_phase_plot(*tr) for tr in phase_plots ]
-                )
-
-
-
-    def __call__(self, time_data, params={}, state0In={}, default_state0=None ):
-        if len(self.ast.timederivatives) == 0:
-            return
-
-        assert isinstance(time_data, np.ndarray)
-
-        initial_condition_map = {}
-        for s in self.ast.initial_conditions:
-            assert isinstance(s.value, basestring)
-            v = neurounits.NeuroUnitParser.QuantitySimple(s.value)
-            initial_condition_map[s.symbol] = v
-
-
-
-
-
-
-
-
-
-
-
-
-
-        # A.Calculate the initial values of
-        # each state-variable (in SI)
-        # ----------------------------------
-        state0=[]
-        for td in self.timederivatives:
-            symbol = td.lhs.symbol
-
-            if symbol in state0In:
-                init = state0In[symbol]
-            elif symbol in initial_condition_map:
-                init = initial_condition_map[symbol]
-            elif default_state0:
-                init = default_state0
-            else:
-                raise ValueError('No Starting Value for StateVariable: %s found' % symbol)
-            # Convert the value to SI:
-            state0.append( get_as_si(init) )
-
-
-
-        # B. Evaluate, do the integration to
-        # find values for all the state variables:
-        # -----------------------------------------
-        y = scipy.integrate.odeint(
-                partial(evaluate_gradient,
-                    timederivatives_evaluators=self.timederivatives_evaluators,
-                    timederivatives=self.timederivatives,
-                    params=params),
-                state0,
-                t=time_data,
-                )
-
-
-
-
-        # Re-evaluate the assignments:
-        print 'Re-evaluating assignments'
-        nAssignments = len(self.fObj.assignment_evaluators)
-        ass_data = [list() for i in range(nAssignments)]
-
-        ass_units = [None for i in range(nAssignments)]
-        ass_names = [None for i in range(nAssignments)]
-        for (time_index, t) in enumerate(time_data):
-            state_data = y[time_index, :]
-            kw = rebuild_kw_dict(raw_state_data=state_data, params=params, t0=t, timederivatives=self.timederivatives)
-
-            for (i, (a, afunctor)) in enumerate(self.fObj.assignment_evaluators.iteritems()):
-
-                aVal = afunctor(**kw)
-
-                if ass_names[i] is None:
-                    ass_names[i] = a
-
-                aValRaw = aVal # .rescale(ass_units[i])
-
-                #print a, aValRaw
-
-                ass_data[i].append(aValRaw)
-
-
-        # Add the units back to the states:
-        res = {}
-        res['t'] = time_data  # , self.ast.library_manager.backend.Unit(second=1)
-        for (i, td) in enumerate(self.timederivatives):
-            res[td.lhs.symbol] = y[:, i]
-
-
-
-        for (i, (name, unit)) in enumerate(zip(ass_names, ass_units)):
-            d = np.array(ass_data[i])
-            res[name] = d
-            #print 'Ass;', name
-
-        return res
-
-
-
-
-
-
-class SimulationStateData(object):
-    def __init__(self,
-            parameters,
-            suppliedvalues,
-            assignedvalues,
-            states_in,
-            states_out,
-            rt_regimes,
-            event_manager,
-            ):
-        self.parameters = parameters
-        self.assignedvalues = assignedvalues
-        self.suppliedvalues = suppliedvalues
-        self.states_in = states_in
-        self.states_out = states_out
-        self.rt_regimes = rt_regimes
-        self.event_manager = event_manager
-
-    def clear_states_out(self):
-        self.states_out = {}
-
-    def copy(self):
-        return SimulationStateData(parameters=self.parameters.copy(),
-                                   suppliedvalues=self.suppliedvalues.copy(),
-                                   assignedvalues=self.assignedvalues.copy(),
-                                   states_in=self.states_in.copy(),
-                                   states_out=self.states_out.copy(),
-                                   rt_regimes=self.rt_regimes.copy(),
-                                   event_manager = None
-
-                                   )
 
 
 
@@ -339,13 +74,8 @@ class FunctorGenerator(ASTVisitorBase):
     def VisitNineMLComponent(self, o, **kwargs):
         self.ast = o
 
-        for a in o.assignments:
-            self.assignee_to_assigment[a.lhs] = a
-
         for ass in o.ordered_assignments_by_dependancies:
             self.visit(ass)
-
-
 
         for a in o.timederivatives:
             self.visit(a)
@@ -409,8 +139,6 @@ class FunctorGenerator(ASTVisitorBase):
 
     def VisitOnEventDefParameter(self, o):
         def f(evt,**kw):
-            #print 'Getting value of:', o.symbol
-
             # Single parameter:
             if len(evt.parameter_values)==1:
                 return list( evt.parameter_values.values() )[0]
@@ -418,10 +146,6 @@ class FunctorGenerator(ASTVisitorBase):
             else:
                 return evt.parameter_values[o.port_parameter_obj.symbol]
 
-            #print 'Getting value of:', o.symbol
-            #print evt
-            #print
-            #assert False
         return f
 
 
@@ -682,7 +406,6 @@ class FunctorGenerator(ASTVisitorBase):
         def eFunc(**kw):
             v_l = f_lhs(**kw)
             v_r = f_rhs(**kw)
-            #print repr(o.lhs), '/', repr(o.rhs), 'Vals:', v_l, v_r
             res = v_l / v_r
             return res
         return with_number_check(eFunc,o)
@@ -747,8 +470,6 @@ class FunctorGenerator(ASTVisitorBase):
             param_evals[param] = self.visit(param.rhs)
 
         def f(state_data,**kw):
-            #assert False
-            #print 'Emitting Event on %s' % repr(o)
             parameter_values = {}
             for p in o.parameters:
                 val = param_evals[p](state_data=state_data, **kw)
