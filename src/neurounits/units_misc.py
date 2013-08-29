@@ -179,3 +179,34 @@ class MyWriter(object):
 
 sys.stdout = MyWriter()
 
+
+
+import os, sys, traceback
+ 
+class Proxy(object):
+    def __init__(self, target_object):
+        self._count = {}
+        self._obj = target_object
+ 
+    def __getattr__(self, attr):
+        if attr in self._count: 
+            self._count[attr]+=1
+        else: 
+            self._count[attr]=1
+        return getattr(self._obj, attr)
+ 
+    def write(self, *args, **kwargs):
+        rv = self._obj.write(*args, **kwargs)
+        for filename, lineno, function, line in traceback.extract_stack():
+            if 'print' in line:
+                if os.environ.get('TRACE_PRINT', None) == 'traceback':
+                    traceback.print_stack()
+                else:
+                    sys.stderr.write("%s:%d (%s): %s\n" % (filename, lineno, function, line))
+                break
+ 
+if os.environ.get('TRACE_PRINT', None):
+    sys.stdout = Proxy(sys.stdout)
+
+
+

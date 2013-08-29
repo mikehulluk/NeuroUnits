@@ -290,6 +290,18 @@ class NineMLComponent(Block):
         return possible_objs
 
 
+    @property
+    def all_input_terminals(self):
+        return list( itertools.chain(
+                        self._parameters_lut,
+                        self._supplied_lut,
+                        self._analog_reduce_ports_lut,
+                        #self.assignedvalues,
+                        self.state_variables,
+                        
+                        )
+                    )
+
 
 
     def all_terminal_objs(self):
@@ -390,30 +402,6 @@ class NineMLComponent(Block):
     def getSymbolDependancicesIndirect(self, sym,include_constants=False, include_ass_in_output=False):
         from neurounits.visitors.common.ast_symbol_dependancies_new import VisitorSymbolDependance
         return VisitorSymbolDependance(self).get_terminal_dependancies(sym, expand_assignments=True)
-
-        #res_deps = []
-        #un_res_deps =  self.getSymbolDependancicesDirect(sym, include_constants=include_constants)
-
-        #while un_res_deps:
-        #    p = un_res_deps.pop()
-
-        #    if p is sym:
-        #        continue
-        #    if p in res_deps:
-        #        continue
-
-        #    p_deps = self.getSymbolDependancicesIndirect(p, include_constants=include_constants)
-        #    un_res_deps.extend(p_deps)
-        #    res_deps.append(p)
-
-        #if not include_ass_in_output:
-        #    res_deps = [d for d in res_deps if not isinstance(d,AssignedVariable) ]
-        #return res_deps
-
-
-
-
-
 
     def getSymbolMetadata(self, sym):
         assert sym in self.terminal_symbols

@@ -1468,7 +1468,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
     def compile_and_run(self, cfile, output_c_filename, run,CPPFLAGS):
 
-        from neurounits.tools.c_compilation import CCompiler, CCompilationSettings
+        from neurounits.codegen.utils.c_compilation import CCompiler, CCompilationSettings
 
 
         ## The preprocessed C++ output:

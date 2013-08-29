@@ -8,7 +8,7 @@ import neurounits
 import numpy as np
 import pylab
 
-from neurounits.tools.fixed_point import CBasedEqnWriterFixedNetwork
+from neurounits.codegen.cpp.fixed_point import CBasedEqnWriterFixedNetwork
 from hdfjive import HDF5SimulationResultFile
 
 #from neurounits.ast_annotations.common import NodeRangeAnnotator, NodeFixedPointFormatAnnotator,\
@@ -29,7 +29,7 @@ MRedocWriterVisitor().visit(dIN_comp).to_pdf("op.pdf")
 
 
 
-from neurounits.tools.population_infrastructure import *
+from neurounits.codegen.population_infrastructure import *
 network = Network()
 p1 = Population(name='dINs', component=dIN_comp, size=100 )
 p2 = Population(name='NondINs', component=dIN_comp, size=30 )

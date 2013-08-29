@@ -29,15 +29,6 @@ class ElectricalSynapseProjection(Projection):
 
 
 
-#class ChemicalSynapseProjection(Projection):
-#    pass
-
-
-
-#class CurrentInjector(object):
-#    def __init__(
-
-
 
 
 

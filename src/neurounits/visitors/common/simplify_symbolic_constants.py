@@ -42,7 +42,7 @@ class ReduceConstants(ASTVisitorBase):
         for assignment in o.ordered_assignments_by_dependancies: 
             fixed_value = self.visit(assignment.rhs_map)
 
-            print 'Is fixed? :', assignment.lhs.symbol, fixed_value
+            #print 'Is fixed? :', assignment.lhs.symbol, fixed_value
             if fixed_value is not None:
 
 
@@ -59,7 +59,7 @@ class ReduceConstants(ASTVisitorBase):
                 
 
         for a in removed:
-            print 'Simplified:', a
+            #print 'Simplified:', a
             nc = EqnsetVisitorNodeCollector(o)
             assert not a in nc.all(), 'Did not fully remove: %s' % a
 

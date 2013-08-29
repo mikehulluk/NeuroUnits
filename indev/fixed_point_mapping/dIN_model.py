@@ -2,7 +2,8 @@
 
 import neurounits
 from neurounits.ast_annotations.common import NodeRangeAnnotator, NodeFixedPointFormatAnnotator,\
-    NodeRange, NodeToIntAnnotator, _NodeRangeFloat, RangeExpander
+    NodeRange, NodeToIntAnnotator, _NodeRangeFloat # , RangeExpander
+from neurounits.ast_annotations.node_range_byoptimiser import NodeRangeByOptimiser
 
 
 def get_dIN(nbits):
@@ -232,9 +233,6 @@ def get_dIN(nbits):
 
     var_annots_tags = {
         'V': 'Voltage',
-        'V': 'Voltage',
-
-
         'syn_nmda_A':'',
         'syn_nmda_B' : '',
         'i_nmda' : '',
@@ -257,8 +255,15 @@ def get_dIN(nbits):
     from neurounits.visitors.common.equation_optimisations import OptimiseEquations
     OptimiseEquations(comp)
 
-    comp.annotate_ast( NodeRangeAnnotator(var_annots_ranges) )
-    RangeExpander().visit(comp)
+
+
+    #comp.annotate_ast( NodeRangeAnnotator(var_annots_ranges) )
+    #RangeExpander().visit(comp)
+    
+    # New range optimiser:
+    comp.annotate_ast( NodeRangeByOptimiser(var_annots_ranges))
+    
+    
     comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
     comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 

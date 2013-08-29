@@ -1,3 +1,3 @@
-from neurounits.tools.fixed_point.fixed_point_component_writer import CBasedEqnWriterFixedComponent
-from neurounits.tools.fixed_point.fixed_point_network_writer import CBasedEqnWriterFixedNetwork
-from neurounits.tools.fixed_point.float_comparison import CBasedEqnWriterFloat
+from .fixed_point_component_writer import CBasedEqnWriterFixedComponent
+from .fixed_point_network_writer import CBasedEqnWriterFixedNetwork
+from .float_comparison import CBasedEqnWriterFloat

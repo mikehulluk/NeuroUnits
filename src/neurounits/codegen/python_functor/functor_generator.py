@@ -54,6 +54,8 @@ def with_number_check(func, src_obj):
         return res
     return my_func
 
+
+
 class FunctorGenerator(ASTVisitorBase):
 
     def __init__(self, eqnset=None, as_float_in_si=False, fully_calculate_assignments=True):
@@ -109,13 +111,10 @@ class FunctorGenerator(ASTVisitorBase):
             # print 'New Value',new_value
             state_data.states_out[sv_name] = new_value
 
-            # assert False
-            # return None
 
         return f1
 
-#    def VisitEqnAssignment(self, o, **kwargs):
-#        self.assignment_evaluators[o.lhs.symbol] = self.visit(o.rhs)
+
 
     def _visit_trans(self, o, **kwargs):
         callable_actions = [self.visit(a) for a in o.actions]

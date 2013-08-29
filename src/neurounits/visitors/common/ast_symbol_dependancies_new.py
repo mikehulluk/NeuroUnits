@@ -59,7 +59,6 @@ class VisitorSymbolDependance(object):
             deps = self.get_terminal_dependancies(assignment, expand_assignments=False, include_random_variables=False, include_supplied_values=False, include_symbolic_constants=False, include_parameters=False, include_analog_input_ports=False)
             graph.add_node(assignment.lhs)
             for dep in deps:
-                print dep
                 assert isinstance(dep, (ast.StateVariable,ast.AssignedVariable))
                 if isinstance(dep, ast.AssignedVariable):
                     graph.add_edge(assignment.lhs, dep)

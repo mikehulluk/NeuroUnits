@@ -48,7 +48,7 @@ except ImportError:
 
 
 def get_prefered_dimensions():
-    from .. import NeuroUnitParser
+    from neurounits import NeuroUnitParser
     prefered_dimension_dims = [
         (NeuroUnitParser.Unit('S'), 'S'),
         (NeuroUnitParser.Unit('V'), 'V'),
