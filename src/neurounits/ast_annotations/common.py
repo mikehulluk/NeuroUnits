@@ -302,7 +302,7 @@ class LargeArrayPropagator(ASTVisitorBase):
 
 
     @set_minmax_for_node
-    def VisitFunctionDefInstantiationParater(self, o):
+    def VisitFunctionDefInstantiationParameter(self, o):
         return self.visit(o.rhs_ast)
 
 

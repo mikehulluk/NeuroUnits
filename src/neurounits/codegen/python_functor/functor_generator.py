@@ -441,7 +441,7 @@ class FunctorGenerator(ASTVisitorBase):
 
 
 
-    def VisitFunctionDefInstantiationParater(self, o, **kwargs):
+    def VisitFunctionDefInstantiationParameter(self, o, **kwargs):
         f_rhs = self.visit(o.rhs_ast)
         def eFunc(**kw):
             return f_rhs(**kw)

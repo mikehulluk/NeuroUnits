@@ -239,7 +239,7 @@ class CBasedFloatWriter(ASTVisitorBase):
 
 
 
-    def VisitFunctionDefInstantiationParater(self, o):
+    def VisitFunctionDefInstantiationParameter(self, o):
         return o.symbol
 
     def VisitFunctionDefParameter(self, o):

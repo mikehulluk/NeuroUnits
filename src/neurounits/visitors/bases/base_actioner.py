@@ -229,7 +229,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
 
 
-    def VisitFunctionDefInstantiationParater(self, o, **kwargs):
+    def VisitFunctionDefInstantiationParameter(self, o, **kwargs):
         self.visit(o.rhs_ast, **kwargs)
         self._ActionFunctionDefInstantiationParater(o, **kwargs)
 

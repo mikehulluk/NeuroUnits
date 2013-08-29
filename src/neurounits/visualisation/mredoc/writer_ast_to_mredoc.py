@@ -220,7 +220,7 @@ class LatexEqnWriterN(ASTVisitorBase):
         return 'RANDOMVARIBLE'
 
 
-    def VisitFunctionDefInstantiationParater(self, o, **kwargs):
+    def VisitFunctionDefInstantiationParameter(self, o, **kwargs):
         rhs = self.visit(o.rhs_ast)
         if o.symbol is not None:
             return '%s=%s' % (o.symbol, rhs)

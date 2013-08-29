@@ -180,7 +180,7 @@ class CBasedFixedWriter(ASTVisitorBase):
 
         return self.add_range_check(o, res)
 
-    def VisitFunctionDefInstantiationParater(self, o):
+    def VisitFunctionDefInstantiationParameter(self, o):
         assert False
         res = o.symbol
         return self.add_range_check(o, res)

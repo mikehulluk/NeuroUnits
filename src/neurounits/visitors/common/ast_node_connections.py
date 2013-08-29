@@ -226,7 +226,7 @@ class ASTAllConnections(ASTActionerDepthFirst):
     def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
         return list(chain([o.function_def], o.parameters.values() ))
 
-    def VisitFunctionDefInstantiationParater(self, o, **kwargs):
+    def VisitFunctionDefInstantiationParameter(self, o, **kwargs):
         return [o.rhs_ast, o._function_def_parameter]
 
     def VisitOnTransitionTrigger(self, o, **kwargs):

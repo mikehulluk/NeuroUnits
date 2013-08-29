@@ -170,7 +170,7 @@ class ASTClone(object):
         return copy_std(o, new, )
 
 
-    def VisitFunctionDefInstantiationParater(self, o, **kwargs):
+    def VisitFunctionDefInstantiationParameter(self, o, **kwargs):
         new =  ast.FunctionDefParameterInstantiation(
                     symbol = o.symbol,
                     rhs_ast = o.rhs_ast,

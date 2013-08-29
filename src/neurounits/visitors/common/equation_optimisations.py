@@ -352,7 +352,7 @@ class ReplaceWithOptimisedNodes(ASTVisitorBase):
         for p in o.parameters.values():
             self.visit(p)
 
-    def VisitFunctionDefInstantiationParater(self, o):
+    def VisitFunctionDefInstantiationParameter(self, o):
         #print 'Checking Param' print o.rhs_ast
         o.rhs_ast = self.replace_or_visit(o.rhs_ast)
 

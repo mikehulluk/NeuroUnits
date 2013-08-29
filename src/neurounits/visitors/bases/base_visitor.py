@@ -123,7 +123,7 @@ class ASTVisitorBase(object):
         print self, o
         raise NotImplementedError()
 
-    def VisitFunctionDefInstantiationParater(self, o, **kwargs):
+    def VisitFunctionDefInstantiationParameter(self, o, **kwargs):
         print self, o
         raise NotImplementedError()
     def VisitRandomVariable(self, o, **kwargs):

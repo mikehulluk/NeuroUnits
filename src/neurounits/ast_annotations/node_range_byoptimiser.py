@@ -239,7 +239,7 @@ class CFloatEval(ASTVisitorBase):
             return 'exp(%s)'%(self.visit(o.parameters.values()[0]))
         assert False
 
-    def VisitFunctionDefInstantiationParater(self, o, **kwargs):
+    def VisitFunctionDefInstantiationParameter(self, o, **kwargs):
         return self.visit(o.rhs_ast)
     
     def VisitRandomVariable(self, o, **kwargs):
@@ -802,7 +802,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
 # 
 # 
 #     @set_minmax_for_node
-#     def VisitFunctionDefInstantiationParater(self, o):
+#     def VisitFunctionDefInstantiationParameter(self, o):
 #         return self.visit(o.rhs_ast)
 # 
 # 

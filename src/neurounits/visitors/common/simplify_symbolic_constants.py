@@ -209,7 +209,7 @@ class ReduceConstants(ASTVisitorBase):
         raise NotImplementedError()
 
 
-    def VisitFunctionDefInstantiationParater(self, o, **kwargs):
+    def VisitFunctionDefInstantiationParameter(self, o, **kwargs):
         raise NotImplementedError()
 
 

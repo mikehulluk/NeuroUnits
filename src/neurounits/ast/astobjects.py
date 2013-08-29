@@ -328,7 +328,7 @@ class FunctionDefBuiltInInstantiation(ASTExpressionObject):
 class FunctionDefParameterInstantiation(ASTExpressionObject):
 
     def accept_visitor(self, v, **kwargs):
-        return v.VisitFunctionDefInstantiationParater(self, **kwargs)
+        return v.VisitFunctionDefInstantiationParameter(self, **kwargs)
 
     def __init__(self, rhs_ast, symbol, function_def_parameter=None, **kwargs):
         ASTExpressionObject.__init__(self, **kwargs)

@@ -465,7 +465,7 @@ class CStringWriter(ASTVisitorBase):
 
 
 
-    def VisitFunctionDefInstantiationParater(self, o, **kwargs):
+    def VisitFunctionDefInstantiationParameter(self, o, **kwargs):
         panic()
 
 

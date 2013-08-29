@@ -324,7 +324,7 @@ class ReplaceNode(ASTVisitorBase):
         return o
 
 
-    def VisitFunctionDefInstantiationParater(self, o, **kwargs):
+    def VisitFunctionDefInstantiationParameter(self, o, **kwargs):
         o.rhs_ast = self.replace_or_visit(o.rhs_ast)
         return o
 

@@ -624,7 +624,7 @@ class DimensionResolver(ASTVisitorBase):
 
 
 
-    def VisitFunctionDefInstantiationParater(self, o, **kwargs):
+    def VisitFunctionDefInstantiationParameter(self, o, **kwargs):
         self.EnsureEqualDimensions([o, o.get_function_def_parameter(),
                                    o.rhs_ast],
                                    reason='Parameter Instantiation')

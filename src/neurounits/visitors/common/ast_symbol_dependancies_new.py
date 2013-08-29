@@ -384,7 +384,7 @@ class _DependancyFinder(ASTVisitorBase):
         return list(itertools.chain(*[self.visit(p) for p in o.parameters.values()]))
 
     @save_deps_for_node
-    def VisitFunctionDefInstantiationParater(self, o, **kwargs):
+    def VisitFunctionDefInstantiationParameter(self, o, **kwargs):
         return self.visit(o.rhs_ast)
 
     def VisitAnalogReducePort(self, o, **kwargs):
