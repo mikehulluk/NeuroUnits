@@ -280,6 +280,7 @@ class NodeEvaluatorCCode(ASTActionerDefault):
             return
         
         print 'Building Evaluation function for: ', n
+        assert name is None
         if name is None:
             name = 'eval_node_%s_%s' % (type(n).__name__, id(n))
         code = CFloatEval(the_component=self.component).visit(n)
@@ -386,38 +387,15 @@ class NodeEvaluatorCCode(ASTActionerDefault):
     def ActionRandomVariable(self,o,**kwargs):
         return self.BuildEvalFunc(o)
 
-    #def ActionRandomVariableParameter(self, o, **kwargs):
-    #    return self.BuildEvalFunc(o)
 
 
 
-
-
-    
-    
-    
-
-
-
-
-create_data_func = """
-InputData* create_data(void)
-{
-    InputData* a = (InputData*) malloc(sizeof(InputData));;
-    return a;
-}
-"""
 
 
 input_ds_tmpl = Template("""
 typedef struct  {
-    <% 
-    syms1 = [input.symbol for input in component.all_input_terminals]
-    syms2 = ['rv_' + str(id(rv)) for rv in component.random_variable_nodes]
-    syms = syms1 + syms2  
-    %>
-    %for sym in syms:
-    double ${sym};
+    %for sym in list(component.all_input_terminals) + list(component.random_variable_nodes):
+    double ${sym.annotations['_range-finding-c-var-name']};
     %endfor
     
     %for rtgraph in component.rt_graphs:
@@ -430,18 +408,135 @@ typedef struct  {
 
 
 
+
+class NodeRangeCCodeNodeNamer( ASTTreeAnnotator, ASTActionerDefault):
+    
+    def annotate_ast(self, component):
+        self.visit(component)
+    
+    def ActionNode(self, n):
+        print 'Skipping', n
+    
+    def set_var_name(self, n, name):
+        n.annotations['_range-finding-c-var-name'] = name    
+    def set_func_name(self, n, name=None):
+        if name is None:
+            name = 'eval_node_%s_%s' % (type(n).__name__, id(n))
+        n.annotations['_range-finding-c-func-name'] = name    
+    
+    def ActionRandomVariable(self, o, **kwargs):
+        self.set_var_name(o, name='rv_%s' % str(id(o)))
+        self.set_func_name(o)
+
+    def _ActionSymbolTerminal(self, o):
+        self.set_var_name(o, name=o.symbol)
+        self.set_func_name(o)
+        
+    def ActionStateVariable(self, o):
+        self._ActionSymbolTerminal(o)
+    def ActionAssignedVariable(self,o):
+        self._ActionSymbolTerminal(o)
+    def ActionSuppliedValue(self, o):
+        self._ActionSymbolTerminal(o)
+        
+    def ActionInEquality(self, n, **kwargs):
+        self.set_func_name(n)
+    def ActionIfThenElse(self, n, **kwargs):
+        self.set_func_name(n)
+
+    def ActionAddOp(self, o, **kwargs):
+        self.set_func_name(o)
+    def ActionSubOp(self, o, **kwargs):
+        self.set_func_name(o)
+    def ActionMulOp(self, o, **kwargs):
+        self.set_func_name(o)
+    def ActionDivOp(self, o, **kwargs):
+        self.set_func_name(o)
+    def ActionFunctionDefInstantiationParater(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
+    
+
+
 class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
     def __init__(self, var_annots_ranges):
         self.var_annots_ranges = var_annots_ranges
         super(NodeRangeByOptimiser, self).__init__()
         
+    
+    
+    
+    @classmethod
+    def find_minmax_for_node(self, node, component, cffi_top, cffi_code_obj):    
         
+            print
+            print 'Evaluating: ', node
+            deps = VisitorSymbolDependance(component)._get_dependancies(
+                                                            node=node, 
+                                                            expand_assignments=True, 
+                                                            include_random_variables=True, 
+                                                            include_supplied_values=True, 
+                                                            include_symbolic_constants=False, 
+                                                            include_parameters=True, 
+                                                            include_analog_input_ports=True)
+                         
+            inputdata = cffi_top.new('InputData*')
+            
+            
+            
+            
+            #depnames = [depname_map[dep] for dep in deps]
+            print deps
+            depnames = [dep.annotations['_range-finding-c-var-name'] for dep in deps]
+            #ass_var_fun_name = node_evaluator_c_code.node_code[node][0]
+            print node
+            ass_var_fun_name = node.annotations['_range-finding-c-func-name']
+            func = getattr(cffi_code_obj, ass_var_fun_name)
+            
+            
+            def eval_func_min(p):
+                for i,depname in enumerate(depnames):
+                    setattr(inputdata, depname, p[i])
+                res = func(inputdata)
+                return res    
+            
+            def eval_func_max(p):
+                return -eval_func_min(p)
+            
+            
+            upper_bounds = np.array( [ dep.annotations['node-value-range'].max for dep in deps] )
+            lower_bounds = np.array( [ dep.annotations['node-value-range'].min for dep in deps] )
+            bounds = [ (lower_bounds[i],upper_bounds[i]) for i in range(len(deps)) ]
+            x0 = (lower_bounds+upper_bounds) * 0.5
+            #print 'Starting annealing:'
+            #print 'Upper', upper_bounds
+            #print 'Lower', lower_bounds
+            #print 'X0', x0
+                
+            #import scipy
+            #import scipy.optimize
+            #try:
+                #res = scipy.optimize.anneal(eval_func_min, x0, lower=lower_bounds, upper=upper_bounds)
+            method = 'COBYLA'
+            method = 'TNC'
+            tol = 1e-15
+            res_min = scipy.optimize.minimize(eval_func_min, x0, method=method, bounds=bounds, tol=tol)
+            res_max = scipy.optimize.minimize(eval_func_max, x0, method=method, bounds=bounds, tol=tol)
+            
+            #print 'Min:'
+            #print '----'
+            #print res_min
+            #print 'Max:'
+            #print '----'
+            #print res_max
+
+            func_min = eval_func_min( res_min.x)
+            func_max = eval_func_min( res_max.x)
+            return func_min,func_max
         
         
         
     def annotate_ast(self, component, **kwargs):
-        
-        
+
         # 0. Ensure all the state-variables have ranges:
         for sv in list(component.state_variables) + list(component.suppliedvalues):
             assert sv.symbol in self.var_annots_ranges, 'Annotation missing for state-variable: %s' % sv.symbol
@@ -454,6 +549,11 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
                     max_= rv.parameters.get_single_obj_by(name='max').rhs_ast.value.float_in_si(),
                     )
         
+        
+        # 0b. Ensure that each node has a name for accessing the data-structure and 
+        # for calling the evaluation function:
+        component.annotate_ast( NodeRangeCCodeNodeNamer() )
+                
         
         
         
@@ -479,133 +579,53 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
         ffi = FFI()
         
         ffi.cdef(input_ds)
-        ffi.cdef("InputData* create_data(void);")        
+        #ffi.cdef("InputData* create_data(void);")        
         for func_proto in func_prototypes:
             ffi.cdef(func_proto)
         
-        code =  '\n'.join( [input_ds, create_data_func] + func_defs  )
-        C = ffi.verify(code)
+        code =  '\n'.join( [input_ds] + func_defs)
         
+        print 'Compiling:'
+        C = ffi.verify(code)
+        print 'OK'
         
         print '\n\n\n'
         # 2. Evaluate for each node:
-        inputdata = C.create_data()
+        
         
         
         
         
         
         for ass_var in component.assignedvalues:
-            print
-            print 'Evaluating: ', ass_var
-            deps = VisitorSymbolDependance(component).get_terminal_dependancies(
-                                                            terminal=ass_var, 
-                                                            expand_assignments=True, 
-                                                            include_random_variables=True, 
-                                                            include_supplied_values=True, 
-                                                            include_symbolic_constants=False, 
-                                                            include_parameters=True, 
-                                                            include_analog_input_ports=True)
-             
-            depname_map = {}
-            for dep in deps:
-                print 'dep: ', dep, dep.annotations['node-value-range']
-                if isinstance(dep, ast.RandomVariable):
-                    depname_map[dep] = 'rv_%s' % str(id(dep))
-                else:
-                    depname_map[dep] = dep.symbol
-            
-            if False:
-                # Test it out!
-                # ===============
-                for dep in deps:
-                    ann = dep.annotations['node-value-range']
-                    dep_val = (ann.max + ann.min) * 0.75 
-                    print 'Setting dep: ', dep, dep_val
-                    setattr(inputdata, depname_map[dep], dep_val)
-                
-                print 'V:', inputdata.V
-                ass_var_fun_name = node_evaluator_c_code.node_code[ass_var][0]
-                print 'Evaluating: ', ass_var_fun_name    
-                func = getattr(C, ass_var_fun_name)
-                print 'Func:', func
-                res = func(inputdata)
-                print 'Res:', res 
-                # =====================
-        
-            depnames = [depname_map[dep] for dep in deps]
-            ass_var_fun_name = node_evaluator_c_code.node_code[ass_var][0]
-            func = getattr(C, ass_var_fun_name)
-            def eval_func_min(p):
-                for i,depname in enumerate(depnames):
-                    setattr(inputdata, depname, p[i])
-                res = func(inputdata)
-                return res    
-            
-            def eval_func_max(p):
-                return -eval_func_min(p)
-            
-            
-            
-            #from  scipy.optimize import minimize
-            #upper_bounds = np.array( [ dep.annotations['node-value-range'].max for dep in deps] )
-            #lower_bounds = np.array( [ dep.annotations['node-value-range'].min for dep in deps] )
-            #bounds = [ (lower_bounds[i],upper_bounds[i]) for i in range(len(deps)) ]
-            #x0 = (lower_bounds+upper_bounds) * 0.5
-            
-            #x1 = lower_bounds
-            #x2 = upper_bounds
-            
-            
-            
-            #print 'Optimising: '
-            #res = scipy.optimize.fminbound(eval_func_min, x1, x2, ) #args=(), xtol=1e-05, maxfun=500, full_output=0, disp=1)
-            ##res = scipy.optimize.minimize(eval_func_min, x0,  method='L-BFGS-B', bounds=bounds) 
-            #print res
-            
-            
-            upper_bounds = np.array( [ dep.annotations['node-value-range'].max for dep in deps] )
-            lower_bounds = np.array( [ dep.annotations['node-value-range'].min for dep in deps] )
-            bounds = [ (lower_bounds[i],upper_bounds[i]) for i in range(len(deps)) ]
-            x0 = (lower_bounds+upper_bounds) * 0.5
-            print 'Starting annealing:'
-            print 'Upper', upper_bounds
-            print 'Lower', lower_bounds
-            print 'X0', x0
-                
-            import scipy
-            import scipy.optimize
-            #try:
-                #res = scipy.optimize.anneal(eval_func_min, x0, lower=lower_bounds, upper=upper_bounds)
-            method = 'COBYLA'
-            method = 'TNC'
-            res_min = scipy.optimize.minimize(eval_func_min, x0, method=method, bounds=bounds)
-            res_max = scipy.optimize.minimize(eval_func_max, x0, method=method, bounds=bounds)
-            
-            print 'Min:'
-            print '----'
-            print res_min
-            print 'Max:'
-            print '----'
-            print res_max
-
-            func_min = eval_func_min( res_min.x)
-            func_max = eval_func_min( res_max.x)
-
+            func_min,func_max = NodeRangeByOptimiser.find_minmax_for_node(node=ass_var, component=component, cffi_top=ffi, cffi_code_obj=C)
             ass_var.annotations['node-value-range'] = _NodeRangeFloat(min_=func_min, max_=func_max)
-                                  
+        
+        
+        required_nodes_types = (ast.IfThenElse, ast.InEquality, ast.AddOp, ast.SubOp, ast.MulOp, ast.DivOp, ast.FunctionDefParameterInstantiation)
+        ranges_nodes = [n for n in component.all_ast_nodes() if isinstance(n, required_nodes_types) ]
+        for node in ranges_nodes:
+            print 'Evaluating: ', node
+            func_min,func_max = NodeRangeByOptimiser.find_minmax_for_node(node=node, component=component, cffi_top=ffi, cffi_code_obj=C)
+            node.annotations['node-value-range'] = _NodeRangeFloat(min_=func_min, max_=func_max)
+            
                                   
 
 
+        
+        
+        
         
         print 
         print 'Limits found'
         print '------------'
         for ass_var in component.assignedvalues:
             print ass_var.symbol, ass_var.annotations['node-value-range'] 
+        for node in ranges_nodes:
+            print node, node.annotations['node-value-range']
         
-            
-        assert False
+        
+        #assert False
         
         
         
@@ -629,7 +649,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
         
         
         
-        assert False
+        #assert False
         
         # We need to visit every node:
         

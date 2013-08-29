@@ -113,6 +113,10 @@ class VisitorSymbolDependance(object):
 
         dependancies = [d for d in dependancies if not isinstance( d, ast.RTBlock)]
 
+
+       
+
+
         if expand_assignments:
             dependancies_statevars =   set([dep for dep in dependancies if isinstance(dep, (ast.StateVariable, ast.RandomVariable, ast.SuppliedValue))])
             unexpanded_assignment_dependancies = set([dep for dep in dependancies if isinstance(dep, ast.AssignedVariable)])
@@ -157,6 +161,7 @@ class VisitorSymbolDependance(object):
         if include_analog_input_ports == False:
             dependancies = [d for d in dependancies if not isinstance(d, ast.AnalogReducePort)]
 
+
         assert len(dependancies) == len(set(dependancies))
         return dependancies
 
@@ -178,13 +183,8 @@ class VisitorSymbolDependance(object):
         g = nx.DiGraph()
         all_objs = set( list(chain(*dep_find.dependancies.values()))  + dep_find.dependancies.keys() )
         for o in all_objs:
-            color_lut = {
-                    ast.AssignedVariable: 'green',
-                    ast.StateVariable: 'blue', }
-            color = color_lut[type(o)] if type(o) in color_lut else 'red'
-
-            g.add_node(o, label=repr(o), color=color)
-
+            g.add_node(o) 
+            
         for k,v in dep_find.dependancies.items():
             for c in v:
                 g.add_edge(k,c)
@@ -192,9 +192,8 @@ class VisitorSymbolDependance(object):
 
 
         if plot:
-            #pylab.ion()
             nx.draw_networkx(g, with_labels=True, labels={n:repr(n) for n in all_objs} )
-            #pylab.show()
+            pylab.show()
 
         return g
 
@@ -207,7 +206,14 @@ class VisitorSymbolDependance(object):
 
 
 
-
+def save_deps_for_node(func):
+    def new_func(self, node, *args, **kwargs):
+        deps = func(self, node, *args, **kwargs)
+        self.dependancies[node] = deps
+        return deps
+    return new_func
+        
+        
 
 
 
@@ -215,6 +221,7 @@ class _DependancyFinder(ASTVisitorBase):
 
     def __init__(self, component):
         self.dependancies = {}
+        #self.include_intermediate_nodes = include_intermediate_nodes
 
 
     def VisitLibrary(self, o, **kwargs):
@@ -249,17 +256,20 @@ class _DependancyFinder(ASTVisitorBase):
     def VisitSymbolicConstant(self, o, **kwargs):
         return []
 
+    @save_deps_for_node
     def VisitIfThenElse(self, o, **kwargs):
         d1 = self.visit(o.predicate, **kwargs)
         d2 = self.visit(o.if_true_ast, **kwargs)
         d3 = self.visit(o.if_false_ast, **kwargs)
-        return d1 + d2 + d3
+        return d1 + d2 + d3 #+ [o]
 
+    @save_deps_for_node
     def VisitInEquality(self, o, **kwargs):
         d1 = self.visit(o.lesser_than, **kwargs)
         d2 = self.visit(o.greater_than, **kwargs)
         return d1 + d2
 
+    
     def VisitBoolAnd(self, o, **kwargs):
         d1 = self.visit(o.lhs, **kwargs)
         d2 = self.visit(o.rhs, **kwargs)
@@ -307,9 +317,6 @@ class _DependancyFinder(ASTVisitorBase):
         return self.visit(o.rhs_map)
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
-        # Visit the RT graph, to work out what it depends on!
-        #self.visit(o.get_rt_graph())
-
         symbols = []
         for rhs in o.rhs_map.values():
             symbols.extend(self.visit(rhs, **kwargs))
@@ -329,9 +336,11 @@ class _DependancyFinder(ASTVisitorBase):
 
     def VisitOnTransitionTrigger(self, o, **kwargs):
         return [o.rt_graph] + self.visit_trans(o) + self.visit(o.trigger)
+    
     def VisitOnTransitionEvent(self, o, **kwargs):
         return [o.rt_graph] + self.visit_trans(o)
 
+    @save_deps_for_node
     def VisitOnEventStateAssignment(self, o, **kwargs):
         return self.visit(o.rhs)
 
@@ -347,18 +356,23 @@ class _DependancyFinder(ASTVisitorBase):
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         return self.visit(o.rhs_map)
 
+    @save_deps_for_node
     def VisitAddOp(self, o, **kwargs):
         return self.visit(o.lhs) + self.visit(o.rhs)
 
+    @save_deps_for_node    
     def VisitSubOp(self, o, **kwargs):
         return self.visit(o.lhs) + self.visit(o.rhs)
-
+    
+    @save_deps_for_node
     def VisitMulOp(self, o, **kwargs):
         return self.visit(o.lhs) + self.visit(o.rhs)
-
+    
+    @save_deps_for_node
     def VisitDivOp(self, o, **kwargs):
         return self.visit(o.lhs) + self.visit(o.rhs)
-
+    
+    @save_deps_for_node
     def VisitExpOp(self, o, **kwargs):
         return self.visit(o.lhs)
 
@@ -369,6 +383,7 @@ class _DependancyFinder(ASTVisitorBase):
         #assert False
         return list(itertools.chain(*[self.visit(p) for p in o.parameters.values()]))
 
+    @save_deps_for_node
     def VisitFunctionDefInstantiationParater(self, o, **kwargs):
         return self.visit(o.rhs_ast)
 

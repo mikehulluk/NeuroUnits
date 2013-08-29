@@ -51,7 +51,7 @@ class ASTNodeAnnotationData():
 
 
 class ASTTreeAnnotator(object):
-    def annotate_ast(self):
+    def annotate_ast(self, component):
         raise NotImplementedError()
 
 
