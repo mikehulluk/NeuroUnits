@@ -104,13 +104,15 @@ pop_RHS_dla = pops_by_name['pop1'].get_subpopulation(start_index=1065, end_index
 pop_RHS_dlc = pops_by_name['pop1'].get_subpopulation(start_index=1094, end_index=1146, subname='RHS_dlc', autotag=['RHS','dlc'])
 
 
+
+dINs = pops_by_name['pop2']
  
 
 
 rhs_subpops = [pop_RHS_MN, pop_RHS_RB, pop_RHS_aIN, pop_RHS_cIN, pop_RHS_dla, pop_RHS_dlc] 
 lhs_subpops = [pop_LHS_MN, pop_LHS_RB, pop_LHS_aIN, pop_LHS_cIN, pop_LHS_dla, pop_LHS_dlc]
 
-network.record_traces( rhs_subpops+lhs_subpops, 'V' )
+network.record_traces( rhs_subpops+lhs_subpops + [dINs], 'V' )
 
 network.record_input_events( rhs_subpops+lhs_subpops, 'recv_nmda_spike' )
 network.record_output_events( rhs_subpops+lhs_subpops, 'spike' )
@@ -139,6 +141,9 @@ for symbol in record_symbols:
 
     for res in results.filter(" ALL{%s} AND ANY{POPINDEX:000, POPINDEX:001,POPINDEX:002,POPINDEX:003, POPINDEX:118, POPINDEX:119,POPINDEX:120,POPINDEX:168,POPINDEX:169,POPINDEX:170}" % symbol):
     #for res in results.filter("ALL{%s,POPINDEX:001}" % symbol):
+        #print res.raw_data.time_pts.shape, res.raw_data.data_pts
+        #print type(res.raw_data.data_pts)
+        #print res.group
         pylab.plot(res.raw_data.time_pts, res.raw_data.data_pts, label=','.join(res.tags), ms='x'  )
         #print np.min(res), np.max(res)
     pylab.ylabel(symbol)

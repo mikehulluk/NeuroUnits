@@ -4,11 +4,11 @@
 
 
 class Population(object):
-    def __init__(self, name, component, size):
+    def __init__(self, name, component, size, autotag=None):
         self.name = name
         self.component = component
         self.size = size
-
+        self.autotag = autotag or []
 
     def get_subpopulation(self, start_index, end_index, subname, autotag):
         return SubPopulation(population=self, 
@@ -102,6 +102,9 @@ class Network(object):
         self._record_output_events = defaultdict( list )
         self._record_input_events = defaultdict( list )
         
+        # Setup properly by finalise:
+        self.all_recordings = None
+        self.n_recording_buffers = None
         
     def record_traces(self, subpopulations, terminal_node_name):
         if isinstance(subpopulations, (Population,SubPopulation)):
@@ -142,18 +145,21 @@ class Network(object):
         
     def finalise(self):
         # Work out which traces to record:
-        all_recordings = []
+        assert self.all_recordings is None
+        self.all_recordings = []
         
         for (population, terminal_node), values in sorted(self._record_traces.items()):
             for indices, autotag in sorted(values):
-                global_offset = 0 if all_recordings == [] else ( all_recordings[-1].global_offset + all_recordings[-1].size )
+                global_offset = 0 if self.all_recordings == [] else ( self.all_recordings[-1].global_offset + self.all_recordings[-1].size )
                 size = indices[1] - indices[0]
-                all_recordings.append( PopRec( global_offset=global_offset, size=size, src_population=population, src_pop_start_index=indices[0], node=terminal_node, tags=autotag ) )
-                
+                self.all_recordings.append( PopRec( global_offset=global_offset, size=size, src_population=population, src_pop_start_index=indices[0], node=terminal_node, tags=autotag ) )
+        
+        self.n_recording_buffers = 0 if self.all_recordings == [] else ( self.all_recordings[-1].global_offset + self.all_recordings[-1].size )        
         # 
         print 'Traces recorded:'
-        for rec in all_recordings:
+        for rec in self.all_recordings:
             print rec
+                     
             
         
         

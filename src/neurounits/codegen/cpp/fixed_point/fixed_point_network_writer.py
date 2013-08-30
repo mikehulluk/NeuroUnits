@@ -378,6 +378,14 @@ namespace NS_eventcoupling_${projection.name}
 
 
 
+#if USE_HDF
+// For faster lookup:
+typedef std::vector<HDF5DataSet2DStdPtr> HDF5DataSet2DStdPtrVector;
+##std::unordered_map<NativeInt32, HDF5DataSet2DStdPtrVector> hdf_map_id_to_datasetptrs_int;
+##std::unordered_map<NativeInt32, HDF5DataSet2DStdPtrVector> hdf_map_id_to_datasetptrs_float;
+#endif
+
+
 
 """
 
@@ -755,15 +763,15 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
 
 
 
-
-
-
 #if USE_HDF
 // For faster lookup:
-typedef std::vector<HDF5DataSet2DStdPtr> HDF5DataSet2DStdPtrVector;
+##typedef std::vector<HDF5DataSet2DStdPtr> HDF5DataSet2DStdPtrVector;
 std::unordered_map<NativeInt32, HDF5DataSet2DStdPtrVector> hdf_map_id_to_datasetptrs_int;
 std::unordered_map<NativeInt32, HDF5DataSet2DStdPtrVector> hdf_map_id_to_datasetptrs_float;
 #endif
+
+
+
 
 
 
@@ -813,49 +821,49 @@ void setup_hdf5()
 
 
 
-void write_all_results_to_hdf5(NrnPopData* d)
-{
-
-        #if USE_HDF && SAVE_HDF5_INT
-        {
-        int* pData = new int[n_results_written];
-        % for sv_def in list(population.component.assignedvalues) + list(population.component.state_variables) + list(population.component.suppliedvalues):
-        %if sv_def.symbol in record_symbols:
-        {
-            HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_int[${sv_def.annotations['node-id']}];
-        // Copy the data into the array:
-        for(int i=0;i<NrnPopData::size;i++) {
-            for(int j=0;j<n_results_written;j++) { pData[j] = get_value32( d[j].${sv_def.symbol}[i]); }
-            pVec[i]->set_data(n_results_written, 1, pData);
-        }
-        }
-        % endif
-        % endfor
-        delete[] pData;
-        }
-        #endif
-
-
-        #if USE_HDF && SAVE_HDF5_FLOAT
-        {
-        double* pData = new double[n_results_written];
-        % for sv_def in list(population.component.assignedvalues) + list(population.component.state_variables) + list(population.component.suppliedvalues):
-        %if sv_def.symbol in record_symbols:
-        {
-        HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}];
-        // Copy the data into the array:
-        for(int i=0;i<NrnPopData::size;i++) {
-            for(int j=0;j<n_results_written;j++) { pData[j] = FixedFloatConversion::to_float(  d[j].${sv_def.symbol}[i],  IntType(${sv_def.annotations['fixed-point-format'].upscale}) ); }
-            pVec[i]->set_data(n_results_written, 1, pData);
-            }
-        }
-        % endif
-        % endfor
-        delete[] pData;
-        }
-        #endif
-
-}
+##void write_all_results_to_hdf5(NrnPopData* d)
+##{
+##
+##        #if USE_HDF && SAVE_HDF5_INT
+##        {
+##        int* pData = new int[n_results_written];
+##        % for sv_def in list(population.component.assignedvalues) + list(population.component.state_variables) + list(population.component.suppliedvalues):
+##        %if sv_def.symbol in record_symbols:
+##       {
+##            HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_int[${sv_def.annotations['node-id']}];
+##        // Copy the data into the array:
+##        for(int i=0;i<NrnPopData::size;i++) {
+##            for(int j=0;j<n_results_written;j++) { pData[j] = get_value32( d[j].${sv_def.symbol}[i]); }
+##            pVec[i]->set_data(n_results_written, 1, pData);
+##        }
+##        }
+##        % endif
+##        % endfor
+##        delete[] pData;
+##        }
+##        #endif
+##
+##
+##        #if USE_HDF && SAVE_HDF5_FLOAT
+##        {
+##        double* pData = new double[n_results_written];
+##        % for sv_def in list(population.component.assignedvalues) + list(population.component.state_variables) + list(population.component.suppliedvalues):
+##        %if sv_def.symbol in record_symbols:
+##        {
+##        HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}];
+##        // Copy the data into the array:
+##        for(int i=0;i<NrnPopData::size;i++) {
+##            for(int j=0;j<n_results_written;j++) { pData[j] = FixedFloatConversion::to_float(  d[j].${sv_def.symbol}[i],  IntType(${sv_def.annotations['fixed-point-format'].upscale}) ); }
+##            pVec[i]->set_data(n_results_written, 1, pData);
+##            }
+##        }
+##        % endif
+##        % endfor
+##        delete[] pData;
+##        }
+##        #endif
+##
+##}
 
 
 void write_step_to_hdf5(NrnPopData& d, TimeInfo time_info)
@@ -994,7 +1002,7 @@ int main()
         {
 
             TimeInfo time_info(time_step);
-            cout << "\n\nTIME:" << time_step << "\n";
+            //cout << "\n\nTIME:" << time_step << "\n";
 
 
 
@@ -1028,18 +1036,18 @@ int main()
 
 
 
-            // Z. Record the states:
+
+            // C. Save the recorded values:
             if(get_value32(time_info.time_step) % get_value32(record_rate)==0)
             {
                 write_time_to_hdf5(time_info);
-                %for pop in network.populations:
-                global_data.${pop.name}_recorded_output_data_OLD[n_results_written] = data_${pop.name};
+                %for poprec in network.all_recordings:
+                // Record: ${poprec}
+                for(int i=0;i<${poprec.size};i++) global_data.recordings_new.data_buffers[n_results_written][${poprec.global_offset}+i] = data_${poprec.src_population.name}.${poprec.node.symbol}[i];
                 %endfor
+
                 n_results_written++;
             }
-
-
-
 
 
         }
@@ -1048,17 +1056,21 @@ int main()
     }
     #endif
 
-     // Dump to HDF5
-    cout << "\nWriting HDF5 output" << std::flush;
-    %for pop in network.populations:
-    NS_${pop.name}::write_all_results_to_hdf5(global_data.${pop.name}_recorded_output_data_OLD);
-    %endfor
 
-     %for pop in network.populations:
+
+    
+    // Dump to HDF5
+    cout << "\nWriting HDF5 output" << std::flush;
+    global_data.recordings_new.write_all_to_hdf();
+
+
     #if ON_NIOS
-    NS_${pop.name}::print_results_from_NIOS(global_data.${pop.name}_recorded_output_data_OLD);
-    #endif
+    %for pop in network.populations:
+    NS_${pop.name}::print_results_from_NIOS(global_data.recordings.${pop.name}_recorded_output_data_OLD);
     %endfor
+    #endif
+
+
 
 
     printf("Simulation Complete\n");
@@ -1078,6 +1090,12 @@ int main()
 
 
 """
+
+
+
+    
+    
+
 
 
 
@@ -1207,7 +1225,7 @@ namespace NS_eventcoupling_${projection.name}
 """
 
 
-popl_obj_tmpl = """
+popl_obj_tmpl = r"""
 
 // Setup the global variables:
 %for pop in network.populations:
@@ -1216,26 +1234,106 @@ NS_${pop.name}::NrnPopData data_${pop.name};
 
 
 
-struct GlobalData {
 
+struct RecordingMgr
+{
     // Old storage:
     %for pop in network.populations:
     NS_${pop.name}::NrnPopData* ${pop.name}_recorded_output_data_OLD; 
     %endfor
 
-    GlobalData()
+    RecordingMgr()
     {
     %for pop in network.populations:
         ${pop.name}_recorded_output_data_OLD = new NS_${pop.name}::NrnPopData[n_results_total];
     %endfor
     }
     
-    ~GlobalData()
+    ~RecordingMgr()
     {
         %for pop in network.populations:
         delete[] ${pop.name}_recorded_output_data_OLD;
         %endfor
     }
+};
+
+
+
+
+struct RecordMgrNew
+{
+    static const int buffer_size = n_results_total;
+    
+    // What are we recording:
+    %for poprec in network.all_recordings:
+    // Record: ${poprec}
+    %endfor
+    static const int n_rec_buffers = ${network.n_recording_buffers};
+    
+    // Allocate the storage:
+    IntType data_buffers[buffer_size][n_rec_buffers];
+    
+    
+    void write_all_to_hdf()
+    {
+        
+        cout << "\n\nWriting to HDF5";
+        
+    
+        HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
+        
+        T_hdf5_type_int data_int[n_results_written];
+        T_hdf5_type_float data_float[n_results_written];
+                
+        %for i,poprec in enumerate(network.all_recordings):
+        {
+            // Save: ${poprec}
+            const T_hdf5_type_float node_sf = pow(2.0, ${poprec.node.annotations['fixed-point-format'].upscale} - VAR_NBITS);  
+            #if SAVE_HDF5_INT
+            HDF5DataSet2DStdPtrVector& pVecInt = NS_${poprec.src_population.name}::hdf_map_id_to_datasetptrs_int[${poprec.node.annotations['node-id']}];
+            #endif
+            #if SAVE_HDF5_FLOAT
+            HDF5DataSet2DStdPtrVector& pVecFloat = NS_${poprec.src_population.name}::hdf_map_id_to_datasetptrs_float[${poprec.node.annotations['node-id']}];
+            #endif
+            
+            for(int i=0;i<${poprec.size};i++)
+            {
+                int buffer_offset = ${poprec.global_offset}+i;
+                
+                for(int t=0;t<n_results_written;t++) 
+                {
+                    
+                    data_int[t] = data_buffers[t][buffer_offset];
+                    data_float[t] = data_int[t] * node_sf;
+                }
+                
+                #if SAVE_HDF5_INT
+                pVecInt[${poprec.src_pop_start_index}+i]->set_data(n_results_written,1, data_int);
+                #endif
+                
+                #if SAVE_HDF5_FLOAT
+                pVecFloat[${poprec.src_pop_start_index}+i]->set_data(n_results_written,1, data_float);
+                #endif
+                
+            }
+        }
+        %endfor
+        
+        cout << "\n\nFisnihed Writing to HDF5";
+    }
+    
+};
+
+
+
+
+struct GlobalData {
+
+    // Old - to go!
+    RecordingMgr recordings;
+    
+    // New version:
+    RecordMgrNew recordings_new;
     
 };
 
@@ -1291,7 +1389,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
         std_variables = {
-            'nsim_steps' : 5000,
+            'nsim_steps' : 2000,
             'nbits':self.nbits,
             'dt_float' : self.dt_float,
             'dt_int' : self.dt_int,
@@ -1475,7 +1573,7 @@ class CBasedEqnWriterFixedNetwork(object):
                                                 additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/') ],
                                                 additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/")],
                                                 libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl'],
-                                                compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
+                                                compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x  -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                                 #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x -O3  -g -march=native ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                                 #compile_flags=['-Wall -Wfatal-errors -std=gnu++0x -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                     
