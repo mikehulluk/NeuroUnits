@@ -96,7 +96,7 @@ const int nsim_steps = ${nsim_steps};
 
 
 // Define how often to record values:
-const int record_rate = 1;
+const int record_rate = 10;
 
 
 const int n_results_total = nsim_steps / record_rate;
@@ -153,48 +153,6 @@ typedef mh::FixedFloatConversion<VAR_NBITS> FixedFloatConversion;
 using mh::auto_shift;
 using mh::auto_shift64;
 
-
-
-//#define auto_shift(n,m)     ( (((NativeInt32) (m) )==0)  ? ((NativeInt32)(n)) : ( ((((NativeInt32)(m))>0) ? (((NativeInt32)(n))<<((NativeInt32)(m))) : (((NativeInt32)(n))>>(-((NativeInt32)(m))) ) ) ) ) 
-
-//#define auto_shift(n,m)     ( (((NativeInt32) (m) )==0)  ? ((NativeInt32)(n)) : ( ((((NativeInt32)(m))>0) ? (((NativeInt32)(n))<<((NativeInt32)(m))) : ((NativeInt32)(n))>>(-((NativeInt32)(m))) ) ) ) 
-//#define auto_shift64(n,m) ( ((m)==0)  ? (m) : ( ((m)>0) ? ((n)<<(m)) : (n)>>(-(m)) ) ) 
-
-
-//        inline
-//        NativeInt32 auto_shift(NativeInt32 n, NativeInt32 m)
-//        {
-//                if(m==0)
-//                {
-//                        return n;
-//                }
-//                else if( m>0)
-//                {
-//                        return n << m;
-//                }
-//                else
-//                {
-//                   return n >> -m;
-//                }
-//        }
-//
-//
-//        inline
-//        NativeInt64 auto_shift64(NativeInt64 n, NativeInt32 m)
-//        {
-//                if(m==0)
-//                {
-//                        return n;
-//                }
-//                else if( m>0)
-//                {
-//                        return n << m;
-//                }
-//                else
-//                {
-//                   return n >> -m;
-//                }
-//        }
 
 
 
@@ -264,7 +222,7 @@ const IntType time_upscale = IntType(${time_upscale});
 struct TimeInfo
 {
     const IntType time_step;
-    const IntType time_int; //= inttype32_from_inttype64<IntType>( auto_shift64( get_value64(dt_int) * get_value64(time_step), get_value64(dt_upscale- time_upscale) ));
+    const IntType time_int; 
     TimeInfo(IntType time_step)
         : time_step(time_step), time_int( inttype32_from_inttype64<IntType>( auto_shift64( get_value64(dt_int) * get_value64(time_step), get_value64(dt_upscale- time_upscale) )) )
     {
@@ -323,10 +281,6 @@ namespace rnd
     {
         double r = (double)rand() / INT_MAX;
         return r * (max-min) + min;
-
-
-        //return max + min/2.0;
-
     }
 
     IntType uniform(IntType up, IntType min, IntType min_scale, IntType max, IntType max_scale)
@@ -356,28 +310,49 @@ IntType check_in_range(IntType val, IntType upscale, double min, double max, con
     //cout << "\n diff_min: " << diff_min;
 
     // Addsmall tolerance, to account for constants:
-    if(max > 0) max *= 1.0001;
-    else max /= 1.0001;
-    if(min < 0) min *= 1.0001;
-    else min /= 1.0001;
+    if(max > 0) max *= 1.01;
+    else max /= 1.01;
+    if(min < 0) min *= 1.01;
+    else min /= 1.01;
+    
+    
+    
 
     if(!( value_float <= max))
     {
-        cout << "\n\nOverflow on:" << description;
-        cout << "\nvalue_float= " << value_float << " between(" << min << "," << max << ")?" << std::flush;
-        float pc_out = (value_float - max) / (max-min) * 100;
-        cout << "\n  --> Amount out: " << pc_out << "%";
-        cout << "\n";
+        cout << "\ncheck_in_range: (min):" << min << std::flush;
+        cout << "\ncheck_in_range: (max):" << max << std::flush;
+    
+        double pc_out = (value_float - max) / (max-min) * 100.;
+        
+        if(pc_out > 1) 
+        {
+            cout << "\n\nOverflow on:" << description;
+            cout << "\nvalue_float= " << value_float << " between(" << min << "," << max << ")?" << std::flush;
+            cout << "\n  --> Amount out: " << pc_out << "%";
+            cout << "\n";
+            
+            assert(0);
+        
+        }
 
     }
     if( !( value_float >= min || min >0))
     {
+    
+        cout << "\ncheck_in_range: (min):" << min  << std::flush;
+        cout << "\ncheck_in_range: (max):" << max  << std::flush;
 
-        cout << "\n\nOverflow on:" << description;
-        cout << "\nvalue_float= " << value_float << " between(" << min << "," << max << ")?" << std::flush;
-        float pc_out = (min - value_float) / (max-min) * 100;
-        cout << "\n  --> Amount out: " << pc_out << "%";
-        cout << "\n";
+        double pc_out = (min - value_float) / (max-min) * 100.;
+        
+        if(pc_out > 1) 
+        {
+            cout << "\n\nOverflow on:" << description;
+            cout << "\nvalue_float= " << value_float << " between(" << min << "," << max << ")?" << std::flush;
+            cout << "\n  --> Amount out: " << pc_out << "%";
+            cout << "\n";
+            assert(0);
+        }
     }
 
     //cout << "\nOK!";
@@ -641,7 +616,7 @@ namespace event_handlers
                 if(evt_time < time_info.time_int )
                 {
                     // Handle the event:
-                    std::cout << "\n **** HANDLING EVENT (on ${tr.port.symbol}) *****";
+                    //std::cout << "\n **** HANDLING EVENT (on ${tr.port.symbol}) *****";
 
                      // Actions ...
                     %for action in tr.actions:
@@ -689,6 +664,9 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
     for(int i=0;i<NrnPopData::size;i++)
     {
         //cout << "\n";
+         
+        
+        
         // Calculate assignments:
         % for eqn in eqns_assignments:
         d.${eqn.node.lhs.symbol}[i] = ${eqn.rhs_cstr} ;
@@ -944,25 +922,6 @@ void print_results_from_NIOS(NrnPopData* d)
 c_main_loop_tmpl = r"""
 
 
-struct GlobalData {
-
-    %for pop in network.populations:
-    NS_${pop.name}::NrnPopData* ${pop.name}_output_data; 
-    %endfor
-
-    GlobalData()
-    {
-    %for pop in network.populations:
-        ${pop.name}_output_data = new NS_${pop.name}::NrnPopData[n_results_total];
-    %endfor
-
-
-    }
-};
-
-
-GlobalData global_data;
-
 
 #include <ctime>
 
@@ -990,8 +949,6 @@ int main()
 
     // Setup the variables:
     %for pop in network.populations:
-    ##//NS_${pop.name}::NrnPopData data_${pop.name};
-
     NS_${pop.name}::initialise_statevars(data_${pop.name});
     NS_${pop.name}::initialise_randomvariables(data_${pop.name});
     %endfor
@@ -1012,7 +969,7 @@ int main()
     %for (population, event_port, evt_details) in network.additional_events:
         // Addition events:
         NS_${population.name}::input_event_types::Event_${event_port.symbol} evt(IntType(700000));
-        //for(int i=0;i<10;i++)
+        for(int i=0;i<10;i++)
         //{
         data_${population.name}.incoming_events_${event_port.symbol}[169].push_back( evt ) ;
         //}
@@ -1046,7 +1003,6 @@ int main()
             {
                 std::cout << "Loop: " << time_step << "\n";
                 std::cout << "t: " << time_info.time_int << "\n";
-                ##std::cout << "QueueSize:" << data_LHSdIN.incoming_events_recv_nmda_spike[0].size() << "\n";
             }
             #endif
 
@@ -1077,7 +1033,7 @@ int main()
             {
                 write_time_to_hdf5(time_info);
                 %for pop in network.populations:
-                global_data.${pop.name}_output_data[n_results_written] = data_${pop.name};
+                global_data.${pop.name}_recorded_output_data_OLD[n_results_written] = data_${pop.name};
                 %endfor
                 n_results_written++;
             }
@@ -1095,12 +1051,12 @@ int main()
      // Dump to HDF5
     cout << "\nWriting HDF5 output" << std::flush;
     %for pop in network.populations:
-    NS_${pop.name}::write_all_results_to_hdf5(global_data.${pop.name}_output_data);
+    NS_${pop.name}::write_all_results_to_hdf5(global_data.${pop.name}_recorded_output_data_OLD);
     %endfor
 
      %for pop in network.populations:
     #if ON_NIOS
-    NS_${pop.name}::print_results_from_NIOS(global_data.${pop.name}_output_data);
+    NS_${pop.name}::print_results_from_NIOS(global_data.${pop.name}_recorded_output_data_OLD);
     #endif
     %endfor
 
@@ -1257,6 +1213,37 @@ popl_obj_tmpl = """
 %for pop in network.populations:
 NS_${pop.name}::NrnPopData data_${pop.name};
 %endfor
+
+
+
+struct GlobalData {
+
+    // Old storage:
+    %for pop in network.populations:
+    NS_${pop.name}::NrnPopData* ${pop.name}_recorded_output_data_OLD; 
+    %endfor
+
+    GlobalData()
+    {
+    %for pop in network.populations:
+        ${pop.name}_recorded_output_data_OLD = new NS_${pop.name}::NrnPopData[n_results_total];
+    %endfor
+    }
+    
+    ~GlobalData()
+    {
+        %for pop in network.populations:
+        delete[] ${pop.name}_recorded_output_data_OLD;
+        %endfor
+    }
+    
+};
+
+
+GlobalData global_data;
+
+
+
 
 """
 

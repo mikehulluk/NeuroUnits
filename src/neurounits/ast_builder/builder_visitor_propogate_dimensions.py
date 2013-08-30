@@ -214,7 +214,7 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
     def ActionFunctionDefBuiltInInstantiation(self, o, **kwargs):
         self.verify_equal_units([o, o.function_def])
 
-    def ActionFunctionDefInstantiationParater(self, o, **kwargs):
+    def ActionFunctionDefInstantiationParameter(self, o, **kwargs):
         self.verify_equal_units([o, o.rhs_ast, o._function_def_parameter])
 
     def ActionOnEventStateAssignment(self, o, **kwargs):

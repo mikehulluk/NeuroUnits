@@ -40,29 +40,25 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
     @classmethod
     def encore_value_cls(self, value, upscaling_pow, nbits):
         #print
-        print 'Encoding', value, "using upscaling power:", upscaling_pow
+        #print 'Encoding', value, "using upscaling power:", upscaling_pow
         value_scaled = value * ( 2**(-upscaling_pow))
-        print ' --Value Scaled:', value_scaled
+        #print ' --Value Scaled:', value_scaled
         res = int( round( value_scaled * (2**(nbits-1) ) ) )
-        print ' --Value int:', res
+        #print ' --Value int:', res
         return res
 
 
     def encode_value(self, value, upscaling_pow):
         return self.encore_value_cls(value, upscaling_pow, nbits=self.nbits)
-        ##print
-        #print 'Encoding', value, "using upscaling power:", upscaling_pow
-        #value_scaled = value * ( 2**(-upscaling_pow))
-        #print ' --Value Scaled:', value_scaled
-        #res = int( round( value_scaled * (2**(self.nbits-1) ) ) )
-        #print ' --Value int:', res
-        #return res
 
 
     def ActionNodeStd(self, o):
-        print
-        print repr(o)
-        print '-' * len(repr(o))
+        
+        
+        
+        #print
+        #print repr(o)
+        #print '-' * len(repr(o))
         #ann = self.annotations.annotations[o]
 
         vmin = o.annotations['node-value-range'].min#.float_in_si()
@@ -81,9 +77,9 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         vmin_scaled  = vmin * upscaling_val
         vmax_scaled  = vmax * upscaling_val
 
-        print 'vMin, vMax', vmin, vmax
-        print 'Scaling:', '2**', upscaling_pow, ' ->', upscaling_val
-        print 'vMin_scaled, vMax_scaled', vmin_scaled, vmax_scaled
+        #print 'vMin, vMax', vmin, vmax
+        #print 'Scaling:', '2**', upscaling_pow, ' ->', upscaling_val
+        #print 'vMin_scaled, vMax_scaled', vmin_scaled, vmax_scaled
 
 
         #ann.fixed_scaling_power = upscaling_pow
@@ -113,7 +109,7 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
     def ActionFunctionDefBuiltInInstantiation(self, o):
         self.ActionNodeStd(o)
 
-    def ActionFunctionDefInstantiationParater(self,o):
+    def ActionFunctionDefInstantiationParameter(self,o):
         self.ActionNodeStd(o)
 
 
@@ -180,7 +176,9 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         pass
 
     def ActionOnEventStateAssignment(self, o):
-        self.ActionNodeStd(o)
+        pass
+        #return
+        #self.ActionNodeStd(o)
 
     def ActionRandomVariable(self, o, **kwargs):
         self.ActionNodeStd(o)

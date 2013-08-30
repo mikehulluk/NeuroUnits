@@ -316,6 +316,7 @@ class _DependancyFinder(ASTVisitorBase):
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         return self.visit(o.rhs_map)
 
+    @save_deps_for_node
     def VisitRegimeDispatchMap(self, o, **kwargs):
         symbols = []
         for rhs in o.rhs_map.values():
@@ -376,11 +377,12 @@ class _DependancyFinder(ASTVisitorBase):
     def VisitExpOp(self, o, **kwargs):
         return self.visit(o.lhs)
 
+    @save_deps_for_node
     def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
-        #assert False
         return list(itertools.chain(*[self.visit(p) for p in o.parameters.values()]))
+    
+    @save_deps_for_node
     def VisitFunctionDefUserInstantiation(self, o, **kwargs):
-        #assert False
         return list(itertools.chain(*[self.visit(p) for p in o.parameters.values()]))
 
     @save_deps_for_node
@@ -390,7 +392,7 @@ class _DependancyFinder(ASTVisitorBase):
     def VisitAnalogReducePort(self, o, **kwargs):
         return [o] + list(itertools.chain( *[self.visit(a) for a in o.rhses]))
 
-
+    
     def VisitRandomVariable(self, o):
         return list(itertools.chain( *[self.visit(p) for p in o.parameters])) + [o]
 

@@ -2,8 +2,9 @@
 
 import neurounits
 from neurounits.ast_annotations.common import NodeRangeAnnotator, NodeFixedPointFormatAnnotator,\
-    NodeRange, NodeToIntAnnotator, _NodeRangeFloat # , RangeExpander
+    NodeRange, NodeToIntAnnotator, _NodeRangeFloat#,  RangeExpander
 from neurounits.ast_annotations.node_range_byoptimiser import NodeRangeByOptimiser
+from neurounits.ast_annotations.node_rangeexpander import RangeExpander
 
 
 def get_dIN(nbits):
@@ -14,9 +15,10 @@ def get_dIN(nbits):
         <=> INPUT t:(ms)
         <=> INPUT i_injected:(mA)
 
-        #iInj_local = [{50pA} * k] if [t > 75ms and t< 85ms or t<1ms] else [0pA]
+        iInj_local = [50pA] if [t > 75ms and t< 85ms or t<1ms] else [0pA]
+        
         #iInj_local = [{50pA} * k] if [t > 75ms and t< 185ms or t<1ms] else [0pA]
-        iInj_local = {0pA/ms} * t  
+        #iInj_local = {0pA/ms} * t  
         Cap = 10 pF
 
         V' = (1/Cap) * (iInj_local + i_injected + iLk + iKs + iKf +iNa + iCa + syn_nmda_i + syn_ampa_i )
@@ -24,6 +26,7 @@ def get_dIN(nbits):
 
         syn_ff = 0.1
 
+        syn_max = 30
         # NMDA 
         # =======================
         syn_nmda_A_tau = 4ms
@@ -38,8 +41,8 @@ def get_dIN(nbits):
         v_scale = V * {-0.08mV-1}
         nmda_vdep =  1./(1. + 0.05 * exp(v_scale) )
         on recv_nmda_spike(){
-            syn_nmda_A = syn_nmda_A + 1.0
-            syn_nmda_B = syn_nmda_B + 1.0
+            syn_nmda_A = [syn_nmda_A + 1.0] if [syn_nmda_A < syn_max] else [syn_max]
+            syn_nmda_B = [syn_nmda_B + 1.0] if [syn_nmda_B < syn_max] else [syn_max]
         }
         # ===========================
 
@@ -56,8 +59,8 @@ def get_dIN(nbits):
         syn_ampa_g = 300pS
         syn_ampa_erev = 0mV
         on recv_ampa_spike(){
-            syn_ampa_A = syn_ampa_A + 1.0
-            syn_ampa_B = syn_ampa_B + 1.0
+            syn_ampa_A = [syn_ampa_A + 1.0] if [syn_ampa_A < syn_max] else [syn_max]
+            syn_ampa_B = [syn_ampa_B + 1.0] if [syn_ampa_B < syn_max] else [syn_max]
         }
         # ===========================
 
@@ -73,8 +76,10 @@ def get_dIN(nbits):
         syn_inhib_g = 300pS
         syn_inhib_erev = -60mV
         on recv_inh_spike(){
-            syn_inhib_A = syn_inhib_A + 1.0
-            syn_inhib_B = syn_inhib_B + 1.0
+            #syn_inhib_A = syn_inhib_A + 1.0
+            #syn_inhib_B = syn_inhib_B + 1.0
+            syn_inhib_A = [syn_inhib_A + 1.0] if [syn_inhib_A < syn_max] else [syn_max]
+            syn_inhib_B = [syn_inhib_B + 1.0] if [syn_inhib_B < syn_max] else [syn_max]
         }
         # ===========================
 
@@ -107,7 +112,12 @@ def get_dIN(nbits):
 
         # Slow Potassium (Ks):
         alpha_ks_n = AlphaBetaFunc(v=V, A=0.462ms-1, B=8.2e-3ms-1 mV-1, C=4.59, D=-4.21mV,E=-11.97mV)
-        beta_ks_n =  AlphaBetaFunc(v=V, A=0.0924ms-1, B=-1.353e-3ms-1 mV-1, C=1.615, D=2.1e5mV, E=3.3e5mV)
+        
+        
+        #beta_ks_n =  AlphaBetaFunc(v=V, A=0.0924ms-1, B=-1.353e-3ms-1 mV-1, C=1.615, D=2.1e5mV, E=3.3e5mV)
+        beta_ks_n =  ({0.0924ms-1} + V*{-1.353e-3ms-1 mV-1}) / ({1.615} + 1.88959 ) 
+        
+        
         inf_ks_n = alpha_ks_n / (alpha_ks_n + beta_ks_n)
         tau_ks_n = 1.0 / (alpha_ks_n + beta_ks_n)
         ks_n' = (inf_ks_n - ks_n) / tau_ks_n
@@ -116,7 +126,10 @@ def get_dIN(nbits):
 
         # Fast potassium (Kf):
         alpha_kf_n = AlphaBetaFunc(v=V, A=5.06ms-1, B=0.0666ms-1 mV-1, C=5.12, D=-18.396mV,E=-25.42mV)
-        beta_kf_n =  AlphaBetaFunc(v=V, A=0.505ms-1, B=0.0ms-1 mV-1, C=0.0, D=28.7mV, E=34.6mV)
+        #beta_kf_n =  AlphaBetaFunc(v=V, A=0.505ms-1, B=0.0ms-1 mV-1, C=0.0, D=28.7mV, E=34.6mV)
+        
+        beta_kf_n =  {0.505ms-1} * exp( ( {28.7mV} + V) / {-34.6mV} )
+        
         inf_kf_n = alpha_kf_n / (alpha_kf_n + beta_kf_n)
         tau_kf_n = 1.0 / (alpha_kf_n + beta_kf_n)
         kf_n' = (inf_kf_n - kf_n) / tau_kf_n
@@ -130,8 +143,11 @@ def get_dIN(nbits):
         tau_na_m = 1.0 / (alpha_na_m + beta_na_m)
         na_m' = (inf_na_m - na_m) / tau_na_m
 
-        alpha_na_h = AlphaBetaFunc(v=V, A=0.08ms-1, B=0.0ms-1 mV-1, C=0.0, D=38.88mV,E=26.0mV)
+        alpha_na_h = {0.08ms-1} * exp( ({38.88mV}+V) / {-26.0mV} )
+        
+        #alpha_na_h = AlphaBetaFunc(v=V, A=0.08ms-1, B=0.0ms-1 mV-1, C=0.0, D=38.88mV,E=26.0mV)
         beta_na_h =  AlphaBetaFunc(v=V, A=4.08ms-1, B=0.0ms-1 mV-1, C=1.0, D=-5.09mV, E=-10.21mV)
+        
         inf_na_h = alpha_na_h / (alpha_na_h + beta_na_h)
         tau_na_h = 1.0 / (alpha_na_h + beta_na_h)
         na_h' = (inf_na_h - na_h) / tau_na_h
@@ -149,7 +165,7 @@ def get_dIN(nbits):
         tau_ca_m = 1.0 / (alpha_ca_m + beta_ca_m)
         ca_m' =  (ca_m_inf - ca_m) / tau_ca_m
 
-        ff = 1.0 #1.5
+        ff = 1.0 #1.5DLIN
         pca = {0.16 (mm3)/s} * 1e-6 * ff
         F = 96485 C / mol
         R = 8.3144 J/ (mol K)
@@ -159,7 +175,7 @@ def get_dIN(nbits):
         z = 2.0
         nu = ( (z *  F) / (R*T) ) * V ;
         exp_neg_nu = exp( -1. * nu )
-        ca_v_eps = 1e-5mV
+        ca_v_eps = 1e-2mV
         iCa_ungated =  [-z *  pca *  F * ( (nu*( Cai - Cao*exp_neg_nu) ) / (1-exp_neg_nu)) ] if [ (V > ca_v_eps) or (V < -ca_v_eps)] else [pca * (-z) * F * (Cai-Cao) ]
         iCa =  iCa_ungated *  ca_m * ca_m
 
@@ -217,12 +233,12 @@ def get_dIN(nbits):
         't'             : NodeRange(min="0ms", max = "1.1s"),
         'i_injected'    : NodeRange(min="0nA", max = "10nA"),
         'V'             : NodeRange(min="-100mV", max = "50mV"),
-        'k'             : NodeRange(min="0", max = "1.1"),
-        'ca_m'          : NodeRange(min="0", max = "1.5"),
-        'kf_n'          : NodeRange(min="0", max = "1.5"),
-        'ks_n'          : NodeRange(min="0", max = "1.5"),
-        'na_h'          : NodeRange(min="0", max = "1.5"),
-        'na_m'          : NodeRange(min="0", max = "1.5"),
+        'k'             : NodeRange(min="-0.01", max = "1.1"),
+        'ca_m'          : NodeRange(min="-0.01", max = "1.5"),
+        'kf_n'          : NodeRange(min="-0.01", max = "1.5"),
+        'ks_n'          : NodeRange(min="-0.01", max = "1.5"),
+        'na_h'          : NodeRange(min="-0.01", max = "1.5"),
+        'na_m'          : NodeRange(min="-0.01", max = "1.5"),
         'syn_nmda_A'    : NodeRange(min='0', max ='30'),
         'syn_nmda_B'    : NodeRange(min='0', max ='30'),
         'syn_ampa_A'    : NodeRange(min='0', max ='30'),
@@ -258,7 +274,7 @@ def get_dIN(nbits):
 
 
     #comp.annotate_ast( NodeRangeAnnotator(var_annots_ranges) )
-    #RangeExpander().visit(comp)
+    RangeExpander().visit(comp)
     
     # New range optimiser:
     comp.annotate_ast( NodeRangeByOptimiser(var_annots_ranges))

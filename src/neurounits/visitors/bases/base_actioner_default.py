@@ -128,7 +128,7 @@ class ASTActionerDefault(ASTActionerDepthFirst):
     def ActionFunctionDefUserInstantiation(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
-    def ActionFunctionDefInstantiationParater(self, o, **kwargs):
+    def ActionFunctionDefInstantiationParameter(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
     def ActionRegime(self, o, **kwargs):

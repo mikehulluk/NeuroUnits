@@ -241,7 +241,7 @@ class ActionerGetConnections(ASTActionerDefault):
         self.connections[o].extend(o.parameters.values())
         self.connections[o].append(o.function_def)
 
-    def ActionFunctionDefInstantiationParater(self, o, **kwargs):
+    def ActionFunctionDefInstantiationParameter(self, o, **kwargs):
         self.connections[o].append(o.rhs_ast)
 
     def ActionOnTransitionTrigger(self, o, **kwargs):

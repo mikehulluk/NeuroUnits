@@ -231,7 +231,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
     def VisitFunctionDefInstantiationParameter(self, o, **kwargs):
         self.visit(o.rhs_ast, **kwargs)
-        self._ActionFunctionDefInstantiationParater(o, **kwargs)
+        self._ActionFunctionDefInstantiationParameter(o, **kwargs)
 
     def VisitOnTransitionTrigger(self, o, **kwargs):
         self.visit(o.trigger, **kwargs)
@@ -433,9 +433,9 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionFunctionDefBuiltInInstantiation(o, **kwargs)
 
-    def _ActionFunctionDefInstantiationParater(self, o, **kwargs):
+    def _ActionFunctionDefInstantiationParameter(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
-            return self.ActionFunctionDefInstantiationParater(o, **kwargs)
+            return self.ActionFunctionDefInstantiationParameter(o, **kwargs)
 
     def _ActionOnEvent(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
@@ -615,7 +615,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         raise NotImplementedError()
 
 
-    def ActionFunctionDefInstantiationParater(self, o, **kwargs):
+    def ActionFunctionDefInstantiationParameter(self, o, **kwargs):
         raise NotImplementedError()
 
     def ActionOnTransitionTrigger(self, o, **kwargs):

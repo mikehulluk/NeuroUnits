@@ -64,6 +64,7 @@ class CBasedFixedWriter(ASTVisitorBase):
     def add_range_check(self, node, expr):
         #return expr
         #print node, type(node)
+        
     
         if self.check_range:
             return """check_in_range(%s, IntType(%d), %g, %g, "%s")""" %(
@@ -142,7 +143,7 @@ class CBasedFixedWriter(ASTVisitorBase):
         elif ann_lt_upscale > ann_gt_upscale:
             res= "( (%s) < ( (%s)>>IntType(%d)))" %( self.visit(o.lesser_than), self.visit(o.greater_than), (ann_lt_upscale-ann_gt_upscale) )
         else:
-            res= "( (%s) < (%s) )" %( self.visit(o.lesser_than), self.visit(o.greater_than), (ann_gt_upscale-ann_lt_upscale) )
+            res= "( (%s) < (%s) )" %( self.visit(o.lesser_than), self.visit(o.greater_than) )
         return res
 
         

@@ -1,6 +1,6 @@
 
 
-assert False, 'To remove!'
+#assert False, 'To remove!'
 
 from neurounits.visitors import ASTActionerDefault
 from neurounits.ast_annotations.common import _NodeRangeFloat
