@@ -85,9 +85,14 @@ class PopRec(object):
         self.node = node
         self.tags = tags
 
+        self.src_pop_end_index = src_pop_start_index + size
+    
+
     def __str__(self):
         return "<PopRec [global_offset: %s , size: %s] from [src_pop: %s recording: %s local_offset: %s ] {Tags:%s}>" % ( 
                         self.global_offset, self.size, self.src_population.name, self.src_pop_start_index, self.node.symbol, self.tags )
+
+        
 
 
 class Network(object):
@@ -103,8 +108,12 @@ class Network(object):
         self._record_input_events = defaultdict( list )
         
         # Setup properly by finalise:
-        self.all_recordings = None
-        self.n_recording_buffers = None
+        self.all_trace_recordings = None
+        self.n_trace_recording_buffers = None
+        self.all_output_event_recordings = None
+        self.n_output_event_recording_buffers = None
+        
+        
         
     def record_traces(self, subpopulations, terminal_node_name):
         if isinstance(subpopulations, (Population,SubPopulation)):
@@ -145,22 +154,40 @@ class Network(object):
         
     def finalise(self):
         # Work out which traces to record:
-        assert self.all_recordings is None
-        self.all_recordings = []
+        def curr_rec_offset(lst):
+            return 0 if lst == [] else ( lst[-1].global_offset + lst[-1].size )
         
+        # Traces:
+        assert self.all_trace_recordings is None
+        self.all_trace_recordings = []
         for (population, terminal_node), values in sorted(self._record_traces.items()):
             for indices, autotag in sorted(values):
-                global_offset = 0 if self.all_recordings == [] else ( self.all_recordings[-1].global_offset + self.all_recordings[-1].size )
+                global_offset = curr_rec_offset(self.all_trace_recordings)
                 size = indices[1] - indices[0]
-                self.all_recordings.append( PopRec( global_offset=global_offset, size=size, src_population=population, src_pop_start_index=indices[0], node=terminal_node, tags=autotag ) )
+                self.all_trace_recordings.append( PopRec( global_offset=global_offset, size=size, src_population=population, src_pop_start_index=indices[0], node=terminal_node, tags=autotag ) )
+        self.n_trace_recording_buffers =  curr_rec_offset(self.all_trace_recordings)
         
-        self.n_recording_buffers = 0 if self.all_recordings == [] else ( self.all_recordings[-1].global_offset + self.all_recordings[-1].size )        
-        # 
+        
+         # Output events:
+        assert self.all_output_event_recordings is None
+        self.all_output_event_recordings = []
+        for (population, terminal_node), values in sorted(self._record_output_events.items()):
+            for indices, autotag in sorted(values):
+                global_offset = curr_rec_offset(self.all_output_event_recordings)
+                size = indices[1] - indices[0]
+                self.all_output_event_recordings.append( PopRec( global_offset=global_offset, size=size, src_population=population, src_pop_start_index=indices[0], node=terminal_node, tags=autotag ) )
+        self.n_output_event_recording_buffers =  curr_rec_offset(self.all_output_event_recordings)
+        
+        
+        
+        
         print 'Traces recorded:'
-        for rec in self.all_recordings:
+        for rec in self.all_trace_recordings:
             print rec
                      
-            
+        
+        # Output Events:
+        
         
         
         #assert False

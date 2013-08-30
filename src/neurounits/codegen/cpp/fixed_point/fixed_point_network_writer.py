@@ -222,7 +222,7 @@ const IntType time_upscale = IntType(${time_upscale});
 struct TimeInfo
 {
     const IntType time_step;
-    const IntType time_int; 
+    const IntType time_int;
     TimeInfo(IntType time_step)
         : time_step(time_step), time_int( inttype32_from_inttype64<IntType>( auto_shift64( get_value64(dt_int) * get_value64(time_step), get_value64(dt_upscale- time_upscale) )) )
     {
@@ -234,38 +234,13 @@ struct TimeInfo
 
 
 
-HDF5DataSet2DStdPtr time_dataset_int;
-HDF5DataSet2DStdPtr time_dataset_float;
-
-void setup_hdf5()
+struct SpikeEmission
 {
-#if USE_HDF
-    HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
+    const IntType time;
+    SpikeEmission(const IntType& time) : time(time) {}
+};
 
-    // Time
-    time_dataset_float = file->get_group("simulation_fixed/double")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
-    time_dataset_int = file->get_group("simulation_fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
-#endif //USE_HDF
-}
-
-
-
-
-void write_time_to_hdf5(TimeInfo time_info)
-{
-#if USE_HDF
-    #if SAVE_HDF5_INT
-    time_dataset_int->append<T_hdf5_type_int>(get_value32(time_info.time_int));
-    #endif
-
-    #if SAVE_HDF5_FLOAT
-    const double dt_float = FixedFloatConversion::to_float(IntType(dt_int), dt_upscale);
-    const double t_float = get_value32(time_info.time_step) * dt_float;
-    time_dataset_float->append<T_hdf5_type_float>(t_float);
-    #endif
-
-#endif //USE_HDF
-}
+void record_event(IntType global_buffer, const SpikeEmission& evt );
 
 
 
@@ -314,38 +289,38 @@ IntType check_in_range(IntType val, IntType upscale, double min, double max, con
     else max /= 1.01;
     if(min < 0) min *= 1.01;
     else min /= 1.01;
-    
-    
-    
+
+
+
 
     if(!( value_float <= max))
     {
         cout << "\ncheck_in_range: (min):" << min << std::flush;
         cout << "\ncheck_in_range: (max):" << max << std::flush;
-    
+
         double pc_out = (value_float - max) / (max-min) * 100.;
-        
-        if(pc_out > 1) 
+
+        if(pc_out > 1)
         {
             cout << "\n\nOverflow on:" << description;
             cout << "\nvalue_float= " << value_float << " between(" << min << "," << max << ")?" << std::flush;
             cout << "\n  --> Amount out: " << pc_out << "%";
             cout << "\n";
-            
+
             assert(0);
-        
+
         }
 
     }
     if( !( value_float >= min || min >0))
     {
-    
+
         cout << "\ncheck_in_range: (min):" << min  << std::flush;
         cout << "\ncheck_in_range: (max):" << max  << std::flush;
 
         double pc_out = (min - value_float) / (max-min) * 100.;
-        
-        if(pc_out > 1) 
+
+        if(pc_out > 1)
         {
             cout << "\n\nOverflow on:" << description;
             cout << "\nvalue_float= " << value_float << " between(" << min << "," << max << ")?" << std::flush;
@@ -375,17 +350,6 @@ namespace NS_eventcoupling_${projection.name}
     void dispatch_event(IntType src_neuron);
 }
 %endfor
-
-
-
-#if USE_HDF
-// For faster lookup:
-typedef std::vector<HDF5DataSet2DStdPtr> HDF5DataSet2DStdPtrVector;
-##std::unordered_map<NativeInt32, HDF5DataSet2DStdPtrVector> hdf_map_id_to_datasetptrs_int;
-##std::unordered_map<NativeInt32, HDF5DataSet2DStdPtrVector> hdf_map_id_to_datasetptrs_float;
-#endif
-
-
 
 """
 
@@ -511,17 +475,6 @@ void set_supplied_values_to_zero(NrnPopData& d)
 
 
 
-
-
-
-
-// Global save:
-//NrnPopData* output_data; //[n_results_total];
-
-
-
-
-
 void initialise_randomvariables(NrnPopData& d)
 {
     // Random Variable nodes
@@ -568,7 +521,7 @@ namespace event_handlers
 %for out_event_port in population.component.output_event_port_lut:
 
     //Events emitted from: ${population.name}
-    void on_${out_event_port.symbol}(IntType index /*Params*/)
+    void on_${out_event_port.symbol}(IntType index, const TimeInfo& time_info /*Params*/)
     {
         //std::cout << "\n on_${out_event_port.symbol}: " <<  index;
 
@@ -578,6 +531,19 @@ namespace event_handlers
         NS_eventcoupling_${conn.name}::dispatch_event(index);
         %endfor
         %endif
+
+
+        //And lets see what to record from these:
+        %for poprec in network.all_output_event_recordings:
+        %if poprec.src_population == population:
+        // Lets records!
+        if( (index >= ${poprec.src_pop_start_index}) && (index < ${poprec.src_pop_end_index}))
+        {
+            record_event( ${poprec.global_offset} + index - ${poprec.src_pop_start_index} , SpikeEmission(time_info.time_int) );
+        }
+        %endif
+        %endfor
+
     }
 %endfor
 }
@@ -672,20 +638,20 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
     for(int i=0;i<NrnPopData::size;i++)
     {
         //cout << "\n";
-         
-        
-        
+
+
+
         // Calculate assignments:
         % for eqn in eqns_assignments:
         d.${eqn.node.lhs.symbol}[i] = ${eqn.rhs_cstr} ;
-        //cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; 
+        //cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
         % endfor
 
         // Calculate delta's for all state-variables:
         % for eqn in eqns_timederivatives:
         IntType d_${eqn.node.lhs.symbol} = ${eqn.rhs_cstr[0]} ;
         d.${eqn.node.lhs.symbol}[i] += ${eqn.rhs_cstr[1]} ;
-        //cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; 
+        //cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
         % endfor
     }
 
@@ -763,138 +729,6 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
 
 
 
-#if USE_HDF
-// For faster lookup:
-##typedef std::vector<HDF5DataSet2DStdPtr> HDF5DataSet2DStdPtrVector;
-std::unordered_map<NativeInt32, HDF5DataSet2DStdPtrVector> hdf_map_id_to_datasetptrs_int;
-std::unordered_map<NativeInt32, HDF5DataSet2DStdPtrVector> hdf_map_id_to_datasetptrs_float;
-#endif
-
-
-
-
-
-
-void setup_hdf5()
-{
-#if USE_HDF
-    HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
-
-    for(int i=0;i<NrnPopData::size;i++)
-    {
-
-        // Storage for state-variables and assignments:
-        % for sv_def in population.component.state_variables + population.component.assignedvalues:
-        %if sv_def.symbol in record_symbols:
-        // Setup ${sv_def.symbol}:
-        {
-        #if SAVE_HDF5_FLOAT
-        HDF5GroupPtr pGroup_float = file->get_group((boost::format("simulation_fixed/double/${population.name}/%03d/variables/${sv_def.symbol}")%i).str());
-        pGroup_float->add_attribute("hdf-jive","true");
-        pGroup_float->add_attribute("hdf-jive:tags",(boost::format("fixed-float,${sv_def.symbol},POP:${population.name},POPINDEX:%03d,")%i).str());
-        pGroup_float->get_subgroup("raw")->create_softlink(time_dataset_float, "time");
-        hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}].push_back( pGroup_float->get_subgroup("raw")->create_dataset("data", HDF5DataSet2DStdSettings(1, hdf5_type_float) ) );
-        #endif // SAVE_HDF5_FLOAT
-
-        #if SAVE_HDF5_INT
-        HDF5GroupPtr pGroup_int = file->get_group((boost::format("simulation_fixed/int/${population.name}/%03d/variables/${sv_def.symbol}")%i).str());
-        pGroup_int->add_attribute("hdf-jive","true");
-        pGroup_int->add_attribute("hdf-jive:tags",(boost::format("fixed-int,${sv_def.symbol},POP:${population.name},POPINDEX:%03d,")%i).str());
-        pGroup_int->get_subgroup("raw")->create_softlink(time_dataset_int, "time");
-        hdf_map_id_to_datasetptrs_int[${sv_def.annotations['node-id']}].push_back(pGroup_int->get_subgroup("raw")->create_dataset("data", HDF5DataSet2DStdSettings(1, hdf5_type_int) ) );
-        #endif // SAVE_HDF5_INT
-        }
-        %endif
-        % endfor
-
-        // Storage for the intermediate values in calculations:
-        #if SAVE_HDF5_PER_OPERATION
-        %for intermediate_store_loc, size in intermediate_store_locs:
-        hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}].push_back( file->get_group((boost::format("simulation_fixed/double/${population.name}/%03d/operations/${intermediate_store_loc}/raw")%i).str())->create_dataset("data", HDF5DataSet2DStdSettings(${size}, hdf5_type_float) ) );
-        hdf_map_id_to_datasetptrs_int[${sv_def.annotations['node-id']}].push_back(file->get_group((boost::format("simulation_fixed/int/${population.name}/%03d/operations/${intermediate_store_loc}/raw/")%i).str())->create_dataset("data", HDF5DataSet2DStdSettings(${size},  hdf5_type_int) ) );
-        %endfor
-        #endif
-    }
-#endif
-}
-
-
-
-
-##void write_all_results_to_hdf5(NrnPopData* d)
-##{
-##
-##        #if USE_HDF && SAVE_HDF5_INT
-##        {
-##        int* pData = new int[n_results_written];
-##        % for sv_def in list(population.component.assignedvalues) + list(population.component.state_variables) + list(population.component.suppliedvalues):
-##        %if sv_def.symbol in record_symbols:
-##       {
-##            HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_int[${sv_def.annotations['node-id']}];
-##        // Copy the data into the array:
-##        for(int i=0;i<NrnPopData::size;i++) {
-##            for(int j=0;j<n_results_written;j++) { pData[j] = get_value32( d[j].${sv_def.symbol}[i]); }
-##            pVec[i]->set_data(n_results_written, 1, pData);
-##        }
-##        }
-##        % endif
-##        % endfor
-##        delete[] pData;
-##        }
-##        #endif
-##
-##
-##        #if USE_HDF && SAVE_HDF5_FLOAT
-##        {
-##        double* pData = new double[n_results_written];
-##        % for sv_def in list(population.component.assignedvalues) + list(population.component.state_variables) + list(population.component.suppliedvalues):
-##        %if sv_def.symbol in record_symbols:
-##        {
-##        HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}];
-##        // Copy the data into the array:
-##        for(int i=0;i<NrnPopData::size;i++) {
-##            for(int j=0;j<n_results_written;j++) { pData[j] = FixedFloatConversion::to_float(  d[j].${sv_def.symbol}[i],  IntType(${sv_def.annotations['fixed-point-format'].upscale}) ); }
-##            pVec[i]->set_data(n_results_written, 1, pData);
-##            }
-##        }
-##        % endif
-##        % endfor
-##        delete[] pData;
-##        }
-##        #endif
-##
-##}
-
-
-void write_step_to_hdf5(NrnPopData& d, TimeInfo time_info)
-{
-
-        #if USE_HDF && SAVE_HDF5_INT
-        % for eqn in eqns_assignments + eqns_timederivatives + list(population.component.suppliedvalues):
-        %if sv_def.symbol in record_symbols:
-        {
-        HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_int[${sv_def.annotations['node-id']}];
-        for(int i=0;i<NrnPopData::size;i++) {pVec[i]->append<T_hdf5_type_int>(get_value32( d.${sv_def.symbol}[i])); }
-        }
-        % endif
-        % endfor
-        #endif
-
-        #if USE_HDF && SAVE_HDF5_FLOAT
-        % for sv_def in population.component.state_variables + population.component.assignedvalues + list(population.component.suppliedvalues):
-        %if sv_def.symbol in record_symbols:
-        {
-        HDF5DataSet2DStdPtrVector pVec = hdf_map_id_to_datasetptrs_float[${sv_def.annotations['node-id']}];
-        for(int i=0;i<NrnPopData::size;i++) {
-            pVec[i]->append<T_hdf5_type_float>(FixedFloatConversion::to_float(  d.${sv_def.symbol}[i],  IntType(${sv_def.annotations['fixed-point-format'].upscale}) ));
-            }
-        }
-        % endif
-        % endfor
-
-        #endif
-}
-
 
 void print_results_from_NIOS(NrnPopData* d)
 {
@@ -947,14 +781,6 @@ int main()
     #endif //!ON_NIOS
 
 
-    // Setup HDF5 storage:
-    setup_hdf5();
-    %for pop in network.populations:
-    NS_${pop.name}::setup_hdf5();
-    %endfor
-
-    
-
     // Setup the variables:
     %for pop in network.populations:
     NS_${pop.name}::initialise_statevars(data_${pop.name});
@@ -970,7 +796,7 @@ int main()
     %for evt_conn in network.event_port_connectors:
     NS_eventcoupling_${evt_conn.name}::setup_connections();
     %endfor
-    
+
 
 
     // Add manual events:
@@ -1040,8 +866,10 @@ int main()
             // C. Save the recorded values:
             if(get_value32(time_info.time_step) % get_value32(record_rate)==0)
             {
-                write_time_to_hdf5(time_info);
-                %for poprec in network.all_recordings:
+                // Save time:
+                global_data.recordings_new.time_buffer[n_results_written] = get_value32(time_info.time_int);
+                //write_time_to_hdf5(time_info);
+                %for poprec in network.all_trace_recordings:
                 // Record: ${poprec}
                 for(int i=0;i<${poprec.size};i++) global_data.recordings_new.data_buffers[n_results_written][${poprec.global_offset}+i] = data_${poprec.src_population.name}.${poprec.node.symbol}[i];
                 %endfor
@@ -1058,15 +886,16 @@ int main()
 
 
 
-    
+
     // Dump to HDF5
     cout << "\nWriting HDF5 output" << std::flush;
-    global_data.recordings_new.write_all_to_hdf();
+    global_data.recordings_new.write_all_traces_to_hdf();
+    global_data.recordings_new.write_all_output_events_to_hdf();
 
 
     #if ON_NIOS
     %for pop in network.populations:
-    NS_${pop.name}::print_results_from_NIOS(global_data.recordings.${pop.name}_recorded_output_data_OLD);
+    ##NS_${pop.name}::print_results_from_NIOS(global_data.recordings.${pop.name}_recorded_output_data_OLD);
     %endfor
     #endif
 
@@ -1079,7 +908,7 @@ int main()
     double elapsed_secs_total = double(end_sim - begin_main) / CLOCKS_PER_SEC;
     double elapsed_secs_sim = double(end_sim - begin_sim) / CLOCKS_PER_SEC;
     double elapsed_secs_setup = double(begin_sim - begin_main) / CLOCKS_PER_SEC;
-    
+
     cout << "\nTime taken (setup):" << elapsed_secs_setup;
     cout << "\nTime taken (sim-total):"<< elapsed_secs_sim;
     cout << "\nTime taken (combined):"<< elapsed_secs_total;
@@ -1093,8 +922,8 @@ int main()
 
 
 
-    
-    
+
+
 
 
 
@@ -1188,8 +1017,8 @@ namespace NS_eventcoupling_${projection.name}
     void setup_connections()
     {
 
-        ${projection.connector.build_c( src_pop_size_expr=projection.src_population.size, 
-                                        dst_pop_size_expr=projection.dst_population.size, 
+        ${projection.connector.build_c( src_pop_size_expr=projection.src_population.size,
+                                        dst_pop_size_expr=projection.dst_population.size,
                                         add_connection_functor=lambda i,j: "projections[get_value32(%s)].push_back(%s)" % (i,j),
                                         ) }
 
@@ -1239,7 +1068,7 @@ struct RecordingMgr
 {
     // Old storage:
     %for pop in network.populations:
-    NS_${pop.name}::NrnPopData* ${pop.name}_recorded_output_data_OLD; 
+    NS_${pop.name}::NrnPopData* ${pop.name}_recorded_output_data_OLD;
     %endfor
 
     RecordingMgr()
@@ -1248,7 +1077,7 @@ struct RecordingMgr
         ${pop.name}_recorded_output_data_OLD = new NS_${pop.name}::NrnPopData[n_results_total];
     %endfor
     }
-    
+
     ~RecordingMgr()
     {
         %for pop in network.populations:
@@ -1260,68 +1089,179 @@ struct RecordingMgr
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 struct RecordMgrNew
 {
     static const int buffer_size = n_results_total;
-    
+
     // What are we recording:
-    %for poprec in network.all_recordings:
+    %for poprec in network.all_trace_recordings:
     // Record: ${poprec}
     %endfor
-    static const int n_rec_buffers = ${network.n_recording_buffers};
-    
-    // Allocate the storage:
+    static const int n_rec_buffers = ${network.n_trace_recording_buffers};
+
+    // Allocate the storage for the traces:
+    IntType time_buffer[buffer_size];
     IntType data_buffers[buffer_size][n_rec_buffers];
-    
-    
-    void write_all_to_hdf()
+
+
+    // Allocate space for the spikes:
+    typedef  list<SpikeEmission> SpikeList;
+    SpikeList emitted_spikes[ ${network.n_output_event_recording_buffers} ];
+
+
+
+    void write_all_output_events_to_hdf()
     {
-        
-        cout << "\n\nWriting to HDF5";
-        
-    
+
+        cout << "\n\nWriting spikes to HDF5";
         HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
-        
+        const T_hdf5_type_float dt_float = FixedFloatConversion::to_float(dt_int, dt_upscale);
+
+        %for i,poprec in enumerate(network.all_output_event_recordings):
+
+
+        for(int i=0; i< ${poprec.size};i++)
+        {
+            const int buffer_offset = ${poprec.global_offset}+i;
+            int nrn_offset = i + ${poprec.src_pop_start_index};
+            const int nspikes = emitted_spikes[buffer_offset].size();
+            cout << "\nSpikes:"  << nspikes;
+            int buffer_int[nspikes];
+            double buffer_float[nspikes];
+            int s=0;
+            for(SpikeList::iterator it=emitted_spikes[buffer_offset].begin(); it!=emitted_spikes[buffer_offset].end(); it++,s++) 
+            {
+                buffer_int[s] = it->time;
+                buffer_float[s] = buffer_int[s] * dt_float;
+            } 
+            
+
+            #if SAVE_HDF5_INT
+            string location_int =  (boost::format("simulation_fixed/int/${poprec.src_population.name}/%04d/output_events/")%nrn_offset).str();
+            HDF5DataSet2DStdPtr event_output_int = file->get_group(location_int)->create_dataset("${poprec.node.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
+            if(nspikes>0) event_output_int->set_data(nspikes, 1, buffer_int);
+            #endif
+
+            #if SAVE_HDF5_FLOAT
+            string location_float =  (boost::format("simulation_fixed/double/${poprec.src_population.name}/%04d/output_events/")%nrn_offset).str();
+            HDF5DataSet2DStdPtr event_output_float = file->get_group(location_float)->create_dataset("${poprec.node.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+            if(nspikes>0) event_output_float->set_data(nspikes, 1, buffer_float);
+            #endif
+
+        }
+
+
+
+
+
+        %endfor
+
+
+
+
+
+
+    }
+
+
+    void write_all_traces_to_hdf()
+    {
+
+        cout << "\n\nWriting traces to HDF5";
+
+        // Working buffers:
         T_hdf5_type_int data_int[n_results_written];
         T_hdf5_type_float data_float[n_results_written];
-                
-        %for i,poprec in enumerate(network.all_recordings):
+
+
+        HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
+
+        HDF5DataSet2DStdPtr time_dataset_int = file->get_group("simulation_fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
+        HDF5DataSet2DStdPtr time_dataset_float = file->get_group("simulation_fixed/double")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+        T_hdf5_type_float dt_float = FixedFloatConversion::to_float(dt_int, dt_upscale);
+        for(int t=0;t<n_results_written;t++)
+        {
+            data_int[t] = time_buffer[t];
+            data_float[t]  = data_int[t] * dt_float;
+        }
+        time_dataset_int->set_data(n_results_written,1, data_int);
+        time_dataset_float->set_data(n_results_written,1, data_float);
+
+
+
+        %for i,poprec in enumerate(network.all_trace_recordings):
         {
             // Save: ${poprec}
-            const T_hdf5_type_float node_sf = pow(2.0, ${poprec.node.annotations['fixed-point-format'].upscale} - VAR_NBITS);  
-            #if SAVE_HDF5_INT
-            HDF5DataSet2DStdPtrVector& pVecInt = NS_${poprec.src_population.name}::hdf_map_id_to_datasetptrs_int[${poprec.node.annotations['node-id']}];
-            #endif
-            #if SAVE_HDF5_FLOAT
-            HDF5DataSet2DStdPtrVector& pVecFloat = NS_${poprec.src_population.name}::hdf_map_id_to_datasetptrs_float[${poprec.node.annotations['node-id']}];
-            #endif
-            
+            const T_hdf5_type_float node_sf = pow(2.0, ${poprec.node.annotations['fixed-point-format'].upscale} - VAR_NBITS);
+
             for(int i=0;i<${poprec.size};i++)
             {
                 int buffer_offset = ${poprec.global_offset}+i;
-                
-                for(int t=0;t<n_results_written;t++) 
+
+                for(int t=0;t<n_results_written;t++)
                 {
-                    
                     data_int[t] = data_buffers[t][buffer_offset];
                     data_float[t] = data_int[t] * node_sf;
                 }
-                
+
+                int nrn_offset = i + ${poprec.src_pop_start_index};
+
                 #if SAVE_HDF5_INT
                 pVecInt[${poprec.src_pop_start_index}+i]->set_data(n_results_written,1, data_int);
+                HDF5GroupPtr pGroup_int = file->get_group((boost::format("simulation_fixed/int/${poprec.src_population.name}/%04d/variables/${poprec.node.symbol}")%nrn_offset).str());
+                pGroup_int->add_attribute("hdf-jive","true");
+                pGroup_int->add_attribute("hdf-jive:tags",(boost::format("fixed-int,${poprec.node.symbol},POP:${poprec.src_population.name},POPINDEX:%04d,")%nrn_offset).str());
+                pGroup_int->get_subgroup("raw")->create_softlink(time_dataset_int, "time");
+                pHDF5DataSet2DStdPtr pDataset_int = pGroup_int->get_subgroup("raw")->create_dataset("data", HDF5DataSet2DStdSettings(1, hdf5_type_int));
+                pDataset_int->set_data(n_results_written,1, data_int);
                 #endif
-                
+
+
                 #if SAVE_HDF5_FLOAT
-                pVecFloat[${poprec.src_pop_start_index}+i]->set_data(n_results_written,1, data_float);
+                HDF5GroupPtr pGroup_float = file->get_group((boost::format("simulation_fixed/double/${poprec.src_population.name}/%04d/variables/${poprec.node.symbol}")%nrn_offset).str());
+                pGroup_float->add_attribute("hdf-jive","true");
+                pGroup_float->add_attribute("hdf-jive:tags",(boost::format("fixed-float,${poprec.node.symbol},POP:${poprec.src_population.name},POPINDEX:%04d,")%nrn_offset).str());
+                pGroup_float->get_subgroup("raw")->create_softlink(time_dataset_float, "time");
+                HDF5DataSet2DStdPtr pDataset_float = pGroup_float->get_subgroup("raw")->create_dataset("data", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+                pDataset_float->set_data(n_results_written,1, data_float);
                 #endif
-                
+
             }
         }
         %endfor
-        
+
         cout << "\n\nFisnihed Writing to HDF5";
-    }
-    
+    } // void write_all_to_hdf5()
+
+
+
+
+
+
 };
 
 
@@ -1329,16 +1269,22 @@ struct RecordMgrNew
 
 struct GlobalData {
 
-    // Old - to go!
-    RecordingMgr recordings;
-    
     // New version:
     RecordMgrNew recordings_new;
-    
+
 };
 
 
 GlobalData global_data;
+
+
+
+
+void record_event( IntType global_buffer, const SpikeEmission& evt )
+{
+    global_data.recordings_new.emitted_spikes[global_buffer].push_back(evt);
+}
+
 
 
 
@@ -1383,13 +1329,9 @@ class CBasedEqnWriterFixedNetwork(object):
                 evt_src_to_evtportconns[key] = []
             evt_src_to_evtportconns[key].append(evt_conn)
 
-        #print evt_src_to_evtportconns
-        #assert False
-
-
 
         std_variables = {
-            'nsim_steps' : 2000,
+            'nsim_steps' : 5000,
             'nbits':self.nbits,
             'dt_float' : self.dt_float,
             'dt_int' : self.dt_int,
@@ -1576,7 +1518,7 @@ class CBasedEqnWriterFixedNetwork(object):
                                                 compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x  -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                                 #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x -O3  -g -march=native ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                                 #compile_flags=['-Wall -Wfatal-errors -std=gnu++0x -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
-                                    
+
                                                 #
                                    run=True)
         self.results = CBasedEqnWriterFixedResultsProxy(self)

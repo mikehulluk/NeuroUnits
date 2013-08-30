@@ -262,4 +262,4 @@ class CBasedFixedWriter(ASTVisitorBase):
         return rhs_str
 
     def VisitEmitEvent(self, o):
-        return 'event_handlers::on_%s(IntType(i))'% o.port.symbol
+        return 'event_handlers::on_%s(IntType(i), time_info)'% o.port.symbol

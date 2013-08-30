@@ -115,7 +115,7 @@ lhs_subpops = [pop_LHS_MN, pop_LHS_RB, pop_LHS_aIN, pop_LHS_cIN, pop_LHS_dla, po
 network.record_traces( rhs_subpops+lhs_subpops + [dINs], 'V' )
 
 network.record_input_events( rhs_subpops+lhs_subpops, 'recv_nmda_spike' )
-network.record_output_events( rhs_subpops+lhs_subpops, 'spike' )
+network.record_output_events( rhs_subpops+lhs_subpops + [dINs], 'spike' )
 
 
 network.finalise()
@@ -127,6 +127,8 @@ record_symbols = ['syn_nmda_A', 'syn_nmda_B', 'V','k','i_nmda', 'nmda_vdep' , 'i
 record_symbols = ['nu', 'exp_neg_nu',   'V','iCa', 'ca_m','ca_m_inf','tau_ca_m', 'tau_ca_m_cl','alpha_ca_m','beta_ca_m','iNa','iKf','iKs', 'beta_ca_m_2', 'beta_ca_m_1',]
 record_symbols = ['V']
 record_symbols = ['V']
+
+
 # Just generate the file:
 CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', run=False, output_c_filename='/auto/homes/mh735/Desktop/tadpole1.cpp', compile=False, CPPFLAGS='-DON_NIOS=true', record_symbols=record_symbols )
 
@@ -149,68 +151,32 @@ for symbol in record_symbols:
     pylab.ylabel(symbol)
     pylab.legend()
 
-pylab.figure(figsize=(20,16))
-pylab.ylabel('Currents (pA)')
-for symbol in record_symbols:
-    if symbol[0] != 'i':
-        continue
-    #if symbol=='iCa':
-    #    continue
 
-    for res in results.filter(symbol):
-        pylab.plot(res.raw_data.time_pts, res.raw_data.data_pts * 1e12, label=symbol  )
+pop_sizes = {'pop1':1146, 'pop2':235}
 
-pylab.show()
 
-#f = pylab.figure(figsize=(20,16))
-#ax1 = f.add_subplot(211)
-#ax2 = f.add_subplot(212)
-#voltage = results.filter('V')[0].raw_data
-#beta_ca = results.filter('beta_ca_m')[0].raw_data
-#beta_ca_1 = results.filter('beta_ca_m_1')[0].raw_data
-#beta_ca_2 = results.filter('beta_ca_m_2')[0].raw_data
-#
-#
-#R = (voltage.data_pts + 25e-3) > 0
-#switches = np.logical_xor(R, np.roll(R,1) )
-##switch_points = (np.diff( (voltage.data_pts - (-25e-3)) > 0 ) ** 2 ) > 0.5
-#switch_points = np.where( switches)[0]
-#print switch_points
-#
-#ax1.plot(voltage.time_pts, voltage.data_pts, label='Voltage')
-#ax2.plot(beta_ca.time_pts, beta_ca.data_pts, label='Beta')
-#ax2.plot(beta_ca_1.time_pts, beta_ca_1.data_pts, label='Beta1')
-#ax2.plot(beta_ca_2.time_pts, beta_ca_2.data_pts, label='Beta2')
-#
-#ax1.set_xlim((0.07, 0.1))
-#ax2.set_xlim((0.07, 0.1))
-#
-#for ax in [ax1,ax2]:
-#    for sw in switch_points:
-#        ax.axvline( voltage.time_pts[sw], ls='--',color='k')
-#pylab.legend()
-#
-#
-#
-#
-#pylab.figure()
-#pylab.plot( 
-#        beta_ca.data_pts[switch_points[0]+1:switch_points[1]-1 ],
-#        beta_ca_2.data_pts[switch_points[0]+1:switch_points[1]-1 ] )
-#
-#
-#dy = beta_ca.data_pts[ switch_points[1] -1 ] - beta_ca.data_pts[ switch_points[0] +1 ] 
-#dx = beta_ca_2.data_pts[ switch_points[1] -1 ] - beta_ca_2.data_pts[ switch_points[0] +1 ] 
-#
-#print 'dy:', dy
-#print 'dx:', dx
-#
-#print dy/dx
-#
-#
-#
-#
-#pylab.legend()
+
+for pop_name, size in pop_sizes.items():
+    pylab.figure(figsize=(20,16))
+    
+    r = results.h5file.root.simulation_fixed.double
+    
+    p = getattr(r, pop_name)
+    
+    for i in range(size):
+        node = getattr(p, '%04d'%i)
+        spikes = node.output_events.spike.read()
+        indices = [i] * len(spikes)
+        print spikes
+        pylab.plot(spikes, indices,'x')
+    
+    
+
+    
+    
+
+
+
 
 
 
