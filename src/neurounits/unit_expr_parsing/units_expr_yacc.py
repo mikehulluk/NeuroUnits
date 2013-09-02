@@ -1252,6 +1252,9 @@ class ParserMgr(object):
 
     @classmethod
     def get_parser(cls, start_symbol, debug):
+
+        debug=True
+
         k = (start_symbol, debug)
         if not k in cls.parsers:
             cls.parsers[k] = cls.build_parser(start_symbol=start_symbol, debug=debug)

@@ -242,6 +242,9 @@ class RTBlock(ASTObject):
         return (self.name if self.name is not None else '')
 
     def get_regime(self, name):
+        if name==None:
+            #assert len(self.regimes) in [ 1
+            return list(self.regimes)[0]
         return self.regimes.get_single_obj_by(name=name)
 
     def get_or_create_regime(self, name):

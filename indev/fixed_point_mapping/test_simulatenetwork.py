@@ -16,12 +16,15 @@ from neurounits.codegen.population_infrastructure import *
 
 
 import dIN_model
+import mn_model
+import rb_input_model
 import cPickle as pickle
 
 
 
 
 use_cache=True
+#use_cache=False
 cache_file = '.din_model_cache'
 # Delete the cache-fiel if we are not using it:
 if not use_cache:
@@ -29,13 +32,30 @@ if not use_cache:
         os.unlink(cache_file)
     
 if not os.path.exists(cache_file):
+    RB_input = rb_input_model.get_rb_input(nbits=24)
     dIN_comp = dIN_model.get_dIN(nbits=24)
+    MN_comp = mn_model.get_MN(nbits=24)
     with open(cache_file,'w') as f:
-        pickle.dump(dIN_comp, f, )
+        pickle.dump([dIN_comp, MN_comp, RB_input], f, )
     del dIN_comp
+    del MN_comp
+    del RB_input
 
 with open(cache_file) as f:
-    dIN_comp = pickle.load(f) 
+    dIN_comp,MN_comp,RB_input = pickle.load(f) 
+
+
+
+
+
+#print 'Trigger Transitions:'
+#print RB_input.triggertransitions
+#for tr in RB_input.triggertransitions:
+#    print tr.src_regime, type(tr.src_regime)
+#
+#assert False
+
+
 
 
 
@@ -53,7 +73,7 @@ with open(cache_file) as f:
 
 network = Network()
 pop_components = {
-        'pop1': dIN_comp,
+        'pop1': MN_comp,
         'pop2': dIN_comp,
         }
 
@@ -86,7 +106,13 @@ for syn_index, ((pop1_name, pop2_name, (syn_type, strength) ), conns) in enumera
 
 
 
-network.provide_events( pops_by_name['pop1'], event_port='recv_ampa_spike', evt_details = [50,60,70] )
+
+
+
+
+
+
+#network.provide_events( pops_by_name['pop1'], event_port='recv_ampa_spike', evt_details = [50,60,70] )
 
 pop_LHS_MN  = pops_by_name['pop1'].get_subpopulation(start_index=0,   end_index=169, subname='LHS_MN',  autotag=['LHS','MN'])
 pop_LHS_RB  = pops_by_name['pop1'].get_subpopulation(start_index=169, end_index=232, subname='LHS_RB',  autotag=['LHS','RB'])
@@ -105,54 +131,75 @@ pop_RHS_dlc = pops_by_name['pop1'].get_subpopulation(start_index=1094, end_index
 
 
 
+
+# Drive to LHS RBS:
+rb_drivers = Population('RBInput', component = RB_input, size=5)
+network.add(rb_drivers)
+network.add( 
+        EventPortConnector(rb_drivers,pop_LHS_RB, src_port_name='spike', dst_port_name='recv_ampa_spike', name='RBDrives' , connector=AllToAllConnector(connection_probability=1.0) )
+        )
+
+
+
+
 dINs = pops_by_name['pop2']
- 
+
+pop_LHS_dIN = dINs.get_subpopulation(start_index=0,   end_index=118,  subname='LHS_dIN',  autotag=['LHS','dIN'] )
+pop_RHS_dIN = dINs.get_subpopulation(start_index=118, end_index=236,  subname='RHS_dIN',  autotag=['RHS','dIN'] )
 
 
-rhs_subpops = [pop_RHS_MN, pop_RHS_RB, pop_RHS_aIN, pop_RHS_cIN, pop_RHS_dla, pop_RHS_dlc] 
-lhs_subpops = [pop_LHS_MN, pop_LHS_RB, pop_LHS_aIN, pop_LHS_cIN, pop_LHS_dla, pop_LHS_dlc]
 
-network.record_traces( rhs_subpops+lhs_subpops + [dINs], 'V' )
 
+rhs_subpops = [pop_RHS_MN, pop_RHS_RB, pop_RHS_aIN, pop_RHS_cIN, pop_RHS_dla, pop_RHS_dlc, pop_RHS_dIN] 
+lhs_subpops = [pop_LHS_MN, pop_LHS_RB, pop_LHS_aIN, pop_LHS_cIN, pop_LHS_dla, pop_LHS_dlc, pop_LHS_dIN]
+
+network.record_traces( rhs_subpops+lhs_subpops, 'V' )
 network.record_input_events( rhs_subpops+lhs_subpops, 'recv_nmda_spike' )
-network.record_output_events( rhs_subpops+lhs_subpops + [dINs], 'spike' )
-
+network.record_output_events( rhs_subpops+lhs_subpops , 'spike' )
 
 network.finalise()
 
 
 
-record_symbols = ['syn_nmda_A', 'syn_nmda_B', 'V','k','iInj_local','i_nmda', 'nmda_vdep', 'iLk','iKf']
-record_symbols = ['syn_nmda_A', 'syn_nmda_B', 'V','k','i_nmda', 'nmda_vdep' , 'iLk','iKf','kf_n' , 'iInj_local']
-record_symbols = ['nu', 'exp_neg_nu',   'V','iCa', 'ca_m','ca_m_inf','tau_ca_m', 'tau_ca_m_cl','alpha_ca_m','beta_ca_m','iNa','iKf','iKs', 'beta_ca_m_2', 'beta_ca_m_1',]
-record_symbols = ['V']
-record_symbols = ['V']
-
 
 # Just generate the file:
-CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', run=False, output_c_filename='/auto/homes/mh735/Desktop/tadpole1.cpp', compile=False, CPPFLAGS='-DON_NIOS=true', record_symbols=record_symbols )
+#CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', run=False, output_c_filename='/auto/homes/mh735/Desktop/tadpole1.cpp', compile=False, CPPFLAGS='-DON_NIOS=true', record_symbols=record_symbols )
 
 
 
-fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false', record_symbols=record_symbols).results
+fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false').results
 results = HDF5SimulationResultFile("output.hd5")
 
-for symbol in record_symbols:
+
+filters = [
+    "ALL{V,RB,LHS}",
+    "ALL{V,RB,RHS}",
+    "ALL{V,MN,LHS}",
+    "ALL{V,MN,RHS}",
+    
+    "ALL{V,aIN,LHS}",
+    "ALL{V,aIN,RHS}",
+    "ALL{V,cIN,LHS}",
+    "ALL{V,cIN,RHS}",
+
+    "ALL{V,dIN,LHS}",
+    "ALL{V,dIN,RHS}",
+        ]
+
+for filt in filters:
     pylab.figure(figsize=(20,16))
-    print 'Plotting:', symbol
-
-    for res in results.filter(" ALL{%s} AND ANY{POPINDEX:000, POPINDEX:001,POPINDEX:002,POPINDEX:003, POPINDEX:118, POPINDEX:119,POPINDEX:120,POPINDEX:168,POPINDEX:169,POPINDEX:170}" % symbol):
-    #for res in results.filter("ALL{%s,POPINDEX:001}" % symbol):
-        #print res.raw_data.time_pts.shape, res.raw_data.data_pts
-        #print type(res.raw_data.data_pts)
-        #print res.group
+    trs = results.filter(filt)
+    print 'Plotting:', filt, len(trs)
+    for res in trs:
         pylab.plot(res.raw_data.time_pts, res.raw_data.data_pts, label=','.join(res.tags), ms='x'  )
-        #print np.min(res), np.max(res)
-    pylab.ylabel(symbol)
+    pylab.ylabel(filt)
     pylab.legend()
+pylab.show()
 
 
-pop_sizes = {'pop1':1146, 'pop2':235}
+
+
+pop_sizes = {'pop1':1146, 'pop2':235, 'RBInput':5}
 
 
 
@@ -167,13 +214,11 @@ for pop_name, size in pop_sizes.items():
         node = getattr(p, '%04d'%i)
         spikes = node.output_events.spike.read()
         indices = [i] * len(spikes)
-        print spikes
+        #print spikes
         pylab.plot(spikes, indices,'x')
-    
-    
 
-    
-    
+
+
 
 
 

@@ -341,6 +341,8 @@ class ReplaceWithOptimisedNodes(ASTVisitorBase):
         pass
     def VisitConstant(self,o):
         pass
+    def VisitConstantZero(self, o):
+        pass
     def VisitSymbolicConstant(self, o ):
         pass
     def VisitSuppliedValue(self, o ):

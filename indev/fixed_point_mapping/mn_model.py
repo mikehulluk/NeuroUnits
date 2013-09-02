@@ -1,27 +1,25 @@
 
 
+
 import neurounits
-from neurounits.ast_annotations.common import  NodeFixedPointFormatAnnotator,\
-    NodeRange, NodeToIntAnnotator
+from neurounits.ast_annotations.common import NodeFixedPointFormatAnnotator,NodeRange, NodeToIntAnnotator 
 from neurounits.ast_annotations.node_range_byoptimiser import NodeRangeByOptimiser
 from neurounits.ast_annotations.node_rangeexpander import RangeExpander
 
 
-def get_dIN(nbits):
+def get_MN(nbits):
     src_text = """
-    define_component simple_hh {
+    define_component simple_hh_MN {
         from std.math import exp, ln
 
         <=> INPUT t:(ms)
         <=> INPUT i_injected:(mA)
 
-        iInj_local = [50pA] if [t > 75ms and t< 85ms or t<1ms] else [0pA] * 0
+        iInj_local = {0pA/ms} * t 
 
-        #iInj_local = [{50pA} * k] if [t > 75ms and t< 185ms or t<1ms] else [0pA]
-        #iInj_local = {0pA/ms} * t
         Cap = 10 pF
 
-        V' = (1/Cap) * (iInj_local + i_injected + iLk + iKs + iKf +iNa + iCa + syn_nmda_i + syn_ampa_i )
+        V' = (1/Cap) * (iInj_local + i_injected + iLk  + iKs + iKf +iNa +  syn_nmda_i + syn_ampa_i + syn_inhib_i)
 
 
         syn_ff = 0.1
@@ -155,29 +153,29 @@ def get_dIN(nbits):
         iNa = gNa * (eNa-V) * na_m * na_m * na_m * na_h * glk_noise1
 
 
-        # Calcium:
-        alpha_ca_m = AlphaBetaFunc(v=V, A=4.05ms-1, B=0.0ms-1 mV-1, C=1.0, D=-15.32mV,E=-13.57mV)
-        #beta_ca_m_1 =  AlphaBetaFunc(v=V, A=1.24ms-1, B=0.093ms-1 mV-1, C=-1.0, D=10.63mV, E=1.0mV)
-        beta_ca_m_1 =  V * {-0.0923 ms-1 mV-1} - {1.2 ms-1}
-        beta_ca_m_2 =  AlphaBetaFunc(v=V, A=1.28ms-1, B=0.0ms-1 mV-1, C=1.0, D=5.39mV, E=12.11mV)
-        beta_ca_m =  [beta_ca_m_1] if [V<-25mV] else [beta_ca_m_2]
-        ca_m_inf = alpha_ca_m / (alpha_ca_m + beta_ca_m)
-        tau_ca_m = 1.0 / (alpha_ca_m + beta_ca_m)
-        ca_m' =  (ca_m_inf - ca_m) / tau_ca_m
+        ## Calcium:
+        #alpha_ca_m = AlphaBetaFunc(v=V, A=4.05ms-1, B=0.0ms-1 mV-1, C=1.0, D=-15.32mV,E=-13.57mV)
+        ##beta_ca_m_1 =  AlphaBetaFunc(v=V, A=1.24ms-1, B=0.093ms-1 mV-1, C=-1.0, D=10.63mV, E=1.0mV)
+        #beta_ca_m_1 =  V * {-0.0923 ms-1 mV-1} - {1.2 ms-1}
+        #beta_ca_m_2 =  AlphaBetaFunc(v=V, A=1.28ms-1, B=0.0ms-1 mV-1, C=1.0, D=5.39mV, E=12.11mV)
+        #beta_ca_m =  [beta_ca_m_1] if [V<-25mV] else [beta_ca_m_2]
+        #ca_m_inf = alpha_ca_m / (alpha_ca_m + beta_ca_m)
+        #tau_ca_m = 1.0 / (alpha_ca_m + beta_ca_m)
+        #ca_m' =  (ca_m_inf - ca_m) / tau_ca_m
 
-        ff = 1.0 #1.5DLIN
-        pca = {0.16 (mm3)/s} * 1e-6 * ff
-        F = 96485 C / mol
-        R = 8.3144 J/ (mol K)
-        T = 300K
-        Cai = 100 nM
-        Cao = 10 mM
-        z = 2.0
-        nu = ( (z *  F) / (R*T) ) * V ;
-        exp_neg_nu = exp( -1. * nu )
-        ca_v_eps = 1e-2mV
-        iCa_ungated =  [-z *  pca *  F * ( (nu*( Cai - Cao*exp_neg_nu) ) / (1-exp_neg_nu)) ] if [ (V > ca_v_eps) or (V < -ca_v_eps)] else [pca * (-z) * F * (Cai-Cao) ]
-        iCa =  iCa_ungated *  ca_m * ca_m
+        #ff = 1.0 
+        #pca = {0.16 (mm3)/s} * 1e-6 * ff
+        #F = 96485 C / mol
+        #R = 8.3144 J/ (mol K)
+        #T = 300K
+        #Cai = 100 nM
+        #Cao = 10 mM
+        #z = 2.0
+        #nu = ( (z *  F) / (R*T) ) * V ;
+        #exp_neg_nu = exp( -1. * nu )
+        #ca_v_eps = 1e-2mV
+        #iCa_ungated =  [-z *  pca *  F * ( (nu*( Cai - Cao*exp_neg_nu) ) / (1-exp_neg_nu)) ] if [ (V > ca_v_eps) or (V < -ca_v_eps)] else [pca * (-z) * F * (Cai-Cao) ]
+        #iCa =  iCa_ungated *  ca_m * ca_m
 
 
 
@@ -204,7 +202,7 @@ def get_dIN(nbits):
             V = -60mV
             k=1
             na_m = 0.0
-            ca_m = 0.0
+            #ca_m = 0.0
             na_h = 1.0
             ks_n = 0.0
             kf_n = 0.0
@@ -234,7 +232,7 @@ def get_dIN(nbits):
         'i_injected'    : NodeRange(min="0nA", max = "10nA"),
         'V'             : NodeRange(min="-100mV", max = "50mV"),
         'k'             : NodeRange(min="-0.01", max = "1.1"),
-        'ca_m'          : NodeRange(min="-0.01", max = "1.5"),
+        #'ca_m'          : NodeRange(min="-0.01", max = "1.5"),
         'kf_n'          : NodeRange(min="-0.01", max = "1.5"),
         'ks_n'          : NodeRange(min="-0.01", max = "1.5"),
         'na_h'          : NodeRange(min="-0.01", max = "1.5"),
@@ -247,23 +245,23 @@ def get_dIN(nbits):
         'syn_inhib_B'    : NodeRange(min='0', max ='30'),
         }
 
-    var_annots_tags = {
-        'V': 'Voltage',
-        'syn_nmda_A':'',
-        'syn_nmda_B' : '',
-        'i_nmda' : '',
-        'nmda_vdep' :'',
-        'iLk' : '',
-        'iKf' : '',
-        'kf_n': '',
-        'iInj_local': '',
+    #var_annots_tags = {
+    #    'V': 'Voltage',
+    #    'syn_nmda_A':'',
+    #    'syn_nmda_B' : '',
+    #    'i_nmda' : '',
+    #    'nmda_vdep' :'',
+    #    'iLk' : '',
+    #    'iKf' : '',
+    #    'kf_n': '',
+    #    'iInj_local': '',
 
-    }
+    #}
 
 
 
     library_manager = neurounits.NeuroUnitParser.Parse9MLFile( src_text)
-    comp = library_manager['simple_hh']
+    comp = library_manager['simple_hh_MN']
     comp.expand_all_function_calls()
 
 

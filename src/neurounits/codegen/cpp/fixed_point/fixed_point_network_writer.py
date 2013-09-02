@@ -402,7 +402,7 @@ namespace NS_${population.name}
 // Define the data-structures:
 struct NrnPopData
 {
-    static const int size = ${population.size};
+    static const int size = ${population.get_size()};
 
     // Parameters:
 % for p in population.component.parameters:
@@ -635,6 +635,7 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
 
     const IntType t = time_info.time_int;
 
+//#pragma omp parallel for default(shared) 
     for(int i=0;i<NrnPopData::size;i++)
     {
         //cout << "\n";
@@ -663,9 +664,10 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
     // Resolve transitions for each rt-graph:
     %for rtgraph in population.component.rt_graphs:
 
-        NrnPopData::RegimeType${rtgraph.name} next_regime = NrnPopData::RegimeType${rtgraph.name}::NO_CHANGE;
 
         %if len(rtgraph.regimes) > 1:
+        
+        NrnPopData::RegimeType${rtgraph.name} next_regime = NrnPopData::RegimeType${rtgraph.name}::NO_CHANGE;
 
         // Non-trivial RT-graph
         switch(d.current_regime_${rtgraph.name}[get_value32(i)])
@@ -710,18 +712,28 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
 
 
         %else:
-            <% regime = rtgraph.get_regime(None) %>
-            %if population.component.transitions_from_regime(regime):
-                assert(0); // Transitions found, but not yet supported!;
-            %endif
+            // And the transitions from the 'global namespace':
+            // ==== Triggered Transitions: ====
+            %for tr in population.component.triggertransitions_from_regime(rtgraph.get_regime(None)):
+            ${trigger_transition_block(tr=tr, rtgraph=rtgraph)}
+            %endfor
+
+            // ==== Event Transitions: ====
+            %for tr in population.component.eventtransitions_from_regime(rtgraph.get_regime(None)):
+            ${trigger_event_block(tr, rtgraph)}
+            %endfor
+            
         %endif:
 
         // Update the next state:
+        %if len(rtgraph.regimes) > 1:
+
         if( next_regime != NrnPopData::RegimeType${rtgraph.name}::NO_CHANGE)
         {
             ##cout << "\nSWitching into Regime:" << next_regime;
             d.current_regime_${rtgraph.name}[i] = next_regime;
         }
+        %endif
     %endfor
     }
 }
@@ -885,6 +897,7 @@ int main()
     #endif
 
 
+    clock_t end_sim = clock();
 
 
     // Dump to HDF5
@@ -900,17 +913,19 @@ int main()
     #endif
 
 
+    clock_t end_data_write = clock();
 
 
     printf("Simulation Complete\n");
 
-    clock_t end_sim = clock();
-    double elapsed_secs_total = double(end_sim - begin_main) / CLOCKS_PER_SEC;
+    double elapsed_secs_total = double(end_data_write - begin_main) / CLOCKS_PER_SEC;
     double elapsed_secs_sim = double(end_sim - begin_sim) / CLOCKS_PER_SEC;
+    double elapsed_secs_hdf = double(end_data_write - end_sim) / CLOCKS_PER_SEC;
     double elapsed_secs_setup = double(begin_sim - begin_main) / CLOCKS_PER_SEC;
 
     cout << "\nTime taken (setup):" << elapsed_secs_setup;
     cout << "\nTime taken (sim-total):"<< elapsed_secs_sim;
+    cout << "\nTime taken (hdf):"<< elapsed_secs_hdf;
     cout << "\nTime taken (combined):"<< elapsed_secs_total;
 
 }
@@ -1011,36 +1026,45 @@ namespace NS_eventcoupling_${projection.name}
 {
 
     typedef std::vector<IntType> TargetList;
-    TargetList projections[${projection.src_population.size}];
+    TargetList projections[${projection.src_population.get_size()}];
 
 
     void setup_connections()
     {
 
-        ${projection.connector.build_c( src_pop_size_expr=projection.src_population.size,
-                                        dst_pop_size_expr=projection.dst_population.size,
+        ${projection.connector.build_c( src_pop_size_expr=projection.src_population.get_size(),
+                                        dst_pop_size_expr=projection.dst_population.get_size(),
                                         add_connection_functor=lambda i,j: "projections[get_value32(%s)].push_back(%s)" % (i,j),
                                         ) }
 
         size_t n_connections = 0;
-        for(size_t i=0;i<${projection.src_population.size};i++) n_connections+= projections[i].size();
+        for(size_t i=0;i<${projection.src_population.get_size()};i++) n_connections+= projections[i].size();
         cout << "\n Projection: ${projection.name} contains: " << n_connections << std::flush;
     }
 
 
+    // This is the neuron index inside the whole population, so lets check its for us and dispatch if so:
     void dispatch_event(IntType src_neuron)
     {
         //cout << "\nDispatch_event: " << src_neuron;
         //cout << "\nDelivering to:";
-        TargetList& targets = projections[get_value32(src_neuron)];
+        if( src_neuron < ${projection.src_population.start_index} || src_neuron >= ${projection.src_population.end_index} )
+            return;
+        
+
+
+        TargetList& targets = projections[get_value32(src_neuron - ${projection.src_population.start_index} )];
         for( TargetList::iterator it = targets.begin(); it!=targets.end();it++)
         {
             //IntType target_index = (*it);
             //cout << " " << target_index;
 
-            NS_${projection.dst_population.name}::input_event_types::Event_${projection.dst_port.symbol} evt(IntType(0));
+            NS_${projection.dst_population.population.name}::input_event_types::Event_${projection.dst_port.symbol} evt(IntType(0));
 
-            data_${projection.dst_population.name}.incoming_events_${projection.dst_port.symbol}[get_value32(*it)].push_back( evt ) ;
+            
+            int tgt_nrn_index = get_value32(*it) + ${projection.dst_population.start_index};
+
+            data_${projection.dst_population.population.name}.incoming_events_${projection.dst_port.symbol}[tgt_nrn_index].push_back( evt ) ;
             //cout << "\nDelivered event to: " << (*it);
         }
 
@@ -1137,9 +1161,12 @@ struct RecordMgrNew
     void write_all_output_events_to_hdf()
     {
 
+        %if network.all_output_event_recordings:
         cout << "\n\nWriting spikes to HDF5";
         HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
         const T_hdf5_type_float dt_float = FixedFloatConversion::to_float(dt_int, dt_upscale);
+        %endif
+
 
         %for i,poprec in enumerate(network.all_output_event_recordings):
 
@@ -1149,7 +1176,7 @@ struct RecordMgrNew
             const int buffer_offset = ${poprec.global_offset}+i;
             int nrn_offset = i + ${poprec.src_pop_start_index};
             const int nspikes = emitted_spikes[buffer_offset].size();
-            cout << "\nSpikes:"  << nspikes;
+            //cout << "\nSpikes:"  << nspikes;
             int buffer_int[nspikes];
             double buffer_float[nspikes];
             int s=0;
@@ -1216,7 +1243,7 @@ struct RecordMgrNew
         %for i,poprec in enumerate(network.all_trace_recordings):
         {
             // Save: ${poprec}
-            const T_hdf5_type_float node_sf = pow(2.0, ${poprec.node.annotations['fixed-point-format'].upscale} - VAR_NBITS);
+            const T_hdf5_type_float node_sf = pow(2.0, ${poprec.node.annotations['fixed-point-format'].upscale} - (VAR_NBITS-1));
 
             for(int i=0;i<${poprec.size};i++)
             {
@@ -1229,12 +1256,16 @@ struct RecordMgrNew
                 }
 
                 int nrn_offset = i + ${poprec.src_pop_start_index};
+                string tag_string = "${poprec.node.symbol},POP:${poprec.src_population.name},${','.join(poprec.tags)}";
+                string tag_string_index = (boost::format("POPINDEX:%04d")%nrn_offset).str();
+
 
                 #if SAVE_HDF5_INT
                 pVecInt[${poprec.src_pop_start_index}+i]->set_data(n_results_written,1, data_int);
                 HDF5GroupPtr pGroup_int = file->get_group((boost::format("simulation_fixed/int/${poprec.src_population.name}/%04d/variables/${poprec.node.symbol}")%nrn_offset).str());
                 pGroup_int->add_attribute("hdf-jive","true");
-                pGroup_int->add_attribute("hdf-jive:tags",(boost::format("fixed-int,${poprec.node.symbol},POP:${poprec.src_population.name},POPINDEX:%04d,")%nrn_offset).str());
+
+                pGroup_int->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
                 pGroup_int->get_subgroup("raw")->create_softlink(time_dataset_int, "time");
                 pHDF5DataSet2DStdPtr pDataset_int = pGroup_int->get_subgroup("raw")->create_dataset("data", HDF5DataSet2DStdSettings(1, hdf5_type_int));
                 pDataset_int->set_data(n_results_written,1, data_int);
@@ -1244,7 +1275,7 @@ struct RecordMgrNew
                 #if SAVE_HDF5_FLOAT
                 HDF5GroupPtr pGroup_float = file->get_group((boost::format("simulation_fixed/double/${poprec.src_population.name}/%04d/variables/${poprec.node.symbol}")%nrn_offset).str());
                 pGroup_float->add_attribute("hdf-jive","true");
-                pGroup_float->add_attribute("hdf-jive:tags",(boost::format("fixed-float,${poprec.node.symbol},POP:${poprec.src_population.name},POPINDEX:%04d,")%nrn_offset).str());
+                pGroup_float->add_attribute("hdf-jive:tags",string("fixed-float,") + tag_string + "," + tag_string_index);
                 pGroup_float->get_subgroup("raw")->create_softlink(time_dataset_float, "time");
                 HDF5DataSet2DStdPtr pDataset_float = pGroup_float->get_subgroup("raw")->create_dataset("data", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
                 pDataset_float->set_data(n_results_written,1, data_float);
@@ -1299,7 +1330,7 @@ from fixed_point_common import Eqn, IntermediateNodeFinder, CBasedFixedWriter
 
 
 class CBasedEqnWriterFixedNetwork(object):
-    def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None, record_symbols=None):
+    def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None): #, record_symbols=None):
 
         self.dt_float = 0.1e-3
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
@@ -1416,7 +1447,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
                             rv_per_neuron = rv_per_neuron,
                             rv_per_population = rv_per_population,
-                            record_symbols = record_symbols if record_symbols else [o.symbol for o in  component.assignedvalues + component.state_variables ],
+                            #record_symbols = record_symbols if record_symbols else [o.symbol for o in  component.assignedvalues + component.state_variables ],
 
                             **std_variables
                             )
@@ -1515,7 +1546,8 @@ class CBasedEqnWriterFixedNetwork(object):
                                                 additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/') ],
                                                 additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/")],
                                                 libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl'],
-                                                compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x  -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
+                                                #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x  -O3  -g -fopenmp ' + (CPPFLAGS if CPPFLAGS else '') ]),
+                                                compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x  -O3  -g -Wno-used-variable ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                                 #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x -O3  -g -march=native ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                                 #compile_flags=['-Wall -Wfatal-errors -std=gnu++0x -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
 
