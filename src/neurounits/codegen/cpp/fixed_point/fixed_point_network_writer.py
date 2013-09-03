@@ -178,8 +178,8 @@ using mh::auto_shift64;
 struct LookUpTables
 {
     LookUpTables()
-        //: exponential(8, 3)    // (nbits, upscale)
-        : exponential(5, 3)    // (nbits, upscale)
+        : exponential(5, 4)    // (nbits, upscale)
+        //: exponential(5, 3)    // (nbits, upscale)
     { }
 
     LookUpTableExpPower2<VAR_NBITS, IntType> exponential;
@@ -640,7 +640,15 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
     {
         //cout << "\n";
 
+        //cout << "\nStarting State Variables:";
+        //cout << "\n-------------------------";
+        // Calculate delta's for all state-variables:
+        % for eqn in eqns_timederivatives:
+        //cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        % endfor
 
+
+        //cout << "\nUpdates:";
 
         // Calculate assignments:
         % for eqn in eqns_assignments:
@@ -883,7 +891,7 @@ int main()
                 //write_time_to_hdf5(time_info);
                 %for poprec in network.all_trace_recordings:
                 // Record: ${poprec}
-                for(int i=0;i<${poprec.size};i++) global_data.recordings_new.data_buffers[n_results_written][${poprec.global_offset}+i] = data_${poprec.src_population.name}.${poprec.node.symbol}[i];
+                for(int i=0;i<${poprec.size};i++) global_data.recordings_new.data_buffers[n_results_written][${poprec.global_offset}+i] = data_${poprec.src_population.name}.${poprec.node.symbol}[i + ${poprec.src_pop_start_index} ];
                 %endfor
 
                 n_results_written++;
@@ -1185,18 +1193,31 @@ struct RecordMgrNew
                 buffer_int[s] = it->time;
                 buffer_float[s] = buffer_int[s] * dt_float;
             } 
+
+
+            
+            string tag_string = "EVENT:${poprec.node.symbol},SRCPOP:${poprec.src_population.name},${','.join(poprec.tags)}";
+            string tag_string_index = (boost::format("POPINDEX:%04d")%nrn_offset).str();
             
 
             #if SAVE_HDF5_INT
             string location_int =  (boost::format("simulation_fixed/int/${poprec.src_population.name}/%04d/output_events/")%nrn_offset).str();
-            HDF5DataSet2DStdPtr event_output_int = file->get_group(location_int)->create_dataset("${poprec.node.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
+            HDF5GroupPtr pGroup_int = file->get_group(location_int + "${poprec.node.symbol}");
+            HDF5DataSet2DStdPtr event_output_int  = pGroup_int->create_dataset("${poprec.node.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
             if(nspikes>0) event_output_int->set_data(nspikes, 1, buffer_int);
+            
+            pGroup_int->add_attribute("hdf-jive","events");
+            pGroup_int->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
+            
             #endif
 
             #if SAVE_HDF5_FLOAT
             string location_float =  (boost::format("simulation_fixed/double/${poprec.src_population.name}/%04d/output_events/")%nrn_offset).str();
-            HDF5DataSet2DStdPtr event_output_float = file->get_group(location_float)->create_dataset("${poprec.node.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+            HDF5GroupPtr pGroup_float = file->get_group(location_float + "${poprec.node.symbol}");
+            HDF5DataSet2DStdPtr event_output_float = pGroup_float->create_dataset("${poprec.node.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
             if(nspikes>0) event_output_float->set_data(nspikes, 1, buffer_float);
+            pGroup_float->add_attribute("hdf-jive","events");
+            pGroup_float->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
             #endif
 
         }
@@ -1263,7 +1284,7 @@ struct RecordMgrNew
                 #if SAVE_HDF5_INT
                 pVecInt[${poprec.src_pop_start_index}+i]->set_data(n_results_written,1, data_int);
                 HDF5GroupPtr pGroup_int = file->get_group((boost::format("simulation_fixed/int/${poprec.src_population.name}/%04d/variables/${poprec.node.symbol}")%nrn_offset).str());
-                pGroup_int->add_attribute("hdf-jive","true");
+                pGroup_int->add_attribute("hdf-jive","trace");
 
                 pGroup_int->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
                 pGroup_int->get_subgroup("raw")->create_softlink(time_dataset_int, "time");
@@ -1274,7 +1295,7 @@ struct RecordMgrNew
 
                 #if SAVE_HDF5_FLOAT
                 HDF5GroupPtr pGroup_float = file->get_group((boost::format("simulation_fixed/double/${poprec.src_population.name}/%04d/variables/${poprec.node.symbol}")%nrn_offset).str());
-                pGroup_float->add_attribute("hdf-jive","true");
+                pGroup_float->add_attribute("hdf-jive","trace");
                 pGroup_float->add_attribute("hdf-jive:tags",string("fixed-float,") + tag_string + "," + tag_string_index);
                 pGroup_float->get_subgroup("raw")->create_softlink(time_dataset_float, "time");
                 HDF5DataSet2DStdPtr pDataset_float = pGroup_float->get_subgroup("raw")->create_dataset("data", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
@@ -1547,10 +1568,10 @@ class CBasedEqnWriterFixedNetwork(object):
                                                 additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/")],
                                                 libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl'],
                                                 #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x  -O3  -g -fopenmp ' + (CPPFLAGS if CPPFLAGS else '') ]),
-                                                compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x  -O3  -g -Wno-used-variable ' + (CPPFLAGS if CPPFLAGS else '') ]),
+                                                compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x  -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                                 #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x -O3  -g -march=native ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                                 #compile_flags=['-Wall -Wfatal-errors -std=gnu++0x -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
-
+#-Wno-used-variable
                                                 #
                                    run=True)
         self.results = CBasedEqnWriterFixedResultsProxy(self)

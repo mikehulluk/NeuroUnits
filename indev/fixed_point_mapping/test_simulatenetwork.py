@@ -32,11 +32,16 @@ if not use_cache:
         os.unlink(cache_file)
     
 if not os.path.exists(cache_file):
+    MN_comp = mn_model.get_MN(nbits=24)
     RB_input = rb_input_model.get_rb_input(nbits=24)
     dIN_comp = dIN_model.get_dIN(nbits=24)
-    MN_comp = mn_model.get_MN(nbits=24)
     with open(cache_file,'w') as f:
         pickle.dump([dIN_comp, MN_comp, RB_input], f, )
+
+    # For ddebugging:
+    MRedocWriterVisitor().visit(dIN_comp).to_pdf("op_dIN.pdf")
+    MRedocWriterVisitor().visit(MN_comp).to_pdf("op_MN.pdf")
+
     del dIN_comp
     del MN_comp
     del RB_input
@@ -60,8 +65,20 @@ with open(cache_file) as f:
 
 
 
-# For ddebugging:
-#MRedocWriterVisitor().visit(dIN_comp).to_pdf("op.pdf")
+
+
+
+
+
+
+
+
+#network = Network()
+
+
+
+
+
 
 
 
@@ -98,9 +115,9 @@ for syn_index, ((pop1_name, pop2_name, (syn_type, strength) ), conns) in enumera
     p1 = pops_by_name[pop1_name]
     p2 = pops_by_name[pop2_name]
     synpop_name='SynPop%02d' % syn_index
-    network.add(
-        EventPortConnector(p1,p2, src_port_name='spike', dst_port_name='recv_%s_spike' %syn_type, name=synpop_name , connector=ExplicitIndices(conns) )
-        )
+    #network.add(
+    #    EventPortConnector(p1,p2, src_port_name='spike', dst_port_name='recv_%s_spike' %syn_type, name=synpop_name , connector=ExplicitIndices(conns) )
+    #    )
 
 
 
@@ -130,10 +147,17 @@ pop_RHS_dla = pops_by_name['pop1'].get_subpopulation(start_index=1065, end_index
 pop_RHS_dlc = pops_by_name['pop1'].get_subpopulation(start_index=1094, end_index=1146, subname='RHS_dlc', autotag=['RHS','dlc'])
 
 
+dINs = pops_by_name['pop2']
+pop_LHS_dIN = dINs.get_subpopulation(start_index=0,   end_index=118,  subname='LHS_dIN',  autotag=['LHS','dIN'] )
+pop_RHS_dIN = dINs.get_subpopulation(start_index=118, end_index=236,  subname='RHS_dIN',  autotag=['RHS','dIN'] )
+
+
+rhs_subpops = [pop_RHS_MN, pop_RHS_RB, pop_RHS_aIN, pop_RHS_cIN, pop_RHS_dla, pop_RHS_dlc, pop_RHS_dIN] 
+lhs_subpops = [pop_LHS_MN, pop_LHS_RB, pop_LHS_aIN, pop_LHS_cIN, pop_LHS_dla, pop_LHS_dlc, pop_LHS_dIN]
 
 
 # Drive to LHS RBS:
-rb_drivers = Population('RBInput', component = RB_input, size=5)
+rb_drivers = Population('RBInput', component = RB_input, size=15)
 network.add(rb_drivers)
 network.add( 
         EventPortConnector(rb_drivers,pop_LHS_RB, src_port_name='spike', dst_port_name='recv_ampa_spike', name='RBDrives' , connector=AllToAllConnector(connection_probability=1.0) )
@@ -141,17 +165,6 @@ network.add(
 
 
 
-
-dINs = pops_by_name['pop2']
-
-pop_LHS_dIN = dINs.get_subpopulation(start_index=0,   end_index=118,  subname='LHS_dIN',  autotag=['LHS','dIN'] )
-pop_RHS_dIN = dINs.get_subpopulation(start_index=118, end_index=236,  subname='RHS_dIN',  autotag=['RHS','dIN'] )
-
-
-
-
-rhs_subpops = [pop_RHS_MN, pop_RHS_RB, pop_RHS_aIN, pop_RHS_cIN, pop_RHS_dla, pop_RHS_dlc, pop_RHS_dIN] 
-lhs_subpops = [pop_LHS_MN, pop_LHS_RB, pop_LHS_aIN, pop_LHS_cIN, pop_LHS_dla, pop_LHS_dlc, pop_LHS_dIN]
 
 network.record_traces( rhs_subpops+lhs_subpops, 'V' )
 network.record_input_events( rhs_subpops+lhs_subpops, 'recv_nmda_spike' )
@@ -171,7 +184,7 @@ fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5
 results = HDF5SimulationResultFile("output.hd5")
 
 
-filters = [
+filters_traces = [
     "ALL{V,RB,LHS}",
     "ALL{V,RB,RHS}",
     "ALL{V,MN,LHS}",
@@ -186,37 +199,68 @@ filters = [
     "ALL{V,dIN,RHS}",
         ]
 
-for filt in filters:
+filters_spikes = [
+
+    "ALL{EVENT:spike,RB,LHS}",
+    "ALL{EVENT:spike,RB,RHS}",
+    "ALL{EVENT:spike,MN,LHS}",
+    "ALL{EVENT:spike,MN,RHS}",
+    "ALL{EVENT:spike,aIN,LHS}",
+    "ALL{EVENT:spike,aIN,RHS}",
+    "ALL{EVENT:spike,cIN,LHS}",
+    "ALL{EVENT:spike,cIN,RHS}",
+    "ALL{EVENT:spike,dIN,LHS}",
+    "ALL{EVENT:spike,dIN,RHS}",
+
+]
+
+
+
+
+for filt in filters_traces:
     pylab.figure(figsize=(20,16))
-    trs = results.filter(filt)
+    trs = results.filter_traces(filt)
     print 'Plotting:', filt, len(trs)
     for res in trs:
         pylab.plot(res.raw_data.time_pts, res.raw_data.data_pts, label=','.join(res.tags), ms='x'  )
     pylab.ylabel(filt)
     pylab.legend()
+
+
+for filt in filters_spikes:
+    pylab.figure(figsize=(20,16))
+    trs = results.filter_events(filt)
+    print 'Plotting:', filt, len(trs)
+    for i,res in enumerate(trs):
+        evt_times = res.evt_times
+        pylab.plot( evt_times, i+ 0*evt_times, 'x', label=','.join(res.tags))
+    pylab.ylabel(filt)
+    pylab.legend()
+
+
 pylab.show()
 
 
 
 
-pop_sizes = {'pop1':1146, 'pop2':235, 'RBInput':5}
-
-
-
-for pop_name, size in pop_sizes.items():
-    pylab.figure(figsize=(20,16))
-    
-    r = results.h5file.root.simulation_fixed.double
-    
-    p = getattr(r, pop_name)
-    
-    for i in range(size):
-        node = getattr(p, '%04d'%i)
-        spikes = node.output_events.spike.read()
-        indices = [i] * len(spikes)
-        #print spikes
-        pylab.plot(spikes, indices,'x')
-
+#pop_sizes = {'pop1':1146, 'pop2':235, 'RBInput':5}
+#
+#
+#
+#for pop_name, size in pop_sizes.items():
+#    pylab.figure(figsize=(20,16))
+#    
+#    r = results.h5file.root.simulation_fixed.double
+#    
+#    p = getattr(r, pop_name)
+#    
+#    for i in range(size):
+#        node = getattr(p, '%04d'%i)
+#        spikes = node.output_events.spike.read()
+#        indices = [i] * len(spikes)
+#        #print spikes
+#        pylab.plot(spikes, indices,'x')
+#
 
 
 

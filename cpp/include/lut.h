@@ -177,6 +177,8 @@ public:
 
         IntType get(IntType x_in, IntType up_x_in, IntType up_out_in) const
         {
+            //max = pow(2.0, nbits_table-1)
+            //check_in_range( x_in, up_x_in, "LUT")
             //const double dbg_x_as_float = FixedFloatConversion::to_float(x_in, up_x_in) ;
             //return FixedFloatConversion::from_float( exp(dbg_x_as_float), up_out_in);
             ////const bool DEBUG = false;

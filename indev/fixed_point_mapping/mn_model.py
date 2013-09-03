@@ -17,6 +17,8 @@ def get_MN(nbits):
 
         iInj_local = {0pA/ms} * t 
 
+        #iInj_local = [40pA] if [ 100ms < t < 200ms] else [0pA]
+
         Cap = 10 pF
 
         V' = (1/Cap) * (iInj_local + i_injected + iLk  + iKs + iKf +iNa +  syn_nmda_i + syn_ampa_i + syn_inhib_i)
@@ -99,52 +101,53 @@ def get_MN(nbits):
 
         eK = -80mV
         eNa = 50mV
-        gKs = 10.0 nS
-        gKf = 12.5 nS
-        gNa = 250 nS
-        gLk = 1.25 nS
+        gKs = 1.0 nS
+        gKf = 8.0 nS
+        gNa = 110 nS
+        gLk = 2.4691 nS
         eLk = -50mV
 
         # Leak
         iLk = gLk * (eLk-V) * glk_noise
 
+
+
+
         # Slow Potassium (Ks):
-        alpha_ks_n = AlphaBetaFunc(v=V, A=0.462ms-1, B=8.2e-3ms-1 mV-1, C=4.59, D=-4.21mV,E=-11.97mV)
-
-
-        #beta_ks_n =  AlphaBetaFunc(v=V, A=0.0924ms-1, B=-1.353e-3ms-1 mV-1, C=1.615, D=2.1e5mV, E=3.3e5mV)
-        beta_ks_n =  ({0.0924ms-1} + V*{-1.353e-3ms-1 mV-1}) / ({1.615} + 1.88959 )
-
-
+        alpha_ks_n = AlphaBetaFunc(v=V, A=0.2ms-1, B=0.0ms-1 mV-1, C=1.0, D=-2.96mV,E=-7.74mV)
+        beta_ks_n = AlphaBetaFunc(v=V, A=0.05ms-1, B=0.0ms-1 mV-1, C=1.0, D=-14.07mV,E=6.1mV)
         inf_ks_n = alpha_ks_n / (alpha_ks_n + beta_ks_n)
         tau_ks_n = 1.0 / (alpha_ks_n + beta_ks_n)
         ks_n' = (inf_ks_n - ks_n) / tau_ks_n
-        iKs = gKs * (eK-V) * ks_n*ks_n
+        iKs = gKs * (eK-V) * ks_n 
 
 
-        # Fast potassium (Kf):
-        alpha_kf_n = AlphaBetaFunc(v=V, A=5.06ms-1, B=0.0666ms-1 mV-1, C=5.12, D=-18.396mV,E=-25.42mV)
-        #beta_kf_n =  AlphaBetaFunc(v=V, A=0.505ms-1, B=0.0ms-1 mV-1, C=0.0, D=28.7mV, E=34.6mV)
-
-        beta_kf_n =  {0.505ms-1} * exp( ( {28.7mV} + V) / {-34.6mV} )
-
+        # Fast potassium (Kf):  
+        alpha_denom = ( 1.0 + exp( (V + {-27.5mV}) / {-9.3mV}) )
+        alpha_denom_cl = [alpha_denom] if [alpha_denom < 2800] else [2800]
+        alpha_kf_n = {3.1ms-1} / alpha_denom_cl
+        beta_kf_n = AlphaBetaFunc(v=V, A=0.44ms-1, B=0.0ms-1 mV-1, C=1.0, D=8.98mV,E=16.19mV)
         inf_kf_n = alpha_kf_n / (alpha_kf_n + beta_kf_n)
         tau_kf_n = 1.0 / (alpha_kf_n + beta_kf_n)
         kf_n' = (inf_kf_n - kf_n) / tau_kf_n
-        iKf = gKf * (eK-V) * kf_n2 #kf_n*kf_n * kf_n*kf_n
-        kf_n2 = kf_n*kf_n * kf_n * kf_n
+        iKf = gKf * (eK-V) * kf_n
 
-        # Sodium (Kf):
-        alpha_na_m = AlphaBetaFunc(v=V, A=8.67ms-1, B=0.0ms-1 mV-1, C=1.0, D=-1.01mV,E=-12.56mV)
-        beta_na_m =  AlphaBetaFunc(v=V, A=3.82ms-1, B=0.0ms-1 mV-1, C=1.0, D=9.01mV, E=9.69mV)
+
+
+        # Sodium (Na):
+        alpha_na_m = AlphaBetaFunc(v=V, A=13.26ms-1, B=0.0ms-1 mV-1, C=0.5, D=-5.01mV,E=-12.56mV)
+        beta_na_m =  AlphaBetaFunc(v=V, A=5.73ms-1, B=0.0ms-1 mV-1, C=1.0, D=5.01mV, E=9.69mV)
         inf_na_m = alpha_na_m / (alpha_na_m + beta_na_m)
         tau_na_m = 1.0 / (alpha_na_m + beta_na_m)
         na_m' = (inf_na_m - na_m) / tau_na_m
 
-        alpha_na_h = {0.08ms-1} * exp( ({38.88mV}+V) / {-26.0mV} )
 
-        #alpha_na_h = AlphaBetaFunc(v=V, A=0.08ms-1, B=0.0ms-1 mV-1, C=0.0, D=38.88mV,E=26.0mV)
-        beta_na_h =  AlphaBetaFunc(v=V, A=4.08ms-1, B=0.0ms-1 mV-1, C=1.0, D=-5.09mV, E=-10.21mV)
+
+        alpha_na_h = AlphaBetaFunc(v=V, A=0.04ms-1, B=0.0ms-1 mV-1, C=0.0, D=28.88mV,E=26.0mV)
+        #beta_na_h =  AlphaBetaFunc(v=V, A=2.04ms-1, B=0.0ms-1 mV-1, C=0.001, D=-9.09mV, E=-10.21mV)
+        
+        beta_na_h_denom = 0.001 + exp( ( {-9.09mV} + V) / {-10.21mV}) 
+        beta_na_h =  {2.04ms-1} / beta_na_h_denom #if [beta_na_h_denom > 1e-4 or beta_na_h_denom < -1e-4] else [0.1ms-1]
 
         inf_na_h = alpha_na_h / (alpha_na_h + beta_na_h)
         tau_na_h = 1.0 / (alpha_na_h + beta_na_h)
@@ -153,29 +156,6 @@ def get_MN(nbits):
         iNa = gNa * (eNa-V) * na_m * na_m * na_m * na_h * glk_noise1
 
 
-        ## Calcium:
-        #alpha_ca_m = AlphaBetaFunc(v=V, A=4.05ms-1, B=0.0ms-1 mV-1, C=1.0, D=-15.32mV,E=-13.57mV)
-        ##beta_ca_m_1 =  AlphaBetaFunc(v=V, A=1.24ms-1, B=0.093ms-1 mV-1, C=-1.0, D=10.63mV, E=1.0mV)
-        #beta_ca_m_1 =  V * {-0.0923 ms-1 mV-1} - {1.2 ms-1}
-        #beta_ca_m_2 =  AlphaBetaFunc(v=V, A=1.28ms-1, B=0.0ms-1 mV-1, C=1.0, D=5.39mV, E=12.11mV)
-        #beta_ca_m =  [beta_ca_m_1] if [V<-25mV] else [beta_ca_m_2]
-        #ca_m_inf = alpha_ca_m / (alpha_ca_m + beta_ca_m)
-        #tau_ca_m = 1.0 / (alpha_ca_m + beta_ca_m)
-        #ca_m' =  (ca_m_inf - ca_m) / tau_ca_m
-
-        #ff = 1.0 
-        #pca = {0.16 (mm3)/s} * 1e-6 * ff
-        #F = 96485 C / mol
-        #R = 8.3144 J/ (mol K)
-        #T = 300K
-        #Cai = 100 nM
-        #Cao = 10 mM
-        #z = 2.0
-        #nu = ( (z *  F) / (R*T) ) * V ;
-        #exp_neg_nu = exp( -1. * nu )
-        #ca_v_eps = 1e-2mV
-        #iCa_ungated =  [-z *  pca *  F * ( (nu*( Cai - Cao*exp_neg_nu) ) / (1-exp_neg_nu)) ] if [ (V > ca_v_eps) or (V < -ca_v_eps)] else [pca * (-z) * F * (Cai-Cao) ]
-        #iCa =  iCa_ungated *  ca_m * ca_m
 
 
 

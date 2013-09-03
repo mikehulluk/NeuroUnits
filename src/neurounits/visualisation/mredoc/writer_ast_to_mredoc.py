@@ -76,7 +76,13 @@ def FormatDimensionality(dim):
 def include_id_in_overbrace(func):
     def new_func(self, o, *args,**kwargs):
         res = func(self, o, *args, **kwargs)
-        return r'\overbrace{%s}^{ID:%s/%s, US:%s}' % (res, id(o), o.annotations.get('node-id','??'), o.annotations['fixed-point-format'].upscale) 
+        return r'\overbrace{%s}^{ID:%s/%s, US:%s (M/M:%s/%s)}' % (res, 
+                id(o), 
+                o.annotations.get('node-id','??'), 
+                o.annotations['fixed-point-format'].upscale,
+                o.annotations['node-value-range'].min,
+                o.annotations['node-value-range'].max,
+                ) 
     return new_func
 
 class LatexEqnWriterN(ASTVisitorBase):

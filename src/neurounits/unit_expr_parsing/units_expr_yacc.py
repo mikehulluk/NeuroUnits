@@ -201,14 +201,14 @@ def p_compound_component(p):
     renames = [ d['what'] for d in actions if d['action']=='RENAME']
     merge_nodes = [ d['what'] for d in actions if d['action']=='MERGE']
 
-    interfaces = [ d['port_instance'] for d in actions if d['action']=='COMPOUNDPORT'] 
-    set_parameters = [ (d['lhs'], d['rhs']) for d in actions if d['action']=='SET'] 
+    interfaces = [ d['port_instance'] for d in actions if d['action']=='COMPOUNDPORT']
+    set_parameters = [ (d['lhs'], d['rhs']) for d in actions if d['action']=='SET']
 
     from neurounits.ast import NineMLComponent
 
     component = NineMLComponent.build_compound_component(
             component_name=name,
-            instantiate = dict( instantiations ),   
+            instantiate = dict( instantiations ),
             connections = connections,
             renames = renames,
             merge_nodes = merge_nodes,
@@ -227,7 +227,7 @@ def p_compound_component(p):
 
 
 def p_compound_component2(p):
-    """compoundcontents : empty 
+    """compoundcontents : empty
                         | compoundcontents compound_line SEMICOLON """
     if len(p) == 2:
         p[0] = []
@@ -237,7 +237,7 @@ def p_compound_component2(p):
 def p_compound_component3(p):
     """compound_line : INSTANTIATE ns_dot_name AS alphanumtoken"""
     p[0] = {'action': 'INSTANTIATE' , 'what':p[2], 'as':p[4] }
-    
+
 def p_compound_component4(p):
     """compound_line : CONNECT ns_name CONNECTION_SYMBOL ns_name"""
     p[0] = {'action': 'CONNECT', 'what':(p[2],p[4])}
@@ -832,7 +832,7 @@ def p_rv_expr1(p):
     """ random_variable : TILDE ALPHATOKEN LBRACKET rv_params RBRACKET LSQUAREBRACKET rv_modes RSQUAREBRACKET"""
     p[0] = ast.RandomVariable(
             function_name=p[2],
-            parameters = p[4], 
+            parameters = p[4],
             modes = dict(p[7])
             )
 
@@ -851,7 +851,7 @@ def p_rv_expr_params2(p):
 def p_rv_expr_params3(p):
     'rv_param : ALPHATOKEN EQUALS rhs_term'
     p[0] = ast.RandomVariableParameter(name=p[1],rhs_ast= p[3])
-    
+
 
 
 def p_rv_expr_modes0(p):
@@ -892,8 +892,18 @@ def p_bool_term_b(p):
     """bool_term : rhs_term GREATERTHAN rhs_term"""
     p[0] = ast.InEquality(lesser_than=p[3], greater_than=p[1])
 
-
+# Allow expressions like "3 < x < 5"
 def p_bool_term_c(p):
+    """bool_term : rhs_term LESSTHAN rhs_term LESSTHAN rhs_term"""
+    t1 = ast.InEquality( lesser_than=p[1], greater_than=p[3])
+    t2 = ast.InEquality( lesser_than=p[3], greater_than=p[5])
+
+    p[0] = ast.BoolAnd(t1, t2)
+
+
+
+
+def p_bool_term_0(p):
     """bool_expr : bool_term"""
     p[0] = p[1]
 
@@ -955,17 +965,17 @@ def p_rhs_term_div(p):
 
 
 #def p_rhs_term_AND(p):
-#    """ AND : AND_SYM 
+#    """ AND : AND_SYM
 #            | AND_KW """
 #    pass
 #
 #def p_rhs_term_OR(p):
-#    """ OR : OR_SYM 
+#    """ OR : OR_SYM
 #            | OR_KW """
 #    pass
 
 #def p_rhs_term_NOT(p):
-#    """ NOT : NOT_SYM 
+#    """ NOT : NOT_SYM
 #            | NOT_KW """
 #    pass
 
@@ -1200,7 +1210,7 @@ def p_error(p):
 
 
 
-# Low to high: 
+# Low to high:
 # so that multipluication of units happens before division
 # ( e.g. {2 m/ s s} )
 precedence = (
