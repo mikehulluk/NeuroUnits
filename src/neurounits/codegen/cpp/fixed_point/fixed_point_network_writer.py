@@ -307,7 +307,7 @@ IntType check_in_range(IntType val, IntType upscale, double min, double max, con
             cout << "\n  --> Amount out: " << pc_out << "%";
             cout << "\n";
 
-            assert(0);
+            //assert(0);
 
         }
 
@@ -326,7 +326,7 @@ IntType check_in_range(IntType val, IntType upscale, double min, double max, con
             cout << "\nvalue_float= " << value_float << " between(" << min << "," << max << ")?" << std::flush;
             cout << "\n  --> Amount out: " << pc_out << "%";
             cout << "\n";
-            assert(0);
+            //assert(0);
         }
     }
 
@@ -607,13 +607,11 @@ namespace event_handlers
                     next_regime = NrnPopData::RegimeType${rtgraph.name}::${rtgraph.name}${tr.target_regime.name};
                     %endif
 
-
-
-
                     d.incoming_events_${tr.port.symbol}[i].pop_front();
                 }
                 else
                 {
+                    cout << "\nEvents to handle, but delivery time not yet met: " << evt_time << " Now:" << time_info.time_int;
                     break;
                 }
             }
@@ -638,29 +636,30 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
 //#pragma omp parallel for default(shared) 
     for(int i=0;i<NrnPopData::size;i++)
     {
-        //cout << "\n";
+        cout << "\n";
 
-        //cout << "\nStarting State Variables:";
-        //cout << "\n-------------------------";
+        cout << "\nFor ${population.name} " << i;
+        cout << "\nStarting State Variables:";
+        cout << "\n-------------------------";
         // Calculate delta's for all state-variables:
         % for eqn in eqns_timederivatives:
-        //cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
         % endfor
 
 
-        //cout << "\nUpdates:";
+        cout << "\nUpdates:";
 
         // Calculate assignments:
         % for eqn in eqns_assignments:
         d.${eqn.node.lhs.symbol}[i] = ${eqn.rhs_cstr} ;
-        //cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
         % endfor
 
         // Calculate delta's for all state-variables:
         % for eqn in eqns_timederivatives:
         IntType d_${eqn.node.lhs.symbol} = ${eqn.rhs_cstr[0]} ;
         d.${eqn.node.lhs.symbol}[i] += ${eqn.rhs_cstr[1]} ;
-        //cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
         % endfor
     }
 
@@ -1073,7 +1072,7 @@ namespace NS_eventcoupling_${projection.name}
             int tgt_nrn_index = get_value32(*it) + ${projection.dst_population.start_index};
 
             data_${projection.dst_population.population.name}.incoming_events_${projection.dst_port.symbol}[tgt_nrn_index].push_back( evt ) ;
-            //cout << "\nDelivered event to: " << (*it);
+            //cout << "\nDelivered event to: " << (tgt_nrn_index);
         }
 
 
@@ -1172,7 +1171,8 @@ struct RecordMgrNew
         %if network.all_output_event_recordings:
         cout << "\n\nWriting spikes to HDF5";
         HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
-        const T_hdf5_type_float dt_float = FixedFloatConversion::to_float(dt_int, dt_upscale);
+        //const T_hdf5_type_float dt_float = FixedFloatConversion::to_float(dt_int, dt_upscale);
+        const T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
         %endif
 
 
@@ -1250,7 +1250,9 @@ struct RecordMgrNew
 
         HDF5DataSet2DStdPtr time_dataset_int = file->get_group("simulation_fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
         HDF5DataSet2DStdPtr time_dataset_float = file->get_group("simulation_fixed/double")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
-        T_hdf5_type_float dt_float = FixedFloatConversion::to_float(dt_int, dt_upscale);
+        ##T_hdf5_type_float dt_float = FixedFloatConversion::to_float(dt_int, dt_upscale);
+        
+        T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
         for(int t=0;t<n_results_written;t++)
         {
             data_int[t] = time_buffer[t];

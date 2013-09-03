@@ -221,6 +221,9 @@ class Regime(ASTObject):
     def __repr__(self):
         return "<Regime: '%s'>" % self.ns_string()
 
+    def summarise_node(self):
+        return 'Name: %s' %(self.ns_string())
+
     def ns_string(self):
         return '%s.%s' % (self.parent_rt_graph.ns_string(), self.name)
 
@@ -242,9 +245,9 @@ class RTBlock(ASTObject):
         return (self.name if self.name is not None else '')
 
     def get_regime(self, name):
-        if name==None:
-            #assert len(self.regimes) in [ 1
-            return list(self.regimes)[0]
+        #if name==None:
+            #assert len(self.regimes) in [1]
+            #return list(self.regimes)[0]
         return self.regimes.get_single_obj_by(name=name)
 
     def get_or_create_regime(self, name):

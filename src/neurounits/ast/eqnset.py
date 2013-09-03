@@ -522,6 +522,7 @@ class NineMLComponent(Block):
 
     def eventtransitions_from_regime(self, regime):
         assert isinstance(regime,Regime)
+        
         return [tr for tr in self.eventtransitions if tr.src_regime == regime]
 
     def triggertransitions_from_regime(self, regime):

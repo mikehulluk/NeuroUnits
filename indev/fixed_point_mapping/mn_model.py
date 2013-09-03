@@ -26,7 +26,7 @@ def get_MN(nbits):
 
         syn_ff = 0.1
 
-        syn_max = 30
+        syn_max = 3000
         # NMDA
         # =======================
         syn_nmda_A_tau = 4ms
@@ -56,7 +56,7 @@ def get_MN(nbits):
         syn_ampa_B' = -syn_ampa_B / syn_ampa_B_tau
         # TOOO:
         #ampa_tc_max = (syn_ampa_A_tau * syn_ampa_B_tau) * ln( syn_ampa_B_tau / syn_ampa_A_tau) * syn_ff
-        syn_ampa_g = 300pS
+        syn_ampa_g = 600pS
         syn_ampa_erev = 0mV
         on recv_ampa_spike(){
             syn_ampa_A = [syn_ampa_A + 1.0] if [syn_ampa_A < syn_max] else [syn_max]
@@ -149,8 +149,11 @@ def get_MN(nbits):
         beta_na_h_denom = 0.001 + exp( ( {-9.09mV} + V) / {-10.21mV}) 
         beta_na_h =  {2.04ms-1} / beta_na_h_denom #if [beta_na_h_denom > 1e-4 or beta_na_h_denom < -1e-4] else [0.1ms-1]
 
+        h_ab = (alpha_na_h + beta_na_h)
+
         inf_na_h = alpha_na_h / (alpha_na_h + beta_na_h)
-        tau_na_h = 1.0 / (alpha_na_h + beta_na_h)
+        #tau_na_h = [1.0 / h_ab] if [h_ab ><ms-1] else [
+        tau_na_h = 1.0 / h_ab
         na_h' = (inf_na_h - na_h) / tau_na_h
 
         iNa = gNa * (eNa-V) * na_m * na_m * na_m * na_h * glk_noise1
@@ -217,12 +220,12 @@ def get_MN(nbits):
         'ks_n'          : NodeRange(min="-0.01", max = "1.5"),
         'na_h'          : NodeRange(min="-0.01", max = "1.5"),
         'na_m'          : NodeRange(min="-0.01", max = "1.5"),
-        'syn_nmda_A'    : NodeRange(min='0', max ='30'),
-        'syn_nmda_B'    : NodeRange(min='0', max ='30'),
-        'syn_ampa_A'    : NodeRange(min='0', max ='30'),
-        'syn_ampa_B'    : NodeRange(min='0', max ='30'),
-        'syn_inhib_A'    : NodeRange(min='0', max ='30'),
-        'syn_inhib_B'    : NodeRange(min='0', max ='30'),
+        'syn_nmda_A'    : NodeRange(min='0', max ='500'),
+        'syn_nmda_B'    : NodeRange(min='0', max ='500'),
+        'syn_ampa_A'    : NodeRange(min='0', max ='500'),
+        'syn_ampa_B'    : NodeRange(min='0', max ='500'),
+        'syn_inhib_A'    : NodeRange(min='0', max ='500'),
+        'syn_inhib_B'    : NodeRange(min='0', max ='500'),
         }
 
     #var_annots_tags = {

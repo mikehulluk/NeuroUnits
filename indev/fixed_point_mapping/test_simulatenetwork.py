@@ -24,7 +24,7 @@ import cPickle as pickle
 
 
 use_cache=True
-#use_cache=False
+use_cache=False
 cache_file = '.din_model_cache'
 # Delete the cache-fiel if we are not using it:
 if not use_cache:
@@ -53,11 +53,24 @@ with open(cache_file) as f:
 
 
 
-#print 'Trigger Transitions:'
-#print RB_input.triggertransitions
-#for tr in RB_input.triggertransitions:
-#    print tr.src_regime, type(tr.src_regime)
+#print 'Event Transitions:'
+##print dIN_comp.eventtransitions
+#print 
+#print 'RT grpahs:'
+#for rt in dIN_comp.rt_graphs:
+#    print 'RT graph:', rt
+#    print 'RT_grpah Regime:', rt.get_regime(None)
+#    print 'All regimes:'
+#    for r in rt.regimes:
+#        print '  ', r
+#    print
 #
+#print
+#print 'Event Transitions:'
+#for tr in dIN_comp.eventtransitions:
+#    print tr
+#    print tr.src_regime, type(tr.src_regime)
+
 #assert False
 
 
@@ -115,9 +128,9 @@ for syn_index, ((pop1_name, pop2_name, (syn_type, strength) ), conns) in enumera
     p1 = pops_by_name[pop1_name]
     p2 = pops_by_name[pop2_name]
     synpop_name='SynPop%02d' % syn_index
-    #network.add(
-    #    EventPortConnector(p1,p2, src_port_name='spike', dst_port_name='recv_%s_spike' %syn_type, name=synpop_name , connector=ExplicitIndices(conns) )
-    #    )
+    network.add(
+        EventPortConnector(p1,p2, src_port_name='spike', dst_port_name='recv_%s_spike' %syn_type, name=synpop_name , connector=ExplicitIndices(conns) )
+        )
 
 
 
@@ -157,7 +170,7 @@ lhs_subpops = [pop_LHS_MN, pop_LHS_RB, pop_LHS_aIN, pop_LHS_cIN, pop_LHS_dla, po
 
 
 # Drive to LHS RBS:
-rb_drivers = Population('RBInput', component = RB_input, size=15)
+rb_drivers = Population('RBInput', component = RB_input, size=150, autotag=['RBINPUT'])
 network.add(rb_drivers)
 network.add( 
         EventPortConnector(rb_drivers,pop_LHS_RB, src_port_name='spike', dst_port_name='recv_ampa_spike', name='RBDrives' , connector=AllToAllConnector(connection_probability=1.0) )
@@ -167,8 +180,8 @@ network.add(
 
 
 network.record_traces( rhs_subpops+lhs_subpops, 'V' )
-network.record_input_events( rhs_subpops+lhs_subpops, 'recv_nmda_spike' )
-network.record_output_events( rhs_subpops+lhs_subpops , 'spike' )
+network.record_input_events( rhs_subpops+lhs_subpops , 'recv_nmda_spike' )
+network.record_output_events( rhs_subpops+lhs_subpops + [rb_drivers] , 'spike' )
 
 network.finalise()
 
@@ -187,6 +200,10 @@ results = HDF5SimulationResultFile("output.hd5")
 filters_traces = [
     "ALL{V,RB,LHS}",
     "ALL{V,RB,RHS}",
+    "ALL{V,dla,LHS}",
+    "ALL{V,dla,RHS}",
+    "ALL{V,dlc,LHS}",
+    "ALL{V,dlc,RHS}",
     "ALL{V,MN,LHS}",
     "ALL{V,MN,RHS}",
     
@@ -201,8 +218,15 @@ filters_traces = [
 
 filters_spikes = [
 
+    "ALL{EVENT:spike,RBINPUT}",
     "ALL{EVENT:spike,RB,LHS}",
     "ALL{EVENT:spike,RB,RHS}",
+    
+    "ALL{EVENT:spike,dla,LHS}",
+    "ALL{EVENT:spike,dla,RHS}",
+    "ALL{EVENT:spike,dlc,LHS}",
+    "ALL{EVENT:spike,dlc,RHS}",
+
     "ALL{EVENT:spike,MN,LHS}",
     "ALL{EVENT:spike,MN,RHS}",
     "ALL{EVENT:spike,aIN,LHS}",
@@ -214,6 +238,8 @@ filters_spikes = [
 
 ]
 
+sim_start = 0
+sim_end = 0.5
 
 
 
@@ -223,6 +249,7 @@ for filt in filters_traces:
     print 'Plotting:', filt, len(trs)
     for res in trs:
         pylab.plot(res.raw_data.time_pts, res.raw_data.data_pts, label=','.join(res.tags), ms='x'  )
+    pylab.xlim(sim_start, sim_end)
     pylab.ylabel(filt)
     pylab.legend()
 
@@ -234,6 +261,7 @@ for filt in filters_spikes:
     for i,res in enumerate(trs):
         evt_times = res.evt_times
         pylab.plot( evt_times, i+ 0*evt_times, 'x', label=','.join(res.tags))
+    pylab.xlim(sim_start, sim_end)
     pylab.ylabel(filt)
     pylab.legend()
 

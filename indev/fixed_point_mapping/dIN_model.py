@@ -26,7 +26,7 @@ def get_dIN(nbits):
 
         syn_ff = 0.1
 
-        syn_max = 30
+        syn_max = 3000
         # NMDA
         # =======================
         syn_nmda_A_tau = 4ms
@@ -239,12 +239,12 @@ def get_dIN(nbits):
         'ks_n'          : NodeRange(min="-0.01", max = "1.5"),
         'na_h'          : NodeRange(min="-0.01", max = "1.5"),
         'na_m'          : NodeRange(min="-0.01", max = "1.5"),
-        'syn_nmda_A'    : NodeRange(min='0', max ='30'),
-        'syn_nmda_B'    : NodeRange(min='0', max ='30'),
-        'syn_ampa_A'    : NodeRange(min='0', max ='30'),
-        'syn_ampa_B'    : NodeRange(min='0', max ='30'),
-        'syn_inhib_A'    : NodeRange(min='0', max ='30'),
-        'syn_inhib_B'    : NodeRange(min='0', max ='30'),
+        'syn_nmda_A'    : NodeRange(min='0', max ='500'),
+        'syn_nmda_B'    : NodeRange(min='0', max ='500'),
+        'syn_ampa_A'    : NodeRange(min='0', max ='500'),
+        'syn_ampa_B'    : NodeRange(min='0', max ='500'),
+        'syn_inhib_A'    : NodeRange(min='0', max ='500'),
+        'syn_inhib_B'    : NodeRange(min='0', max ='500'),
         }
 
     var_annots_tags = {
