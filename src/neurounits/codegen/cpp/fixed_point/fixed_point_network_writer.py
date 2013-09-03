@@ -96,7 +96,7 @@ const int nsim_steps = ${nsim_steps};
 
 
 // Define how often to record values:
-const int record_rate = 10;
+const int record_rate = 100;
 
 
 const int n_results_total = nsim_steps / record_rate;
@@ -636,30 +636,27 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
 //#pragma omp parallel for default(shared) 
     for(int i=0;i<NrnPopData::size;i++)
     {
-        cout << "\n";
-
-        cout << "\nFor ${population.name} " << i;
-        cout << "\nStarting State Variables:";
-        cout << "\n-------------------------";
-        // Calculate delta's for all state-variables:
+        //cout << "\n";
+        //cout << "\nFor ${population.name} " << i;
+        //cout << "\nStarting State Variables:";
+        //cout << "\n-------------------------";
+        //// Calculate delta's for all state-variables:
         % for eqn in eqns_timederivatives:
-        cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        //cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
         % endfor
-
-
-        cout << "\nUpdates:";
+        //cout << "\nUpdates:";
 
         // Calculate assignments:
         % for eqn in eqns_assignments:
         d.${eqn.node.lhs.symbol}[i] = ${eqn.rhs_cstr} ;
-        cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        //cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
         % endfor
 
         // Calculate delta's for all state-variables:
         % for eqn in eqns_timederivatives:
         IntType d_${eqn.node.lhs.symbol} = ${eqn.rhs_cstr[0]} ;
-        d.${eqn.node.lhs.symbol}[i] += ${eqn.rhs_cstr[1]} ;
-        cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        d.${eqn.node.lhs.symbol}[i] = d.${eqn.node.lhs.symbol}[i] + ${eqn.rhs_cstr[1]} ;
+        //cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
         % endfor
     }
 
@@ -818,15 +815,15 @@ int main()
 
 
 
-    // Add manual events:
-    %for (population, event_port, evt_details) in network.additional_events:
-        // Addition events:
-        NS_${population.name}::input_event_types::Event_${event_port.symbol} evt(IntType(700000));
-        for(int i=0;i<10;i++)
-        //{
-        data_${population.name}.incoming_events_${event_port.symbol}[169].push_back( evt ) ;
-        //}
-    %endfor
+    ##// Add manual events:
+    ##%for (population, event_port, evt_details) in network.additional_events:
+    ##    // Addition events:
+    ##    NS_${population.name}::input_event_types::Event_${event_port.symbol} evt(IntType(700000));
+    ##    for(int i=0;i<10;i++)
+    ##    //{
+    ##    //data_${population.name}.incoming_events_${event_port.symbol}[169].push_back( evt ) ;
+    ##    //}
+    ##%endfor
 
     //cout << "\n" << std::flush;
     //assert(0);
@@ -869,7 +866,7 @@ int main()
 
             // A. Electrical coupling:
             %for proj in network.electrical_synapse_projections:
-            NS_${proj.name}::calculate_electrical_coupling( data_${proj.src_population.name}, data_${proj.dst_population.name} );
+            NS_${proj.name}::calculate_electrical_coupling( data_${proj.src_population.population.name}, data_${proj.dst_population.population.name} );
             %endfor
 
 
@@ -982,9 +979,9 @@ namespace NS_${projection.name}
     {
 
         // Sort out autapses:
-        for(int i=0;i<${projection.src_population.size}; i++)
+        for(int i=${projection.src_population.start_index};i<${projection.src_population.end_index}; i++)
         {
-            for(int j=0;j<${projection.dst_population.size}; j++)
+            for(int j=${projection.dst_population.start_index};j<${projection.dst_population.end_index}; j++)
             {
                 if(rnd::rand_in_range(0,1) < ${projection.connection_probability} )
                 {
@@ -996,7 +993,7 @@ namespace NS_${projection.name}
 
     }
 
-    void calculate_electrical_coupling( NS_${projection.src_population.name}::NrnPopData& src, NS_${projection.dst_population.name}::NrnPopData& dst)
+    void calculate_electrical_coupling( NS_${projection.src_population.population.name}::NrnPopData& src, NS_${projection.dst_population.population.name}::NrnPopData& dst)
     {
         <%
         pre_V_node = projection.src_population.component.get_terminal_obj_or_port('V')
@@ -1355,7 +1352,7 @@ from fixed_point_common import Eqn, IntermediateNodeFinder, CBasedFixedWriter
 class CBasedEqnWriterFixedNetwork(object):
     def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None): #, record_symbols=None):
 
-        self.dt_float = 0.1e-3
+        self.dt_float = 0.01e-3
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
 
 
@@ -1385,7 +1382,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
         std_variables = {
-            'nsim_steps' : 5000,
+            'nsim_steps' : 50000,
             'nbits':self.nbits,
             'dt_float' : self.dt_float,
             'dt_int' : self.dt_int,

@@ -24,7 +24,7 @@ import cPickle as pickle
 
 
 use_cache=True
-use_cache=False
+#use_cache=False
 cache_file = '.din_model_cache'
 # Delete the cache-fiel if we are not using it:
 if not use_cache:
@@ -176,6 +176,13 @@ network.add(
         EventPortConnector(rb_drivers,pop_LHS_RB, src_port_name='spike', dst_port_name='recv_ampa_spike', name='RBDrives' , connector=AllToAllConnector(connection_probability=1.0) )
         )
 
+
+#network.add( 
+#    ElectricalSynapseProjection( src_population =  pop_LHS_dIN, dst_population =  pop_LHS_dIN, connection_probability = 0.2, strength_ohm = 100e6, injected_port_name = 'i_injected', name='E_LHS')
+#    )
+#network.add( 
+#    ElectricalSynapseProjection( src_population =  pop_RHS_dIN, dst_population =  pop_RHS_dIN, connection_probability = 0.2, strength_ohm = 100e6, injected_port_name = 'i_injected', name='E_RHS')
+#    )
 
 
 

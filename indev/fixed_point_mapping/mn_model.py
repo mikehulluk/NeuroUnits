@@ -56,7 +56,7 @@ def get_MN(nbits):
         syn_ampa_B' = -syn_ampa_B / syn_ampa_B_tau
         # TOOO:
         #ampa_tc_max = (syn_ampa_A_tau * syn_ampa_B_tau) * ln( syn_ampa_B_tau / syn_ampa_A_tau) * syn_ff
-        syn_ampa_g = 600pS
+        syn_ampa_g = 900pS
         syn_ampa_erev = 0mV
         on recv_ampa_spike(){
             syn_ampa_A = [syn_ampa_A + 1.0] if [syn_ampa_A < syn_max] else [syn_max]
@@ -103,7 +103,7 @@ def get_MN(nbits):
         eNa = 50mV
         gKs = 1.0 nS
         gKf = 8.0 nS
-        gNa = 110 nS
+        gNa = 250 nS
         gLk = 2.4691 nS
         eLk = -50mV
 

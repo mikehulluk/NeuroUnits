@@ -58,7 +58,7 @@ class CBasedFixedWriter(ASTVisitorBase):
         super(CBasedFixedWriter, self).__init__()
         self.population_access_index=population_access_index
         self.check_range = True
-        #self.check_range = False
+        self.check_range = False
 
 
     def add_range_check(self, node, expr):
@@ -82,7 +82,7 @@ class CBasedFixedWriter(ASTVisitorBase):
 
     def VisitRegimeDispatchMap(self, o):
         assert len (o.rhs_map) == 1
-        return self.visit(o.rhs_map.values()[0])
+        return self.add_range_check(o, self.visit(o.rhs_map.values()[0]) )
 
     def get_var_str(self, name):
         s =  "d.%s" % name
