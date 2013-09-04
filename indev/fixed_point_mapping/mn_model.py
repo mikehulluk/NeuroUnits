@@ -2,7 +2,7 @@
 
 
 import neurounits
-from neurounits.ast_annotations.common import NodeFixedPointFormatAnnotator,NodeRange, NodeToIntAnnotator 
+from neurounits.ast_annotations.common import NodeFixedPointFormatAnnotator,NodeRange, NodeToIntAnnotator
 from neurounits.ast_annotations.node_range_byoptimiser import NodeRangeByOptimiser
 from neurounits.ast_annotations.node_rangeexpander import RangeExpander
 
@@ -15,7 +15,7 @@ def get_MN(nbits):
         <=> INPUT t:(ms)
         <=> INPUT i_injected:(mA)
 
-        iInj_local = {0pA/ms} * t 
+        iInj_local = {0pA/ms} * t
 
         #iInj_local = [40pA] if [ 100ms < t < 200ms] else [0pA]
 
@@ -24,7 +24,7 @@ def get_MN(nbits):
         V' = (1/Cap) * (iInj_local + i_injected + iLk  + iKs + iKf +iNa +  syn_nmda_i + syn_ampa_i + syn_inhib_i)
 
 
-        syn_ff = 0.1
+        syn_ff = 1.0
 
         syn_max = 3000
         # NMDA
@@ -103,7 +103,7 @@ def get_MN(nbits):
         eNa = 50mV
         gKs = 1.0 nS
         gKf = 8.0 nS
-        gNa = 250 nS
+        gNa = 110 nS
         gLk = 2.4691 nS
         eLk = -50mV
 
@@ -119,10 +119,10 @@ def get_MN(nbits):
         inf_ks_n = alpha_ks_n / (alpha_ks_n + beta_ks_n)
         tau_ks_n = 1.0 / (alpha_ks_n + beta_ks_n)
         ks_n' = (inf_ks_n - ks_n) / tau_ks_n
-        iKs = gKs * (eK-V) * ks_n 
+        iKs = gKs * (eK-V) * ks_n
 
 
-        # Fast potassium (Kf):  
+        # Fast potassium (Kf):
         alpha_denom = ( 1.0 + exp( (V + {-27.5mV}) / {-9.3mV}) )
         alpha_denom_cl = [alpha_denom] if [alpha_denom < 2800] else [2800]
         alpha_kf_n = {3.1ms-1} / alpha_denom_cl
@@ -145,8 +145,8 @@ def get_MN(nbits):
 
         alpha_na_h = AlphaBetaFunc(v=V, A=0.04ms-1, B=0.0ms-1 mV-1, C=0.0, D=28.88mV,E=26.0mV)
         #beta_na_h =  AlphaBetaFunc(v=V, A=2.04ms-1, B=0.0ms-1 mV-1, C=0.001, D=-9.09mV, E=-10.21mV)
-        
-        beta_na_h_denom = 0.001 + exp( ( {-9.09mV} + V) / {-10.21mV}) 
+
+        beta_na_h_denom = 0.001 + exp( ( {-9.09mV} + V) / {-10.21mV})
         beta_na_h =  {2.04ms-1} / beta_na_h_denom #if [beta_na_h_denom > 1e-4 or beta_na_h_denom < -1e-4] else [0.1ms-1]
 
         h_ab = (alpha_na_h + beta_na_h)

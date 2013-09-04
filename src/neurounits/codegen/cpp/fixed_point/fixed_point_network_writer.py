@@ -815,18 +815,6 @@ int main()
 
 
 
-    ##// Add manual events:
-    ##%for (population, event_port, evt_details) in network.additional_events:
-    ##    // Addition events:
-    ##    NS_${population.name}::input_event_types::Event_${event_port.symbol} evt(IntType(700000));
-    ##    for(int i=0;i<10;i++)
-    ##    //{
-    ##    //data_${population.name}.incoming_events_${event_port.symbol}[169].push_back( evt ) ;
-    ##    //}
-    ##%endfor
-
-    //cout << "\n" << std::flush;
-    //assert(0);
 
 
 
@@ -853,6 +841,7 @@ int main()
             {
                 std::cout << "Loop: " << time_step << "\n";
                 std::cout << "t: " << time_info.time_int << "\n";
+                std::cout << "(t: " << FixedFloatConversion::to_float(time_info.time_int, time_upscale) * 1000 << "ms)\n";
             }
             #endif
 
@@ -978,19 +967,11 @@ namespace NS_${projection.name}
     void setup_electrical_coupling()
     {
 
-        // Sort out autapses:
-        for(int i=${projection.src_population.start_index};i<${projection.src_population.end_index}; i++)
-        {
-            for(int j=${projection.dst_population.start_index};j<${projection.dst_population.end_index}; j++)
-            {
-                if(rnd::rand_in_range(0,1) < ${projection.connection_probability} )
-                {
-                    gap_junctions.push_back( GapJunction(IntType(i),IntType(j), IntType(${projection.strength_ohm}) ) );
-                    //cout << "\nCreated gap junction";
-                }
-            }
-        }
-
+        ${projection.connector.build_c( src_pop_size_expr=projection.src_population.get_size(),
+                                        dst_pop_size_expr=projection.dst_population.get_size(),
+                                        add_connection_functor=lambda i,j: "gap_junctions.push_back( GapJunction(IntType(%s), IntType(%s), IntType(%s)) );" % (i,j, projection.strength_ohm),
+                                        add_connection_set_functor=None
+                                        ) }
     }
 
     void calculate_electrical_coupling( NS_${projection.src_population.population.name}::NrnPopData& src, NS_${projection.dst_population.population.name}::NrnPopData& dst)
@@ -1039,6 +1020,7 @@ namespace NS_eventcoupling_${projection.name}
         ${projection.connector.build_c( src_pop_size_expr=projection.src_population.get_size(),
                                         dst_pop_size_expr=projection.dst_population.get_size(),
                                         add_connection_functor=lambda i,j: "projections[get_value32(%s)].push_back(%s)" % (i,j),
+                                        add_connection_set_functor=None
                                         ) }
 
         size_t n_connections = 0;
@@ -1352,7 +1334,7 @@ from fixed_point_common import Eqn, IntermediateNodeFinder, CBasedFixedWriter
 class CBasedEqnWriterFixedNetwork(object):
     def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None): #, record_symbols=None):
 
-        self.dt_float = 0.01e-3
+        self.dt_float = 0.02e-3
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
 
 
@@ -1550,15 +1532,6 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
         ## The preprocessed C++ output:
-        #CCompiler.build_executable(src_text=cfile,
-        #                           compilation_settings = CCompilationSettings(
-        #                                        additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/') ],
-        #                                        additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/")],
-        #                                        libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl'],
-        #                                        compile_flags=[' -E  -std=gnu++0x ' + (CPPFLAGS if CPPFLAGS else '') ]),
-        #                           output_filename = '/tmp/nu/compilation/compile1.cpp.preprocessedx',
-        #                                        #
-        #                           run=False)
 
         # The executable:
         CCompiler.build_executable(src_text=cfile,
@@ -1573,7 +1546,7 @@ class CBasedEqnWriterFixedNetwork(object):
 #-Wno-used-variable
                                                 #
                                    run=True)
-        self.results = CBasedEqnWriterFixedResultsProxy(self)
+        self.results = None #CBasedEqnWriterFixedResultsProxy(self)
         return
 
 
@@ -1585,179 +1558,179 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
 
-import pylab
-import pylab as plt
-
-
-class CBasedEqnWriterFixedResultsProxy(object):
-    def __init__(self, eqnwriter):
-        self.eqnwriter = eqnwriter
-
-
-    def plot_ranges(self):
-        import tables
-        import sys
-
-
-        h5file = tables.openFile("output.hd5")
-
-        float_group = h5file.root._f_getChild('/simulation_fixed/double/variables/')
-        time_array = h5file.root._f_getChild('/simulation_fixed/double/time').read()
-
-
-        downscale = 10
-        # Plot the variable values:
-        for ast_node in self.eqnwriter.component.assignedvalues+self.eqnwriter.component.state_variables:
-            print 'Plotting:', ast_node
-            data_float = h5file.root._f_getChild('/simulation_fixed/double/variables/%s' % ast_node.symbol).read()
-            data_int   = h5file.root._f_getChild('/simulation_fixed/int/variables/%s' % ast_node.symbol).read()
-
-            f = pylab.figure()
-            ax1 = f.add_subplot(311)
-            ax2 = f.add_subplot(312)
-            ax3 = f.add_subplot(313)
-            ax1.set_ymargin(0.1)
-            ax2.set_ymargin(0.1)
-            ax3.set_ymargin(0.1)
-
-            # Plot the floating-point values:
-            f.suptitle("Values of variable: %s" % ast_node.symbol)
-            ax1.plot(time_array[::downscale], data_float[::downscale], color='blue')
-            node_min = ast_node.annotations['node-value-range'].min.float_in_si()
-            node_max = ast_node.annotations['node-value-range'].max.float_in_si()
-            node_upscale = ast_node.annotations['fixed-point-format'].upscale
-            ax1.axhspan(node_min, node_max, color='green', alpha=0.2  )
-            ax1.axhspan( pow(2,node_upscale), -pow(2,node_upscale), color='lightgreen', alpha=0.4  )
-
-
-            # Plot the integer values:
-            nbits = self.eqnwriter.nbits
-            _min = -pow(2.0, nbits-1)
-            _max =  pow(2.0, nbits-1)
-            ax2.plot( time_array, data_int[:,-1], color='blue')
-            ax2.axhspan( _min, _max, color='lightgreen', alpha=0.4  )
-
-            ax3.hist(data_int[:,-1], range = (_min * 1.1 , _max * 1.1), bins=1024)
-            ax3.axvline( _min, color='black', ls='--')
-            ax3.axvline( _max, color='black', ls='--')
-
-
-
-
-        # Plot the intermediate nodes values:
-        for ast_node in self.eqnwriter.component.all_ast_nodes():
-
-            try:
-
-                data_float = h5file.root._f_getChild('/simulation_fixed/double/operations/' + "op%d" % ast_node.annotations['node-id']).read()
-                data_int = h5file.root._f_getChild('/simulation_fixed/int/operations/' + "op%d" % ast_node.annotations['node-id']).read()
-
-                f = pylab.figure()
-                ax1 = f.add_subplot(311)
-                ax2 = f.add_subplot(312)
-                ax3 = f.add_subplot(313)
-                ax1.set_ymargin(0.1)
-                ax2.set_ymargin(0.1)
-                ax3.set_ymargin(0.1)
-
-                f.suptitle("Values of ast_node: %s" % str(ast_node))
-                ax1.plot(time_array[::downscale], data_float[::downscale,-1], color='blue')
-                node_min = ast_node.annotations['node-value-range'].min.float_in_si()
-                node_max = ast_node.annotations['node-value-range'].max.float_in_si()
-                node_upscale = ast_node.annotations['fixed-point-format'].upscale
-                ax1.axhspan(node_min, node_max, color='green', alpha=0.2  )
-                ax1.axhspan(pow(2,node_upscale), -pow(2,node_upscale), color='lightgreen', alpha=0.4  )
-
-                            # Plot the integer values:
-                _min = -pow(2.0, nbits-1)
-                _max =  pow(2.0, nbits-1)
-                ax2.plot( time_array, data_int[:,-1], color='blue')
-                ax2.axhspan( _min, _max, color='lightgreen', alpha=0.4  )
-
-                ax3.hist(data_int[:,-1], range = (_min * 1.1 , _max * 1.1), bins=1024)
-                ax3.axvline( _min, color='black', ls='--')
-                ax3.axvline( _max, color='black', ls='--')
-
-
-
-                invalid_points_limits = np.logical_or( node_min > data_float[:,-1], data_float[:,-1]  > node_max).astype(int)
-                invalid_points_upscale = np.logical_or( -pow(2,node_upscale) > data_float[:,-1], data_float[:,-1]  > pow(2,node_upscale)).astype(int)
-
-
-
-                def get_invalid_ranges(data):
-                    """Turn an array of integers into a list of pairs, denoting when we turn on and off"""
-                    data_switch_to_valid = np.where( np.diff(data) > 0 )[0]
-                    data_switch_to_invalid = np.where( np.diff(data) < 0 )[0]
-                    print data_switch_to_valid
-                    print data_switch_to_invalid
-
-                    assert np.fabs( len(data_switch_to_valid) - len(data_switch_to_invalid) ) <= 1
-
-                    if len(data_switch_to_valid) == len(data_switch_to_invalid) == 0:
-                        return []
-
-                    valid_invalid =  np.sort( np.concatenate([data_switch_to_valid, data_switch_to_invalid] ) ).tolist()
-
-
-
-                    if len(data_switch_to_invalid)>0:
-                        if  len(data_switch_to_valid)>0:
-                            offset = 1 if data_switch_to_invalid[0] > data_switch_to_valid[0] else 0
-                        else:
-                            offset = 1
-                    else:
-                        offset = 0
-
-                    valid_invalid = [0] + valid_invalid + [len(data)-1]
-                    pairs = zip(valid_invalid[offset::2], valid_invalid[offset+1::2])
-                    print pairs
-
-                    #if pairs:
-                    #    print 'ERRORS!'
-
-                    return pairs
-
-
-
-
-                print 'Plotting Node:', ast_node
-                print '  -', node_min, 'to', node_max
-                print data_float.shape
-
-                print 'Invalid regions:'
-                invalid_ranges_limits = get_invalid_ranges(invalid_points_limits)
-                invalid_ranges_upscale = get_invalid_ranges(invalid_points_upscale)
-
-
-                for (x1,x2) in invalid_ranges_upscale:
-                    ax1.axvspan(time_array[x1],time_array[x2], color='red',alpha=0.6)
-
-
-                if invalid_ranges_upscale:
-                    print 'ERROR: Value falls out of upscale range!'
-
-                #f.close()
-
-
-
-
-                print 'Recorded'
-
-
-                #pylab.show()
-                #pylab.close(f)
-
-
-            except tables.exceptions.NoSuchNodeError:
-                print 'Not recorded'
-
-
-
-
-
-
-        pylab.show()
-        sys.exit(0)
-
-        assert False
+#import pylab
+##import pylab as plt
+#
+#
+#class CBasedEqnWriterFixedResultsProxy(object):
+#    def __init__(self, eqnwriter):
+#        self.eqnwriter = eqnwriter
+#
+#
+#    def plot_ranges(self):
+#        import tables
+#        import sys
+#
+#
+#        h5file = tables.openFile("output.hd5")
+#
+#        float_group = h5file.root._f_getChild('/simulation_fixed/double/variables/')
+#        time_array = h5file.root._f_getChild('/simulation_fixed/double/time').read()
+#
+#
+#        downscale = 10
+#        # Plot the variable values:
+#        for ast_node in self.eqnwriter.component.assignedvalues+self.eqnwriter.component.state_variables:
+#            print 'Plotting:', ast_node
+#            data_float = h5file.root._f_getChild('/simulation_fixed/double/variables/%s' % ast_node.symbol).read()
+#            data_int   = h5file.root._f_getChild('/simulation_fixed/int/variables/%s' % ast_node.symbol).read()
+#
+#            f = pylab.figure()
+#            ax1 = f.add_subplot(311)
+#            ax2 = f.add_subplot(312)
+#            ax3 = f.add_subplot(313)
+#            ax1.set_ymargin(0.1)
+#            ax2.set_ymargin(0.1)
+#            ax3.set_ymargin(0.1)
+#
+#            # Plot the floating-point values:
+#            f.suptitle("Values of variable: %s" % ast_node.symbol)
+#            ax1.plot(time_array[::downscale], data_float[::downscale], color='blue')
+#            node_min = ast_node.annotations['node-value-range'].min.float_in_si()
+#            node_max = ast_node.annotations['node-value-range'].max.float_in_si()
+#            node_upscale = ast_node.annotations['fixed-point-format'].upscale
+#            ax1.axhspan(node_min, node_max, color='green', alpha=0.2  )
+#            ax1.axhspan( pow(2,node_upscale), -pow(2,node_upscale), color='lightgreen', alpha=0.4  )
+#
+#
+#            # Plot the integer values:
+#            nbits = self.eqnwriter.nbits
+#            _min = -pow(2.0, nbits-1)
+#            _max =  pow(2.0, nbits-1)
+#            ax2.plot( time_array, data_int[:,-1], color='blue')
+#            ax2.axhspan( _min, _max, color='lightgreen', alpha=0.4  )
+#
+#            ax3.hist(data_int[:,-1], range = (_min * 1.1 , _max * 1.1), bins=1024)
+#            ax3.axvline( _min, color='black', ls='--')
+#            ax3.axvline( _max, color='black', ls='--')
+#
+#
+#
+#
+#        # Plot the intermediate nodes values:
+#        for ast_node in self.eqnwriter.component.all_ast_nodes():
+#
+#            try:
+#
+#                data_float = h5file.root._f_getChild('/simulation_fixed/double/operations/' + "op%d" % ast_node.annotations['node-id']).read()
+#                data_int = h5file.root._f_getChild('/simulation_fixed/int/operations/' + "op%d" % ast_node.annotations['node-id']).read()
+#
+#                f = pylab.figure()
+#                ax1 = f.add_subplot(311)
+#                ax2 = f.add_subplot(312)
+#                ax3 = f.add_subplot(313)
+#                ax1.set_ymargin(0.1)
+#                ax2.set_ymargin(0.1)
+#                ax3.set_ymargin(0.1)
+#
+#                f.suptitle("Values of ast_node: %s" % str(ast_node))
+#                ax1.plot(time_array[::downscale], data_float[::downscale,-1], color='blue')
+#                node_min = ast_node.annotations['node-value-range'].min.float_in_si()
+#                node_max = ast_node.annotations['node-value-range'].max.float_in_si()
+#                node_upscale = ast_node.annotations['fixed-point-format'].upscale
+#                ax1.axhspan(node_min, node_max, color='green', alpha=0.2  )
+#                ax1.axhspan(pow(2,node_upscale), -pow(2,node_upscale), color='lightgreen', alpha=0.4  )
+#
+#                            # Plot the integer values:
+#                _min = -pow(2.0, nbits-1)
+#                _max =  pow(2.0, nbits-1)
+#                ax2.plot( time_array, data_int[:,-1], color='blue')
+#                ax2.axhspan( _min, _max, color='lightgreen', alpha=0.4  )
+#
+#                ax3.hist(data_int[:,-1], range = (_min * 1.1 , _max * 1.1), bins=1024)
+#                ax3.axvline( _min, color='black', ls='--')
+#                ax3.axvline( _max, color='black', ls='--')
+#
+#
+#
+#                invalid_points_limits = np.logical_or( node_min > data_float[:,-1], data_float[:,-1]  > node_max).astype(int)
+#                invalid_points_upscale = np.logical_or( -pow(2,node_upscale) > data_float[:,-1], data_float[:,-1]  > pow(2,node_upscale)).astype(int)
+#
+#
+#
+#                def get_invalid_ranges(data):
+#                    """Turn an array of integers into a list of pairs, denoting when we turn on and off"""
+#                    data_switch_to_valid = np.where( np.diff(data) > 0 )[0]
+#                    data_switch_to_invalid = np.where( np.diff(data) < 0 )[0]
+#                    print data_switch_to_valid
+#                    print data_switch_to_invalid
+#
+#                    assert np.fabs( len(data_switch_to_valid) - len(data_switch_to_invalid) ) <= 1
+#
+#                    if len(data_switch_to_valid) == len(data_switch_to_invalid) == 0:
+#                        return []
+#
+#                    valid_invalid =  np.sort( np.concatenate([data_switch_to_valid, data_switch_to_invalid] ) ).tolist()
+#
+#
+#
+#                    if len(data_switch_to_invalid)>0:
+#                        if  len(data_switch_to_valid)>0:
+#                            offset = 1 if data_switch_to_invalid[0] > data_switch_to_valid[0] else 0
+#                        else:
+#                            offset = 1
+#                    else:
+#                        offset = 0
+#
+#                    valid_invalid = [0] + valid_invalid + [len(data)-1]
+#                    pairs = zip(valid_invalid[offset::2], valid_invalid[offset+1::2])
+#                    print pairs
+#
+#                    #if pairs:
+#                    #    print 'ERRORS!'
+#
+#                    return pairs
+#
+#
+#
+#
+#                print 'Plotting Node:', ast_node
+#                print '  -', node_min, 'to', node_max
+#                print data_float.shape
+#
+#                print 'Invalid regions:'
+#                invalid_ranges_limits = get_invalid_ranges(invalid_points_limits)
+#                invalid_ranges_upscale = get_invalid_ranges(invalid_points_upscale)
+#
+#
+#                for (x1,x2) in invalid_ranges_upscale:
+#                    ax1.axvspan(time_array[x1],time_array[x2], color='red',alpha=0.6)
+#
+#
+#                if invalid_ranges_upscale:
+#                    print 'ERROR: Value falls out of upscale range!'
+#
+#                #f.close()
+#
+#
+#
+#
+#                print 'Recorded'
+#
+#
+#                #pylab.show()
+#                #pylab.close(f)
+#
+#
+#            except tables.exceptions.NoSuchNodeError:
+#                print 'Not recorded'
+#
+#
+#
+#
+#
+#
+#        pylab.show()
+#        sys.exit(0)
+#
+#        assert False

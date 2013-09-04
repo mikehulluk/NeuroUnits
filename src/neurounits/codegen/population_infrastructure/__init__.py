@@ -73,9 +73,10 @@ class Projection(object):
 
 
 class ElectricalSynapseProjection(Projection):
-    def __init__(self, connection_probability, strength_ohm, injected_port_name, **kwargs):
+    def __init__(self,  strength_ohm, injected_port_name, connector, **kwargs):
         super(ElectricalSynapseProjection, self).__init__(**kwargs)
-        self.connection_probability = connection_probability
+        #self.connection_probability = connection_probability
+        self.connector = connector
         self.strength_ohm = strength_ohm
         self.injected_port_name = injected_port_name
 
@@ -249,7 +250,7 @@ class AllToAllConnector(PopulationConnector):
     def __init__(self, connection_probability):
         self.connection_probability = connection_probability
 
-    def build_c(self, src_pop_size_expr, dst_pop_size_expr, add_connection_functor):
+    def build_c(self, src_pop_size_expr, dst_pop_size_expr, add_connection_functor, add_connection_set_functor):
 
         from mako.template import Template
         tmpl = Template("""
@@ -277,11 +278,11 @@ class AllToAllConnector(PopulationConnector):
 
 from collections import defaultdict
 
-class ExplicitIndices(PopulationConnector):
+class ExplicitIndicesSet(PopulationConnector):
     def __init__(self, indices):
         self.indices = indices
 
-    def build_c(self, src_pop_size_expr, dst_pop_size_expr, add_connection_functor):
+    def build_c(self, src_pop_size_expr, dst_pop_size_expr, add_connection_functor, add_connection_set_functor):
 
         src_tgt_map = defaultdict( set)
         for i,j in self.indices:
@@ -300,6 +301,33 @@ class ExplicitIndices(PopulationConnector):
             // # TODO: refactor this out properly:
             projections[${src}].assign(tgts_from_${src}, tgts_from_${src} + tgts_from_${src}_len);
         %endfor
+
+        ''')
+        return tmpl.render(
+                indices=self.indices,
+                add_connection_functor = add_connection_functor,
+                src_tgt_map=src_tgt_map
+                )
+
+
+class ExplicitIndicesLoop(PopulationConnector):
+    def __init__(self, indices):
+        self.indices = indices
+
+    def build_c(self, src_pop_size_expr, dst_pop_size_expr, add_connection_functor, add_connection_set_functor):
+
+        src_tgt_map = defaultdict( set)
+        for i,j in self.indices:
+            src_tgt_map[i].add(j);
+
+
+
+        from mako.template import Template
+        tmpl = Template('''
+        %for i,j in indices:
+        ${ add_connection_functor(i, j) }
+        %endfor
+
 
         ''')
         return tmpl.render(

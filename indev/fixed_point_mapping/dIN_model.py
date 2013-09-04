@@ -15,17 +15,13 @@ def get_dIN(nbits):
         <=> INPUT t:(ms)
         <=> INPUT i_injected:(mA)
 
-        iInj_local = [50pA] if [t > 75ms and t< 85ms or t<1ms] else [0pA] * 0
-
-        #iInj_local = [{50pA} * k] if [t > 75ms and t< 185ms or t<1ms] else [0pA]
-        #iInj_local = {0pA/ms} * t
+        iInj_local = [50pA] if [ 75ms < t < 85ms] else [0pA] * 0
         Cap = 10 pF
 
         V' = (1/Cap) * (iInj_local + i_injected + iLk + iKs + iKf +iNa + iCa + syn_nmda_i + syn_ampa_i )
 
 
-        syn_ff = 0.1
-
+        syn_ff = 1.0
         syn_max = 3000
         # NMDA
         # =======================

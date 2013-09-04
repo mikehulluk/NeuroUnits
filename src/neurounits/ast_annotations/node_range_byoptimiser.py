@@ -436,7 +436,10 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
             samples = [ get_sample_pts(node) for node in deps]
 
             res_min = res_max = None
-            for i in range(100):
+
+
+            n_trials = 20
+            for i in range(n_trials):
 
 
                 #x0 = (lower_bounds+upper_bounds) * 0.5
