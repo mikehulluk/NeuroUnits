@@ -347,7 +347,7 @@ IntType check_in_range(IntType val, IntType upscale, double min, double max, con
 // Event Coupling:
 namespace NS_eventcoupling_${projection.name}
 {
-    void dispatch_event(IntType src_neuron);
+    void dispatch_event(IntType src_neuron, const TimeInfo& time_info );
 }
 %endfor
 
@@ -528,7 +528,7 @@ namespace event_handlers
         %if (population,out_event_port) in evt_src_to_evtportconns:
         %for conn in evt_src_to_evtportconns[(population,out_event_port)]:
         // Via ${conn.name} -> ${conn.dst_population.name}
-        NS_eventcoupling_${conn.name}::dispatch_event(index);
+        NS_eventcoupling_${conn.name}::dispatch_event(index, time_info);
         %endfor
         %endif
 
@@ -633,7 +633,7 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
 
     const IntType t = time_info.time_int;
 
-//#pragma omp parallel for default(shared) 
+//#pragma omp parallel for default(shared)
     for(int i=0;i<NrnPopData::size;i++)
     {
         //cout << "\n";
@@ -670,7 +670,7 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
 
 
         %if len(rtgraph.regimes) > 1:
-        
+
         NrnPopData::RegimeType${rtgraph.name} next_regime = NrnPopData::RegimeType${rtgraph.name}::NO_CHANGE;
 
         // Non-trivial RT-graph
@@ -726,7 +726,7 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
             %for tr in population.component.eventtransitions_from_regime(rtgraph.get_regime(None)):
             ${trigger_event_block(tr, rtgraph)}
             %endfor
-            
+
         %endif:
 
         // Update the next state:
@@ -1030,13 +1030,13 @@ namespace NS_eventcoupling_${projection.name}
 
 
     // This is the neuron index inside the whole population, so lets check its for us and dispatch if so:
-    void dispatch_event(IntType src_neuron)
+    void dispatch_event(IntType src_neuron, const TimeInfo& time_info )
     {
         //cout << "\nDispatch_event: " << src_neuron;
         //cout << "\nDelivering to:";
         if( src_neuron < ${projection.src_population.start_index} || src_neuron >= ${projection.src_population.end_index} )
             return;
-        
+
 
 
         TargetList& targets = projections[get_value32(src_neuron - ${projection.src_population.start_index} )];
@@ -1045,9 +1045,11 @@ namespace NS_eventcoupling_${projection.name}
             //IntType target_index = (*it);
             //cout << " " << target_index;
 
-            NS_${projection.dst_population.population.name}::input_event_types::Event_${projection.dst_port.symbol} evt(IntType(0));
 
-            
+            IntType evt_time = IntType(0);
+            NS_${projection.dst_population.population.name}::input_event_types::Event_${projection.dst_port.symbol} evt(evt_time);
+
+
             int tgt_nrn_index = get_value32(*it) + ${projection.dst_population.start_index};
 
             data_${projection.dst_population.population.name}.incoming_events_${projection.dst_port.symbol}[tgt_nrn_index].push_back( evt ) ;
@@ -1167,27 +1169,27 @@ struct RecordMgrNew
             int buffer_int[nspikes];
             double buffer_float[nspikes];
             int s=0;
-            for(SpikeList::iterator it=emitted_spikes[buffer_offset].begin(); it!=emitted_spikes[buffer_offset].end(); it++,s++) 
+            for(SpikeList::iterator it=emitted_spikes[buffer_offset].begin(); it!=emitted_spikes[buffer_offset].end(); it++,s++)
             {
                 buffer_int[s] = it->time;
                 buffer_float[s] = buffer_int[s] * dt_float;
-            } 
+            }
 
 
-            
+
             string tag_string = "EVENT:${poprec.node.symbol},SRCPOP:${poprec.src_population.name},${','.join(poprec.tags)}";
             string tag_string_index = (boost::format("POPINDEX:%04d")%nrn_offset).str();
-            
+
 
             #if SAVE_HDF5_INT
             string location_int =  (boost::format("simulation_fixed/int/${poprec.src_population.name}/%04d/output_events/")%nrn_offset).str();
             HDF5GroupPtr pGroup_int = file->get_group(location_int + "${poprec.node.symbol}");
             HDF5DataSet2DStdPtr event_output_int  = pGroup_int->create_dataset("${poprec.node.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
             if(nspikes>0) event_output_int->set_data(nspikes, 1, buffer_int);
-            
+
             pGroup_int->add_attribute("hdf-jive","events");
             pGroup_int->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
-            
+
             #endif
 
             #if SAVE_HDF5_FLOAT
@@ -1230,7 +1232,7 @@ struct RecordMgrNew
         HDF5DataSet2DStdPtr time_dataset_int = file->get_group("simulation_fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
         HDF5DataSet2DStdPtr time_dataset_float = file->get_group("simulation_fixed/double")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
         ##T_hdf5_type_float dt_float = FixedFloatConversion::to_float(dt_int, dt_upscale);
-        
+
         T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
         for(int t=0;t<n_results_written;t++)
         {
@@ -1334,7 +1336,7 @@ from fixed_point_common import Eqn, IntermediateNodeFinder, CBasedFixedWriter
 class CBasedEqnWriterFixedNetwork(object):
     def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None): #, record_symbols=None):
 
-        self.dt_float = 0.02e-3
+        self.dt_float = 0.05e-3
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
 
 
@@ -1350,7 +1352,7 @@ class CBasedEqnWriterFixedNetwork(object):
         self.time_upscale = list(time_upscale)[0]
 
 
-        self.dt_int = NodeFixedPointFormatAnnotator.encore_value_cls(self.dt_float, self.dt_upscale, self.nbits )
+        self.dt_int = NodeFixedPointFormatAnnotator.encode_value_cls(self.dt_float, self.dt_upscale, self.nbits )
 
 
 
@@ -1363,8 +1365,10 @@ class CBasedEqnWriterFixedNetwork(object):
             evt_src_to_evtportconns[key].append(evt_conn)
 
 
+        t_stop = 1.0
+        n_steps = t_stop / self.dt_float
         std_variables = {
-            'nsim_steps' : 50000,
+            'nsim_steps' : n_steps,
             'nbits':self.nbits,
             'dt_float' : self.dt_float,
             'dt_int' : self.dt_int,

@@ -1,4 +1,6 @@
 
+from neurounits import NeuroUnitParser
+import numpy as np
 
 
 
@@ -88,13 +90,22 @@ class ElectricalSynapseProjection(Projection):
 
 
 class EventPortConnector(object):
-    def __init__(self, src_population, dst_population, src_port_name, dst_port_name, name, connector):
+    def __init__(self, src_population, dst_population, src_port_name, dst_port_name, name, connector, delay):
+
+
         self.name = name
         self.src_population = src_population
         self.dst_population = dst_population
         self.src_port = src_population.component.output_event_port_lut.get_single_obj_by(symbol=src_port_name)
         self.dst_port = dst_population.component.input_event_port_lut.get_single_obj_by(symbol=dst_port_name)
         self.connector = connector
+        self.delay = NeuroUnitParser.QuantitySimple(delay).float_in_si()
+        
+        self.delay_upscale = -8
+        assert self.delay * np.power(2,self.delay_upscale) < 1 
+
+        from neurounits.ast_annotations.node_fixedpointannotator import NodeFixedPointFormatAnnotator
+        self.delay_int  = NodeFixedPointFormatAnnotator.encode_value_cls(self.delay, self.delay_upscale, nbits=24)
 
 
 

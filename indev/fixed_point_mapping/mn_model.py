@@ -56,7 +56,7 @@ def get_MN(nbits):
         syn_ampa_B' = -syn_ampa_B / syn_ampa_B_tau
         # TOOO:
         #ampa_tc_max = (syn_ampa_A_tau * syn_ampa_B_tau) * ln( syn_ampa_B_tau / syn_ampa_A_tau) * syn_ff
-        syn_ampa_g = 900pS
+        syn_ampa_g = 500pS
         syn_ampa_erev = 0mV
         on recv_ampa_spike(){
             syn_ampa_A = [syn_ampa_A + 1.0] if [syn_ampa_A < syn_max] else [syn_max]
