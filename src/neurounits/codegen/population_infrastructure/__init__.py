@@ -66,6 +66,19 @@ class SubPopulation(object):
     def tags(self):
         return self.autotag + self._population.autotag + ['subpop']
 
+
+
+    def get_subpopulation(self, start_index, end_index, subname, autotag):
+        assert 0<=start_index<=self.end_index
+        assert 0<=end_index<=self.end_index
+        return SubPopulation(
+                start_index = self.start_index + start_index,
+                end_index = self.start_index + end_index,
+                subname = self.subname + "_" + subname,
+                autotag = self.autotag + autotag,
+                population = self._population
+                )
+
 class Projection(object):
     def __init__(self, name, src_population, dst_population):
         self.name = name
@@ -77,7 +90,6 @@ class Projection(object):
 class ElectricalSynapseProjection(Projection):
     def __init__(self,  strength_ohm, injected_port_name, connector, **kwargs):
         super(ElectricalSynapseProjection, self).__init__(**kwargs)
-        #self.connection_probability = connection_probability
         self.connector = connector
         self.strength_ohm = strength_ohm
         self.injected_port_name = injected_port_name

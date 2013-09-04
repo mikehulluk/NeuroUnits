@@ -30,6 +30,7 @@ from neurounits import ast
 from neurounits.visitors.common.ast_replace_node import ReplaceNode
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
+import numpy
 
 
 class ReduceConstants(ASTVisitorBase):
@@ -39,7 +40,7 @@ class ReduceConstants(ASTVisitorBase):
 
         removed = []
 
-        for assignment in o.ordered_assignments_by_dependancies: 
+        for assignment in o.ordered_assignments_by_dependancies:
             fixed_value = self.visit(assignment.rhs_map)
 
             #print 'Is fixed? :', assignment.lhs.symbol, fixed_value
@@ -56,7 +57,7 @@ class ReduceConstants(ASTVisitorBase):
                 o._eqn_assignment._objs.remove(assignment)
                 o._symbolicconstants._add_item(sym_node)
 
-                
+
 
         for a in removed:
             #print 'Simplified:', a
@@ -201,6 +202,20 @@ class ReduceConstants(ASTVisitorBase):
             params[p] = pres
 
 
+        if o.function_def.funcname== 'ln':
+            from neurounits.units_backends.mh import MMQuantity, MMUnit
+            assert len(params) == 1
+            p = params.values()[0].float_in_si()
+            return MMQuantity( numpy.log(p), MMUnit() )
+
+
+        if o.function_def.funcname== 'exp':
+            from neurounits.units_backends.mh import MMQuantity, MMUnit
+            assert len(params) == 1
+            p = params.values()[0].float_in_si()
+            return MMQuantity( numpy.exp(p), MMUnit() )
+
+
         # Not Implmented how to calculate it yet!
         print 'We can evalute function:' , o.function_def.funcname
         print 'BUT THE LOGIC IS MISSING :)'
@@ -218,7 +233,7 @@ class ReduceConstants(ASTVisitorBase):
         # Check that the parameters are all constants for the moment:
         for p in rv.parameters:
             assert self.visit(p) != None, 'Random Variable parameters must all be compile time resolves'
-        
+
 
         # Don't reduce random variables:
         return None

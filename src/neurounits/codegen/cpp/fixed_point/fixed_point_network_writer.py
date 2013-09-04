@@ -96,7 +96,7 @@ const int nsim_steps = ${nsim_steps};
 
 
 // Define how often to record values:
-const int record_rate = 100;
+const int record_rate = 10;
 
 
 const int n_results_total = nsim_steps / record_rate;
@@ -587,7 +587,7 @@ namespace event_handlers
             {
                 if( d.incoming_events_${tr.port.symbol}[i].size() == 0 ) break;
                 IntType evt_time = d.incoming_events_${tr.port.symbol}[i].front().delivery_time;
-                if(evt_time < time_info.time_int )
+                if(evt_time <= time_info.time_int )
                 {
                     // Handle the event:
                     //std::cout << "\n **** HANDLING EVENT (on ${tr.port.symbol}) *****";
@@ -611,7 +611,7 @@ namespace event_handlers
                 }
                 else
                 {
-                    cout << "\nEvents to handle, but delivery time not yet met: " << evt_time << " Now:" << time_info.time_int;
+                    ##cout << "\nEvents to handle, but delivery time not yet met: " << evt_time << " Now:" << time_info.time_int;
                     break;
                 }
             }
@@ -1046,7 +1046,10 @@ namespace NS_eventcoupling_${projection.name}
             //cout << " " << target_index;
 
 
-            IntType evt_time = IntType(0);
+            IntType evt_time = do_add_op( time_info.time_int, time_upscale, ${projection.delay_int}, ${projection.delay_upscale}, time_upscale, 0);
+
+            //IntTyp(etime_info.time_int);
+
             NS_${projection.dst_population.population.name}::input_event_types::Event_${projection.dst_port.symbol} evt(evt_time);
 
 
@@ -1365,7 +1368,7 @@ class CBasedEqnWriterFixedNetwork(object):
             evt_src_to_evtportconns[key].append(evt_conn)
 
 
-        t_stop = 1.0
+        t_stop = 0.5
         n_steps = t_stop / self.dt_float
         std_variables = {
             'nsim_steps' : n_steps,

@@ -21,17 +21,17 @@ def get_dIN(nbits):
         V' = (1/Cap) * (iInj_local + i_injected + iLk + iKs + iKf +iNa + iCa + syn_nmda_i + syn_ampa_i )
 
 
-        syn_ff = 1.0
         syn_max = 3000
         # NMDA
         # =======================
         syn_nmda_A_tau = 4ms
         syn_nmda_B_tau = 80ms
-        syn_nmda_i = syn_nmda_g * (syn_nmda_B - syn_nmda_A) * (syn_nmda_erev - V) * nmda_vdep  * 0.5 * syn_ff
+        syn_nmda_i = syn_nmda_g * (syn_nmda_B - syn_nmda_A) * (syn_nmda_erev - V) * (1/nmda_val_max) * nmda_vdep
         syn_nmda_A' = -syn_nmda_A / syn_nmda_A_tau
         syn_nmda_B' = -syn_nmda_B / syn_nmda_B_tau
-        # TOOO:
-        #nmda_tc_max = (syn_nmda_A_tau * syn_nmda_B_tau) * ln( syn_nmda_B_tau / syn_nmda_A_tau)
+        # Normalisation:
+        nmda_tc_max =  ln( syn_nmda_B_tau / syn_nmda_A_tau) * (syn_nmda_A_tau * syn_nmda_B_tau) / (syn_nmda_A_tau - syn_nmda_B_tau)
+        nmda_val_max =  exp( -nmda_tc_max / syn_ampa_B_tau) -  exp( -nmda_tc_max / syn_ampa_A_tau) 
         syn_nmda_g = 300pS
         syn_nmda_erev = 0mV
         v_scale = V * {-0.08mV-1}
@@ -47,12 +47,14 @@ def get_dIN(nbits):
         # =======================
         syn_ampa_A_tau = 0.1ms
         syn_ampa_B_tau = 3ms
-        syn_ampa_i = syn_ampa_g * (syn_ampa_B - syn_ampa_A) * (syn_ampa_erev - V)  * syn_ff
+        syn_ampa_i = syn_ampa_g * (syn_ampa_B - syn_ampa_A) * (syn_ampa_erev - V)  *(1/ampa_val_max) 
         syn_ampa_A' = -syn_ampa_A / syn_ampa_A_tau
         syn_ampa_B' = -syn_ampa_B / syn_ampa_B_tau
-        # TOOO:
-        #ampa_tc_max = (syn_ampa_A_tau * syn_ampa_B_tau) * ln( syn_ampa_B_tau / syn_ampa_A_tau) * syn_ff
-        syn_ampa_g = 300pS
+        
+        # Normalisation:
+        ampa_tc_max =  ln( syn_ampa_B_tau / syn_ampa_A_tau) * (syn_ampa_A_tau * syn_ampa_B_tau) / (syn_ampa_A_tau - syn_ampa_B_tau)
+        ampa_val_max =  exp( -ampa_tc_max / syn_ampa_B_tau) -  exp( -ampa_tc_max / syn_ampa_A_tau) 
+        syn_ampa_g = 500pS
         syn_ampa_erev = 0mV
         on recv_ampa_spike(){
             syn_ampa_A = [syn_ampa_A + 1.0] if [syn_ampa_A < syn_max] else [syn_max]
@@ -64,21 +66,19 @@ def get_dIN(nbits):
         # =======================
         syn_inhib_A_tau = 1.5ms
         syn_inhib_B_tau = 4ms
-        syn_inhib_i = syn_inhib_g * (syn_inhib_B - syn_inhib_A) * (syn_inhib_erev - V)  *syn_ff
+        syn_inhib_i = syn_inhib_g * (syn_inhib_B - syn_inhib_A) * (syn_inhib_erev - V)  * (1/inhib_val_max)
         syn_inhib_A' = -syn_inhib_A / syn_inhib_A_tau
         syn_inhib_B' = -syn_inhib_B / syn_inhib_B_tau
-        # TOOO:
-        #inhib_tc_max = (syn_inhib_A_tau * syn_inhib_B_tau) * ln( syn_inhib_B_tau / syn_inhib_A_tau)
+        # Normalisation:
+        inhib_tc_max =  ln( syn_inhib_B_tau / syn_inhib_A_tau) * (syn_inhib_A_tau * syn_inhib_B_tau) / (syn_inhib_A_tau - syn_inhib_B_tau)
+        inhib_val_max =  exp( -inhib_tc_max / syn_inhib_B_tau) -  exp( -inhib_tc_max / syn_inhib_A_tau) 
         syn_inhib_g = 300pS
         syn_inhib_erev = -60mV
         on recv_inh_spike(){
-            #syn_inhib_A = syn_inhib_A + 1.0
-            #syn_inhib_B = syn_inhib_B + 1.0
             syn_inhib_A = [syn_inhib_A + 1.0] if [syn_inhib_A < syn_max] else [syn_max]
             syn_inhib_B = [syn_inhib_B + 1.0] if [syn_inhib_B < syn_max] else [syn_max]
         }
         # ===========================
-
 
         noise_min = 0.5
         noise_max = 1.5

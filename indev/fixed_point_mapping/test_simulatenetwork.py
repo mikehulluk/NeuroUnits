@@ -133,10 +133,10 @@ lhs_subpops = [pop_LHS_MN, pop_LHS_RB, pop_LHS_aIN, pop_LHS_cIN, pop_LHS_dla, po
 
 
 # Drive to LHS RBS:
-rb_drivers = Population('RBInput', component = RB_input, size=10, autotag=['RBINPUT'])
+rb_drivers = Population('RBInput', component = RB_input, size=9, autotag=['RBINPUT'])
 network.add(rb_drivers)
 network.add(
-        EventPortConnector(rb_drivers,pop_LHS_RB, src_port_name='spike', dst_port_name='recv_ampa_spike', name='RBDrives' , connector=AllToAllConnector(connection_probability=1.0), delay='0ms' )
+        EventPortConnector(rb_drivers, pop_LHS_RB.get_subpopulation(start_index=10,end_index=15,subname='triggered',autotag=[]), src_port_name='spike', dst_port_name='recv_ampa_spike', name='RBDrives' , connector=AllToAllConnector(connection_probability=1.0), delay='0ms' )
         )
 
 
@@ -163,6 +163,7 @@ network.add(
 
 # Recording:
 network.record_traces( rhs_subpops+lhs_subpops, 'V' )
+network.record_traces(pop_LHS_RB , 'syn_ampa_open' )
 network.record_input_events( rhs_subpops+lhs_subpops , 'recv_nmda_spike' )
 network.record_output_events( rhs_subpops+lhs_subpops + [rb_drivers] , 'spike' )
 
@@ -190,14 +191,16 @@ filters_traces = [
     "ALL{V,dIN,LHS}",
     "ALL{V,dIN,RHS}",
 
-    "ALL{V,aIN,LHS}",
-    "ALL{V,aIN,RHS}",
-
-    "ALL{V,cIN,LHS}",
-    "ALL{V,cIN,RHS}",
+#    "ALL{V,aIN,LHS}",
+#    "ALL{V,aIN,RHS}",
+#
+#    "ALL{V,cIN,LHS}",
+#    "ALL{V,cIN,RHS}",
+#    
+#    "ALL{V,MN,LHS}",
+#    "ALL{V,MN,RHS}",
     
-    "ALL{V,MN,LHS}",
-    "ALL{V,MN,RHS}",
+    "ALL{syn_ampa_open,RB,LHS}",
 
 
         ]
@@ -211,19 +214,19 @@ filters_spikes = [
     "ALL{EVENT:spike,dIN,LHS}",
     "ALL{EVENT:spike,dIN,RHS}",
 
-    "ALL{EVENT:spike,dla,LHS}",
-    "ALL{EVENT:spike,dla,RHS}",
-    "ALL{EVENT:spike,dlc,LHS}",
-    "ALL{EVENT:spike,dlc,RHS}",
-
-    "ALL{EVENT:spike,MN,LHS}",
-    "ALL{EVENT:spike,MN,RHS}",
-
-    "ALL{EVENT:spike,aIN,LHS}",
-    "ALL{EVENT:spike,aIN,RHS}",
-
-    "ALL{EVENT:spike,cIN,LHS}",
-    "ALL{EVENT:spike,cIN,RHS}",
+#    "ALL{EVENT:spike,dla,LHS}",
+#    "ALL{EVENT:spike,dla,RHS}",
+#    "ALL{EVENT:spike,dlc,LHS}",
+#    "ALL{EVENT:spike,dlc,RHS}",
+#
+#    "ALL{EVENT:spike,MN,LHS}",
+#    "ALL{EVENT:spike,MN,RHS}",
+#
+#    "ALL{EVENT:spike,aIN,LHS}",
+#    "ALL{EVENT:spike,aIN,RHS}",
+#
+#    "ALL{EVENT:spike,cIN,LHS}",
+#    "ALL{EVENT:spike,cIN,RHS}",
 
     "ALL{EVENT:spike,dIN}",
     "ALL{EVENT:spike,MN}",
