@@ -26,7 +26,7 @@ from mreorg import PM
 
 
 use_cache=True
-use_cache=False
+#use_cache=False
 cache_file = '.din_model_cache'
 # Delete the cache-fiel if we are not using it:
 if not use_cache:

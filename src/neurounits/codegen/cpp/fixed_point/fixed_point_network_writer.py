@@ -630,10 +630,11 @@ namespace event_handlers
 
 
 // Update-function
-void sim_step(NrnPopData& d, TimeInfo time_info)
+void sim_step_update_sv(NrnPopData& d, TimeInfo time_info)
 {
 
     const IntType t = time_info.time_int;
+    assert(t>0);
 
 //#pragma omp parallel for default(shared)
     for(int i=0;i<NrnPopData::size;i++)
@@ -674,9 +675,14 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
 
         % endfor
     }
+}
 
 
+void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
+{
+    const IntType t = time_info.time_int;
 
+    assert(t>0);
 
     for(int i=0;i<NrnPopData::size;i++)
     {
@@ -877,7 +883,12 @@ int main()
 
             // B. Integrate all the state_variables of all the neurons:
             %for pop in network.populations:
-            NS_${pop.name}::sim_step( data_${pop.name}, time_info);
+            NS_${pop.name}::sim_step_update_sv( data_${pop.name}, time_info);
+            %endfor
+
+            // C. Resolve state transitions:
+            %for pop in network.populations:
+            NS_${pop.name}::sim_step_update_rt( data_${pop.name}, time_info);
             %endfor
 
 
@@ -1565,6 +1576,7 @@ class CBasedEqnWriterFixedNetwork(object):
                                                 libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl'],
                                                 #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x  -O3  -g -fopenmp ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                                 compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x  -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
+                                                #compile_flags=['-Wall   -Wfatal-errors -std=gnu++0x  -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                                 #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x -O3  -g -march=native ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                                 #compile_flags=['-Wall -Wfatal-errors -std=gnu++0x -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
 #-Wno-used-variable
