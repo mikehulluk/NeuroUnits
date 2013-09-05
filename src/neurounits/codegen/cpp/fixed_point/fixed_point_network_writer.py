@@ -42,7 +42,7 @@ c_prog_header_tmpl = r"""
 
 #define PC_DEBUG  false
 
-
+#define RUNTIME_PRINT_ALL
 
 
 //#define ON_NIOS
@@ -309,7 +309,7 @@ IntType check_in_range(IntType val, IntType upscale, double min, double max, con
             cout << "\n  --> Amount out: " << pc_out << "%";
             cout << "\n";
 
-            //assert(0);
+            assert(0);
 
         }
 
@@ -330,7 +330,7 @@ IntType check_in_range(IntType val, IntType upscale, double min, double max, con
             cout << "\nvalue_float= " << value_float << " between(" << min << "," << max << ")?" << std::flush;
             cout << "\n  --> Amount out: " << pc_out << "%";
             cout << "\n";
-            //assert(0);
+            assert(0);
         }
     }
 
@@ -377,22 +377,20 @@ namespace NS_${population.name}
         struct Event_${in_port.symbol}
         {
 
+            IntType delivery_time;
             %for param in in_port.parameters:
             IntType ${param.symbol};
             %endfor
-            IntType delivery_time;
+
+
 
             Event_${in_port.symbol}(
-                IntType delivery_time
-                %for param in in_port.parameters:
-                , IntType ${param.symbol},
-                %endfor
+                IntType delivery_time,
+                ${ ','.join( [ 'IntType %s' % param.symbol for param in in_port.parameters ] ) }
             )
             :
-              %for param in in_port.parameters:
-              ${param.symbol}(${param.symbol}),
-              %endfor
-              delivery_time(delivery_time)
+              delivery_time(delivery_time),
+              ${ ','.join( [ '%s(%s)' % (param.symbol,param.symbol) for param in in_port.parameters ] ) }
             { }
 
 
@@ -582,15 +580,14 @@ namespace event_handlers
 
 
 
-
-
-
-
 <%def name="trigger_event_block(tr, rtgraph)">
             while(true)
             {
                 if( d.incoming_events_${tr.port.symbol}[i].size() == 0 ) break;
                 IntType evt_time = d.incoming_events_${tr.port.symbol}[i].front().delivery_time;
+
+                input_event_types::Event_${tr.port.symbol}& evt = d.incoming_events_${tr.port.symbol}[i].front();
+
                 if(evt_time <= time_info.time_int )
                 {
                     // Handle the event:
@@ -640,27 +637,40 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
 //#pragma omp parallel for default(shared)
     for(int i=0;i<NrnPopData::size;i++)
     {
-        //cout << "\n";
-        //cout << "\nFor ${population.name} " << i;
-        //cout << "\nStarting State Variables:";
-        //cout << "\n-------------------------";
-        //// Calculate delta's for all state-variables:
+
+        #ifdef RUNTIME_PRINT_ALL
+        cout << "\n";
+        cout << "\nFor ${population.name} " << i;
+        cout << "\nAt: t=" << t << "\t(" << FixedFloatConversion::to_float(t, time_upscale) << "s)";
+        cout << "\nStarting State Variables:";
+        cout << "\n-------------------------";
+        // Calculate delta's for all state-variables:
         % for eqn in eqns_timederivatives:
-        //cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
         % endfor
-        //cout << "\nUpdates:";
+        cout << "\nUpdates:";
+        #endif
 
         // Calculate assignments:
         % for eqn in eqns_assignments:
         d.${eqn.node.lhs.symbol}[i] = ${eqn.rhs_cstr} ;
-        //cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        #ifdef RUNTIME_PRINT_ALL
+        cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        #endif
         % endfor
 
         // Calculate delta's for all state-variables:
         % for eqn in eqns_timederivatives:
         IntType d_${eqn.node.lhs.symbol} = ${eqn.rhs_cstr[0]} ;
         d.${eqn.node.lhs.symbol}[i] = d.${eqn.node.lhs.symbol}[i] + ${eqn.rhs_cstr[1]} ;
-        //cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        #ifdef RUNTIME_PRINT_ALL
+        cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        #endif
+        
+        // Range Checking:
+        check_in_range( d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale}, ${eqn.node.lhs.annotations['node-value-range'].min}, ${eqn.node.lhs.annotations['node-value-range'].max}, "d.${eqn.node.lhs.symbol}" );
+
+
         % endfor
     }
 
@@ -1049,17 +1059,19 @@ namespace NS_eventcoupling_${projection.name}
             //IntType target_index = (*it);
             //cout << " " << target_index;
 
+            <% evt_type = 'NS_%s::input_event_types::Event_%s' % (projection.dst_population.population.name, projection.dst_port.symbol)%>
 
             IntType evt_time = do_add_op( time_info.time_int, time_upscale, ${projection.delay_int}, ${projection.delay_upscale}, time_upscale, 0);
 
-            //IntTyp(etime_info.time_int);
+            // Create the event, remebering to rescale parameters between source and target appropriately:
+            %for p in projection.dst_port.alphabetic_params:
+                IntType param_${p.symbol} = IntType(0);
+            %endfor
+            ${evt_type} evt(evt_time, ${','.join(['param_%s' % p.symbol for p in projection.dst_port.alphabetic_params])}  );
 
-            NS_${projection.dst_population.population.name}::input_event_types::Event_${projection.dst_port.symbol} evt(evt_time);
+            //int tgt_nrn_index = get_value32(*it) + ${projection.dst_population.start_index};
 
-
-            int tgt_nrn_index = get_value32(*it) + ${projection.dst_population.start_index};
-
-            data_${projection.dst_population.population.name}.incoming_events_${projection.dst_port.symbol}[tgt_nrn_index].push_back( evt ) ;
+            //data_${projection.dst_population.population.name}.incoming_events_${projection.dst_port.symbol}[tgt_nrn_index].push_back( evt ) ;
             //cout << "\nDelivered event to: " << (tgt_nrn_index);
         }
 

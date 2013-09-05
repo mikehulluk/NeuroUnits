@@ -38,8 +38,8 @@ class CriticalPointFinder(ASTActionerDefault):
         if isinstance(n.greater_than, ast.ASTConstNode) and isinstance(n.lesser_than, ast.ASTSymbolNode):
             self.critical_points[n.lesser_than].add(n.greater_than.value.float_in_si())
             return
-        print n.lesser_than
-        print n.greater_than
+        #print n.lesser_than
+        #print n.greater_than
 
 
 
@@ -172,6 +172,13 @@ class CFloatEval(ASTVisitorBase):
     def VisitRandomVariableParameter(self, o, **kwargs):
         print self, o
 
+    def VisitOnEventDefParameter(self, o):
+        return 'input_data->%s' %  o.annotations['_range-finding-c-var-name'] #  ('rv_' + str(id(o)))
+
+    def VisitInEventPortParameter(self, o):
+        assert False
+        return 'input_data->%s' %  o.annotations['_range-finding-c-var-name'] #  ('rv_' + str(id(o)))
+
         #raise NotImplementedError()
 
 
@@ -199,6 +206,7 @@ class NodeEvaluatorCCode(ASTActionerDefault):
     def BuildEvalFunc(self, n):
         if n in self.node_code:
             return
+        #print n
         name = n.annotations['_range-finding-c-func-name']
         code = CFloatEval(the_component=self.component).visit(n)
         assert not n in self.node_code
@@ -282,8 +290,8 @@ class NodeEvaluatorCCode(ASTActionerDefault):
     def ActionOutEventPortParameter(self, o, **kwargs):
         return self.BuildEvalFunc(o)
 
-    def ActionInEventPortParameter(self, o, **kwargs):
-        return self.BuildEvalFunc(o)
+    #def ActionInEventPortParameter(self, o, **kwargs):
+    #    return self.BuildEvalFunc(o)
 
     def ActionRandomVariable(self,o,**kwargs):
         return self.BuildEvalFunc(o)
@@ -293,6 +301,12 @@ input_ds_tmpl = Template("""
 typedef struct  {
     %for sym in list(component.all_input_terminals) + list(component.random_variable_nodes):
     double ${sym.annotations['_range-finding-c-var-name']};
+    %endfor
+
+    %for tr  in component.eventtransitions:
+    %for param in tr.parameters:
+        double ${param.annotations['_range-finding-c-var-name']};
+    %endfor
     %endfor
 
     %for rtgraph in component.rt_graphs:
@@ -362,9 +376,16 @@ class NodeRangeCCodeNodeNamer( ASTTreeAnnotator, ASTActionerDefault):
         self.set_func_name(o)
     def ActionEqnAssignmentByRegime (self, o):
         self.set_func_name(o)
-
     def ActionRandomVariableParameter (self, o):
         self.set_func_name(o)
+    def ActionOnEventDefParameter(self, o):
+        self.set_var_name(o, name=o.symbol + '_%s' % str(id(o)) )
+        self.set_func_name(o)
+    def ActionInEventPortParameter(self, o):
+        self.set_var_name(o, name=o.symbol + '_%s' % str(id(o)) )
+        self.set_func_name(o)
+
+
 
 class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
     def __init__(self, var_annots_ranges):
@@ -385,7 +406,9 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
                                                             include_supplied_values=True,
                                                             include_symbolic_constants=False,
                                                             include_parameters=True,
-                                                            include_analog_input_ports=True)
+                                                            include_analog_input_ports=True,
+                                                            include_inevent_parameters=True
+                                                            )
 
             inputdata = cffi_top.new('InputData*')
 
@@ -478,6 +501,17 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
             assert sv.symbol in self.var_annots_ranges, 'Annotation missing for state-variable: %s' % sv.symbol
             ann_in = self.var_annots_ranges[sv.symbol]
             sv.annotations['node-value-range'] = _NodeRangeFloat(min_=ann_in.min.float_in_si(), max_=ann_in.max.float_in_si() )
+
+        # 0b. And input events:
+        for tr in component.eventtransitions:
+            for p in tr.parameters:
+                lookup_name = "%s::%s" % (tr.port.symbol, p.symbol)
+                ann_in = self.var_annots_ranges[lookup_name]
+                p.annotations['node-value-range'] = _NodeRangeFloat(min_=ann_in.min.float_in_si(), max_=ann_in.max.float_in_si() )
+                
+        #assert False
+
+
         for rv in component.random_variable_nodes:
             assert rv.functionname == 'uniform'
             min_param = rv.parameters.get_single_obj_by(name='min')
