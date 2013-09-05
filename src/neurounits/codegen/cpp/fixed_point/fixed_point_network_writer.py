@@ -42,7 +42,8 @@ c_prog_header_tmpl = r"""
 
 #define PC_DEBUG  false
 
-#define RUNTIME_PRINT_ALL
+
+## #define RUNTIME_PRINT_ALL
 
 
 //#define ON_NIOS
@@ -385,12 +386,12 @@ namespace NS_${population.name}
 
 
             Event_${in_port.symbol}(
-                IntType delivery_time,
-                ${ ','.join( [ 'IntType %s' % param.symbol for param in in_port.parameters ] ) }
+                IntType delivery_time
+                ${ ' '.join( [ ',IntType %s' % param.symbol for param in in_port.parameters ] ) }
             )
             :
-              delivery_time(delivery_time),
-              ${ ','.join( [ '%s(%s)' % (param.symbol,param.symbol) for param in in_port.parameters ] ) }
+              delivery_time(delivery_time)
+              ${ ' '.join( [ ',%s(%s)' % (param.symbol,param.symbol) for param in in_port.parameters ] ) }
             { }
 
 
@@ -584,9 +585,9 @@ namespace event_handlers
             while(true)
             {
                 if( d.incoming_events_${tr.port.symbol}[i].size() == 0 ) break;
-                IntType evt_time = d.incoming_events_${tr.port.symbol}[i].front().delivery_time;
 
                 input_event_types::Event_${tr.port.symbol}& evt = d.incoming_events_${tr.port.symbol}[i].front();
+                IntType evt_time = evt.delivery_time; //d.incoming_events_${tr.port.symbol}[i].front().delivery_time;
 
                 if(evt_time <= time_info.time_int )
                 {
@@ -1067,11 +1068,11 @@ namespace NS_eventcoupling_${projection.name}
             %for p in projection.dst_port.alphabetic_params:
                 IntType param_${p.symbol} = IntType(0);
             %endfor
-            ${evt_type} evt(evt_time, ${','.join(['param_%s' % p.symbol for p in projection.dst_port.alphabetic_params])}  );
+            ${evt_type} evt(evt_time ${' '.join([',param_%s' % p.symbol for p in projection.dst_port.alphabetic_params])}  );
 
-            //int tgt_nrn_index = get_value32(*it) + ${projection.dst_population.start_index};
+            int tgt_nrn_index = get_value32(*it) + ${projection.dst_population.start_index};
 
-            //data_${projection.dst_population.population.name}.incoming_events_${projection.dst_port.symbol}[tgt_nrn_index].push_back( evt ) ;
+            data_${projection.dst_population.population.name}.incoming_events_${projection.dst_port.symbol}[tgt_nrn_index].push_back( evt ) ;
             //cout << "\nDelivered event to: " << (tgt_nrn_index);
         }
 
