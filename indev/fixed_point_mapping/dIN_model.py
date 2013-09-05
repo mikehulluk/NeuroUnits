@@ -80,8 +80,8 @@ def get_dIN(nbits):
         syn_inhib_g = 300pS
         syn_inhib_erev = -60mV
         on recv_inh_spike(){
-            syn_inhib_A = ClipMax( x=syn_inhib_A + 1.0, x_max=syn_sat )
-            syn_inhib_B = ClipMax( x=syn_inhib_B + 1.0, x_max=syn_sat )
+            syn_inhib_A = ClipMax( x=syn_inhib_A + 1.0, x_max=syn_sat * 3 )
+            syn_inhib_B = ClipMax( x=syn_inhib_B + 1.0, x_max=syn_sat * 3)
             #syn_inhib_A = syn_inhib_A +1.0
             #syn_inhib_B = syn_inhib_B +1.0
         }

@@ -668,8 +668,8 @@ void sim_step(NrnPopData& d, TimeInfo time_info)
         cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
         #endif
         
-        // Range Checking:
-        check_in_range( d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale}, ${eqn.node.lhs.annotations['node-value-range'].min}, ${eqn.node.lhs.annotations['node-value-range'].max}, "d.${eqn.node.lhs.symbol}" );
+        ## // Range Checking:
+        ##check_in_range( d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale}, ${eqn.node.lhs.annotations['node-value-range'].min}, ${eqn.node.lhs.annotations['node-value-range'].max}, "d.${eqn.node.lhs.symbol}" );
 
 
         % endfor
@@ -1385,7 +1385,7 @@ class CBasedEqnWriterFixedNetwork(object):
             evt_src_to_evtportconns[key].append(evt_conn)
 
 
-        t_stop = 0.5
+        t_stop = 1.5
         n_steps = t_stop / self.dt_float
         std_variables = {
             'nsim_steps' : n_steps,
