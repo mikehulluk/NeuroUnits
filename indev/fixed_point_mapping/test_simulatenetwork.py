@@ -157,7 +157,7 @@ for dIN_pop in [pop_LHS_dIN, pop_RHS_dIN]:
 
 
 network.add(
-    ElectricalSynapseProjection( src_population =  dINs, dst_population =  dINs, connector=ExplicitIndicesLoop(gap_junction_indices), strength_ohm = 500e6, injected_port_name = 'i_injected', name='E_Couple')
+    ElectricalSynapseProjection( src_population =  dINs, dst_population =  dINs, connector=ExplicitIndicesLoop(gap_junction_indices), strength_ohm = 300e6, injected_port_name = 'i_injected', name='E_Couple')
 )
 
 
