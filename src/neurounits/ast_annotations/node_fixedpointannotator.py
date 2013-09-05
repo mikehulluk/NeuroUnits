@@ -53,17 +53,9 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
 
 
     def ActionNodeStd(self, o):
-        
-        
-        
-        #print
-        #print repr(o)
-        #print '-' * len(repr(o))
-        #ann = self.annotations.annotations[o]
 
         vmin = o.annotations['node-value-range'].min#.float_in_si()
         vmax = o.annotations['node-value-range'].max#.float_in_si()
-        #print ann
 
         # Lets go symmetrical, about 0:
         ext = max( [np.abs(vmin),np.abs(vmax) ] )
@@ -76,11 +68,6 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         upscaling_val = 2 ** (-upscaling_pow)
         vmin_scaled  = vmin * upscaling_val
         vmax_scaled  = vmax * upscaling_val
-
-        #print 'vMin, vMax', vmin, vmax
-        #print 'Scaling:', '2**', upscaling_pow, ' ->', upscaling_val
-        #print 'vMin_scaled, vMax_scaled', vmin_scaled, vmax_scaled
-
 
         #ann.fixed_scaling_power = upscaling_pow
         o.annotations['fixed-point-format'] = FixedPointData( upscale = upscaling_pow,  datatype=self.datatype)
@@ -185,6 +172,11 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
     def ActionRandomVariableParameter(self, o, **kwargs):
         self.ActionNodeStd(o)
 
+    def ActionOnEventDefParameter(self, o, ):
+        self.ActionNodeStd(o)
+
+    def ActionInEventPortParameter(self, o):
+        pass
 
     def ActionOutEventPort(self, o):
         pass

@@ -141,7 +141,7 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
         #assert False
 
     def ActionOnEventDefParameter(self, o, **kwargs):
-        pass # TODO: Optimisiations possible
+        self.const_value[o] = None
         #assert False
 
     def ActionEmitEvent(self, o, **kwargs):

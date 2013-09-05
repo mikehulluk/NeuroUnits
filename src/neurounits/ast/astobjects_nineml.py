@@ -160,6 +160,10 @@ class OnEventTransition(Transition):
     def accept_visitor(self, v, **kwargs):
         return v.VisitOnTransitionEvent(self, **kwargs)
 
+    @property
+    def alphabetic_params(self,):
+        return sorted(self.parameters, key=lambda o:o.symbol)
+
 
 class OnEventDefParameter(ASTExpressionObject):
 
@@ -317,6 +321,9 @@ class InEventPort(ASTObject):
         assert isinstance(self.parameters, LookUpDict)
     def __repr__(self,):
         return '<InPort: %s>' % self.symbol
+    @property
+    def alphabetic_params(self,):
+        return sorted(self.parameters, key=lambda o:o.symbol)
 
     
 

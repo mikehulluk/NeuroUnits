@@ -58,7 +58,7 @@ class CBasedFixedWriter(ASTVisitorBase):
         super(CBasedFixedWriter, self).__init__()
         self.population_access_index=population_access_index
         self.check_range = True
-        self.check_range = False
+        #self.check_range = False
 
 
     def add_range_check(self, node, expr):
@@ -236,7 +236,7 @@ class CBasedFixedWriter(ASTVisitorBase):
         
 
     def VisitRandomVariable(self, o):
-        print o.modes
+        #print o.modes
 
         assert o.modes['when'] in ('SIM_INIT')
         assert o.modes['share'] in ('PER_NEURON', 'PER_POPULATION')
@@ -263,3 +263,7 @@ class CBasedFixedWriter(ASTVisitorBase):
 
     def VisitEmitEvent(self, o):
         return 'event_handlers::on_%s(IntType(i), time_info)'% o.port.symbol
+
+
+    def VisitOnEventDefParameter(self, o):
+        return 'evt.%s' % o.symbol
