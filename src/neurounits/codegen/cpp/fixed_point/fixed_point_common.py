@@ -58,7 +58,7 @@ class CBasedFixedWriter(ASTVisitorBase):
         super(CBasedFixedWriter, self).__init__()
         self.population_access_index=population_access_index
         self.check_range = True
-        #self.check_range = False
+        self.check_range = False
 
 
     def add_range_check(self, node, expr):

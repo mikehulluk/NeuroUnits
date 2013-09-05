@@ -295,13 +295,15 @@ IntType check_in_range(IntType val, IntType upscale, double min, double max, con
 
     if(!( value_float <= max))
     {
-        cout << "\ncheck_in_range: (min):" << min << std::flush;
-        cout << "\ncheck_in_range: (max):" << max << std::flush;
+        ##cout << "\ncheck_in_range: (min):" << min << std::flush;
+        ##cout << "\ncheck_in_range: (max):" << max << std::flush;
 
         double pc_out = (value_float - max) / (max-min) * 100.;
 
         if(pc_out > 1)
         {
+            cout << "\ncheck_in_range: (min):" << min << std::flush;
+            cout << "\ncheck_in_range: (max):" << max << std::flush;
             cout << "\n\nOverflow on:" << description;
             cout << "\nvalue_float= " << value_float << " between(" << min << "," << max << ")?" << std::flush;
             cout << "\n  --> Amount out: " << pc_out << "%";
@@ -315,13 +317,15 @@ IntType check_in_range(IntType val, IntType upscale, double min, double max, con
     if( !( value_float >= min || min >0))
     {
 
-        cout << "\ncheck_in_range: (min):" << min  << std::flush;
-        cout << "\ncheck_in_range: (max):" << max  << std::flush;
+        ##cout << "\ncheck_in_range: (min):" << min  << std::flush;
+        ##cout << "\ncheck_in_range: (max):" << max  << std::flush;
 
         double pc_out = (min - value_float) / (max-min) * 100.;
 
         if(pc_out > 1)
         {
+            cout << "\ncheck_in_range: (min):" << min  << std::flush;
+            cout << "\ncheck_in_range: (max):" << max  << std::flush;
             cout << "\n\nOverflow on:" << description;
             cout << "\nvalue_float= " << value_float << " between(" << min << "," << max << ")?" << std::flush;
             cout << "\n  --> Amount out: " << pc_out << "%";
