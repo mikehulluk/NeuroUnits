@@ -79,7 +79,17 @@ class _FunctionCloner(ASTVisitorBase):
                 self.visit(o.lhs),
                 self.visit(o.rhs) )
 
+    def VisitIfThenElse(self, o):
+        return ast.IfThenElse(
+                predicate = self.visit(o.predicate),
+                if_true_ast = self.visit(o.if_true_ast),
+                if_false_ast = self.visit(o.if_false_ast) )
 
+    def VisitInEquality(self, o):
+        return ast.InEquality(
+                lesser_than = self.visit(o.lesser_than),
+                greater_than = self.visit(o.greater_than),
+                )
 
 
 

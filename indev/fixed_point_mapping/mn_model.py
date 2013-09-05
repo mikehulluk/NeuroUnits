@@ -24,46 +24,50 @@ def get_MN(nbits):
         V' = (1/Cap) * (iInj_local + i_injected + iLk  + iKs + iKf +iNa +  syn_nmda_i + syn_ampa_i + syn_inhib_i)
 
 
+        AlphaBetaFunc(v, A,B,C,D,E) = (A+B*v) / (C + exp( (D+v)/E))
+        ClipMax(x, x_max) = [x] if [x<x_max] else [x_max]
 
-        syn_max = 3000
         # NMDA
         # =======================
         syn_nmda_A_tau = 4ms
         syn_nmda_B_tau = 80ms
-        syn_nmda_i = syn_nmda_g * (syn_nmda_B - syn_nmda_A) * (syn_nmda_erev - V) * (1/nmda_val_max) * nmda_vdep
+        syn_nmda_i = ( syn_nmda_g * (syn_nmda_B - syn_nmda_A) * (syn_nmda_erev - V) * (1/nmda_val_max) * nmda_vdep )  * 0
         syn_nmda_A' = -syn_nmda_A / syn_nmda_A_tau
         syn_nmda_B' = -syn_nmda_B / syn_nmda_B_tau
         # Normalisation:
         nmda_tc_max =  ln( syn_nmda_A_tau / syn_nmda_B_tau) * (syn_nmda_A_tau * syn_nmda_B_tau) / (syn_nmda_A_tau - syn_nmda_B_tau)
-        nmda_val_max =  exp( -nmda_tc_max / syn_ampa_B_tau) -  exp( -nmda_tc_max / syn_ampa_A_tau) * -1.
-        syn_nmda_g = 300pS
+        nmda_val_max =  (exp( -nmda_tc_max / syn_ampa_B_tau) -  exp( -nmda_tc_max / syn_ampa_A_tau) ) 
+        syn_nmda_g = 100pS
         syn_nmda_erev = 0mV
         v_scale = V * {-0.08mV-1}
         nmda_vdep =  1./(1. + 0.05 * exp(v_scale) )
         on recv_nmda_spike(){
-            syn_nmda_A = [syn_nmda_A + 1.0] if [syn_nmda_A < syn_max] else [syn_max]
-            syn_nmda_B = [syn_nmda_B + 1.0] if [syn_nmda_B < syn_max] else [syn_max]
+            syn_nmda_A = ClipMax( x=syn_nmda_A + 1.0, x_max=syn_sat )
+            syn_nmda_B = ClipMax( x=syn_nmda_B + 1.0, x_max=syn_sat )
         }
         # ===========================
 
 
         # AMPA
+        syn_sat = 30
         # =======================
         syn_ampa_A_tau = 0.1ms
         syn_ampa_B_tau = 3ms
-        syn_ampa_i = syn_ampa_g * (syn_ampa_erev - V)  * syn_ampa_open
+        syn_ampa_i = ( syn_ampa_g * (syn_ampa_erev - V)  * syn_ampa_open ) 
         syn_ampa_open = (syn_ampa_B - syn_ampa_A) * (1/ampa_val_max)
         syn_ampa_A' = -syn_ampa_A / syn_ampa_A_tau
         syn_ampa_B' = -syn_ampa_B / syn_ampa_B_tau
 
         # Normalisation:
         ampa_tc_max =  ln( syn_ampa_A_tau / syn_ampa_B_tau) * (syn_ampa_A_tau * syn_ampa_B_tau) / (syn_ampa_A_tau - syn_ampa_B_tau)
-        ampa_val_max =  exp( -ampa_tc_max / syn_ampa_B_tau) -  exp( -ampa_tc_max / syn_ampa_A_tau) * -1.
-        syn_ampa_g = 500pS
+        ampa_val_max =  (exp( -ampa_tc_max / syn_ampa_B_tau) -  exp( -ampa_tc_max / syn_ampa_A_tau) ) 
+        syn_ampa_g = 600pS 
         syn_ampa_erev = 0mV
         on recv_ampa_spike(){
-            syn_ampa_A = [syn_ampa_A + 1.0] if [syn_ampa_A < syn_max] else [syn_max]
-            syn_ampa_B = [syn_ampa_B + 1.0] if [syn_ampa_B < syn_max] else [syn_max]
+            syn_ampa_A = ClipMax( x=syn_ampa_A + 1.0, x_max=syn_sat )
+            syn_ampa_B = ClipMax( x=syn_ampa_B + 1.0, x_max=syn_sat )
+            #syn_ampa_A = syn_ampa_A + 1.0
+            #syn_ampa_B = syn_ampa_B + 1.0
         }
         # ===========================
 
@@ -71,17 +75,19 @@ def get_MN(nbits):
         # =======================
         syn_inhib_A_tau = 1.5ms
         syn_inhib_B_tau = 4ms
-        syn_inhib_i = syn_inhib_g * (syn_inhib_B - syn_inhib_A) * (syn_inhib_erev - V)  * (1/inhib_val_max)
+        syn_inhib_i = ( syn_inhib_g * (syn_inhib_B - syn_inhib_A) * (syn_inhib_erev - V)  * (1/inhib_val_max) )
         syn_inhib_A' = -syn_inhib_A / syn_inhib_A_tau
         syn_inhib_B' = -syn_inhib_B / syn_inhib_B_tau
         # Normalisation:
         inhib_tc_max =  ln( syn_inhib_A_tau / syn_inhib_B_tau) * (syn_inhib_A_tau * syn_inhib_B_tau) / (syn_inhib_A_tau - syn_inhib_B_tau)
-        inhib_val_max =  exp( -inhib_tc_max / syn_inhib_B_tau) -  exp( -inhib_tc_max / syn_inhib_A_tau) * -1.
+        inhib_val_max = ( exp( -inhib_tc_max / syn_inhib_B_tau) -  exp( -inhib_tc_max / syn_inhib_A_tau) ) 
         syn_inhib_g = 300pS
         syn_inhib_erev = -60mV
         on recv_inh_spike(){
-            syn_inhib_A = [syn_inhib_A + 1.0] if [syn_inhib_A < syn_max] else [syn_max]
-            syn_inhib_B = [syn_inhib_B + 1.0] if [syn_inhib_B < syn_max] else [syn_max]
+            syn_inhib_A = ClipMax( x=syn_inhib_A + 1.0, x_max=syn_sat )
+            syn_inhib_B = ClipMax( x=syn_inhib_B + 1.0, x_max=syn_sat )
+            #syn_inhib_A = syn_inhib_A + 1.0
+            #syn_inhib_B = syn_inhib_B + 1.0
         }
         # ===========================
 
@@ -99,7 +105,6 @@ def get_MN(nbits):
 
 
 
-        AlphaBetaFunc(v, A,B,C,D,E) = (A+B*v) / (C + exp( (D+v)/E))
 
         eK = -80mV
         eNa = 50mV
@@ -111,7 +116,6 @@ def get_MN(nbits):
 
         # Leak
         iLk = gLk * (eLk-V) * glk_noise
-
 
 
 
@@ -187,7 +191,6 @@ def get_MN(nbits):
             V = -60mV
             k=1
             na_m = 0.0
-            #ca_m = 0.0
             na_h = 1.0
             ks_n = 0.0
             kf_n = 0.0
