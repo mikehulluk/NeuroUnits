@@ -234,8 +234,8 @@ def get_dIN(nbits):
 
     var_annots_ranges = {
         't'             : NodeRange(min="0ms", max = "1.1s"),
-        'i_injected'    : NodeRange(min="0nA", max = "10nA"),
-        'V'             : NodeRange(min="-100mV", max = "50mV"),
+        'i_injected'    : NodeRange(min="-500nA", max = "500nA"),
+        'V'             : NodeRange(min="-100mV", max = "60mV"),
         'k'             : NodeRange(min="-0.01", max = "1.1"),
         'ca_m'          : NodeRange(min="-0.01", max = "1.5"),
         'kf_n'          : NodeRange(min="-0.01", max = "1.5"),

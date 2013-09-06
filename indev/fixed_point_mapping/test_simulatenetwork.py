@@ -171,9 +171,10 @@ network.record_output_events( rhs_subpops+lhs_subpops + [rb_drivers] , 'spike' )
 network.finalise()
 
 
+# Generate for NIOS:
+fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=true ', compile=False, output_c_filename='/auto/homes/mh735/Desktop/for_nios.cpp')
 
-
-
+#assert False
 fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false').results
 results = HDF5SimulationResultFile("output.hd5")
 

@@ -23,7 +23,7 @@ c_prog_header_tmpl = r"""
 
 
 /*
-Two defines control the output:
+Two defines control the setup:
     ON_NIOS
     PC_DEBUG
 */
@@ -79,30 +79,81 @@ Two defines control the output:
 
 
 
+/* Runtime logging: */
+#define RUNTIME_LOGGING_ON false
+#define RUNTIME_LOGGING_STARTTIME 100e-3
 
 
 
 
 
+
+
+#if RUNTIME_LOGGING_ON
 
 // Runtime-logging:
-#define MHLOG(s) {s}
-#define NO_MHLOG(s)
+#define MHLOG(s) if(DBG.is_debug_log()) {s}
+#define NO_MHLOG(s);
 
-#define LOG_COMPONENT_STATEUPDATE MHLOG
+
+#define LOG_COMPONENT_STATEUPDATE  MHLOG
 #define LOG_COMPONENT_EVENTDISPATCH NO_MHLOG
 #define LOG_COMPONENT_EVENTHANDLER NO_MHLOG
 #define LOG_COMPONENT_TRANSITION NO_MHLOG
 
+#define CHECK_IN_RANGE_NODE(a,b,c,d,e)            _check_in_range(a,b,c,d,e, DBG.is_debug_check() ) 
+#define CHECK_IN_RANGE_VARIABLE(a,b,c,d,e)        _check_in_range(a,b,c,d,e, DBG.is_debug_check() )
+#define CHECK_IN_RANGE_VARIABLE_DELTA(a,b,c,d,e)  _check_in_range(a,b,c,d,e, DBG.is_debug_check() )
+
+struct DebugCfg
+{
+    const bool is_debug_check() { return check_on; }
+    const bool is_debug_log() { return log_on; }
+
+    bool check_on;
+    bool log_on;
+
+    DebugCfg() : check_on(false), log_on(false)
+        {}
+
+    void update(double time)
+    {
+        if(time > RUNTIME_LOGGING_STARTTIME)
+        {
+            check_on = true;
+            log_on = true;
+        }
+    }
+
+};
 
 
-#define CHECK_IN_RANGE_NODE(a,b,c,d,e)  _check_in_range(a,b,c,d,e)
-#define CHECK_IN_RANGE_VARIABLE(a,b,c,d,e)  _check_in_range(a,b,c,d,e)
-#define CHECK_IN_RANGE_VARIABLE_DELTA(a,b,c,d,e)  _check_in_range(a,b,c,d,e)
+
+#else // RUNTIME_LOGGING_ON
+
+
+
+#define LOG_COMPONENT_STATEUPDATE(a)
+#define LOG_COMPONENT_EVENTDISPATCH(a)
+#define LOG_COMPONENT_EVENTHANDLER(a)
+#define LOG_COMPONENT_TRANSITION(a)
+
+#define CHECK_IN_RANGE_NODE(a,b,c,d,e) (a) 
+#define CHECK_IN_RANGE_VARIABLE(a,b,c,d,e) (a)
+#define CHECK_IN_RANGE_VARIABLE_DELTA(a,b,c,d,e) (a)
+
+struct DebugCfg
+{
+    void update(double time) { }
+};
+
+#endif
 
 
 
 
+
+DebugCfg DBG;
 
 
 
@@ -299,8 +350,10 @@ namespace rnd
 
 
 
-IntType _check_in_range(IntType val, IntType upscale, double min, double max, const std::string& description)
+IntType _check_in_range(IntType val, IntType upscale, double min, double max, const std::string& description, bool do_check)
 {
+    if(! do_check ) return val;
+
     //cout << "\n";
     //cout << "\nFor: " << description;
     //cout << "\n Checking: " << std::flush;
@@ -678,6 +731,16 @@ void sim_step_update_sv(NrnPopData& d, TimeInfo time_info)
         % for eqn in eqns_timederivatives:
         cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
         % endfor
+        cout << "\nSupplied Variables:";
+        cout << "\n-------------------------";
+        %for suppliedvalue in population.component.suppliedvalues:
+        %if suppliedvalue.symbol != 't': 
+        cout << "\n d.${suppliedvalue.symbol}: " << d.${suppliedvalue.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${suppliedvalue.symbol}[i], ${suppliedvalue.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        CHECK_IN_RANGE_VARIABLE( d.${suppliedvalue.symbol}[i], ${suppliedvalue.annotations['fixed-point-format'].upscale}, ${suppliedvalue.annotations['node-value-range'].min}, ${suppliedvalue.annotations['node-value-range'].max}, "d.${suppliedvalue.symbol}" );
+        %endif
+        
+        %endfor
+
         cout << "\nUpdates:";
         )
 
@@ -697,7 +760,7 @@ void sim_step_update_sv(NrnPopData& d, TimeInfo time_info)
         CHECK_IN_RANGE_VARIABLE( d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale}, ${eqn.node.lhs.annotations['node-value-range'].min}, ${eqn.node.lhs.annotations['node-value-range'].max}, "d.${eqn.node.lhs.symbol}" );
         % endfor
     }
-    cout << "\n";
+    LOG_COMPONENT_STATEUPDATE( cout << "\n"; )
 }
 
 void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
@@ -777,9 +840,7 @@ void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
 
         if( next_regime != NrnPopData::RegimeType${rtgraph.name}::NO_CHANGE)
         {
-            //#ON_DEBUG( cout << "\nSWitching into Regime:" << next_regime; )
-            cout << "\nSWitching into Regime:" << next_regime;
-
+            LOG_COMPONENT_TRANSITION( cout << "\nSWitching into Regime:" << next_regime; )
             d.current_regime_${rtgraph.name}[i] = next_regime;
         }
         %endif
@@ -887,10 +948,12 @@ int main()
         for(IntType time_step=IntType(0);time_step<GlobalConstants::nsim_steps;time_step++)
         {
 
+
             TimeInfo time_info(time_step);
             //cout << "\n\nTIME:" << time_step << "\n";
 
 
+            DBG.update(FixedFloatConversion::to_float(time_info.time_int, time_upscale) );
 
             #if DISPLAY_LOOP_INFO
             if(get_value32(time_step)%100 == 0)
