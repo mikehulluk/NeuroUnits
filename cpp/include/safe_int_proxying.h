@@ -28,8 +28,8 @@ template<> SafeInt32 inttype32_from_inttype64(NativeInt64 value) { return SafeIn
 #if SAFEINT 
 typedef SafeInt32 IntType;
 #else 
-//typedef int IntType;
-typedef long long IntType;
+typedef int IntType;
+//typedef long long IntType;
 #endif
 
 

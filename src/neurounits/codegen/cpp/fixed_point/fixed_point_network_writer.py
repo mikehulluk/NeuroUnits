@@ -1,18 +1,9 @@
 
 
 
-import mako
 from mako.template import Template
-
-#import subprocess
-#from neurounits.visitors.bases.base_actioner_default import ASTActionerDefault
-from neurounits.visitors.bases.base_actioner_default_ignoremissing import ASTActionerDefaultIgnoreMissing
-
-
 import numpy as np
-
 import os
-from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 from mako import exceptions
 from neurounits.ast_annotations.common import NodeFixedPointFormatAnnotator
 
@@ -79,6 +70,21 @@ Two defines control the setup:
 
 
 
+
+
+#define USE_BLUEVEC true
+
+#if USE_BLUEVEC
+#include <BlueVecProxy.h>
+#endif
+
+
+
+
+
+
+
+
 /* Runtime logging: */
 #define RUNTIME_LOGGING_ON false
 #define RUNTIME_LOGGING_STARTTIME 100e-3
@@ -101,7 +107,7 @@ Two defines control the setup:
 #define LOG_COMPONENT_EVENTHANDLER NO_MHLOG
 #define LOG_COMPONENT_TRANSITION NO_MHLOG
 
-#define CHECK_IN_RANGE_NODE(a,b,c,d,e)            _check_in_range(a,b,c,d,e, DBG.is_debug_check() ) 
+#define CHECK_IN_RANGE_NODE(a,b,c,d,e)            _check_in_range(a,b,c,d,e, DBG.is_debug_check() )
 #define CHECK_IN_RANGE_VARIABLE(a,b,c,d,e)        _check_in_range(a,b,c,d,e, DBG.is_debug_check() )
 #define CHECK_IN_RANGE_VARIABLE_DELTA(a,b,c,d,e)  _check_in_range(a,b,c,d,e, DBG.is_debug_check() )
 
@@ -133,7 +139,7 @@ struct DebugCfg
 #define LOG_COMPONENT_EVENTHANDLER(a)
 #define LOG_COMPONENT_TRANSITION(a)
 
-#define CHECK_IN_RANGE_NODE(a,b,c,d,e) (a) 
+#define CHECK_IN_RANGE_NODE(a,b,c,d,e) (a)
 #define CHECK_IN_RANGE_VARIABLE(a,b,c,d,e) (a)
 #define CHECK_IN_RANGE_VARIABLE_DELTA(a,b,c,d,e) (a)
 
@@ -190,6 +196,10 @@ int n_results_written = 0;
 #include <climits>
 #include <stdint.h>
 
+
+
+#include <BlueVecProxy.h>
+
 // Headers to use when we are not on the NIOS:
 #if ON_NIOS
 #else
@@ -244,6 +254,56 @@ using mh::auto_shift64;
 
 #include "safe_int_proxying.h"
 #include "lut.h"
+
+
+
+
+
+
+
+
+
+#if USE_BLUEVEC
+
+    DataStream auto_shift32(DataStream da, IntType amount)
+    {
+        if(amount==0) return da;
+        if(amount>0) return da<<amount;
+        if(amount<0) return da>>amount;
+
+    }
+
+    inline DataStream do_add_op(DataStream v1, DataStream up1, DataStream v2, DataStream up2, DataStream up_local, DataStream expr_id) {
+        assert False;
+        return tmpl_fp_ops::do_add_op(v1, up1, v2, up2, up_local, expr_id);
+    }
+    inline DataStream do_sub_op(DataStream v1, DataStream up1, DataStream v2, DataStream up2, DataStream up_local, DataStream expr_id) {
+        assert False;
+       return tmpl_fp_ops::do_sub_op(v1, up1, v2, up2, up_local, expr_id);
+    }
+
+    inline DataStream do_mul_op(DataStream v1, DataStream up1, DataStream v2, DataStream up2, DataStream up_local, DataStream expr_id) {
+        assert False;
+        return tmpl_fp_ops::do_mul_op(v1, up1, v2, up2, up_local, expr_id);
+    }
+
+    inline DataStream do_div_op(DataStream v1, DataStream up1, DataStream v2, DataStream up2, DataStream up_local, DataStream expr_id) {
+        assert False;
+        return tmpl_fp_ops::do_div_op(v1, up1, v2, up2, up_local, expr_id);
+    }
+
+    inline DataStream int_exp(DataStream v1, DataStream up1, DataStream up_local, DataStream expr_id) {
+        assert False;
+        return tmpl_fp_ops::int_exp(v1, up1, up_local, expr_id, lookuptables.exponential);
+    }
+
+
+#endif
+
+
+
+
+
 
 
 
@@ -372,8 +432,6 @@ IntType _check_in_range(IntType val, IntType upscale, double min, double max, co
 
     if(!( value_float <= max))
     {
-        ##cout << "\ncheck_in_range: (min):" << min << std::flush;
-        ##cout << "\ncheck_in_range: (max):" << max << std::flush;
 
         double pc_out = (value_float - max) / (max-min) * 100.;
 
@@ -394,8 +452,6 @@ IntType _check_in_range(IntType val, IntType upscale, double min, double max, co
     if( !( value_float >= min || min >0))
     {
 
-        ##cout << "\ncheck_in_range: (min):" << min  << std::flush;
-        ##cout << "\ncheck_in_range: (max):" << max  << std::flush;
 
         double pc_out = (min - value_float) / (max-min) * 100.;
 
@@ -644,11 +700,11 @@ namespace event_handlers
 ## Template functions:
 ## ===================
 <%def name="trigger_transition_block(tr, rtgraph)">
-            if(${writer.to_c(tr.trigger)})
+            if(${writer.to_c(tr.trigger, population_access_index='i', data_prefix='d.')})
             {
                 // Actions ...
                 %for action in tr.actions:
-                ${writer.to_c(action)};
+                ${writer.to_c(action, population_access_index='i', data_prefix='d.')};
                 %endfor
 
                 // Switch regime?
@@ -680,7 +736,7 @@ namespace event_handlers
 
                      // Actions ...
                     %for action in tr.actions:
-                    ${writer.to_c(action)};
+                    ${writer.to_c(action, population_access_index='i', data_prefix='d.')};
                     %endfor
 
                     // Switch regime?
@@ -710,17 +766,37 @@ namespace event_handlers
 
 
 
+##struct BVDataVector
+##{
+##
+##% for ass in population.component.ordered_assignments_by_dependancies:
+##%endfor
+##
+##% for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
+##    DataStream td.lhs.symbol;
+##%endfor
+##
+##
+##};
+
+
+
 
 
 
 // Update-function
-void sim_step_update_sv(NrnPopData& d, TimeInfo time_info)
+void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 {
 
     const IntType t = time_info.time_int;
     assert(t>=0); // Suppress compiler warning about unused variable
 
-//#pragma omp parallel for default(shared)
+
+
+
+#if !USE_BLUEVEC
+    // Serial Version:
+    NrnPopData& d = d_in;
     for(int i=0;i<NrnPopData::size;i++)
     {
 
@@ -730,39 +806,76 @@ void sim_step_update_sv(NrnPopData& d, TimeInfo time_info)
         cout << "\nAt: t=" << t << "\t(" << FixedFloatConversion::to_float(t, time_upscale) * 1000. << "ms)";
         cout << "\nStarting State Variables:";
         cout << "\n-------------------------";
-        // Calculate delta's for all state-variables:
-        % for eqn in eqns_timederivatives:
-        cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
+        cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
         % endfor
         cout << "\nSupplied Variables:";
         cout << "\n-------------------------";
         %for suppliedvalue in population.component.suppliedvalues:
-        %if suppliedvalue.symbol != 't': 
+        %if suppliedvalue.symbol != 't':
         cout << "\n d.${suppliedvalue.symbol}: " << d.${suppliedvalue.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${suppliedvalue.symbol}[i], ${suppliedvalue.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
         CHECK_IN_RANGE_VARIABLE( d.${suppliedvalue.symbol}[i], ${suppliedvalue.annotations['fixed-point-format'].upscale}, ${suppliedvalue.annotations['node-value-range'].min}, ${suppliedvalue.annotations['node-value-range'].max}, "d.${suppliedvalue.symbol}" );
         %endif
-        
         %endfor
 
         cout << "\nUpdates:";
         )
 
         // Calculate assignments:
-        % for eqn in eqns_assignments:
-        d.${eqn.node.lhs.symbol}[i] = ${eqn.rhs_cstr} ;
-        LOG_COMPONENT_STATEUPDATE( cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;)
-        CHECK_IN_RANGE_VARIABLE( d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale}, ${eqn.node.lhs.annotations['node-value-range'].min}, ${eqn.node.lhs.annotations['node-value-range'].max}, "d.${eqn.node.lhs.symbol}" );
+        % for ass in population.component.ordered_assignments_by_dependancies:
+        d.${ass.lhs.symbol}[i] = ${writer.to_c(ass, population_access_index='i', data_prefix='d.')} ;
+        LOG_COMPONENT_STATEUPDATE( cout << "\n d.${ass.lhs.symbol}: " << d.${ass.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${ass.lhs.symbol}[i], ${ass.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;)
+        CHECK_IN_RANGE_VARIABLE( d.${ass.lhs.symbol}[i], ${ass.lhs.annotations['fixed-point-format'].upscale}, ${ass.lhs.annotations['node-value-range'].min}, ${ass.lhs.annotations['node-value-range'].max}, "d.${ass.lhs.symbol}" );
         % endfor
 
         // Calculate delta's for all state-variables:
-        % for eqn in eqns_timederivatives:
-        IntType d_${eqn.node.lhs.symbol} = ${eqn.rhs_cstr[0]} ;
-        d.${eqn.node.lhs.symbol}[i] = d.${eqn.node.lhs.symbol}[i] + ${eqn.rhs_cstr[1]} ;
-        LOG_COMPONENT_STATEUPDATE( cout << "\n delta:${eqn.node.lhs.symbol}: " << d_${eqn.node.lhs.symbol}  << " (" << FixedFloatConversion::to_float(d_${eqn.node.lhs.symbol}, ${eqn.node.lhs.annotations['fixed-point-format'].delta_upscale})  << ")" << std::flush; )
-        LOG_COMPONENT_STATEUPDATE( cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
-        CHECK_IN_RANGE_VARIABLE( d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale}, ${eqn.node.lhs.annotations['node-value-range'].min}, ${eqn.node.lhs.annotations['node-value-range'].max}, "d.${eqn.node.lhs.symbol}" );
+        % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
+        <% cs1, cs2 = writer.to_c(td, population_access_index='i', data_prefix='d.') %>
+        IntType d_${td.lhs.symbol} = ${cs1} ;
+        d.${td.lhs.symbol}[i] = d.${td.lhs.symbol}[i] + ${cs2} ;
+        LOG_COMPONENT_STATEUPDATE( cout << "\n delta:${td.lhs.symbol}: " << d_${td.lhs.symbol}  << " (" << FixedFloatConversion::to_float(d_${td.lhs.symbol}, ${td.lhs.annotations['fixed-point-format'].delta_upscale})  << ")" << std::flush; )
+        LOG_COMPONENT_STATEUPDATE( cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
+        CHECK_IN_RANGE_VARIABLE( d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale}, ${td.lhs.annotations['node-value-range'].min}, ${td.lhs.annotations['node-value-range'].max}, "d.${td.lhs.symbol}" );
         % endfor
     }
+
+#else
+
+        // Vector Compute Version:
+        % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
+        DataStream bv_${td.lhs.symbol} = load( d_in.${td.lhs.symbol} );
+
+        %endfor 
+
+        
+
+        // Calculate assignments:
+        % for ass in population.component.ordered_assignments_by_dependancies:
+        DataStream bv_${ass.lhs.symbol} = ${writer.to_c(ass, population_access_index=None, data_prefix='bv_')} ;
+        ##LOG_COMPONENT_STATEUPDATE( cout << "\n d.${ass.lhs.symbol}: " << d.${ass.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${ass.lhs.symbol}[i], ${ass.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;)
+        ##CHECK_IN_RANGE_VARIABLE( d.${ass.lhs.symbol}[i], ${ass.lhs.annotations['fixed-point-format'].upscale}, ${ass.lhs.annotations['node-value-range'].min}, ${ass.lhs.annotations['node-value-range'].max}, "d.${ass.lhs.symbol}" );
+        % endfor
+
+        // Calculate delta's for all state-variables:
+        % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
+        <% cs1, cs2 = writer.to_c(td, population_access_index=None, data_prefix='bv_') %>
+        DataStream d_${td.lhs.symbol} = ${cs1} ;
+        DataStream new_bv_${td.lhs.symbol} = d.${td.lhs.symbol}[i] + ${cs2} ;
+        ##LOG_COMPONENT_STATEUPDATE( cout << "\n delta:${td.lhs.symbol}: " << d_${td.lhs.symbol}  << " (" << FixedFloatConversion::to_float(d_${td.lhs.symbol}, ${td.lhs.annotations['fixed-point-format'].delta_upscale})  << ")" << std::flush; )
+        ##LOG_COMPONENT_STATEUPDATE( cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
+        ##CHECK_IN_RANGE_VARIABLE( d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale}, ${td.lhs.annotations['node-value-range'].min}, ${td.lhs.annotations['node-value-range'].max}, "d.${td.lhs.symbol}" );
+        % endfor
+
+
+
+
+
+#endif
+
+
+
+
+
     LOG_COMPONENT_STATEUPDATE( cout << "\n"; )
 }
 
@@ -1026,9 +1139,9 @@ int main()
     global_data.recordings_new.write_all_output_events_to_hdf();
 
 
-    ## #if ON_NIOS
+    #if ON_NIOS
     global_data.recordings_new.write_all_traces_to_console();
-    ## #endif
+    #endif
 
 
     clock_t end_data_write = clock();
@@ -1398,7 +1511,7 @@ struct RecordMgrNew
 
 
 
-    
+
     void write_all_output_events_to_hdf()
     {
         #if USE_HDF
@@ -1582,13 +1695,13 @@ void record_event( IntType global_buffer, const SpikeEmission& evt )
 
 
 
-from fixed_point_common import Eqn, IntermediateNodeFinder, CBasedFixedWriter
+from fixed_point_common import IntermediateNodeFinder, CBasedFixedWriter
 
 
 
 
 class CBasedEqnWriterFixedNetwork(object):
-    def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None): #, record_symbols=None):
+    def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None): 
 
         self.dt_float = 0.05e-3
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
@@ -1669,15 +1782,7 @@ class CBasedEqnWriterFixedNetwork(object):
             component = population.component
 
 
-            self.writer = CBasedFixedWriter(component=population.component, population_access_index='i')
-
-
-
-
-            ordered_assignments = component.ordered_assignments_by_dependancies
-            self.ass_eqns =[ Eqn(node=td, rhs_cstr=self.writer.to_c(td) ) for td in ordered_assignments]
-            self.td_eqns = [ Eqn(node=td, rhs_cstr=self.writer.to_c(td) ) for td in component.timederivatives]
-            self.td_eqns = sorted(self.td_eqns, key=lambda o: o.node.lhs.symbol.lower())
+            self.writer = CBasedFixedWriter(component=population.component, population_access_index='i', data_prefix='d.')
 
 
             rv_per_neuron = []
@@ -1699,15 +1804,10 @@ class CBasedEqnWriterFixedNetwork(object):
                             population=population,
 
                             writer = self.writer,
-
-                            eqns_timederivatives = self.td_eqns,
-                            eqns_assignments = self.ass_eqns,
-
                             intermediate_store_locs=self.intermediate_store_locs,
 
                             rv_per_neuron = rv_per_neuron,
                             rv_per_population = rv_per_population,
-                            #record_symbols = record_symbols if record_symbols else [o.symbol for o in  component.assignedvalues + component.state_variables ],
 
                             **std_variables
                             )
@@ -1799,8 +1899,8 @@ class CBasedEqnWriterFixedNetwork(object):
         # The executable:
         CCompiler.build_executable(src_text=cfile,
                                    compilation_settings = CCompilationSettings(
-                                                additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/') ],
-                                                additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/")],
+                                                additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/'), os.path.expanduser("~/hw/BlueVec/include/") ],
+                                                additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/"), os.path.expanduser("~/hw/BlueVec/lib/")],
                                                 libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl'],
                                                 #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x  -O3  -g -fopenmp ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                                 compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x  -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
