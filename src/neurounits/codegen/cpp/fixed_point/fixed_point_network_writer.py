@@ -124,14 +124,9 @@ struct DebugCfg
             log_on = true;
         }
     }
-
 };
 
-
-
 #else // RUNTIME_LOGGING_ON
-
-
 
 #define LOG_COMPONENT_STATEUPDATE(a)
 #define LOG_COMPONENT_EVENTDISPATCH(a)
@@ -175,7 +170,7 @@ const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP = 300;
 
 
 // Define how often to record values:
-const int record_rate = 10;
+const int record_rate = 100;
 
 
 ##const int n_results_total = nsim_steps / record_rate;
@@ -525,12 +520,20 @@ struct NrnPopData
     // Regimes:
     %for rtgraph in population.component.rt_graphs:
     %if len(rtgraph.regimes) > 1:
-    enum RegimeType${rtgraph.name} {
-    %for regime in rtgraph.regimes:
-        ${rtgraph.name}${regime.name},
+    ##enum RegimeType${rtgraph.name} {
+    ##%for regime in rtgraph.regimes:
+    ##    ${rtgraph.name}${regime.name},
+    ##%endfor
+    ##    NO_CHANGE
+    ##};
+    ##RegimeType${rtgraph.name} current_regime_${rtgraph.name}[size];
+    struct Regime${rtgraph.name} {
+        static const int NO_CHANGE = 0;
+    %for index, regime in enumerate(rtgraph.regimes):
+        static const int ${rtgraph.name}${regime.name} = ${index} + 1;
     %endfor
-        NO_CHANGE
     };
+    typedef int RegimeType${rtgraph.name};
     RegimeType${rtgraph.name} current_regime_${rtgraph.name}[size];
     %endif
     %endfor
@@ -589,7 +592,7 @@ void initialise_statevars(NrnPopData& d)
         // Initial regimes:
         %for rtgraph in population.component.rt_graphs:
         %if len(rtgraph.regimes) > 1:
-        d.current_regime_${rtgraph.name}[i] = NrnPopData::RegimeType${rtgraph.name}::${rtgraph.name}${rtgraph.default_regime.name};;
+        d.current_regime_${rtgraph.name}[i] = NrnPopData::Regime${rtgraph.name}::${rtgraph.name}${rtgraph.default_regime.name};
         %endif
         %endfor
     }
@@ -650,12 +653,12 @@ namespace event_handlers
 
                 // Switch regime?
                 %if tr.changes_regime():
-                if(next_regime != NrnPopData::RegimeType${rtgraph.name}::NO_CHANGE &&
-                   next_regime != NrnPopData::RegimeType${rtgraph.name}::${rtgraph.name}${tr.target_regime.name})
+                if(next_regime != NrnPopData::Regime${rtgraph.name}::NO_CHANGE &&
+                   next_regime != NrnPopData::Regime${rtgraph.name}::${rtgraph.name}${tr.target_regime.name})
                 {
                     assert(0); //Multiple transitions detected.
                 }
-                next_regime = NrnPopData::RegimeType${rtgraph.name}::${rtgraph.name}${tr.target_regime.name};
+                next_regime = NrnPopData::Regime${rtgraph.name}::${rtgraph.name}${tr.target_regime.name};
                 %endif
             }
 </%def>
@@ -682,12 +685,12 @@ namespace event_handlers
 
                     // Switch regime?
                     %if tr.changes_regime():
-                    if(next_regime != NrnPopData::RegimeType${rtgraph.name}::NO_CHANGE &&
-                       next_regime != NrnPopData::RegimeType${rtgraph.name}::${rtgraph.name}${tr.target_regime.name})
+                    if(next_regime != NrnPopData::Regime${rtgraph.name}::NO_CHANGE &&
+                       next_regime != NrnPopData::Regime${rtgraph.name}::${rtgraph.name}${tr.target_regime.name})
                     {
                         assert(0); //Multiple transitions detected.
                     }
-                    next_regime = NrnPopData::RegimeType${rtgraph.name}::${rtgraph.name}${tr.target_regime.name};
+                    next_regime = NrnPopData::Regime${rtgraph.name}::${rtgraph.name}${tr.target_regime.name};
                     %endif
 
                     d.incoming_events_${tr.port.symbol}[i].pop_front();
@@ -777,17 +780,17 @@ void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
 
         %if len(rtgraph.regimes) > 1:
 
-        NrnPopData::RegimeType${rtgraph.name} next_regime = NrnPopData::RegimeType${rtgraph.name}::NO_CHANGE;
+        NrnPopData::RegimeType${rtgraph.name} next_regime = NrnPopData::Regime${rtgraph.name}::NO_CHANGE;
 
         // Non-trivial RT-graph
         switch(d.current_regime_${rtgraph.name}[get_value32(i)])
         {
-        case NrnPopData::RegimeType${rtgraph.name}::NO_CHANGE:
+        case NrnPopData::Regime${rtgraph.name}::NO_CHANGE:
             assert(0); // This is an internal error - this regime is only used as a flag internally.
 
         // Handle the transitions per regime:
         %for regime in rtgraph.regimes:
-        case NrnPopData::RegimeType${rtgraph.name}::${rtgraph.name}${regime.name}:
+        case NrnPopData::Regime${rtgraph.name}::${rtgraph.name}${regime.name}:
             % if len(rtgraph.regimes) > 1 and regime.name is None:
             assert(0); // Should not be here - we should switch into a 'real' regime before we begin
             %endif
@@ -838,7 +841,7 @@ void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
         // Update the next state:
         %if len(rtgraph.regimes) > 1:
 
-        if( next_regime != NrnPopData::RegimeType${rtgraph.name}::NO_CHANGE)
+        if( next_regime != NrnPopData::Regime${rtgraph.name}::NO_CHANGE)
         {
             LOG_COMPONENT_TRANSITION( cout << "\nSWitching into Regime:" << next_regime; )
             d.current_regime_${rtgraph.name}[i] = next_regime;
@@ -1023,11 +1026,9 @@ int main()
     global_data.recordings_new.write_all_output_events_to_hdf();
 
 
-    #if ON_NIOS
-    %for pop in network.populations:
-    ##NS_${pop.name}::print_results_from_NIOS(global_data.recordings.${pop.name}_recorded_output_data_OLD);
-    %endfor
-    #endif
+    ## #if ON_NIOS
+    global_data.recordings_new.write_all_traces_to_console();
+    ## #endif
 
 
     clock_t end_data_write = clock();
@@ -1254,9 +1255,153 @@ struct RecordMgrNew
 
 
 
-    void write_all_output_events_to_hdf()
+
+
+
+
+
+    void write_all_traces_to_console()
     {
 
+        cout << "\n\nWriting traces to HDF5";
+
+        // Working buffers:
+        int data_int[n_results_written];
+        //double data_float[n_results_written];
+
+
+        //double dt_float = FixedFloatConversion::to_float(1, time_upscale);
+        for(int t=0;t<n_results_written;t++)
+        {
+            data_int[t] = get_value32(time_buffer[t]);
+            //data_float[t]  = data_int[t] * dt_float;
+        }
+
+
+
+        %for i,poprec in enumerate(network.all_trace_recordings):
+        {
+            // Save: ${poprec}
+            //const double node_sf = pow(2.0, ${poprec.node.annotations['fixed-point-format'].upscale} - (VAR_NBITS-1));
+
+            for(int i=0;i<${poprec.size};i++)
+            {
+                int buffer_offset = ${poprec.global_offset}+i;
+
+                for(int t=0;t<n_results_written;t++)
+                {
+                    data_int[t] = get_value32( data_buffers[t][buffer_offset] );
+                    //data_float[t] = data_int[t] * node_sf;
+                }
+
+                ##int nrn_offset = i + ${poprec.src_pop_start_index};
+                ##string tag_string = "${poprec.node.symbol},POP:${poprec.src_population.name},${','.join(poprec.tags)}";
+                ##string tag_string_index = (boost::format("POPINDEX:%04d")%nrn_offset).str();
+
+
+                ##pVecInt[${poprec.src_pop_start_index}+i]->set_data(n_results_written,1, data_int);
+                ##HDF5GroupPtr pGroup_int = file->get_group((boost::format("simulation_fixed/int/${poprec.src_population.name}/%04d/variables/${poprec.node.symbol}")%nrn_offset).str());
+                ##pGroup_int->add_attribute("hdf-jive","trace");
+
+                ##pGroup_int->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
+                ##pGroup_int->get_subgroup("raw")->create_softlink(time_dataset_int, "time");
+                ##pHDF5DataSet2DStdPtr pDataset_int = pGroup_int->get_subgroup("raw")->create_dataset("data", HDF5DataSet2DStdSettings(1, hdf5_type_int));
+                ##pDataset_int->set_data(n_results_written,1, data_int);
+
+
+                ###if SAVE_HDF5_FLOAT
+                ##HDF5GroupPtr pGroup_float = file->get_group((boost::format("simulation_fixed/double/${poprec.src_population.name}/%04d/variables/${poprec.node.symbol}")%nrn_offset).str());
+                ##pGroup_float->add_attribute("hdf-jive","trace");
+                ##pGroup_float->add_attribute("hdf-jive:tags",string("fixed-float,") + tag_string + "," + tag_string_index);
+                ##pGroup_float->get_subgroup("raw")->create_softlink(time_dataset_float, "time");
+                ##HDF5DataSet2DStdPtr pDataset_float = pGroup_float->get_subgroup("raw")->create_dataset("data", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+                ##pDataset_float->set_data(n_results_written,1, data_float);
+                ###endif
+
+                <% ass = poprec.node %>
+                cout << "\n#!DATA{ 'name':'${ass.symbol}' } {'size': ${nsim_steps},  'fixed_point': {'upscale':${ass.annotations['fixed-point-format'].upscale}, 'nbits':${nbits}} } [";
+                for(IntType i=IntType(0);i<n_results_written;i++) cout << data_int[get_value32(i)] << " ";
+                cout << "]\n";
+            }
+        }
+        %endfor
+        cout << "\n\nFinished Writing to HDF5";
+
+
+
+
+        ##// Assignments + states:
+        ##% for ass in population.component.assignedvalues + population.component.state_variables:
+        ##cout << "\n#!DATA{ 'name':'${poprec.population.name}-${ass.symbol}' } {'size': ${nsim_steps},  'fixed_point': {'upscale':${ass.annotations['fixed-point-format'].upscale}, 'nbits':${nbits}} } [";
+        ##for(IntType i=IntType(0);i<GlobalConstants::nsim_steps;i++) cout << d[ get_value32(i)].${ass.symbol} << " ";
+        ##cout << "]\n";
+        ##% endfor
+
+
+
+        ##%if network.all_output_event_recordings:
+        ##cout << "\n\nWriting spikes to HDF5";
+        ##float dt_float = FixedFloatConversion::to_float(1, time_upscale);
+        ##%endif
+
+
+        ##%for i,poprec in enumerate(network.all_output_event_recordings):
+
+
+        ##for(int i=0; i< ${poprec.size};i++)
+        ##{
+        ##    const int buffer_offset = ${poprec.global_offset}+i;
+        ##    int nrn_offset = i + ${poprec.src_pop_start_index};
+        ##    const int nspikes = emitted_spikes[buffer_offset].size();
+        ##    //cout << "\nSpikes:"  << nspikes;
+        ##    int buffer_int[nspikes];
+        ##    double buffer_float[nspikes];
+        ##    int s=0;
+        ##    for(SpikeList::iterator it=emitted_spikes[buffer_offset].begin(); it!=emitted_spikes[buffer_offset].end(); it++,s++)
+        ##    {
+        ##        buffer_int[s] = get_value32(it->time);
+        ##        buffer_float[s] = buffer_int[s] * dt_float;
+        ##    }
+
+        ##    // Tagging:
+        ##    string tag_string = "EVENT:${poprec.node.symbol},SRCPOP:${poprec.src_population.name},${','.join(poprec.tags)}";
+        ##    string tag_string_index = (boost::format("POPINDEX:%04d")%nrn_offset).str();
+
+
+        ##    ###if SAVE_HDF5_INT
+        ##    ##string location_int =  (boost::format("simulation_fixed/int/${poprec.src_population.name}/%04d/output_events/")%nrn_offset).str();
+        ##    ##HDF5GroupPtr pGroup_int = file->get_group(location_int + "${poprec.node.symbol}");
+        ##    ##HDF5DataSet2DStdPtr event_output_int  = pGroup_int->create_dataset("${poprec.node.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
+        ##    ##if(nspikes>0) event_output_int->set_data(nspikes, 1, buffer_int);
+        ##    ##pGroup_int->add_attribute("hdf-jive","events");
+        ##    ##pGroup_int->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
+        ##    ###endif
+
+
+        ##    cout << "\n#!DATA{ 'name':'${ass.symbol}' } {'size': ${nsim_steps},  'fixed_point': {'upscale':${ass.annotations['fixed-point-format'].upscale}, 'nbits':${nbits}} } [";
+        ##    for(IntType i=IntType(0);i<GlobalConstants::nsim_steps;i++) cout << d[ get_value32(i)].${ass.symbol} << " ";
+        ##    cout << "]\n";
+
+
+        ##}
+
+        ##%endfor
+
+        cout << "\n#! FINISHED\n";
+
+
+
+
+    }
+
+
+
+
+
+    
+    void write_all_output_events_to_hdf()
+    {
+        #if USE_HDF
         %if network.all_output_event_recordings:
         cout << "\n\nWriting spikes to HDF5";
         HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
@@ -1283,8 +1428,7 @@ struct RecordMgrNew
                 buffer_float[s] = buffer_int[s] * dt_float;
             }
 
-
-
+            // Tagging:
             string tag_string = "EVENT:${poprec.node.symbol},SRCPOP:${poprec.src_population.name},${','.join(poprec.tags)}";
             string tag_string_index = (boost::format("POPINDEX:%04d")%nrn_offset).str();
 
@@ -1294,10 +1438,8 @@ struct RecordMgrNew
             HDF5GroupPtr pGroup_int = file->get_group(location_int + "${poprec.node.symbol}");
             HDF5DataSet2DStdPtr event_output_int  = pGroup_int->create_dataset("${poprec.node.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
             if(nspikes>0) event_output_int->set_data(nspikes, 1, buffer_int);
-
             pGroup_int->add_attribute("hdf-jive","events");
             pGroup_int->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
-
             #endif
 
             #if SAVE_HDF5_FLOAT
@@ -1318,6 +1460,7 @@ struct RecordMgrNew
         %endfor
 
 
+        #endif //USE_HDF
 
 
 
@@ -1327,6 +1470,7 @@ struct RecordMgrNew
 
     void write_all_traces_to_hdf()
     {
+        #if USE_HDF
 
         cout << "\n\nWriting traces to HDF5";
 
@@ -1396,8 +1540,9 @@ struct RecordMgrNew
             }
         }
         %endfor
-
         cout << "\n\nFisnihed Writing to HDF5";
+        #endif //USE_HDF
+
     } // void write_all_to_hdf5()
 
 
