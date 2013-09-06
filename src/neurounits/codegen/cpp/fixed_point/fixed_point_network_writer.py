@@ -22,7 +22,7 @@ from neurounits.ast_annotations.common import NodeFixedPointFormatAnnotator
 c_prog_header_tmpl = r"""
 
 
-/* 
+/*
 Two defines control the output:
     ON_NIOS
     PC_DEBUG
@@ -59,14 +59,12 @@ Two defines control the output:
 
 #else
 
-
 #if PC_DEBUG
 #define CALCULATE_FLOAT true
 #define USE_HDF true
 #define SAVE_HDF5_FLOAT true
 #define SAVE_HDF5_INT true
 #define SAFEINT true
-#define RUNTIME_PRINT_ALL
 #define _GLIBCXX_DEBUG true
 
 #else
@@ -77,7 +75,6 @@ Two defines control the output:
 #define SAFEINT false
 #endif // (PC_DEBUG)
 
-
 #endif
 
 
@@ -86,7 +83,26 @@ Two defines control the output:
 
 
 
-// # loggin
+
+
+// Runtime-logging:
+#define MHLOG(s) {s}
+#define NO_MHLOG(s)
+
+#define LOG_COMPONENT_STATEUPDATE MHLOG
+#define LOG_COMPONENT_EVENTDISPATCH NO_MHLOG
+#define LOG_COMPONENT_EVENTHANDLER NO_MHLOG
+#define LOG_COMPONENT_TRANSITION NO_MHLOG
+
+
+
+#define CHECK_IN_RANGE_NODE(a,b,c,d,e)  _check_in_range(a,b,c,d,e)
+#define CHECK_IN_RANGE_VARIABLE(a,b,c,d,e)  _check_in_range(a,b,c,d,e)
+#define CHECK_IN_RANGE_VARIABLE_DELTA(a,b,c,d,e)  _check_in_range(a,b,c,d,e)
+
+
+
+
 
 
 
@@ -283,7 +299,7 @@ namespace rnd
 
 
 
-IntType check_in_range(IntType val, IntType upscale, double min, double max, const std::string& description)
+IntType _check_in_range(IntType val, IntType upscale, double min, double max, const std::string& description)
 {
     //cout << "\n";
     //cout << "\nFor: " << description;
@@ -297,10 +313,11 @@ IntType check_in_range(IntType val, IntType upscale, double min, double max, con
     //cout << "\n diff_min: " << diff_min;
 
     // Addsmall tolerance, to account for constants:
-    if(max > 0) max *= 1.01;
-    else max /= 1.01;
-    if(min < 0) min *= 1.01;
-    else min /= 1.01;
+    double tolerance = 0.1;
+    if(max > 0) max *= (1.+tolerance);
+    else max /= (1.+tolerance);
+    if(min < 0) min *= (1.+tolerance);
+    else min /= (1.+tolerance);
 
 
 
@@ -537,7 +554,7 @@ namespace event_handlers
     //Events emitted from: ${population.name}
     void on_${out_event_port.symbol}(IntType index, const TimeInfo& time_info /*Params*/)
     {
-        //std::cout << "\n on_${out_event_port.symbol}: " <<  index;
+        LOG_COMPONENT_EVENTHANDLER(std::cout << "\n on_${out_event_port.symbol}: " <<  index; )
 
         %if (population,out_event_port) in evt_src_to_evtportconns:
         %for conn in evt_src_to_evtportconns[(population,out_event_port)]:
@@ -598,12 +615,12 @@ namespace event_handlers
                 if( d.incoming_events_${tr.port.symbol}[i].size() == 0 ) break;
 
                 input_event_types::Event_${tr.port.symbol}& evt = d.incoming_events_${tr.port.symbol}[i].front();
-                IntType evt_time = evt.delivery_time; 
+                IntType evt_time = evt.delivery_time;
 
                 if(evt_time <= time_info.time_int )
                 {
                     // Handle the event:
-                    //std::cout << "\n **** HANDLING EVENT (on ${tr.port.symbol}) *****";
+                    LOG_COMPONENT_EVENTHANDLER( std::cout << "\n **** HANDLING EVENT (on ${tr.port.symbol}) *****"; )
 
                      // Actions ...
                     %for action in tr.actions:
@@ -651,10 +668,10 @@ void sim_step_update_sv(NrnPopData& d, TimeInfo time_info)
     for(int i=0;i<NrnPopData::size;i++)
     {
 
-        #ifdef RUNTIME_PRINT_ALL
+        LOG_COMPONENT_STATEUPDATE(
         cout << "\n";
         cout << "\nFor ${population.name} " << i;
-        cout << "\nAt: t=" << t << "\t(" << FixedFloatConversion::to_float(t, time_upscale) << "s)";
+        cout << "\nAt: t=" << t << "\t(" << FixedFloatConversion::to_float(t, time_upscale) * 1000. << "ms)";
         cout << "\nStarting State Variables:";
         cout << "\n-------------------------";
         // Calculate delta's for all state-variables:
@@ -662,32 +679,26 @@ void sim_step_update_sv(NrnPopData& d, TimeInfo time_info)
         cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
         % endfor
         cout << "\nUpdates:";
-        #endif
+        )
 
         // Calculate assignments:
         % for eqn in eqns_assignments:
         d.${eqn.node.lhs.symbol}[i] = ${eqn.rhs_cstr} ;
-        #ifdef RUNTIME_PRINT_ALL
-        cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
-        #endif
+        LOG_COMPONENT_STATEUPDATE( cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;)
+        CHECK_IN_RANGE_VARIABLE( d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale}, ${eqn.node.lhs.annotations['node-value-range'].min}, ${eqn.node.lhs.annotations['node-value-range'].max}, "d.${eqn.node.lhs.symbol}" );
         % endfor
 
         // Calculate delta's for all state-variables:
         % for eqn in eqns_timederivatives:
         IntType d_${eqn.node.lhs.symbol} = ${eqn.rhs_cstr[0]} ;
         d.${eqn.node.lhs.symbol}[i] = d.${eqn.node.lhs.symbol}[i] + ${eqn.rhs_cstr[1]} ;
-        #ifdef RUNTIME_PRINT_ALL
-        cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
-        #endif
-        
-        ## // Range Checking:
-        ##check_in_range( d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale}, ${eqn.node.lhs.annotations['node-value-range'].min}, ${eqn.node.lhs.annotations['node-value-range'].max}, "d.${eqn.node.lhs.symbol}" );
-
-
+        LOG_COMPONENT_STATEUPDATE( cout << "\n delta:${eqn.node.lhs.symbol}: " << d_${eqn.node.lhs.symbol}  << " (" << FixedFloatConversion::to_float(d_${eqn.node.lhs.symbol}, ${eqn.node.lhs.annotations['fixed-point-format'].delta_upscale})  << ")" << std::flush; )
+        LOG_COMPONENT_STATEUPDATE( cout << "\n d.${eqn.node.lhs.symbol}: " << d.${eqn.node.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
+        CHECK_IN_RANGE_VARIABLE( d.${eqn.node.lhs.symbol}[i], ${eqn.node.lhs.annotations['fixed-point-format'].upscale}, ${eqn.node.lhs.annotations['node-value-range'].min}, ${eqn.node.lhs.annotations['node-value-range'].max}, "d.${eqn.node.lhs.symbol}" );
         % endfor
     }
+    cout << "\n";
 }
-
 
 void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
 {
@@ -766,9 +777,9 @@ void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
 
         if( next_regime != NrnPopData::RegimeType${rtgraph.name}::NO_CHANGE)
         {
-            //#ON_DEBUG( cout << "\nSWitching into Regime:" << next_regime; ) 
+            //#ON_DEBUG( cout << "\nSWitching into Regime:" << next_regime; )
             cout << "\nSWitching into Regime:" << next_regime;
-            
+
             d.current_regime_${rtgraph.name}[i] = next_regime;
         }
         %endif
@@ -1265,7 +1276,7 @@ struct RecordMgrNew
 
         HDF5DataSet2DStdPtr time_dataset_int = file->get_group("simulation_fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
         HDF5DataSet2DStdPtr time_dataset_float = file->get_group("simulation_fixed/double")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
-       
+
 
         T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
         for(int t=0;t<n_results_written;t++)

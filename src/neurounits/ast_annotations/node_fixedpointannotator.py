@@ -54,8 +54,8 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
 
     def ActionNodeStd(self, o):
 
-        vmin = o.annotations['node-value-range'].min#.float_in_si()
-        vmax = o.annotations['node-value-range'].max#.float_in_si()
+        vmin = o.annotations['node-value-range'].min
+        vmax = o.annotations['node-value-range'].max
 
         # Lets go symmetrical, about 0:
         ext = max( [np.abs(vmin),np.abs(vmax) ] )
@@ -123,17 +123,20 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
             upscaling_pow = 0
         else:
             upscaling_pow = int( np.ceil( np.log2(np.fabs(v)) ) )
-        o.annotations['fixed-point-format'] = FixedPointData( upscale = upscaling_pow, const_value_as_int = self.encode_value(v, upscaling_pow) ,  datatype=self.datatype)
+        o.annotations['fixed-point-format'] = FixedPointData( upscale = upscaling_pow, const_value_as_int = self.encode_value(v, upscaling_pow),  datatype=self.datatype)
 
     def ActionSymbolicConstant(self, o):
         self.ActionConstant(o)
-
     def ActionRegimeDispatchMap(self, o):
         self.ActionNodeStd(o)
-
     def ActionConstantZero(self, o):
         self.ActionNodeStd(o)
-
+    def ActionRandomVariable(self, o, **kwargs):
+        self.ActionNodeStd(o)
+    def ActionRandomVariableParameter(self, o, **kwargs):
+        self.ActionNodeStd(o)
+    def ActionOnEventDefParameter(self, o, ):
+        self.ActionNodeStd(o)
 
     def ActionBoolAnd(self, o):
         pass
@@ -161,23 +164,10 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         pass
     def ActionOnTransitionEvent(self, o):
         pass
-
     def ActionOnEventStateAssignment(self, o):
         pass
-        #return
-        #self.ActionNodeStd(o)
-
-    def ActionRandomVariable(self, o, **kwargs):
-        self.ActionNodeStd(o)
-    def ActionRandomVariableParameter(self, o, **kwargs):
-        self.ActionNodeStd(o)
-
-    def ActionOnEventDefParameter(self, o, ):
-        self.ActionNodeStd(o)
-
     def ActionInEventPortParameter(self, o):
         pass
-
     def ActionOutEventPort(self, o):
         pass
     def ActionInEventPort(self, o):
