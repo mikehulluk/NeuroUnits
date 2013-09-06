@@ -22,15 +22,27 @@ from neurounits.ast_annotations.common import NodeFixedPointFormatAnnotator
 c_prog_header_tmpl = r"""
 
 
+/* 
+Two defines control the output:
+    ON_NIOS
+    PC_DEBUG
+*/
 
-//#define _GLIBCXX_DEBUG true
 
-/* Set or unset this variable: */
 
+
+
+
+
+// By default, we run optimised on the PC:
 #ifndef ON_NIOS
 #define ON_NIOS false
 #endif
-#define DISPLAY_LOOP_INFO true
+
+#ifndef PC_DEBUG
+#define PC_DEBUG true
+#endif
+
 
 
 
@@ -38,22 +50,12 @@ c_prog_header_tmpl = r"""
 
 
 
-
-
-#define PC_DEBUG  false
-
-
-## #define RUNTIME_PRINT_ALL
-
-
-//#define ON_NIOS
-
 #if ON_NIOS
 #define CALCULATE_FLOAT false
 #define USE_HDF false
 #define SAVE_HDF5_FLOAT false
 #define SAVE_HDF5_INT false
-#define SAFEINT true
+#define SAFEINT false
 
 #else
 
@@ -62,8 +64,10 @@ c_prog_header_tmpl = r"""
 #define CALCULATE_FLOAT true
 #define USE_HDF true
 #define SAVE_HDF5_FLOAT true
-#define SAVE_HDF5_INT false
+#define SAVE_HDF5_INT true
 #define SAFEINT true
+#define RUNTIME_PRINT_ALL
+#define _GLIBCXX_DEBUG true
 
 #else
 #define CALCULATE_FLOAT false
@@ -74,13 +78,20 @@ c_prog_header_tmpl = r"""
 #endif // (PC_DEBUG)
 
 
-
 #endif
 
 
 
 
 
+
+
+// # loggin
+
+
+
+
+#define DISPLAY_LOOP_INFO true
 //#define NSIM_REPS 200
 
 
@@ -93,14 +104,14 @@ c_prog_header_tmpl = r"""
 const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT = 100;
 const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP = 300;
 
-const int nsim_steps = ${nsim_steps};
+##const int nsim_steps = ${nsim_steps};
 
 
 // Define how often to record values:
 const int record_rate = 10;
 
 
-const int n_results_total = nsim_steps / record_rate;
+##const int n_results_total = nsim_steps / record_rate;
 int n_results_written = 0;
 
 
@@ -540,9 +551,9 @@ namespace event_handlers
         %for poprec in network.all_output_event_recordings:
         %if poprec.src_population == population:
         // Lets records!
-        if( (index >= ${poprec.src_pop_start_index}) && (index < ${poprec.src_pop_end_index}))
+        if( (index >= IntType(${poprec.src_pop_start_index})) && (index < IntType(${poprec.src_pop_end_index})))
         {
-            record_event( ${poprec.global_offset} + index - ${poprec.src_pop_start_index} , SpikeEmission(time_info.time_int) );
+            record_event( IntType(${poprec.global_offset}) + index - IntType(${poprec.src_pop_start_index}) , SpikeEmission(time_info.time_int) );
         }
         %endif
         %endfor
@@ -587,7 +598,7 @@ namespace event_handlers
                 if( d.incoming_events_${tr.port.symbol}[i].size() == 0 ) break;
 
                 input_event_types::Event_${tr.port.symbol}& evt = d.incoming_events_${tr.port.symbol}[i].front();
-                IntType evt_time = evt.delivery_time; //d.incoming_events_${tr.port.symbol}[i].front().delivery_time;
+                IntType evt_time = evt.delivery_time; 
 
                 if(evt_time <= time_info.time_int )
                 {
@@ -634,7 +645,7 @@ void sim_step_update_sv(NrnPopData& d, TimeInfo time_info)
 {
 
     const IntType t = time_info.time_int;
-    assert(t>0);
+    assert(t>=0); // Suppress compiler warning about unused variable
 
 //#pragma omp parallel for default(shared)
     for(int i=0;i<NrnPopData::size;i++)
@@ -682,7 +693,7 @@ void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
 {
     const IntType t = time_info.time_int;
 
-    assert(t>0);
+    assert(t>=0); // Suppress compiler warning about unused variable
 
     for(int i=0;i<NrnPopData::size;i++)
     {
@@ -755,7 +766,9 @@ void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
 
         if( next_regime != NrnPopData::RegimeType${rtgraph.name}::NO_CHANGE)
         {
-            ##cout << "\nSWitching into Regime:" << next_regime;
+            //#ON_DEBUG( cout << "\nSWitching into Regime:" << next_regime; ) 
+            cout << "\nSWitching into Regime:" << next_regime;
+            
             d.current_regime_${rtgraph.name}[i] = next_regime;
         }
         %endif
@@ -766,17 +779,6 @@ void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
 
 
 
-
-void print_results_from_NIOS(NrnPopData* d)
-{
-    // Assignments + states:
-    % for ass in population.component.assignedvalues + population.component.state_variables:
-    cout << "\n#!DATA{ 'name':'${ass.symbol}' } {'size': ${nsim_steps},  'fixed_point': {'upscale':${ass.annotations['fixed-point-format'].upscale}, 'nbits':${nbits}} } [";
-    for(IntType i=IntType(0);i<nsim_steps;i++) cout << d[ get_value32(i)].${ass.symbol} << " ";
-    cout << "]\n";
-    % endfor
-    cout << "\n#! FINISHED\n";
-}
 
 
 
@@ -789,6 +791,28 @@ void print_results_from_NIOS(NrnPopData* d)
 
 
 
+
+c_print_results_tmpl = r"""
+
+
+namespace NS_${population.name}
+{
+
+void print_results_from_NIOS(NrnPopData* d)
+{
+    // Assignments + states:
+    % for ass in population.component.assignedvalues + population.component.state_variables:
+    cout << "\n#!DATA{ 'name':'${ass.symbol}' } {'size': ${nsim_steps},  'fixed_point': {'upscale':${ass.annotations['fixed-point-format'].upscale}, 'nbits':${nbits}} } [";
+    for(IntType i=IntType(0);i<GlobalConstants::nsim_steps;i++) cout << d[ get_value32(i)].${ass.symbol} << " ";
+    cout << "]\n";
+    % endfor
+    cout << "\n#! FINISHED\n";
+}
+}
+
+
+
+"""
 
 
 
@@ -849,7 +873,7 @@ int main()
     #endif
 
         n_results_written=0;
-        for(IntType time_step=IntType(0);time_step<nsim_steps;time_step++)
+        for(IntType time_step=IntType(0);time_step<GlobalConstants::nsim_steps;time_step++)
         {
 
             TimeInfo time_info(time_step);
@@ -898,7 +922,7 @@ int main()
             if(get_value32(time_info.time_step) % get_value32(record_rate)==0)
             {
                 // Save time:
-                global_data.recordings_new.time_buffer[n_results_written] = get_value32(time_info.time_int);
+                global_data.recordings_new.time_buffer[n_results_written] = time_info.time_int;
                 //write_time_to_hdf5(time_info);
                 %for poprec in network.all_trace_recordings:
                 // Record: ${poprec}
@@ -1073,7 +1097,7 @@ namespace NS_eventcoupling_${projection.name}
 
             <% evt_type = 'NS_%s::input_event_types::Event_%s' % (projection.dst_population.population.name, projection.dst_port.symbol)%>
 
-            IntType evt_time = do_add_op( time_info.time_int, time_upscale, ${projection.delay_int}, ${projection.delay_upscale}, time_upscale, 0);
+            IntType evt_time = do_add_op( time_info.time_int, time_upscale, IntType(${projection.delay_int}), IntType(${projection.delay_upscale}), time_upscale, IntType(0));
 
             // Create the event, remebering to rescale parameters between source and target appropriately:
             %for p in projection.dst_port.alphabetic_params:
@@ -1107,45 +1131,23 @@ NS_${pop.name}::NrnPopData data_${pop.name};
 
 
 
-struct RecordingMgr
+
+
+
+
+
+
+
+
+
+
+
+struct GlobalConstants
 {
-    // Old storage:
-    %for pop in network.populations:
-    NS_${pop.name}::NrnPopData* ${pop.name}_recorded_output_data_OLD;
-    %endfor
 
-    RecordingMgr()
-    {
-    %for pop in network.populations:
-        ${pop.name}_recorded_output_data_OLD = new NS_${pop.name}::NrnPopData[n_results_total];
-    %endfor
-    }
+    static const int nsim_steps = ${nsim_steps};
 
-    ~RecordingMgr()
-    {
-        %for pop in network.populations:
-        delete[] ${pop.name}_recorded_output_data_OLD;
-        %endfor
-    }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1158,7 +1160,8 @@ struct RecordingMgr
 
 struct RecordMgrNew
 {
-    static const int buffer_size = n_results_total;
+    static const int n_expected_recording_times = GlobalConstants::nsim_steps / record_rate;
+    static const int buffer_size = n_expected_recording_times;
 
     // What are we recording:
     %for poprec in network.all_trace_recordings:
@@ -1202,7 +1205,7 @@ struct RecordMgrNew
             int s=0;
             for(SpikeList::iterator it=emitted_spikes[buffer_offset].begin(); it!=emitted_spikes[buffer_offset].end(); it++,s++)
             {
-                buffer_int[s] = it->time;
+                buffer_int[s] = get_value32(it->time);
                 buffer_float[s] = buffer_int[s] * dt_float;
             }
 
@@ -1262,12 +1265,12 @@ struct RecordMgrNew
 
         HDF5DataSet2DStdPtr time_dataset_int = file->get_group("simulation_fixed/int")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
         HDF5DataSet2DStdPtr time_dataset_float = file->get_group("simulation_fixed/double")->create_dataset("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
-        ##T_hdf5_type_float dt_float = FixedFloatConversion::to_float(dt_int, dt_upscale);
+       
 
         T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
         for(int t=0;t<n_results_written;t++)
         {
-            data_int[t] = time_buffer[t];
+            data_int[t] = get_value32(time_buffer[t]);
             data_float[t]  = data_int[t] * dt_float;
         }
         time_dataset_int->set_data(n_results_written,1, data_int);
@@ -1286,7 +1289,7 @@ struct RecordMgrNew
 
                 for(int t=0;t<n_results_written;t++)
                 {
-                    data_int[t] = data_buffers[t][buffer_offset];
+                    data_int[t] = get_value32( data_buffers[t][buffer_offset] );
                     data_float[t] = data_int[t] * node_sf;
                 }
 
@@ -1335,6 +1338,7 @@ struct RecordMgrNew
 
 struct GlobalData {
 
+
     // New version:
     RecordMgrNew recordings_new;
 
@@ -1348,7 +1352,7 @@ GlobalData global_data;
 
 void record_event( IntType global_buffer, const SpikeEmission& evt )
 {
-    global_data.recordings_new.emitted_spikes[global_buffer].push_back(evt);
+    global_data.recordings_new.emitted_spikes[get_value32(global_buffer)].push_back(evt);
 }
 
 
@@ -1495,6 +1499,10 @@ class CBasedEqnWriterFixedNetwork(object):
             code_per_pop.append(cfile)
 
 
+        cout_data_writers = []
+        for population in network.populations:
+                cfile = Template(c_print_results_tmpl).render(population=population, **std_variables)
+                cout_data_writers.append(cfile)
 
         try:
             c_prog_header = Template(c_prog_header_tmpl).render(
@@ -1524,7 +1532,8 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
 
-        cfile = '\n'.join([c_prog_header] +  code_per_pop + [popl_objs] + code_per_electrical_projection +  code_per_eventport_projection + [c_main_loop])
+        #cfile = '\n'.join([c_prog_header] +  code_per_pop + [popl_objs] + code_per_electrical_projection +  code_per_eventport_projection + [c_main_loop])
+        cfile = '\n'.join([c_prog_header] +  code_per_pop +  [popl_objs] + code_per_electrical_projection +  code_per_eventport_projection + cout_data_writers + [c_main_loop])
 
         for f in ['sim1.cpp','a.out',output_filename, 'debug.log',]:
             if os.path.exists(f):

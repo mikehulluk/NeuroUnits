@@ -317,12 +317,12 @@ class ExplicitIndicesSet(PopulationConnector):
         tmpl = Template('''
 
         %for src, tgts in src_tgt_map.items():
-            <%tgt_str = ','.join( [str(t) for t in tgts ] ) %>
+            <%tgt_str = ','.join( ['IntType(%s)'%t for t in tgts ] ) %>
             IntType tgts_from_${src}[] = { ${tgt_str} };
-            IntType tgts_from_${src}_len = ${len(tgts)} ;
+            IntType tgts_from_${src}_len = IntType(${len(tgts)} ) ;
 
             // # TODO: refactor this out properly:
-            projections[${src}].assign(tgts_from_${src}, tgts_from_${src} + tgts_from_${src}_len);
+            projections[${src}].assign(tgts_from_${src}, tgts_from_${src} + get_value32(tgts_from_${src}_len) );
         %endfor
 
         ''')

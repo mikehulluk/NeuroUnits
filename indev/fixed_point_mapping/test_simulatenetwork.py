@@ -28,7 +28,7 @@ from mreorg import PM
 use_cache=True
 #use_cache=False
 cache_file = '.din_model_cache'
-# Delete the cache-fiel if we are not using it:
+# Delete the cache-file if we are not using it:
 if not use_cache:
     if os.path.exists(cache_file):
         os.unlink(cache_file)
@@ -174,7 +174,7 @@ network.finalise()
 
 
 
-fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false').results
+fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false').results
 results = HDF5SimulationResultFile("output.hd5")
 
 

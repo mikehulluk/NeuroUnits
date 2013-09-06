@@ -127,6 +127,17 @@ namespace mh_int32
             return _value < rhs._value;
         }
 
+        bool operator>=(const SafeInt32& rhs)
+        {
+            assert(this->is_valid && rhs.is_valid);
+            return _value >= rhs._value;
+        }
+        bool operator<=(const SafeInt32& rhs)
+        {
+            assert(this->is_valid && rhs.is_valid);
+            return _value <= rhs._value;
+        }
+
         // Comparisons against ints:
         bool operator==(NativeInt32 rhs) const
         {
