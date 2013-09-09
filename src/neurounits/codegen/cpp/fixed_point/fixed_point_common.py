@@ -57,6 +57,7 @@ class IntermediateNodeFinder(ASTActionerDefaultIgnoreMissing):
 
 class CBasedFixedWriterStd(ASTVisitorBase):
     def add_range_check(self, node, expr):
+        return expr 
 
         return """CHECK_IN_RANGE_NODE(%s, IntType(%d), %g, %g, "%s")""" %(
                     expr,
@@ -116,7 +117,8 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 
     def VisitIfThenElse(self, o):
-        res = "( (%s) ? auto_shift(%s, IntType(%d)) : auto_shift(%s, IntType(%d)) )" % (
+        #res = "( (%s) ? auto_shift(%s, IntType(%d)) : auto_shift(%s, IntType(%d)) )" % (
+        res = "do_ifthenelse_op(%s, %s, %d, %s, %d )" % (
                     self.visit(o.predicate),
                     self.visit(o.if_true_ast),
                     -1* (o.annotations['fixed-point-format'].upscale - o.if_true_ast.annotations['fixed-point-format'].upscale),
@@ -162,7 +164,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
         ann_func_upscale = o.annotations['fixed-point-format'].upscale
         ann_param_upscale = param.rhs_ast.annotations['fixed-point-format'].upscale
         expr_num = o.annotations['node-id']
-        res = """ int_exp( %s, IntType(%d), IntType(%d), IntType(%d) )""" %(param_term, ann_param_upscale, ann_func_upscale, expr_num )
+        res = """ int_exp( %s, IntType(%d), IntType(%d), IntType(%d), lookuptables.exponential )""" %(param_term, ann_param_upscale, ann_func_upscale, expr_num )
         return self.add_range_check(o, res)
 
     def VisitFunctionDefInstantiationParameter(self, o):
@@ -248,7 +250,7 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         node_name = 'RV%s' % o.annotations['node-id']
 
         if o.modes['share'] =='PER_NEURON':
-            res = 'd.%s[i]' % node_name
+            res = self.get_var_str( name=node_name) #'d.%s[i]' % node_name
         elif o.modes['share'] == 'PER_POPULATION':
             res = 'd.%s' % node_name
         else:

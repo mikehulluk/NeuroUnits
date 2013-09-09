@@ -265,7 +265,7 @@ using mh::auto_shift64;
 
 #if USE_BLUEVEC
 
-    DataStream auto_shift32(DataStream da, IntType amount)
+    DataStream auto_shift(DataStream da, IntType amount)
     {
         if(amount==0) return da;
         if(amount>0) return da<<amount;
@@ -273,28 +273,67 @@ using mh::auto_shift64;
 
     }
 
-    inline DataStream do_add_op(DataStream v1, DataStream up1, DataStream v2, DataStream up2, DataStream up_local, DataStream expr_id) {
-        assert False;
-        return tmpl_fp_ops::do_add_op(v1, up1, v2, up2, up_local, expr_id);
+    // Add:
+    inline DataStream do_add_op(DataStream v1, IntType up1, DataStream v2, IntType up2, IntType up_local, IntType expr_id) {
+        return auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local);
     }
-    inline DataStream do_sub_op(DataStream v1, DataStream up1, DataStream v2, DataStream up2, DataStream up_local, DataStream expr_id) {
-        assert False;
-       return tmpl_fp_ops::do_sub_op(v1, up1, v2, up2, up_local, expr_id);
+    inline DataStream do_add_op(IntType v1, IntType up1, DataStream v2, IntType up2, IntType up_local, IntType expr_id) {
+        return auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local);
     }
-
-    inline DataStream do_mul_op(DataStream v1, DataStream up1, DataStream v2, DataStream up2, DataStream up_local, DataStream expr_id) {
-        assert False;
-        return tmpl_fp_ops::do_mul_op(v1, up1, v2, up2, up_local, expr_id);
+    inline DataStream do_add_op(DataStream v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
+        return auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local);
     }
 
-    inline DataStream do_div_op(DataStream v1, DataStream up1, DataStream v2, DataStream up2, DataStream up_local, DataStream expr_id) {
-        assert False;
-        return tmpl_fp_ops::do_div_op(v1, up1, v2, up2, up_local, expr_id);
+    // Sub:
+    inline DataStream do_sub_op(DataStream v1, IntType up1, DataStream v2, IntType up2, IntType up_local, IntType expr_id) {
+        return auto_shift(v1, up1-up_local) - auto_shift(v2, up2-up_local);
+    }
+    inline DataStream do_sub_op(IntType v1, IntType up1, DataStream v2, IntType up2, IntType up_local, IntType expr_id) {
+        return auto_shift(v1, up1-up_local) - auto_shift(v2, up2-up_local);
+    }
+    inline DataStream do_sub_op(DataStream v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
+        return auto_shift(v1, up1-up_local) - auto_shift(v2, up2-up_local);
     }
 
-    inline DataStream int_exp(DataStream v1, DataStream up1, DataStream up_local, DataStream expr_id) {
-        assert False;
-        return tmpl_fp_ops::int_exp(v1, up1, up_local, expr_id, lookuptables.exponential);
+    // Mul:
+    inline DataStream do_mul_op(DataStream v1, IntType up1, DataStream v2, IntType up2, IntType up_local, IntType expr_id) {
+        return multiply64_and_rshift(v1, v2, -(up1+up2-up_local-(VAR_NBITS-1)) );
+    }
+    inline DataStream do_mul_op(IntType v1, IntType up1, DataStream v2, IntType up2, IntType up_local, IntType expr_id) {
+        return multiply64_and_rshift(v1, v2, -(up1+up2-up_local-(VAR_NBITS-1)) );
+    }
+    inline DataStream do_mul_op(DataStream v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
+        return multiply64_and_rshift(v1, v2, -(up1+up2-up_local-(VAR_NBITS-1)) );
+    }
+
+
+    // Div:
+    inline DataStream do_div_op(DataStream v1, IntType up1, DataStream v2, IntType up2, IntType up_local, IntType expr_id) {
+        return divide64_and_rshift(v1, v2, -(up1-up2-up_local) );
+    }
+    inline DataStream do_div_op(IntType v1, IntType up1, DataStream v2, IntType up2, IntType up_local, IntType expr_id) {
+        return divide64_and_rshift(v1, v2, -(up1-up2-up_local) );
+    }
+    inline DataStream do_div_op(DataStream v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
+        return divide64_and_rshift(v1, v2, -(up1-up2-up_local) );
+    }
+
+    inline DataStream do_ifthenelse_op(BoolStream pred, DataStream v1, IntType up1, DataStream v2, IntType up2) {
+        return ifthenelse(pred, auto_shift(v1, up1), auto_shift(v2, up2));
+    }
+    inline DataStream do_ifthenelse_op(BoolStream pred, IntType v1, IntType up1, DataStream v2, IntType up2) {
+        return ifthenelse(pred, auto_shift(v1, up1), auto_shift(v2, up2));
+    }
+    inline DataStream do_ifthenelse_op(BoolStream pred, DataStream v1, IntType up1, IntType v2, IntType up2) {
+        return ifthenelse(pred, auto_shift(v1, up1), auto_shift(v2, up2));
+    }
+
+
+
+
+    template<typename LUTTYPE>
+    inline DataStream int_exp(DataStream v1, IntType up1, IntType up_local, IntType expr_id, LUTTYPE lut ) {
+        assert(0);
     }
 
 
@@ -343,8 +382,16 @@ inline IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntTy
     return tmpl_fp_ops::do_div_op(v1, up1, v2, up2, up_local, expr_id);
 }
 
-inline IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id) {
-    return tmpl_fp_ops::int_exp(v1, up1, up_local, expr_id, lookuptables.exponential);
+
+inline IntType do_ifthenelse_op(bool pred, IntType v1, IntType up1, IntType v2, IntType up2){
+    return ( pred ? auto_shift(v1,up1) : auto_shift(v2, up2) );
+}
+
+
+
+template<typename LUTTYPE>
+inline IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id, const LUTTYPE& lut) {
+    return tmpl_fp_ops::int_exp(v1, up1, up_local, expr_id, lut);
 }
 
 
@@ -844,14 +891,30 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         // Vector Compute Version:
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
         DataStream bv_${td.lhs.symbol} = load( d_in.${td.lhs.symbol} );
+        %endfor
 
-        %endfor 
+        % for suppl in population.component.suppliedvalues:
+        %if suppl.symbol=='t':
+            //Skipping 't'
+        ##%passa
+        %else:
+        DataStream bv_${suppl.symbol} = load( d_in.${suppl.symbol} );
+        %endif
+        %endfor
 
-        
+        // Random Variable nodes
+        %for rv, _pstring in rv_per_population:
+        IntType RV${rv.annotations['node-id']} =  d_in.RV${rv.annotations['node-id']};
+        %endfor
+        %for rv, _pstring in rv_per_neuron:
+        DataStream bv_RV${rv.annotations['node-id']} = load( d_in.RV${rv.annotations['node-id']});
+        %endfor
+
+        // Time:
 
         // Calculate assignments:
         % for ass in population.component.ordered_assignments_by_dependancies:
-        DataStream bv_${ass.lhs.symbol} = ${writer.to_c(ass, population_access_index=None, data_prefix='bv_')} ;
+        DataStream bv_${ass.lhs.symbol} = ensure_DS(  ${writer.to_c(ass, population_access_index=None, data_prefix='bv_')} );
         ##LOG_COMPONENT_STATEUPDATE( cout << "\n d.${ass.lhs.symbol}: " << d.${ass.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${ass.lhs.symbol}[i], ${ass.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;)
         ##CHECK_IN_RANGE_VARIABLE( d.${ass.lhs.symbol}[i], ${ass.lhs.annotations['fixed-point-format'].upscale}, ${ass.lhs.annotations['node-value-range'].min}, ${ass.lhs.annotations['node-value-range'].max}, "d.${ass.lhs.symbol}" );
         % endfor
@@ -859,12 +922,22 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         // Calculate delta's for all state-variables:
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
         <% cs1, cs2 = writer.to_c(td, population_access_index=None, data_prefix='bv_') %>
-        DataStream d_${td.lhs.symbol} = ${cs1} ;
-        DataStream new_bv_${td.lhs.symbol} = d.${td.lhs.symbol}[i] + ${cs2} ;
+        DataStream d_${td.lhs.symbol} = ensure_DS( ${cs1} ) ;
+        DataStream new_bv_${td.lhs.symbol} = d_${td.lhs.symbol} + ${cs2} ;
         ##LOG_COMPONENT_STATEUPDATE( cout << "\n delta:${td.lhs.symbol}: " << d_${td.lhs.symbol}  << " (" << FixedFloatConversion::to_float(d_${td.lhs.symbol}, ${td.lhs.annotations['fixed-point-format'].delta_upscale})  << ")" << std::flush; )
         ##LOG_COMPONENT_STATEUPDATE( cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
         ##CHECK_IN_RANGE_VARIABLE( d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale}, ${td.lhs.annotations['node-value-range'].min}, ${td.lhs.annotations['node-value-range'].max}, "d.${td.lhs.symbol}" );
         % endfor
+
+
+        // And lets read them back out:
+        // Calculate delta's for all state-variables:
+        % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
+        store( new_bv_${td.lhs.symbol}, d_in.${td.lhs.symbol}  );
+        %endfor
+        % for ass in sorted(population.component.assignments, key=lambda ass:ass.lhs.symbol):
+        store( bv_${ass.lhs.symbol}, d_in.${ass.lhs.symbol}  );
+        %endfor
 
 
 
@@ -1701,7 +1774,7 @@ from fixed_point_common import IntermediateNodeFinder, CBasedFixedWriter
 
 
 class CBasedEqnWriterFixedNetwork(object):
-    def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None): 
+    def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None):
 
         self.dt_float = 0.05e-3
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
@@ -1901,9 +1974,10 @@ class CBasedEqnWriterFixedNetwork(object):
                                    compilation_settings = CCompilationSettings(
                                                 additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/'), os.path.expanduser("~/hw/BlueVec/include/") ],
                                                 additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/"), os.path.expanduser("~/hw/BlueVec/lib/")],
-                                                libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl'],
+                                                libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl', 'bv_proxy'],
                                                 #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x  -O3  -g -fopenmp ' + (CPPFLAGS if CPPFLAGS else '') ]),
-                                                compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x  -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
+                                                #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x  -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
+                                                compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                                 #compile_flags=['-Wall   -Wfatal-errors -std=gnu++0x  -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                                 #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x -O3  -g -march=native ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                                 #compile_flags=['-Wall -Wfatal-errors -std=gnu++0x -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
