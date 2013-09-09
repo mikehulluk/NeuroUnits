@@ -72,7 +72,7 @@ Two defines control the setup:
 
 
 
-#define USE_BLUEVEC true
+#define USE_BLUEVEC false
 
 #if USE_BLUEVEC
 #include <BlueVecProxy.h>
@@ -1776,7 +1776,7 @@ from fixed_point_common import IntermediateNodeFinder, CBasedFixedWriter
 class CBasedEqnWriterFixedNetwork(object):
     def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None):
 
-        self.dt_float = 0.05e-3
+        self.dt_float = 0.01e-3
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
 
 

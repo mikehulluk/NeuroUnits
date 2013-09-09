@@ -122,30 +122,10 @@ public:
 
                 cout << "func(" << x_value_double << ") -> " << res << "\n";
 
-
                 // We use a variable fixed_point format to encde the result, because the ranges with exponentials
                 // are simply too great (-8,8) -> (0.000335463, 1808.04)
-                //
-                // The optimal fixed point value upscaling to get our value in the range (-1,1) will be
-                // fp = ln2( exp(x) )
-                // which turns out to be linear in x (:
-                // fp =~ 1.4426 * x
-                // Careful with rounding:
-                //double fp_upscale_dbl = recip_ln_two * x_value_double;
-
                 NativeInt32 fp_upscale = get_upscale_for_xindex(i);
-
-                //cout << "\n  ++ Upscalings (int):" << fp_upscale;
-                //cout << "  -- fixed_point upscale: " << fp_upscale << "\n";
-
                 NativeInt32 res_as_int = FixedFloatConversion::from_float(res, fp_upscale);
-
-
-                //// Doube check we are not loosing too much precision here:
-                //double res_as_float = FixedFloatConversion::to_float(res_as_int, fp_upscale);
-                //cout << "  -- Load/Save: " << res_as_float << "\n";
-                //cout << "  -- As int: " << res_as_int << "\n";
-
 
                 // Save the value:
                 cout << "\nres_as_int: " << res_as_int << "\n" << flush;
