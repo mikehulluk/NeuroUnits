@@ -72,7 +72,7 @@ Two defines control the setup:
 
 
 
-#define USE_BLUEVEC false
+#define USE_BLUEVEC true
 
 #if USE_BLUEVEC
 #include <BlueVecProxy.h>
@@ -914,14 +914,14 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 
         // Calculate assignments:
         % for ass in population.component.ordered_assignments_by_dependancies:
-        DataStream bv_${ass.lhs.symbol} = ensure_DS(  ${writer.to_c(ass, population_access_index=None, data_prefix='bv_')} );
+        DataStream bv_${ass.lhs.symbol} = ensure_DS(  ${writer.to_c(ass, population_access_index=None, data_prefix='bv_', for_bluevec=True)} );
         ##LOG_COMPONENT_STATEUPDATE( cout << "\n d.${ass.lhs.symbol}: " << d.${ass.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${ass.lhs.symbol}[i], ${ass.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;)
         ##CHECK_IN_RANGE_VARIABLE( d.${ass.lhs.symbol}[i], ${ass.lhs.annotations['fixed-point-format'].upscale}, ${ass.lhs.annotations['node-value-range'].min}, ${ass.lhs.annotations['node-value-range'].max}, "d.${ass.lhs.symbol}" );
         % endfor
 
         // Calculate delta's for all state-variables:
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
-        <% cs1, cs2 = writer.to_c(td, population_access_index=None, data_prefix='bv_') %>
+        <% cs1, cs2 = writer.to_c(td, population_access_index=None, data_prefix='bv_', for_bluevec=True) %>
         DataStream d_${td.lhs.symbol} = ensure_DS( ${cs1} ) ;
         DataStream new_bv_${td.lhs.symbol} = d_${td.lhs.symbol} + ${cs2} ;
         ##LOG_COMPONENT_STATEUPDATE( cout << "\n delta:${td.lhs.symbol}: " << d_${td.lhs.symbol}  << " (" << FixedFloatConversion::to_float(d_${td.lhs.symbol}, ${td.lhs.annotations['fixed-point-format'].delta_upscale})  << ")" << std::flush; )

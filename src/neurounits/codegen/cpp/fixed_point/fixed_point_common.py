@@ -67,25 +67,25 @@ class CBasedFixedWriterStd(ASTVisitorBase):
                     repr(node)+str(node)+' ID: ' + str(node.annotations['node-id'])
                 )
 
-    def to_c(self, obj, population_access_index=None, data_prefix=None):
+    def to_c(self, obj, population_access_index=None, data_prefix=None, for_bluevec=False):
         population_access_index_prev = self.population_access_index
         self.population_access_index = population_access_index
         data_prefix_prev = self.data_prefix
         self.data_prefix = data_prefix
-        res =  self.visit(obj)
+        res =  self.visit(obj, for_bluevec=for_bluevec)
         self.population_access_index = population_access_index_prev
         self.data_prefix = data_prefix_prev
         return res
 
-    def VisitRegimeDispatchMap(self, o):
+    def VisitRegimeDispatchMap(self, o, **kwargs):
         assert len (o.rhs_map) == 1
-        return self.add_range_check(o, self.visit(o.rhs_map.values()[0]) )
+        return self.add_range_check(o, self.visit(o.rhs_map.values()[0], **kwargs) )
 
 
-    def DoOpOpComplex(self, o, op):
+    def DoOpOpComplex(self, o, op, **kwargs):
 
-        expr_lhs = self.visit(o.lhs)
-        expr_rhs = self.visit(o.rhs)
+        expr_lhs = self.visit(o.lhs, **kwargs)
+        expr_rhs = self.visit(o.rhs, **kwargs)
         expr_num = o.annotations['node-id']
         res = "do_%s_op( %s, IntType(%d), %s, IntType(%d), IntType(%d), IntType(%d))" % (
                                             op,
@@ -97,67 +97,72 @@ class CBasedFixedWriterStd(ASTVisitorBase):
         return self.add_range_check(o, res)
 
 
-    def VisitAddOp(self, o):
-        res = self.DoOpOpComplex(o, 'add')
+    def VisitAddOp(self, o, **kwargs):
+        res = self.DoOpOpComplex(o, 'add', **kwargs)
         return self.add_range_check(o, res)
 
-    def VisitSubOp(self, o):
-        res = self.DoOpOpComplex(o, 'sub')
+    def VisitSubOp(self, o, **kwargs):
+        res = self.DoOpOpComplex(o, 'sub', **kwargs)
         return self.add_range_check(o, res)
 
-    def VisitMulOp(self, o):
-        res = self.DoOpOpComplex(o, 'mul')
+    def VisitMulOp(self, o, **kwargs):
+        res = self.DoOpOpComplex(o, 'mul', **kwargs)
         return self.add_range_check(o, res)
 
-    def VisitDivOp(self, o):
-        res = self.DoOpOpComplex(o, 'div')
+    def VisitDivOp(self, o, **kwargs):
+        res = self.DoOpOpComplex(o, 'div', **kwargs)
         return self.add_range_check(o, res)
 
 
 
 
-    def VisitIfThenElse(self, o):
-        res = "( (%s) ? auto_shift(%s, IntType(%d)) : auto_shift(%s, IntType(%d)) )" % (
-        #res = "do_ifthenelse_op(%s, %s, %d, %s, %d )" % (
-                    self.visit(o.predicate),
-                    self.visit(o.if_true_ast),
+    def VisitIfThenElse(self, o, for_bluevec, **kwargs):
+
+        if not for_bluevec:
+            L = "( (%s) ? auto_shift(%s, IntType(%d)) : auto_shift(%s, IntType(%d)) )" 
+        else:
+            L = "do_ifthenelse_op(%s, %s, %d, %s, %d )"
+
+        res = L % (
+                    self.visit(o.predicate, for_bluevec=for_bluevec, **kwargs),
+                    self.visit(o.if_true_ast, for_bluevec=for_bluevec, **kwargs),
                     -1* (o.annotations['fixed-point-format'].upscale - o.if_true_ast.annotations['fixed-point-format'].upscale),
-                    self.visit(o.if_false_ast),
+                    self.visit(o.if_false_ast, for_bluevec=for_bluevec, **kwargs),
                     -1* (o.annotations['fixed-point-format'].upscale - o.if_false_ast.annotations['fixed-point-format'].upscale),
                 )
         return self.add_range_check(o, res)
 
-    def VisitInEquality(self, o):
+    def VisitInEquality(self, o, **kwargs):
         ann_lt_upscale = o.lesser_than.annotations['fixed-point-format'].upscale
         ann_gt_upscale = o.greater_than.annotations['fixed-point-format'].upscale
 
         if ann_lt_upscale < ann_gt_upscale:
-            res= "( ((%s)>>IntType(%d)) < ( (%s)) )" %( self.visit(o.lesser_than), (ann_gt_upscale-ann_lt_upscale),  self.visit(o.greater_than) )
+            res= "( ((%s)>>IntType(%d)) < ( (%s)) )" %( self.visit(o.lesser_than, **kwargs), (ann_gt_upscale-ann_lt_upscale),  self.visit(o.greater_than, **kwargs) )
         elif ann_lt_upscale > ann_gt_upscale:
-            res= "( (%s) < ( (%s)>>IntType(%d)))" %( self.visit(o.lesser_than), self.visit(o.greater_than), (ann_lt_upscale-ann_gt_upscale) )
+            res= "( (%s) < ( (%s)>>IntType(%d)))" %( self.visit(o.lesser_than, **kwargs), self.visit(o.greater_than, **kwargs), (ann_lt_upscale-ann_gt_upscale) )
         else:
-            res= "( (%s) < (%s) )" %( self.visit(o.lesser_than), self.visit(o.greater_than) )
+            res= "( (%s) < (%s) )" %( self.visit(o.lesser_than, **kwargs), self.visit(o.greater_than, **kwargs) )
         return res
 
 
 
-    def VisitBoolAnd(self, o):
-        res = " ((%s) && (%s))"% (self.visit(o.lhs), self.visit(o.rhs))
+    def VisitBoolAnd(self, o, **kwargs):
+        res = " ((%s) && (%s))"% (self.visit(o.lhs, **kwargs), self.visit(o.rhs, **kwargs))
         return res
-    def VisitBoolOr(self, o):
-        res = " ((%s) || (%s))"% (self.visit(o.lhs), self.visit(o.rhs))
+    def VisitBoolOr(self, o, **kwargs):
+        res = " ((%s) || (%s))"% (self.visit(o.lhs, **kwargs), self.visit(o.rhs, **kwargs))
         return res
-    def VisitBoolNot(self, o):
-        res = " (!(%s))"% (self.visit(o.lhs))
+    def VisitBoolNot(self, o, **kwargs):
+        res = " (!(%s))"% (self.visit(o.lhs, **kwargs))
         return res
 
     def VisitFunctionDefUserInstantiation(self,o):
         assert False
 
-    def VisitFunctionDefBuiltInInstantiation(self,o):
+    def VisitFunctionDefBuiltInInstantiation(self,o, **kwargs):
         assert o.function_def.is_builtin() and o.function_def.funcname == '__exp__'
         param = o.parameters.values()[0]
-        param_term = self.visit(param.rhs_ast)
+        param_term = self.visit(param.rhs_ast, **kwargs)
 
         # Add range checking:
         param_term = self.add_range_check(param, param_term)
@@ -172,16 +177,23 @@ class CBasedFixedWriterStd(ASTVisitorBase):
         res = o.symbol
         return self.add_range_check(o, res)
 
-    def VisitEqnAssignmentByRegime(self, o):
-        rhs_c = self.visit(o.rhs_map)
-        res =  " auto_shift( %s, IntType(%d) )" % (rhs_c, o.rhs_map.annotations['fixed-point-format'].upscale - o.lhs.annotations['fixed-point-format'].upscale )
+    def VisitEqnAssignmentByRegime(self, o, **kwargs):
+        res =  " auto_shift( %s, IntType(%d) )" % (
+                self.visit(o.rhs_map, **kwargs),
+                o.rhs_map.annotations['fixed-point-format'].upscale - o.lhs.annotations['fixed-point-format'].upscale )
         return res
 
 
-    def VisitTimeDerivativeByRegime(self, o):
+    def VisitTimeDerivativeByRegime(self, o, **kwargs):
         delta_upscale = o.lhs.annotations['fixed-point-format'].delta_upscale
-        c1 = "do_mul_op(%s , IntType( %d ), dt_int, IntType(dt_upscale), IntType(%d), IntType(-1) ) " % ( self.visit(o.rhs_map), o.rhs_map.annotations['fixed-point-format'].upscale, delta_upscale  )
-        c2 = "auto_shift( d_%s, IntType(%d) - IntType(%d) )" % ( o.lhs.symbol, delta_upscale, o.lhs.annotations['fixed-point-format'].upscale)
+        c1 = "do_mul_op(%s , IntType( %d ), dt_int, IntType(dt_upscale), IntType(%d), IntType(-1) ) " % (
+                self.visit(o.rhs_map, **kwargs),
+                o.rhs_map.annotations['fixed-point-format'].upscale,
+                delta_upscale  )
+
+        c2 = "auto_shift( d_%s, IntType(%d) - IntType(%d) )" % ( 
+                o.lhs.symbol, delta_upscale,
+                o.lhs.annotations['fixed-point-format'].upscale)
         return c1, c2
 
 
@@ -205,44 +217,44 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         return s
 
 
-    def VisitFunctionDefParameter(self, o):
+    def VisitFunctionDefParameter(self, o, **kwargs):
         assert False
         res = o.symbol
         return self.add_range_check(o, res)
 
-    def VisitStateVariable(self, o):
+    def VisitStateVariable(self, o, **kwargs):
         res = self.get_var_str(o.symbol)
         return self.add_range_check(o, res)
 
-    def VisitParameter(self, o):
+    def VisitParameter(self, o, **kwargs):
         res = self.get_var_str(o.symbol)
         return self.add_range_check(o, res)
 
-    def VisitSymbolicConstant(self, o):
+    def VisitSymbolicConstant(self, o, **kwargs):
         res = "IntType(%d)" % o.annotations['fixed-point-format'].const_value_as_int
         return self.add_range_check(o, res)
 
-    def VisitAssignedVariable(self, o):
+    def VisitAssignedVariable(self, o, **kwargs):
         res = self.get_var_str(o.symbol)
         return self.add_range_check(o, res)
 
-    def VisitConstant(self, o):
+    def VisitConstant(self, o, **kwargs):
         res = "IntType(%d)" % o.annotations['fixed-point-format'].const_value_as_int
         return self.add_range_check(o, res)
 
-    def VisitConstantZero(self, o):
+    def VisitConstantZero(self, o, **kwargs):
         res = "IntType(0)"
         return self.add_range_check(o, res)
 
 
-    def VisitSuppliedValue(self, o):
+    def VisitSuppliedValue(self, o, **kwargs):
         if o.symbol == 't':
             return 't'
         return self.get_var_str(o.symbol)
 
 
 
-    def VisitRandomVariable(self, o):
+    def VisitRandomVariable(self, o, **kwargs):
 
         assert o.modes['when'] in ('SIM_INIT')
         assert o.modes['share'] in ('PER_NEURON', 'PER_POPULATION')
@@ -260,18 +272,18 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         return self.add_range_check(o, res)
 
 
-    def VisitOnEventStateAssignment(self, o):
-        rhs_c = self.visit(o.rhs)
+    def VisitOnEventStateAssignment(self, o, **kwargs):
+        rhs_c = self.visit(o.rhs, **kwargs)
         rhs_str = "%s = auto_shift( %s, IntType(%d) )" % (
                 self.get_var_str(o.lhs.symbol),
                 rhs_c, o.rhs.annotations['fixed-point-format'].upscale - o.lhs.annotations['fixed-point-format'].upscale )
         return rhs_str
 
-    def VisitEmitEvent(self, o):
+    def VisitEmitEvent(self, o, **kwargs):
         return 'event_handlers::on_%s(IntType(i), time_info)'% o.port.symbol
 
 
-    def VisitOnEventDefParameter(self, o):
+    def VisitOnEventDefParameter(self, o, **kwargs):
         return 'evt.%s' % o.symbol
 
 
