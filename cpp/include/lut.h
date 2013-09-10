@@ -78,31 +78,16 @@ public:
             assert(get_value32(P)>0);
             NativeInt32 result_int = ((recip_ln_two_as_int *(index - table_size_half) )>>get_value32(P)) + 1; // * pow(2.0, -P);
 
-
-            /*
-            cout << "\nexp(x): " << exp(xvalue);
-            cout << "\nR1: " << result_fp;
-            cout << "\nR2: " << result_int;
-            cout << "\n\n" << std::flush;
-            */
-            if(0)
-            {
+            #if DEBUG
                 // Calculate with floating point:
                 double table_cell_width = pow(2.0, upscale +1) / pow(2.0, nbits_table);
                 double xvalue = (index - table_size_half) * table_cell_width;
                 double fp = recip_ln_two * xvalue;
                 NativeInt32 result_fp = (NativeInt32) ceil(fp);
                 assert( abs(result_fp-result_int) <=1);
-            }
+            #endif 
 
             return result_int;
-
-
-
-
-
-
-
 
         }
 
@@ -138,8 +123,6 @@ public:
             assert( (NativeInt32)pData.size() == table_size);
             assert( (NativeInt32)_x_vals.size() == table_size);
 
-
-
         }
 
 
@@ -157,15 +140,6 @@ public:
 
         IntType get(IntType x_in, IntType up_x_in, IntType up_out_in) const
         {
-            //max = pow(2.0, nbits_table-1)
-            //check_in_range( x_in, up_x_in, "LUT")
-            //const double dbg_x_as_float = FixedFloatConversion::to_float(x_in, up_x_in) ;
-            //return FixedFloatConversion::from_float( exp(dbg_x_as_float), up_out_in);
-            ////const bool DEBUG = false;
-            //
-            //
-
-            //
 
             #if DEBUG
             cout << "\n";
@@ -188,7 +162,9 @@ public:
             const double dbg_x_as_float = FixedFloatConversion::to_float(x_in, up_x_in) ;
             cout << "\nx: " << x;
             cout << "\ndbg_as_float: " << dbg_x_as_float;
-            assert( fabs(dbg_x_as_float) < pow(2.0, this->upscale) );
+
+            // Added an additional '-1', but not yet tested!
+            assert( fabs(dbg_x_as_float) < pow(2.0, this->upscale-1) );
             #endif
 
 
