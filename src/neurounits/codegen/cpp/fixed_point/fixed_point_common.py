@@ -117,8 +117,8 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 
     def VisitIfThenElse(self, o):
-        #res = "( (%s) ? auto_shift(%s, IntType(%d)) : auto_shift(%s, IntType(%d)) )" % (
-        res = "do_ifthenelse_op(%s, %s, %d, %s, %d )" % (
+        res = "( (%s) ? auto_shift(%s, IntType(%d)) : auto_shift(%s, IntType(%d)) )" % (
+        #res = "do_ifthenelse_op(%s, %s, %d, %s, %d )" % (
                     self.visit(o.predicate),
                     self.visit(o.if_true_ast),
                     -1* (o.annotations['fixed-point-format'].upscale - o.if_true_ast.annotations['fixed-point-format'].upscale),
