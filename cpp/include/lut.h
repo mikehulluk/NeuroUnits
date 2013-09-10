@@ -67,8 +67,6 @@ class LookUpTableExpPower2
 public:
 
 
-
-
         NativeInt32 get_upscale_for_xindex(NativeInt32 index) const
         {
 
@@ -138,7 +136,7 @@ public:
 
 
 
-        IntType get(IntType x_in, IntType up_x_in, IntType up_out_in) const
+        IntType get(IntType x, IntType up_x, IntType up_out) const
         {
 
             #if DEBUG
@@ -148,9 +146,6 @@ public:
             cout << "\ntable_size_half: " << table_size_half;
             #endif
 
-            IntType x = IntType(x_in);
-            IntType up_x = IntType(up_x_in);
-            IntType up_out = IntType(up_out_in);
 
             const IntType nbit_variables = IntType(NBIT_VARIABLES);
 
@@ -159,7 +154,7 @@ public:
 
             // For debugging:
             #if DEBUG
-            const double dbg_x_as_float = FixedFloatConversion::to_float(x_in, up_x_in) ;
+            const double dbg_x_as_float = FixedFloatConversion::to_float(x, up_x) ;
             cout << "\nx: " << x;
             cout << "\ndbg_as_float: " << dbg_x_as_float;
 
@@ -190,8 +185,8 @@ public:
 
             #if DEBUG
             IntType xn1 = (((x>>rshift)+1) << rshift);
-            double xn_dbl = FixedFloatConversion::to_float(get_value32(xn), up_x_in) ;
-            double xn1_dbl = FixedFloatConversion::to_float(get_value32(xn1), up_x_in);
+            double xn_dbl = FixedFloatConversion::to_float(get_value32(xn), up_x) ;
+            double xn1_dbl = FixedFloatConversion::to_float(get_value32(xn1), up_x);
             cout << "\nxn_dbl: " << xn_dbl;
             cout << "\nxn1_dbl: " << xn1_dbl;
             assert( xn_dbl <= dbg_x_as_float);
@@ -213,23 +208,15 @@ public:
 
             #if DEBUG
             // Double Check:
-            double xn_dbl_old = FixedFloatConversion::to_float(get_value32(xn), up_x_in) ;
-            double xn1_dbl_old = FixedFloatConversion::to_float(get_value32(xn1), up_x_in);
+            double xn_dbl_old = FixedFloatConversion::to_float(get_value32(xn), up_x) ;
+            double xn1_dbl_old = FixedFloatConversion::to_float(get_value32(xn1), up_x);
             IntType yn_upscale_old =  IntType( (NativeInt32) ceil( recip_ln_two * xn_dbl_old ) );
             IntType yn1_upscale_old = IntType( (NativeInt32) ceil( recip_ln_two * xn1_dbl_old ) );
 
             cout << "\nyn_upscale_old/ yn_upscale: " << yn_upscale_old << "/" << yn_upscale ;
             cout << "\nyn1_upscale_old/ yn1_upscale: " << yn1_upscale_old << "/" << yn1_upscale ;
             cout << std::flush;
-            //assert( yn_upscale_old == yn_upscale);
-            //assert( yn1_upscale_old == yn1_upscale);
             #endif
-
-
-
-
-
-
 
 
             #if DEBUG
@@ -255,16 +242,7 @@ public:
             IntType yn_rescaled = (yn>>yn_rel_upscale);
 
             NativeInt64 xymul = get_value64(yn1 - yn_rescaled) *  get_value32(x-xn);
-            return (
-                    auto_shift(yn, yn_upscale-up_out)
-                    +
-                    auto_shift64(xymul, get_value32(  yn1_upscale - up_out-rshift ) )
-                    );
-
-;
-
-
-
+            return ( auto_shift(yn, yn_upscale-up_out) + auto_shift64(xymul, get_value32(  yn1_upscale - up_out-rshift ) ));
         }
 
 
