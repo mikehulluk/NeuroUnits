@@ -89,7 +89,7 @@ Two defines control the setup:
 
 
 /* Runtime logging: */
-#define RUNTIME_LOGGING_ON true
+#define RUNTIME_LOGGING_ON false
 #define RUNTIME_LOGGING_STARTTIME -1
 // #define RUNTIME_LOGGING_STARTTIME 100e-3
 
@@ -180,7 +180,7 @@ const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP = 300;
 
 
 // Define how often to record values:
-const int record_rate = 100;
+const int record_rate = 10;
 
 
 ##const int n_results_total = nsim_steps / record_rate;
@@ -477,24 +477,24 @@ LookUpTables lookuptables;
 
 inline IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
     IntType res = tmpl_fp_ops::do_add_op(v1, up1, v2, up2, up_local, expr_id);
-    cout << "\n\tAdd:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
+    //cout << "\n\tAdd:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
     return res;
 }
 inline IntType do_sub_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
     IntType res =  tmpl_fp_ops::do_sub_op(v1, up1, v2, up2, up_local, expr_id);
-    cout << "\n\tSub:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
+    //cout << "\n\tSub:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
     return res;
 }
 
 inline IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
     IntType res =  tmpl_fp_ops::do_mul_op(v1, up1, v2, up2, up_local, expr_id);
-    cout << "\n\tMul:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
+    //cout << "\n\tMul:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
     return res;
 }
 
 inline IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
     IntType res = tmpl_fp_ops::do_div_op(v1, up1, v2, up2, up_local, expr_id);
-    cout << "\n\tDiv:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
+    //cout << "\n\tDiv:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
     return res;
 }
 
@@ -508,7 +508,7 @@ inline IntType do_ifthenelse_op(bool pred, IntType v1, IntType up1, IntType v2, 
 template<typename LUTTYPE>
 inline IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id, const LUTTYPE& lut) {
     IntType res = tmpl_fp_ops::int_exp(v1, up1, up_local, expr_id, lut);
-    cout << "\n\tExp:" << v1 << " (" << up1 << ") " <<  " -> "  << res << " (" << up_local << ")";
+    //cout << "\n\tExp:" << v1 << " (" << up1 << ") " <<  " -> "  << res << " (" << up_local << ")";
     return res;
 }
 
@@ -992,8 +992,8 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         CHECK_IN_RANGE_VARIABLE( d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale}, ${td.lhs.annotations['node-value-range'].min}, ${td.lhs.annotations['node-value-range'].max}, "d.${td.lhs.symbol}" );
         % endfor
 
-        cout << "\n\nEnd SERIAL\n" << std::flush;
-        assert(0);
+        ##cout << "\n\nEnd SERIAL\n" << std::flush;
+        ##assert(0);
     }
 
 #else
@@ -1075,7 +1075,6 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         CHECK_IN_RANGE_VARIABLE( d_in.${suppliedvalue.symbol}[i], ${suppliedvalue.annotations['fixed-point-format'].upscale}, ${suppliedvalue.annotations['node-value-range'].min}, ${suppliedvalue.annotations['node-value-range'].max}, "d_in.${suppliedvalue.symbol}" );
         %endif
         %endfor
-
         }
 
 
@@ -1091,7 +1090,7 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         %endfor
         cout << "\n---------------";
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
-        cout << "\n d_in.d_${td.lhs.symbol}: " << d_in.d_${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.d_${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].delta_upscale})  << ")" << std::flush;
+        cout << "\n d_in.d_${td.lhs.symbol} (DELTA): " << d_in.d_${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.d_${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].delta_upscale})  << ")" << std::flush;
         cout << "\n d_in.${td.lhs.symbol}: " << d_in.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
         % endfor
         
@@ -1674,62 +1673,6 @@ struct RecordMgrNew
 
 
 
-        ##// Assignments + states:
-        ##% for ass in population.component.assignedvalues + population.component.state_variables:
-        ##cout << "\n#!DATA{ 'name':'${poprec.population.name}-${ass.symbol}' } {'size': ${nsim_steps},  'fixed_point': {'upscale':${ass.annotations['fixed-point-format'].upscale}, 'nbits':${nbits}} } [";
-        ##for(IntType i=IntType(0);i<GlobalConstants::nsim_steps;i++) cout << d[ get_value32(i)].${ass.symbol} << " ";
-        ##cout << "]\n";
-        ##% endfor
-
-
-
-        ##%if network.all_output_event_recordings:
-        ##cout << "\n\nWriting spikes to HDF5";
-        ##float dt_float = FixedFloatConversion::to_float(1, time_upscale);
-        ##%endif
-
-
-        ##%for i,poprec in enumerate(network.all_output_event_recordings):
-
-
-        ##for(int i=0; i< ${poprec.size};i++)
-        ##{
-        ##    const int buffer_offset = ${poprec.global_offset}+i;
-        ##    int nrn_offset = i + ${poprec.src_pop_start_index};
-        ##    const int nspikes = emitted_spikes[buffer_offset].size();
-        ##    //cout << "\nSpikes:"  << nspikes;
-        ##    int buffer_int[nspikes];
-        ##    double buffer_float[nspikes];
-        ##    int s=0;
-        ##    for(SpikeList::iterator it=emitted_spikes[buffer_offset].begin(); it!=emitted_spikes[buffer_offset].end(); it++,s++)
-        ##    {
-        ##        buffer_int[s] = get_value32(it->time);
-        ##        buffer_float[s] = buffer_int[s] * dt_float;
-        ##    }
-
-        ##    // Tagging:
-        ##    string tag_string = "EVENT:${poprec.node.symbol},SRCPOP:${poprec.src_population.name},${','.join(poprec.tags)}";
-        ##    string tag_string_index = (boost::format("POPINDEX:%04d")%nrn_offset).str();
-
-
-        ##    ###if SAVE_HDF5_INT
-        ##    ##string location_int =  (boost::format("simulation_fixed/int/${poprec.src_population.name}/%04d/output_events/")%nrn_offset).str();
-        ##    ##HDF5GroupPtr pGroup_int = file->get_group(location_int + "${poprec.node.symbol}");
-        ##    ##HDF5DataSet2DStdPtr event_output_int  = pGroup_int->create_dataset("${poprec.node.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
-        ##    ##if(nspikes>0) event_output_int->set_data(nspikes, 1, buffer_int);
-        ##    ##pGroup_int->add_attribute("hdf-jive","events");
-        ##    ##pGroup_int->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
-        ##    ###endif
-
-
-        ##    cout << "\n#!DATA{ 'name':'${ass.symbol}' } {'size': ${nsim_steps},  'fixed_point': {'upscale':${ass.annotations['fixed-point-format'].upscale}, 'nbits':${nbits}} } [";
-        ##    for(IntType i=IntType(0);i<GlobalConstants::nsim_steps;i++) cout << d[ get_value32(i)].${ass.symbol} << " ";
-        ##    cout << "]\n";
-
-
-        ##}
-
-        ##%endfor
 
         cout << "\n#! FINISHED\n";
 
@@ -1963,7 +1906,7 @@ class CBasedEqnWriterFixedNetwork(object):
             evt_src_to_evtportconns[key].append(evt_conn)
 
 
-        t_stop = 0.5
+        t_stop = 0.25
         n_steps = t_stop / self.dt_float
         std_variables = {
             'nsim_steps' : n_steps,
@@ -2122,6 +2065,8 @@ class CBasedEqnWriterFixedNetwork(object):
     def compile_and_run(self, cfile, output_c_filename, run, CPPFLAGS,  output_exec_filename):
 
         from neurounits.codegen.utils.c_compilation import CCompiler, CCompilationSettings
+        #if not output_exec_filename:
+        #    output_exec_filename = '/tmp/nu/compilation/exec.x'
 
 
         ## The preprocessed C++ output:
@@ -2136,8 +2081,8 @@ class CBasedEqnWriterFixedNetwork(object):
                                     ),
                                     #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x -O3  -g -march=native ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                     run=run,
-                                    output_filename=output_exec_filename,
-                                    intermediate_filename = output_c_filename,
+                                    output_filename=output_exec_filename or None,
+                                    intermediate_filename = output_c_filename or None,
                                     )
         self.results = None
         return

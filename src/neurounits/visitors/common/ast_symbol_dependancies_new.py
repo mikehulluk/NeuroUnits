@@ -59,7 +59,7 @@ class VisitorSymbolDependance(object):
             deps = self.get_terminal_dependancies(assignment, expand_assignments=False, include_random_variables=False, include_supplied_values=False, include_symbolic_constants=False, include_parameters=False, include_analog_input_ports=False)
             graph.add_node(assignment.lhs)
             for dep in deps:
-                assert isinstance(dep, (ast.StateVariable,ast.AssignedVariable))
+                assert isinstance(dep, (ast.StateVariable,ast.AssignedVariable, ast.TimeVariable))
                 if isinstance(dep, ast.AssignedVariable):
                     graph.add_edge(assignment.lhs, dep)
 
@@ -118,7 +118,7 @@ class VisitorSymbolDependance(object):
 
 
         if expand_assignments:
-            dependancies_statevars =   set([dep for dep in dependancies if isinstance(dep, (ast.StateVariable, ast.RandomVariable, ast.SuppliedValue, ast.OnEventDefParameter))])
+            dependancies_statevars =   set([dep for dep in dependancies if isinstance(dep, (ast.StateVariable, ast.RandomVariable, ast.SuppliedValue, ast.OnEventDefParameter, ast.TimeVariable))])
             unexpanded_assignment_dependancies = set([dep for dep in dependancies if isinstance(dep, ast.AssignedVariable)])
             assert len(dependancies_statevars) + len(unexpanded_assignment_dependancies) == len(set(dependancies))
 
@@ -133,7 +133,7 @@ class VisitorSymbolDependance(object):
                 ass_deps = nx.bfs_successors(self.direct_dependancy_graph, assignment_node )[assignment_node]
 
                 for ass_dep in ass_deps:
-                    if isinstance( ass_dep, (ast.StateVariable, ast.RandomVariable, ast.SuppliedValue)):
+                    if isinstance( ass_dep, (ast.StateVariable, ast.RandomVariable, ast.SuppliedValue, ast.TimeVariable)):
                         dependancies_statevars.add(ass_dep)
                     elif isinstance( ass_dep, ast.AssignedVariable):
                         if ass_dep in expanded_assignment_dependancies:
@@ -232,6 +232,7 @@ class _DependancyFinder(ASTVisitorBase):
 
 
     def VisitNineMLComponent(self, o, **kwargs):
+        self.visit(o._time_node)
         for a in o.assignments:
             self.dependancies[a.lhs] = self.visit(a)
             self.dependancies[a] = self.visit(a)
@@ -306,13 +307,13 @@ class _DependancyFinder(ASTVisitorBase):
         return []
     def VisitConstantZero(self, o, **kwargs):
         return []
-    def VisitTimeVariable(self, o, **kwargs):
-        return []
 
     def VisitAssignedVariable(self, o, **kwargs):
         return [o]
 
     def VisitSuppliedValue(self, o, **kwargs):
+        return [o]
+    def VisitTimeVariable(self, o, **kwargs):
         return [o]
     
 

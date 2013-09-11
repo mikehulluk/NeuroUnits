@@ -12,7 +12,7 @@ def get_MN(nbits):
     define_component simple_hh_MN {
         from std.math import exp, ln
 
-        <=> INPUT t:(ms)
+        <=> TIME t:(ms)
         <=> INPUT i_injected:(mA)
 
         iInj_local = {0pA/ms} * t
@@ -21,7 +21,9 @@ def get_MN(nbits):
 
         Cap = 10 pF
 
-        V' = (1/Cap) * (iInj_local + i_injected + iLk  + iKs + iKf +iNa +  syn_nmda_i + syn_ampa_i + syn_inhib_i)
+        i_sum = (iInj_local + i_injected + iLk  + iKs + iKf +iNa +  syn_nmda_i + syn_ampa_i + syn_inhib_i)
+        #V' = (1/Cap) * i_sum 
+        V' = (1/Cap) * iLk
 
 
         AlphaBetaFunc(v, A,B,C,D,E) = (A+B*v) / (C + exp( (D+v)/E))
@@ -31,7 +33,7 @@ def get_MN(nbits):
         # =======================
         syn_nmda_A_tau = 4ms
         syn_nmda_B_tau = 80ms
-        syn_nmda_i = ( syn_nmda_g * (syn_nmda_B - syn_nmda_A) * (syn_nmda_erev - V) * (1/nmda_val_max) * nmda_vdep )  * 0
+        syn_nmda_i = ( syn_nmda_g * (syn_nmda_B - syn_nmda_A) * (syn_nmda_erev - V) * (1/nmda_val_max) * nmda_vdep ) *0
         syn_nmda_A' = -syn_nmda_A / syn_nmda_A_tau
         syn_nmda_B' = -syn_nmda_B / syn_nmda_B_tau
         # Normalisation:
@@ -115,7 +117,8 @@ def get_MN(nbits):
         eLk = -50mV
 
         # Leak
-        iLk = gLk * (eLk-V) * glk_noise
+        iLk = gLk * dr_iLk # * glk_noise
+        dr_iLk = (eLk-V)
 
 
 
@@ -185,7 +188,7 @@ def get_MN(nbits):
 
 
         initial {
-            V = -60mV
+            V = -63mV
             na_m = 0.0
             na_h = 1.0
             ks_n = 0.0

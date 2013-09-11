@@ -12,7 +12,7 @@ def get_dIN(nbits):
     define_component simple_hh {
         from std.math import exp, ln
 
-        <=> INPUT t:(ms)
+        <=> TIME t:(ms)
         <=> INPUT i_injected:(mA)
 
         iInj_local = [50pA] if [ 75ms < t < 85ms] else [0pA] * 0

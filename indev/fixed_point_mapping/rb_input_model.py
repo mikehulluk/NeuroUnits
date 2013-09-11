@@ -25,7 +25,7 @@ def get_rb_input(nbits):
 
 
 
-    <=> INPUT t
+    <=> TIME t
     }
 
 

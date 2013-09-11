@@ -122,6 +122,8 @@ class ReduceConstants(ASTVisitorBase):
 
     def VisitSuppliedValue(self, o, **kwargs):
         return None
+    def VisitTimeVariable(self, o, **kwargs):
+        return None
 
     def VisitAnalogReducePort(self, o, **kwargs):
         return None

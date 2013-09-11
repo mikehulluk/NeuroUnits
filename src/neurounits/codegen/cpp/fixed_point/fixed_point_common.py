@@ -194,7 +194,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
         c1 = "do_mul_op(%s , IntType( %d ), dt_int, IntType(dt_upscale), IntType(%d), IntType(-1) ) " % (
                 self.visit(o.rhs_map, **kwargs),
                 o.rhs_map.annotations['fixed-point-format'].upscale,
-                delta_upscale  )
+                delta_upscale)
 
         c2 = "auto_shift( d_%s, IntType(%d) - IntType(%d) )" % ( 
                 o.lhs.symbol, delta_upscale,

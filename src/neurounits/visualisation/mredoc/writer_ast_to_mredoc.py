@@ -29,7 +29,7 @@
 from neurounits.visitors import ASTVisitorBase
 
 from neurounits.ast.astobjects import SuppliedValue
-from neurounits.ast.astobjects import Parameter, StateVariable
+from neurounits.ast.astobjects import Parameter, StateVariable, TimeVariable
 from neurounits.ast import AnalogReducePort
 #from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator
 
@@ -176,6 +176,8 @@ class LatexEqnWriterN(ASTVisitorBase):
 
     def VisitSuppliedValue(self, o, **kwargs):
         return self.FormatTerminalSymbol(o.symbol)
+    def VisitTimeVariable(self, o, **kwargs):
+        return self.FormatTerminalSymbol(o.symbol)
 
     @include_id_in_overbrace
     def VisitSymbolicConstant(self, o, **kwargs):
@@ -253,7 +255,7 @@ def build_figures(eqnset):
     for a in eqnset.assignedvalues:
         all_deps = eqnset.getSymbolDependancicesIndirect(a,
                 include_ass_in_output=False)
-        deps_sup = [d for d in all_deps if isinstance(d, SuppliedValue)]
+        deps_sup = [d for d in all_deps if isinstance(d, (SuppliedValue,TimeVariable))]
         deps_params = [d for d in all_deps if isinstance(d, Parameter)]
         deps_state = [d for d in all_deps if isinstance(d,
                       StateVariable)]

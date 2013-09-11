@@ -270,6 +270,8 @@ class ReplaceNode(ASTVisitorBase):
 
     def VisitSuppliedValue(self, o, **kwargs):
         return o
+    def VisitTimeVariable(self, o, **kwargs):
+        return o
 
     def VisitAnalogReducePort(self, o, **kwargs):
         o.rhses = [self.replace_or_visit(rhs) for rhs in o.rhses]

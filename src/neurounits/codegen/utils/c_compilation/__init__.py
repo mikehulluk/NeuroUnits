@@ -48,13 +48,15 @@ class CCompiler(object):
                            src_files=None,
                            compilation_settings = None,
                            run=False,
-                           intermediate_filename='/tmp/nu/compilation/compile1.cpp',
+                           intermediate_filename=None, #'/tmp/nu/compilation/compile1.cpp',
                            output_filename = None
                         ):
 
         if output_filename == None:
             output_filename = '/tmp/nu/compilation/exec.x'
 
+        if intermediate_filename == None:
+            intermediate_filename='/tmp/nu/compilation/compile1.cpp'
 
         # Only one form of input:
         assert  bool(src_text) != bool(src_files)

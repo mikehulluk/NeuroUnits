@@ -282,7 +282,10 @@ class NineMLComponent(Block):
                         self._analog_reduce_ports_lut,
                         self.assignedvalues,
                         self.state_variables,
-                        self.symbolicconstants)
+                        self.symbolicconstants,
+                        [self._time_node]
+                        
+                        )
 
         possible_objs = list(possible_objs)
         for t in possible_objs:
@@ -325,7 +328,8 @@ class NineMLComponent(Block):
                         LookUpDict(self.state_variables).get_objs_by(symbol=symbol)+ \
                         LookUpDict(self.symbolicconstants).get_objs_by(symbol=symbol) + \
                         self.input_event_port_lut.get_objs_by(symbol=symbol) + \
-                        self.output_event_port_lut.get_objs_by(symbol=symbol)
+                        self.output_event_port_lut.get_objs_by(symbol=symbol) +\
+                        ([self._time_node] if  self._time_node.symbol==symbol else [] )
 
 
 

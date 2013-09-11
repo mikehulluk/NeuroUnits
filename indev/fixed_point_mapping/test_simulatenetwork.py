@@ -164,6 +164,8 @@ network.add(
 # Recording:
 network.record_traces( rhs_subpops+lhs_subpops, 'V' )
 network.record_traces(pop_LHS_RB , 'syn_ampa_open' )
+network.record_traces(pop_LHS_RB , 'syn_ampa_i' )
+#network.record_traces(pop_LHS_RB , 'syn_ampa_g' )
 network.record_input_events( rhs_subpops+lhs_subpops , 'recv_nmda_spike' )
 network.record_output_events( rhs_subpops+lhs_subpops + [rb_drivers] , 'spike' )
 
@@ -171,12 +173,11 @@ network.record_output_events( rhs_subpops+lhs_subpops + [rb_drivers] , 'spike' )
 network.finalise()
 
 
-# Generate for NIOS:
-fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', output_c_filename='/tmp/nu/compilation/sim_WITHOUTBLUE.cpp', CPPFLAGS='-DON_NIOS=false -DUSE_BLUEVEC=false ', compile=True, output_exec_filename='/tmp/nu/compilation/sim_WITHOUTBLUE.x', run=False)
-fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', output_c_filename='/tmp/nu/compilation/sim_WITHBLUE.cpp', CPPFLAGS='-DON_NIOS=false -DUSE_BLUEVEC=true ',  compile=True, output_exec_filename='/tmp/nu/compilation/sim_WITHBLUE.x', run=False)
-
-assert False
-fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false').results
+### Generate for NIOS:
+##fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', output_c_filename='/tmp/nu/compilation/sim_WITHOUTBLUE.cpp', CPPFLAGS='-DON_NIOS=false -DUSE_BLUEVEC=false ', compile=True, output_exec_filename='/tmp/nu/compilation/sim_WITHOUTBLUE.x', run=False)
+##fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', output_c_filename='/tmp/nu/compilation/sim_WITHBLUE.cpp', CPPFLAGS='-DON_NIOS=false -DUSE_BLUEVEC=true ',  compile=True, output_exec_filename='/tmp/nu/compilation/sim_WITHBLUE.x', run=False)
+##assert False
+fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=true ').results
 results = HDF5SimulationResultFile("output.hd5")
 
 
@@ -203,6 +204,8 @@ filters_traces = [
     "ALL{V,MN,RHS}",
     
     "ALL{syn_ampa_open,RB,LHS}",
+    "ALL{syn_ampa_g,RB,LHS}",
+    "ALL{syn_ampa_i,RB,LHS}",
 
 
         ]
