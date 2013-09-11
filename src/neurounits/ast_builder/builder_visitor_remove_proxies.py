@@ -86,6 +86,9 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
     def VisitConstantZero(self, o, **kwargs):
         pass
 
+    def VisitTimeVariable(self, o, **kwargs):
+        pass
+
     def VisitOnEventStateAssignment(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)
         o.rhs = self.followSymbolProxy(o.rhs)

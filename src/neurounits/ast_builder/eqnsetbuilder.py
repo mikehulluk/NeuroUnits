@@ -701,7 +701,7 @@ class AbstractBlockBuilder(object):
             self.do_import(srclibrary=lib, tokens=[(token, symbol)])
 
 
-        
+
 
         ## Finish off resolving StateVariables:
         ## They might be defined on the left hand side on StateAssignments in transitions,
@@ -786,6 +786,22 @@ class AbstractBlockBuilder(object):
             else:
                 self._resolve_global_symbol(s.symbol, s, expect_is_unresolved=True)
 
+
+        # Lets deal with time:
+        time_symbols = [p for p in io_data if p.iotype is IOType.Time]
+        if len(time_symbols)==0:
+            time_node = ast.TimeVariable(symbol='__t__')
+        else:
+            assert len(time_symbols) == 1
+            time_node = ast.TimeVariable(symbol=time_symbols[0].symbol)
+
+        if self.library_manager.options.allow_unused_suppliedvalue_declarations:
+            self._resolve_global_symbol(time_node.symbol, time_node, expect_is_unresolved=False)
+        else:
+            # So, lets not complain if we can't find a instance of this variable if we have had to make it:
+            self._resolve_global_symbol(time_node.symbol, time_node, expect_is_unresolved=True and time_node.symbol!='__t__')
+
+
         # We don't need to 'do' anything for 'output' information, since they
         # are 'AssignedValues' so will be resolved already. However, it might
         # contain dimensionality information.
@@ -812,10 +828,13 @@ class AbstractBlockBuilder(object):
         # Temporary Hack:
         self.builddata.funcdefs = self.builddata.funcdefs.values()
         self.builddata.symbolicconstants = self.builddata.symbolicconstants.values()
+        self.builddata.time_node = time_node
 
 
         # Lets build the Block Object!
         # ################################
+
+
 
         self._astobject = self.block_type(
                     library_manager=self.library_manager,
@@ -864,8 +883,8 @@ class AbstractBlockBuilder(object):
 
         # 4. Reduce simple assignments to symbolic constants:
         ReduceConstants().visit(ast_object)
-        
-        
+
+
         # 5. Add the annotation infrastructure:
         from neurounits.ast_annotations import ASTTreeAnnotationManager, ASTNodeAnnotationData
         #ast_object.annotation_mgr = ASTTreeAnnotationManager()
@@ -875,7 +894,7 @@ class AbstractBlockBuilder(object):
         #    if node._annotations is None:
         #        print ' ** Actually doing it!', node
         #        node.annotations = ASTNodeAnnotationData(mgr=ast_object.annotation_mgr, node=node)
-        
+
 
 
 # TODO: REMVOE HERE

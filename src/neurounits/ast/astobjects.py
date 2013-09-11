@@ -153,6 +153,7 @@ class ASTConstNode(ASTExpressionObject):
 
 
 
+
 class AssignedVariable(ASTSymbolNode):
 
     def accept_visitor(self, v, **kwargs):
@@ -194,6 +195,16 @@ class Parameter(ASTSymbolNode):
         super(Parameter, self).__init__(**kwargs)
 
 
+class TimeVariable(ASTSymbolNode):
+
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitTimeVariable(self, **kwargs)
+
+    def __init__(self,  **kwargs):
+        import neurounits
+        s = neurounits.units_backends.mh.MMUnit(second=1) 
+        super(TimeVariable, self).__init__(dimension=s, **kwargs)
+        #self.set_dimensionality( neurounits.units_backends.mh.MMUnit(second=1) )
 
 
 
@@ -229,7 +240,6 @@ class SymbolicConstant(ASTConstNode, ASTSymbolNode):
                 ASTConstNode.summarise_node(self),
                 ASTSymbolNode.summarise_node(self)
                 )
-
 
 
 

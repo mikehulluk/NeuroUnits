@@ -102,7 +102,7 @@ class VisitorSymbolDependance(object):
                 include_analog_input_ports=include_analog_input_ports)
 
 
-    def _get_dependancies(self, node, expand_assignments, include_random_variables=False, include_supplied_values=True, include_symbolic_constants=True, include_parameters=True, include_analog_input_ports=True, include_inevent_parameters=True):
+    def _get_dependancies(self, node, expand_assignments, include_random_variables=False, include_supplied_values=True, include_symbolic_constants=True, include_parameters=True, include_analog_input_ports=True, include_inevent_parameters=True, include_time=True):
 
         dependancies = nx.bfs_successors(self.direct_dependancy_graph, source=node)
         if node in dependancies:
@@ -223,7 +223,6 @@ class _DependancyFinder(ASTVisitorBase):
 
     def __init__(self, component):
         self.dependancies = {}
-        #self.include_intermediate_nodes = include_intermediate_nodes
 
 
     def VisitLibrary(self, o, **kwargs):
@@ -263,7 +262,7 @@ class _DependancyFinder(ASTVisitorBase):
         d1 = self.visit(o.predicate, **kwargs)
         d2 = self.visit(o.if_true_ast, **kwargs)
         d3 = self.visit(o.if_false_ast, **kwargs)
-        return d1 + d2 + d3 #+ [o]
+        return d1 + d2 + d3 
 
     @save_deps_for_node
     def VisitInEquality(self, o, **kwargs):
@@ -307,12 +306,15 @@ class _DependancyFinder(ASTVisitorBase):
         return []
     def VisitConstantZero(self, o, **kwargs):
         return []
+    def VisitTimeVariable(self, o, **kwargs):
+        return []
 
     def VisitAssignedVariable(self, o, **kwargs):
         return [o]
 
     def VisitSuppliedValue(self, o, **kwargs):
         return [o]
+    
 
     # AST Objects:
     def VisitTimeDerivativeByRegime(self, o, **kwargs):

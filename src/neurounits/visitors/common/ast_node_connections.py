@@ -120,6 +120,7 @@ class ASTAllConnections(ASTActionerDepthFirst):
             iter(o.rt_graphs),
             iter(o._interface_connectors),
             iter(o._event_port_connections),
+            iter([o._time_node]),
         ))
 
     def VisitRegime(self, o, **kwargs):
@@ -187,6 +188,8 @@ class ASTAllConnections(ASTActionerDepthFirst):
         return []
 
     def VisitSuppliedValue(self, o, **kwargs):
+        return []
+    def VisitTimeVariable(self, o, **kwargs):
         return []
 
     def VisitAnalogReducePort(self, o, **kwargs):

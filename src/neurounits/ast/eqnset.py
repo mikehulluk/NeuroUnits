@@ -298,7 +298,7 @@ class NineMLComponent(Block):
                         self._analog_reduce_ports_lut,
                         #self.assignedvalues,
                         self.state_variables,
-                        
+                        [self._time_node]
                         )
                     )
 
@@ -311,6 +311,7 @@ class NineMLComponent(Block):
                         LookUpDict(self.assignedvalues).get_objs_by()+ \
                         LookUpDict(self.state_variables).get_objs_by()+ \
                         LookUpDict(self.symbolicconstants).get_objs_by()
+
 
         return possible_objs
 
@@ -342,7 +343,8 @@ class NineMLComponent(Block):
                         self._analog_reduce_ports_lut.get_objs_by(symbol=symbol)+ \
                         LookUpDict(self.assignedvalues).get_objs_by(symbol=symbol)+ \
                         LookUpDict(self.state_variables).get_objs_by(symbol=symbol)+ \
-                        LookUpDict(self.symbolicconstants).get_objs_by(symbol=symbol)
+                        LookUpDict(self.symbolicconstants).get_objs_by(symbol=symbol) +\
+                        ([self._time_node] if  self._time_node.symbol==symbol else [] )
 
 
 
@@ -381,6 +383,17 @@ class NineMLComponent(Block):
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         t = EqnsetVisitorNodeCollector(obj=self)
         return LookUpDict(t.nodes[ast.OutEventPort] )
+
+    @property
+    def get_time_node(self):
+        import neurounits.ast as ast
+        from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
+        t = EqnsetVisitorNodeCollector(obj=self)
+        nodes = t.nodes[ast.TimeVariable]
+        if len(nodes) == 0:
+            return None
+
+
 
 
     def has_terminal_obj(self, symbol):
@@ -424,7 +437,7 @@ class NineMLComponent(Block):
         from neurounits import ast
         assert isinstance(assignedvariable, ast.AssignedVariable)
         return self._eqn_assignment.get_single_obj_by(lhs=assignedvariable)
-        
+
 
     def __init__(self,  library_manager, builder, builddata, name=None):
         super(NineMLComponent,self).__init__(library_manager=library_manager, builder=builder,  name=name)
@@ -443,6 +456,9 @@ class NineMLComponent(Block):
         self._transitions_triggers = LookUpDict( builddata.transitions_triggers )
         self._transitions_events = LookUpDict( builddata.transitions_events )
         self._rt_graphs = LookUpDict( builddata.rt_graphs)
+
+        self._time_node = builddata.time_node
+
 
         # This is a list of internal event port connections:
         self._event_port_connections = LookUpDict()
@@ -522,7 +538,7 @@ class NineMLComponent(Block):
 
     def eventtransitions_from_regime(self, regime):
         assert isinstance(regime,Regime)
-        
+
         return [tr for tr in self.eventtransitions if tr.src_regime == regime]
 
     def triggertransitions_from_regime(self, regime):

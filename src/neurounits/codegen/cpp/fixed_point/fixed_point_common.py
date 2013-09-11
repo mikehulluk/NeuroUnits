@@ -253,9 +253,9 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
 
 
     def VisitSuppliedValue(self, o, **kwargs):
-        if o.symbol == 't':
-            return 't'
         return self.get_var_str(o.symbol)
+    def VisitTimeVariable(self, o, **kwargs):
+        return 't'
 
 
 

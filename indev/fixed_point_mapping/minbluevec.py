@@ -73,7 +73,7 @@ from neurounits.ast_annotations.node_rangeexpander import RangeExpander
 def get_comp(nbits):
     src_text = """
     define_component simple_hh {
-        <=> INPUT t:(ms)
+        <=> TIME t
         V' = (({10mV}-V) / {20ms}) + (t*{1mV/ms2})
         initial {
             V = -60mV

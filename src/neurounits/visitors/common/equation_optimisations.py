@@ -74,6 +74,9 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
     def ActionSuppliedValue(self, o, **kwargs):
         self.const_value[o] = None
 
+    def ActionTimeVariable(self, o, **kwargs):
+        self.const_value[o] = None
+
 
 
     def ActionTimeDerivativeByRegime(self, o, **kwargs):
@@ -316,6 +319,8 @@ class ReplaceWithOptimisedNodes(ASTVisitorBase):
             #print 'Searching in: ', ass.lhs
             ass.rhs_map = self.replace_or_visit(ass.rhs_map)
 
+        o._time_node = self.replace_or_visit(o._time_node)
+
 
     def VisitRegimeDispatchMap(self, o):
         o.rhs_map = { p: self.replace_or_visit(v) for (p,v) in o.rhs_map.items() }
@@ -346,6 +351,8 @@ class ReplaceWithOptimisedNodes(ASTVisitorBase):
     def VisitSymbolicConstant(self, o ):
         pass
     def VisitSuppliedValue(self, o ):
+        pass
+    def VisitTimeVariable(self, o ):
         pass
     def VisitRandomVariable(self, o):
         pass

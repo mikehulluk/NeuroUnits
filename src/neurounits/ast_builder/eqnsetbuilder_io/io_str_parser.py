@@ -72,7 +72,7 @@ def parse_io_line(line):
 
     mode = g['MODE']
 
-    if mode in ('INPUT', 'OUTPUT', 'PARAMETER', 'ANALOG_REDUCE_PORT'):
+    if mode in ('INPUT', 'OUTPUT', 'PARAMETER', 'ANALOG_REDUCE_PORT', 'TIME'):
         defs = []
 
         data = g['DEFS']
@@ -97,9 +97,7 @@ def parse_io_line(line):
             dimension = NeuroUnitParser.Unit(dimension_str) if dimension_str is not None else None
             dimension = dimension.with_no_powerten() if dimension is not None else dimension
 
-            io_data = IODataDimensionSpec(symbol=symbol.strip(),
-                    iotype=IOType.LUT[mode], dimension=dimension,
-                    metadata=metadata)
+            io_data = IODataDimensionSpec(symbol=symbol.strip(), iotype=IOType.LUT[mode], dimension=dimension, metadata=metadata)
             defs.append(io_data)
         return defs
 

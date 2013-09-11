@@ -36,6 +36,7 @@ class IOType(object):
     State = 'State'
     InitialCondition = 'InitialCondition'
     AnalogReducePort = 'AnalogReducePort'
+    Time = 'Time'
 
     LUT = {
         'INPUT': Input,
@@ -43,6 +44,7 @@ class IOType(object):
         'PARAMETER': Parameter,
         'STATE': State,
         'ANALOG_REDUCE_PORT': AnalogReducePort,
+        'TIME': Time,
         }
 
 

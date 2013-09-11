@@ -88,6 +88,9 @@ class ASTActionerDefault(ASTActionerDepthFirst):
 
     def ActionSuppliedValue(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
+    
+    def ActionTimeVariable(self, o, **kwargs):
+        return self.ActionNode(o, **kwargs)
 
     def ActionAnalogReducePort(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)

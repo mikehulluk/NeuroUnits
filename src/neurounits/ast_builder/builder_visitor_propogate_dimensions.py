@@ -173,6 +173,10 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
     def ActionSuppliedValue(self, o, **kwargs):
         pass
 
+    def ActionTimeVariable(self, o, **kwargs):
+        pass
+
+
     def ActionAnalogReducePort(self, o, **kwargs):
         self.verify_equal_units([o] + list(o.rhses))
 
@@ -426,6 +430,8 @@ class DimensionResolver(ASTVisitorBase):
         return []
 
     def VisitSuppliedValue(self, o, **kwargs):
+        return []
+    def VisitTimeVariable(self, o, **kwargs):
         return []
 
     def VisitAnalogReducePort(self, o, **kwargs):

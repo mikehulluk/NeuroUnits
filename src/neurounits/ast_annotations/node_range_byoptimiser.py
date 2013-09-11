@@ -145,6 +145,9 @@ class CFloatEval(ASTVisitorBase):
 
     def VisitSuppliedValue(self, n, **kwargs):
         return 'input_data->%s' %  n.annotations['_range-finding-c-var-name']
+
+    def VisitTimeVariable(self, n, **kwargs):
+        return 'input_data->%s' %  n.annotations['_range-finding-c-var-name']
         #return 'input_data->%s' % (o.symbol)
 
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
@@ -239,6 +242,9 @@ class NodeEvaluatorCCode(ASTActionerDefault):
         return self.BuildEvalFunc(o)
 
     def ActionSuppliedValue(self, o, **kwargs):
+        return self.BuildEvalFunc(o)
+    
+    def ActionTimeVariable(self, o, **kwargs):
         return self.BuildEvalFunc(o)
 
     def ActionAnalogReducePort(self, o, **kwargs):
@@ -350,6 +356,8 @@ class NodeRangeCCodeNodeNamer( ASTTreeAnnotator, ASTActionerDefault):
         self._ActionSymbolTerminal(o)
     def ActionSuppliedValue(self, o):
         self._ActionSymbolTerminal(o)
+    def ActionTimeVariable(self, o):
+        self._ActionSymbolTerminal(o)
 
     def ActionInEquality(self, n, **kwargs):
         self.set_func_name(n)
@@ -407,7 +415,8 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
                                                             include_symbolic_constants=False,
                                                             include_parameters=True,
                                                             include_analog_input_ports=True,
-                                                            include_inevent_parameters=True
+                                                            include_inevent_parameters=True,
+                                                            include_time=True
                                                             )
 
             inputdata = cffi_top.new('InputData*')
@@ -497,7 +506,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
     def annotate_ast(self, component, **kwargs):
 
         # 0. Ensure all the state-variables have ranges:
-        for sv in list(component.state_variables) + list(component.suppliedvalues):
+        for sv in list(component.state_variables) + list(component.suppliedvalues) + [component._time_node]:
             assert sv.symbol in self.var_annots_ranges, 'Annotation missing for state-variable: %s' % sv.symbol
             ann_in = self.var_annots_ranges[sv.symbol]
             sv.annotations['node-value-range'] = _NodeRangeFloat(min_=ann_in.min.float_in_si(), max_=ann_in.max.float_in_si() )

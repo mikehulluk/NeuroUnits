@@ -138,7 +138,7 @@ struct DebugCfg
 
 #else // RUNTIME_LOGGING_ON
 
-#define LOG_COMPONENT_STATEUPDATE(a) 
+#define LOG_COMPONENT_STATEUPDATE(a)
 #define LOG_COMPONENT_EVENTDISPATCH(a)
 #define LOG_COMPONENT_EVENTHANDLER(a)
 #define LOG_COMPONENT_TRANSITION(a)
@@ -1061,7 +1061,7 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 
         //cout << "\nIssue Called";
 
-        
+
 
 
 
@@ -2145,7 +2145,7 @@ class CBasedEqnWriterFixedNetwork(object):
                                     output_filename=output_exec_filename,
                                     intermediate_filename = output_c_filename,
                                     )
-        self.results = None 
+        self.results = None
         return
 
 

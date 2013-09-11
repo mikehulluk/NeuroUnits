@@ -61,7 +61,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         for wire in o.wire_mappings:
             self.visit(wire)
         self._ActionCompoundPortConnector(o, **kwargs)
-        
+
     def VisitCompoundPortConnectorWireMapping(self, o, **kwargs):
         self.visit(o.component_port)
         self.visit(o.interface_port)
@@ -83,11 +83,12 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
     def VisitNineMLComponent(self, o, **kwargs):
 
-        
+
+        self.visit(o._time_node, **kwargs)
         subnodes = itertools.chain(o.ordered_assignments_by_dependancies, o.timederivatives, o.functiondefs, o.symbolicconstants, o.transitions, o._event_port_connections, o.rt_graphs, o._interface_connectors)
-        #subnodes = itertools.chain(o.assignments, o.timederivatives, o.functiondefs, o.symbolicconstants, o.transitions, o._event_port_connections, o.rt_graphs, o._interface_connectors)
         for f in subnodes:
             self.visit(f, **kwargs)
+
 
         self._ActionNineMLComponent(o, **kwargs)
 
@@ -167,6 +168,9 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
     def VisitSuppliedValue(self, o, **kwargs):
         self._ActionSuppliedValue(o, **kwargs)
+
+    def VisitTimeVariable(self, o, **kwargs):
+        self._ActionTimeVariable(o, **kwargs)
 
     def VisitAnalogReducePort(self, o, **kwargs):
         self._ActionAnalogReducePort(o, **kwargs)
@@ -282,7 +286,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         for r in o.regimes:
             self.visit(r, **kwargs)
         self._ActionRTGraph(o, **kwargs)
-    
+
     def VisitRegime(self, o, **kwargs):
         self._ActionRegime(o, **kwargs)
 
@@ -296,12 +300,12 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         for p in o.parameters:
             self.visit(p, **kwargs)
         self._ActionRandomVariable(o)
-        
+
     def VisitRandomVariableParameter(self, o, **kwargs):
         self.visit(o.rhs_ast)
         self.ActionRandomVariableParameter(o)
-        
-        
+
+
 
 
 
@@ -389,6 +393,10 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def _ActionSuppliedValue(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionSuppliedValue(o, **kwargs)
+
+    def _ActionTimeVariable(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionTimeVariable(o, **kwargs)
 
     def _ActionAnalogReducePort(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
