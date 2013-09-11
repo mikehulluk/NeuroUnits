@@ -72,7 +72,7 @@ Two defines control the setup:
 
 
 
-#define USE_BLUEVEC true
+#define USE_BLUEVEC false
 
 #if USE_BLUEVEC
 #include <BlueVecProxy.h>
@@ -86,8 +86,9 @@ Two defines control the setup:
 
 
 /* Runtime logging: */
-#define RUNTIME_LOGGING_ON false
-#define RUNTIME_LOGGING_STARTTIME 100e-3
+#define RUNTIME_LOGGING_ON true
+#define RUNTIME_LOGGING_STARTTIME -1
+// #define RUNTIME_LOGGING_STARTTIME 100e-3
 
 
 
@@ -134,7 +135,7 @@ struct DebugCfg
 
 #else // RUNTIME_LOGGING_ON
 
-#define LOG_COMPONENT_STATEUPDATE(a)
+#define LOG_COMPONENT_STATEUPDATE(a) 
 #define LOG_COMPONENT_EVENTDISPATCH(a)
 #define LOG_COMPONENT_EVENTHANDLER(a)
 #define LOG_COMPONENT_TRANSITION(a)
@@ -263,25 +264,71 @@ using mh::auto_shift64;
 
 
 
+struct LookUpTables
+{
+    LookUpTables()
+        : exponential(5, 4)    // (nbits, upscale)
+        //: exponential(5, 3)    // (nbits, upscale)
+    { }
+
+    LookUpTableExpPower2<VAR_NBITS, IntType> exponential;
+};
+
+LookUpTables lookuptables;
+
+
+
+
+
+
+
+
+
+
 #if USE_BLUEVEC
+
+    ##inline DataStream do_ifthenelse_op(BoolStream pred, DataStream v1, IntType up1, DataStream v2, IntType up2);
+    ##inline DataStream do_ifthenelse_op(BoolStream pred, IntType v1, IntType up1, DataStream v2, IntType up2);
+    ##inline DataStream do_ifthenelse_op(BoolStream pred, DataStream v1, IntType up1, IntType v2, IntType up2);
 
     DataStream auto_shift(DataStream da, IntType amount)
     {
-        if(amount==0) return da;
-        if(amount>0) return da<<amount;
-        if(amount<0) return da>>amount;
+        if(amount==0)
+        {
+            return da;
+        }
+        else
+        {
+            if(amount>0) return da<<amount;
+            else return da>>amount;
+        }
+    }
 
+    DataStream auto_shift(DataStream da, DataStream amount)
+    {
+        ##if(amount==0) return da;
+        ##else{
+        ##    if(amount>0) return da<<amount;
+        ##    else return da>>amount;
+        ##}
+        return ifthenelse(amount==0, da, (ifthenelse(amount>0, da<<amount, da>>amount) ) );
     }
 
     // Add:
     inline DataStream do_add_op(DataStream v1, IntType up1, DataStream v2, IntType up2, IntType up_local, IntType expr_id) {
-        return auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local);
+        DataStream res = auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local);
+        ##cout << "\n\tAdd:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
+        return res;
     }
     inline DataStream do_add_op(IntType v1, IntType up1, DataStream v2, IntType up2, IntType up_local, IntType expr_id) {
-        return auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local);
+        DataStream res = auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local);
+        ##cout << "\n\tAdd:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
+        return res;
     }
     inline DataStream do_add_op(DataStream v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
-        return auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local);
+        DataStream res = auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local);
+        ##cout << "\n\tAdd:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
+        return res;
     }
 
     // Sub:
@@ -331,10 +378,81 @@ using mh::auto_shift64;
 
 
 
+
+
+
+
+    DataStream _get_upscale_for_xindex(DataStream index)
+    {
+        LookUpTableExpPower2<VAR_NBITS, IntType>& table = lookuptables.exponential;
+
+        const NativeInt32 n_bits_recip_ln_two = 12;
+        const NativeInt32 recip_ln_two_as_int =  NativeInt32( ceil(recip_ln_two * pow(2.0, n_bits_recip_ln_two) ) );
+        const IntType P = (table.upscale+1-n_bits_recip_ln_two-table.nbits_table) * -1;
+        DataStream result_int = ((recip_ln_two_as_int *(index - table.table_size_half) )>> P) + 1;
+
+        return result_int;
+    }
+
+
+
+
+
+
     template<typename LUTTYPE>
-    inline DataStream int_exp(DataStream v1, IntType up1, IntType up_local, IntType expr_id, LUTTYPE lut ) {
+    inline DataStream int_exp(DataStream x, IntType up_x, IntType up_out, IntType expr_id, LUTTYPE lut ) {
+
+
+         LookUpTableExpPower2<VAR_NBITS, IntType>& table = lookuptables.exponential;
+
+
+        const IntType nbit_variables = IntType( VAR_NBITS );
+
+        // 1. Calculate the X-indices to use to lookup in the table with:
+        IntType rshift = -(up_x - nbit_variables -table.upscale+table.nbits_table);
+        DataStream table_index = (x>>rshift) + table.table_size_half;
+
+        // 2. Lookup the yvalues, and also account for differences in fixed point format:
+        DataStream yn =   lookup_lut(lut, table_index) ;
+        DataStream yn1 =  lookup_lut(lut, table_index+1) ;
+
+        ##    // 2a.Find the x-values at the each:
+        DataStream xn  = (((x>>rshift)+0) << rshift);
+
+
+        DataStream L1 = _get_upscale_for_xindex(table_index);
+        DataStream L2 = _get_upscale_for_xindex(table_index+1);
+
+        DataStream yn_upscale =   L1;
+        DataStream yn1_upscale =  L2;
+
+
+        // 3. Perform the linear interpolation:
+        DataStream yn_rel_upscale = yn1_upscale-yn_upscale;
+        ##    assert(yn_rel_upscale>=0);
+        DataStream yn_rescaled = (yn>>yn_rel_upscale);
+
+
+        DataStream d1 = auto_shift(yn, yn_upscale-up_out);
+
+
+        DataStream d2 = multiply64_and_rshift( (yn1-yn_rescaled), (x-xn), (yn1_upscale - up_out-rshift) * -1 );
+        ## NativeInt64 xymul = get_value64(yn1 - yn_rescaled) *  get_value32(x-xn);
+        ## DataStream d2 = auto_shift64(xymul, get_value32(  yn1_upscale - up_out-rshift ) );
+
+        return (d1 + d2);
+
+
+
+
+
+
+
         assert(0);
     }
+
+
+
 
 
 #endif
@@ -345,41 +463,36 @@ using mh::auto_shift64;
 
 
 
-
-
-
-struct LookUpTables
-{
-    LookUpTables()
-        : exponential(5, 4)    // (nbits, upscale)
-        //: exponential(5, 3)    // (nbits, upscale)
-    { }
-
-    LookUpTableExpPower2<VAR_NBITS, IntType> exponential;
-};
-
-
-
-LookUpTables lookuptables;
-
-
-
-
 #include "fixed_point_operations.h"
 
+
+
+
+
+
+
+
 inline IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
-    return tmpl_fp_ops::do_add_op(v1, up1, v2, up2, up_local, expr_id);
+    IntType res = tmpl_fp_ops::do_add_op(v1, up1, v2, up2, up_local, expr_id);
+    cout << "\n\tAdd:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
+    return res;
 }
 inline IntType do_sub_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
-   return tmpl_fp_ops::do_sub_op(v1, up1, v2, up2, up_local, expr_id);
+    IntType res =  tmpl_fp_ops::do_sub_op(v1, up1, v2, up2, up_local, expr_id);
+    cout << "\n\tSub:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
+    return res;
 }
 
 inline IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
-    return tmpl_fp_ops::do_mul_op(v1, up1, v2, up2, up_local, expr_id);
+    IntType res =  tmpl_fp_ops::do_mul_op(v1, up1, v2, up2, up_local, expr_id);
+    cout << "\n\tMul:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
+    return res;
 }
 
 inline IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
-    return tmpl_fp_ops::do_div_op(v1, up1, v2, up2, up_local, expr_id);
+    IntType res = tmpl_fp_ops::do_div_op(v1, up1, v2, up2, up_local, expr_id);
+    cout << "\n\tDiv:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
+    return res;
 }
 
 
@@ -391,7 +504,9 @@ inline IntType do_ifthenelse_op(bool pred, IntType v1, IntType up1, IntType v2, 
 
 template<typename LUTTYPE>
 inline IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id, const LUTTYPE& lut) {
-    return tmpl_fp_ops::int_exp(v1, up1, up_local, expr_id, lut);
+    IntType res = tmpl_fp_ops::int_exp(v1, up1, up_local, expr_id, lut);
+    cout << "\n\tExp:" << v1 << " (" << up1 << ") " <<  " -> "  << res << " (" << up_local << ")";
+    return res;
 }
 
 
@@ -884,6 +999,8 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         LOG_COMPONENT_STATEUPDATE( cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
         CHECK_IN_RANGE_VARIABLE( d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale}, ${td.lhs.annotations['node-value-range'].min}, ${td.lhs.annotations['node-value-range'].max}, "d.${td.lhs.symbol}" );
         % endfor
+
+        assert(0);
     }
 
 #else
@@ -910,13 +1027,16 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         DataStream bv_RV${rv.annotations['node-id']} = load( d_in.RV${rv.annotations['node-id']});
         %endfor
 
-        // Time:
+
+        // Load the exponential table:
+        LUT bv_explut = load_lut( &(lookuptables.exponential.pData[0]), lookuptables.exponential.table_size);
+
+
+
 
         // Calculate assignments:
         % for ass in population.component.ordered_assignments_by_dependancies:
         DataStream bv_${ass.lhs.symbol} = ensure_DS(  ${writer.to_c(ass, population_access_index=None, data_prefix='bv_', for_bluevec=True)} );
-        ##LOG_COMPONENT_STATEUPDATE( cout << "\n d.${ass.lhs.symbol}: " << d.${ass.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${ass.lhs.symbol}[i], ${ass.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;)
-        ##CHECK_IN_RANGE_VARIABLE( d.${ass.lhs.symbol}[i], ${ass.lhs.annotations['fixed-point-format'].upscale}, ${ass.lhs.annotations['node-value-range'].min}, ${ass.lhs.annotations['node-value-range'].max}, "d.${ass.lhs.symbol}" );
         % endfor
 
         // Calculate delta's for all state-variables:
@@ -924,9 +1044,6 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         <% cs1, cs2 = writer.to_c(td, population_access_index=None, data_prefix='bv_', for_bluevec=True) %>
         DataStream d_${td.lhs.symbol} = ensure_DS( ${cs1} ) ;
         DataStream new_bv_${td.lhs.symbol} = d_${td.lhs.symbol} + ${cs2} ;
-        ##LOG_COMPONENT_STATEUPDATE( cout << "\n delta:${td.lhs.symbol}: " << d_${td.lhs.symbol}  << " (" << FixedFloatConversion::to_float(d_${td.lhs.symbol}, ${td.lhs.annotations['fixed-point-format'].delta_upscale})  << ")" << std::flush; )
-        ##LOG_COMPONENT_STATEUPDATE( cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
-        ##CHECK_IN_RANGE_VARIABLE( d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale}, ${td.lhs.annotations['node-value-range'].min}, ${td.lhs.annotations['node-value-range'].max}, "d.${td.lhs.symbol}" );
         % endfor
 
 
@@ -939,7 +1056,51 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         store( bv_${ass.lhs.symbol}, d_in.${ass.lhs.symbol}  );
         %endfor
 
+        //cout << "\nIssue Called";
 
+        
+
+
+
+
+        {
+        int i=0;
+        cout << "\n";
+        cout << "\nFor ${population.name} " << i;
+        cout << "\nAt: t=" << t << "\t(" << FixedFloatConversion::to_float(t, time_upscale) * 1000. << "ms)";
+        cout << "\nStarting State Variables:";
+        cout << "\n-------------------------";
+        % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
+        cout << "\n d_in.${td.lhs.symbol}: " << d_in.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        % endfor
+        cout << "\nSupplied Variables:";
+        cout << "\n-------------------------";
+        %for suppliedvalue in population.component.suppliedvalues:
+        %if suppliedvalue.symbol != 't':
+        cout << "\n d_in.${suppliedvalue.symbol}: " << d_in.${suppliedvalue.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${suppliedvalue.symbol}[i], ${suppliedvalue.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        CHECK_IN_RANGE_VARIABLE( d_in.${suppliedvalue.symbol}[i], ${suppliedvalue.annotations['fixed-point-format'].upscale}, ${suppliedvalue.annotations['node-value-range'].min}, ${suppliedvalue.annotations['node-value-range'].max}, "d_in.${suppliedvalue.symbol}" );
+        %endif
+        %endfor
+
+        }
+
+
+
+        issue(NrnPopData::size);
+
+
+        {
+        int i=0;
+        cout << "\n\nUpdated Value [0]";
+        % for add in population.component.ordered_assignments_by_dependancies:
+        cout << "\n d_in.${add.lhs.symbol}: " << d_in.${add.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${add.lhs.symbol}[i], ${add.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        %endfor
+        cout << "\n---------------";
+        % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
+        cout << "\n d_in.${td.lhs.symbol}: " << d_in.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        % endfor
+        assert(0);
+        }
 
 
 
@@ -1805,7 +1966,7 @@ class CBasedEqnWriterFixedNetwork(object):
             evt_src_to_evtportconns[key].append(evt_conn)
 
 
-        t_stop = 1.5
+        t_stop = 0.5
         n_steps = t_stop / self.dt_float
         std_variables = {
             'nsim_steps' : n_steps,
@@ -1962,7 +2123,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
 
-    def compile_and_run(self, cfile, output_c_filename, run,CPPFLAGS):
+    def compile_and_run(self, cfile, output_c_filename, run, CPPFLAGS):
 
         from neurounits.codegen.utils.c_compilation import CCompiler, CCompilationSettings
 
@@ -1992,183 +2153,3 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
 
-
-
-
-
-#import pylab
-##import pylab as plt
-#
-#
-#class CBasedEqnWriterFixedResultsProxy(object):
-#    def __init__(self, eqnwriter):
-#        self.eqnwriter = eqnwriter
-#
-#
-#    def plot_ranges(self):
-#        import tables
-#        import sys
-#
-#
-#        h5file = tables.openFile("output.hd5")
-#
-#        float_group = h5file.root._f_getChild('/simulation_fixed/double/variables/')
-#        time_array = h5file.root._f_getChild('/simulation_fixed/double/time').read()
-#
-#
-#        downscale = 10
-#        # Plot the variable values:
-#        for ast_node in self.eqnwriter.component.assignedvalues+self.eqnwriter.component.state_variables:
-#            print 'Plotting:', ast_node
-#            data_float = h5file.root._f_getChild('/simulation_fixed/double/variables/%s' % ast_node.symbol).read()
-#            data_int   = h5file.root._f_getChild('/simulation_fixed/int/variables/%s' % ast_node.symbol).read()
-#
-#            f = pylab.figure()
-#            ax1 = f.add_subplot(311)
-#            ax2 = f.add_subplot(312)
-#            ax3 = f.add_subplot(313)
-#            ax1.set_ymargin(0.1)
-#            ax2.set_ymargin(0.1)
-#            ax3.set_ymargin(0.1)
-#
-#            # Plot the floating-point values:
-#            f.suptitle("Values of variable: %s" % ast_node.symbol)
-#            ax1.plot(time_array[::downscale], data_float[::downscale], color='blue')
-#            node_min = ast_node.annotations['node-value-range'].min.float_in_si()
-#            node_max = ast_node.annotations['node-value-range'].max.float_in_si()
-#            node_upscale = ast_node.annotations['fixed-point-format'].upscale
-#            ax1.axhspan(node_min, node_max, color='green', alpha=0.2  )
-#            ax1.axhspan( pow(2,node_upscale), -pow(2,node_upscale), color='lightgreen', alpha=0.4  )
-#
-#
-#            # Plot the integer values:
-#            nbits = self.eqnwriter.nbits
-#            _min = -pow(2.0, nbits-1)
-#            _max =  pow(2.0, nbits-1)
-#            ax2.plot( time_array, data_int[:,-1], color='blue')
-#            ax2.axhspan( _min, _max, color='lightgreen', alpha=0.4  )
-#
-#            ax3.hist(data_int[:,-1], range = (_min * 1.1 , _max * 1.1), bins=1024)
-#            ax3.axvline( _min, color='black', ls='--')
-#            ax3.axvline( _max, color='black', ls='--')
-#
-#
-#
-#
-#        # Plot the intermediate nodes values:
-#        for ast_node in self.eqnwriter.component.all_ast_nodes():
-#
-#            try:
-#
-#                data_float = h5file.root._f_getChild('/simulation_fixed/double/operations/' + "op%d" % ast_node.annotations['node-id']).read()
-#                data_int = h5file.root._f_getChild('/simulation_fixed/int/operations/' + "op%d" % ast_node.annotations['node-id']).read()
-#
-#                f = pylab.figure()
-#                ax1 = f.add_subplot(311)
-#                ax2 = f.add_subplot(312)
-#                ax3 = f.add_subplot(313)
-#                ax1.set_ymargin(0.1)
-#                ax2.set_ymargin(0.1)
-#                ax3.set_ymargin(0.1)
-#
-#                f.suptitle("Values of ast_node: %s" % str(ast_node))
-#                ax1.plot(time_array[::downscale], data_float[::downscale,-1], color='blue')
-#                node_min = ast_node.annotations['node-value-range'].min.float_in_si()
-#                node_max = ast_node.annotations['node-value-range'].max.float_in_si()
-#                node_upscale = ast_node.annotations['fixed-point-format'].upscale
-#                ax1.axhspan(node_min, node_max, color='green', alpha=0.2  )
-#                ax1.axhspan(pow(2,node_upscale), -pow(2,node_upscale), color='lightgreen', alpha=0.4  )
-#
-#                            # Plot the integer values:
-#                _min = -pow(2.0, nbits-1)
-#                _max =  pow(2.0, nbits-1)
-#                ax2.plot( time_array, data_int[:,-1], color='blue')
-#                ax2.axhspan( _min, _max, color='lightgreen', alpha=0.4  )
-#
-#                ax3.hist(data_int[:,-1], range = (_min * 1.1 , _max * 1.1), bins=1024)
-#                ax3.axvline( _min, color='black', ls='--')
-#                ax3.axvline( _max, color='black', ls='--')
-#
-#
-#
-#                invalid_points_limits = np.logical_or( node_min > data_float[:,-1], data_float[:,-1]  > node_max).astype(int)
-#                invalid_points_upscale = np.logical_or( -pow(2,node_upscale) > data_float[:,-1], data_float[:,-1]  > pow(2,node_upscale)).astype(int)
-#
-#
-#
-#                def get_invalid_ranges(data):
-#                    """Turn an array of integers into a list of pairs, denoting when we turn on and off"""
-#                    data_switch_to_valid = np.where( np.diff(data) > 0 )[0]
-#                    data_switch_to_invalid = np.where( np.diff(data) < 0 )[0]
-#                    print data_switch_to_valid
-#                    print data_switch_to_invalid
-#
-#                    assert np.fabs( len(data_switch_to_valid) - len(data_switch_to_invalid) ) <= 1
-#
-#                    if len(data_switch_to_valid) == len(data_switch_to_invalid) == 0:
-#                        return []
-#
-#                    valid_invalid =  np.sort( np.concatenate([data_switch_to_valid, data_switch_to_invalid] ) ).tolist()
-#
-#
-#
-#                    if len(data_switch_to_invalid)>0:
-#                        if  len(data_switch_to_valid)>0:
-#                            offset = 1 if data_switch_to_invalid[0] > data_switch_to_valid[0] else 0
-#                        else:
-#                            offset = 1
-#                    else:
-#                        offset = 0
-#
-#                    valid_invalid = [0] + valid_invalid + [len(data)-1]
-#                    pairs = zip(valid_invalid[offset::2], valid_invalid[offset+1::2])
-#                    print pairs
-#
-#                    #if pairs:
-#                    #    print 'ERRORS!'
-#
-#                    return pairs
-#
-#
-#
-#
-#                print 'Plotting Node:', ast_node
-#                print '  -', node_min, 'to', node_max
-#                print data_float.shape
-#
-#                print 'Invalid regions:'
-#                invalid_ranges_limits = get_invalid_ranges(invalid_points_limits)
-#                invalid_ranges_upscale = get_invalid_ranges(invalid_points_upscale)
-#
-#
-#                for (x1,x2) in invalid_ranges_upscale:
-#                    ax1.axvspan(time_array[x1],time_array[x2], color='red',alpha=0.6)
-#
-#
-#                if invalid_ranges_upscale:
-#                    print 'ERROR: Value falls out of upscale range!'
-#
-#                #f.close()
-#
-#
-#
-#
-#                print 'Recorded'
-#
-#
-#                #pylab.show()
-#                #pylab.close(f)
-#
-#
-#            except tables.exceptions.NoSuchNodeError:
-#                print 'Not recorded'
-#
-#
-#
-#
-#
-#
-#        pylab.show()
-#        sys.exit(0)
-#
-#        assert False

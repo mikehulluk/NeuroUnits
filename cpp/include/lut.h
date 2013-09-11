@@ -45,16 +45,16 @@ double pow(double a, NativeInt64 b)
 
 
 
-
-
-
-
 template<int NBIT_VARIABLES, typename IntType>
 class LookUpTableExpPower2
 {
 
+public:
 
     typedef mh::FixedFloatConversion<NBIT_VARIABLES> FixedFloatConversion;
+
+
+    static const IntType _NBIT_VARIABLES = NBIT_VARIABLES;
 
     vector<IntType> pData;
     vector<double> _x_vals;
@@ -74,7 +74,7 @@ public:
             const NativeInt32 recip_ln_two_as_int =  NativeInt32( ceil(recip_ln_two * pow(2.0, n_bits_recip_ln_two) ) );
             IntType P = (upscale+1-n_bits_recip_ln_two-nbits_table) * -1;
             assert(get_value32(P)>0);
-            NativeInt32 result_int = ((recip_ln_two_as_int *(index - table_size_half) )>>get_value32(P)) + 1; // * pow(2.0, -P);
+            NativeInt32 result_int = ((recip_ln_two_as_int *(index - table_size_half) )>>get_value32(P)) + 1; 
 
             #if DEBUG
                 // Calculate with floating point:
@@ -83,7 +83,7 @@ public:
                 double fp = recip_ln_two * xvalue;
                 NativeInt32 result_fp = (NativeInt32) ceil(fp);
                 assert( abs(result_fp-result_int) <=1);
-            #endif 
+            #endif
 
             return result_int;
 
@@ -132,11 +132,16 @@ public:
 
 
 
-
-
-
-
         IntType get(IntType x, IntType up_x, IntType up_out) const
+        {
+            return _get<IntType>(x, up_x, up_out);
+        }
+
+
+
+        // Allow operatiors to be vectorised:
+        template<typename SRCDATATYPE>
+        SRCDATATYPE _get(SRCDATATYPE x, IntType up_x, IntType up_out) const
         {
 
             #if DEBUG
@@ -202,10 +207,6 @@ public:
 
 
 
-
-
-
-
             #if DEBUG
             // Double Check:
             double xn_dbl_old = FixedFloatConversion::to_float(get_value32(xn), up_x) ;
@@ -222,13 +223,10 @@ public:
             #if DEBUG
             double yn_dbl = FixedFloatConversion::to_float( get_value32(yn), get_value32(yn_upscale));
             double yn1_dbl = FixedFloatConversion::to_float( get_value32(yn1), get_value32(yn1_upscale));
-
             cout << "\nyn_dbl: " << yn_dbl;
             cout << "\nyn1_dbl: " << yn1_dbl;
-
             assert( yn_dbl <= exp(dbg_x_as_float) );
             assert( yn1_dbl > exp(dbg_x_as_float) );
-
             assert(0); // Debugging disabled!?
             #endif
 

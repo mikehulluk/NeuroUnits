@@ -159,17 +159,22 @@ class CBasedFixedWriterStd(ASTVisitorBase):
     def VisitFunctionDefUserInstantiation(self,o):
         assert False
 
-    def VisitFunctionDefBuiltInInstantiation(self,o, **kwargs):
+    def VisitFunctionDefBuiltInInstantiation(self,o, for_bluevec, **kwargs):
         assert o.function_def.is_builtin() and o.function_def.funcname == '__exp__'
         param = o.parameters.values()[0]
-        param_term = self.visit(param.rhs_ast, **kwargs)
+        param_term = self.visit(param.rhs_ast, for_bluevec=for_bluevec, **kwargs)
+
+        if for_bluevec:
+            param_lut = 'bv_explut'
+        else:
+            param_lut = 'lookuptables.exponential'
 
         # Add range checking:
         param_term = self.add_range_check(param, param_term)
         ann_func_upscale = o.annotations['fixed-point-format'].upscale
         ann_param_upscale = param.rhs_ast.annotations['fixed-point-format'].upscale
         expr_num = o.annotations['node-id']
-        res = """ int_exp( %s, IntType(%d), IntType(%d), IntType(%d), lookuptables.exponential )""" %(param_term, ann_param_upscale, ann_func_upscale, expr_num )
+        res = """ int_exp( %s, IntType(%d), IntType(%d), IntType(%d), %s )""" %(param_term, ann_param_upscale, ann_func_upscale, expr_num, param_lut )
         return self.add_range_check(o, res)
 
     def VisitFunctionDefInstantiationParameter(self, o):
