@@ -54,7 +54,7 @@ public:
     typedef mh::FixedFloatConversion<NBIT_VARIABLES> FixedFloatConversion;
 
 
-    static const IntType _NBIT_VARIABLES = NBIT_VARIABLES;
+    static const int _NBIT_VARIABLES = NBIT_VARIABLES;
 
     vector<IntType> pData;
     vector<double> _x_vals;

@@ -31,7 +31,7 @@ Two defines control the setup:
 #endif
 
 #ifndef PC_DEBUG
-#define PC_DEBUG true
+#define PC_DEBUG false
 #endif
 
 
@@ -71,8 +71,11 @@ Two defines control the setup:
 
 
 
-
+#ifndef USE_BLUEVEC
 #define USE_BLUEVEC false
+#endif
+
+
 
 #if USE_BLUEVEC
 #include <BlueVecProxy.h>
@@ -1935,7 +1938,7 @@ from fixed_point_common import IntermediateNodeFinder, CBasedFixedWriter
 
 
 class CBasedEqnWriterFixedNetwork(object):
-    def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None):
+    def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None, output_exec_filename=None):
 
         self.dt_float = 0.05e-3
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
@@ -2085,7 +2088,6 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
 
-        #cfile = '\n'.join([c_prog_header] +  code_per_pop + [popl_objs] + code_per_electrical_projection +  code_per_eventport_projection + [c_main_loop])
         cfile = '\n'.join([c_prog_header] +  code_per_pop +  [popl_objs] + code_per_electrical_projection +  code_per_eventport_projection + cout_data_writers + [c_main_loop])
 
         for f in ['sim1.cpp','a.out',output_filename, 'debug.log',]:
@@ -2100,30 +2102,30 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
 
-        # Print out the Node-expressions:
-        print '\n\n\n'
-        for node in population.component.all_ast_nodes():
-            print repr(node), node.annotations['node-id']
-            try:
-                print ' -> ', self.writer.visit(node)
-                print ' -> ', node.annotations['node-value-range']
-            except:
-                print 'Skipped'
-            print
-        print '\n\n\n'
-        import sys
-        sys.stdout.flush()
-        sys.stderr.flush()
+        ### Print out the Node-expressions:
+        ##print '\n\n\n'
+        ##for node in population.component.all_ast_nodes():
+        ##    #print repr(node), node.annotations['node-id']
+        ##    try:
+        ##        print ' -> ', self.writer.visit(node)
+        ##        print ' -> ', node.annotations['node-value-range']
+        ##    except:
+        ##        print 'Skipped'
+        ##    print
+        ##print '\n\n\n'
+        ##import sys
+        ##sys.stdout.flush()
+        ##sys.stderr.flush()
 
 
 
         if compile:
-            self.compile_and_run(cfile, output_c_filename=output_c_filename, run=run, CPPFLAGS=CPPFLAGS)
+            self.compile_and_run(cfile, output_c_filename=output_c_filename, run=run, CPPFLAGS=CPPFLAGS,  output_exec_filename=output_exec_filename)
 
 
 
 
-    def compile_and_run(self, cfile, output_c_filename, run, CPPFLAGS):
+    def compile_and_run(self, cfile, output_c_filename, run, CPPFLAGS,  output_exec_filename):
 
         from neurounits.codegen.utils.c_compilation import CCompiler, CCompilationSettings
 
@@ -2131,21 +2133,19 @@ class CBasedEqnWriterFixedNetwork(object):
         ## The preprocessed C++ output:
 
         # The executable:
-        CCompiler.build_executable(src_text=cfile,
-                                   compilation_settings = CCompilationSettings(
-                                                additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/'), os.path.expanduser("~/hw/BlueVec/include/") ],
-                                                additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/"), os.path.expanduser("~/hw/BlueVec/lib/")],
-                                                libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl', 'bv_proxy'],
-                                                #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x  -O3  -g -fopenmp ' + (CPPFLAGS if CPPFLAGS else '') ]),
-                                                #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x  -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
-                                                compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
-                                                #compile_flags=['-Wall   -Wfatal-errors -std=gnu++0x  -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
-                                                #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x -O3  -g -march=native ' + (CPPFLAGS if CPPFLAGS else '') ]),
-                                                #compile_flags=['-Wall -Wfatal-errors -std=gnu++0x -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]),
-#-Wno-used-variable
-                                                #
-                                   run=True)
-        self.results = None #CBasedEqnWriterFixedResultsProxy(self)
+        CCompiler.build_executable( src_text=cfile,
+                                    compilation_settings = CCompilationSettings(
+                                        additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/'), os.path.expanduser("~/hw/BlueVec/include/") ],
+                                        additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/"), os.path.expanduser("~/hw/BlueVec/lib/")],
+                                        libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl', 'bv_proxy'],
+                                        compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]
+                                    ),
+                                    #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x -O3  -g -march=native ' + (CPPFLAGS if CPPFLAGS else '') ]),
+                                    run=run,
+                                    output_filename=output_exec_filename,
+                                    intermediate_filename = output_c_filename,
+                                    )
+        self.results = None 
         return
 
 

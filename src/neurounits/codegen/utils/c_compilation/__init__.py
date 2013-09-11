@@ -49,8 +49,12 @@ class CCompiler(object):
                            compilation_settings = None,
                            run=False,
                            intermediate_filename='/tmp/nu/compilation/compile1.cpp',
-                           output_filename = '/tmp/nu/compilation/exec.x'
+                           output_filename = None
                         ):
+
+        if output_filename == None:
+            output_filename = '/tmp/nu/compilation/exec.x'
+
 
         # Only one form of input:
         assert  bool(src_text) != bool(src_files)
@@ -93,9 +97,12 @@ class CCompiler(object):
         subprocess.check_call(compilation_string, shell=True)
         print 'Compilation sucessful'
 
+        LD_LIB_PATH = 'export LD_LIBRARY_PATH="%s:$LD_LIBRARY_PATH"' % ':'.join(compilation_settings.additional_library_paths)
+        exec_cmd = LD_LIB_PATH + "; " + os.path.abspath( output_filename )
         if run:
-            LD_LIB_PATH = 'export LD_LIBRARY_PATH="%s:$LD_LIBRARY_PATH"' % ':'.join(compilation_settings.additional_library_paths)
-            exec_cmd = LD_LIB_PATH + "; " + os.path.abspath( output_filename )
             print 'Running:', exec_cmd
             subprocess.check_call(exec_cmd, shell=True)
+        else:
+            print 'I would run::', exec_cmd
+
 
