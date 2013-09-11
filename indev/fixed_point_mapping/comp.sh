@@ -11,4 +11,4 @@ diff /tmp/nu/compilation/sim_WITHBLUE.cpp /tmp/nu/compilation/sim_WITHOUTBLUE.cp
 echo "-----"
 
 echo 'Diffs:'
-meld op_withbluevec.txt op_withoutbluevec.txt
+meld op_withoutbluevec.txt op_withbluevec.txt 

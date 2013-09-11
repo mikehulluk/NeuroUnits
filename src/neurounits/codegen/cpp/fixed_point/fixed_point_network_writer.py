@@ -707,6 +707,7 @@ struct NrnPopData
     // Parameters:
 % for p in population.component.parameters:
     IntType ${p.symbol}[size];      // Upscale: ${p.annotations['fixed-point-format'].upscale}
+    IntType d_${p.symbol}[size];      // Upscale: ${p.annotations['fixed-point-format'].delta_upscale}
 % endfor
 
     // Assignments:
@@ -931,18 +932,6 @@ namespace event_handlers
 
 
 
-##struct BVDataVector
-##{
-##
-##% for ass in population.component.ordered_assignments_by_dependancies:
-##%endfor
-##
-##% for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
-##    DataStream td.lhs.symbol;
-##%endfor
-##
-##
-##};
 
 
 
@@ -1003,6 +992,7 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         CHECK_IN_RANGE_VARIABLE( d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale}, ${td.lhs.annotations['node-value-range'].min}, ${td.lhs.annotations['node-value-range'].max}, "d.${td.lhs.symbol}" );
         % endfor
 
+        cout << "\n\nEnd SERIAL\n" << std::flush;
         assert(0);
     }
 
@@ -1046,7 +1036,7 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
         <% cs1, cs2 = writer.to_c(td, population_access_index=None, data_prefix='bv_', for_bluevec=True) %>
         DataStream d_${td.lhs.symbol} = ensure_DS( ${cs1} ) ;
-        DataStream new_bv_${td.lhs.symbol} = d_${td.lhs.symbol} + ${cs2} ;
+        DataStream new_bv_${td.lhs.symbol} = bv_${td.lhs.symbol} + ${cs2};
         % endfor
 
 
@@ -1054,6 +1044,7 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         // Calculate delta's for all state-variables:
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
         store( new_bv_${td.lhs.symbol}, d_in.${td.lhs.symbol}  );
+        store( d_${td.lhs.symbol}, d_in.d_${td.lhs.symbol}  );
         %endfor
         % for ass in sorted(population.component.assignments, key=lambda ass:ass.lhs.symbol):
         store( bv_${ass.lhs.symbol}, d_in.${ass.lhs.symbol}  );
@@ -1100,8 +1091,11 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         %endfor
         cout << "\n---------------";
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
+        cout << "\n d_in.d_${td.lhs.symbol}: " << d_in.d_${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.d_${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].delta_upscale})  << ")" << std::flush;
         cout << "\n d_in.${td.lhs.symbol}: " << d_in.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
         % endfor
+        
+        cout << "\n\nEnd VECTOR\n" << std::flush;
         assert(0);
         }
 
@@ -1951,7 +1945,7 @@ class CBasedEqnWriterFixedNetwork(object):
         self.nbits = list(nbits)[0]
 
         #ENCODING OF TIME:
-        time_upscale = set([pop.component.get_terminal_obj('t').annotations['fixed-point-format'].upscale for pop in network.populations])
+        time_upscale = set([pop.component._time_node.annotations['fixed-point-format'].upscale for pop in network.populations])
         assert len(time_upscale) == 1
         self.time_upscale = list(time_upscale)[0]
 
