@@ -232,11 +232,11 @@ class NineMLComponent(Block):
     # OK:
     @property
     def assignments(self):
-        return list( iter(self._eqn_assignment) )
+        return sorted( list( iter(self._eqn_assignment) ), key=lambda o: o.lhs.symbol)
 
     @property
     def timederivatives(self):
-        return list( iter(self._eqn_time_derivatives) )
+        return sorted( list( iter(self._eqn_time_derivatives) ), key=lambda o:o.lhs.symbol)
 
     @property
     def assignedvalues(self):

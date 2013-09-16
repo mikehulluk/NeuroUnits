@@ -17,13 +17,17 @@ def get_MN(nbits):
 
         iInj_local = {0pA/ms} * t
 
-        #iInj_local = [40pA] if [ 100ms < t < 200ms] else [0pA]
+        #iInj_local = [60pA] if [ 100ms < t < 200ms] else [0pA]
 
         Cap = 10 pF
 
-        i_sum = (iInj_local + i_injected + iLk  + iKs + iKf +iNa +  syn_nmda_i + syn_ampa_i + syn_inhib_i)
-        #V' = (1/Cap) * i_sum 
-        V' = (1/Cap) * iLk
+        i_sum = iLk + iInj_local + i_injected + iKs + iKf + iNa + syn_nmda_i + syn_ampa_i + syn_inhib_i
+        V' = (1/Cap) * i_sum
+
+
+        ###i_sum = iLk + iInj_local + iLk   + iKs + iKf + iNa  #+  syn_nmda_i + syn_ampa_i + syn_inhib_i)
+        ##i_xx = i_injected
+        ###V' = (1/Cap) * iLk
 
 
         AlphaBetaFunc(v, A,B,C,D,E) = (A+B*v) / (C + exp( (D+v)/E))
@@ -33,13 +37,13 @@ def get_MN(nbits):
         # =======================
         syn_nmda_A_tau = 4ms
         syn_nmda_B_tau = 80ms
-        syn_nmda_i = ( syn_nmda_g * (syn_nmda_B - syn_nmda_A) * (syn_nmda_erev - V) * (1/nmda_val_max) * nmda_vdep ) *0
+        syn_nmda_i = ( syn_nmda_g * (syn_nmda_B - syn_nmda_A) * (syn_nmda_erev - V) * (1/nmda_val_max) * nmda_vdep )
         syn_nmda_A' = -syn_nmda_A / syn_nmda_A_tau
         syn_nmda_B' = -syn_nmda_B / syn_nmda_B_tau
         # Normalisation:
         nmda_tc_max =  ln( syn_nmda_A_tau / syn_nmda_B_tau) * (syn_nmda_A_tau * syn_nmda_B_tau) / (syn_nmda_A_tau - syn_nmda_B_tau)
-        nmda_val_max =  (exp( -nmda_tc_max / syn_ampa_B_tau) -  exp( -nmda_tc_max / syn_ampa_A_tau) ) 
-        syn_nmda_g = 100pS
+        nmda_val_max =  (exp( -nmda_tc_max / syn_ampa_B_tau) -  exp( -nmda_tc_max / syn_ampa_A_tau) )
+        syn_nmda_g = 50pS
         syn_nmda_erev = 0mV
         v_scale = V * {-0.08mV-1}
         nmda_vdep =  1./(1. + 0.05 * exp(v_scale) )
@@ -55,15 +59,15 @@ def get_MN(nbits):
         # =======================
         syn_ampa_A_tau = 0.1ms
         syn_ampa_B_tau = 3ms
-        syn_ampa_i = ( syn_ampa_g * (syn_ampa_erev - V)  * syn_ampa_open ) 
+        syn_ampa_i = ( syn_ampa_g * (syn_ampa_erev - V)  * syn_ampa_open )
         syn_ampa_open = (syn_ampa_B - syn_ampa_A) * (1/ampa_val_max)
         syn_ampa_A' = -syn_ampa_A / syn_ampa_A_tau
         syn_ampa_B' = -syn_ampa_B / syn_ampa_B_tau
 
         # Normalisation:
         ampa_tc_max =  ln( syn_ampa_A_tau / syn_ampa_B_tau) * (syn_ampa_A_tau * syn_ampa_B_tau) / (syn_ampa_A_tau - syn_ampa_B_tau)
-        ampa_val_max =  (exp( -ampa_tc_max / syn_ampa_B_tau) -  exp( -ampa_tc_max / syn_ampa_A_tau) ) 
-        syn_ampa_g = 600pS 
+        ampa_val_max =  (exp( -ampa_tc_max / syn_ampa_B_tau) -  exp( -ampa_tc_max / syn_ampa_A_tau) )
+        syn_ampa_g = 600pS
         syn_ampa_erev = 0mV
         on recv_ampa_spike(){
             syn_ampa_A = ClipMax( x=syn_ampa_A + 1.0, x_max=syn_sat )
@@ -82,7 +86,7 @@ def get_MN(nbits):
         syn_inhib_B' = -syn_inhib_B / syn_inhib_B_tau
         # Normalisation:
         inhib_tc_max =  ln( syn_inhib_A_tau / syn_inhib_B_tau) * (syn_inhib_A_tau * syn_inhib_B_tau) / (syn_inhib_A_tau - syn_inhib_B_tau)
-        inhib_val_max = ( exp( -inhib_tc_max / syn_inhib_B_tau) -  exp( -inhib_tc_max / syn_inhib_A_tau) ) 
+        inhib_val_max = ( exp( -inhib_tc_max / syn_inhib_B_tau) -  exp( -inhib_tc_max / syn_inhib_A_tau) )
         syn_inhib_g = 300pS
         syn_inhib_erev = -60mV
         on recv_inh_spike(){
@@ -117,8 +121,8 @@ def get_MN(nbits):
         eLk = -50mV
 
         # Leak
-        iLk = gLk * dr_iLk # * glk_noise
-        dr_iLk = (eLk-V)
+        iLk = gLk * (eLk-V) * glk_noise
+        #dr_iLk = 
 
 
 
@@ -216,7 +220,7 @@ def get_MN(nbits):
 
     var_annots_ranges = {
         't'             : NodeRange(min="0ms", max = "1.1s"),
-        'i_injected'    : NodeRange(min="0nA", max = "10nA"),
+        'i_injected'    : NodeRange(min="-10nA", max = "10nA"),
         'V'             : NodeRange(min="-100mV", max = "50mV"),
         #'ca_m'          : NodeRange(min="-0.01", max = "1.5"),
         'kf_n'          : NodeRange(min="-0.01", max = "1.5"),

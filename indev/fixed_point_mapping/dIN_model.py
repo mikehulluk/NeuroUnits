@@ -18,7 +18,7 @@ def get_dIN(nbits):
         iInj_local = [50pA] if [ 75ms < t < 85ms] else [0pA] * 0
         Cap = 10 pF
 
-        V' = (1/Cap) * (iInj_local + i_injected + iLk + iKs + iKf +iNa + iCa + syn_nmda_i + syn_ampa_i )
+        V' = (1/Cap) * (iInj_local + i_injected + iLk + iKs + iKf +iNa + iCa + syn_nmda_i + syn_ampa_i + syn_inhib_i)
 
         ClipMax(x, x_max) = [x] if [x<x_max] else [x_max]
 
@@ -33,7 +33,7 @@ def get_dIN(nbits):
         # Normalisation:
         nmda_tc_max =  ln( syn_nmda_A_tau / syn_nmda_B_tau) * (syn_nmda_A_tau * syn_nmda_B_tau) / (syn_nmda_A_tau - syn_nmda_B_tau)
         nmda_val_max = (  exp( -nmda_tc_max / syn_ampa_B_tau) -  exp( -nmda_tc_max / syn_ampa_A_tau)  )
-        syn_nmda_g = 100pS
+        syn_nmda_g = 300pS
         syn_nmda_erev = 0mV
         v_scale = V * {-0.08mV-1}
         nmda_vdep =  1./(1. + 0.05 * exp(v_scale) )
@@ -50,7 +50,7 @@ def get_dIN(nbits):
         # =======================
         syn_ampa_A_tau = 0.1ms
         syn_ampa_B_tau = 3ms
-        syn_ampa_i = (  syn_ampa_g * (syn_ampa_B - syn_ampa_A) * (syn_ampa_erev - V)  *(1/ampa_val_max)  )
+        syn_ampa_i = syn_ampa_g * (syn_ampa_B - syn_ampa_A) * (syn_ampa_erev - V)  *(1/ampa_val_max) 
         syn_ampa_A' = -syn_ampa_A / syn_ampa_A_tau
         syn_ampa_B' = -syn_ampa_B / syn_ampa_B_tau
 
@@ -80,8 +80,8 @@ def get_dIN(nbits):
         syn_inhib_g = 300pS
         syn_inhib_erev = -60mV
         on recv_inh_spike(){
-            syn_inhib_A = ClipMax( x=syn_inhib_A + 1.0, x_max=syn_sat * 3 )
-            syn_inhib_B = ClipMax( x=syn_inhib_B + 1.0, x_max=syn_sat * 3)
+            syn_inhib_A = ClipMax(x=syn_inhib_A + 1.0, x_max=syn_sat)
+            syn_inhib_B = ClipMax(x=syn_inhib_B + 1.0, x_max=syn_sat)
             #syn_inhib_A = syn_inhib_A +1.0
             #syn_inhib_B = syn_inhib_B +1.0
         }
@@ -160,13 +160,15 @@ def get_dIN(nbits):
 
         # Calcium:
         alpha_ca_m = AlphaBetaFunc(v=V, A=4.05ms-1, B=0.0ms-1 mV-1, C=1.0, D=-15.32mV,E=-13.57mV)
-        #beta_ca_m_1 =  AlphaBetaFunc(v=V, A=1.24ms-1, B=0.093ms-1 mV-1, C=-1.0, D=10.63mV, E=1.0mV)
         beta_ca_m_1 =  V * {-0.0923 ms-1 mV-1} - {1.2 ms-1}
         beta_ca_m_2 =  AlphaBetaFunc(v=V, A=1.28ms-1, B=0.0ms-1 mV-1, C=1.0, D=5.39mV, E=12.11mV)
         beta_ca_m =  [beta_ca_m_1] if [V<-25mV] else [beta_ca_m_2]
         ca_m_inf = alpha_ca_m / (alpha_ca_m + beta_ca_m)
         tau_ca_m = 1.0 / (alpha_ca_m + beta_ca_m)
-        ca_m' =  (ca_m_inf - ca_m) / tau_ca_m
+
+        ca_m_inf_cl = ClipMax(x=ca_m_inf, x_max=1.0 )
+        ca_m' =  (ca_m_inf_cl - ca_m) / tau_ca_m
+
 
         ff = 1.0 #1.5DLIN
         pca = {0.16 (mm3)/s} * 1e-6 * ff
@@ -204,6 +206,7 @@ def get_dIN(nbits):
             V = -60mV
             na_m = 0.0
             ca_m = 0.0
+            #ca_m2 = 0.0
             na_h = 1.0
             ks_n = 0.0
             kf_n = 0.0
@@ -233,6 +236,7 @@ def get_dIN(nbits):
         'i_injected'    : NodeRange(min="-500nA", max = "500nA"),
         'V'             : NodeRange(min="-100mV", max = "60mV"),
         'ca_m'          : NodeRange(min="-0.01", max = "1.5"),
+        #'ca_m2'          : NodeRange(min="-0.01", max = "1.5"),
         'kf_n'          : NodeRange(min="-0.01", max = "1.5"),
         'ks_n'          : NodeRange(min="-0.01", max = "1.5"),
         'na_h'          : NodeRange(min="-0.01", max = "1.5"),

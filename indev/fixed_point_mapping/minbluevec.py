@@ -74,8 +74,11 @@ def get_comp(nbits):
     src_text = """
     define_component simple_hh {
         V' = {1mV/s}
+        k = V *2
+        S' = -k/{10ms}
         initial {
             V = -36mV
+            S = -56mV
         }
     }
     """
@@ -86,10 +89,12 @@ def get_comp(nbits):
     var_annots_ranges = {
         '__t__'             : NodeRange(min="0ms", max = "1.1s"),
         'V'             : NodeRange(min="-100mV", max = "60mV"),
+        'S'             : NodeRange(min="-100mV", max = "60mV"),
         }
 
     var_annots_tags = {
         'V': 'Voltage',
+        'S': 'Voltage',
         }
 
 
@@ -138,21 +143,23 @@ p = Population(name='Pop1', component=comp, size=1)
 network.add(p)
 
 network.record_traces( p, 'V' )
+network.record_traces( p, 'S' )
 
 network.finalise()
 
 
 # Generate for NIOS:
-fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', output_c_filename='/tmp/nu/compilation/sim_WITHOUTBLUE.cpp', CPPFLAGS='-DON_NIOS=false -DUSE_BLUEVEC=false ', compile=True, output_exec_filename='/tmp/nu/compilation/sim_WITHOUTBLUE.x', run=False)
-fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', output_c_filename='/tmp/nu/compilation/sim_WITHBLUE.cpp', CPPFLAGS='-DON_NIOS=false -DUSE_BLUEVEC=true ',  compile=True, output_exec_filename='/tmp/nu/compilation/sim_WITHBLUE.x', run=False)
+#fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', output_c_filename='/tmp/nu/compilation/sim_WITHOUTBLUE.cpp', CPPFLAGS='-DON_NIOS=false -DUSE_BLUEVEC=false ', compile=True, output_exec_filename='/tmp/nu/compilation/sim_WITHOUTBLUE.x', run=False)
+#fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', output_c_filename='/tmp/nu/compilation/sim_WITHBLUE.cpp', CPPFLAGS='-DON_NIOS=false -DUSE_BLUEVEC=true ',  compile=True, output_exec_filename='/tmp/nu/compilation/sim_WITHBLUE.x', run=False)
 
-assert False
-fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false').results
+#assert False
+fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=true').results
 results = HDF5SimulationResultFile("output.hd5")
 
 
 filters_traces = [
     "ALL{V}",
+    "ALL{S}",
         ]
 
 filters_spikes = [

@@ -90,7 +90,7 @@ Two defines control the setup:
 
 /* Runtime logging: */
 #define RUNTIME_LOGGING_ON false
-#define RUNTIME_LOGGING_STARTTIME -1
+#define RUNTIME_LOGGING_STARTTIME -1e-3
 // #define RUNTIME_LOGGING_STARTTIME 100e-3
 
 
@@ -290,9 +290,6 @@ LookUpTables lookuptables;
 
 #if USE_BLUEVEC
 
-    ##inline DataStream do_ifthenelse_op(BoolStream pred, DataStream v1, IntType up1, DataStream v2, IntType up2);
-    ##inline DataStream do_ifthenelse_op(BoolStream pred, IntType v1, IntType up1, DataStream v2, IntType up2);
-    ##inline DataStream do_ifthenelse_op(BoolStream pred, DataStream v1, IntType up1, IntType v2, IntType up2);
 
     DataStream auto_shift(DataStream da, IntType amount)
     {
@@ -303,18 +300,13 @@ LookUpTables lookuptables;
         else
         {
             if(amount>0) return da<<amount;
-            else return da>>amount;
+            else return da>>(-amount);
         }
     }
 
     DataStream auto_shift(DataStream da, DataStream amount)
     {
-        ##if(amount==0) return da;
-        ##else{
-        ##    if(amount>0) return da<<amount;
-        ##    else return da>>amount;
-        ##}
-        return ifthenelse(amount==0, da, (ifthenelse(amount>0, da<<amount, da>>amount) ) );
+        return ifthenelse(amount==0, da, (ifthenelse(amount>0, da<<amount, da>>(-1 * amount)) ) );
     }
 
     // Add:
@@ -451,7 +443,6 @@ LookUpTables lookuptables;
 
 
 
-        assert(0);
     }
 
 
@@ -948,7 +939,19 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 
 
 
-#if !USE_BLUEVEC
+//#if !USE_BLUEVEC or true
+#if !USE_BLUEVEC or true
+
+
+    // Temporary storage for comparing state variable output:
+    % for td in population.component.timederivatives + population.component.assignments:
+    IntType serial_res_${td.lhs.symbol}[NrnPopData::size];
+    %endfor
+
+
+
+
+
     // Serial Version:
     NrnPopData& d = d_in;
     for(int i=0;i<NrnPopData::size;i++)
@@ -966,18 +969,16 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         cout << "\nSupplied Variables:";
         cout << "\n-------------------------";
         %for suppliedvalue in population.component.suppliedvalues:
-        %if suppliedvalue.symbol != 't':
         cout << "\n d.${suppliedvalue.symbol}: " << d.${suppliedvalue.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${suppliedvalue.symbol}[i], ${suppliedvalue.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
         CHECK_IN_RANGE_VARIABLE( d.${suppliedvalue.symbol}[i], ${suppliedvalue.annotations['fixed-point-format'].upscale}, ${suppliedvalue.annotations['node-value-range'].min}, ${suppliedvalue.annotations['node-value-range'].max}, "d.${suppliedvalue.symbol}" );
-        %endif
         %endfor
-
         cout << "\nUpdates:";
         )
 
         // Calculate assignments:
         % for ass in population.component.ordered_assignments_by_dependancies:
         d.${ass.lhs.symbol}[i] = ${writer.to_c(ass, population_access_index='i', data_prefix='d.')} ;
+        serial_res_${ass.lhs.symbol}[i] = d.${ass.lhs.symbol}[i];
         LOG_COMPONENT_STATEUPDATE( cout << "\n d.${ass.lhs.symbol}: " << d.${ass.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${ass.lhs.symbol}[i], ${ass.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;)
         CHECK_IN_RANGE_VARIABLE( d.${ass.lhs.symbol}[i], ${ass.lhs.annotations['fixed-point-format'].upscale}, ${ass.lhs.annotations['node-value-range'].min}, ${ass.lhs.annotations['node-value-range'].max}, "d.${ass.lhs.symbol}" );
         % endfor
@@ -986,7 +987,8 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
         <% cs1, cs2 = writer.to_c(td, population_access_index='i', data_prefix='d.') %>
         IntType d_${td.lhs.symbol} = ${cs1} ;
-        d.${td.lhs.symbol}[i] = d.${td.lhs.symbol}[i] + ${cs2} ;
+        ##d.${td.lhs.symbol}[i] = d.${td.lhs.symbol}[i] + ${cs2} ;
+        serial_res_${td.lhs.symbol}[i] = d.${td.lhs.symbol}[i] + ${cs2} ;
         LOG_COMPONENT_STATEUPDATE( cout << "\n delta:${td.lhs.symbol}: " << d_${td.lhs.symbol}  << " (" << FixedFloatConversion::to_float(d_${td.lhs.symbol}, ${td.lhs.annotations['fixed-point-format'].delta_upscale})  << ")" << std::flush; )
         LOG_COMPONENT_STATEUPDATE( cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
         CHECK_IN_RANGE_VARIABLE( d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale}, ${td.lhs.annotations['node-value-range'].min}, ${td.lhs.annotations['node-value-range'].max}, "d.${td.lhs.symbol}" );
@@ -996,7 +998,8 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         ##assert(0);
     }
 
-#else
+#endif
+#if USE_BLUEVEC
 
         // Vector Compute Version:
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
@@ -1004,12 +1007,7 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         %endfor
 
         % for suppl in population.component.suppliedvalues:
-        %if suppl.symbol=='t':
-            //Skipping 't'
-        ##%passa
-        %else:
         DataStream bv_${suppl.symbol} = load( d_in.${suppl.symbol} );
-        %endif
         %endfor
 
         // Random Variable nodes
@@ -1029,24 +1027,31 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 
         // Calculate assignments:
         % for ass in population.component.ordered_assignments_by_dependancies:
+        bv_print("\nCalculating assignment: ${ass.lhs.symbol}");
         DataStream bv_${ass.lhs.symbol} = ensure_DS(  ${writer.to_c(ass, population_access_index=None, data_prefix='bv_', for_bluevec=True)} );
+        bv_print("Finished calculating assignment: ${ass.lhs.symbol}");
+
         % endfor
 
         // Calculate delta's for all state-variables:
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
         <% cs1, cs2 = writer.to_c(td, population_access_index=None, data_prefix='bv_', for_bluevec=True) %>
+        bv_print("\nCalculating state_variable:: ${td.lhs.symbol}");
         DataStream d_${td.lhs.symbol} = ensure_DS( ${cs1} ) ;
         DataStream new_bv_${td.lhs.symbol} = bv_${td.lhs.symbol} + ${cs2};
+        bv_print("Finished calculating state_variable:: ${td.lhs.symbol}");
+
         % endfor
+
 
 
         // And lets read them back out:
         // Calculate delta's for all state-variables:
-        % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
+        % for td in population.component.timederivatives:
         store( new_bv_${td.lhs.symbol}, d_in.${td.lhs.symbol}  );
-        store( d_${td.lhs.symbol}, d_in.d_${td.lhs.symbol}  );
         %endfor
-        % for ass in sorted(population.component.assignments, key=lambda ass:ass.lhs.symbol):
+
+        % for ass in population.component.assignments:
         store( bv_${ass.lhs.symbol}, d_in.${ass.lhs.symbol}  );
         %endfor
 
@@ -1056,46 +1061,71 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 
 
 
+        ##{
+        ##LOG_COMPONENT_STATEUPDATE(
+        ##int i=0;
+        ##cout << "\n";
+        ##cout << "\nFor ${population.name} " << i;
+        ##cout << "\nAt: t=" << t << "\t(" << FixedFloatConversion::to_float(t, time_upscale) * 1000. << "ms)";
+        ##cout << "\nStarting State Variables:";
+        ##cout << "\n-------------------------";
+        ##% for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
+        ##cout << "\n d_in.${td.lhs.symbol}: " << d_in.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        ##% endfor
+        ##cout << "\nSupplied Variables:";
+        ##cout << "\n-------------------------";
+        ##)
 
-        {
-        int i=0;
-        cout << "\n";
-        cout << "\nFor ${population.name} " << i;
-        cout << "\nAt: t=" << t << "\t(" << FixedFloatConversion::to_float(t, time_upscale) * 1000. << "ms)";
-        cout << "\nStarting State Variables:";
-        cout << "\n-------------------------";
-        % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
-        cout << "\n d_in.${td.lhs.symbol}: " << d_in.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
-        % endfor
-        cout << "\nSupplied Variables:";
-        cout << "\n-------------------------";
-        %for suppliedvalue in population.component.suppliedvalues:
-        %if suppliedvalue.symbol != 't':
-        cout << "\n d_in.${suppliedvalue.symbol}: " << d_in.${suppliedvalue.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${suppliedvalue.symbol}[i], ${suppliedvalue.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
-        CHECK_IN_RANGE_VARIABLE( d_in.${suppliedvalue.symbol}[i], ${suppliedvalue.annotations['fixed-point-format'].upscale}, ${suppliedvalue.annotations['node-value-range'].min}, ${suppliedvalue.annotations['node-value-range'].max}, "d_in.${suppliedvalue.symbol}" );
-        %endif
-        %endfor
-        }
+        ##%for suppliedvalue in population.component.suppliedvalues:
+        ##%if suppliedvalue.symbol != 't':
+        ##LOG_COMPONENT_STATEUPDATE( cout << "\n d_in.${suppliedvalue.symbol}: " << d_in.${suppliedvalue.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${suppliedvalue.symbol}[i], ${suppliedvalue.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
+        ####CHECK_IN_RANGE_VARIABLE( d_in.${suppliedvalue.symbol}[i], ${suppliedvalue.annotations['fixed-point-format'].upscale}, ${suppliedvalue.annotations['node-value-range'].min}, ${suppliedvalue.annotations['node-value-range'].max}, "d_in.${suppliedvalue.symbol}" );
+        ##%endif
+        ##%endfor
+        ##}
 
 
 
         issue(NrnPopData::size);
+        //issue(1);
 
 
         {
         int i=0;
-        cout << "\n\nUpdated Value [0]";
+        LOG_COMPONENT_STATEUPDATE( cout << "\n\nVECTOR: Updated Value [0]"; )
         % for add in population.component.ordered_assignments_by_dependancies:
-        cout << "\n d_in.${add.lhs.symbol}: " << d_in.${add.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${add.lhs.symbol}[i], ${add.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        LOG_COMPONENT_STATEUPDATE( cout << "\n d_in.${add.lhs.symbol}: " << d_in.${add.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${add.lhs.symbol}[i], ${add.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;)
         %endfor
-        cout << "\n---------------";
-        % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
-        cout << "\n d_in.d_${td.lhs.symbol} (DELTA): " << d_in.d_${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.d_${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].delta_upscale})  << ")" << std::flush;
-        cout << "\n d_in.${td.lhs.symbol}: " << d_in.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+
+
+        % for td in population.component.assignments:
+        for(int i=0;i<NrnPopData::size;i++) {
+            if(serial_res_${td.lhs.symbol}[i] != d_in.${td.lhs.symbol}[i]){
+                cout << "\n[" << i << "] "  << "${td.lhs.symbol}: " <<  serial_res_${td.lhs.symbol}[i] <<  " " <<  d_in.${td.lhs.symbol}[i]  << "\n" << flush;
+                }
+            assert(   serial_res_${td.lhs.symbol}[i] == d_in.${td.lhs.symbol}[i] );
+        }
+        LOG_COMPONENT_STATEUPDATE(  cout << "\n d_in.${td.lhs.symbol}: " << d_in.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
         % endfor
-        
-        cout << "\n\nEnd VECTOR\n" << std::flush;
-        assert(0);
+
+
+        LOG_COMPONENT_STATEUPDATE( cout << "\n---------------"; )
+        % for td in population.component.timederivatives :
+        for(int i=0;i<NrnPopData::size;i++) {
+            if(serial_res_${td.lhs.symbol}[i] != d_in.${td.lhs.symbol}[i]){
+            cout << "\n"  << "${td.lhs.symbol}: " <<  serial_res_${td.lhs.symbol}[i] <<  " " <<  d_in.${td.lhs.symbol}[i]  << "\n" << flush;
+            }
+            assert(   serial_res_${td.lhs.symbol}[i] == d_in.${td.lhs.symbol}[i] );
+        }
+        LOG_COMPONENT_STATEUPDATE( cout << "\n d_in.d_${td.lhs.symbol} (DELTA): " << d_in.d_${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.d_${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].delta_upscale})  << ")" << std::flush; )
+        LOG_COMPONENT_STATEUPDATE(  cout << "\n d_in.${td.lhs.symbol}: " << d_in.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
+        % endfor
+
+
+
+
+        ##cout << "\n\nEnd VECTOR\n" << std::flush;
+        ##assert(0);
         }
 
 
@@ -1259,6 +1289,10 @@ int main()
     feenableexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW | FE_INVALID);
     #endif //!ON_NIOS
 
+    //fedisableexcept(FE_DIVBYZERO);
+    //fedisableexcept(FE_INVALID);
+    //fenv_t p;
+    //feholdexcept(&p);
 
     // Setup the variables:
     %for pop in network.populations:
@@ -1877,7 +1911,7 @@ from fixed_point_common import IntermediateNodeFinder, CBasedFixedWriter
 class CBasedEqnWriterFixedNetwork(object):
     def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None, output_exec_filename=None):
 
-        self.dt_float = 0.05e-3
+        self.dt_float = 0.01e-3
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
 
 
@@ -1906,7 +1940,7 @@ class CBasedEqnWriterFixedNetwork(object):
             evt_src_to_evtportconns[key].append(evt_conn)
 
 
-        t_stop = 0.25
+        t_stop = 1.0
         n_steps = t_stop / self.dt_float
         std_variables = {
             'nsim_steps' : n_steps,
