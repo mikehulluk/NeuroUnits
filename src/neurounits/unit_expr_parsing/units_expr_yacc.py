@@ -416,7 +416,7 @@ def p_parse_on_transition_trigger(p):
     trigger = p[4]
     actions = p[7]
     target_regime = p[8]
-    p.parser.library_manager.get_current_block_builder().create_transition_conditiontrigger(trigger=trigger, actions=actions, target_regime=target_regime)
+    p.parser.library_manager.get_current_block_builder().close_scope_and_create_transition_conditiontrigger(trigger=trigger, actions=actions, target_regime=target_regime)
 
 
 def p_parse_on_transition_event(p):
@@ -430,23 +430,24 @@ def p_parse_on_transition_event(p):
 
 def p_parse_on_transition_trigger_crosses(p):
     """on_transition : ON  open_transition_scope  LBRACKET  crosses_expr  RBRACKET  LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
-    return 
-    assert False
-    trigger = p[4]
+    (crosses_lhs,crosses_rhs), (on_rising, on_falling) = p[4]
     actions = p[7]
     target_regime = p[8]
-    p.parser.library_manager.get_current_block_builder().create_transition_conditiontrigger(trigger=trigger, actions=actions, target_regime=target_regime)
+    p.parser.library_manager.get_current_block_builder().close_scope_and_create_transition_crossestrigger( 
+            crosses_lhs=crosses_lhs, crosses_rhs=crosses_rhs, 
+            on_rising=on_rising, on_falling=on_falling,
+            actions=actions, target_regime=target_regime)
 
 
 def p_parse_on_transition_trigger_crosses_expr0(p):
     """crosses_expr : rhs_term CROSSES rhs_term """
-    pass
+    p[0] = (p[1], p[3]),(True,True)
 def p_parse_on_transition_trigger_crosses_expr1(p):
     """crosses_expr : rhs_term CROSSES LBRACKET RISING RBRACKET rhs_term """
-    pass
+    p[0] = (p[1], p[6]),(True,False)
 def p_parse_on_transition_trigger_crosses_expr2(p):
     """crosses_expr : rhs_term CROSSES LBRACKET FALLING RBRACKET rhs_term """
-    pass
+    p[0] = (p[1], p[6]),(False,True)
 
 
 

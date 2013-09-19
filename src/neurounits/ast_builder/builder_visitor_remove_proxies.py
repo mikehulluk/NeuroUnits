@@ -201,6 +201,12 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         for a in o.actions:
             self.visit(a)
         self.visit(o.trigger)
+    
+    def VisitOnCrossesTriggerTransition(self, o, **kwargs):
+        for a in o.actions:
+            self.visit(a)
+        self.visit(o.crosses_lhs)
+        self.visit(o.crosses_rhs)
 
     def VisitOnTransitionEvent(self, o, **kwargs):
         o.parameters = LookUpDict( 

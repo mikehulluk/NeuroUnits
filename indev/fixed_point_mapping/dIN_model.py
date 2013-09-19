@@ -180,13 +180,13 @@ def get_dIN(nbits):
 
 
 
-        #on ( V crosses (rising) 0V ) {
-        #    emit spike()
-        #};
+        on ( V crosses (rising) 0V ) {
+            emit spike()
+        };
 
-        #on ( V crosses (falling) 0V ) {
-        #    emit falling_spike()
-        #};
+        on ( V crosses (falling) 0V ) {
+            emit falling_spike()
+        };
 
 
         regime sub{

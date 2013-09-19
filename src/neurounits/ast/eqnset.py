@@ -455,7 +455,8 @@ class NineMLComponent(Block):
         self._eqn_time_derivatives = LookUpDict( builddata.timederivatives, accepted_obj_types=(ast.EqnTimeDerivativeByRegime,) )
 
 
-        self._transitions_conditiontriggers = LookUpDict( builddata.transitions_triggers )
+        self._transitions_conditiontriggers = LookUpDict( builddata.transitions_conditiontriggers )
+        self._transitions_crossestriggers = LookUpDict( builddata.transitions_crossestriggers )
         self._transitions_events = LookUpDict( builddata.transitions_events )
         self._rt_graphs = LookUpDict( builddata.rt_graphs)
 
@@ -524,7 +525,7 @@ class NineMLComponent(Block):
 
     @property
     def transitions(self):
-        return itertools.chain( self._transitions_conditiontriggers, self._transitions_events)
+        return itertools.chain( self._transitions_conditiontriggers, self._transitions_crossestriggers, self._transitions_events)
 
     @property
     def eventtransitions(self):

@@ -139,10 +139,27 @@ class OnConditionTriggerTransition(Transition):
         self.trigger = trigger
 
     def __repr__(self):
-        return '<Transition %s -> %s (%d actions)>' % (repr(self.src_regime), repr(self.target_regime), len(self.actions))
+        return '<ConditionTriggerTransition %s -> %s (%d actions)>' % (repr(self.src_regime), repr(self.target_regime), len(self.actions))
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitOnConditionTriggerTransition(self, **kwargs)
+
+class OnCrossesTriggerTransition(Transition):
+
+    def __init__(self, crosses_lhs, crosses_rhs, on_rising=True, on_falling=True, **kwargs):
+        super(OnCrossesTriggerTransition, self).__init__(**kwargs)
+        self.crosses_lhs = crosses_lhs
+        self.crosses_rhs = crosses_rhs
+        self.on_rising = on_rising
+        self.on_falling = on_falling
+
+    def __repr__(self):
+        return '<CrossesTriggerTransition %s -> %s (%d actions)>' % (repr(self.src_regime), repr(self.target_regime), len(self.actions))
+
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitOnCrossesTriggerTransition(self, **kwargs)
+
+
 
 
 class OnEventTransition(Transition):

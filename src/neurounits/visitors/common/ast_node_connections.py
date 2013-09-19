@@ -116,6 +116,7 @@ class ASTAllConnections(ASTActionerDepthFirst):
             iter(o._eqn_time_derivatives),
             iter(o._symbolicconstants),
             iter(o._transitions_conditiontriggers),
+            iter(o._transitions_crossestriggers),
             iter(o._transitions_events),
             iter(o.rt_graphs),
             iter(o._interface_connectors),
