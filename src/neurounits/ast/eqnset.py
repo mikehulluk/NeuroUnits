@@ -284,7 +284,6 @@ class NineMLComponent(Block):
                         self.state_variables,
                         self.symbolicconstants,
                         [self._time_node]
-                        
                         )
 
         possible_objs = list(possible_objs)

@@ -47,6 +47,10 @@ class UnitExprLexer(object):
         'regime': 'REGIME',
         'transition_to': 'TRANSITION_TO',
         'on': 'ON',
+        'crosses': 'CROSSES',
+        'rising': 'RISING',
+        'falling': 'FALLING',
+
         'emit': 'EMIT',
         'rtgraph': 'RTGRAPH',
 
@@ -64,11 +68,11 @@ class UnitExprLexer(object):
 
         'multiconnect':'MULTICONNECT',
         'initial':'INITIAL',
-        
+
         'and':'AND_KW',
         'or':'OR_KW',
         'not':'NOT_KW',
-        
+
         }
 
     tokens = [
@@ -158,11 +162,11 @@ class UnitExprLexer(object):
     t_LSQUAREBRACKET = r"""\[""" + WS
     t_RSQUAREBRACKET = r"""\]""" + WS
     t_TIMESTIMES = r"""\*\*""" + WS
-    t_PRIME = r"""'""" + WS 
-    t_SEMICOLON = r""";""" + WS 
+    t_PRIME = r"""'""" + WS
+    t_SEMICOLON = r""";""" + WS
 
     t_DOT = r"""\.""" + WS
-    t_TIMES = r"""\*""" + WS 
+    t_TIMES = r"""\*""" + WS
     t_PLUS = r"""\+""" + WS
 
     t_COMMA = r""",""" + WS

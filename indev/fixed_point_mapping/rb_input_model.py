@@ -14,14 +14,16 @@ def get_rb_input(nbits):
 
         t_next' = 0
 
-    initial {
-        t_next = 0ms
-    }
+    
 
         on ( t>100ms  and t > t_next) {
                 emit spike()
                 t_next  = 1s
             };
+
+     initial {
+        t_next = 0ms
+    }
 
 
 

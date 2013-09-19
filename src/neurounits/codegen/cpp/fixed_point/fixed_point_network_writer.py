@@ -180,7 +180,7 @@ const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP = 300;
 
 
 // Define how often to record values:
-const int record_rate = 10;
+const int record_rate = 100;
 
 
 ##const int n_results_total = nsim_steps / record_rate;
@@ -542,9 +542,71 @@ void record_event(IntType global_buffer, const SpikeEmission& evt );
 namespace rnd
 {
 
+    /*
+
+    ('Taken from : http://www.helsbreth.org/random/rng_kiss.html )
+    // MH: THIS HAS BEEN ADJUSTED TO BEHAVE THE SAME ON 32 and 64 bit platforms (TO BE TESTED!)
+     KISS
+
+     the idea is to use simple, fast, individually promising
+     generators to get a composite that will be fast, easy to code
+     have a very long period and pass all the tests put to it.
+     The three components of KISS are
+            x(n)=a*x(n-1)+1 mod 2^32
+            y(n)=y(n-1)(I+L^13)(I+R^17)(I+L^5),
+            z(n)=2*z(n-1)+z(n-2) +carry mod 2^32
+     The y's are a shift register sequence on 32bit binary vectors
+     period 2^32-1;
+     The z's are a simple multiply-with-carry sequence with period
+     2^63+2^32-1.  The period of KISS is thus
+          2^32*(2^32-1)*(2^63+2^32-1) > 2^127
+    */
+
+    #define ulong unsigned long
+
+    static ulong kiss_x = 1;
+    static ulong kiss_y = 2;
+    static ulong kiss_z = 4;
+    static ulong kiss_w = 8;
+    static ulong kiss_carry = 0;
+    static ulong kiss_k;
+    static ulong kiss_m;
+
+    inline ulong do_mask(ulong x){ return ( x & 0xFFFFFFFF); }
+
+    void seed_rand_kiss(ulong seed) {
+        kiss_x = seed | 1;
+        kiss_y = seed | 2;
+        kiss_z = seed | 4;
+        kiss_w = seed | 8;
+        kiss_carry = 0;
+    }
+
+    ulong rand_kiss() {
+        kiss_x = do_mask(do_mask(kiss_x * 69069) + 1 );
+        kiss_y = do_mask( kiss_y ^  do_mask( kiss_y << 13 ) );
+        kiss_y = do_mask( kiss_y ^ do_mask((kiss_y >> 17)));
+        kiss_y = do_mask( kiss_y ^ do_mask((kiss_y << 5))) ;
+        kiss_k = do_mask((kiss_z >> 2) + (kiss_w >> 3) + (kiss_carry >> 2));
+        kiss_m = do_mask(kiss_w + kiss_w + kiss_z + kiss_carry);
+        kiss_z = kiss_w;
+        kiss_w = kiss_m;
+        kiss_carry = do_mask( kiss_k >> 30 );
+
+        ulong res = do_mask(kiss_x + kiss_y + kiss_w) / 2.0;
+
+        return res;
+    }
+
+
+
+
+
+
     double rand_in_range(double min, double max)
     {
-        double r = (double)rand() / INT_MAX;
+        //double r = (double)rand() / INT_MAX;
+        double r = (double) rand_kiss() / INT_MAX;
         return r * (max-min) + min;
     }
 
@@ -553,8 +615,6 @@ namespace rnd
         return IntType( FixedFloatConversion::from_float(
             rand_in_range(FixedFloatConversion::to_float(min, min_scale), FixedFloatConversion::to_float(max, max_scale)),
             up) );
-
-        //return IntType(1);
     }
 }
 
@@ -939,17 +999,13 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 
 
 
-//#if !USE_BLUEVEC or true
-#if !USE_BLUEVEC or true
+#if !USE_BLUEVEC
 
 
-    // Temporary storage for comparing state variable output:
-    % for td in population.component.timederivatives + population.component.assignments:
-    IntType serial_res_${td.lhs.symbol}[NrnPopData::size];
-    %endfor
-
-
-
+    ##// Temporary storage for comparing state variable output:
+    ##% for td in population.component.timederivatives + population.component.assignments:
+    ##IntType serial_res_${td.lhs.symbol}[NrnPopData::size];
+    ##%endfor
 
 
     // Serial Version:
@@ -978,7 +1034,7 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         // Calculate assignments:
         % for ass in population.component.ordered_assignments_by_dependancies:
         d.${ass.lhs.symbol}[i] = ${writer.to_c(ass, population_access_index='i', data_prefix='d.')} ;
-        serial_res_${ass.lhs.symbol}[i] = d.${ass.lhs.symbol}[i];
+        ##serial_res_${ass.lhs.symbol}[i] = d.${ass.lhs.symbol}[i];
         LOG_COMPONENT_STATEUPDATE( cout << "\n d.${ass.lhs.symbol}: " << d.${ass.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${ass.lhs.symbol}[i], ${ass.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;)
         CHECK_IN_RANGE_VARIABLE( d.${ass.lhs.symbol}[i], ${ass.lhs.annotations['fixed-point-format'].upscale}, ${ass.lhs.annotations['node-value-range'].min}, ${ass.lhs.annotations['node-value-range'].max}, "d.${ass.lhs.symbol}" );
         % endfor
@@ -987,8 +1043,8 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
         <% cs1, cs2 = writer.to_c(td, population_access_index='i', data_prefix='d.') %>
         IntType d_${td.lhs.symbol} = ${cs1} ;
-        ##d.${td.lhs.symbol}[i] = d.${td.lhs.symbol}[i] + ${cs2} ;
-        serial_res_${td.lhs.symbol}[i] = d.${td.lhs.symbol}[i] + ${cs2} ;
+        d.${td.lhs.symbol}[i] = d.${td.lhs.symbol}[i] + ${cs2} ;
+        ##serial_res_${td.lhs.symbol}[i] = d.${td.lhs.symbol}[i] + ${cs2} ;
         LOG_COMPONENT_STATEUPDATE( cout << "\n delta:${td.lhs.symbol}: " << d_${td.lhs.symbol}  << " (" << FixedFloatConversion::to_float(d_${td.lhs.symbol}, ${td.lhs.annotations['fixed-point-format'].delta_upscale})  << ")" << std::flush; )
         LOG_COMPONENT_STATEUPDATE( cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
         CHECK_IN_RANGE_VARIABLE( d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale}, ${td.lhs.annotations['node-value-range'].min}, ${td.lhs.annotations['node-value-range'].max}, "d.${td.lhs.symbol}" );
@@ -999,6 +1055,7 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
     }
 
 #endif
+
 #if USE_BLUEVEC
 
         // Vector Compute Version:
@@ -1090,43 +1147,43 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         //issue(1);
 
 
-        {
-        int i=0;
-        LOG_COMPONENT_STATEUPDATE( cout << "\n\nVECTOR: Updated Value [0]"; )
-        % for add in population.component.ordered_assignments_by_dependancies:
-        LOG_COMPONENT_STATEUPDATE( cout << "\n d_in.${add.lhs.symbol}: " << d_in.${add.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${add.lhs.symbol}[i], ${add.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;)
-        %endfor
+        ##{
+        ##int i=0;
+        ##LOG_COMPONENT_STATEUPDATE( cout << "\n\nVECTOR: Updated Value [0]"; )
+        ##% for add in population.component.ordered_assignments_by_dependancies:
+        ##LOG_COMPONENT_STATEUPDATE( cout << "\n d_in.${add.lhs.symbol}: " << d_in.${add.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${add.lhs.symbol}[i], ${add.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;)
+        ##%endfor
 
 
-        % for td in population.component.assignments:
-        for(int i=0;i<NrnPopData::size;i++) {
-            if(serial_res_${td.lhs.symbol}[i] != d_in.${td.lhs.symbol}[i]){
-                cout << "\n[" << i << "] "  << "${td.lhs.symbol}: " <<  serial_res_${td.lhs.symbol}[i] <<  " " <<  d_in.${td.lhs.symbol}[i]  << "\n" << flush;
-                }
-            assert(   serial_res_${td.lhs.symbol}[i] == d_in.${td.lhs.symbol}[i] );
-        }
-        LOG_COMPONENT_STATEUPDATE(  cout << "\n d_in.${td.lhs.symbol}: " << d_in.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
-        % endfor
+        ##% for td in population.component.assignments:
+        ##for(int i=0;i<NrnPopData::size;i++) {
+        ##    if(serial_res_${td.lhs.symbol}[i] != d_in.${td.lhs.symbol}[i]){
+        ##        cout << "\n[" << i << "] "  << "${td.lhs.symbol}: " <<  serial_res_${td.lhs.symbol}[i] <<  " " <<  d_in.${td.lhs.symbol}[i]  << "\n" << flush;
+        ##        }
+        ##    assert(   serial_res_${td.lhs.symbol}[i] == d_in.${td.lhs.symbol}[i] );
+        ##}
+        ##LOG_COMPONENT_STATEUPDATE(  cout << "\n d_in.${td.lhs.symbol}: " << d_in.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
+        ##% endfor
 
 
-        LOG_COMPONENT_STATEUPDATE( cout << "\n---------------"; )
-        % for td in population.component.timederivatives :
-        for(int i=0;i<NrnPopData::size;i++) {
-            if(serial_res_${td.lhs.symbol}[i] != d_in.${td.lhs.symbol}[i]){
-            cout << "\n"  << "${td.lhs.symbol}: " <<  serial_res_${td.lhs.symbol}[i] <<  " " <<  d_in.${td.lhs.symbol}[i]  << "\n" << flush;
-            }
-            assert(   serial_res_${td.lhs.symbol}[i] == d_in.${td.lhs.symbol}[i] );
-        }
-        LOG_COMPONENT_STATEUPDATE( cout << "\n d_in.d_${td.lhs.symbol} (DELTA): " << d_in.d_${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.d_${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].delta_upscale})  << ")" << std::flush; )
-        LOG_COMPONENT_STATEUPDATE(  cout << "\n d_in.${td.lhs.symbol}: " << d_in.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
-        % endfor
+        ##LOG_COMPONENT_STATEUPDATE( cout << "\n---------------"; )
+        ##% for td in population.component.timederivatives :
+        ##for(int i=0;i<NrnPopData::size;i++) {
+        ##    if(serial_res_${td.lhs.symbol}[i] != d_in.${td.lhs.symbol}[i]){
+        ##    cout << "\n"  << "${td.lhs.symbol}: " <<  serial_res_${td.lhs.symbol}[i] <<  " " <<  d_in.${td.lhs.symbol}[i]  << "\n" << flush;
+        ##    }
+        ##    assert(   serial_res_${td.lhs.symbol}[i] == d_in.${td.lhs.symbol}[i] );
+        ##}
+        ##LOG_COMPONENT_STATEUPDATE( cout << "\n d_in.d_${td.lhs.symbol} (DELTA): " << d_in.d_${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.d_${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].delta_upscale})  << ")" << std::flush; )
+        ##LOG_COMPONENT_STATEUPDATE(  cout << "\n d_in.${td.lhs.symbol}: " << d_in.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
+        ##% endfor
 
 
 
 
         ##cout << "\n\nEnd VECTOR\n" << std::flush;
         ##assert(0);
-        }
+        ##}
 
 
 
@@ -1282,17 +1339,15 @@ int main()
     // Start the clock:
     clock_t begin_main = clock();
 
+    // Setup the random number generator:
+    rnd::seed_rand_kiss(100);
+
 
     // Enable floating point exception trapping:
-    //feenableexcept(-1);
     #if !ON_NIOS
     feenableexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW | FE_INVALID);
     #endif //!ON_NIOS
 
-    //fedisableexcept(FE_DIVBYZERO);
-    //fedisableexcept(FE_INVALID);
-    //fenv_t p;
-    //feholdexcept(&p);
 
     // Setup the variables:
     %for pop in network.populations:
@@ -1610,7 +1665,7 @@ struct GlobalConstants
 
 
 
-struct RecordMgrNew
+struct RecordMgr
 {
     static const int n_expected_recording_times = GlobalConstants::nsim_steps / record_rate;
     static const int buffer_size = n_expected_recording_times;
@@ -1670,30 +1725,6 @@ struct RecordMgrNew
                     data_int[t] = get_value32( data_buffers[t][buffer_offset] );
                     //data_float[t] = data_int[t] * node_sf;
                 }
-
-                ##int nrn_offset = i + ${poprec.src_pop_start_index};
-                ##string tag_string = "${poprec.node.symbol},POP:${poprec.src_population.name},${','.join(poprec.tags)}";
-                ##string tag_string_index = (boost::format("POPINDEX:%04d")%nrn_offset).str();
-
-
-                ##pVecInt[${poprec.src_pop_start_index}+i]->set_data(n_results_written,1, data_int);
-                ##HDF5GroupPtr pGroup_int = file->get_group((boost::format("simulation_fixed/int/${poprec.src_population.name}/%04d/variables/${poprec.node.symbol}")%nrn_offset).str());
-                ##pGroup_int->add_attribute("hdf-jive","trace");
-
-                ##pGroup_int->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
-                ##pGroup_int->get_subgroup("raw")->create_softlink(time_dataset_int, "time");
-                ##pHDF5DataSet2DStdPtr pDataset_int = pGroup_int->get_subgroup("raw")->create_dataset("data", HDF5DataSet2DStdSettings(1, hdf5_type_int));
-                ##pDataset_int->set_data(n_results_written,1, data_int);
-
-
-                ###if SAVE_HDF5_FLOAT
-                ##HDF5GroupPtr pGroup_float = file->get_group((boost::format("simulation_fixed/double/${poprec.src_population.name}/%04d/variables/${poprec.node.symbol}")%nrn_offset).str());
-                ##pGroup_float->add_attribute("hdf-jive","trace");
-                ##pGroup_float->add_attribute("hdf-jive:tags",string("fixed-float,") + tag_string + "," + tag_string_index);
-                ##pGroup_float->get_subgroup("raw")->create_softlink(time_dataset_float, "time");
-                ##HDF5DataSet2DStdPtr pDataset_float = pGroup_float->get_subgroup("raw")->create_dataset("data", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
-                ##pDataset_float->set_data(n_results_written,1, data_float);
-                ###endif
 
                 <% ass = poprec.node %>
                 cout << "\n#!DATA{ 'name':'${ass.symbol}' } {'size': ${nsim_steps},  'fixed_point': {'upscale':${ass.annotations['fixed-point-format'].upscale}, 'nbits':${nbits}} } [";
@@ -1838,6 +1869,7 @@ struct RecordMgrNew
 
 
                 #if SAVE_HDF5_INT
+                HDF5GroupPtr pGroup_int = file->get_group((boost::format("simulation_fixed/int/${poprec.src_population.name}/%04d/variables/${poprec.node.symbol}")%nrn_offset).str());
                 pVecInt[${poprec.src_pop_start_index}+i]->set_data(n_results_written,1, data_int);
                 HDF5GroupPtr pGroup_int = file->get_group((boost::format("simulation_fixed/int/${poprec.src_population.name}/%04d/variables/${poprec.node.symbol}")%nrn_offset).str());
                 pGroup_int->add_attribute("hdf-jive","trace");
@@ -1880,7 +1912,7 @@ struct GlobalData {
 
 
     // New version:
-    RecordMgrNew recordings_new;
+    RecordMgr recordings_new;
 
 };
 
@@ -1911,7 +1943,7 @@ from fixed_point_common import IntermediateNodeFinder, CBasedFixedWriter
 class CBasedEqnWriterFixedNetwork(object):
     def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None, output_exec_filename=None):
 
-        self.dt_float = 0.01e-3
+        self.dt_float = 0.02e-3
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
 
 
@@ -2111,7 +2143,8 @@ class CBasedEqnWriterFixedNetwork(object):
                                         additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/'), os.path.expanduser("~/hw/BlueVec/include/") ],
                                         additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/"), os.path.expanduser("~/hw/BlueVec/lib/")],
                                         libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl', 'bv_proxy'],
-                                        compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O2  -g  ' + (CPPFLAGS if CPPFLAGS else '') ]
+                                        #compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x -O2   -g  ' + (CPPFLAGS if CPPFLAGS else '') ]
+                                        compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O3 -g  ' + (CPPFLAGS if CPPFLAGS else '') ]
                                     ),
                                     #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x -O3  -g -march=native ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                     run=run,

@@ -177,7 +177,7 @@ network.finalise()
 ##fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', output_c_filename='/tmp/nu/compilation/sim_WITHOUTBLUE.cpp', CPPFLAGS='-DON_NIOS=false -DUSE_BLUEVEC=false ', compile=True, output_exec_filename='/tmp/nu/compilation/sim_WITHOUTBLUE.x', run=False)
 ##fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', output_c_filename='/tmp/nu/compilation/sim_WITHBLUE.cpp', CPPFLAGS='-DON_NIOS=false -DUSE_BLUEVEC=true ',  compile=True, output_exec_filename='/tmp/nu/compilation/sim_WITHBLUE.x', run=False)
 ##assert False
-fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=true ').results
+fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ').results
 results = HDF5SimulationResultFile("output.hd5")
 
 
@@ -241,30 +241,31 @@ sim_start = 0
 sim_end = 1.0
 
 
+results.plot(trace_filters=filters_traces, spike_filters=filters_spikes, xlim = (0,1) )
 
-for filt in filters_traces:
-    pylab.figure(figsize=(20,16))
-    trs = results.filter_traces(filt)
-    print 'Plotting:', filt, len(trs)
-    for res in trs:
-        pylab.plot(res.raw_data.time_pts, res.raw_data.data_pts, label=','.join(res.tags), ms='x'  )
-    pylab.xlim(sim_start, sim_end)
-    pylab.ylabel(filt)
-    #pylab.legend()
-    PM.save_active_figures()
-
-
-for filt in filters_spikes:
-    pylab.figure(figsize=(20,16))
-    trs = results.filter_events(filt)
-    print 'Plotting:', filt, len(trs)
-    for i,res in enumerate(trs):
-        evt_times = res.evt_times
-        pylab.plot( evt_times, i+ 0*evt_times, 'x', label=','.join(res.tags))
-    pylab.xlim(sim_start, sim_end)
-    pylab.ylabel(filt)
-    #pylab.legend()
-    PM.save_active_figures()
+#for filt in filters_traces:
+#    pylab.figure(figsize=(20,16))
+#    trs = results.filter_traces(filt)
+#    print 'Plotting:', filt, len(trs)
+#    for res in trs:
+#        pylab.plot(res.raw_data.time_pts, res.raw_data.data_pts, label=','.join(res.tags), ms='x'  )
+#    pylab.xlim(sim_start, sim_end)
+#    pylab.ylabel(filt)
+#    #pylab.legend()
+#    PM.save_active_figures()
+#
+#
+#for filt in filters_spikes:
+#    pylab.figure(figsize=(20,16))
+#    trs = results.filter_events(filt)
+#    print 'Plotting:', filt, len(trs)
+#    for i,res in enumerate(trs):
+#        evt_times = res.evt_times
+#        pylab.plot( evt_times, i+ 0*evt_times, 'x', label=','.join(res.tags))
+#    pylab.xlim(sim_start, sim_end)
+#    pylab.ylabel(filt)
+#    #pylab.legend()
+#    PM.save_active_figures()
 
 
 pylab.show()

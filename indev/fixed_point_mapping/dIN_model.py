@@ -115,11 +115,7 @@ def get_dIN(nbits):
 
         # Slow Potassium (Ks):
         alpha_ks_n = AlphaBetaFunc(v=V, A=0.462ms-1, B=8.2e-3ms-1 mV-1, C=4.59, D=-4.21mV,E=-11.97mV)
-
-
-        #beta_ks_n =  AlphaBetaFunc(v=V, A=0.0924ms-1, B=-1.353e-3ms-1 mV-1, C=1.615, D=2.1e5mV, E=3.3e5mV)
         beta_ks_n =  ({0.0924ms-1} + V*{-1.353e-3ms-1 mV-1}) / ({1.615} + 1.88959 )
-
 
         inf_ks_n = alpha_ks_n / (alpha_ks_n + beta_ks_n)
         tau_ks_n = 1.0 / (alpha_ks_n + beta_ks_n)
@@ -129,8 +125,6 @@ def get_dIN(nbits):
 
         # Fast potassium (Kf):
         alpha_kf_n = AlphaBetaFunc(v=V, A=5.06ms-1, B=0.0666ms-1 mV-1, C=5.12, D=-18.396mV,E=-25.42mV)
-        #beta_kf_n =  AlphaBetaFunc(v=V, A=0.505ms-1, B=0.0ms-1 mV-1, C=0.0, D=28.7mV, E=34.6mV)
-
         beta_kf_n =  {0.505ms-1} * exp( ( {28.7mV} + V) / {-34.6mV} )
 
         inf_kf_n = alpha_kf_n / (alpha_kf_n + beta_kf_n)
@@ -186,12 +180,15 @@ def get_dIN(nbits):
 
 
 
+        on ( V crosses (rising) 0V ) {
+            emit spike()
+        };
 
 
 
         regime sub{
             on (V > 0V) {
-                emit spike()
+                #emit spike()
                 transition_to super
             };
         }
