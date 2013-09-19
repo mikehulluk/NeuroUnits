@@ -555,7 +555,7 @@ class AbstractBlockBuilder(object):
 
 
 
-    def create_transition_trigger(self, trigger, actions, target_regime):
+    def create_transition_conditiontrigger(self, trigger, actions, target_regime):
         assert self.active_scope is not None
         scope = self.active_scope
         self.active_scope = None

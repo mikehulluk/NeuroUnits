@@ -185,7 +185,7 @@ def build_event_blks(component, analog_blks):
     # 1. Make a map dependancies 'rt_graph -> state_variable/assignments'
     rt_graph_deps_triggers = defaultdict(set)
     dep_finder = VisitorFindDirectSymbolDependance_OLD()
-    for tr in component._transitions_triggers:
+    for tr in component._transitions_conditiontriggers:
         #print 'TRANSITION:', repr(tr)
         trigger_deps = dep_finder.visit(tr.trigger)
         for tdep in trigger_deps:

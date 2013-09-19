@@ -102,7 +102,7 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
         for rt_graph in c.rt_graphs:
             builddata.rt_graphs.append(rt_graph)
 
-        builddata.transitions_triggers.extend(c._transitions_triggers)
+        builddata.transitions_triggers.extend(c._transitions_conditiontriggers)
         builddata.transitions_events.extend(c._transitions_events)
 
     # 4. Build the object:

@@ -150,7 +150,7 @@ class ReplaceNode(ASTVisitorBase):
 
     def VisitNineMLComponent(self, o, **kwargs):
         o._transitions_events = self._replace_within_new_lut(o._transitions_events)
-        o._transitions_triggers = self._replace_within_new_lut(o._transitions_triggers)
+        o._transitions_conditiontriggers = self._replace_within_new_lut(o._transitions_conditiontriggers)
         o._rt_graphs = self._replace_within_new_lut(o.rt_graphs)
         o._eqn_assignment = self._replace_within_new_lut(o._eqn_assignment)
         o._eqn_time_derivatives = self._replace_within_new_lut(o._eqn_time_derivatives)

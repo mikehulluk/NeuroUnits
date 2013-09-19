@@ -72,7 +72,7 @@ class ASTClone(object):
     def VisitNineMLComponent(self, o, **kwargs):
         builddata = BuildDataDummy()
 
-        builddata.transitions_triggers = o._transitions_triggers.copy()
+        builddata.transitions_triggers = o._transitions_conditiontriggers.copy()
         builddata.transitions_events =  o._transitions_events.copy()
         builddata.rt_graphs = o.rt_graphs.copy()
         

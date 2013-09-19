@@ -884,7 +884,7 @@ int evaluate_event_block_${ev_blk_index}(DataStore& ds )
 
     // Active transition changes:
     // These transitions tell us what transions are triggered on this round!
-    bool triggered_transitions_triggers[${trigger_transition_count}];
+    bool triggered_transitions_conditiontriggers[${trigger_transition_count}];
     <%event_transition_count = 0 %>
     bool triggered_transitions_events[${event_transition_count}]; //TODO
 
@@ -904,7 +904,7 @@ int evaluate_event_block_${ev_blk_index}(DataStore& ds )
          // Triggers:
          for(int itr=0;itr < ${trigger_transition_count}; itr++)
          {
-             triggered_transitions_triggers[itr] = false;
+             triggered_transitions_conditiontriggers[itr] = false;
          }
           // Events::
          for(int itr=0;itr < ${event_transition_count}; itr++)
@@ -946,7 +946,7 @@ int evaluate_event_block_${ev_blk_index}(DataStore& ds )
          {
             //printf("\nTransition triggered! ${repr(tr)} \n");
             possible_transition = true;
-            triggered_transitions_triggers[ ${bd.tr_index_by_evt_blk[ev_blk][tr]} ] = true;
+            triggered_transitions_conditiontriggers[ ${bd.tr_index_by_evt_blk[ev_blk][tr]} ] = true;
          }
          %endfor
 
@@ -980,7 +980,7 @@ int evaluate_event_block_${ev_blk_index}(DataStore& ds )
          // Triggers:
          ###%for tr,i in range(trigger_transition_count):
          %for tr,i in bd.tr_index_by_evt_blk[ev_blk].items():
-         if( triggered_transitions_triggers[${i}] ){
+         if( triggered_transitions_conditiontriggers[${i}] ){
             printf("\nTransition triggered! ${repr(tr)} \n");
             // ${repr(tr)}
             // Events:
@@ -1205,7 +1205,7 @@ class CPPBuildData(object):
         for evt_blk in self.ev_blks:
             self.tr_index_by_evt_blk[evt_blk] = {}
             print 'For evt_block:', repr(evt_blk)
-            trs = [tr for tr in self.component._transitions_triggers if tr.rt_graph in evt_blk.rt_graphs]
+            trs = [tr for tr in self.component._transitions_conditiontriggers if tr.rt_graph in evt_blk.rt_graphs]
             for i,tr in enumerate(trs):
                 self.tr_index_by_evt_blk[evt_blk][tr] = i
 
@@ -1223,7 +1223,7 @@ class CPPBuildData(object):
 
     def build_rt_to_transition_map(self):
         self.rt_graph_trigger_map = defaultdict(list)
-        for tr in self.component._transitions_triggers:
+        for tr in self.component._transitions_conditiontriggers:
             self.rt_graph_trigger_map[tr.rt_graph].append(tr)
 
 
@@ -1251,7 +1251,7 @@ class CPPBuildData(object):
 
 
         self.func_def_tr_triggers = {}
-        for i,tr in enumerate(self.component._transitions_triggers):
+        for i,tr in enumerate(self.component._transitions_conditiontriggers):
 
             # Which event block solves this transition:
             evt_blk_transition = self.get_evt_blk_which_solves( tr.rt_graph )

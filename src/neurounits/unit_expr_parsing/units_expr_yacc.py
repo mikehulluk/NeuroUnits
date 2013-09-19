@@ -416,7 +416,7 @@ def p_parse_on_transition_trigger(p):
     trigger = p[4]
     actions = p[7]
     target_regime = p[8]
-    p.parser.library_manager.get_current_block_builder().create_transition_trigger(trigger=trigger, actions=actions, target_regime=target_regime)
+    p.parser.library_manager.get_current_block_builder().create_transition_conditiontrigger(trigger=trigger, actions=actions, target_regime=target_regime)
 
 
 def p_parse_on_transition_event(p):
@@ -435,7 +435,7 @@ def p_parse_on_transition_trigger_crosses(p):
     trigger = p[4]
     actions = p[7]
     target_regime = p[8]
-    p.parser.library_manager.get_current_block_builder().create_transition_trigger(trigger=trigger, actions=actions, target_regime=target_regime)
+    p.parser.library_manager.get_current_block_builder().create_transition_conditiontrigger(trigger=trigger, actions=actions, target_regime=target_regime)
 
 
 def p_parse_on_transition_trigger_crosses_expr0(p):

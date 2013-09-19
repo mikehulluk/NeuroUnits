@@ -298,7 +298,6 @@ class NineMLComponent(Block):
                         self._parameters_lut,
                         self._supplied_lut,
                         self._analog_reduce_ports_lut,
-                        #self.assignedvalues,
                         self.state_variables,
                         [self._time_node]
                         )
@@ -456,7 +455,7 @@ class NineMLComponent(Block):
         self._eqn_time_derivatives = LookUpDict( builddata.timederivatives, accepted_obj_types=(ast.EqnTimeDerivativeByRegime,) )
 
 
-        self._transitions_triggers = LookUpDict( builddata.transitions_triggers )
+        self._transitions_conditiontriggers = LookUpDict( builddata.transitions_triggers )
         self._transitions_events = LookUpDict( builddata.transitions_events )
         self._rt_graphs = LookUpDict( builddata.rt_graphs)
 
@@ -525,7 +524,7 @@ class NineMLComponent(Block):
 
     @property
     def transitions(self):
-        return itertools.chain( self._transitions_triggers, self._transitions_events)
+        return itertools.chain( self._transitions_conditiontriggers, self._transitions_events)
 
     @property
     def eventtransitions(self):
@@ -533,7 +532,7 @@ class NineMLComponent(Block):
 
     @property
     def triggertransitions(self):
-        return self._transitions_triggers
+        return self._transitions_conditiontriggers
 
     def transitions_from_regime(self, regime):
         assert isinstance(regime,Regime)
