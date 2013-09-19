@@ -25,13 +25,8 @@ def get_MN(nbits):
         V' = (1/Cap) * i_sum
 
 
-        ###i_sum = iLk + iInj_local + iLk   + iKs + iKf + iNa  #+  syn_nmda_i + syn_ampa_i + syn_inhib_i)
-        ##i_xx = i_injected
-        ###V' = (1/Cap) * iLk
-
-
         AlphaBetaFunc(v, A,B,C,D,E) = (A+B*v) / (C + exp( (D+v)/E))
-        ClipMax(x, x_max) = [x] if [x<x_max] else [x_max]
+        ClipMax(x, x_max) = [x] if [x<x_max] else [x_max+0]
 
         # NMDA
         # =======================

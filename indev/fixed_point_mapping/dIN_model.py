@@ -180,15 +180,18 @@ def get_dIN(nbits):
 
 
 
-        on ( V crosses (rising) 0V ) {
-            emit spike()
-        };
+        #on ( V crosses (rising) 0V ) {
+        #    emit spike()
+        #};
 
+        #on ( V crosses (falling) 0V ) {
+        #    emit falling_spike()
+        #};
 
 
         regime sub{
-            on (V > 0V) {
-                #emit spike()
+            on (V > 10V) {
+                emit spike()
                 transition_to super
             };
         }
@@ -233,7 +236,6 @@ def get_dIN(nbits):
         'i_injected'    : NodeRange(min="-500nA", max = "500nA"),
         'V'             : NodeRange(min="-100mV", max = "60mV"),
         'ca_m'          : NodeRange(min="-0.01", max = "1.5"),
-        #'ca_m2'          : NodeRange(min="-0.01", max = "1.5"),
         'kf_n'          : NodeRange(min="-0.01", max = "1.5"),
         'ks_n'          : NodeRange(min="-0.01", max = "1.5"),
         'na_h'          : NodeRange(min="-0.01", max = "1.5"),

@@ -332,7 +332,7 @@ def p_parse_componentline4(p):
                                | function_def
                                | assignment
                                | time_derivative
-                               | on_transition_trigger
+                               | on_transition
                                | regime_block
                                | initial_block """
     pass
@@ -384,21 +384,35 @@ def p_parse_regimeline1(p):
 def p_parse_regimeline2(p):
     """regimecontentsline : time_derivative
                           | assignment
-                          | on_transition_trigger
+                          | on_transition
                           """
     pass
+
+
+
+
+
+
+
 
 
 
 # Transitions:
 # ============
 
+
+
+
+
+
+
+
 def p_open_new_scope(p):
-    """open_eventtransition_scope : empty"""
+    """open_transition_scope : empty"""
     p.parser.library_manager.get_current_block_builder().open_new_scope()
 
 def p_parse_on_transition_trigger(p):
-    """on_transition_trigger : ON  open_eventtransition_scope  LBRACKET  bool_expr  RBRACKET  LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
+    """on_transition : ON  open_transition_scope  LBRACKET  bool_expr  RBRACKET  LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
     trigger = p[4]
     actions = p[7]
     target_regime = p[8]
@@ -406,12 +420,35 @@ def p_parse_on_transition_trigger(p):
 
 
 def p_parse_on_transition_event(p):
-    """on_transition_trigger :  ON  open_eventtransition_scope   ALPHATOKEN  LBRACKET on_event_def_params RBRACKET   LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
+    """on_transition :  ON  open_transition_scope   ALPHATOKEN  LBRACKET on_event_def_params RBRACKET   LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
     event_name = p[3]
     event_params = LookUpDict( p[5], accepted_obj_types=(ast.OnEventDefParameter) )
     actions = p[8]
     target_regime = p[9]
     p.parser.library_manager.get_current_block_builder().close_scope_and_create_transition_event(event_name=event_name, event_params=event_params, actions=actions, target_regime=target_regime)
+
+
+def p_parse_on_transition_trigger_crosses(p):
+    """on_transition : ON  open_transition_scope  LBRACKET  crosses_expr  RBRACKET  LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
+    return 
+    assert False
+    trigger = p[4]
+    actions = p[7]
+    target_regime = p[8]
+    p.parser.library_manager.get_current_block_builder().create_transition_trigger(trigger=trigger, actions=actions, target_regime=target_regime)
+
+
+def p_parse_on_transition_trigger_crosses_expr0(p):
+    """crosses_expr : rhs_term CROSSES rhs_term """
+    pass
+def p_parse_on_transition_trigger_crosses_expr1(p):
+    """crosses_expr : rhs_term CROSSES LBRACKET RISING RBRACKET rhs_term """
+    pass
+def p_parse_on_transition_trigger_crosses_expr2(p):
+    """crosses_expr : rhs_term CROSSES LBRACKET FALLING RBRACKET rhs_term """
+    pass
+
+
 
 
 def p_transition_to1(p):

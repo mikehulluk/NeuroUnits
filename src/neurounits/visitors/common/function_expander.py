@@ -79,6 +79,9 @@ class _FunctionCloner(ASTVisitorBase):
                 self.visit(o.lhs),
                 self.visit(o.rhs) )
 
+    def VisitConstant(self, o):
+        return ast.ConstValue(value=o.value)
+
     def VisitIfThenElse(self, o):
         return ast.IfThenElse(
                 predicate = self.visit(o.predicate),
