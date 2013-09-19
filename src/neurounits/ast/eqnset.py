@@ -531,7 +531,7 @@ class NineMLComponent(Block):
         return self._transitions_events
 
     @property
-    def triggertransitions(self):
+    def conditiontriggertransitions(self):
         return self._transitions_conditiontriggers
 
     def transitions_from_regime(self, regime):
@@ -543,9 +543,9 @@ class NineMLComponent(Block):
 
         return [tr for tr in self.eventtransitions if tr.src_regime == regime]
 
-    def triggertransitions_from_regime(self, regime):
+    def conditiontriggertransitions_from_regime(self, regime):
         assert isinstance(regime,Regime)
-        return [tr for tr in self.triggertransitions if tr.src_regime == regime]
+        return [tr for tr in self.conditiontriggertransitions if tr.src_regime == regime]
 
 
 

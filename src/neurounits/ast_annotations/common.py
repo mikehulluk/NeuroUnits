@@ -495,7 +495,7 @@ class NodeRange(object):
 #                LargeArrayPropagator(component=component, assignment_node=state_assignment, sv_order=sa_deps, sv_values=tested_vals)
 #
 #        # And the triggered-transitions:
-#        for triggered_transition in component.triggertransitions:
+#        for triggered_transition in component.conditiontriggertransitions:
 #            sa_deps = list(deps.get_terminal_dependancies(triggered_transition, expand_assignments=True, include_random_variables=True, include_supplied_values=True))
 #            # Work out the values to test for each state variable:
 #            tested_vals = {}

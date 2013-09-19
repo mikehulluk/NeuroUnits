@@ -251,7 +251,7 @@ class _DependancyFinder(ASTVisitorBase):
             for emitted_event in tr.emitted_events:
                 self.dependancies[emitted_event] = self.visit(emitted_event)
 
-        for tr in o.triggertransitions:
+        for tr in o.conditiontriggertransitions:
             self.dependancies[tr.trigger]=self.visit(tr.trigger)
 
 

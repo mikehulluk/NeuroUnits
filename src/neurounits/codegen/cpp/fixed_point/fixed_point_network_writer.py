@@ -1226,7 +1226,7 @@ void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
             %endif
 
             // ==== Triggered Transitions: ====
-            %for tr in population.component.triggertransitions_from_regime(regime):
+            %for tr in population.component.conditiontriggertransitions_from_regime(regime):
             ${trigger_transition_block(tr=tr, rtgraph=rtgraph)}
             %endfor
 
@@ -1242,7 +1242,7 @@ void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
 
         // And the transitions from the 'global namespace':
         // ==== Triggered Transitions: ====
-        %for tr in population.component.triggertransitions_from_regime(rtgraph.get_regime(None)):
+        %for tr in population.component.conditiontriggertransitions_from_regime(rtgraph.get_regime(None)):
         ${trigger_transition_block(tr=tr, rtgraph=rtgraph)}
         %endfor
 
@@ -1257,7 +1257,7 @@ void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
         %else:
             // And the transitions from the 'global namespace':
             // ==== Triggered Transitions: ====
-            %for tr in population.component.triggertransitions_from_regime(rtgraph.get_regime(None)):
+            %for tr in population.component.conditiontriggertransitions_from_regime(rtgraph.get_regime(None)):
             ${trigger_transition_block(tr=tr, rtgraph=rtgraph)}
             %endfor
 
