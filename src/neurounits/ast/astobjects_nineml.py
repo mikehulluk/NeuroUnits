@@ -132,17 +132,17 @@ class Transition(ASTObject):
 
 
 
-class OnTriggerTransition(Transition):
+class OnConditionTriggerTransition(Transition):
 
     def __init__(self, trigger, **kwargs):
-        super(OnTriggerTransition, self).__init__(**kwargs)
+        super(OnConditionTriggerTransition, self).__init__(**kwargs)
         self.trigger = trigger
 
     def __repr__(self):
         return '<Transition %s -> %s (%d actions)>' % (repr(self.src_regime), repr(self.target_regime), len(self.actions))
 
     def accept_visitor(self, v, **kwargs):
-        return v.VisitOnTransitionTrigger(self, **kwargs)
+        return v.VisitOnConditionTriggerTransition(self, **kwargs)
 
 
 class OnEventTransition(Transition):

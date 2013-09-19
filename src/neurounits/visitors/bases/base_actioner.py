@@ -237,7 +237,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         self.visit(o.rhs_ast, **kwargs)
         self._ActionFunctionDefInstantiationParameter(o, **kwargs)
 
-    def VisitOnTransitionTrigger(self, o, **kwargs):
+    def VisitOnConditionTriggerTransition(self, o, **kwargs):
         self.visit(o.trigger, **kwargs)
         for a in o.actions:
             self.visit(a, **kwargs)

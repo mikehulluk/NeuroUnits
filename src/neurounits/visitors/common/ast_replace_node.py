@@ -330,7 +330,7 @@ class ReplaceNode(ASTVisitorBase):
         o.rhs_ast = self.replace_or_visit(o.rhs_ast)
         return o
 
-    def VisitOnTransitionTrigger(self, o, **kwargs):
+    def VisitOnConditionTriggerTransition(self, o, **kwargs):
         o.trigger = self.replace_or_visit(o.trigger)
         o.actions = [self.replace_or_visit(a) for a in o.actions]
         o.src_regime = self.replace_or_visit(o.src_regime)

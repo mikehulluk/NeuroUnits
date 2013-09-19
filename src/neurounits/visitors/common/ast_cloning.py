@@ -273,8 +273,8 @@ class ASTClone(object):
 
 
 
-    def VisitOnTransitionTrigger(self, o, **kwargs):
-        new = ast.OnTriggerTransition(
+    def VisitOnConditionTriggerTransition(self, o, **kwargs):
+        new = ast.OnConditionTriggerTransition(
                 src_regime = o.src_regime,
                 target_regime = o.target_regime,
                 actions = o.actions[:],

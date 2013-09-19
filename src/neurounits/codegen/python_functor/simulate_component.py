@@ -235,7 +235,7 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
 
             for transition in component.transitions_from_regime(current_regime):
 
-                if isinstance(transition, ast.OnTriggerTransition):
+                if isinstance(transition, ast.OnConditionTriggerTransition):
                     res = f.transition_triggers_evals[transition]( state_data=state_data)
                     if res:
                         triggered_transitions.append((transition,None, rt_graph))

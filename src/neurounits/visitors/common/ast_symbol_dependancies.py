@@ -240,7 +240,7 @@ class VisitorFindDirectSymbolDependance_OLD(ASTVisitorBase):
 
         return list(set(action_deps))
 
-    def VisitOnTransitionTrigger(self, o, **kwargs):
+    def VisitOnConditionTriggerTransition(self, o, **kwargs):
         return [o.rt_graph] + self.visit_trans(o) + self.visit(o.trigger)
     def VisitOnTransitionEvent(self, o, **kwargs):
         return [o.rt_graph] + self.visit_trans(o)

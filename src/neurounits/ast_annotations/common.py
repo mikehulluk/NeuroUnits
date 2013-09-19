@@ -201,7 +201,7 @@ class NodeRange(object):
 #
 #        self.visit(assignment_node)
 #
-#        if  not isinstance(assignment_node, ast.OnTriggerTransition):
+#        if  not isinstance(assignment_node, ast.OnConditionTriggerTransition):
 #            print 'For %s, limits are: %s' %(repr(assignment_node), repr(assignment_node.annotations['node-value-range']) )
 #
 #
@@ -376,7 +376,7 @@ class NodeRange(object):
 #        return a3
 #
 #
-#    def VisitOnTransitionTrigger(self,o):
+#    def VisitOnConditionTriggerTransition(self,o):
 #        self.visit(o.trigger)
 #
 #

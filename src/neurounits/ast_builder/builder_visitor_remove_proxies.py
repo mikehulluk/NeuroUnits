@@ -197,7 +197,7 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
     def VisitFunctionDefParameter(self, o, **kwargs):
         pass
 
-    def VisitOnTransitionTrigger(self, o, **kwargs):
+    def VisitOnConditionTriggerTransition(self, o, **kwargs):
         for a in o.actions:
             self.visit(a)
         self.visit(o.trigger)

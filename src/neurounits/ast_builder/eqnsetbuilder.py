@@ -571,7 +571,7 @@ class AbstractBlockBuilder(object):
             target_regime = self._current_rt_graph.get_or_create_regime(target_regime)
 
         assert self.active_scope is None
-        self.builddata.transitions_triggers.append(ast.OnTriggerTransition(trigger=trigger,
+        self.builddata.transitions_triggers.append(ast.OnConditionTriggerTransition(trigger=trigger,
                 actions=actions, target_regime=target_regime,
                 src_regime=src_regime))
 

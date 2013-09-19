@@ -649,7 +649,7 @@ class DimensionResolver(ASTVisitorBase):
         assert False, 'Unexpected function: %s'% o.funcname
 
 
-    def VisitOnTransitionTrigger(self, o, **kwargs):
+    def VisitOnConditionTriggerTransition(self, o, **kwargs):
         for a in o.actions:
             self.visit(a)
         self.visit(o.trigger)

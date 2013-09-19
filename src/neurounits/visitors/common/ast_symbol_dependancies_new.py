@@ -81,14 +81,14 @@ class VisitorSymbolDependance(object):
         if isinstance(terminal, ast.SymbolicConstant):
             return []
 
-        assert isinstance(terminal, (ast.StateVariable, ast.AssignedVariable, ast.OnEventStateAssignment, ast.OnTriggerTransition) )
+        assert isinstance(terminal, (ast.StateVariable, ast.AssignedVariable, ast.OnEventStateAssignment, ast.OnConditionTriggerTransition) )
 
         # Switch lhs to the assignment/time deriatives
         if isinstance( terminal, ast.StateVariable):
             terminal = self.component._eqn_time_derivatives.get_single_obj_by(lhs=terminal)
         if isinstance( terminal, ast.AssignedVariable):
             terminal = self.component._eqn_assignment.get_single_obj_by(lhs=terminal)
-        if isinstance( terminal, ast.OnTriggerTransition):
+        if isinstance( terminal, ast.OnConditionTriggerTransition):
             terminal = terminal.trigger
 
 
@@ -340,7 +340,7 @@ class _DependancyFinder(ASTVisitorBase):
 
         return list(set(action_deps))
 
-    def VisitOnTransitionTrigger(self, o, **kwargs):
+    def VisitOnConditionTriggerTransition(self, o, **kwargs):
         return [o.rt_graph] + self.visit_trans(o) + self.visit(o.trigger)
 
     def VisitOnTransitionEvent(self, o, **kwargs):

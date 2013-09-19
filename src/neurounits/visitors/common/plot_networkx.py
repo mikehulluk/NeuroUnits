@@ -29,7 +29,7 @@ class DefaultNodeColors(ASTVisitorBase):
             return 'yellow'
         if isinstance(o, ast.OnEventTransition):
             return 'pink'
-        if isinstance(o, ast.OnTriggerTransition):
+        if isinstance(o, ast.OnConditionTriggerTransition):
             return 'cyan'
         if isinstance(o, ast.CompoundPortConnector):
             return 'red'

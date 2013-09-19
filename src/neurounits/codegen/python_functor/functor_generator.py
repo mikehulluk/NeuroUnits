@@ -125,7 +125,7 @@ class FunctorGenerator(ASTVisitorBase):
                 c(state_data=state_data, **kw)
         return f2
 
-    def VisitOnTransitionTrigger(self, o, **kwargs):
+    def VisitOnConditionTriggerTransition(self, o, **kwargs):
         # Trigger predicate functor:
         self.transition_triggers_evals[o] = self.visit(o.trigger, **kwargs)
 
