@@ -561,13 +561,13 @@ class AbstractBlockBuilder(object):
 
 
     def close_scope_and_create_transition_conditiontrigger(self, trigger, actions, target_regime):
-        assert self.active_scope is not None
-        scope = self.active_scope
-        self.active_scope = None
+        ##assert self.active_scope is not None
+        #scope = self.active_scope
+        ##self.active_scope = None
 
-        # Resolve all symbols from the global namespace:
-        for (sym, obj) in scope.iteritems():
-            obj.set_target(self.global_scope.getSymbolOrProxy(sym))
+        ## Resolve all symbols from the global namespace:
+        #for (sym, obj) in scope.iteritems():
+        #    obj.set_target(self.global_scope.getSymbolOrProxy(sym))
 
         src_regime = self.get_current_regime()
         if target_regime is None:
@@ -581,13 +581,13 @@ class AbstractBlockBuilder(object):
 
 
     def close_scope_and_create_transition_crossestrigger(self, crosses_lhs, crosses_rhs, on_rising, on_falling, actions, target_regime):
-        assert self.active_scope is not None
-        scope = self.active_scope
-        self.active_scope = None
+        #assert self.active_scope is not None
+        #scope = self.active_scope
+        ##self.active_scope = None
 
-        # Resolve all symbols from the global namespace:
-        for (sym, obj) in scope.iteritems():
-            obj.set_target(self.global_scope.getSymbolOrProxy(sym))
+        ## Resolve all symbols from the global namespace:
+        #for (sym, obj) in scope.iteritems():
+        #    obj.set_target(self.global_scope.getSymbolOrProxy(sym))
 
         src_regime = self.get_current_regime()
         if target_regime is None:

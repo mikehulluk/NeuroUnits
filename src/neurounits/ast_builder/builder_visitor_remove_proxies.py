@@ -201,28 +201,28 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         for a in o.actions:
             self.visit(a)
         self.visit(o.trigger)
-    
+
     def VisitOnCrossesTriggerTransition(self, o, **kwargs):
         for a in o.actions:
             self.visit(a)
-        self.visit(o.crosses_lhs)
-        self.visit(o.crosses_rhs)
+        o.crosses_lhs = self.followSymbolProxy(o.crosses_lhs)
+        o.crosses_rhs = self.followSymbolProxy(o.crosses_rhs)
 
     def VisitOnTransitionEvent(self, o, **kwargs):
-        o.parameters = LookUpDict( 
-                [self.followSymbolProxy(rhs) for rhs in o.parameters], 
-                accepted_obj_types=o.parameters.accepted_obj_types, 
-                unique_attrs=o.parameters.unique_attrs ) 
+        o.parameters = LookUpDict(
+                [self.followSymbolProxy(rhs) for rhs in o.parameters],
+                accepted_obj_types=o.parameters.accepted_obj_types,
+                unique_attrs=o.parameters.unique_attrs )
         for p in o.parameters:
             self.visit(p)
         for a in o.actions:
             self.visit(a)
 
     def VisitEmitEvent(self, o, **kwargs):
-        o.parameters = LookUpDict( 
-                [self.followSymbolProxy(rhs) for rhs in o.parameters], 
-                accepted_obj_types=o.parameters.accepted_obj_types, 
-                unique_attrs=o.parameters.unique_attrs ) 
+        o.parameters = LookUpDict(
+                [self.followSymbolProxy(rhs) for rhs in o.parameters],
+                accepted_obj_types=o.parameters.accepted_obj_types,
+                unique_attrs=o.parameters.unique_attrs )
 
         for p in o.parameters:
             self.visit(p)

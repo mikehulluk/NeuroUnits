@@ -235,6 +235,8 @@ class ASTAllConnections(ASTActionerDepthFirst):
 
     def VisitOnConditionTriggerTransition(self, o, **kwargs):
         return [o.trigger, o.src_regime, o.target_regime ] + list(o.actions)
+    def VisitOnCrossesTriggerTransition(self, o, **kwargs):
+        return [o.crosses_lhs, o.crosses_rhs, o.src_regime, o.target_regime ] + list(o.actions)
 
     def VisitOnTransitionEvent(self, o, **kwargs):
         return [ o.src_regime, o.target_regime, o.port] + list(o.actions) + list(o.parameters)

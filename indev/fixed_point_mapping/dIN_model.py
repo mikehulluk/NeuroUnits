@@ -190,13 +190,13 @@ def get_dIN(nbits):
 
 
         regime sub{
-            on (V > 10V) {
+            on (V > 10mV) {
                 emit spike()
                 transition_to super
             };
         }
         regime super{
-           on (V < 0V) {
+           on (V < 0mV) {
             transition_to sub
             };
         }

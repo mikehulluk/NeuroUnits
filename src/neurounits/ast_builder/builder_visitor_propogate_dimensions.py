@@ -90,16 +90,16 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
             if e.objB:
                 colors[e.objB] = 'red'
 
-            
+
 
 
 
             from neurounits.visitors.common.plot_networkx import ActionerPlotNetworkX
             ActionerPlotNetworkX(o=obj, labels=labels, colors=colors)
             pylab.show()
-            
-            
-            
+
+
+
             assert False
 
 
@@ -153,7 +153,7 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
         pass
 
     def ActionStateVariable(self, o, **kwargs):
-        if o.initial_value: 
+        if o.initial_value:
             self.verify_equal_units([o, o.initial_value])
 
     def ActionSymbolicConstant(self, o, **kwargs):
@@ -227,8 +227,11 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
     def ActionOnEvent(self, o, **kwargs):
         pass
 
-    def ActionOnTransitionTrigger(self, o, **kwarg):
+    def ActionOnConditionTriggerTransition(self, o, **kwarg):
         pass
+
+    def ActionOnCrossesTriggerTransition(self, o, **kwarg):
+        self.verify_equal_units([o.crosses_lhs, o.crosses_rhs])
 
     def ActionOnTransitionEvent(self, o, **kwargs):
         pass
@@ -255,24 +258,24 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
         pass
     def VisitRTGraph(self, o):
         pass
-    
+
     def VisitEventPortConnection(self, o):
         assert len( o.src_port.parameters) == len( o.dst_port.parameters )
 
         # Multiple params: check by name:
         if len( o.src_port.parameters) > 1:
-            assert set(o.src_port.parameters.get_objects_attibutes(attr='symbol')) == set(o.dst_port.parameters.get_objects_attibutes(attr='symbol')) 
+            assert set(o.src_port.parameters.get_objects_attibutes(attr='symbol')) == set(o.dst_port.parameters.get_objects_attibutes(attr='symbol'))
             for sp in o.src_port.parameters:
                 dp = o.dst_port.parameters.get_single_obj_by(symbol=sp.symbol)
                 self.verify_equal_units([sp,dp])
 
         # Single param: don't worry about name:
         elif len(o.src_port.parameters) == 1:
-            sp = o.src_port.parameters.get_single_obj_by()   
-            dp = o.dst_port.parameters.get_single_obj_by()   
+            sp = o.src_port.parameters.get_single_obj_by()
+            dp = o.dst_port.parameters.get_single_obj_by()
             self.verify_equal_units([sp,dp])
         else:
-            return 
+            return
 
 
 
@@ -391,9 +394,9 @@ class DimensionResolver(ASTVisitorBase):
         return
 
     def VisitRTGraph(self, o, **kwargs):
-        return 
+        return
     def VisitRegime(self, o, **kwargs):
-        return 
+        return
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
         self.EnsureEqualDimensions([o, o.lhs, o.rhs])
@@ -619,7 +622,7 @@ class DimensionResolver(ASTVisitorBase):
 
         # powint and sqrt need to  be handled differently, since thier
         # dimensions depend on the input and output:
-       
+
         self.EnsureEqualDimensions([o, o.function_def])
 
 
@@ -653,6 +656,13 @@ class DimensionResolver(ASTVisitorBase):
         for a in o.actions:
             self.visit(a)
         self.visit(o.trigger)
+
+    def VisitOnCrossesTriggerTransition(self, o, **kwargs):
+        self.EnsureEqualDimensions([o.crosses_lhs, o.crosses_rhs],)
+        for a in o.actions:
+            self.visit(a)
+        self.visit(o.crosses_lhs)
+        self.visit(o.crosses_rhs)
 
     def VisitOnTransitionEvent(self, o, **kwargs):
         for p in o.parameters:

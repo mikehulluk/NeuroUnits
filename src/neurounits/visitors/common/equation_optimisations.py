@@ -135,7 +135,11 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
     def ActionFunctionDefInstantiationParameter(self, o, **kwargs):
         self.const_value[o] = self.const_value[o.rhs_ast]
 
-    def ActionOnTransitionTrigger(self, o, **kwargs):
+    def ActionOnConditionTriggerTransition(self, o, **kwargs):
+        pass # TODO: Optimisiations possible
+        #assert False
+    
+    def ActionOnCrossesTriggerTransition(self, o, **kwargs):
         pass # TODO: Optimisiations possible
         #assert False
 

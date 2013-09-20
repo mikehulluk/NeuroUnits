@@ -412,16 +412,16 @@ def p_open_new_scope(p):
     p.parser.library_manager.get_current_block_builder().open_new_scope()
 
 def p_parse_on_transition_trigger(p):
-    """on_transition : ON  open_transition_scope  LBRACKET  bool_expr  RBRACKET  LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
-    trigger = p[4]
-    actions = p[7]
-    target_regime = p[8]
+    """on_transition : ON LBRACKET bool_expr RBRACKET LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
+    trigger = p[3]
+    actions = p[6]
+    target_regime = p[7]
     p.parser.library_manager.get_current_block_builder().close_scope_and_create_transition_conditiontrigger(trigger=trigger, actions=actions, target_regime=target_regime)
 
 
 def p_parse_on_transition_event(p):
-    """on_transition :  ON  open_transition_scope   ALPHATOKEN  LBRACKET on_event_def_params RBRACKET   LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
-    event_name = p[3]
+    """on_transition : ON ALPHATOKEN  open_transition_scope LBRACKET on_event_def_params RBRACKET   LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
+    event_name = p[2]
     event_params = LookUpDict( p[5], accepted_obj_types=(ast.OnEventDefParameter) )
     actions = p[8]
     target_regime = p[9]
@@ -429,10 +429,10 @@ def p_parse_on_transition_event(p):
 
 
 def p_parse_on_transition_trigger_crosses(p):
-    """on_transition : ON  open_transition_scope  LBRACKET  crosses_expr  RBRACKET  LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
-    (crosses_lhs,crosses_rhs), (on_rising, on_falling) = p[4]
-    actions = p[7]
-    target_regime = p[8]
+    """on_transition : ON LBRACKET  crosses_expr  RBRACKET   LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
+    (crosses_lhs,crosses_rhs), (on_rising, on_falling) = p[3]
+    actions = p[6]
+    target_regime = p[7]
     p.parser.library_manager.get_current_block_builder().close_scope_and_create_transition_crossestrigger( 
             crosses_lhs=crosses_lhs, crosses_rhs=crosses_rhs, 
             on_rising=on_rising, on_falling=on_falling,

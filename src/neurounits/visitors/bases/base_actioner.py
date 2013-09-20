@@ -241,7 +241,14 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         self.visit(o.trigger, **kwargs)
         for a in o.actions:
             self.visit(a, **kwargs)
-        self._ActionOnTransitionTrigger(o, **kwargs)
+        self._ActionOnConditionTriggerTransition(o, **kwargs)
+
+    def VisitOnCrossesTriggerTransition(self, o, **kwargs):
+        self.visit(o.crosses_lhs, **kwargs)
+        self.visit(o.crosses_rhs, **kwargs)
+        for a in o.actions:
+            self.visit(a, **kwargs)
+        self._ActionOnCrossesTriggerTransition(o, **kwargs)
 
     def VisitOnTransitionEvent(self, o, **kwargs):
         for a in o.parameters:
@@ -453,9 +460,13 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionOnEventStateAssignment(o, **kwargs)
 
-    def _ActionOnTransitionTrigger(self, o, **kwargs):
+    def _ActionOnConditionTriggerTransition(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
-            return self.ActionOnTransitionTrigger(o, **kwargs)
+            return self.ActionOnConditionTriggerTransition(o, **kwargs)
+
+    def _ActionOnCrossesTriggerTransition(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionOnCrossesTriggerTransition(o, **kwargs)
 
     def _ActionOnTransitionEvent(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
@@ -626,7 +637,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def ActionFunctionDefInstantiationParameter(self, o, **kwargs):
         raise NotImplementedError()
 
-    def ActionOnTransitionTrigger(self, o, **kwargs):
+    def ActionOnConditionTriggerTransition(self, o, **kwargs):
         raise NotImplementedError()
 
     def ActionOnTransitionEvent(self, o, **kwargs):

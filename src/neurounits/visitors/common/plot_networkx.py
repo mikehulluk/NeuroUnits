@@ -244,7 +244,7 @@ class ActionerGetConnections(ASTActionerDefault):
     def ActionFunctionDefInstantiationParameter(self, o, **kwargs):
         self.connections[o].append(o.rhs_ast)
 
-    def ActionOnTransitionTrigger(self, o, **kwargs):
+    def ActionOnConditionTriggerTransition(self, o, **kwargs):
         self.connections[o].append(o.trigger)
         self.connections[o].extend(o.actions)
 

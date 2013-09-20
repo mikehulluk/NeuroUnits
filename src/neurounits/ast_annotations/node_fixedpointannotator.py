@@ -162,7 +162,9 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         pass
     def ActionNineMLComponent(self, o):
         pass
-    def ActionOnTransitionTrigger(self, o):
+    def ActionOnConditionTriggerTransition(self, o):
+        pass
+    def ActionOnCrossesTriggerTransition(self, o):
         pass
     def ActionOnTransitionEvent(self, o):
         pass
