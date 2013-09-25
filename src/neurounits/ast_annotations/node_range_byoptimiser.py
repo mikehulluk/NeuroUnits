@@ -38,8 +38,6 @@ class CriticalPointFinder(ASTActionerDefault):
         if isinstance(n.greater_than, ast.ASTConstNode) and isinstance(n.lesser_than, ast.ASTSymbolNode):
             self.critical_points[n.lesser_than].add(n.greater_than.value.float_in_si())
             return
-        #print n.lesser_than
-        #print n.greater_than
 
 
 
@@ -519,9 +517,8 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
                 ann_in = self.var_annots_ranges[lookup_name]
                 p.annotations['node-value-range'] = _NodeRangeFloat(min_=ann_in.min.float_in_si(), max_=ann_in.max.float_in_si() )
 
-        #assert False
 
-
+        # Random variables:
         for rv in component.random_variable_nodes:
             assert rv.functionname == 'uniform'
             min_param = rv.parameters.get_single_obj_by(name='min')
@@ -534,6 +531,15 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
                     )
             min_param.annotations['node-value-range'] = _NodeRangeFloat(min_=min_val, max_=min_val)
             max_param.annotations['node-value-range'] = _NodeRangeFloat(min_=max_val, max_=max_val)
+
+        # And the autoregressive model nodes (HACK!):
+        for ar in component.autoregressive_model_nodes:
+            ar.annotations['node-value-range'] = _NodeRangeFloat(
+                    min_= -1,
+                    max_= +1,
+                    )
+
+
 
         # Calculate all constants:
         constant_nodes = [node for node in  component.all_ast_nodes() if isinstance(node, ast.ASTConstNode) ]

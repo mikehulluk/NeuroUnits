@@ -782,12 +782,21 @@ struct NrnPopData
 
 
     // Random Variable nodes
-%for rv, _pstring in rv_per_population:
+    %for rv, _pstring in rv_per_population:
     IntType RV${rv.annotations['node-id']};
-%endfor
-%for rv, _pstring in rv_per_neuron:
+    %endfor
+    %for rv, _pstring in rv_per_neuron:
     IntType RV${rv.annotations['node-id']}[size];
-%endfor
+    %endfor
+
+
+    // AutoRegressive nodes:
+    %for ar in population.component.autoregressive_model_nodes:
+    IntType AR${ar.annotations['node-id']}[size];
+    %for i in range( len( ar.coefficients)):
+    IntType _AR${ar.annotations['node-id']}_t${i}[size];
+    %endfor
+    %endfor
 
 
     // Regimes:
@@ -834,6 +843,15 @@ void set_supplied_values_to_zero(NrnPopData& d)
 
 
 
+void initialise_autoregressivenodes(NrnPopData& d)
+{
+%for ar in population.component.autoregressive_model_nodes:
+    for(int i=0;i<NrnPopData::size;i++) d.AR${ar.annotations['node-id']}[i] = 0;
+%for i in range( len( ar.coefficients)):
+    for(int i=0;i<NrnPopData::size;i++) d._AR${ar.annotations['node-id']}_t${i}[i] = 0;
+%endfor
+%endfor
+}
 
 void initialise_randomvariables(NrnPopData& d)
 {
@@ -1031,6 +1049,23 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         cout << "\nUpdates:";
         )
 
+        // Calculate the autoregressive nodes:
+        %for ar in population.component.autoregressive_model_nodes:
+        //Update the current value:
+        d.${writer.to_c(ar)}[i] = ${writer.VisitAutoRegressiveModelUpdate(ar)};
+        // Save the old values:
+        %for i in range( len( ar.coefficients) -1 ):
+        %if i==0:
+        d._AR${ar.annotations['node-id']}_t0[i] = d.AR${ar.annotations['node-id']}[i];
+        %else:
+        d._AR${ar.annotations['node-id']}_t${i}[i] = d._AR${ar.annotations['node-id']}_t${i+1}[i] = 0;
+        %endif
+        %endfor
+
+        %endfor
+        
+
+
         // Calculate assignments:
         % for ass in population.component.ordered_assignments_by_dependancies:
         d.${ass.lhs.symbol}[i] = ${writer.to_c(ass, population_access_index='i', data_prefix='d.')} ;
@@ -1057,6 +1092,13 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 #endif
 
 #if USE_BLUEVEC
+
+
+        // Calculate the autoregressive nodes:
+        %if population.component.autoregressive_model_nodes:
+        assert(0); // Unhandled autoregressive nodes
+        %endif
+
 
         // Vector Compute Version:
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
@@ -1353,6 +1395,7 @@ int main()
     %for pop in network.populations:
     NS_${pop.name}::initialise_statevars(data_${pop.name});
     NS_${pop.name}::initialise_randomvariables(data_${pop.name});
+    NS_${pop.name}::initialise_autoregressivenodes(data_${pop.name} );
     %endfor
 
     // Setup the electical coupling:

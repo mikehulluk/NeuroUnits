@@ -70,7 +70,7 @@ class VisitorSymbolDependance(object):
         return assigned_ordering
 
 
-    def get_terminal_dependancies(self, terminal, expand_assignments, include_random_variables=False, include_supplied_values=True,include_symbolic_constants=True, include_parameters=True, include_analog_input_ports=True, include_autoregressive_models=True):
+    def get_terminal_dependancies(self, terminal, expand_assignments, include_random_variables=False, include_supplied_values=True,include_symbolic_constants=True, include_parameters=True, include_analog_input_ports=True, include_autoregressive_models=False):
         """ Does not expand through states"""
 
         if isinstance( terminal, ast.EqnAssignmentByRegime):
@@ -134,7 +134,7 @@ class VisitorSymbolDependance(object):
                 ass_deps = nx.bfs_successors(self.direct_dependancy_graph, assignment_node )[assignment_node]
 
                 for ass_dep in ass_deps:
-                    if isinstance( ass_dep, (ast.StateVariable, ast.RandomVariable, ast.SuppliedValue, ast.TimeVariable)):
+                    if isinstance( ass_dep, (ast.StateVariable, ast.RandomVariable, ast.SuppliedValue, ast.TimeVariable, ast.AutoRegressiveModel)):
                         dependancies_statevars.add(ass_dep)
                     elif isinstance( ass_dep, ast.AssignedVariable):
                         if ass_dep in expanded_assignment_dependancies:

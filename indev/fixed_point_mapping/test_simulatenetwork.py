@@ -162,6 +162,9 @@ network.add(
 
 
 # Recording:
+network.record_traces(dINs, 'V_noisy' )
+network.record_traces(dINs, 'noise' )
+network.record_traces(dINs, 'V_vnoisy' )
 network.record_traces( rhs_subpops+lhs_subpops, 'V' )
 network.record_traces(pop_LHS_RB , 'syn_ampa_open' )
 network.record_traces(pop_LHS_RB , 'syn_ampa_i' )
@@ -182,6 +185,10 @@ results = HDF5SimulationResultFile("output.hd5")
 
 
 filters_traces = [
+    "ALL{noise}",
+    "ALL{V_noisy}",
+    "ALL{V_vnoisy}",
+    
     "ALL{V,RB,LHS}",
     "ALL{V,RB,RHS}",
 

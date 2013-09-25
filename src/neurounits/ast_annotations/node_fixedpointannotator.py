@@ -137,6 +137,15 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         self.ActionNodeStd(o)
     def ActionRandomVariableParameter(self, o, **kwargs):
         self.ActionNodeStd(o)
+
+    def ActionAutoRegressiveModel(self, o, **kwargs):
+        self.ActionNodeStd(o)
+        if o.coefficients:
+            assert min( o.coefficients) > -1 and max(o.coefficients ) < 1.0
+        co_upscale = 0
+        o.annotations['fixed-point-format'].coefficient_upscale = co_upscale
+        o.annotations['fixed-point-format'].coeffs_as_consts = [ self.encode_value(p, co_upscale) for p in o.coefficients]
+
     def ActionOnEventDefParameter(self, o, ):
         self.ActionNodeStd(o)
 

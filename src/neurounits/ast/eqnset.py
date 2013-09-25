@@ -274,12 +274,12 @@ class NineMLComponent(Block):
         return LookUpDict(t.nodes[RandomVariable] )
 
 
-    #@property
-    #def autoregressive_model_nodes(self):
-    #    from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
-    #    from neurounits.ast import RandomVariable
-    #    t = EqnsetVisitorNodeCollector(obj=self)
-    #    return LookUpDict(t.nodes[RandomVariable] )
+    @property
+    def autoregressive_model_nodes(self):
+        from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
+        from neurounits.ast import AutoRegressiveModel
+        t = EqnsetVisitorNodeCollector(obj=self)
+        return LookUpDict(t.nodes[AutoRegressiveModel] )
 
 
 

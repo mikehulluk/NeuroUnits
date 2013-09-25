@@ -132,6 +132,8 @@ class LatexEqnWriterN(ASTVisitorBase):
 
 
 
+    def VisitAutoRegressiveModel(self, o, **kwargs):
+        return 'AUTOREGRESSIVE_NODE'
 
 
     def VisitOnEvent(self, o, **kwargs):

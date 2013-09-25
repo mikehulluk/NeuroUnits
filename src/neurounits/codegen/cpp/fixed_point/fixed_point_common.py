@@ -259,6 +259,9 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
 
 
 
+
+
+
     def VisitRandomVariable(self, o, **kwargs):
 
         assert o.modes['when'] in ('SIM_INIT')
@@ -273,8 +276,50 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         else:
             assert False
 
-
         return self.add_range_check(o, res)
+
+
+    def VisitAutoRegressiveModelUpdate(self, o, **kwargs):
+        print 'AR updscale: ', o.annotations['fixed-point-format'].upscale
+       
+        # Upscaling of the coefficients, (by default probably between zero and 1
+
+        node_name = 'AR%s' % o.annotations['node-id']
+        node = "d.%s" % node_name
+        #update = " 0" 
+        node_upscale = o.annotations['fixed-point-format'].upscale
+
+
+        rhs = " 0 "
+        for i,coeff_as_int in enumerate(o.annotations['fixed-point-format'].coeffs_as_consts):
+            i_prev_value_name = "d._%s_t%d[i]" % (node_name, i) 
+            rhs_term = "do_mul_op(%s, IntType(%d), IntType(%d), IntType(%d), IntType(%d), -1)" % (
+                    i_prev_value_name, 
+                    node_upscale, 
+                    coeff_as_int, 
+                    o.annotations['fixed-point-format'].coefficient_upscale,
+                    node_upscale,
+                    ) 
+
+            rhs = """do_add_op( %s, IntType(%d), %s, IntType(%d), IntType(%d), -1 )""" %( 
+                        rhs, node_upscale, rhs_term, node_upscale, node_upscale)
+
+        # Lets add the random bit:
+        # USE uniform random numbers:
+
+        res = " do_add_op( rnd::rand_kiss() >> 8, IntType(0), %s, IntType(%d), IntType(%d), -1)  " % (
+                    rhs, 
+                    node_upscale,
+                    node_upscale,
+                )
+
+
+        return res
+
+    def VisitAutoRegressiveModel(self, o, **kwargs):
+        node_name = 'AR%s' % o.annotations['node-id']
+        #%node = "d.%s" % node_name
+        return self.get_var_str( node_name )
 
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
