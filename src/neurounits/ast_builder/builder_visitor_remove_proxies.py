@@ -247,3 +247,7 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
     def VisitRandomVariableParameter(self, o, **kwargs):
         o.rhs_ast = self.followSymbolProxy(o.rhs_ast)
         self.visit(o.rhs_ast)
+
+
+    def VisitAutoRegressiveModel(self, o, **kwargs):
+        pass

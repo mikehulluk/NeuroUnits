@@ -32,3 +32,16 @@ class RandomVariableParameter(ASTExpressionObject):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitRandomVariableParameter(self, **kwargs)
+
+
+
+class AutoRegressiveModel(ASTExpressionObject):
+    def __init__(self, coefficients):
+        super(AutoRegressiveModel, self).__init__()
+        self.coefficients = coefficients
+
+        # Assume that the parameters and radnom variables are dimensionless
+        self.set_dimensionality( MMUnit() )
+
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitAutoRegressiveModel(self, **kwargs)

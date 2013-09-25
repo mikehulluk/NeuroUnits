@@ -158,10 +158,7 @@ def p_compoundport_event_param_list_2(p):
 def p_compoundport_event_param_list_3(p):
     """compoundport_event_param_list : compoundport_event_param_list COMMA compoundport_event_param   """
     p[0] = p[1] + [p[3]]
-#def p_compoundport_event_param_1(p):
-#    """compoundport_event_param : alphanumtoken COLON LBRACKET RBRACKET   """
-#    backend = p.parser.library_manager.backend
-#    p[0] = ( p[1], backend.Unit() )
+
 def p_compoundport_event_param_2(p):
     """compoundport_event_param : alphanumtoken COLON unit_expr  """
     p[0] = ( p[1], p[3] )
@@ -429,7 +426,7 @@ def p_parse_on_transition_event(p):
 
 
 def p_parse_on_transition_trigger_crosses(p):
-    """on_transition : ON LBRACKET  crosses_expr  RBRACKET   LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
+    """on_transition : ON LBRACKET  crosses_expr  RBRACKET  LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
     (crosses_lhs,crosses_rhs), (on_rising, on_falling) = p[3]
     actions = p[6]
     target_regime = p[7]
@@ -468,8 +465,6 @@ def p_on_transition_actions2(p):
     """transition_actions :  transition_actions transition_action"""
     p[0] = p[1] + [p[2]]
 
-
-
 def p_on_transition_actions4(p):
     """transition_action : alphanumtoken EQUALS rhs_term SEMICOLON"""
     lhs = p.parser.library_manager.get_current_block_builder().get_symbol_or_proxy(p[1])
@@ -479,8 +474,6 @@ def p_on_transition_actions4(p):
 def p_on_transition_actions5(p):
     """transition_action : EMIT alphanumtoken  LBRACKET event_call_params_l3 RBRACKET SEMICOLON"""
     p[0] = p.parser.library_manager.get_current_block_builder().create_emit_event(port_name=p[2], parameters=LookUpDict(p[4], accepted_obj_types=ast.EmitEventParameter))
-
-
 
 
 def p_event_def_param(p):
@@ -556,12 +549,6 @@ def p_additonal_rt_graph2(p):
     pass
 
 
-#def p_opt_semicolon(p):
-#    """optsemicolon : empty
-#                    | SEMICOLON"""
-#    pass
-
-
 def p_additonal_rt_graph4(p):
     """rtgraph_contents : rtgraph_contents regime_block SEMICOLON"""
     pass
@@ -583,15 +570,6 @@ def p_additonal_rt_graph4(p):
 
 
 
-#def p_file_def1(p):
-#    """text_block : empty
-#                   | text_block block_type"""
-#    pass
-#
-#
-#def p_file_def2(p):
-#    """ block_type : library_def"""
-#    pass
 
 
 
@@ -626,49 +604,6 @@ def p_parse_libraryline4(p):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#def p_on_event_actions1(p):
-#    """on_event_actions : empty"""
-#    p[0] = []
-#def p_on_event_actions2(p):
-#    """on_event_actions :  on_event_action"""
-#    p[0] = [p[1]]
-#def p_on_event_actions3(p):
-#    """on_event_actions :  on_event_actions on_event_action"""
-#    p[0] = p[1] + [p[2]]
-
-
-#def p_on_event_action0(p):
-#    """on_event_action : empty NEWLINE"""
-#    p[0] = None
-#
-#def p_on_event_action1(p):
-#    """on_event_action : alphanumtoken  EQUALS rhs_term SEMICOLON"""
-#    lhs = p.parser.library_manager.get_current_block_builder().get_symbol_or_proxy(p[1])
-#    p[0] = ast.OnEventStateAssignment(lhs=lhs,rhs=p[3])
 
 
 # Importing:
@@ -861,11 +796,6 @@ def p_rv_expr(p):
             )
 
 
-    #p[0] =  ast.ConstValue( backend.Quantity(1.0, backend.Unit()))
-
-
-
-
 def p_rv_expr1(p):
     """ random_variable : TILDE ALPHATOKEN LBRACKET rv_params RBRACKET LSQUAREBRACKET rv_modes RSQUAREBRACKET"""
     p[0] = ast.RandomVariable(
@@ -907,6 +837,31 @@ def p_rv_expr_modes2(p):
 def p_rv_expr_modes3(p):
     'rv_mode : ALPHATOKEN EQUALS ALPHATOKEN'
     p[0] = (p[1],p[3])
+
+
+
+
+
+# Autoregresive Model
+# =====================
+
+def p_ar_model(p):
+    """rhs_term : ar_model"""
+    p[0] = p[1]
+
+def p_ar_model_0(p):
+    """ar_model : TILDE AR_MODEL LBRACKET RBRACKET"""
+    p[0] = ast.AutoRegressiveModel( coefficients=tuple() )
+
+def p_ar_model_1(p):
+    """ar_model : TILDE AR_MODEL LBRACKET magnitude RBRACKET"""
+    p[0] = ast.AutoRegressiveModel( coefficients=tuple([ p[4] ]) )
+
+def p_ar_model_2(p):
+    """ar_model : TILDE AR_MODEL LBRACKET alphanumtoken EQUALS magnitude COMMA alphanumtoken EQUALS magnitude RBRACKET"""
+    p[0] = ast.AutoRegressiveModel( coefficients=tuple() )
+
+
 
 
 
@@ -1334,6 +1289,7 @@ def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=No
 
 
     # Diff:
+    
 
 
 

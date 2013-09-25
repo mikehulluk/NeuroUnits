@@ -43,6 +43,9 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
     def ActionRandomVariableParameter(self, o, **kwargs):
         self.const_value[o] = self.const_value[o.rhs_ast]
 
+    def ActionAutoRegressiveModel(self,o,**kwargs):
+        self.const_value[o] = None
+
     def ActionFunctionDefUser(self, o, **kwargs):
         pass
 
@@ -359,6 +362,8 @@ class ReplaceWithOptimisedNodes(ASTVisitorBase):
     def VisitTimeVariable(self, o ):
         pass
     def VisitRandomVariable(self, o):
+        pass
+    def VisitAutoRegressiveModel(self, o):
         pass
 
     def VisitFunctionDefBuiltInInstantiation(self, o):

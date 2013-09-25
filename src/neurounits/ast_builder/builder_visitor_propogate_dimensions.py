@@ -301,6 +301,9 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
     def VisitRandomVariableParameter(self, o):
         pass
 
+    def VisitAutoRegressiveModel(self, o):
+        pass
+
 
 
 
@@ -716,6 +719,10 @@ class DimensionResolver(ASTVisitorBase):
     def VisitRandomVariableParameter(self, p):
         self.EnsureEqualDimensions([p, p.rhs_ast],)
         self.visit(p.rhs_ast)
+
+    def VisitAutoRegressiveModel(self, o):
+        pass
+
 
 
 class PropogateDimensions(object):

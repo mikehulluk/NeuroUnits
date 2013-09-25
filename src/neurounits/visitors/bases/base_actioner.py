@@ -310,7 +310,11 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
     def VisitRandomVariableParameter(self, o, **kwargs):
         self.visit(o.rhs_ast)
-        self.ActionRandomVariableParameter(o)
+        self._ActionRandomVariableParameter(o)
+
+    def VisitAutoRegressiveModel(self, o, **kwargs):
+        self._ActionAutoRegressiveModel(o, **kwargs)
+
 
 
 
@@ -532,6 +536,9 @@ class ASTActionerDepthFirst(ASTVisitorBase):
             return self.ActionRandomVariableParameter(o, **kwargs)
 
 
+    def _ActionAutoRegressiveModel(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionAutoRegressiveModel(o, **kwargs)
 
     def ActionRandomVariable(self, o, **kwargs):
         raise NotImplementedError()

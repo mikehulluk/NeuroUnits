@@ -20,6 +20,11 @@ def get_dIN(nbits):
 
         V' = (1/Cap) * (iInj_local + i_injected + iLk + iKs + iKf +iNa + iCa + syn_nmda_i + syn_ampa_i + syn_inhib_i)
 
+        V_noisy = V + ~ar_model(0.3) * {2mV}
+
+        V_vnoisy = V_noisy + ~ar_model() * 1mV + ~ar_model(p0=0.3,p1=0.3) * {3mV}
+
+
         ClipMax(x, x_max) = [x] if [x<x_max] else [x_max]
 
         syn_sat = 30

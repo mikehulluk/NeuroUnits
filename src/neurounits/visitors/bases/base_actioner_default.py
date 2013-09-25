@@ -196,3 +196,5 @@ class ASTActionerDefault(ASTActionerDepthFirst):
     def ActionRandomVariableParameter(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
 
+    def ActionAutoRegressiveModel(self,o,**kwargs):
+        return self.ActionNode(o, **kwargs)

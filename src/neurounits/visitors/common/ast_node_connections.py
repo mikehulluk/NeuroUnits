@@ -139,6 +139,9 @@ class ASTAllConnections(ASTActionerDepthFirst):
         return [o.rhs_ast]
 
 
+    def VisitAutoRegressiveModel(self, o):
+        return [o.coefficients]
+
 
 
     def VisitIfThenElse(self, o, **kwargs):

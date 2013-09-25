@@ -119,6 +119,10 @@ class ReduceConstants(ASTVisitorBase):
 
     def VisitConstant(self, o, **kwargs):
         return o.value
+    
+    def VisitConstantZero(self, o, **kwargs):
+        assert False
+        return o.value
 
     def VisitSuppliedValue(self, o, **kwargs):
         return None
@@ -243,3 +247,6 @@ class ReduceConstants(ASTVisitorBase):
     def VisitRandomVariableParameter(self, p):
         return self.visit(p.rhs_ast)
 
+
+    def VisitAutoRegressiveModel(self, p):
+        return None

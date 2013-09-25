@@ -56,7 +56,7 @@ class VisitorSymbolDependance(object):
 
         graph = nx.DiGraph()
         for assignment in self.component.assignments:
-            deps = self.get_terminal_dependancies(assignment, expand_assignments=False, include_random_variables=False, include_supplied_values=False, include_symbolic_constants=False, include_parameters=False, include_analog_input_ports=False)
+            deps = self.get_terminal_dependancies(assignment, expand_assignments=False, include_random_variables=False, include_supplied_values=False, include_symbolic_constants=False, include_parameters=False, include_analog_input_ports=False, include_autoregressive_models=False)
             graph.add_node(assignment.lhs)
             for dep in deps:
                 assert isinstance(dep, (ast.StateVariable,ast.AssignedVariable, ast.TimeVariable))
@@ -70,7 +70,7 @@ class VisitorSymbolDependance(object):
         return assigned_ordering
 
 
-    def get_terminal_dependancies(self, terminal, expand_assignments, include_random_variables=False, include_supplied_values=True,include_symbolic_constants=True, include_parameters=True, include_analog_input_ports=True):
+    def get_terminal_dependancies(self, terminal, expand_assignments, include_random_variables=False, include_supplied_values=True,include_symbolic_constants=True, include_parameters=True, include_analog_input_ports=True, include_autoregressive_models=True):
         """ Does not expand through states"""
 
         if isinstance( terminal, ast.EqnAssignmentByRegime):
@@ -99,10 +99,11 @@ class VisitorSymbolDependance(object):
                 include_supplied_values=include_supplied_values,
                 include_symbolic_constants=include_symbolic_constants,
                 include_parameters=include_parameters,
-                include_analog_input_ports=include_analog_input_ports)
+                include_analog_input_ports=include_analog_input_ports,
+                include_autoregressive_models=include_autoregressive_models)
 
 
-    def _get_dependancies(self, node, expand_assignments, include_random_variables=False, include_supplied_values=True, include_symbolic_constants=True, include_parameters=True, include_analog_input_ports=True, include_inevent_parameters=True, include_time=True):
+    def _get_dependancies(self, node, expand_assignments, include_random_variables=False, include_supplied_values=True, include_symbolic_constants=True, include_parameters=True, include_analog_input_ports=True, include_inevent_parameters=True, include_time=True, include_autoregressive_models=True):
 
         dependancies = nx.bfs_successors(self.direct_dependancy_graph, source=node)
         if node in dependancies:
@@ -118,7 +119,7 @@ class VisitorSymbolDependance(object):
 
 
         if expand_assignments:
-            dependancies_statevars =   set([dep for dep in dependancies if isinstance(dep, (ast.StateVariable, ast.RandomVariable, ast.SuppliedValue, ast.OnEventDefParameter, ast.TimeVariable))])
+            dependancies_statevars =   set([dep for dep in dependancies if isinstance(dep, (ast.StateVariable, ast.RandomVariable, ast.SuppliedValue, ast.OnEventDefParameter, ast.TimeVariable, ast.AutoRegressiveModel))])
             unexpanded_assignment_dependancies = set([dep for dep in dependancies if isinstance(dep, ast.AssignedVariable)])
             assert len(dependancies_statevars) + len(unexpanded_assignment_dependancies) == len(set(dependancies))
 
@@ -162,6 +163,8 @@ class VisitorSymbolDependance(object):
             dependancies = [d for d in dependancies if not isinstance(d, ast.AnalogReducePort)]
         if include_inevent_parameters == False:
             dependancies = [d for d in dependancies if not isinstance(d, ast.InEventPortParameter)]
+        if include_autoregressive_models == False:
+            dependancies = [d for d in dependancies if not isinstance(d, ast.AutoRegressiveModel)]
 
 
         assert len(dependancies) == len(set(dependancies))
@@ -404,3 +407,7 @@ class _DependancyFinder(ASTVisitorBase):
 
     def VisitRandomVariableParameter(self,o):
         return self.visit(o.rhs_ast)
+
+
+    def VisitAutoRegressiveModel(self, o):
+        return [o]

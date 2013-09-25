@@ -243,8 +243,9 @@ class ReplaceNode(ASTVisitorBase):
         p.rhs_ast = self.replace_or_visit(p.rhs_ast)
         return p
 
-        
 
+    def VisitAutoRegressiveModel(self, p, **kwargs):
+        return p
 
 
 

@@ -73,6 +73,7 @@ class UnitExprLexer(object):
         'or':'OR_KW',
         'not':'NOT_KW',
 
+        'ar_model': 'AR_MODEL',
         }
 
     tokens = [

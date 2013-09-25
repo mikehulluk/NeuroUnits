@@ -127,15 +127,11 @@ class CFloatEval(ASTVisitorBase):
     def VisitFunctionDefUser(self, o, **kwargs):
         raise NotImplementedError()
 
-    #def VisitFunctionDefBuiltIn(self, o, **kwargs):
-    #    raise NotImplementedError()
-
-    #def VisitFunctionDefParameter(self, o, **kwargs):
-        #return self.visit(o.rhs_ast)
-
     def VisitStateVariable(self, n, **kwargs):
         return 'input_data->%s' %  n.annotations['_range-finding-c-var-name']
-        #return 'input_data->%s' % (o.symbol)
+
+    def VisitAutoRegressiveModel(self, n, **kwargs):
+        return 'input_data->%s' %  n.annotations['_range-finding-c-var-name']
 
     def VisitParameter(self, o, **kwargs):
         raise NotImplementedError()
@@ -148,7 +144,6 @@ class CFloatEval(ASTVisitorBase):
 
     def VisitTimeVariable(self, n, **kwargs):
         return 'input_data->%s' %  n.annotations['_range-finding-c-var-name']
-        #return 'input_data->%s' % (o.symbol)
 
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         return self.visit(o.rhs_map)
@@ -170,19 +165,18 @@ class CFloatEval(ASTVisitorBase):
         return self.visit(o.rhs_ast)
 
     def VisitRandomVariable(self, n, **kwargs):
-        return 'input_data->%s' %  n.annotations['_range-finding-c-var-name'] #  ('rv_' + str(id(o)))
+        return 'input_data->%s' %  n.annotations['_range-finding-c-var-name']
 
     def VisitRandomVariableParameter(self, o, **kwargs):
         print self, o
 
     def VisitOnEventDefParameter(self, o):
-        return 'input_data->%s' %  o.annotations['_range-finding-c-var-name'] #  ('rv_' + str(id(o)))
+        return 'input_data->%s' %  o.annotations['_range-finding-c-var-name']
 
     def VisitInEventPortParameter(self, o):
         assert False
-        return 'input_data->%s' %  o.annotations['_range-finding-c-var-name'] #  ('rv_' + str(id(o)))
+        return 'input_data->%s' %  o.annotations['_range-finding-c-var-name']
 
-        #raise NotImplementedError()
 
 
 
@@ -243,7 +237,7 @@ class NodeEvaluatorCCode(ASTActionerDefault):
 
     def ActionSuppliedValue(self, o, **kwargs):
         return self.BuildEvalFunc(o)
-    
+
     def ActionTimeVariable(self, o, **kwargs):
         return self.BuildEvalFunc(o)
 
@@ -296,16 +290,16 @@ class NodeEvaluatorCCode(ASTActionerDefault):
     def ActionOutEventPortParameter(self, o, **kwargs):
         return self.BuildEvalFunc(o)
 
-    #def ActionInEventPortParameter(self, o, **kwargs):
-    #    return self.BuildEvalFunc(o)
-
     def ActionRandomVariable(self,o,**kwargs):
+        return self.BuildEvalFunc(o)
+
+    def ActionAutoRegressiveModel(self,o,**kwargs):
         return self.BuildEvalFunc(o)
 
 
 input_ds_tmpl = Template("""
 typedef struct  {
-    %for sym in list(component.all_input_terminals) + list(component.random_variable_nodes):
+    %for sym in list(component.all_input_terminals) + list(component.random_variable_nodes) + list(component.autoregressive_model_nodes):
     double ${sym.annotations['_range-finding-c-var-name']};
     %endfor
 
@@ -345,6 +339,11 @@ class NodeRangeCCodeNodeNamer( ASTTreeAnnotator, ASTActionerDefault):
     def ActionRandomVariable(self, o, **kwargs):
         self.set_var_name(o, name='rv_%s' % str(id(o)))
         self.set_func_name(o)
+
+    def ActionAutoRegressiveModel(self, o, **kwargs):
+        self.set_var_name(o, name='rv_%s' % str(id(o)))
+        self.set_func_name(o)
+
 
     def _ActionSymbolTerminal(self, o):
         self.set_var_name(o, name=o.symbol)
@@ -392,6 +391,8 @@ class NodeRangeCCodeNodeNamer( ASTTreeAnnotator, ASTActionerDefault):
     def ActionInEventPortParameter(self, o):
         self.set_var_name(o, name=o.symbol + '_%s' % str(id(o)) )
         self.set_func_name(o)
+
+
 
 
 
@@ -517,7 +518,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
                 lookup_name = "%s::%s" % (tr.port.symbol, p.symbol)
                 ann_in = self.var_annots_ranges[lookup_name]
                 p.annotations['node-value-range'] = _NodeRangeFloat(min_=ann_in.min.float_in_si(), max_=ann_in.max.float_in_si() )
-                
+
         #assert False
 
 

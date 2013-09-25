@@ -5,7 +5,7 @@ import logging
 log_neurounits = logging.getLogger('neurounits')
 
 h = logging.StreamHandler()
-#log_neurounits.addHandler(h)
+log_neurounits.addHandler(h)
 
 
 
