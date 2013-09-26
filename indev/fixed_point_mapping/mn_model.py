@@ -42,9 +42,11 @@ def get_MN(nbits):
         syn_nmda_erev = 0mV
         v_scale = V * {-0.08mV-1}
         nmda_vdep =  1./(1. + 0.05 * exp(v_scale) )
-        on recv_nmda_spike(){
-            syn_nmda_A = ClipMax( x=syn_nmda_A + 1.0, x_max=syn_sat )
-            syn_nmda_B = ClipMax( x=syn_nmda_B + 1.0, x_max=syn_sat )
+        on recv_nmda_spike(weight:(S)){
+            #syn_nmda_A = ClipMax( x=syn_nmda_A + 1.0, x_max=syn_sat )
+            #syn_nmda_B = ClipMax( x=syn_nmda_B + 1.0, x_max=syn_sat )
+            syn_nmda_A = ClipMax( x=syn_nmda_A + (weight/{1nS}) , x_max=syn_sat )
+            syn_nmda_B = ClipMax( x=syn_nmda_B + (weight/{1nS}) , x_max=syn_sat )
         }
         # ===========================
 
@@ -64,11 +66,13 @@ def get_MN(nbits):
         ampa_val_max =  (exp( -ampa_tc_max / syn_ampa_B_tau) -  exp( -ampa_tc_max / syn_ampa_A_tau) )
         syn_ampa_g = 600pS
         syn_ampa_erev = 0mV
-        on recv_ampa_spike(){
-            syn_ampa_A = ClipMax( x=syn_ampa_A + 1.0, x_max=syn_sat )
-            syn_ampa_B = ClipMax( x=syn_ampa_B + 1.0, x_max=syn_sat )
+        on recv_ampa_spike(weight:(S)){
+            #syn_ampa_A = ClipMax( x=syn_ampa_A + 1.0, x_max=syn_sat )
+            #syn_ampa_B = ClipMax( x=syn_ampa_B + 1.0, x_max=syn_sat )
             #syn_ampa_A = syn_ampa_A + 1.0
             #syn_ampa_B = syn_ampa_B + 1.0
+            syn_nmda_A = ClipMax( x=syn_nmda_A + (weight/{1nS}) , x_max=syn_sat )
+            syn_nmda_B = ClipMax( x=syn_nmda_B + (weight/{1nS}) , x_max=syn_sat )
         }
         # ===========================
 
@@ -84,11 +88,13 @@ def get_MN(nbits):
         inhib_val_max = ( exp( -inhib_tc_max / syn_inhib_B_tau) -  exp( -inhib_tc_max / syn_inhib_A_tau) )
         syn_inhib_g = 300pS
         syn_inhib_erev = -60mV
-        on recv_inh_spike(){
-            syn_inhib_A = ClipMax( x=syn_inhib_A + 1.0, x_max=syn_sat * 3 )
-            syn_inhib_B = ClipMax( x=syn_inhib_B + 1.0, x_max=syn_sat * 3)
+        on recv_inh_spike(weight:(S)){
+            #syn_inhib_A = ClipMax( x=syn_inhib_A + 1.0, x_max=syn_sat * 3 )
+            #syn_inhib_B = ClipMax( x=syn_inhib_B + 1.0, x_max=syn_sat * 3)
             #syn_inhib_A = syn_inhib_A + 1.0
             #syn_inhib_B = syn_inhib_B + 1.0
+            syn_nmda_A = ClipMax( x=syn_nmda_A + (weight/{1nS}) , x_max=syn_sat )
+            syn_nmda_B = ClipMax( x=syn_nmda_B + (weight/{1nS}) , x_max=syn_sat )
         }
         # ===========================
 
@@ -228,6 +234,10 @@ def get_MN(nbits):
         'syn_ampa_B'    : NodeRange(min='0', max ='500'),
         'syn_inhib_A'    : NodeRange(min='0', max ='500'),
         'syn_inhib_B'    : NodeRange(min='0', max ='500'),
+        
+        'recv_ampa_spike::weight': NodeRange(min='0nS',max='10nS'),
+        'recv_nmda_spike::weight': NodeRange(min='0nS',max='10nS'),
+        'recv_inh_spike::weight': NodeRange(min='0nS',max='10nS'),
         }
 
     #var_annots_tags = {

@@ -90,7 +90,7 @@ Two defines control the setup:
 
 /* Runtime logging: */
 #define RUNTIME_LOGGING_ON false
-#define RUNTIME_LOGGING_STARTTIME -1e-3
+#define RUNTIME_LOGGING_STARTTIME 103e-3
 // #define RUNTIME_LOGGING_STARTTIME 100e-3
 
 
@@ -128,7 +128,7 @@ struct DebugCfg
 
     void update(double time)
     {
-        if(time > RUNTIME_LOGGING_STARTTIME)
+        if(time >= RUNTIME_LOGGING_STARTTIME)
         {
             check_on = true;
             log_on = true;
@@ -164,7 +164,6 @@ DebugCfg DBG;
 
 
 #define DISPLAY_LOOP_INFO true
-//#define NSIM_REPS 200
 
 
 
@@ -176,14 +175,12 @@ DebugCfg DBG;
 const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT = 100;
 const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP = 300;
 
-##const int nsim_steps = ${nsim_steps};
 
 
 // Define how often to record values:
 const int record_rate = 100;
 
 
-##const int n_results_total = nsim_steps / record_rate;
 int n_results_written = 0;
 
 
@@ -411,7 +408,7 @@ LookUpTables lookuptables;
         DataStream yn =   lookup_lut(lut, table_index) ;
         DataStream yn1 =  lookup_lut(lut, table_index+1) ;
 
-        ##    // 2a.Find the x-values at the each:
+        // 2a.Find the x-values at the each:
         DataStream xn  = (((x>>rshift)+0) << rshift);
 
 
@@ -424,7 +421,6 @@ LookUpTables lookuptables;
 
         // 3. Perform the linear interpolation:
         DataStream yn_rel_upscale = yn1_upscale-yn_upscale;
-        ##    assert(yn_rel_upscale>=0);
         DataStream yn_rescaled = (yn>>yn_rel_upscale);
 
 
@@ -432,8 +428,6 @@ LookUpTables lookuptables;
 
 
         DataStream d2 = multiply64_and_rshift( (yn1-yn_rescaled), (x-xn), (yn1_upscale - up_out-rshift) * -1 );
-        ## NativeInt64 xymul = get_value64(yn1 - yn_rescaled) *  get_value32(x-xn);
-        ## DataStream d2 = auto_shift64(xymul, get_value32(  yn1_upscale - up_out-rshift ) );
 
         return (d1 + d2);
 
@@ -728,7 +722,7 @@ namespace NS_${population.name}
 
             IntType delivery_time;
             %for param in in_port.parameters:
-            IntType ${param.symbol};
+            IntType ${param.symbol}; // Upscale: ${param.annotations['fixed-point-format'].upscale}
             %endfor
 
 
@@ -802,13 +796,6 @@ struct NrnPopData
     // Regimes:
     %for rtgraph in population.component.rt_graphs:
     %if len(rtgraph.regimes) > 1:
-    ##enum RegimeType${rtgraph.name} {
-    ##%for regime in rtgraph.regimes:
-    ##    ${rtgraph.name}${regime.name},
-    ##%endfor
-    ##    NO_CHANGE
-    ##};
-    ##RegimeType${rtgraph.name} current_regime_${rtgraph.name}[size];
     struct Regime${rtgraph.name} {
         static const int NO_CHANGE = 0;
     %for index, regime in enumerate(rtgraph.regimes):
@@ -1651,8 +1638,11 @@ namespace NS_eventcoupling_${projection.name}
 
             // Create the event, remebering to rescale parameters between source and target appropriately:
             %for p in projection.dst_port.alphabetic_params:
-                IntType param_${p.symbol} = IntType(0);
+            //IntType param_${p.symbol} = IntType(0); // ${projection.parameter_map[p.symbol]}
+            IntType param_${p.symbol} = IntType(${projection.parameter_map[p.symbol].value_scaled_for_target}) ;
             %endfor
+
+
             ${evt_type} evt(evt_time ${' '.join([',param_%s' % p.symbol for p in projection.dst_port.alphabetic_params])}  );
 
             int tgt_nrn_index = get_value32(*it) + ${projection.dst_population.start_index};
@@ -1742,14 +1732,11 @@ struct RecordMgr
 
         // Working buffers:
         int data_int[n_results_written];
-        //double data_float[n_results_written];
 
 
-        //double dt_float = FixedFloatConversion::to_float(1, time_upscale);
         for(int t=0;t<n_results_written;t++)
         {
             data_int[t] = get_value32(time_buffer[t]);
-            //data_float[t]  = data_int[t] * dt_float;
         }
 
 
@@ -1800,7 +1787,6 @@ struct RecordMgr
         %if network.all_output_event_recordings:
         cout << "\n\nWriting spikes to HDF5";
         HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
-        //const T_hdf5_type_float dt_float = FixedFloatConversion::to_float(dt_int, dt_upscale);
         const T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
         %endif
 
@@ -1986,7 +1972,7 @@ from fixed_point_common import IntermediateNodeFinder, CBasedFixedWriter
 class CBasedEqnWriterFixedNetwork(object):
     def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None, output_exec_filename=None):
 
-        self.dt_float = 0.02e-3
+        self.dt_float = 0.01e-3
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
 
 
@@ -2144,26 +2130,6 @@ class CBasedEqnWriterFixedNetwork(object):
         if not compile and output_c_filename:
             with open(output_c_filename,'w') as f:
                 f.write(cfile)
-
-
-
-
-        ### Print out the Node-expressions:
-        ##print '\n\n\n'
-        ##for node in population.component.all_ast_nodes():
-        ##    #print repr(node), node.annotations['node-id']
-        ##    try:
-        ##        print ' -> ', self.writer.visit(node)
-        ##        print ' -> ', node.annotations['node-value-range']
-        ##    except:
-        ##        print 'Skipped'
-        ##    print
-        ##print '\n\n\n'
-        ##import sys
-        ##sys.stdout.flush()
-        ##sys.stderr.flush()
-
-
 
         if compile:
             self.compile_and_run(cfile, output_c_filename=output_c_filename, run=run, CPPFLAGS=CPPFLAGS,  output_exec_filename=output_exec_filename)

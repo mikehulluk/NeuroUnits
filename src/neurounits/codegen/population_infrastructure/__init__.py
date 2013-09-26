@@ -10,7 +10,7 @@ class Population(object):
         self.name = name
         self.component = component
         self._size = size
-        self.autotag = autotag if autotag is not None else [] 
+        self.autotag = autotag if autotag is not None else []
 
     def get_subpopulation(self, start_index, end_index, subname, autotag):
         return SubPopulation(population=self,
@@ -97,12 +97,17 @@ class ElectricalSynapseProjection(Projection):
 
 
 
+class FixedValue(object):
+    def __init__(self, value):
+        if isinstance(value, basestring):
+            value = NeuroUnitParser.QuantitySimple(value)
+        self.value=value
 
 
 
 
 class EventPortConnector(object):
-    def __init__(self, src_population, dst_population, src_port_name, dst_port_name, name, connector, delay):
+    def __init__(self, src_population, dst_population, src_port_name, dst_port_name, name, connector, delay, parameter_map):
 
 
         self.name = name
@@ -112,12 +117,20 @@ class EventPortConnector(object):
         self.dst_port = dst_population.component.input_event_port_lut.get_single_obj_by(symbol=dst_port_name)
         self.connector = connector
         self.delay = NeuroUnitParser.QuantitySimple(delay).float_in_si()
-        
+
         self.delay_upscale = -8
-        assert self.delay * np.power(2,self.delay_upscale) < 1 
+        assert self.delay * np.power(2,self.delay_upscale) < 1
 
         from neurounits.ast_annotations.node_fixedpointannotator import NodeFixedPointFormatAnnotator
-        self.delay_int  = NodeFixedPointFormatAnnotator.encode_value_cls(self.delay, self.delay_upscale, nbits=24)
+        self.delay_int = NodeFixedPointFormatAnnotator.encode_value_cls(self.delay, self.delay_upscale, nbits=24)
+
+        self.parameter_map = parameter_map
+        # Some error checking
+
+
+
+
+
 
 
 
@@ -225,18 +238,23 @@ class Network(object):
         self.n_output_event_recording_buffers =  curr_rec_offset(self.all_output_event_recordings)
 
 
+        # Resolve all the connections:
+        # Event Ports:
+        for p in self.event_port_connectors:
+            for dst_param_name, src in p.parameter_map.items():
+
+                dst_param = p.dst_port.parameters.get_single_obj_by(symbol=dst_param_name)
+                assert isinstance(src, FixedValue)
+                # Lets encode it:
+                anntr = p.dst_population.component.annotation_mgr._annotators['fixed-point-format-ann']
+                from neurounits.ast_annotations import NodeFixedPointFormatAnnotator
+                assert isinstance(anntr, NodeFixedPointFormatAnnotator )
 
 
-        print 'Traces recorded:'
-        for rec in self.all_trace_recordings:
-            print rec
-
-
-        # Output Events:
+                src.value_scaled_for_target = anntr.encode_value(value=src.value.float_in_si(), upscaling_pow=dst_param.annotations['fixed-point-format'].upscale )
 
 
 
-        #assert False
 
 
     def add(self, obj):

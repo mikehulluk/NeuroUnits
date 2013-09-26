@@ -39,12 +39,8 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
 
     @classmethod
     def encode_value_cls(self, value, upscaling_pow, nbits):
-        #print
-        #print 'Encoding', value, "using upscaling power:", upscaling_pow
         value_scaled = value * ( 2**(-upscaling_pow))
-        #print ' --Value Scaled:', value_scaled
         res = int( round( value_scaled * (2**(nbits-1) ) ) )
-        #print ' --Value int:', res
         return res
 
 
@@ -181,6 +177,10 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         pass
     def ActionInEventPortParameter(self, o):
         pass
+    def VisitInEventPortParameter(self, o):
+        self.ActionNodeStd(o)
+    def VisitOnEventDefParameter(self, o):
+        self.ActionNodeStd(o)
     def ActionOutEventPort(self, o):
         pass
     def ActionInEventPort(self, o):

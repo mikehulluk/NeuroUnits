@@ -91,10 +91,11 @@ for syn_index, ((pop1_name, pop2_name, (syn_type, strength) ), conns) in enumera
     p1 = pops_by_name[pop1_name]
     p2 = pops_by_name[pop2_name]
     synpop_name='SynPop%02d' % syn_index
+    weight = '%f nS'%strength
     network.add(
-        EventPortConnector(p1,p2, src_port_name='spike', dst_port_name='recv_%s_spike' %syn_type, name=synpop_name, delay='1ms', connector=ExplicitIndicesSet(conns) )
+            EventPortConnector(p1,p2, src_port_name='spike', dst_port_name='recv_%s_spike' %syn_type, name=synpop_name, delay='1ms', connector=ExplicitIndicesSet(conns), parameter_map= {'weight': FixedValue(weight)} )
         )
-
+#assert False
 
 
 
@@ -136,7 +137,16 @@ lhs_subpops = [pop_LHS_MN, pop_LHS_RB, pop_LHS_aIN, pop_LHS_cIN, pop_LHS_dla, po
 rb_drivers = Population('RBInput', component = RB_input, size=20, autotag=['RBINPUT'])
 network.add(rb_drivers)
 network.add(
-        EventPortConnector(rb_drivers, pop_LHS_RB.get_subpopulation(start_index=0,end_index=50,subname='triggered',autotag=[]), src_port_name='spike', dst_port_name='recv_ampa_spike', name='RBDrives' , connector=AllToAllConnector(connection_probability=1.0), delay='0ms' )
+        EventPortConnector(
+            rb_drivers, 
+            pop_LHS_RB.get_subpopulation(start_index=0,end_index=10,subname='triggered',autotag=[]),
+            src_port_name='spike', 
+            dst_port_name='recv_ampa_spike', 
+            name='RBDrives' , 
+            connector=AllToAllConnector(connection_probability=1.0), 
+            delay='0ms', 
+            parameter_map= {'weight': FixedValue('1nS')}  
+            )
         )
 
 

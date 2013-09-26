@@ -478,8 +478,8 @@ def p_on_transition_actions5(p):
 
 def p_event_def_param(p):
     """on_event_def_param : localsymbol
-                          | localsymbol COLON LCURLYBRACKET  RCURLYBRACKET
-                          | localsymbol COLON LCURLYBRACKET unit_expr RCURLYBRACKET"""
+                          | localsymbol COLON LBRACKET  RBRACKET
+                          | localsymbol COLON LBRACKET unit_expr RBRACKET"""
 
     backend = p.parser.library_manager.backend
 

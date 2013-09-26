@@ -195,6 +195,8 @@ class OnEventDefParameter(ASTExpressionObject):
 
     def __repr__(self):
         return "<OnEventDefParameter '%s'>" % self.symbol
+    def summarise_node(self):
+        return 'Symbol: %s' %(self.symbol)
 
 
 class EmitEvent(ASTObject):
@@ -341,6 +343,8 @@ class InEventPort(ASTObject):
     @property
     def alphabetic_params(self,):
         return sorted(self.parameters, key=lambda o:o.symbol)
+    def summarise_node(self):
+        return 'Symbol: %s' %(self.symbol)
 
     
 

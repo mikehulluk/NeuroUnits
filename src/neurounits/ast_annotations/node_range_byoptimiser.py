@@ -510,12 +510,27 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
             ann_in = self.var_annots_ranges[sv.symbol]
             sv.annotations['node-value-range'] = _NodeRangeFloat(min_=ann_in.min.float_in_si(), max_=ann_in.max.float_in_si() )
 
-        # 0b. And input events:
+        # 0b. And transitions trigger by events:
         for tr in component.eventtransitions:
             for p in tr.parameters:
                 lookup_name = "%s::%s" % (tr.port.symbol, p.symbol)
                 ann_in = self.var_annots_ranges[lookup_name]
                 p.annotations['node-value-range'] = _NodeRangeFloat(min_=ann_in.min.float_in_si(), max_=ann_in.max.float_in_si() )
+                print 'Setting event transition node-range', p, tr
+
+        # ... which allows us to work out the mins and maxs for the event port:
+        for in_evt_port in component.input_event_port_lut:
+            trs = [tr for tr in component.eventtransitions if tr.port==in_evt_port]
+
+            for param in in_evt_port.parameters:
+
+                trs_param = [ tr.parameters.get_single_obj_by(symbol=param.symbol) for tr in trs]
+                node_min = min([ p.annotations['node-value-range'].min for p in trs_param ] )
+                node_max = max([ p.annotations['node-value-range'].max for p in trs_param ])
+
+                param.annotations['node-value-range'] = _NodeRangeFloat(min_=node_min, max_=node_max )
+
+
 
 
         # Random variables:
