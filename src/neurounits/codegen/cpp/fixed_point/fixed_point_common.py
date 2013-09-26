@@ -305,9 +305,9 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
                         rhs, node_upscale, rhs_term, node_upscale, node_upscale)
 
         # Lets add the random bit:
-        # USE uniform random numbers:
+        # USE uniform random numbers (hack!) should be gaussian:
 
-        res = " do_add_op( rnd::rand_kiss() >> 8, IntType(0), %s, IntType(%d), IntType(%d), -1)  " % (
+        res = " do_add_op( ((IntType(rnd::rand_kiss())-(1>>7))*2 >> 8), IntType(0), %s, IntType(%d), IntType(%d), -1)  " % (
                     rhs, 
                     node_upscale,
                     node_upscale,

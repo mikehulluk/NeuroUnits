@@ -188,7 +188,7 @@ filters_traces = [
     "ALL{noise}",
     "ALL{V_noisy}",
     "ALL{V_vnoisy}",
-    
+
     "ALL{V,RB,LHS}",
     "ALL{V,RB,RHS}",
 
@@ -206,10 +206,10 @@ filters_traces = [
 
     "ALL{V,cIN,LHS}",
     "ALL{V,cIN,RHS}",
-    
+
     "ALL{V,MN,LHS}",
     "ALL{V,MN,RHS}",
-    
+
     "ALL{syn_ampa_open,RB,LHS}",
     "ALL{syn_ampa_g,RB,LHS}",
     "ALL{syn_ampa_i,RB,LHS}",
@@ -222,7 +222,7 @@ filters_spikes = [
     "ALL{EVENT:spike,RBINPUT}",
     "ALL{EVENT:spike,RB,LHS}",
     "ALL{EVENT:spike,RB,RHS}",
-    
+
     "ALL{EVENT:spike,dIN,LHS}",
     "ALL{EVENT:spike,dIN,RHS}",
 
