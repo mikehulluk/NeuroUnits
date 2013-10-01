@@ -1,3 +1,5 @@
+/src/neurounits/ast_annotations/__pycache__/
+/indev/fixed_point_mapping/caches/.din_model_cache*
 /indev/fixed_point_mapping/mh_reduced_connectome.pickle
 /indev/fixed_point_mapping/nohup.out
 /indev/fixed_point_mapping/op.pdf

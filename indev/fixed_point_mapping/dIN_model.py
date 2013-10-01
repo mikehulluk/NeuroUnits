@@ -31,7 +31,16 @@ def get_dIN(nbits):
 
         ClipMax(x, x_max) = [x] if [x<x_max] else [x_max]
 
-        syn_sat = 50
+
+
+        syn_sat = 1
+        syn_nmda_g =  1nS
+        syn_ampa_g =  1nS
+        syn_inhib_g = 0nS 
+
+
+
+
         # NMDA
         # =======================
         syn_nmda_A_tau = 4ms
@@ -42,16 +51,14 @@ def get_dIN(nbits):
         # Normalisation:
         nmda_tc_max =  ln( syn_nmda_A_tau / syn_nmda_B_tau) * (syn_nmda_A_tau * syn_nmda_B_tau) / (syn_nmda_A_tau - syn_nmda_B_tau)
         nmda_val_max = (  exp( -nmda_tc_max / syn_ampa_B_tau) -  exp( -nmda_tc_max / syn_ampa_A_tau)  )
-        syn_nmda_g = 1000pS
         syn_nmda_erev = 0mV
         v_scale = V * {-0.08mV-1}
         nmda_vdep =  1./(1. + 0.05 * exp(v_scale) )
         on recv_nmda_spike(weight:(S)){
-            syn_nmda_A = ClipMax( x=syn_nmda_A + (weight/{1nS}) , x_max=syn_sat )
-            syn_nmda_B = ClipMax( x=syn_nmda_B + (weight/{1nS}) , x_max=syn_sat )
-
-            #syn_nmda_A = syn_nmda_A  + 1.0
-            #syn_nmda_B = syn_nmda_B  + 1.0
+            syn_nmda_A = syn_nmda_A + (weight/{1nS})
+            syn_nmda_B = syn_nmda_B + (weight/{1nS})
+            #syn_nmda_A = ClipMax( x=syn_nmda_A + (weight/{1nS}) , x_max=syn_sat )
+            #syn_nmda_B = ClipMax( x=syn_nmda_B + (weight/{1nS}) , x_max=syn_sat )
         }
         # ===========================
 
@@ -67,15 +74,12 @@ def get_dIN(nbits):
         # Normalisation:
         ampa_tc_max =  ln( syn_ampa_A_tau / syn_ampa_B_tau) * (syn_ampa_A_tau * syn_ampa_B_tau) / (syn_ampa_A_tau - syn_ampa_B_tau)
         ampa_val_max =  (exp( -ampa_tc_max / syn_ampa_B_tau) -  exp( -ampa_tc_max / syn_ampa_A_tau) )
-        syn_ampa_g = 1000pS
         syn_ampa_erev = 0mV
         on recv_ampa_spike(weight:(S)){
-            #syn_ampa_A = ClipMax( x=syn_ampa_A + 1.0, x_max=syn_sat )
-            #syn_ampa_B = ClipMax( x=syn_ampa_B + 1.0, x_max=syn_sat )
-            syn_nmda_A = ClipMax( x=syn_nmda_A + (weight/{1nS}) , x_max=syn_sat )
-            syn_nmda_B = ClipMax( x=syn_nmda_B + (weight/{1nS}) , x_max=syn_sat )
-            #syn_ampa_A = ClipMax( syn_ampa_A + 1.0
-            #syn_ampa_B = syn_ampa_B + 1.0
+            syn_ampa_A = syn_ampa_A + (weight/{1nS}) 
+            syn_ampa_B = syn_ampa_B + (weight/{1nS}) 
+            #syn_nmda_A = ClipMax( x=syn_nmda_A + (weight/{1nS}) , x_max=syn_sat )
+            #syn_nmda_B = ClipMax( x=syn_nmda_B + (weight/{1nS}) , x_max=syn_sat )
         }
         # ===========================
 
@@ -89,15 +93,12 @@ def get_dIN(nbits):
         # Normalisation:
         inhib_tc_max =  ln( syn_inhib_A_tau / syn_inhib_B_tau) * (syn_inhib_A_tau * syn_inhib_B_tau) / (syn_inhib_A_tau - syn_inhib_B_tau)
         inhib_val_max =  ( exp( -inhib_tc_max / syn_inhib_B_tau) -  exp( -inhib_tc_max / syn_inhib_A_tau)  )
-        syn_inhib_g = 0nS 
         syn_inhib_erev = -60mV
         on recv_inh_spike(weight:(S)){
-            syn_nmda_A = ClipMax( x=syn_nmda_A + (weight/{1nS}) , x_max=syn_sat )
-            syn_nmda_B = ClipMax( x=syn_nmda_B + (weight/{1nS}) , x_max=syn_sat )
-            #syn_inhib_A = ClipMax(x=syn_inhib_A + 1.0, x_max=syn_sat)
-            #syn_inhib_B = ClipMax(x=syn_inhib_B + 1.0, x_max=syn_sat)
-            #syn_inhib_A = syn_inhib_A +1.0
-            #syn_inhib_B = syn_inhib_B +1.0
+            syn_inhib_A = syn_inhib_A + (weight/{1nS}) 
+            syn_inhib_B = syn_inhib_B + (weight/{1nS}) 
+            #syn_nmda_A = ClipMax( x=syn_nmda_A + (weight/{1nS}) , x_max=syn_sat )
+            #syn_nmda_B = ClipMax( x=syn_nmda_B + (weight/{1nS}) , x_max=syn_sat )
         }
         # ===========================
 
@@ -122,7 +123,7 @@ def get_dIN(nbits):
         gKf = 12.5 nS
         gNa = 250 nS
         gLk = 1.25 nS
-        eLk = -50mV
+        eLk = -64mV
 
         # Leak
         iLk = gLk * (eLk-V) * glk_noise
@@ -204,7 +205,7 @@ def get_dIN(nbits):
 
 
         regime sub{
-            on (V > 0mV) {
+            on (V > 5mV) {
                 emit spike()
                 transition_to super
             };
@@ -247,7 +248,7 @@ def get_dIN(nbits):
 
     var_annots_ranges = {
         't'             : NodeRange(min="0ms", max = "1.1s"),
-        'i_injected'    : NodeRange(min="-500pA", max = "500pA"),
+        'i_injected'    : NodeRange(min="-1500pA", max = "1500pA"),
         'V'             : NodeRange(min="-100mV", max = "60mV"),
         'ca_m'          : NodeRange(min="-0.01", max = "1.3"),
         'kf_n'          : NodeRange(min="-0.01", max = "1.3"),

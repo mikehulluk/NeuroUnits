@@ -90,7 +90,7 @@ Two defines control the setup:
 
 /* Runtime logging: */
 #define RUNTIME_LOGGING_ON false
-#define RUNTIME_LOGGING_STARTTIME 125.0e-3
+#define RUNTIME_LOGGING_STARTTIME 131.4e-3
 // #define RUNTIME_LOGGING_STARTTIME 100e-3
 
 
@@ -140,7 +140,7 @@ struct DebugCfg
 
 #define LOG_COMPONENT_STATEUPDATE(a)
 #define LOG_COMPONENT_EVENTDISPATCH(a)
-#define LOG_COMPONENT_EVENTHANDLER(a)
+#define LOG_COMPONENT_EVENTHANDLER(a) {a}
 #define LOG_COMPONENT_TRANSITION(a)
 
 #define CHECK_IN_RANGE_NODE(a,b,c,d,e) (a)
@@ -178,8 +178,8 @@ const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP = 300;
 
 
 // Define how often to record values:
-const int record_rate = int( 1.e-3 /  ${dt_float} ) + 1;
-//const int record_rate = 200
+//const int record_rate = int( 1.e-3 /  ${dt_float} ) + 1;
+const int record_rate = 10;
 
 
 
@@ -368,12 +368,7 @@ LookUpTables lookuptables;
     }
 
 
-
-
-
-
-
-
+    // Exponential lookup on the BlueVec emulator:
     DataStream _get_upscale_for_xindex(DataStream index)
     {
         LookUpTableExpPower2<VAR_NBITS, IntType>& table = lookuptables.exponential;
@@ -386,17 +381,11 @@ LookUpTables lookuptables;
         return result_int;
     }
 
-
-
-
-
-
     template<typename LUTTYPE>
     inline DataStream int_exp(DataStream x, IntType up_x, IntType up_out, IntType expr_id, LUTTYPE lut ) {
 
 
-         LookUpTableExpPower2<VAR_NBITS, IntType>& table = lookuptables.exponential;
-
+        LookUpTableExpPower2<VAR_NBITS, IntType>& table = lookuptables.exponential;
 
         const IntType nbit_variables = IntType( VAR_NBITS );
 
@@ -425,23 +414,10 @@ LookUpTables lookuptables;
 
 
         DataStream d1 = auto_shift(yn, yn_upscale-up_out);
-
-
         DataStream d2 = multiply64_and_rshift( (yn1-yn_rescaled), (x-xn), (yn1_upscale - up_out-rshift) * -1 );
 
         return (d1 + d2);
-
-
-
-
-
-
-
     }
-
-
-
-
 
 #endif
 
@@ -462,24 +438,20 @@ LookUpTables lookuptables;
 
 inline IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
     IntType res = tmpl_fp_ops::do_add_op(v1, up1, v2, up2, up_local, expr_id);
-    //cout << "\n\tAdd:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
     return res;
 }
 inline IntType do_sub_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
     IntType res =  tmpl_fp_ops::do_sub_op(v1, up1, v2, up2, up_local, expr_id);
-    //cout << "\n\tSub:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
     return res;
 }
 
 inline IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
     IntType res =  tmpl_fp_ops::do_mul_op(v1, up1, v2, up2, up_local, expr_id);
-    //cout << "\n\tMul:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
     return res;
 }
 
 inline IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
     IntType res = tmpl_fp_ops::do_div_op(v1, up1, v2, up2, up_local, expr_id);
-    //cout << "\n\tDiv:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
     return res;
 }
 
@@ -618,17 +590,7 @@ namespace rnd
 IntType _check_in_range(IntType val, IntType upscale, double min, double max, const std::string& description, bool do_check)
 {
     if(! do_check ) return val;
-
-    //cout << "\n";
-    //cout << "\nFor: " << description;
-    //cout << "\n Checking: " << std::flush;
     double value_float = FixedFloatConversion::to_float(val, upscale);
-
-
-    //double diff_max = max-value_float;
-    //double diff_min = min-value_float;
-    //cout << "\n diff_max: " << diff_max;
-    //cout << "\n diff_min: " << diff_min;
 
     // Addsmall tolerance, to account for constants:
     double tolerance = 0.1;
@@ -661,8 +623,6 @@ IntType _check_in_range(IntType val, IntType upscale, double min, double max, co
     }
     if( !( value_float >= min || min >0))
     {
-
-
         double pc_out = (min - value_float) / (max-min) * 100.;
 
         if(pc_out > 1)
@@ -677,7 +637,6 @@ IntType _check_in_range(IntType val, IntType upscale, double min, double max, co
         }
     }
 
-    //cout << "\nOK!";
     return val;
 }
 
@@ -704,14 +663,8 @@ namespace NS_eventcoupling_${projection.name}
 
 c_population_details_tmpl = r"""
 
-
-
 namespace NS_${population.name}
 {
-
-
-
-
 
     // Input event types:
     namespace input_event_types
@@ -724,8 +677,6 @@ namespace NS_${population.name}
             %for param in in_port.parameters:
             IntType ${param.symbol}; // Upscale: ${param.annotations['fixed-point-format'].upscale}
             %endfor
-
-
 
             Event_${in_port.symbol}(
                 IntType delivery_time
@@ -751,7 +702,7 @@ struct NrnPopData
 
     // Parameters:
 % for p in population.component.parameters:
-    IntType ${p.symbol}[size];      // Upscale: ${p.annotations['fixed-point-format'].upscale}
+    IntType ${p.symbol}[size];        // Upscale: ${p.annotations['fixed-point-format'].upscale}
     IntType d_${p.symbol}[size];      // Upscale: ${p.annotations['fixed-point-format'].delta_upscale}
 % endfor
 
@@ -975,7 +926,6 @@ namespace event_handlers
                 }
                 else
                 {
-                    ##cout << "\nEvents to handle, but delivery time not yet met: " << evt_time << " Now:" << time_info.time_int;
                     break;
                 }
             }
@@ -1050,7 +1000,7 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         %endfor
 
         %endfor
-        
+
 
 
         // Calculate assignments:
@@ -1141,79 +1091,7 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         store( bv_${ass.lhs.symbol}, d_in.${ass.lhs.symbol}  );
         %endfor
 
-        //cout << "\nIssue Called";
-
-
-
-
-
-        ##{
-        ##LOG_COMPONENT_STATEUPDATE(
-        ##int i=0;
-        ##cout << "\n";
-        ##cout << "\nFor ${population.name} " << i;
-        ##cout << "\nAt: t=" << t << "\t(" << FixedFloatConversion::to_float(t, time_upscale) * 1000. << "ms)";
-        ##cout << "\nStarting State Variables:";
-        ##cout << "\n-------------------------";
-        ##% for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
-        ##cout << "\n d_in.${td.lhs.symbol}: " << d_in.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
-        ##% endfor
-        ##cout << "\nSupplied Variables:";
-        ##cout << "\n-------------------------";
-        ##)
-
-        ##%for suppliedvalue in population.component.suppliedvalues:
-        ##%if suppliedvalue.symbol != 't':
-        ##LOG_COMPONENT_STATEUPDATE( cout << "\n d_in.${suppliedvalue.symbol}: " << d_in.${suppliedvalue.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${suppliedvalue.symbol}[i], ${suppliedvalue.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
-        ####CHECK_IN_RANGE_VARIABLE( d_in.${suppliedvalue.symbol}[i], ${suppliedvalue.annotations['fixed-point-format'].upscale}, ${suppliedvalue.annotations['node-value-range'].min}, ${suppliedvalue.annotations['node-value-range'].max}, "d_in.${suppliedvalue.symbol}" );
-        ##%endif
-        ##%endfor
-        ##}
-
-
-
         issue(NrnPopData::size);
-        //issue(1);
-
-
-        ##{
-        ##int i=0;
-        ##LOG_COMPONENT_STATEUPDATE( cout << "\n\nVECTOR: Updated Value [0]"; )
-        ##% for add in population.component.ordered_assignments_by_dependancies:
-        ##LOG_COMPONENT_STATEUPDATE( cout << "\n d_in.${add.lhs.symbol}: " << d_in.${add.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${add.lhs.symbol}[i], ${add.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;)
-        ##%endfor
-
-
-        ##% for td in population.component.assignments:
-        ##for(int i=0;i<NrnPopData::size;i++) {
-        ##    if(serial_res_${td.lhs.symbol}[i] != d_in.${td.lhs.symbol}[i]){
-        ##        cout << "\n[" << i << "] "  << "${td.lhs.symbol}: " <<  serial_res_${td.lhs.symbol}[i] <<  " " <<  d_in.${td.lhs.symbol}[i]  << "\n" << flush;
-        ##        }
-        ##    assert(   serial_res_${td.lhs.symbol}[i] == d_in.${td.lhs.symbol}[i] );
-        ##}
-        ##LOG_COMPONENT_STATEUPDATE(  cout << "\n d_in.${td.lhs.symbol}: " << d_in.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
-        ##% endfor
-
-
-        ##LOG_COMPONENT_STATEUPDATE( cout << "\n---------------"; )
-        ##% for td in population.component.timederivatives :
-        ##for(int i=0;i<NrnPopData::size;i++) {
-        ##    if(serial_res_${td.lhs.symbol}[i] != d_in.${td.lhs.symbol}[i]){
-        ##    cout << "\n"  << "${td.lhs.symbol}: " <<  serial_res_${td.lhs.symbol}[i] <<  " " <<  d_in.${td.lhs.symbol}[i]  << "\n" << flush;
-        ##    }
-        ##    assert(   serial_res_${td.lhs.symbol}[i] == d_in.${td.lhs.symbol}[i] );
-        ##}
-        ##LOG_COMPONENT_STATEUPDATE( cout << "\n d_in.d_${td.lhs.symbol} (DELTA): " << d_in.d_${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.d_${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].delta_upscale})  << ")" << std::flush; )
-        ##LOG_COMPONENT_STATEUPDATE(  cout << "\n d_in.${td.lhs.symbol}: " << d_in.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d_in.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
-        ##% endfor
-
-
-
-
-        ##cout << "\n\nEnd VECTOR\n" << std::flush;
-        ##assert(0);
-        ##}
-
 
 
 #endif
@@ -1358,9 +1236,28 @@ void print_results_from_NIOS(NrnPopData* d)
 
 c_main_loop_tmpl = r"""
 
-
-
+#include <signal.h>
 #include <ctime>
+
+
+
+
+void my_terminate (int parameter)
+{
+    cout << "\n\nIN MY SIGNAL HANDLER\n" << flush;
+    
+    // Dump to HDF5
+    cout << "\nWriting HDF5 output" << std::flush;
+    global_data.recordings_new.write_all_traces_to_hdf();
+    global_data.recordings_new.write_all_output_events_to_hdf();
+
+    cout << "\n\nERROR!!!\n\n";
+    exit(0);
+
+}
+
+
+
 
 int main()
 {
@@ -1370,6 +1267,13 @@ int main()
 
     // Setup the random number generator:
     rnd::seed_rand_kiss(100);
+
+
+    // Lets handle signals:
+    signal (SIGTERM,my_terminate);
+    signal (SIGABRT,my_terminate);
+
+
 
 
     // Enable floating point exception trapping:
@@ -1421,7 +1325,7 @@ int main()
             DBG.update(FixedFloatConversion::to_float(time_info.time_int, time_upscale) );
 
             #if DISPLAY_LOOP_INFO
-            if(get_value32(time_step)%10 == 0)
+            if(get_value32(time_step)%100 == 0)
             {
                 std::cout << "Loop: " << time_step << "\n";
                 std::cout << "t: " << time_info.time_int << "\n";
@@ -1583,26 +1487,14 @@ namespace NS_${projection.name}
         const IntType sub_upscale = max( upscale_V_pre, upscale_V_post);
         const IntType curr_upscale = max( upscale_iinj_pre, upscale_iinj_post);
 
-
-        //return;
-
         for(GJList::iterator it = gap_junctions.begin(); it != gap_junctions.end();it++)
         {
-
-            // Old:
-            //double V_float_pre  = FixedFloatConversion::to_float( src.V[get_value32(it->i)], upscale_V_pre);
-            //double V_float_post = FixedFloatConversion::to_float( dst.V[get_value32(it->j)], upscale_V_post);
-            //double i_fl = (V_float_post - V_float_pre) / it->strength; 
-            //src.${post_iinj_node.symbol}[get_value32(it->i)] = src.${post_iinj_node.symbol}[get_value32(it->i)] + FixedFloatConversion::from_float(i_fl, upscale_iinj_pre);
-            //src.${post_iinj_node.symbol}[get_value32(it->j)] = src.${post_iinj_node.symbol}[get_value32(it->j)] + FixedFloatConversion::from_float(-i_fl, upscale_iinj_post);
-           
-
             IntType sub = do_sub_op( src.V[get_value32(it->i)], upscale_V_pre,  dst.V[get_value32(it->j)], upscale_V_post, sub_upscale, -1);
             IntType curr = do_mul_op( it->strength_S, ${projection.strength_S_upscale},
                                       sub, sub_upscale, curr_upscale, -1 );
 
-            src.${post_iinj_node.symbol}[get_value32(it->i)] -= auto_shift( curr, curr_upscale-upscale_iinj_pre) ; 
-            src.${post_iinj_node.symbol}[get_value32(it->j)] += auto_shift( curr, curr_upscale-upscale_iinj_post) ; 
+            src.${post_iinj_node.symbol}[get_value32(it->i)] -= auto_shift( curr, curr_upscale-upscale_iinj_pre) ;
+            src.${post_iinj_node.symbol}[get_value32(it->j)] += auto_shift( curr, curr_upscale-upscale_iinj_post) ;
 
 
         }
@@ -1719,7 +1611,7 @@ struct GlobalConstants
 
 
 
-//std::array<IntType, buffer_size> time_buffer; 
+//std::array<IntType, buffer_size> time_buffer;
 
 
 
@@ -1745,12 +1637,12 @@ struct RecordMgr
     typedef  list<SpikeEmission> SpikeList;
 
     // Allocate the storage for the traces:
-    RecordingBuffer time_buffer; 
+    RecordingBuffer time_buffer;
     std::array<RecordingBuffer, n_rec_buffers> data_buffers;
 
 
     // Allocate space for the spikes:
-    std::array<SpikeList,  ${network.n_output_event_recording_buffers} >  emitted_spikes; 
+    std::array<SpikeList,  ${network.n_output_event_recording_buffers} >  emitted_spikes;
 
 
 
@@ -1978,9 +1870,10 @@ struct RecordMgr
 
 struct GlobalData {
 
-
-    // New version:
+    // Data-store:
     RecordMgr recordings_new;
+
+    
 
 };
 
@@ -1992,13 +1885,13 @@ GlobalData global_data;
 
 void record_event( IntType global_buffer, const SpikeEmission& evt )
 {
-    cout << "\nRecord event (A)" << flush;
+    ##cout << "\nRecord event (A)" << flush;
     global_data.recordings_new.emitted_spikes[get_value32(global_buffer)].push_back(evt);
-    cout << "\nRecord event (B)" << flush;
-    std::cout << "EmittedSpikes[0]: " << global_data.recordings_new.emitted_spikes[0].size() << "\n";
-    cout << "\nRecord event (C)" << flush;
-    std::cout << "EmittedSpikes[global_buffer]: " << global_data.recordings_new.emitted_spikes[global_buffer].size() << "\n";
-    cout << "\nRecord event (D)" << flush;
+    ##cout << "\nRecord event (B)" << flush;
+    ##std::cout << "EmittedSpikes[0]: " << global_data.recordings_new.emitted_spikes[0].size() << "\n";
+    ##cout << "\nRecord event (C)" << flush;
+    ##std::cout << "EmittedSpikes[global_buffer]: " << global_data.recordings_new.emitted_spikes[global_buffer].size() << "\n";
+    ##cout << "\nRecord event (D)" << flush;
 
 
 
@@ -2023,7 +1916,7 @@ class CBasedEqnWriterFixedNetwork(object):
         network.finalise()
 
         self.dt_float = 0.02e-3
-        self.dt_float = 0.005e-3
+        self.dt_float = 0.001e-3
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
 
 
@@ -2053,7 +1946,8 @@ class CBasedEqnWriterFixedNetwork(object):
             evt_src_to_evtportconns[key].append(evt_conn)
 
 
-        t_stop = 0.3 #1.0 / 3.0
+        t_stop = 1.0
+        t_stop = 0.3
         n_steps = t_stop / self.dt_float
         std_variables = {
             'nsim_steps' : n_steps,
