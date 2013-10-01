@@ -90,7 +90,7 @@ Two defines control the setup:
 
 /* Runtime logging: */
 #define RUNTIME_LOGGING_ON false
-#define RUNTIME_LOGGING_STARTTIME 103e-3
+#define RUNTIME_LOGGING_STARTTIME 125.0e-3
 // #define RUNTIME_LOGGING_STARTTIME 100e-3
 
 
@@ -178,10 +178,10 @@ const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP = 300;
 
 
 // Define how often to record values:
-const int record_rate = 100;
+const int record_rate = int( 1.e-3 /  ${dt_float} ) + 1;
+//const int record_rate = 200
 
 
-int n_results_written = 0;
 
 
 
@@ -267,7 +267,7 @@ using mh::auto_shift64;
 struct LookUpTables
 {
     LookUpTables()
-        : exponential(5, 4)    // (nbits, upscale)
+        : exponential(8, 4)    // (nbits, upscale)
         //: exponential(5, 3)    // (nbits, upscale)
     { }
 
@@ -1409,7 +1409,7 @@ int main()
         if(k%100==0) cout << "Loop: " << k << "\n" << flush;
     #endif
 
-        n_results_written=0;
+        global_data.recordings_new.n_results_written=0;
         for(IntType time_step=IntType(0);time_step<GlobalConstants::nsim_steps;time_step++)
         {
 
@@ -1421,11 +1421,14 @@ int main()
             DBG.update(FixedFloatConversion::to_float(time_info.time_int, time_upscale) );
 
             #if DISPLAY_LOOP_INFO
-            if(get_value32(time_step)%100 == 0)
+            if(get_value32(time_step)%10 == 0)
             {
                 std::cout << "Loop: " << time_step << "\n";
                 std::cout << "t: " << time_info.time_int << "\n";
                 std::cout << "(t: " << FixedFloatConversion::to_float(time_info.time_int, time_upscale) * 1000 << "ms)\n";
+
+                std::cout << "EmittedSpikes[0]: " << global_data.recordings_new.emitted_spikes[0].size() << "\n";
+
             }
             #endif
 
@@ -1461,14 +1464,14 @@ int main()
             if(get_value32(time_info.time_step) % get_value32(record_rate)==0)
             {
                 // Save time:
-                global_data.recordings_new.time_buffer[n_results_written] = time_info.time_int;
+                global_data.recordings_new.time_buffer[global_data.recordings_new.n_results_written] = time_info.time_int;
                 //write_time_to_hdf5(time_info);
                 %for poprec in network.all_trace_recordings:
                 // Record: ${poprec}
-                for(int i=0;i<${poprec.size};i++) global_data.recordings_new.data_buffers[n_results_written][${poprec.global_offset}+i] = data_${poprec.src_population.name}.${poprec.node.symbol}[i + ${poprec.src_pop_start_index} ];
+                for(int i=0;i<${poprec.size};i++) global_data.recordings_new.data_buffers[${poprec.global_offset}+i][global_data.recordings_new.n_results_written] = data_${poprec.src_population.name}.${poprec.node.symbol}[i + ${poprec.src_pop_start_index} ];
                 %endfor
 
-                n_results_written++;
+                global_data.recordings_new.n_results_written++;
             }
 
 
@@ -1534,10 +1537,10 @@ namespace NS_${projection.name}
     struct GapJunction
     {
         IntType i,j;
-        IntType strength;
+        IntType strength_S;
 
         GapJunction(IntType i, IntType j, IntType strength)
-         : i(i), j(j), strength(strength)
+         : i(i), j(j), strength_S(strength)
         {
 
 
@@ -1554,9 +1557,11 @@ namespace NS_${projection.name}
     void setup_electrical_coupling()
     {
 
+        const IntType strength_S_int =  ${projection.strength_S_int};
+
         ${projection.connector.build_c( src_pop_size_expr=projection.src_population.get_size(),
                                         dst_pop_size_expr=projection.dst_population.get_size(),
-                                        add_connection_functor=lambda i,j: "gap_junctions.push_back( GapJunction(IntType(%s), IntType(%s), IntType(%s)) );" % (i,j, projection.strength_ohm),
+                                        add_connection_functor=lambda i,j: "gap_junctions.push_back( GapJunction(IntType(%s), IntType(%s), strength_S_int) );" % (i,j) ,
                                         add_connection_set_functor=None
                                         ) }
     }
@@ -1570,18 +1575,36 @@ namespace NS_${projection.name}
         post_iinj_node = projection.dst_population.component.get_terminal_obj_or_port(projection.injected_port_name)
         %>
         IntType upscale_V_pre = IntType( ${pre_V_node.annotations['fixed-point-format'].upscale} );
-        IntType upscale_V_post = IntType(${pre_V_node.annotations['fixed-point-format'].upscale} );
+        IntType upscale_V_post = IntType(${post_V_node.annotations['fixed-point-format'].upscale} );
 
         IntType upscale_iinj_pre = IntType(${pre_iinj_node.annotations['fixed-point-format'].upscale} );
         IntType upscale_iinj_post = IntType(${post_iinj_node.annotations['fixed-point-format'].upscale} );
 
+        const IntType sub_upscale = max( upscale_V_pre, upscale_V_post);
+        const IntType curr_upscale = max( upscale_iinj_pre, upscale_iinj_post);
+
+
+        //return;
+
         for(GJList::iterator it = gap_junctions.begin(); it != gap_junctions.end();it++)
         {
-            double V_float_pre  = FixedFloatConversion::to_float( src.V[get_value32(it->i)], upscale_V_pre);
-            double V_float_post = FixedFloatConversion::to_float( dst.V[get_value32(it->j)], upscale_V_post);
-            double i_fl = (V_float_post - V_float_pre) / ${projection.strength_ohm};
-            src.${post_iinj_node.symbol}[get_value32(it->i)] = src.${post_iinj_node.symbol}[get_value32(it->i)] + FixedFloatConversion::from_float(i_fl, upscale_iinj_pre);
-            src.${post_iinj_node.symbol}[get_value32(it->j)] = src.${post_iinj_node.symbol}[get_value32(it->j)] + FixedFloatConversion::from_float(-i_fl, upscale_iinj_post);
+
+            // Old:
+            //double V_float_pre  = FixedFloatConversion::to_float( src.V[get_value32(it->i)], upscale_V_pre);
+            //double V_float_post = FixedFloatConversion::to_float( dst.V[get_value32(it->j)], upscale_V_post);
+            //double i_fl = (V_float_post - V_float_pre) / it->strength; 
+            //src.${post_iinj_node.symbol}[get_value32(it->i)] = src.${post_iinj_node.symbol}[get_value32(it->i)] + FixedFloatConversion::from_float(i_fl, upscale_iinj_pre);
+            //src.${post_iinj_node.symbol}[get_value32(it->j)] = src.${post_iinj_node.symbol}[get_value32(it->j)] + FixedFloatConversion::from_float(-i_fl, upscale_iinj_post);
+           
+
+            IntType sub = do_sub_op( src.V[get_value32(it->i)], upscale_V_pre,  dst.V[get_value32(it->j)], upscale_V_post, sub_upscale, -1);
+            IntType curr = do_mul_op( it->strength_S, ${projection.strength_S_upscale},
+                                      sub, sub_upscale, curr_upscale, -1 );
+
+            src.${post_iinj_node.symbol}[get_value32(it->i)] -= auto_shift( curr, curr_upscale-upscale_iinj_pre) ; 
+            src.${post_iinj_node.symbol}[get_value32(it->j)] += auto_shift( curr, curr_upscale-upscale_iinj_post) ; 
+
+
         }
     }
 }
@@ -1692,16 +1715,24 @@ struct GlobalConstants
 
 
 
+#include <array>
 
 
 
+//std::array<IntType, buffer_size> time_buffer; 
 
 
 
 struct RecordMgr
 {
-    static const int n_expected_recording_times = GlobalConstants::nsim_steps / record_rate;
+    static const int n_expected_recording_times = int(GlobalConstants::nsim_steps / record_rate) + 1;
     static const int buffer_size = n_expected_recording_times;
+
+
+    int n_results_written;
+
+
+
 
     // What are we recording:
     %for poprec in network.all_trace_recordings:
@@ -1709,17 +1740,25 @@ struct RecordMgr
     %endfor
     static const int n_rec_buffers = ${network.n_trace_recording_buffers};
 
+
+    typedef std::array<IntType, buffer_size>  RecordingBuffer;
+    typedef  list<SpikeEmission> SpikeList;
+
     // Allocate the storage for the traces:
-    IntType time_buffer[buffer_size];
-    IntType data_buffers[buffer_size][n_rec_buffers];
+    RecordingBuffer time_buffer; 
+    std::array<RecordingBuffer, n_rec_buffers> data_buffers;
 
 
     // Allocate space for the spikes:
-    typedef  list<SpikeEmission> SpikeList;
-    SpikeList emitted_spikes[ ${network.n_output_event_recording_buffers} ];
+    std::array<SpikeList,  ${network.n_output_event_recording_buffers} >  emitted_spikes; 
 
 
 
+
+    RecordMgr()
+    : n_results_written(0)
+    {
+    }
 
 
 
@@ -1753,11 +1792,10 @@ struct RecordMgr
                 for(int t=0;t<n_results_written;t++)
                 {
                     data_int[t] = get_value32( data_buffers[t][buffer_offset] );
-                    //data_float[t] = data_int[t] * node_sf;
                 }
 
                 <% ass = poprec.node %>
-                cout << "\n#!DATA{ 'name':'${ass.symbol}' } {'size': ${nsim_steps},  'fixed_point': {'upscale':${ass.annotations['fixed-point-format'].upscale}, 'nbits':${nbits}} } [";
+                cout << "\n#!DATA{ 'population': '${poprec.src_population.name}', 'index': '" << i <<  "',  name':'${ass.symbol}' } {'size': ${nsim_steps},  'fixed_point': {'upscale':${ass.annotations['fixed-point-format'].upscale}, 'nbits':${nbits}} } [";
                 for(IntType i=IntType(0);i<n_results_written;i++) cout << data_int[get_value32(i)] << " ";
                 cout << "]\n";
             }
@@ -1796,6 +1834,7 @@ struct RecordMgr
 
         for(int i=0; i< ${poprec.size};i++)
         {
+            cout << "\nWriting spikes for index: " << i << flush;
             const int buffer_offset = ${poprec.global_offset}+i;
             int nrn_offset = i + ${poprec.src_pop_start_index};
             const int nspikes = emitted_spikes[buffer_offset].size();
@@ -1888,7 +1927,7 @@ struct RecordMgr
 
                 for(int t=0;t<n_results_written;t++)
                 {
-                    data_int[t] = get_value32( data_buffers[t][buffer_offset] );
+                    data_int[t] = get_value32( data_buffers[buffer_offset][t] );
                     data_float[t] = data_int[t] * node_sf;
                 }
 
@@ -1953,7 +1992,16 @@ GlobalData global_data;
 
 void record_event( IntType global_buffer, const SpikeEmission& evt )
 {
+    cout << "\nRecord event (A)" << flush;
     global_data.recordings_new.emitted_spikes[get_value32(global_buffer)].push_back(evt);
+    cout << "\nRecord event (B)" << flush;
+    std::cout << "EmittedSpikes[0]: " << global_data.recordings_new.emitted_spikes[0].size() << "\n";
+    cout << "\nRecord event (C)" << flush;
+    std::cout << "EmittedSpikes[global_buffer]: " << global_data.recordings_new.emitted_spikes[global_buffer].size() << "\n";
+    cout << "\nRecord event (D)" << flush;
+
+
+
 }
 
 
@@ -1972,7 +2020,10 @@ from fixed_point_common import IntermediateNodeFinder, CBasedFixedWriter
 class CBasedEqnWriterFixedNetwork(object):
     def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None, output_exec_filename=None):
 
-        self.dt_float = 0.01e-3
+        network.finalise()
+
+        self.dt_float = 0.02e-3
+        self.dt_float = 0.005e-3
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
 
 
@@ -1984,6 +2035,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
         #ENCODING OF TIME:
         time_upscale = set([pop.component._time_node.annotations['fixed-point-format'].upscale for pop in network.populations])
+        print time_upscale
         assert len(time_upscale) == 1
         self.time_upscale = list(time_upscale)[0]
 
@@ -2001,7 +2053,7 @@ class CBasedEqnWriterFixedNetwork(object):
             evt_src_to_evtportconns[key].append(evt_conn)
 
 
-        t_stop = 1.0
+        t_stop = 0.3 #1.0 / 3.0
         n_steps = t_stop / self.dt_float
         std_variables = {
             'nsim_steps' : n_steps,
@@ -2153,7 +2205,7 @@ class CBasedEqnWriterFixedNetwork(object):
                                         additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/"), os.path.expanduser("~/hw/BlueVec/lib/")],
                                         libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl', 'bv_proxy'],
                                         #compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x -O2   -g  ' + (CPPFLAGS if CPPFLAGS else '') ]
-                                        compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O3 -g  ' + (CPPFLAGS if CPPFLAGS else '') ]
+                                        compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O2 -g -D_GLIBCXX_DEBUG ' + (CPPFLAGS if CPPFLAGS else '') ]
                                     ),
                                     #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x -O3  -g -march=native ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                     run=run,
@@ -2163,7 +2215,7 @@ class CBasedEqnWriterFixedNetwork(object):
         self.results = None
         return
 
-
+#-D_GLIBCXX_DEBUG
 
 
 

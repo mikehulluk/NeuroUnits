@@ -22,12 +22,18 @@ import rb_input_model
 import cPickle as pickle
 
 from mreorg import PM
+import hashlib
 
+
+src_string = open('dIN_model.py').read() + open('mn_model.py').read()
+md5_str = hashlib.md5(src_string).hexdigest()
 
 
 use_cache=True
 #use_cache=False
-cache_file = '.din_model_cache'
+cache_file = 'caches/.din_model_cache_%s'%(md5_str)
+if not os.path.exists('caches/'):
+    os.makedirs('caches')
 # Delete the cache-file if we are not using it:
 if not use_cache:
     if os.path.exists(cache_file):
@@ -134,12 +140,12 @@ lhs_subpops = [pop_LHS_MN, pop_LHS_RB, pop_LHS_aIN, pop_LHS_cIN, pop_LHS_dla, po
 
 
 # Drive to LHS RBS:
-rb_drivers = Population('RBInput', component = RB_input, size=20, autotag=['RBINPUT'])
+rb_drivers = Population('RBInput', component = RB_input, size=10, autotag=['RBINPUT'])
 network.add(rb_drivers)
 network.add(
         EventPortConnector(
             rb_drivers, 
-            pop_LHS_RB.get_subpopulation(start_index=0,end_index=10,subname='triggered',autotag=[]),
+            pop_LHS_RB.get_subpopulation(start_index=0,end_index=1,subname='triggered',autotag=[]),
             src_port_name='spike', 
             dst_port_name='recv_ampa_spike', 
             name='RBDrives' , 
@@ -153,37 +159,54 @@ network.add(
 
 
 # Work out the electrical coupling indices:
+f = pylab.figure()
+ax = f.add_subplot(111)
 gap_junction_indices =   []
-for dIN_pop in [pop_LHS_dIN, pop_RHS_dIN]:
+for dIN_pop in [(pop_LHS_dIN), (pop_RHS_dIN)]:
+    print dIN_pop
     for i in range(dIN_pop.start_index, dIN_pop.end_index):
         for j in range(dIN_pop.start_index, i):
+            #print i
             i_x = cell_positions['dINs'][i]
             j_x = cell_positions['dINs'][j]
             if abs(i_x -j_x) > 200:
                 continue
-            if random.uniform(0,1) > 0.2:
+            if random.uniform(0,1) > 0.4:
                 continue
             gap_junction_indices.append( (i,j) )
 
+            ax.plot([i],[j], 'x')
+            ax.plot([j],[i], 'x')
+
+#pylab.show()
+#sys.exit(0)
+
 
 network.add(
-    ElectricalSynapseProjection( src_population =  dINs, dst_population =  dINs, connector=ExplicitIndicesLoop(gap_junction_indices), strength_ohm = 300e6, injected_port_name = 'i_injected', name='E_Couple')
+    ElectricalSynapseProjection( src_population =  dINs, dst_population =  dINs, connector=ExplicitIndicesLoop(gap_junction_indices), strength_S = 0.2e-9 * 10 * 10 * 10, injected_port_name = 'i_injected', name='E_Couple')
 )
 
 
+#for sp in rhs_subpops + lhs_subpops:
+#    network.record_traces(sp , '*' )
+
+
 # Recording:
-network.record_traces(dINs, 'V_noisy' )
-network.record_traces(dINs, 'noise' )
-network.record_traces(dINs, 'V_vnoisy' )
-network.record_traces( rhs_subpops+lhs_subpops, 'V' )
-network.record_traces(pop_LHS_RB , 'syn_ampa_open' )
-network.record_traces(pop_LHS_RB , 'syn_ampa_i' )
+#network.record_traces( rhs_subpops+lhs_subpops, 'V' )
+#network.record_traces(pop_LHS_RB , 'syn_ampa_open' )
+#network.record_traces(pop_LHS_RB , 'syn_ampa_i' )
+
+network.record_traces([pop_LHS_dIN, pop_RHS_dIN], 'V' )
+network.record_traces([pop_LHS_dIN, pop_RHS_dIN], 'i_injected' )
+#network.record_traces([dINs, 'i_injected' )
+
+
 #network.record_traces(pop_LHS_RB , 'syn_ampa_g' )
 network.record_input_events( rhs_subpops+lhs_subpops , 'recv_nmda_spike' )
 network.record_output_events( rhs_subpops+lhs_subpops + [rb_drivers] , 'spike' )
 
 
-network.finalise()
+#network.finalise()
 
 
 ### Generate for NIOS:
@@ -195,34 +218,38 @@ results = HDF5SimulationResultFile("output.hd5")
 
 
 filters_traces = [
-    "ALL{noise}",
-    "ALL{V_noisy}",
-    "ALL{V_vnoisy}",
+   # "ALL{noise}",
+   # "ALL{V_noisy}",
+   # "ALL{V_vnoisy}",
+   "ALL{V,dIN,LHS}",
+   "ALL{V,dIN,RHS}",
+   "ALL{i_injected,dIN,LHS}",
+   "ALL{i_injected,dIN,RHS}",
 
-    "ALL{V,RB,LHS}",
-    "ALL{V,RB,RHS}",
+   # "ALL{V,RB,LHS}",
+   # "ALL{V,RB,RHS}",
 
-    "ALL{V,dla,LHS}",
-    "ALL{V,dla,RHS}",
+   # "ALL{V,dla,LHS}",
+   # "ALL{V,dla,RHS}",
 
-    "ALL{V,dlc,LHS}",
-    "ALL{V,dlc,RHS}",
+   # "ALL{V,dlc,LHS}",
+   # "ALL{V,dlc,RHS}",
 
-    "ALL{V,dIN,LHS}",
-    "ALL{V,dIN,RHS}",
+   #"ALL{V,dIN,LHS}",
+   #"ALL{V,dIN,RHS}",
 
-    "ALL{V,aIN,LHS}",
-    "ALL{V,aIN,RHS}",
+   # "ALL{V,aIN,LHS}",
+   # "ALL{V,aIN,RHS}",
 
-    "ALL{V,cIN,LHS}",
-    "ALL{V,cIN,RHS}",
+   # "ALL{V,cIN,LHS}",
+   # "ALL{V,cIN,RHS}",
 
-    "ALL{V,MN,LHS}",
-    "ALL{V,MN,RHS}",
+   # "ALL{V,MN,LHS}",
+   # "ALL{V,MN,RHS}",
 
-    "ALL{syn_ampa_open,RB,LHS}",
-    "ALL{syn_ampa_g,RB,LHS}",
-    "ALL{syn_ampa_i,RB,LHS}",
+   # "ALL{syn_ampa_open,RB,LHS}",
+   # "ALL{syn_ampa_g,RB,LHS}",
+   # "ALL{syn_ampa_i,RB,LHS}",
 
 
         ]
@@ -258,43 +285,8 @@ sim_start = 0
 sim_end = 1.0
 
 
-results.plot(trace_filters=filters_traces, spike_filters=filters_spikes, xlim = (0,1) )
-
-#for filt in filters_traces:
-#    pylab.figure(figsize=(20,16))
-#    trs = results.filter_traces(filt)
-#    print 'Plotting:', filt, len(trs)
-#    for res in trs:
-#        pylab.plot(res.raw_data.time_pts, res.raw_data.data_pts, label=','.join(res.tags), ms='x'  )
-#    pylab.xlim(sim_start, sim_end)
-#    pylab.ylabel(filt)
-#    #pylab.legend()
-#    PM.save_active_figures()
-#
-#
-#for filt in filters_spikes:
-#    pylab.figure(figsize=(20,16))
-#    trs = results.filter_events(filt)
-#    print 'Plotting:', filt, len(trs)
-#    for i,res in enumerate(trs):
-#        evt_times = res.evt_times
-#        pylab.plot( evt_times, i+ 0*evt_times, 'x', label=','.join(res.tags))
-#    pylab.xlim(sim_start, sim_end)
-#    pylab.ylabel(filt)
-#    #pylab.legend()
-#    PM.save_active_figures()
-
-
-pylab.show()
-
-
-
-
-
-
-
-
-
+#results.plot(trace_filters=filters_traces, spike_filters=filters_spikes, xlim = (0,1) )
+results.plot(trace_filters=filters_traces, spike_filters=None, xlim = (0,1) )
 
 
 

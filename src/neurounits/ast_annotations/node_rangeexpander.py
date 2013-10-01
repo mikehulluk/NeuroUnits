@@ -3,16 +3,19 @@
 #assert False, 'To remove!'
 
 from neurounits.visitors import ASTActionerDefault
+from neurounits.visitors import SingleVisitPredicate
 from neurounits.ast_annotations.common import _NodeRangeFloat
 
 
 class RangeExpander(ASTActionerDefault):
 
     def __init__(self, ):
-        super(RangeExpander, self).__init__()
-        self.expand_by = 0.1
+        super(RangeExpander, self).__init__( action_predicates=[SingleVisitPredicate()])
+        self.expand_by = 0.25
     def ActionNode(self,o):
+        #print o
         if not 'node-value-range' in o.annotations:
+            #print 'Skipping'
             return
 
         if o.annotations['node-value-range'].min == o.annotations['node-value-range'] .max:
@@ -34,9 +37,9 @@ class RangeExpander(ASTActionerDefault):
             min_ = min_,
             max_ = max_
         )
-        print o, o.annotations
-        print 'Min:',  o.annotations['node-value-range'].min
-        print 'Max:',  o.annotations['node-value-range'].max
+        #print o, o.annotations
+        #print 'Min:',  o.annotations['node-value-range'].min
+        #print 'Max:',  o.annotations['node-value-range'].max
         assert (o.annotations['node-value-range'].min < o.annotations['node-value-range'].max) or ( o.annotations['node-value-range'].min == o.annotations['node-value-range'].max == 0)
 
 

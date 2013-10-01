@@ -18,7 +18,10 @@ def get_dIN(nbits):
         iInj_local = [50pA] if [ 75ms < t < 85ms] else [0pA] * 0
         Cap = 10 pF
 
-        V' = (1/Cap) * (iInj_local + i_injected + iLk + iKs + iKf +iNa + iCa + syn_nmda_i + syn_ampa_i + syn_inhib_i)
+        #V' = (1/Cap) * (iInj_local + i_injected + iLk + iKs + iKf +iNa + iCa + syn_nmda_i + syn_ampa_i + syn_inhib_i)
+        V' = (1/Cap) * ( ( iLk + iInj_local + iKs + iKf +iNa + iCa  + syn_nmda_i + syn_ampa_i + syn_inhib_i +  i_injected) )
+
+        k = i_injected
 
         V_noisy = V + ~ar_model(0.3) * {2mV}
 
@@ -28,7 +31,7 @@ def get_dIN(nbits):
 
         ClipMax(x, x_max) = [x] if [x<x_max] else [x_max]
 
-        syn_sat = 30
+        syn_sat = 50
         # NMDA
         # =======================
         syn_nmda_A_tau = 4ms
@@ -39,7 +42,7 @@ def get_dIN(nbits):
         # Normalisation:
         nmda_tc_max =  ln( syn_nmda_A_tau / syn_nmda_B_tau) * (syn_nmda_A_tau * syn_nmda_B_tau) / (syn_nmda_A_tau - syn_nmda_B_tau)
         nmda_val_max = (  exp( -nmda_tc_max / syn_ampa_B_tau) -  exp( -nmda_tc_max / syn_ampa_A_tau)  )
-        syn_nmda_g = 300pS
+        syn_nmda_g = 1000pS
         syn_nmda_erev = 0mV
         v_scale = V * {-0.08mV-1}
         nmda_vdep =  1./(1. + 0.05 * exp(v_scale) )
@@ -64,7 +67,7 @@ def get_dIN(nbits):
         # Normalisation:
         ampa_tc_max =  ln( syn_ampa_A_tau / syn_ampa_B_tau) * (syn_ampa_A_tau * syn_ampa_B_tau) / (syn_ampa_A_tau - syn_ampa_B_tau)
         ampa_val_max =  (exp( -ampa_tc_max / syn_ampa_B_tau) -  exp( -ampa_tc_max / syn_ampa_A_tau) )
-        syn_ampa_g = 500pS
+        syn_ampa_g = 1000pS
         syn_ampa_erev = 0mV
         on recv_ampa_spike(weight:(S)){
             #syn_ampa_A = ClipMax( x=syn_ampa_A + 1.0, x_max=syn_sat )
@@ -86,7 +89,7 @@ def get_dIN(nbits):
         # Normalisation:
         inhib_tc_max =  ln( syn_inhib_A_tau / syn_inhib_B_tau) * (syn_inhib_A_tau * syn_inhib_B_tau) / (syn_inhib_A_tau - syn_inhib_B_tau)
         inhib_val_max =  ( exp( -inhib_tc_max / syn_inhib_B_tau) -  exp( -inhib_tc_max / syn_inhib_A_tau)  )
-        syn_inhib_g = 300pS
+        syn_inhib_g = 0nS 
         syn_inhib_erev = -60mV
         on recv_inh_spike(weight:(S)){
             syn_nmda_A = ClipMax( x=syn_nmda_A + (weight/{1nS}) , x_max=syn_sat )
@@ -191,23 +194,23 @@ def get_dIN(nbits):
 
 
 
-        on ( V crosses (rising) 0V ) {
-            emit spike()
-        };
+        #on ( V crosses (rising) 0V ) {
+        #    emit spike()
+        #};
 
-        on ( V crosses (falling) 0V ) {
-            emit falling_spike()
-        };
+        #on ( V crosses (falling) 0V ) {
+        #    emit falling_spike()
+        #};
 
 
         regime sub{
-            on (V > 10mV) {
+            on (V > 0mV) {
                 emit spike()
                 transition_to super
             };
         }
         regime super{
-           on (V < 0mV) {
+           on (V < -10mV) {
             transition_to sub
             };
         }
@@ -244,19 +247,19 @@ def get_dIN(nbits):
 
     var_annots_ranges = {
         't'             : NodeRange(min="0ms", max = "1.1s"),
-        'i_injected'    : NodeRange(min="-500nA", max = "500nA"),
+        'i_injected'    : NodeRange(min="-500pA", max = "500pA"),
         'V'             : NodeRange(min="-100mV", max = "60mV"),
-        'ca_m'          : NodeRange(min="-0.01", max = "1.5"),
-        'kf_n'          : NodeRange(min="-0.01", max = "1.5"),
-        'ks_n'          : NodeRange(min="-0.01", max = "1.5"),
-        'na_h'          : NodeRange(min="-0.01", max = "1.5"),
-        'na_m'          : NodeRange(min="-0.01", max = "1.5"),
-        'syn_nmda_A'    : NodeRange(min='0', max ='500'),
-        'syn_nmda_B'    : NodeRange(min='0', max ='500'),
-        'syn_ampa_A'    : NodeRange(min='0', max ='500'),
-        'syn_ampa_B'    : NodeRange(min='0', max ='500'),
-        'syn_inhib_A'    : NodeRange(min='0', max ='500'),
-        'syn_inhib_B'    : NodeRange(min='0', max ='500'),
+        'ca_m'          : NodeRange(min="-0.01", max = "1.3"),
+        'kf_n'          : NodeRange(min="-0.01", max = "1.3"),
+        'ks_n'          : NodeRange(min="-0.01", max = "1.3"),
+        'na_h'          : NodeRange(min="-0.01", max = "1.3"),
+        'na_m'          : NodeRange(min="-0.01", max = "1.3"),
+        'syn_nmda_A'    : NodeRange(min='0', max ='50'),
+        'syn_nmda_B'    : NodeRange(min='0', max ='50'),
+        'syn_ampa_A'    : NodeRange(min='0', max ='50'),
+        'syn_ampa_B'    : NodeRange(min='0', max ='50'),
+        'syn_inhib_A'    : NodeRange(min='0', max ='50'),
+        'syn_inhib_B'    : NodeRange(min='0', max ='50'),
         'recv_ampa_spike::weight': NodeRange(min='0nS',max='10nS'),
         'recv_nmda_spike::weight': NodeRange(min='0nS',max='10nS'),
         'recv_inh_spike::weight': NodeRange(min='0nS',max='10nS'),
@@ -286,13 +289,8 @@ def get_dIN(nbits):
     from neurounits.visitors.common.equation_optimisations import OptimiseEquations
     OptimiseEquations(comp)
 
-
-
-    #comp.annotate_ast( NodeRangeAnnotator(var_annots_ranges) )
-    RangeExpander().visit(comp)
-
-    # New range optimiser:
     comp.annotate_ast( NodeRangeByOptimiser(var_annots_ranges))
+    RangeExpander().visit(comp)
 
 
     comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )

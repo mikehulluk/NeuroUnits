@@ -88,11 +88,17 @@ class Projection(object):
 
 
 class ElectricalSynapseProjection(Projection):
-    def __init__(self,  strength_ohm, injected_port_name, connector, **kwargs):
+    def __init__(self,  strength_S, injected_port_name, connector, **kwargs):
         super(ElectricalSynapseProjection, self).__init__(**kwargs)
         self.connector = connector
-        self.strength_ohm = strength_ohm
         self.injected_port_name = injected_port_name
+        
+        self.strength_S = strength_S
+        self.strength_S_upscale = -21
+        assert strength_S / (2**self.strength_S_upscale) < 1
+
+        from neurounits.ast_annotations import NodeFixedPointFormatAnnotator
+        self.strength_S_int = NodeFixedPointFormatAnnotator.encode_value_cls(self.strength_S, self.strength_S_upscale, 24)
 
 
 
@@ -175,6 +181,9 @@ class Network(object):
 
 
     def record_traces(self, subpopulations, terminal_node_name):
+
+
+
         if isinstance(subpopulations, (Population,SubPopulation)):
             subpopulations = [subpopulations]
         for subpop in subpopulations:
@@ -194,10 +203,19 @@ class Network(object):
 
 
 
-    def _record_trace_for_population(self, subpop, terminal_node_name):
+    def _record_trace_for_population(self, subpop, _terminal_node_name):
+        from neurounits import ast
+        terminal_node_names = None
+        if _terminal_node_name == '*':
+            terminal_node_names = [ t.symbol for t in subpop.component.terminal_symbols if not isinstance(t, (ast.SymbolicConstant, ast.TimeVariable)) ]
+        else:
+            terminal_node_names = [_terminal_node_name]
+
         population = subpop.population
-        terminal_node = population.component.get_terminal_obj(terminal_node_name)
-        self._record_traces[(population, terminal_node)].append( (subpop.indices, subpop.autotag) )
+
+        for terminal_node_name in terminal_node_names:
+            terminal_node = population.component.get_terminal_obj(terminal_node_name)
+            self._record_traces[(population, terminal_node)].append( (subpop.indices, subpop.autotag) )
 
     def _record_output_events_for_population(self, subpop, terminal_node_name):
         population = subpop.population

@@ -85,7 +85,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
 
         self.visit(o._time_node, **kwargs)
-        subnodes = itertools.chain(o.ordered_assignments_by_dependancies, o.timederivatives, o.functiondefs, o.symbolicconstants, o.transitions, o._event_port_connections, o.rt_graphs, o._interface_connectors)
+        subnodes = set(itertools.chain(o.ordered_assignments_by_dependancies, o.timederivatives, o.functiondefs, o.symbolicconstants, o.transitions, o._event_port_connections, o.rt_graphs, o._interface_connectors))
         for f in subnodes:
             self.visit(f, **kwargs)
 
