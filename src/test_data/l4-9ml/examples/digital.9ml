@@ -13,13 +13,13 @@ define_component sine_gen {
 from std.math import sin
 
     <=> OUTPUT vout:mV
-    <=> INPUT t:s
+    <=> TIME t:s
 
     vout = sin( t * 2 * std.math.pi / {1s} ) * {2V}
 }
 
 define_component clk_gen {
-    <=> INPUT t:s
+    <=> TIME t:s
 
     #t_last' = 0
     on(t > t_last + 50ms){

@@ -23,7 +23,7 @@ namespace spike_gen {
     define_component fixed_period {
         
         <=> PARAMETER t_period
-        <=> INPUT t:s
+        <=> TIME t:s
         
         initial {
             t_last = 0s
