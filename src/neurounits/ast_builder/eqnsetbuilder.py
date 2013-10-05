@@ -875,7 +875,7 @@ class AbstractBlockBuilder(object):
 
         # The object exists, but is not complete and needs some polishing:
         # #################################################################
-        self.post_construction_finalisation(self._astobject, io_data=io_data)
+        self.post_construction_finalisation(self._astobject, io_data=io_data, options=self.library_manager.options)
         self.library_manager = None
 
 
@@ -890,7 +890,7 @@ class AbstractBlockBuilder(object):
 
 
     @classmethod
-    def post_construction_finalisation(cls, ast_object, io_data):
+    def post_construction_finalisation(cls, ast_object, io_data, options):
         #from neurounits.visitors.common.plot_networkx import ActionerPlotNetworkX
         # ActionerPlotNetworkX(self._astobject)
 
@@ -902,7 +902,15 @@ class AbstractBlockBuilder(object):
 
         # 2. Setup the meta-data in each node from IO lines
         for io_data in io_data:
-            ast_object.get_terminal_obj(io_data.symbol).set_metadata(io_data)
+            print io_data.iotype
+            allow_missing = ( io_data.iotype==IOType.Input and options.allow_unused_suppliedvalue_declarations ) or \
+                            ( io_data.iotype==IOType.Parameter and options.allow_unused_parameter_declarations )
+
+            if allow_missing and not ast_object.has_terminal_obj(io_data.symbol):
+                continue
+
+            ast_object.get_terminal_obj(io_data.symbol).set_metadata(io_data.metadata)
+
 
         # 3. Sort out the connections between paramters for emit/recv events
 

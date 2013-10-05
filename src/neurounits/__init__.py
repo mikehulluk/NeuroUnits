@@ -63,6 +63,8 @@ from neurounits.locations import Locations
 
 from neurounits.ast import NineMLComponent
 
+from neurounits.librarymanager import LibraryManager
+
 Q1 = lambda o: NeuroUnitParser.QuantitySimple(o).as_quantities_quantity()
 Q2 = lambda o: NeuroUnitParser.QuantityExpr(o).as_quantities_quantity()
 

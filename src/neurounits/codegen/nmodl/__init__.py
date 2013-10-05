@@ -26,7 +26,7 @@
 # -------------------------------------------------------------------------------
 
 from neurounits.visitors import ASTActionerDefault
-from neurounits.io_types import IOType
+from neurounits.ast_builder.io_types import IOType
 from .section_writers import NeuronBlockWriter
 from .section_writers import NeuronInterfaceWriter
 
@@ -42,7 +42,7 @@ from .section_writers import OnEventWriter
 
 from .neuron_constants import NeuronSuppliedValues, NEURONMappings, MechanismType
 from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
-from neurounits.ast import ConstValue, InEquality, OnEvent, EqnTimeDerivativeByRegime, EqnAssignmentByRegime
+from neurounits.ast import ConstValue, InEquality, OnEvent, EqnTimeDerivativeByRegime, EqnAssignmentByRegime, NineMLComponent
 
 
 
@@ -166,36 +166,75 @@ class MODLBuildParameters(object):
         currents = {}
         supplied_values = {}
 
-        for io_info in [io_info for io_info in component.io_data if io_info.iotype in (IOType.Output, IOType.Input)]:
-            if not io_info.metadata or not 'mf' in io_info.metadata:
+
+        for obj in component.state_variables + component.assignedvalues:
+            print 'Output', obj
+            metadata = obj._metadata
+            print metadata
+            if not metadata or not 'mf' in metadata or not 'role' in metadata['mf']:
                 continue
-            role = io_info.metadata['mf'].get('role', None)
+            role = metadata['mf']['role']
 
-            if role:
+            if role == "TRANSMEMBRANECURRENT":
+                currents[obj] = NeuronMembraneCurrent( obj=obj,  symbol=obj.symbol)
+            else:
+                assert False, 'Unknown role: %s' % role
 
-                if not component.has_terminal_obj(io_info.symbol):
-                    continue
+        for obj in component.suppliedvalues:
+            print 'input', obj
+            metadata = obj._metadata
+            print metadata
+            if not metadata or not 'mf' in metadata or not 'role' in metadata['mf']:
+                continue
+            role = metadata['mf']['role']
 
-                obj = component.get_terminal_obj(io_info.symbol)
+            # Inputs (Supplied Values):
+            if role == "MEMBRANEVOLTAGE":
+                supplied_values[obj] = NeuronSuppliedValues.MembraneVoltage
+            elif role == "TIME":
+                supplied_values[obj] = NeuronSuppliedValues.Time
+            elif role == "TEMPERATURE":
+                supplied_values[obj] = NeuronSuppliedValues.Temperature
+            else:
+                assert False
 
-                # Outputs:
-                if role == "TRANSMEMBRANECURRENT":
-                    assert io_info.iotype== IOType.Output
 
-                    currents[obj] = NeuronMembraneCurrent( obj=obj,  symbol=obj.symbol)
 
-                # Inputs (Supplied Values):
-                elif role == "MEMBRANEVOLTAGE":
-                    assert io_info.iotype== IOType.Input
-                    supplied_values[obj] = NeuronSuppliedValues.MembraneVoltage
-                elif role == "TIME":
-                    assert io_info.iotype== IOType.Input
-                    supplied_values[obj] = NeuronSuppliedValues.Time
-                elif role == "TEMPERATURE":
-                    assert io_info.iotype== IOType.Input
-                    supplied_values[obj] = NeuronSuppliedValues.Temperature
-                else:
-                    assert False
+
+        #for io_info in [io_info for io_info in component.io_data if io_info.iotype in (IOType.Output, IOType.Input)]:
+        #    if not io_info.metadata or not 'mf' in io_info.metadata:
+        #        continue
+        #    role = io_info.metadata['mf'].get('role', None)
+
+        #    if role:
+
+        #        if not component.has_terminal_obj(io_info.symbol):
+        #            continue
+
+        #        obj = component.get_terminal_obj(io_info.symbol)
+
+        #        # Outputs:
+        #        if role == "TRANSMEMBRANECURRENT":
+        #            assert io_info.iotype== IOType.Output
+
+        #            currents[obj] = NeuronMembraneCurrent( obj=obj,  symbol=obj.symbol)
+
+        #        # Inputs (Supplied Values):
+        #        elif role == "MEMBRANEVOLTAGE":
+        #            assert io_info.iotype== IOType.Input
+        #            supplied_values[obj] = NeuronSuppliedValues.MembraneVoltage
+        #        elif role == "TIME":
+        #            assert io_info.iotype== IOType.Input
+        #            supplied_values[obj] = NeuronSuppliedValues.Time
+        #        elif role == "TEMPERATURE":
+        #            assert io_info.iotype== IOType.Input
+        #            supplied_values[obj] = NeuronSuppliedValues.Temperature
+        #        else:
+        #            assert False
+
+
+
+
 
         if not currents:
             raise ValueError('Mechanism does not expose any currents! %s'% component.name)
@@ -227,7 +266,7 @@ class MODLBuildParameters(object):
                     assert False
             else:
 
-                if isinstance(s,(EqnTimeDerivativeByRegime, EqnAssignmentByRegime, EqnSet, ConstValue)):
+                if isinstance(s,(EqnTimeDerivativeByRegime, EqnAssignmentByRegime, NineMLComponent, ConstValue)):
                     continue
                 if isinstance(s,(InEquality, OnEvent)):
                     continue
@@ -239,8 +278,8 @@ class MODLBuildParameters(object):
 
 
         # Event Handling:
-        assert False, 'Deprecated, needs rewrite'
-        zero_arg_events = [ev for ev in component.onevents if len(ev.parameters) == 0]
+        #assert False, 'Deprecated, needs rewrite'
+        zero_arg_events = [evport for evport in component.input_event_port_lut if len(evport.parameters) == 0]
         if len(zero_arg_events) == 0:
             event_function = None
         elif len(zero_arg_events) == 1:

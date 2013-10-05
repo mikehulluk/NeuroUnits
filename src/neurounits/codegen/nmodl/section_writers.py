@@ -28,12 +28,15 @@ from neurounits.visitors.bases.base_actioner_default_ignoremissing import ASTAct
 from neurounits.visitors.bases.base_actioner import SingleVisitPredicate
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 from neurounits.unit_errors import panic
-from neurounits.tools.nmodl.neuron_constants import NeuronSuppliedValues
+from neurounits.codegen.nmodl.neuron_constants import NeuronSuppliedValues
+#from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
+#from neurounits.visitors.common.ast_symbol_dependancies import VisitorSymbolDependance
 from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance_OLD
-from neurounits.ast.astobjects import AssignedVariable, StateVariable, \
-    SymbolicConstant, SuppliedValue, InEquality, Parameter
+from neurounits.ast.astobjects import AssignedVariable, StateVariable, SymbolicConstant, SuppliedValue, InEquality, Parameter
+from neurounits.ast import EqnAssignmentByRegime
 import string
 
+from mako.template import Template
 
 
 class ModFileString(object):
@@ -117,9 +120,9 @@ class AssignmentWriter(ASTActionerDefaultIgnoreMissing):
     def __init__(self, ):
         ASTActionerDefaultIgnoreMissing.__init__(self,action_predicates=[ SingleVisitPredicate() ])
 
-    def VisitEqnSet(self, eqnset, modfilecontents,  build_parameters, **kwargs):
+    def VisitNineMLComponent(self, eqnset, modfilecontents,  build_parameters, **kwargs):
         self.assigment_statements = {}
-        ASTActionerDefaultIgnoreMissing.VisitEqnSet(self,eqnset,modfilecontents=modfilecontents, build_parameters=build_parameters, **kwargs)
+        ASTActionerDefaultIgnoreMissing.VisitNineMLComponent(self,eqnset,modfilecontents=modfilecontents, build_parameters=build_parameters, **kwargs)
 
 
         # The order of writing out assignments is important. There are 3 phases,
@@ -130,49 +133,107 @@ class AssignmentWriter(ASTActionerDefaultIgnoreMissing):
         # At this stage, we assume that there are no assignments dependant on states depending on
         # further assignments. This can be resolved, but I have not done so here....
 
+        # Lets build a 'rates() function, as is done by NEURON hh.mod.
+        # We include all the 'state-variables and supplied values in the parameters:'
+        #print
+        symbol_map = {
+            'V':'v'
+        }
 
-        # 1. Initialisation:
-        # We perform all assignments in order:
-        assignments_ordered = VisitorFindDirectSymbolDependance_OLD.get_assignment_dependancy_ordering( eqnset)
-        for ass in assignments_ordered:
-            modfilecontents.section_INITIAL.append( self.assigment_statements[ass] )
-
-        # 2. Find which assignments are used by the states:
-
-        required_assignments = []
-        dependancies = VisitorFindDirectSymbolDependance_OLD()
-        dependancies.VisitEqnSet(eqnset)
-
-        for s in eqnset.timederivatives:
-            ass_deps = [d for d in dependancies.dependancies[s] if not isinstance(d, StateVariable) ]
-            required_assignments.extend( ass_deps)
+        args = list(eqnset.suppliedvalues) + list(eqnset.state_variables)
+        arg_symbols = [ symbol_map.get(a.symbol,a.symbol) for a in args] 
+        func_arg_string = ','.join( arg_symbols )
 
 
-        all_deps = []
-        for i in required_assignments:
-            a = VisitorFindDirectSymbolDependance_OLD().get_assignment_dependancy_ordering_recursive(eqnset=eqnset, ass=i)
-            all_deps.extend(a)
-            all_deps.append(i)
+        assignment_strs = []
 
-        for ass in unique(all_deps):
-            unexpected_deps = [d for d in dependancies.dependancies[ass] if not isinstance(d, (AssignedVariable, SymbolicConstant, SuppliedValue, Parameter)) ]
-            print unexpected_deps
-            print 'Unexpected:', [s.symbol for s in unexpected_deps]
+        # For some sanity checking, make sure that we have met all the dependancies of every line:
+        resolved_deps = set( args )
+        for ass in eqnset.ordered_assignments_by_dependancies:
+            print 'Writing assignment for: ', ass
+            # Check dependancies:
+            for dep in eqnset.getSymbolDependancicesDirect(ass, include_parameters=False):
+                #print '  - Checking deps:', dep, resolved_deps
+                assert dep in resolved_deps
+            if isinstance(ass, (EqnAssignmentByRegime) ):
+                resolved_deps.add(ass.lhs)
+            else:
+                resolved_deps.add(ass)
 
-            assert not unexpected_deps, "Resolution of dependances in Neurounits can't support assignments need by timeerivatives which are dependanct on state variables (%s)"%(unexpected_deps)
-            modfilecontents.section_BREAKPOINT_pre_solve.append( self.assigment_statements[ass] )
+            s = CStringWriter.Build(ass, build_parameters=build_parameters, expand_assignments=False)
+            assignment_strs.append(s)
+
+
+        modfilecontents.section_FUNCTIONS.append( Template(r"""
+PROCEDURE rates( ${func_arg_string} ) {
+%for ass in assignment_strs:
+    ${ass}
+%endfor
+}
+        """).render(
+            func_arg_string=func_arg_string ,
+            assignment_strs=assignment_strs
+            )
+        )
+
+
+        # And we need to call this function in two places, in the INITIAL block and in the DERIVATIVE BLOCK
+        func_call_string = 'rates(%s)' % ','.join( arg_symbols)
+        modfilecontents.section_INITIAL.insert( 0, func_call_string)
+
+        if eqnset.state_variables:
+            modfilecontents.section_DERIVATIVE.insert( 0, func_call_string)
+        modfilecontents.section_BREAKPOINT_pre_solve.insert( 0, func_call_string)
 
 
 
-        # 3. Find the dependancies of the current variables:
-        all_deps = []
-        for c in build_parameters.currents:
-            a = VisitorFindDirectSymbolDependance_OLD().get_assignment_dependancy_ordering_recursive(eqnset=eqnset, ass=c)
-            all_deps.extend(a)
-            all_deps.append(c)
 
-        for ass in unique(all_deps):
-            modfilecontents.section_BREAKPOINT_post_solve.append(self.assigment_statements[ass])
+
+        return
+
+
+
+
+        ## 1. Initialisation:
+        ## We perform all assignments in order:
+        ##assignments_ordered = VisitorFindDirectSymbolDependance_OLD.get_assignment_dependancy_ordering( eqnset)
+        #for ass in eqnset.ordered_assignments_by_dependancies: #assignments_ordered:
+        #    modfilecontents.section_INITIAL.append( self.assigment_statements[ass] )
+
+        ## 2. Find which assignments are used by the states:
+        #all_deps = []
+        #dependancies = VisitorFindDirectSymbolDependance()
+        ##dependancies.VisitNineMLComponent(eqnset)
+
+        #for s in eqnset.timederivatives:
+        #    all_deps.extend( dependancies.get_terminal_dependancies( s, expand_assignments=False) )
+
+
+        #all_deps = []
+        #for i in required_assignments:
+        #    a = VisitorFindDirectSymbolDependance_OLD().get_assignment_dependancy_ordering_recursive(eqnset=eqnset, ass=i)
+        #    all_deps.extend(a)
+        #    all_deps.append(i)
+
+        #for ass in unique(all_deps):
+        #    unexpected_deps = [d for d in dependancies.dependancies[ass] if not isinstance(d, (AssignedVariable, SymbolicConstant, SuppliedValue, Parameter)) ]
+        #    print unexpected_deps
+        #    print 'Unexpected:', [s.symbol for s in unexpected_deps]
+
+        #    assert not unexpected_deps, "Resolution of dependances in Neurounits can't support assignments need by timeerivatives which are dependant on state variables (%s)"%(unexpected_deps)
+        #    modfilecontents.section_BREAKPOINT_pre_solve.append( self.assigment_statements[ass] )
+
+
+
+        ## 3. Find the dependancies of the current variables:
+        #all_deps = []
+        #for c in build_parameters.currents:
+        #    a = VisitorFindDirectSymbolDependance_OLD().get_assignment_dependancy_ordering_recursive(eqnset=eqnset, ass=c)
+        #    all_deps.extend(a)
+        #    all_deps.append(c)
+
+        #for ass in unique(all_deps):
+        #    modfilecontents.section_BREAKPOINT_post_solve.append(self.assigment_statements[ass])
 
 
 
@@ -241,7 +302,7 @@ class OnEventWriter(ASTActionerDefaultIgnoreMissing):
 
 
 class NeuronBlockWriter(object):
-    def __init__(self,  eqnset,  build_parameters,  modfilecontents):
+    def __init__(self,  component,  build_parameters,  modfilecontents):
         from .neuron_constants import MechanismType#,NEURONMappings
         # Heading
         if build_parameters.mechanismtype == MechanismType.Point:

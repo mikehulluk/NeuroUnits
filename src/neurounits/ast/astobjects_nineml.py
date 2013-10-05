@@ -42,8 +42,10 @@ class EqnAssignmentByRegime(ASTObject):
         self.lhs = lhs
         self.rhs_map = rhs_map
 
-    def __repr__(self):
-        return '<Assignment to: %s>' % self.lhs.symbol
+    #def __repr__(self):
+    #    return '<Assignment to: %s>' % self.lhs.symbol
+    def summarise_node(self):
+        return 'Symbol: %s' %(self.lhs.symbol)
 
 
 class EqnTimeDerivativeByRegime(ASTObject):

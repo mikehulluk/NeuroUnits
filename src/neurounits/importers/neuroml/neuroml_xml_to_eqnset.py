@@ -93,6 +93,7 @@ def _build_gate_inftau(g, q10tempadjustmentName, neuroml_dt):
             assert len(g.time_courses) == 1 and len(g.steady_states) == 1
 
             eqns = []
+            initial_conditions = []
             state_name = g.name
             term_name_inf = "%s_%s"%(state_name, 'inf' )
             term_name_tau = "%s_%s"%(state_name, 'tau' )
@@ -112,8 +113,8 @@ def _build_gate_inftau(g, q10tempadjustmentName, neuroml_dt):
             eqns.extend([tc_eqn, ss_eqn,state_eqn, ])
 
             # Add the steddy-state
-            eqns.append("<=> INITIAL %s:%s"%(state_name,term_name_inf) )
-            return eqns
+            initial_conditions.append( (state_name,term_name_inf) )
+            return eqns, initial_conditions
 
 
 def _build_gate_alphabetainftau(g, q10tempadjustmentName, neuroml_dt):
@@ -170,9 +171,10 @@ def _build_gate_alphabetainftau(g, q10tempadjustmentName, neuroml_dt):
 
         # Set the initial value of the state-variable to be the same
         # as the steady-state value:
-        initial_cond = "<=> INITIAL %s:%s" % (state_name,term_name_inf)
+        #initial_cond = "<=> INITIAL %s:%s" % (state_name,term_name_inf)
 
-        return [ e1,e2,tc_eqn,ss_eqn, state_eqn, initial_cond]
+        return [ e1,e2,tc_eqn,ss_eqn, state_eqn], [(state_name,term_name_inf), ]
+        #initial_cond]
 
 
 
@@ -231,6 +233,7 @@ def build_eqnset( chlmlinfo, eqnsetname=None ):
 
 
     eqns = []
+    initial_conditions = []
 
     # Build the Q10 Info:
     q10gateadjustments, q10_eqns = build_gate_q10_settings_dict(chlmlinfo)
@@ -257,13 +260,15 @@ def build_eqnset( chlmlinfo, eqnsetname=None ):
 
         # Gate with alpha/beta rate variables specified:
         if g.transitions:
-            gate_eqns = _build_gate_alphabetainftau(g=g, q10tempadjustmentName=q10tempadjustmentName, neuroml_dt=neuroml_dt)
+            gate_eqns, _initial_conditions = _build_gate_alphabetainftau(g=g, q10tempadjustmentName=q10tempadjustmentName, neuroml_dt=neuroml_dt)
             eqns.extend(gate_eqns)
+            initial_conditions.extend( _initial_conditions )
 
         # Gate specified as an inf-tau value:
         elif len(g.time_courses) == 1 and len(g.steady_states) == 1:
-            gate_eqns = _build_gate_inftau(g=g, q10tempadjustmentName=q10tempadjustmentName, neuroml_dt=neuroml_dt)
+            gate_eqns, _initial_conditions = _build_gate_inftau(g=g, q10tempadjustmentName=q10tempadjustmentName, neuroml_dt=neuroml_dt)
             eqns.extend(gate_eqns)
+            initial_conditions.extend( _initial_conditions )
 
         else:
             raise NeuroUnitsImportNeuroMLNotImplementedException('Non-Standard Gate/Transtions')
@@ -306,12 +311,27 @@ def build_eqnset( chlmlinfo, eqnsetname=None ):
         from std.math import fabs """
 
 
+    print initial_conditions
+
+    initial_conditions_defaults = {
+            'm_inf': 0.0,
+            'h_inf': 0.0,
+            }
+
+    initial_blk = """
+        initial {
+            %s
+        }
+    """ % "\n\t\t".join( ["%s=%s"%(ic[0],initial_conditions_defaults.get(ic[1],ic[1]) ) for ic in initial_conditions] )
+
+
     neuroEqn = """
-    eqnset %s{
+    define_component %s{
         %s
         %s
         %s
-    }"""%( eqnsetname, import_string, "\n\t\t".join(eqns), io_string  )
+        %s
+    }"""%( eqnsetname, import_string, "\n\t\t".join(eqns), initial_blk, io_string  )
 
 
     neuroEqn = "\n".join( [l for l in neuroEqn.split("\n") if l.strip() ] )
@@ -319,7 +339,7 @@ def build_eqnset( chlmlinfo, eqnsetname=None ):
     options = NeuroUnitParserOptions(
                 allow_unused_parameter_declarations=True,
                 allow_unused_suppliedvalue_declarations=True)
-    eqnset = NeuroUnitParser.NineMLComponent(text=neuroEqn, options=options  )
+    eqnset = NeuroUnitParser.Parse9MLFile(text=neuroEqn, options=options  )
 
 
     default_params = {

@@ -420,9 +420,9 @@ class NineMLComponent(Block):
 
 
     # These should be tidied up:
-    def getSymbolDependancicesDirect(self, sym, include_constants=False):
+    def getSymbolDependancicesDirect(self, sym, include_constants=False, include_parameters=True):
         from neurounits.visitors.common.ast_symbol_dependancies_new import VisitorSymbolDependance
-        return VisitorSymbolDependance(self).get_terminal_dependancies(sym, expand_assignments=False)
+        return VisitorSymbolDependance(self).get_terminal_dependancies(sym, expand_assignments=False,include_parameters=include_parameters)
 
     def getSymbolDependancicesIndirect(self, sym,include_constants=False, include_ass_in_output=False):
         from neurounits.visitors.common.ast_symbol_dependancies_new import VisitorSymbolDependance
