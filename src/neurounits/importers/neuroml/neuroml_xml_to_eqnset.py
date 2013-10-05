@@ -192,12 +192,12 @@ def _build_gate_alphabetainftau(g, q10tempadjustmentName, neuroml_dt):
 
 
 
-def build_eqnset( chlmlinfo, eqnsetname=None ):
+def build_component( chlmlinfo, componentname=None ):
 
     assert type(chlmlinfo) == ChannelMLInfo
 
-    if not eqnsetname:
-        eqnsetname = chlmlinfo.name
+    if not componentname:
+        componentname = chlmlinfo.name
 
     unit_mode = {
                 'Physiological Units': NeuroMLUnitsMode.Physiological,
@@ -331,7 +331,7 @@ def build_eqnset( chlmlinfo, eqnsetname=None ):
         %s
         %s
         %s
-    }"""%( eqnsetname, import_string, "\n\t\t".join(eqns), initial_blk, io_string  )
+    }"""%( componentname, import_string, "\n\t\t".join(eqns), initial_blk, io_string  )
 
 
     neuroEqn = "\n".join( [l for l in neuroEqn.split("\n") if l.strip() ] )

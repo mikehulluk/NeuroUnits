@@ -27,7 +27,7 @@
 # -------------------------------------------------------------------------------
 
 from neurounits.importers.neuroml.neuroml_xml_data import _parse_channelml_file
-from neurounits.importers.neuroml.neuroml_xml_to_eqnset import build_eqnset
+from neurounits.importers.neuroml.neuroml_xml_to_eqnset import build_component
 
 from .errors import NeuroMLFileContainsNoChannels
 from .errors import NeuroMLFileContainsMultipleChannels
@@ -51,7 +51,7 @@ class ChannelMLReader:
     @classmethod
     def BuildEqnset(cls, filename):
         chl_info = cls.LoadChlRaw(filename)
-        (component, default_params) = build_eqnset(chl_info)
+        (component, default_params) = build_component(chl_info)
         return (component, chl_info, default_params)
 
 
