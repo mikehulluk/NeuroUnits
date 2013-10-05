@@ -278,7 +278,7 @@ class Scope(object):
 class BuildData(object):
 
     def __init__(self):
-        self.eqnset_name = None
+        self.component_name = None
 
         self.timederivatives = SingleSetDict()
         self.funcdefs = SingleSetDict()
@@ -307,7 +307,7 @@ class AbstractBlockBuilder(object):
 
         self.library_manager = library_manager
         self.builddata = BuildData()
-        self.builddata.eqnset_name = name
+        self.builddata.component_name = name
         self.block_type = block_type
 
         # Scoping:
@@ -319,7 +319,7 @@ class AbstractBlockBuilder(object):
         self._current_rt_graph = self._all_rt_graphs[None]
         self._current_regime = self._current_rt_graph.get_or_create_regime(None)
 
-        self.builddata.eqnset_name = name.strip()
+        self.builddata.component_name = name.strip()
 
         #CompoundPort Data:
         self._interface_data = []
@@ -868,7 +868,7 @@ class AbstractBlockBuilder(object):
                     library_manager=self.library_manager,
                     builder=self,
                     builddata=self.builddata,
-                    name=self.builddata.eqnset_name
+                    name=self.builddata.component_name
                 )
 
 

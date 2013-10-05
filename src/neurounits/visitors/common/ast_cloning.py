@@ -81,7 +81,7 @@ class ASTClone(object):
         builddata.funcdefs = o._function_defs.copy()
         builddata.timederivatives = o._eqn_time_derivatives.copy()
         builddata.symbolicconstants = o._symbolicconstants.copy()
-        builddata.eqnset_name = o.name
+        builddata.component_name = o.name
         builddata.time_node = o._time_node
 
         new = ast.NineMLComponent(
