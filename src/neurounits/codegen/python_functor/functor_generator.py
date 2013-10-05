@@ -354,6 +354,12 @@ class FunctorGenerator(ASTVisitorBase):
             v = state_data.suppliedvalues[o.symbol]
             return v
         return eFunc
+    
+    def VisitTimeVariable(self, o, **kwargs):
+        def eFunc(state_data, **kw):
+            v = state_data.suppliedvalues[o.symbol]
+            return v
+        return eFunc
 
 
     def VisitAssignedVariable(self, o, **kwargs):

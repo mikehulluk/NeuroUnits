@@ -42,13 +42,13 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
 
     symbols_not_to_rename = []
     if auto_remap_time:
-        time_node = ast.SuppliedValue(symbol='t')
+        time_node = ast.TimeVariable(symbol='t')
         symbols_not_to_rename.append(time_node)
 
         for component in instantiate.values():
 
-            if component.has_terminal_obj('t'):
-                ReplaceNode.replace_and_check(srcObj=component.get_terminal_obj('t'), dstObj=time_node, root=component)
+            if component._time_node:
+                ReplaceNode.replace_and_check(srcObj=component._time_node, dstObj=time_node, root=component)
 
 
     # 2. Rename all the internal names of the objects:
@@ -102,8 +102,12 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
         for rt_graph in c.rt_graphs:
             builddata.rt_graphs.append(rt_graph)
 
-        builddata.transitions_triggers.extend(c._transitions_conditiontriggers)
+        builddata.transitions_conditiontriggers.extend(c._transitions_conditiontriggers)
+        builddata.transitions_crossestriggers.extend(c._transitions_crossestriggers)
         builddata.transitions_events.extend(c._transitions_events)
+
+    builddata.time_node = time_node
+
 
     # 4. Build the object:
     comp = ast.NineMLComponent(
@@ -133,7 +137,7 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
         event_connections = []
 
 
-    # Resolve the multiconnections, which involves adding pairs to either the 
+    # Resolve the multiconnections, which involves adding pairs to either the
     # analog or event connection lists:
     if multiconnections:
         for m in multiconnections:
@@ -145,9 +149,9 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
             # sort out the direction:
             if  (conn1.get_direction()=='in' and conn2.get_direction()=='out'):
                 conn1,conn2 = conn2, conn1
-            assert (conn1.get_direction()=='out' and conn2.get_direction()=='in') 
+            assert (conn1.get_direction()=='out' and conn2.get_direction()=='in')
             interfaces = list(set([conn1.interface_def, conn2.interface_def] ) )
-            
+
             assert len(interfaces) == 1
             interface = interfaces[0]
 
@@ -239,7 +243,7 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
             dst_obj = comp.get_terminal_obj(dst)
         else:
             assert dst in comp.all_terminal_objs(), 'Dest is not a terminal_symbols: %s' % dst
-            dst_obj = dst        
+            dst_obj = dst
         del src, dst
 
         # Sanity Checking:

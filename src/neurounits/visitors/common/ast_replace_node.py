@@ -88,8 +88,8 @@ class ReplaceNode(ASTVisitorBase):
         return o
 
 
-    def visit(self, o, **kwargs):
-        return o.accept_visitor(self, **kwargs)
+    #def visit(self, o, **kwargs):
+    #    return o.accept_visitor(self, **kwargs)
 
 
 
@@ -159,6 +159,7 @@ class ReplaceNode(ASTVisitorBase):
         o._interface_connectors = self._replace_within_new_lut(o._interface_connectors)
 
         o._event_port_connections = self._replace_within_new_lut(o._event_port_connections)
+        o._time_node = self.replace_or_visit(o._time_node)
 
         return o
 

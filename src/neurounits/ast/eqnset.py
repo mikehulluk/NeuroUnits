@@ -785,7 +785,7 @@ class NineMLComponent(Block):
 
         # Remap all the nodes:
         for new_node in old_to_new_dict.values():
-            #print 'Replacing nodes on:', new_node
+            print 'Replacing nodes on:', new_node
 
             node_mapping_dict = mapping_dict.copy()
             if new_node in node_mapping_dict:

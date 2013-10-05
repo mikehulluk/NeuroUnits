@@ -72,8 +72,13 @@ class ASTClone(object):
     def VisitNineMLComponent(self, o, **kwargs):
         builddata = BuildDataDummy()
 
-        builddata.transitions_triggers = o._transitions_conditiontriggers.copy()
+
+        builddata.transitions_conditiontriggers = o._transitions_conditiontriggers.copy()
+        builddata.transitions_crossestriggers = o._transitions_crossestriggers.copy()
         builddata.transitions_events =  o._transitions_events.copy()
+
+        #builddata.transitions_triggers = o._transitions_conditiontriggers.copy()
+        #builddata.transitions_events =  o._transitions_events.copy()
         builddata.rt_graphs = o.rt_graphs.copy()
         
         # Top-level objects:
@@ -239,6 +244,9 @@ class ASTClone(object):
         new = ast.SuppliedValue(symbol = o.symbol)
         return copy_std(o, new, )
 
+    def VisitTimeVariable(self, o, **kwargs):
+        new = ast.TimeVariable(symbol = o.symbol)
+        return copy_std(o, new, )
 
 
     def VisitAddOp(self, o, **kwargs):

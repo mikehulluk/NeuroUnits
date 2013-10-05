@@ -61,7 +61,7 @@ test_text = """
 
         <=> OUTPUT i:(A)
         <=> PARAMETER i_amp:(A), t_start
-        <=> INPUT t:(ms)
+        <=> TIME t:(ms)
     }
 
     define_component simple_syn{
@@ -127,7 +127,7 @@ test_text = """
         <=> PARAMETER t_on, t_off
         <=> OUTPUT i:(A)
         <=> PARAMETER i_amp:(A)
-        <=> INPUT t:(ms)
+        <=> TIME t:(ms)
 
         }
 
@@ -171,7 +171,7 @@ test_text = """
             regime std
             }
 
-        <=> INPUT t:(ms)
+        <=> TIME t:(ms)
     }
 
 
@@ -183,7 +183,7 @@ test_text = """
         i = g * (e_syn-V_post)
 
 
-        on myevent(amp:{S}){
+        on myevent(amp:(S)){
             A = A + 1 + amp/{1mS}
             B = B + 1 + amp/{1mS}
         }

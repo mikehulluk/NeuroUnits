@@ -49,7 +49,7 @@ def test3():
 
             <=> OUTPUT i:(A)
             <=> PARAMETER i_amp:(A), t_start
-            <=> INPUT t:(ms)
+            <=> TIME t:(ms)
         }
 
         define_component simple_syn{
@@ -118,7 +118,7 @@ def test3():
             <=> PARAMETER t_on, t_off
             <=> OUTPUT i:(A)
             <=> PARAMETER i_amp:(A)
-            <=> INPUT t:(ms)
+            <=> TIME t:(ms)
 
             }
 
@@ -158,7 +158,7 @@ def test3():
                     emit myotherevent(x=5pS, y=6pA)
                 }
             }
-            <=> INPUT t:(ms)
+            <=> TIME t:(ms)
             
             
             initial{
@@ -178,7 +178,7 @@ def test3():
             i = g * (e_syn-V_post) 
 
 
-            on myevent(amp:{S}){
+            on myevent(amp:(S)){
                 A = A + 1 + amp/{1mS}
                 B = B + 1 + amp/{1mS}
             }
