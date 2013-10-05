@@ -58,7 +58,7 @@ def with_number_check(func, src_obj):
 
 class FunctorGenerator(ASTVisitorBase):
 
-    def __init__(self, eqnset=None, as_float_in_si=False, fully_calculate_assignments=True):
+    def __init__(self, component=None, as_float_in_si=False, fully_calculate_assignments=True):
         self.ast = None
 
         self.fully_calculate_assignments = fully_calculate_assignments
@@ -68,9 +68,9 @@ class FunctorGenerator(ASTVisitorBase):
 
         self.as_float_in_si = as_float_in_si
 
-        if eqnset is not None:
-            assert isinstance(eqnset, ast.NineMLComponent)
-            self.visit(eqnset)
+        if component is not None:
+            assert isinstance(component, ast.NineMLComponent)
+            self.visit(component)
 
 
     def VisitNineMLComponent(self, o, **kwargs):

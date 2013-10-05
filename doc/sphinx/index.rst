@@ -85,7 +85,7 @@ For example, we can write code like this:
 
     # Level 3:
     NeuroUnitParser.EqnSet("""
-       eqnset syn_simple {
+       define_component syn_simple {
             g' = - g/g_tau
             i = gmax * (v-erev) * g
 
@@ -214,7 +214,7 @@ Function calls can be nested, for example::
 
 
 EqnSets
-^^^^^^^^^^
+^^^^^^^
 
 EqnSets allow systems of ODEs to be specified. A similar approach is taken to
 that of NEURON and NineML.  Beyond function definitions and constants, symbols
@@ -229,7 +229,7 @@ in an Eqnset can be one of the following:
 NeuroUnits will infer the types of most symbols automatically from the context.
 For example, the following defines a leak channel (no state variables)::
 
-    eqnset leak_chl {
+    define_component leak_chl {
         i = (v - {-50mV} ) * {30pS}
     }
 
@@ -237,7 +237,7 @@ However, it is unable to determine whether a symbol is Parameter or a
 SuppliedValue, and in this case it must be specified.  For example, the
 following block defines a Hodgkin-Huxley type potassium channel::
 
-    eqnset hh_k {
+    define_component hh_k {
 
     }
 

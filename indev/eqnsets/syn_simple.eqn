@@ -1,4 +1,4 @@
-eqnset syn_simple {
+define_component syn_simple {
 
     g' = - g/g_tau
     i = gmax * (v-erev) * g

@@ -49,7 +49,7 @@ class TestLocations(object):
 
     @classmethod
     def getEqnSetFiles(cls):
-        loc = Join(cls.getPackageRoot(), 'src/test_data/eqnsets/')
+        loc = Join(cls.getPackageRoot(), 'src/test_data/components/')
         print loc
         files = glob.glob(loc + '/*.eqn')
         return files

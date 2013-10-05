@@ -728,19 +728,19 @@ class DimensionResolver(ASTVisitorBase):
 class PropogateDimensions(object):
 
     @classmethod
-    def propogate_dimensions(cls, eqnset):
+    def propogate_dimensions(cls, component):
 
-        VerifyUnitsInTree(eqnset, unknown_ok=True)
+        VerifyUnitsInTree(component, unknown_ok=True)
 
         labels = None
 
-        all_symbols = ASTVisitorCollectorAll(eqnset).objects
+        all_symbols = ASTVisitorCollectorAll(component).objects
         obj_with_dimension = [s for s in all_symbols if isinstance(s, ast.ASTExpressionObject)]
 
 
         # Action, lets walk over the tree and try and resolve the dimensions:
         try:
-            uR = DimensionResolver(ast=eqnset, obj_label_dict=labels)
+            uR = DimensionResolver(ast=component, obj_label_dict=labels)
 
             while True:
                 nUnresolvedPre = len([s for s in obj_with_dimension if not s.is_dimension_known()])
@@ -770,6 +770,6 @@ class PropogateDimensions(object):
             print
             assert False
 
-        VerifyUnitsInTree(eqnset, unknown_ok=False)
+        VerifyUnitsInTree(component, unknown_ok=False)
 
 

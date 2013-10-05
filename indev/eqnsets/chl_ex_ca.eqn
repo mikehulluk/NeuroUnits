@@ -1,4 +1,4 @@
-eqnset cachl {
+define_component cachl {
 	from std.math import exp
 	from std.physics import F,R
 	

@@ -3,7 +3,7 @@ library my_neuro {
     RateConstant5(V:{V},a1:{s-1} ,a2:{V-1 s-1}, a3:{},a4:{V},a5:{V} ) = (a1 + a2*V)/(a3+std.math.exp( (V+a4)/a5) )
 }
 
-eqnset chlstd_hh_na {
+define_component chlstd_hh_na {
 
     from my_neuro import RateConstant5
     from std.math import exp

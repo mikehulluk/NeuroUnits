@@ -240,6 +240,11 @@ class LibraryManager(object):
         return self.get_root_namespace().get_all()
 
 
+    def get_component(self):
+        assert len(self.components) == 1
+        return self.components[0]
+
+
     def add_component(self, component):
         self.namespace.add(component)
 

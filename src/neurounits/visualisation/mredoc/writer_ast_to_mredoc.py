@@ -249,13 +249,13 @@ class LatexEqnWriterN(ASTVisitorBase):
                             self.visit(o.greater_than))
 
 
-def build_figures(eqnset):
+def build_figures(component):
     plots = {}
 
     # Find all assignments only dependant on 1 supplied values and parameters:
 
-    for a in eqnset.assignedvalues:
-        all_deps = eqnset.getSymbolDependancicesIndirect(a,
+    for a in component.assignedvalues:
+        all_deps = component.getSymbolDependancicesIndirect(a,
                 include_ass_in_output=False)
         deps_sup = [d for d in all_deps if isinstance(d, (SuppliedValue,TimeVariable))]
         deps_params = [d for d in all_deps if isinstance(d, Parameter)]
@@ -276,7 +276,7 @@ def build_figures(eqnset):
 
         if len(deps_sup) == 1:
             sup = deps_sup[0]
-            meta = eqnset.getSymbolMetadata(sup)
+            meta = component.getSymbolMetadata(sup)
             if not meta:
                 continue
 
@@ -292,7 +292,7 @@ def build_figures(eqnset):
                 continue
 
             F = FunctorGenerator()
-            F.visit(eqnset)
+            F.visit(component)
 
             f = F.assignment_evaluators[a.symbol]
 
@@ -372,8 +372,7 @@ class MRedocWriterVisitor(ASTVisitorBase):
 
     def VisitLibraryManager(self, library_manager):
         local_redocs = []
-        for block in library_manager.eqnsets \
-            + library_manager.libraries:
+        for block in library_manager.components + library_manager.libraries:
             redoc = MRedocWriterVisitor.build(block)
             local_redocs.append(redoc)
 
@@ -405,7 +404,7 @@ class MRedocWriterVisitor(ASTVisitorBase):
 
 
 
-    def VisitNineMLComponent(self, eqnset):
+    def VisitNineMLComponent(self, component):
 
         format_dim = lambda o: ('$%s$'
                                 % FormatDimensionality(o.get_dimension()) if not o.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False) else '-'
@@ -416,41 +415,41 @@ class MRedocWriterVisitor(ASTVisitorBase):
 
         dep_string_indir = lambda s: ','.join([symbol_format(o.symbol)
                 for o in
-                sorted(set(eqnset.getSymbolDependancicesIndirect(s,
+                sorted(set(component.getSymbolDependancicesIndirect(s,
                 include_ass_in_output=False)), key=lambda s: s.symbol)])
 
-        meta_format = lambda s: eqnset.getSymbolMetadata(s) or '-'
+        meta_format = lambda s: component.getSymbolMetadata(s) or '-'
 
 
         terminal_symbols = VerticalColTable("Symbol  | Type      | Value | Dimensions | Dependancies | Metadata",
-                                            ["$%s$     | Param | -     | %s         | -            | %s  " % (symbol_format(p.symbol), format_dim(p), meta_format(p)) for p in eqnset.parameters] +
-                                            ["$%s$     | Supp  | -     | %s         | -            | %s  " % (symbol_format(s.symbol), format_dim(s),meta_format(s) )  for s in eqnset.suppliedvalues] +
-                                            ["$%s$     | Const | %s    | %s         | -            | -   " % (symbol_format(s.symbol), s.value, format_dim(s),    ) for s in eqnset.symbolicconstants] +
-                                            ["$%s$     | Assd  | -     | %s         | $\{%s\}$     | %s  " % (symbol_format(a.symbol), format_dim(a), dep_string_indir(a), meta_format(a)   ) for a in eqnset.assignedvalues] +
-                                            ["$%s$     | State | -     | %s         | $\{%s\}$     | %s  " % (symbol_format(s.symbol), format_dim(s), dep_string_indir(s), meta_format(s)  ) for s in eqnset.state_variables]
+                                            ["$%s$     | Param | -     | %s         | -            | %s  " % (symbol_format(p.symbol), format_dim(p), meta_format(p)) for p in component.parameters] +
+                                            ["$%s$     | Supp  | -     | %s         | -            | %s  " % (symbol_format(s.symbol), format_dim(s),meta_format(s) )  for s in component.suppliedvalues] +
+                                            ["$%s$     | Const | %s    | %s         | -            | -   " % (symbol_format(s.symbol), s.value, format_dim(s),    ) for s in component.symbolicconstants] +
+                                            ["$%s$     | Assd  | -     | %s         | $\{%s\}$     | %s  " % (symbol_format(a.symbol), format_dim(a), dep_string_indir(a), meta_format(a)   ) for a in component.assignedvalues] +
+                                            ["$%s$     | State | -     | %s         | $\{%s\}$     | %s  " % (symbol_format(s.symbol), format_dim(s), dep_string_indir(s), meta_format(s)  ) for s in component.state_variables]
                                             )
 
         terminal_symbols = Section('TODO')
 
-        plts = build_figures( eqnset)
+        plts = build_figures( component)
         return HierachyScope(
-            "Summary of '%s'" % eqnset.name,
+            "Summary of '%s'" % component.name,
             Section('Assignments',
                     EquationBlock(*[LatexEqnWriterN().visit(a) for a in
-                    sorted(eqnset.assignments, key=lambda a: \
+                    sorted(component.assignments, key=lambda a: \
                     a.lhs.symbol)])),
             Section('State Variable Evolution',
                     EquationBlock(*[LatexEqnWriterN().visit(a) for a in
-                    eqnset.timederivatives])),
+                    component.timederivatives])),
             Section('Function Definitions',
                     EquationBlock(*[LatexEqnWriterN().visit(a) for a in
-                    eqnset.functiondefs if not isinstance(a,
+                    component.functiondefs if not isinstance(a,
                     FunctionDefBuiltIn)])),
             Section('Symbols', terminal_symbols),
             Section('Imports'),
             #Section('Events',
             #        EquationBlock(*[LatexEqnWriterN().visit(a) for a in
-            #        eqnset.onevents])),
+            #        component.onevents])),
             Section('Plots', *plts),
             )
 
@@ -460,10 +459,10 @@ class MRedocWriterVisitor(ASTVisitorBase):
 
         # symbol_format = lambda s:s
 
-        # dep_string_indir = lambda s: ",".join( [symbol_format(o.symbol) for o in sorted( set(eqnset.getSymbolDependancicesIndirect(s, include_ass_in_output=False)), key=lambda s:s.symbol ) ] )
+        # dep_string_indir = lambda s: ",".join( [symbol_format(o.symbol) for o in sorted( set(component.getSymbolDependancicesIndirect(s, include_ass_in_output=False)), key=lambda s:s.symbol ) ] )
 
-        # meta_format = lambda s: eqnset.getSymbolMetadata(s) or "-"
-        # plts = build_figures( eqnset)
+        # meta_format = lambda s: component.getSymbolMetadata(s) or "-"
+        # plts = build_figures( component)
 
         return SectionNewPage('Library Summary: %s' % library.name,
                               Section('Imports'),

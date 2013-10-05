@@ -1,4 +1,4 @@
-#eqnset chlstd_hh_na {
+#define_component chlstd_hh_na {
 #   
 #    from std.math import exp
 

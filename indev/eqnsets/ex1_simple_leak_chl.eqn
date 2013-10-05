@@ -1,4 +1,4 @@
-eqnset chlstd_leak {
+define_component chlstd_leak {
     i = g * (V-erev)
 
     <=> PARAMETER g, erev

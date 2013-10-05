@@ -51,7 +51,7 @@ class ChannelMLReader:
     @classmethod
     def BuildEqnset(cls, filename):
         chl_info = cls.LoadChlRaw(filename)
-        (eqnset, default_params) = build_eqnset(chl_info)
-        return (eqnset, chl_info, default_params)
+        (component, default_params) = build_eqnset(chl_info)
+        return (component, chl_info, default_params)
 
 

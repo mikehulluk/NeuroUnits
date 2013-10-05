@@ -49,17 +49,17 @@ def load_neuroml():
 
         try:
             print 'XMLFILE:', xmlfile
-            (eqnset, chl_info, default_filename) = ChannelMLReader.BuildEqnset(xmlfile)
+            (component, chl_info, default_filename) = ChannelMLReader.BuildEqnset(xmlfile)
 
             # Build the pdf for the channel:
-            eqnset_redoc = MRedocWriterVisitor.build(eqnset)
+            component_redoc = MRedocWriterVisitor.build(component)
 
             # Build the NModl for the channel:
-            (txt, buildparameters) = nmodl.WriteToNMODL(eqnset)
+            (txt, buildparameters) = nmodl.WriteToNMODL(component)
 
             section = SectionNewPage("Import from: %s"% "/".join(xmlfile.split('/')[-3:]),
                         Section("Original XML:", VerbatimBlock(open(xmlfile).read() ) ),
-                        eqnset_redoc,
+                        component_redoc,
                         Section("Generated Modfile",VerbatimBlock(txt) ) )
 
             redocs.append(section)

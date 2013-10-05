@@ -30,11 +30,11 @@ from neurounits.writers import LatexWriterVisitor
 
 
 class WriteToPDF(object):
-    def __init__(self, eqnset, filename, additional_verbatim=None):
+    def __init__(self, component, filename, additional_verbatim=None):
 
-        latex_working_dir = EnsureExisits(eqnset.get_working_dir() + 'latex')
+        latex_working_dir = EnsureExisits(component.get_working_dir() + 'latex')
 
-        LatexWriterVisitor().visit(eqnset,
+        LatexWriterVisitor().visit(component,
                                    working_dir=latex_working_dir,
                                    output_filename=filename,
                                    additional_verbatim=additional_verbatim)

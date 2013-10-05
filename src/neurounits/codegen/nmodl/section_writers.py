@@ -120,9 +120,9 @@ class AssignmentWriter(ASTActionerDefaultIgnoreMissing):
     def __init__(self, ):
         ASTActionerDefaultIgnoreMissing.__init__(self,action_predicates=[ SingleVisitPredicate() ])
 
-    def VisitNineMLComponent(self, eqnset, modfilecontents,  build_parameters, **kwargs):
+    def VisitNineMLComponent(self, component, modfilecontents,  build_parameters, **kwargs):
         self.assigment_statements = {}
-        ASTActionerDefaultIgnoreMissing.VisitNineMLComponent(self,eqnset,modfilecontents=modfilecontents, build_parameters=build_parameters, **kwargs)
+        ASTActionerDefaultIgnoreMissing.VisitNineMLComponent(self,component,modfilecontents=modfilecontents, build_parameters=build_parameters, **kwargs)
 
 
         # The order of writing out assignments is important. There are 3 phases,
@@ -140,7 +140,7 @@ class AssignmentWriter(ASTActionerDefaultIgnoreMissing):
             'V':'v'
         }
 
-        args = list(eqnset.suppliedvalues) + list(eqnset.state_variables)
+        args = list(component.suppliedvalues) + list(component.state_variables)
         arg_symbols = [ symbol_map.get(a.symbol,a.symbol) for a in args] 
         func_arg_string = ','.join( arg_symbols )
 
@@ -149,10 +149,10 @@ class AssignmentWriter(ASTActionerDefaultIgnoreMissing):
 
         # For some sanity checking, make sure that we have met all the dependancies of every line:
         resolved_deps = set( args )
-        for ass in eqnset.ordered_assignments_by_dependancies:
+        for ass in component.ordered_assignments_by_dependancies:
             print 'Writing assignment for: ', ass
             # Check dependancies:
-            for dep in eqnset.getSymbolDependancicesDirect(ass, include_parameters=False):
+            for dep in component.getSymbolDependancicesDirect(ass, include_parameters=False):
                 #print '  - Checking deps:', dep, resolved_deps
                 assert dep in resolved_deps
             if isinstance(ass, (EqnAssignmentByRegime) ):
@@ -181,59 +181,13 @@ PROCEDURE rates( ${func_arg_string} ) {
         func_call_string = 'rates(%s)' % ','.join( arg_symbols)
         modfilecontents.section_INITIAL.insert( 0, func_call_string)
 
-        if eqnset.state_variables:
+        if component.state_variables:
             modfilecontents.section_DERIVATIVE.insert( 0, func_call_string)
         modfilecontents.section_BREAKPOINT_pre_solve.insert( 0, func_call_string)
 
 
 
 
-
-        return
-
-
-
-
-        ## 1. Initialisation:
-        ## We perform all assignments in order:
-        ##assignments_ordered = VisitorFindDirectSymbolDependance_OLD.get_assignment_dependancy_ordering( eqnset)
-        #for ass in eqnset.ordered_assignments_by_dependancies: #assignments_ordered:
-        #    modfilecontents.section_INITIAL.append( self.assigment_statements[ass] )
-
-        ## 2. Find which assignments are used by the states:
-        #all_deps = []
-        #dependancies = VisitorFindDirectSymbolDependance()
-        ##dependancies.VisitNineMLComponent(eqnset)
-
-        #for s in eqnset.timederivatives:
-        #    all_deps.extend( dependancies.get_terminal_dependancies( s, expand_assignments=False) )
-
-
-        #all_deps = []
-        #for i in required_assignments:
-        #    a = VisitorFindDirectSymbolDependance_OLD().get_assignment_dependancy_ordering_recursive(eqnset=eqnset, ass=i)
-        #    all_deps.extend(a)
-        #    all_deps.append(i)
-
-        #for ass in unique(all_deps):
-        #    unexpected_deps = [d for d in dependancies.dependancies[ass] if not isinstance(d, (AssignedVariable, SymbolicConstant, SuppliedValue, Parameter)) ]
-        #    print unexpected_deps
-        #    print 'Unexpected:', [s.symbol for s in unexpected_deps]
-
-        #    assert not unexpected_deps, "Resolution of dependances in Neurounits can't support assignments need by timeerivatives which are dependant on state variables (%s)"%(unexpected_deps)
-        #    modfilecontents.section_BREAKPOINT_pre_solve.append( self.assigment_statements[ass] )
-
-
-
-        ## 3. Find the dependancies of the current variables:
-        #all_deps = []
-        #for c in build_parameters.currents:
-        #    a = VisitorFindDirectSymbolDependance_OLD().get_assignment_dependancy_ordering_recursive(eqnset=eqnset, ass=c)
-        #    all_deps.extend(a)
-        #    all_deps.append(c)
-
-        #for ass in unique(all_deps):
-        #    modfilecontents.section_BREAKPOINT_post_solve.append(self.assigment_statements[ass])
 
 
 

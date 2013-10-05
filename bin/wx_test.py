@@ -39,12 +39,12 @@ class MyFrame(wx.Frame):
 
 
         from neurounits.writers import StringWriterVisitor
-        strs = [StringWriterVisitor().visit(eqn) for eqn in library_manager.eqnsets ]
+        strs = [StringWriterVisitor().visit(eqn) for eqn in library_manager.components ]
 
         ast_output = '' + str(datetime.datetime.now()) + '\n'
 
 
-        ast_output += '\n\n'.join(  strs ) #[ '* ' + eqn.name for eqn in ast.eqnsets] )
+        ast_output += '\n\n'.join(  strs ) 
         
         self.details_box.Clear()
         self.details_box.WriteText(ast_output) #(panel1, size=(20,20), style=wx.TE_MULTILINE)
