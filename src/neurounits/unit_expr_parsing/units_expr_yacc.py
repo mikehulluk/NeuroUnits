@@ -957,20 +957,6 @@ def p_rhs_term_div(p):
 
 
 
-#def p_rhs_term_AND(p):
-#    """ AND : AND_SYM
-#            | AND_KW """
-#    pass
-#
-#def p_rhs_term_OR(p):
-#    """ OR : OR_SYM
-#            | OR_KW """
-#    pass
-
-#def p_rhs_term_NOT(p):
-#    """ NOT : NOT_SYM
-#            | NOT_KW """
-#    pass
 
 
 
@@ -1040,9 +1026,6 @@ def p_quantity_term_1(p):
     p[0] = p[1] * p[3]
 
 
-#def p_quantity_term_2(p):
-#    """quantity_term : quantity_term SLASH quantity_factor"""
-#    p[0] = p[1] / p[3]
 
 
 def p_quantity_term_3(p):
@@ -1097,13 +1080,18 @@ def p_quantity_magnitude(p):
 
 
 
+# Allow empty unit
+def p_unit_expr_7(p):
+    """unit_expr : LBRACKET RBRACKET"""
+    backend = p.parser.library_manager.backend
+    p[0] = backend.Unit()
 
 
 
 # Control the division of unit-terms
 def p_unit_expr_0(p):
     """unit_expr : unit_expr_divisible
-                | unit_expr_indivisible """
+                 | unit_expr_indivisible """
     p[0] = p[1]
 
 
@@ -1126,11 +1114,6 @@ def p_unit_expr_4(p):
     p[0] = p[2]
 
 
-# Allow empty unit
-def p_unit_expr_7(p):
-    """unit_expr : LBRACKET RBRACKET"""
-    backend = p.parser.library_manager.backend
-    p[0] = backend.Unit()
 
 
 
