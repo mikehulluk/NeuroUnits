@@ -309,17 +309,14 @@ LookUpTables lookuptables;
     // Add:
     inline DataStream do_add_op(DataStream v1, IntType up1, DataStream v2, IntType up2, IntType up_local, IntType expr_id) {
         DataStream res = auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local);
-        ##cout << "\n\tAdd:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
         return res;
     }
     inline DataStream do_add_op(IntType v1, IntType up1, DataStream v2, IntType up2, IntType up_local, IntType expr_id) {
         DataStream res = auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local);
-        ##cout << "\n\tAdd:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
         return res;
     }
     inline DataStream do_add_op(DataStream v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
         DataStream res = auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local);
-        ##cout << "\n\tAdd:" << v1 << " (" << up1 << ") " << " AND " << v2 << " (" << up2 << ") " << " -> "  << res << " (" << up_local << ")";
         return res;
     }
 
@@ -956,13 +953,6 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 
 #if !USE_BLUEVEC
 
-
-    ##// Temporary storage for comparing state variable output:
-    ##% for td in population.component.timederivatives + population.component.assignments:
-    ##IntType serial_res_${td.lhs.symbol}[NrnPopData::size];
-    ##%endfor
-
-
     // Serial Version:
     NrnPopData& d = d_in;
     for(int i=0;i<NrnPopData::size;i++)
@@ -1245,7 +1235,7 @@ c_main_loop_tmpl = r"""
 void my_terminate (int parameter)
 {
     cout << "\n\nIN MY SIGNAL HANDLER\n" << flush;
-    
+
     // Dump to HDF5
     cout << "\nWriting HDF5 output" << std::flush;
     global_data.recordings_new.write_all_traces_to_hdf();
@@ -1873,7 +1863,7 @@ struct GlobalData {
     // Data-store:
     RecordMgr recordings_new;
 
-    
+
 
 };
 
@@ -1885,16 +1875,7 @@ GlobalData global_data;
 
 void record_event( IntType global_buffer, const SpikeEmission& evt )
 {
-    ##cout << "\nRecord event (A)" << flush;
     global_data.recordings_new.emitted_spikes[get_value32(global_buffer)].push_back(evt);
-    ##cout << "\nRecord event (B)" << flush;
-    ##std::cout << "EmittedSpikes[0]: " << global_data.recordings_new.emitted_spikes[0].size() << "\n";
-    ##cout << "\nRecord event (C)" << flush;
-    ##std::cout << "EmittedSpikes[global_buffer]: " << global_data.recordings_new.emitted_spikes[global_buffer].size() << "\n";
-    ##cout << "\nRecord event (D)" << flush;
-
-
-
 }
 
 
@@ -1916,7 +1897,7 @@ class CBasedEqnWriterFixedNetwork(object):
         network.finalise()
 
         self.dt_float = 0.02e-3
-        self.dt_float = 0.001e-3
+        self.dt_float = 0.01e-3
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
 
 
@@ -2014,8 +1995,9 @@ class CBasedEqnWriterFixedNetwork(object):
                 elif rv.modes['share']=='PER_POPULATION':
                     rv_per_population.append( (rv,param_string) )
 
-            try:
-                cfile = Template(c_population_details_tmpl).render(
+
+
+            cfile = Template(c_population_details_tmpl).render(
                             population=population,
 
                             writer = self.writer,
@@ -2026,9 +2008,6 @@ class CBasedEqnWriterFixedNetwork(object):
 
                             **std_variables
                             )
-            except:
-                print exceptions.html_error_template().render()
-                raise
 
             code_per_pop.append(cfile)
 
@@ -2038,30 +2017,17 @@ class CBasedEqnWriterFixedNetwork(object):
                 cfile = Template(c_print_results_tmpl).render(population=population, **std_variables)
                 cout_data_writers.append(cfile)
 
-        try:
-            c_prog_header = Template(c_prog_header_tmpl).render(
+        c_prog_header = Template(c_prog_header_tmpl).render(
                           ** std_variables
                         )
-        except:
-            print exceptions.html_error_template().render()
-            raise
 
-        try:
-            c_main_loop = Template(c_main_loop_tmpl).render(
+        c_main_loop = Template(c_main_loop_tmpl).render(
                         ** std_variables
                         )
-        except:
-            print exceptions.html_error_template().render()
-            raise
 
-
-        try:
-            popl_objs = Template(popl_obj_tmpl).render(
+        popl_objs = Template(popl_obj_tmpl).render(
                         ** std_variables
                         )
-        except:
-            print exceptions.html_error_template().render()
-            raise
 
 
 

@@ -1,8 +1,0 @@
-define_component chlstd_leak {
-    i = g * (V-erev)
-
-    <=> PARAMETER g, erev
-    <=> OUTPUT    i:(mA/cm2)   METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
-    <=> INPUT     V: mV            METADATA {"mf":{"role":"MEMBRANEVOLTAGE"} }
-}
-
