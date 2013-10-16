@@ -191,7 +191,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         delta_upscale = o.lhs.annotations['fixed-point-format'].delta_upscale
-        c1 = "do_mul_op(%s , IntType( %d ), dt_int, IntType(dt_upscale), IntType(%d), IntType(-1) ) " % (
+        c1 = "do_mul_op(%s , IntType( %d ), dt_fixed.v, IntType(dt_fixed.UP), IntType(%d), IntType(-1) ) " % (
                 self.visit(o.rhs_map, **kwargs),
                 o.rhs_map.annotations['fixed-point-format'].upscale,
                 delta_upscale)

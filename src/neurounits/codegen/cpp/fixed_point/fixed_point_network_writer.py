@@ -196,6 +196,7 @@ const int record_rate = 10;
 #include <assert.h>
 #include <climits>
 #include <stdint.h>
+#include <array>
 
 
 
@@ -275,6 +276,36 @@ struct LookUpTables
 };
 
 LookUpTables lookuptables;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -468,8 +499,47 @@ inline IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_i
 
 
 
-const IntType dt_int = IntType(${dt_int});
-const IntType dt_upscale = IntType(${dt_upscale});
+
+
+// New fixed point classes:
+
+
+
+template<int UPSCALE>
+struct FixedPoint
+{
+    IntType v;
+    FixedPoint(int v)
+        : v(v)
+    { }
+    const static int UP = UPSCALE;
+};
+
+
+
+template<int U1, int U2, int UOUT>
+FixedPoint<UOUT> add( FixedPoint<U1> a, FixedPoint<U2> b)
+{
+    IntType res = tmpl_fp_ops::do_add_op(a.v, U1, b.v, U2, UOUT, -1);
+    return FixedPoint<UOUT> (res);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const FixedPoint<${dt_upscale}> dt_fixed( ${dt_int} );
+
+
 const IntType time_upscale = IntType(${time_upscale});
 
 struct TimeInfo
@@ -477,7 +547,8 @@ struct TimeInfo
     const IntType time_step;
     const IntType time_int;
     TimeInfo(IntType time_step)
-        : time_step(time_step), time_int( inttype32_from_inttype64<IntType>( auto_shift64( get_value64(dt_int) * get_value64(time_step), get_value64(dt_upscale- time_upscale) )) )
+        : time_step(time_step), 
+          time_int( inttype32_from_inttype64<IntType>( auto_shift64( get_value64(dt_fixed.v) * get_value64(time_step), get_value64(dt_fixed.UP - time_upscale) )) )
     {
 
     }
@@ -485,12 +556,12 @@ struct TimeInfo
 };
 
 
-
+typedef FixedPoint<time_upscale>  SpikeTime;
 
 struct SpikeEmission
 {
-    const IntType time;
-    SpikeEmission(const IntType& time) : time(time) {}
+    const SpikeTime time;
+    SpikeEmission(const SpikeTime& time) : time(time) {}
 };
 
 void record_event(IntType global_buffer, const SpikeEmission& evt );
@@ -662,7 +733,6 @@ c_population_details_tmpl = r"""
 
 namespace NS_${population.name}
 {
-
     // Input event types:
     namespace input_event_types
     {
@@ -996,7 +1066,6 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         // Calculate assignments:
         % for ass in population.component.ordered_assignments_by_dependancies:
         d.${ass.lhs.symbol}[i] = ${writer.to_c(ass, population_access_index='i', data_prefix='d.')} ;
-        ##serial_res_${ass.lhs.symbol}[i] = d.${ass.lhs.symbol}[i];
         LOG_COMPONENT_STATEUPDATE( cout << "\n d.${ass.lhs.symbol}: " << d.${ass.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${ass.lhs.symbol}[i], ${ass.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;)
         CHECK_IN_RANGE_VARIABLE( d.${ass.lhs.symbol}[i], ${ass.lhs.annotations['fixed-point-format'].upscale}, ${ass.lhs.annotations['node-value-range'].min}, ${ass.lhs.annotations['node-value-range'].max}, "d.${ass.lhs.symbol}" );
         % endfor
@@ -1006,14 +1075,11 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         <% cs1, cs2 = writer.to_c(td, population_access_index='i', data_prefix='d.') %>
         IntType d_${td.lhs.symbol} = ${cs1} ;
         d.${td.lhs.symbol}[i] = d.${td.lhs.symbol}[i] + ${cs2} ;
-        ##serial_res_${td.lhs.symbol}[i] = d.${td.lhs.symbol}[i] + ${cs2} ;
         LOG_COMPONENT_STATEUPDATE( cout << "\n delta:${td.lhs.symbol}: " << d_${td.lhs.symbol}  << " (" << FixedFloatConversion::to_float(d_${td.lhs.symbol}, ${td.lhs.annotations['fixed-point-format'].delta_upscale})  << ")" << std::flush; )
         LOG_COMPONENT_STATEUPDATE( cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
         CHECK_IN_RANGE_VARIABLE( d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale}, ${td.lhs.annotations['node-value-range'].min}, ${td.lhs.annotations['node-value-range'].max}, "d.${td.lhs.symbol}" );
         % endfor
 
-        ##cout << "\n\nEnd SERIAL\n" << std::flush;
-        ##assert(0);
     }
 
 #endif
@@ -1524,8 +1590,6 @@ namespace NS_eventcoupling_${projection.name}
     // This is the neuron index inside the whole population, so lets check its for us and dispatch if so:
     void dispatch_event(IntType src_neuron, const TimeInfo& time_info )
     {
-        //cout << "\nDispatch_event: " << src_neuron;
-        //cout << "\nDelivering to:";
         if( src_neuron < ${projection.src_population.start_index} || src_neuron >= ${projection.src_population.end_index} )
             return;
 
@@ -1534,16 +1598,12 @@ namespace NS_eventcoupling_${projection.name}
         TargetList& targets = projections[get_value32(src_neuron - ${projection.src_population.start_index} )];
         for( TargetList::iterator it = targets.begin(); it!=targets.end();it++)
         {
-            //IntType target_index = (*it);
-            //cout << " " << target_index;
-
             <% evt_type = 'NS_%s::input_event_types::Event_%s' % (projection.dst_population.population.name, projection.dst_port.symbol)%>
 
             IntType evt_time = do_add_op( time_info.time_int, time_upscale, IntType(${projection.delay_int}), IntType(${projection.delay_upscale}), time_upscale, IntType(0));
 
             // Create the event, remebering to rescale parameters between source and target appropriately:
             %for p in projection.dst_port.alphabetic_params:
-            //IntType param_${p.symbol} = IntType(0); // ${projection.parameter_map[p.symbol]}
             IntType param_${p.symbol} = IntType(${projection.parameter_map[p.symbol].value_scaled_for_target}) ;
             %endfor
 
@@ -1553,13 +1613,8 @@ namespace NS_eventcoupling_${projection.name}
             int tgt_nrn_index = get_value32(*it) + ${projection.dst_population.start_index};
 
             data_${projection.dst_population.population.name}.incoming_events_${projection.dst_port.symbol}[tgt_nrn_index].push_back( evt ) ;
-            //cout << "\nDelivered event to: " << (tgt_nrn_index);
         }
-
-
     }
-
-
 }
 
 
@@ -1579,29 +1634,17 @@ NS_${pop.name}::NrnPopData data_${pop.name};
 
 
 
-
-
-
-
-
-
-
-
 struct GlobalConstants
 {
-
     static const int nsim_steps = ${nsim_steps};
-
 };
 
 
 
 
-#include <array>
 
 
 
-//std::array<IntType, buffer_size> time_buffer;
 
 
 
@@ -1665,7 +1708,6 @@ struct RecordMgr
         %for i,poprec in enumerate(network.all_trace_recordings):
         {
             // Save: ${poprec}
-            //const double node_sf = pow(2.0, ${poprec.node.annotations['fixed-point-format'].upscale} - (VAR_NBITS-1));
 
             for(int i=0;i<${poprec.size};i++)
             {
@@ -1726,7 +1768,7 @@ struct RecordMgr
             int s=0;
             for(SpikeList::iterator it=emitted_spikes[buffer_offset].begin(); it!=emitted_spikes[buffer_offset].end(); it++,s++)
             {
-                buffer_int[s] = get_value32(it->time);
+                buffer_int[s] = get_value32(it->time.v);
                 buffer_float[s] = buffer_int[s] * dt_float;
             }
 
@@ -2056,7 +2098,6 @@ class CBasedEqnWriterFixedNetwork(object):
         #    output_exec_filename = '/tmp/nu/compilation/exec.x'
 
 
-        ## The preprocessed C++ output:
 
         # The executable:
         CCompiler.build_executable( src_text=cfile,
