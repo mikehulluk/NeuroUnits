@@ -92,12 +92,12 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
         self._ActionNineMLComponent(o, **kwargs)
 
-    def VisitOnEvent(self, o, **kwargs):
-        for p in o.parameters.values():
-            self.visit(p, **kwargs)
-        for action in o.actions:
-            self.visit(action, **kwargs)
-        self._ActionOnEvent(o, **kwargs)
+    #def VisitOnEvent(self, o, **kwargs):
+    #    for p in o.parameters.values():
+    #        self.visit(p, **kwargs)
+    #    for action in o.actions:
+    #        self.visit(action, **kwargs)
+    #    self._ActionOnEvent(o, **kwargs)
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
@@ -255,7 +255,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
             self.visit(a, **kwargs)
         for a in o.actions:
             self.visit(a, **kwargs)
-        self.visit(o.port)
+        self.visit(o.port, **kwargs)
         self._ActionOnTransitionEvent(o, **kwargs)
 
     def VisitOnEventDefParameter(self, o, **kwargs):
@@ -264,7 +264,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def VisitEmitEvent(self, o, **kwargs):
         for a in o.parameters:
             self.visit(a, **kwargs)
-        self.visit(o.port)
+        self.visit(o.port, **kwargs)
         self._ActionEmitEvent(o, **kwargs)
 
     def VisitEmitEventParameter(self, o, **kwargs):
@@ -274,17 +274,17 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
 
 
-    def  VisitInEventPort(self, o, **kwargs):
+    def VisitInEventPort(self, o, **kwargs):
         for a in o.parameters:
             self.visit(a, **kwargs)
         self._ActionInEventPort(o, **kwargs)
-    def  VisitInEventPortParameter(self, o, **kwargs):
+    def VisitInEventPortParameter(self, o, **kwargs):
         self._ActionInEventPortParameter(o, **kwargs)
-    def  VisitOutEventPort(self, o, **kwargs):
+    def VisitOutEventPort(self, o, **kwargs):
         for a in o.parameters:
             self.visit(a, **kwargs)
         self._ActionOutEventPort(o, **kwargs)
-    def  VisitOutEventPortParameter(self, o,  **kwargs):
+    def VisitOutEventPortParameter(self, o,  **kwargs):
         self._ActionOutEventPortParameter(o, **kwargs)
 
     def VisitRTGraph(self, o, **kwargs):
@@ -456,9 +456,9 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionFunctionDefInstantiationParameter(o, **kwargs)
 
-    def _ActionOnEvent(self, o, **kwargs):
-        if self._ActionPredicate(o, **kwargs):
-            return self.ActionOnEvent(o, **kwargs)
+    #def _ActionOnEvent(self, o, **kwargs):
+    #    if self._ActionPredicate(o, **kwargs):
+    #        return self.ActionOnEvent(o, **kwargs)
 
     def _ActionOnEventStateAssignment(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):

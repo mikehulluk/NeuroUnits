@@ -42,7 +42,7 @@ from .section_writers import OnEventWriter
 
 from .neuron_constants import NeuronSuppliedValues, NEURONMappings, MechanismType
 from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
-from neurounits.ast import ConstValue, InEquality, OnEvent, EqnTimeDerivativeByRegime, EqnAssignmentByRegime, NineMLComponent
+from neurounits.ast import ConstValue, InEquality, EqnTimeDerivativeByRegime, EqnAssignmentByRegime, NineMLComponent
 
 
 
@@ -152,7 +152,8 @@ class NeuronMembraneCurrent(object):
 
 
 class MODLBuildParameters(object):
-    def __init__(self,  mechanismtype, currents,   supplied_values,  suffix, symbol_units, event_function=None ):
+    def __init__(self,  component, mechanismtype, currents,   supplied_values,  suffix, symbol_units, event_function=None ):
+        self.component = component
         self.mechanismtype = mechanismtype
         self.currents = currents
         self.supplied_values = supplied_values
@@ -268,7 +269,7 @@ class MODLBuildParameters(object):
 
                 if isinstance(s,(EqnTimeDerivativeByRegime, EqnAssignmentByRegime, NineMLComponent, ConstValue)):
                     continue
-                if isinstance(s,(InEquality, OnEvent)):
+                if isinstance(s,(InEquality,)):
                     continue
 
                 symbol_units[s] = s.get_dimension()
@@ -287,7 +288,7 @@ class MODLBuildParameters(object):
         else:
             raise ValueError('Multiple Zero-Param Events')
 
-        return MODLBuildParameters(mechanismtype=mech_type, currents=currents, supplied_values=supplied_values, suffix="nmmodl"+component.name, symbol_units=symbol_units, event_function=event_function  )
+        return MODLBuildParameters(component = component, mechanismtype=mech_type, currents=currents, supplied_values=supplied_values, suffix="nmmodl"+component.name, symbol_units=symbol_units, event_function=event_function  )
 
 
 
@@ -316,6 +317,7 @@ def WriteToNMODL(component, buildparameters=None, initial_values=None, neuron_su
     StateWriter().visit(component,modfilecontents=m,build_parameters=buildparameters, )
     FunctionWriter().visit(component,modfilecontents=m, build_parameters=buildparameters, )
     ConstantWriter().visit(component,modfilecontents=m, build_parameters=buildparameters, )
+
     OnEventWriter().visit(component,modfilecontents=m, build_parameters=buildparameters)
 
     #print len(component.onevents)

@@ -234,15 +234,28 @@ class OnEventWriter(ASTActionerDefaultIgnoreMissing):
     def __init__(self,):
         ASTActionerDefaultIgnoreMissing.__init__(self, action_predicates=[ SingleVisitPredicate() ] )
 
-    def ActionOnEvent(self, o, modfilecontents, build_parameters,  **kwargs):
+    def ActionInEventPort(self, o, modfilecontents, build_parameters,  **kwargs):
+        #print o
+        #print build_parameters.event_function
+        #assert False
         if o != build_parameters.event_function:
             return
 
         # No Arguments:
         assert len( o.parameters ) == 0
-        tmpl = """NET_RECEIVE( weight ) \n {    $contents \n}"""
+        tmpl = """NET_RECEIVE( weight ) \n { $contents \n}"""
 
-        contents = "\n".join( [ "" + self.ActionOnEventAssignment(a, modfilecontents=modfilecontents, build_parameters=build_parameters, **kwargs ) for a in o.actions ] )
+        # And lets hope there is only one transition triggered off that
+        # port ;)
+        print build_parameters
+        component = build_parameters.component
+        evt_trans = [tr for tr in component._transitions_events if tr.port == o]
+        assert len(evt_trans) == 1
+        evt_trans = evt_trans[0]
+
+
+
+        contents = "\n".join( [ "" + self.ActionOnEventAssignment(a, modfilecontents=modfilecontents, build_parameters=build_parameters, **kwargs ) for a in evt_trans.actions ] )
         txt = string.Template( tmpl).substitute( contents=contents)
         modfilecontents.section_NETRECEIVES.append(txt)
 
@@ -450,19 +463,23 @@ class CStringWriter(ASTVisitorBase):
     # TODO: HANDLE PROPERLY:
     def _VisitFunctionDefInstantiation(self, o, **kwargs):
         import neurounits
-        if type(o.function_def) == neurounits.ast.astobjects.FunctionDefBuiltIn:
+        if isinstance(o.function_def, neurounits.ast.astobjects.FunctionDefBuiltIn):
+            print o.function_def.funcname
 
-            if o.function_def.funcname == "pow":
+            if o.function_def.funcname == "__pow__":
                 p0_rhs = self.visit(o.parameters['base'].rhs_ast)
                 p1_rhs = self.visit(o.parameters['exp'].rhs_ast)
-                r = "%s(%s,%s)"%( o.function_def.funcname, p0_rhs, p1_rhs  )
+                r = "pow(%s,%s)"%( o.function_def.funcname, p0_rhs, p1_rhs  )
                 return r
+            
 
             else:
                 assert len(o.parameters) == 1
                 p0_rhs = self.visit(o.parameters.values()[0].rhs_ast)
-                r = "%s(%s)"%( o.function_def.funcname, p0_rhs )
+                r = "%s(%s)"%( o.function_def.funcname.replace("__",""), p0_rhs )
                 return r
+
+
         elif type(o.function_def) == neurounits.ast.astobjects.FunctionDefUser:
             #params = ",".join( self.visit(p.rhs_ast,varnames=varnames, varunits=varunits,**kwargs) for p in o.parameters.values()  )
             #func_call = "%s(%s)"%( varnames[o.function_def].raw_name, params)

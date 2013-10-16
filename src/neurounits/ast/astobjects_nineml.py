@@ -232,6 +232,18 @@ class EmitEventParameter(ASTExpressionObject):
         del self._symbol
 
 
+class OnEventStateAssignment(ASTExpressionObject):
+
+    def __init__(self, lhs, rhs, **kwargs):
+        ASTExpressionObject.__init__(self, **kwargs)
+        self.lhs = lhs
+        self.rhs = rhs
+
+    def accept_visitor(self, o, **kwargs):
+        return o.VisitOnEventStateAssignment(self, **kwargs)
+
+    def __repr__(self):
+        return '<OnEventStateAssignment: %s>' % id(self)
 
 class Regime(ASTObject):
 
@@ -324,9 +336,9 @@ class AnalogReducePort(ASTExpressionObject):
         super(AnalogReducePort, self).__init__(**kwargs)
         self.symbol = symbol
         if rhses is None:
-            self.rhses = LookUpDict() 
+            self.rhses = LookUpDict()
         else :
-            self.rhses = LookUpDict(rhses) 
+            self.rhses = LookUpDict(rhses)
 
 
 
@@ -348,7 +360,7 @@ class InEventPort(ASTObject):
     def summarise_node(self):
         return 'Symbol: %s' %(self.symbol)
 
-    
+
 
 class InEventPortParameter(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):
@@ -359,7 +371,7 @@ class InEventPortParameter(ASTExpressionObject):
         self.symbol = symbol
     def __repr__(self,):
         return '<InPortparameter: %s>' % self.symbol
-    
+
 
 
 
@@ -378,7 +390,7 @@ class OutEventPort(ASTObject):
     def __repr__(self,):
         return '<OutPort: %s>' % self.symbol
 
-    
+
 
 class OutEventPortParameter(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):
@@ -387,7 +399,7 @@ class OutEventPortParameter(ASTExpressionObject):
     def __init__(self, symbol, **kwargs):
         super(OutEventPortParameter, self).__init__(**kwargs)
         self.symbol = symbol
-    
+
 
 class EventPortConnection(ASTObject):
     def accept_visitor(self, v, **kwargs):
@@ -403,6 +415,6 @@ class EventPortConnection(ASTObject):
 
         assert len( src_port.parameters) == len( dst_port.parameters )
         if len( src_port.parameters) > 1:
-            assert set(src_port.parameters.get_objects_attibutes(attr='symbol')) == set(dst_port.parameters.get_objects_attibutes(attr='symbol')) 
+            assert set(src_port.parameters.get_objects_attibutes(attr='symbol')) == set(dst_port.parameters.get_objects_attibutes(attr='symbol'))
 
 
