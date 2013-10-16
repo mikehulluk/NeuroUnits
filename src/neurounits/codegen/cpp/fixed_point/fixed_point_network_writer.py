@@ -501,9 +501,14 @@ inline IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_i
 
 
 
+
+
+
+
+
+
+
 // New fixed point classes:
-
-
 
 template<int UPSCALE>
 struct FixedPoint
@@ -512,18 +517,45 @@ struct FixedPoint
     FixedPoint(int v)
         : v(v)
     { }
+    FixedPoint() {};
+
     const static int UP = UPSCALE;
 };
 
 
 
-template<int U1, int U2, int UOUT>
-FixedPoint<UOUT> add( FixedPoint<U1> a, FixedPoint<U2> b)
+template<int UOUT>
+struct FPOP
 {
-    IntType res = tmpl_fp_ops::do_add_op(a.v, U1, b.v, U2, UOUT, -1);
-    return FixedPoint<UOUT> (res);
-}
+    template<int U1, int U2>
+    static inline FixedPoint<UOUT> add( const FixedPoint<U1>& a, const FixedPoint<U2>& b)
+    {
+        IntType res = tmpl_fp_ops::do_add_op(a.v, U1, b.v, U2, UOUT, -1);
+        return FixedPoint<UOUT> (res);
+    }
 
+    template<int U1, int U2>
+    static inline FixedPoint<UOUT> sub( const FixedPoint<U1>& a, const FixedPoint<U2>& b)
+    {
+        IntType res = tmpl_fp_ops::do_sub_op(a.v, U1, b.v, U2, UOUT, -1);
+        return FixedPoint<UOUT> (res);
+    }
+
+    template<int U1, int U2>
+    static inline FixedPoint<UOUT> mul( const FixedPoint<U1>& a, const FixedPoint<U2>& b)
+    {
+        IntType res = tmpl_fp_ops::do_mul_op(a.v, U1, b.v, U2, UOUT, -1);
+        return FixedPoint<UOUT> (res);
+    }
+
+    template<int U1, int U2>
+    static inline FixedPoint<UOUT> div( const FixedPoint<U1>& a, const FixedPoint<U2>& b)
+    {
+        IntType res = tmpl_fp_ops::do_div_op(a.v, U1, b.v, U2, UOUT, -1);
+        return FixedPoint<UOUT> (res);
+    }
+
+};
 
 
 
@@ -644,10 +676,11 @@ namespace rnd
         return r * (max-min) + min;
     }
 
-    IntType uniform(IntType up, IntType min, IntType min_scale, IntType max, IntType max_scale)
+    template<int U1, int U2>
+    IntType uniform(IntType up, FixedPoint<U1> min, FixedPoint<U2> max)
     {
         return IntType( FixedFloatConversion::from_float(
-            rand_in_range(FixedFloatConversion::to_float(min, min_scale), FixedFloatConversion::to_float(max, max_scale)),
+            rand_in_range(FixedFloatConversion::to_float(min.v, U1), FixedFloatConversion::to_float(max.v, U2)),
             up) );
     }
 }
@@ -742,12 +775,14 @@ namespace NS_${population.name}
 
             IntType delivery_time;
             %for param in in_port.parameters:
-            IntType ${param.symbol}; // Upscale: ${param.annotations['fixed-point-format'].upscale}
+            //IntType ${param.symbol}; // Upscale: ${param.annotations['fixed-point-format'].upscale}
+            typedef FixedPoint<${param.annotations['fixed-point-format'].upscale}> ${param.symbol}Type; // Upscale: ${param.annotations['fixed-point-format'].upscale}
+            ${param.symbol}Type ${param.symbol}; // Upscale: ${param.annotations['fixed-point-format'].upscale}
             %endfor
 
             Event_${in_port.symbol}(
                 IntType delivery_time
-                ${ ' '.join( [ ',IntType %s' % param.symbol for param in in_port.parameters ] ) }
+                ${ ' '.join( [ ',%sType %s' % (param.symbol,param.symbol) for param in in_port.parameters ] ) }
             )
             :
               delivery_time(delivery_time)
@@ -768,45 +803,53 @@ struct NrnPopData
     static const int size = ${population.get_size()};
 
     // Parameters:
-% for p in population.component.parameters:
-    IntType ${p.symbol}[size];        // Upscale: ${p.annotations['fixed-point-format'].upscale}
-    IntType d_${p.symbol}[size];      // Upscale: ${p.annotations['fixed-point-format'].delta_upscale}
-% endfor
+    % for p in population.component.parameters:
+    //IntType ${p.symbol}[size];        // Upscale: ${p.annotations['fixed-point-format'].upscale}
+    //IntType d_${p.symbol}[size];      // Upscale: ${p.annotations['fixed-point-format'].delta_upscale}
+    FixedPoint<${p.annotations['fixed-point-format'].upscale}> ${p.symbol}[size];
+    //FixedPoint<${p.annotations['fixed-point-format'].delta_upscale}> d_${p.symbol}[size];
+    % endfor
 
     // Assignments:
-% for ass in population.component.assignedvalues:
-    IntType ${ass.symbol}[size];      // Upscale: ${ass.annotations['fixed-point-format'].upscale}
-% endfor
+    % for ass in population.component.assignedvalues:
+    //IntType ${ass.symbol}[size];      // Upscale: ${ass.annotations['fixed-point-format'].upscale}
+    FixedPoint<${ass.annotations['fixed-point-format'].upscale}> ${ass.symbol}[size];
+    % endfor
 
     // States:
 % for sv_def in population.component.state_variables:
-    IntType ${sv_def.symbol}[size];    // Upscale: ${sv_def.annotations['fixed-point-format'].upscale}
-    IntType d_${sv_def.symbol}[size];
+    //IntType ${sv_def.symbol}[size];    // Upscale: ${sv_def.annotations['fixed-point-format'].upscale}
+    //IntType d_${sv_def.symbol}[size];
+    FixedPoint<${sv_def.annotations['fixed-point-format'].upscale}> ${sv_def.symbol}[size];
+    FixedPoint<${sv_def.annotations['fixed-point-format'].delta_upscale}> d_${sv_def.symbol}[size];
 % endfor
 
 
     // Supplied:
-% for sv_def in population.component.suppliedvalues:
-% if sv_def.symbol != 't':
-    IntType ${sv_def.symbol}[size];    // Upscale: ${sv_def.annotations['fixed-point-format'].upscale}
-% endif
-% endfor
+    % for sv_def in population.component.suppliedvalues:
+    //IntType ${sv_def.symbol}[size];    // Upscale: ${sv_def.annotations['fixed-point-format'].upscale}
+    FixedPoint<${sv_def.annotations['fixed-point-format'].upscale}> ${sv_def.symbol}[size];
+    % endfor
 
 
     // Random Variable nodes
     %for rv, _pstring in rv_per_population:
-    IntType RV${rv.annotations['node-id']};
+    //IntType RV${rv.annotations['node-id']};
+    FixedPoint<${rv.annotations['fixed-point-format'].upscale}> RV${rv.annotations['node-id']};
     %endfor
     %for rv, _pstring in rv_per_neuron:
-    IntType RV${rv.annotations['node-id']}[size];
+    //IntType RV${rv.annotations['node-id']}[size];
+    FixedPoint<${rv.annotations['fixed-point-format'].upscale}> RV${rv.annotations['node-id']}[size];
     %endfor
 
 
     // AutoRegressive nodes:
     %for ar in population.component.autoregressive_model_nodes:
-    IntType AR${ar.annotations['node-id']}[size];
+    //IntType AR${ar.annotations['node-id']}[size];
+    FixedPoint<${ar.annotations['fixed-point-format'].upscale}> AR${ar.annotations['node-id']}[size];
     %for i in range( len( ar.coefficients)):
-    IntType _AR${ar.annotations['node-id']}_t${i}[size];
+    //IntType _AR${ar.annotations['node-id']}_t${i}[size];
+    FixedPoint<${ar.annotations['fixed-point-format'].upscale}> _AR${ar.annotations['node-id']}_t${i}[size];
     %endfor
     %endfor
 
@@ -850,12 +893,12 @@ void set_supplied_values_to_zero(NrnPopData& d)
 
 void initialise_autoregressivenodes(NrnPopData& d)
 {
-%for ar in population.component.autoregressive_model_nodes:
+    %for ar in population.component.autoregressive_model_nodes:
     for(int i=0;i<NrnPopData::size;i++) d.AR${ar.annotations['node-id']}[i] = 0;
-%for i in range( len( ar.coefficients)):
+    %for i in range( len( ar.coefficients)):
     for(int i=0;i<NrnPopData::size;i++) d._AR${ar.annotations['node-id']}_t${i}[i] = 0;
-%endfor
-%endfor
+    %endfor
+    %endfor
 }
 
 void initialise_randomvariables(NrnPopData& d)
@@ -1015,8 +1058,9 @@ namespace event_handlers
 void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 {
 
-    const IntType t = time_info.time_int;
-    assert(t>=0); // Suppress compiler warning about unused variable
+    //const IntType t = time_info.time_int;
+    const FixedPoint<time_upscale> t(time_info.time_int);
+    assert(t.v>=0); // Suppress compiler warning about unused variable
 
 
 
@@ -1046,20 +1090,21 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         cout << "\nUpdates:";
         )
 
-        // Calculate the autoregressive nodes:
-        %for ar in population.component.autoregressive_model_nodes:
-        //Update the current value:
-        d.${writer.to_c(ar)}[i] = ${writer.VisitAutoRegressiveModelUpdate(ar)};
-        // Save the old values:
-        %for i in range( len( ar.coefficients) -1 ):
-        %if i==0:
-        d._AR${ar.annotations['node-id']}_t0[i] = d.AR${ar.annotations['node-id']}[i];
-        %else:
-        d._AR${ar.annotations['node-id']}_t${i}[i] = d._AR${ar.annotations['node-id']}_t${i+1}[i] = 0;
-        %endif
-        %endfor
+        // To reinstate:
+        // // Calculate the autoregressive nodes:
+        // %for ar in population.component.autoregressive_model_nodes:
+        // //Update the current value:
+        // d.${writer.to_c(ar)}[i] = ${writer.VisitAutoRegressiveModelUpdate(ar)};
+        // // Save the old values:
+        // %for i in range( len( ar.coefficients) -1 ):
+        // %if i==0:
+        // d._AR${ar.annotations['node-id']}_t0[i] = d.AR${ar.annotations['node-id']}[i];
+        // %else:
+        // d._AR${ar.annotations['node-id']}_t${i}[i] = d._AR${ar.annotations['node-id']}_t${i+1}[i] = 0;
+        // %endif
+        // %endfor
 
-        %endfor
+        // %endfor
 
 
 
@@ -1073,8 +1118,8 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         // Calculate delta's for all state-variables:
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
         <% cs1, cs2 = writer.to_c(td, population_access_index='i', data_prefix='d.') %>
-        IntType d_${td.lhs.symbol} = ${cs1} ;
-        d.${td.lhs.symbol}[i] = d.${td.lhs.symbol}[i] + ${cs2} ;
+        d.d_${td.lhs.symbol}[i] = ${cs1} ;
+        d.${td.lhs.symbol}[i] = FPOP<${td.lhs.annotations['fixed-point-format'].upscale}>::add( d.${td.lhs.symbol}[i], ${cs2}) ;
         LOG_COMPONENT_STATEUPDATE( cout << "\n delta:${td.lhs.symbol}: " << d_${td.lhs.symbol}  << " (" << FixedFloatConversion::to_float(d_${td.lhs.symbol}, ${td.lhs.annotations['fixed-point-format'].delta_upscale})  << ")" << std::flush; )
         LOG_COMPONENT_STATEUPDATE( cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
         CHECK_IN_RANGE_VARIABLE( d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale}, ${td.lhs.annotations['node-value-range'].min}, ${td.lhs.annotations['node-value-range'].max}, "d.${td.lhs.symbol}" );
@@ -2030,7 +2075,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
                 assert rv.functionname == 'uniform'
                 params = [ rv.parameters.get_single_obj_by(name='min'), rv.parameters.get_single_obj_by(name='max'), ]
-                param_string = ','.join( "%s, IntType(%d)" % (self.writer.visit( p.rhs_ast), p.rhs_ast.annotations['fixed-point-format'].upscale ) for p in params )
+                param_string = ','.join( "FixedPoint<%d>(%s)" % (p.rhs_ast.annotations['fixed-point-format'].upscale, self.writer.visit( p.rhs_ast)  ) for p in params )
 
                 if rv.modes['share']=='PER_NEURON':
                     rv_per_neuron.append( (rv,param_string) )
