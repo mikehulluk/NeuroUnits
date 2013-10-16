@@ -46,7 +46,7 @@ if not os.path.exists(cache_file):
     with open(cache_file,'w') as f:
         pickle.dump([dIN_comp, MN_comp, RB_input], f, )
 
-    # For ddebugging:
+    # For debugging:
     MRedocWriterVisitor().visit(dIN_comp).to_pdf("op_dIN.pdf")
     MRedocWriterVisitor().visit(MN_comp).to_pdf("op_MN.pdf")
 

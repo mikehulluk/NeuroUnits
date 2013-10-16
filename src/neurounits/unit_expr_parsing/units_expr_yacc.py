@@ -430,8 +430,8 @@ def p_parse_on_transition_trigger_crosses(p):
     (crosses_lhs,crosses_rhs), (on_rising, on_falling) = p[3]
     actions = p[6]
     target_regime = p[7]
-    p.parser.library_manager.get_current_block_builder().close_scope_and_create_transition_crossestrigger( 
-            crosses_lhs=crosses_lhs, crosses_rhs=crosses_rhs, 
+    p.parser.library_manager.get_current_block_builder().close_scope_and_create_transition_crossestrigger(
+            crosses_lhs=crosses_lhs, crosses_rhs=crosses_rhs,
             on_rising=on_rising, on_falling=on_falling,
             actions=actions, target_regime=target_regime)
 
@@ -1272,7 +1272,7 @@ def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=No
 
 
     # Diff:
-    
+
 
 
 

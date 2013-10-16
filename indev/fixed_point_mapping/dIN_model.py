@@ -15,11 +15,12 @@ def get_dIN(nbits):
         <=> TIME t:(ms)
         <=> INPUT i_injected:(mA)
 
-        iInj_local = [50pA] if [ 75ms < t < 85ms] else [0pA] * 0
+        iInj_local = [75pA] if [ 75ms < t < 80ms] else [0pA] 
         Cap = 10 pF
 
         #V' = (1/Cap) * (iInj_local + i_injected + iLk + iKs + iKf +iNa + iCa + syn_nmda_i + syn_ampa_i + syn_inhib_i)
-        V' = (1/Cap) * ( ( iLk + iInj_local + iKs + iKf +iNa + iCa  + syn_nmda_i + syn_ampa_i + syn_inhib_i +  i_injected) )
+        #V' = (1/Cap) * ( ( iLk + iInj_local + iKs + iKf +iNa + iCa + syn_nmda_i + syn_ampa_i + syn_inhib_i +  i_injected) )
+        V' = (1/Cap) * ( ( iLk + iInj_local + iKs + iKf +iNa +  syn_nmda_i + syn_ampa_i + syn_inhib_i +  i_injected) )
 
         k = i_injected
 
@@ -123,7 +124,7 @@ def get_dIN(nbits):
         gKf = 12.5 nS
         gNa = 250 nS
         gLk = 1.25 nS
-        eLk = -64mV
+        eLk = -52mV
 
         # Leak
         iLk = gLk * (eLk-V) * glk_noise
@@ -148,7 +149,7 @@ def get_dIN(nbits):
         iKf = gKf * (eK-V) * kf_n2 #kf_n*kf_n * kf_n*kf_n
         kf_n2 = kf_n*kf_n * kf_n * kf_n
 
-        # Sodium (Kf):
+        # Sodium (Na):
         alpha_na_m = AlphaBetaFunc(v=V, A=8.67ms-1, B=0.0ms-1 mV-1, C=1.0, D=-1.01mV,E=-12.56mV)
         beta_na_m =  AlphaBetaFunc(v=V, A=3.82ms-1, B=0.0ms-1 mV-1, C=1.0, D=9.01mV, E=9.69mV)
         inf_na_m = alpha_na_m / (alpha_na_m + beta_na_m)
@@ -179,7 +180,7 @@ def get_dIN(nbits):
         ca_m' =  (ca_m_inf_cl - ca_m) / tau_ca_m
 
 
-        ff = 1.0 #1.5DLIN
+        ff = 1.0 
         pca = {0.16 (mm3)/s} * 1e-6 * ff
         F = 96485 C / mol
         R = 8.3144 J/ (mol K)
@@ -189,8 +190,14 @@ def get_dIN(nbits):
         z = 2.0
         nu = ( (z *  F) / (R*T) ) * V ;
         exp_neg_nu = exp( -1. * nu )
-        ca_v_eps = 1e-2mV
-        iCa_ungated =  [-z *  pca *  F * ( (nu*( Cai - Cao*exp_neg_nu) ) / (1-exp_neg_nu)) ] if [ (V > ca_v_eps) or (V < -ca_v_eps)] else [pca * (-z) * F * (Cai-Cao) ]
+        #ca_v_eps = 1e-2mV
+        ca_v_eps = 10e-1mV
+        #iCa_ungated =  [-z *  pca *  F * ( (nu*( Cai - Cao*exp_neg_nu) ) / (1-exp_neg_nu)) ] 
+        iCa_ungated =  [ -z *  pca *  F * ( (nu*( Cai - Cao*exp_neg_nu) ) / (1-exp_neg_nu)) ] \
+                if [ (V > ca_v_eps) or (V < -ca_v_eps)] \
+                else [pca * (-z) * F * (Cai-Cao) ]
+
+        iCa_disp = [2.9e-10] if [ (V > ca_v_eps) or (V < -ca_v_eps) ] else [3.1e-10]
         iCa =  iCa_ungated *  ca_m * ca_m
 
 
@@ -205,7 +212,7 @@ def get_dIN(nbits):
 
 
         regime sub{
-            on (V > 5mV) {
+            on (V > 0mV) {
                 emit spike()
                 transition_to super
             };

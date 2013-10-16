@@ -180,14 +180,35 @@ class Network(object):
 
 
 
-    def record_traces(self, subpopulations, terminal_node_name):
 
+    # Syntactic sugar
+    # ================
+    def create_population(self, **kwargs):
+        pop = Population(**kwargs)
+        self.add(pop)
+        return pop
+    def create_eventportconnector(self, **kwargs):
+        pop = EventPortConnector(**kwargs)
+        self.add(pop)
+        return pop
+    def create_electricalsynapseprojection(self, **kwargs):
+        pop = ElectricalSynapseProjection(**kwargs)
+        self.add(pop)
+        return pop
+
+
+
+    def record_traces(self, subpopulations, terminal_node_names):
+        if isinstance(terminal_node_names, basestring):
+            terminal_node_names = terminal_node_names.split()
 
 
         if isinstance(subpopulations, (Population,SubPopulation)):
             subpopulations = [subpopulations]
-        for subpop in subpopulations:
-            self._record_trace_for_population(subpop, terminal_node_name)
+
+        for terminal_node_name in terminal_node_names:
+            for subpop in subpopulations:
+                self._record_trace_for_population(subpop, terminal_node_name)
 
     def record_output_events(self, subpopulations, port_name):
         if isinstance(subpopulations, (Population,SubPopulation)):
