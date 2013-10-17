@@ -114,14 +114,28 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 
 
+    def _VisitIfThenElse(self, o, **kwargs):
+
+
+        L = " ( (%s) ? (%s).rescale_to<%d>() :  (%s).rescale_to<%d>() )" % ( 
+                    self.visit(o.predicate, for_bluevec=False, **kwargs),
+                    self.visit(o.if_true_ast, for_bluevec=False, **kwargs),
+                    o.annotations['fixed-point-format'].upscale,
+                    self.visit(o.if_false_ast, for_bluevec=False, **kwargs),
+                    o.annotations['fixed-point-format'].upscale,
+                    )
+        return self.add_range_check(o, L)
 
 
     def VisitIfThenElse(self, o, for_bluevec, **kwargs):
 
         if not for_bluevec:
-            L = "FixedPoint<%d>( ( (%s) ? auto_shift( (%s).v, IntType(%d)) : auto_shift( (%s).v, IntType(%d)) ) )"
-        else:
-            L = "FixedPoint<%d>( do_ifthenelse_op(%s, %s, %d, %s, %d ) )"
+            return self._VisitIfThenElse(o, **kwargs)
+
+
+
+        # For BlueVec:
+        L = "FixedPoint<%d>( do_ifthenelse_op(%s, %s, %d, %s, %d ) )"
 
         res = L % (
                     o.annotations['fixed-point-format'].upscale,
@@ -193,17 +207,6 @@ class CBasedFixedWriterStd(ASTVisitorBase):
         return res
 
 
-    #def VisitTimeDerivativeByRegime(self, o, **kwargs):
-    #    delta_upscale = o.lhs.annotations['fixed-point-format'].delta_upscale
-    #    c1 = "do_mul_op(%s , IntType( %d ), dt_fixed.v, IntType(dt_fixed.UP), IntType(%d), IntType(-1) ) " % (
-    #            self.visit(o.rhs_map, **kwargs),
-    #            o.rhs_map.annotations['fixed-point-format'].upscale,
-    #            delta_upscale)
-
-    #    c2 = "auto_shift( d_%s, IntType(%d) - IntType(%d) )" % (
-    #            o.lhs.symbol, delta_upscale,
-    #            o.lhs.annotations['fixed-point-format'].upscale)
-    #    return c1, c2
 
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         delta_upscale = o.lhs.annotations['fixed-point-format'].delta_upscale
@@ -257,8 +260,6 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
                 o.annotations['fixed-point-format'].upscale,
                 o.annotations['fixed-point-format'].const_value_as_int )
         return self.add_range_check(o, res)
-        #res = "IntType(%d)" % o.annotations['fixed-point-format'].const_value_as_int
-        #return self.add_range_check(o, res)
 
     def VisitAssignedVariable(self, o, **kwargs):
         res = self.get_var_str(o.symbol)

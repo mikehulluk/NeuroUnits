@@ -816,24 +816,31 @@ struct NrnPopData
 
     // Parameters:
     % for p in population.component.parameters:
-    FixedPoint<${p.annotations['fixed-point-format'].upscale}> ${p.symbol}[size];
+    typedef FixedPoint<${p.annotations['fixed-point-format'].upscale}> T_${p.symbol};
+    T_${p.symbol} ${p.symbol}[size];
     % endfor
 
     // Assignments:
     % for ass in population.component.assignedvalues:
-    FixedPoint<${ass.annotations['fixed-point-format'].upscale}> ${ass.symbol}[size];
+    typedef FixedPoint<${ass.annotations['fixed-point-format'].upscale}> T_${ass.symbol};
+    T_${ass.symbol} ${ass.symbol}[size];
     % endfor
 
     // States:
-% for sv_def in population.component.state_variables:
-    FixedPoint<${sv_def.annotations['fixed-point-format'].upscale}> ${sv_def.symbol}[size];
-    FixedPoint<${sv_def.annotations['fixed-point-format'].delta_upscale}> d_${sv_def.symbol}[size];
-% endfor
+    % for sv_def in population.component.state_variables:
+    typedef FixedPoint<${sv_def.annotations['fixed-point-format'].upscale}> T_${sv_def.symbol};
+    T_${sv_def.symbol} ${sv_def.symbol}[size];
+    typedef FixedPoint<${sv_def.annotations['fixed-point-format'].delta_upscale}> T_d_${sv_def.symbol};
+    T_d_${sv_def.symbol} d_${sv_def.symbol}[size];
+
+    % endfor
 
 
     // Supplied:
     % for sv_def in population.component.suppliedvalues:
-    FixedPoint<${sv_def.annotations['fixed-point-format'].upscale}> ${sv_def.symbol}[size];
+    typedef FixedPoint<${sv_def.annotations['fixed-point-format'].upscale}> T_${sv_def.symbol};
+    T_${sv_def.symbol} ${sv_def.symbol}[size];
+    //FixedPoint<${sv_def.annotations['fixed-point-format'].upscale}> ${sv_def.symbol}[size];
     % endfor
 
 
@@ -926,12 +933,7 @@ void initialise_statevars(NrnPopData& d)
     for(int i=0;i<NrnPopData::size;i++)
     {
         % for sv_def in population.component.state_variables:
-        d.${sv_def.symbol}[i] = auto_shift( IntType(${sv_def.initial_value.annotations['fixed-point-format'].const_value_as_int}),  IntType(${sv_def.initial_value.annotations['fixed-point-format'].upscale} - ${sv_def.annotations['fixed-point-format'].upscale} ) );
-
-
         d.${sv_def.symbol}[i] = FixedPoint<${sv_def.initial_value.annotations['fixed-point-format'].upscale}>( ${sv_def.initial_value.annotations['fixed-point-format'].const_value_as_int} ).rescale_to< ${sv_def.annotations['fixed-point-format'].upscale} > ();
-
-        //auto_shift( IntType(${sv_def.initial_value.annotations['fixed-point-format'].const_value_as_int}),  IntType(${sv_def.initial_value.annotations['fixed-point-format'].upscale} - ${sv_def.annotations['fixed-point-format'].upscale} ) );
         % endfor
 
         // Initial regimes:
