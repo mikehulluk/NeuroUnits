@@ -520,6 +520,18 @@ struct FixedPoint
     FixedPoint() {};
 
     const static int UP = UPSCALE;
+
+
+
+
+    // Rescaling between different scaling factors:
+    template<int NEW_UPSCALE>
+    FixedPoint<NEW_UPSCALE> rescale_to( )
+    {
+        return FixedPoint<NEW_UPSCALE>( auto_shift(v, UPSCALE - NEW_UPSCALE) );
+    }
+
+
 };
 
 
@@ -579,7 +591,7 @@ struct TimeInfo
     const IntType time_step;
     const IntType time_int;
     TimeInfo(IntType time_step)
-        : time_step(time_step), 
+        : time_step(time_step),
           time_int( inttype32_from_inttype64<IntType>( auto_shift64( get_value64(dt_fixed.v) * get_value64(time_step), get_value64(dt_fixed.UP - time_upscale) )) )
     {
 
@@ -804,22 +816,16 @@ struct NrnPopData
 
     // Parameters:
     % for p in population.component.parameters:
-    //IntType ${p.symbol}[size];        // Upscale: ${p.annotations['fixed-point-format'].upscale}
-    //IntType d_${p.symbol}[size];      // Upscale: ${p.annotations['fixed-point-format'].delta_upscale}
     FixedPoint<${p.annotations['fixed-point-format'].upscale}> ${p.symbol}[size];
-    //FixedPoint<${p.annotations['fixed-point-format'].delta_upscale}> d_${p.symbol}[size];
     % endfor
 
     // Assignments:
     % for ass in population.component.assignedvalues:
-    //IntType ${ass.symbol}[size];      // Upscale: ${ass.annotations['fixed-point-format'].upscale}
     FixedPoint<${ass.annotations['fixed-point-format'].upscale}> ${ass.symbol}[size];
     % endfor
 
     // States:
 % for sv_def in population.component.state_variables:
-    //IntType ${sv_def.symbol}[size];    // Upscale: ${sv_def.annotations['fixed-point-format'].upscale}
-    //IntType d_${sv_def.symbol}[size];
     FixedPoint<${sv_def.annotations['fixed-point-format'].upscale}> ${sv_def.symbol}[size];
     FixedPoint<${sv_def.annotations['fixed-point-format'].delta_upscale}> d_${sv_def.symbol}[size];
 % endfor
@@ -827,28 +833,23 @@ struct NrnPopData
 
     // Supplied:
     % for sv_def in population.component.suppliedvalues:
-    //IntType ${sv_def.symbol}[size];    // Upscale: ${sv_def.annotations['fixed-point-format'].upscale}
     FixedPoint<${sv_def.annotations['fixed-point-format'].upscale}> ${sv_def.symbol}[size];
     % endfor
 
 
     // Random Variable nodes
     %for rv, _pstring in rv_per_population:
-    //IntType RV${rv.annotations['node-id']};
     FixedPoint<${rv.annotations['fixed-point-format'].upscale}> RV${rv.annotations['node-id']};
     %endfor
     %for rv, _pstring in rv_per_neuron:
-    //IntType RV${rv.annotations['node-id']}[size];
     FixedPoint<${rv.annotations['fixed-point-format'].upscale}> RV${rv.annotations['node-id']}[size];
     %endfor
 
 
     // AutoRegressive nodes:
     %for ar in population.component.autoregressive_model_nodes:
-    //IntType AR${ar.annotations['node-id']}[size];
     FixedPoint<${ar.annotations['fixed-point-format'].upscale}> AR${ar.annotations['node-id']}[size];
     %for i in range( len( ar.coefficients)):
-    //IntType _AR${ar.annotations['node-id']}_t${i}[size];
     FixedPoint<${ar.annotations['fixed-point-format'].upscale}> _AR${ar.annotations['node-id']}_t${i}[size];
     %endfor
     %endfor
@@ -926,6 +927,11 @@ void initialise_statevars(NrnPopData& d)
     {
         % for sv_def in population.component.state_variables:
         d.${sv_def.symbol}[i] = auto_shift( IntType(${sv_def.initial_value.annotations['fixed-point-format'].const_value_as_int}),  IntType(${sv_def.initial_value.annotations['fixed-point-format'].upscale} - ${sv_def.annotations['fixed-point-format'].upscale} ) );
+
+
+        d.${sv_def.symbol}[i] = FixedPoint<${sv_def.initial_value.annotations['fixed-point-format'].upscale}>( ${sv_def.initial_value.annotations['fixed-point-format'].const_value_as_int} ).rescale_to< ${sv_def.annotations['fixed-point-format'].upscale} > ();
+
+        //auto_shift( IntType(${sv_def.initial_value.annotations['fixed-point-format'].const_value_as_int}),  IntType(${sv_def.initial_value.annotations['fixed-point-format'].upscale} - ${sv_def.annotations['fixed-point-format'].upscale} ) );
         % endfor
 
         // Initial regimes:
@@ -1473,7 +1479,7 @@ int main()
                 //write_time_to_hdf5(time_info);
                 %for poprec in network.all_trace_recordings:
                 // Record: ${poprec}
-                for(int i=0;i<${poprec.size};i++) global_data.recordings_new.data_buffers[${poprec.global_offset}+i][global_data.recordings_new.n_results_written] = data_${poprec.src_population.name}.${poprec.node.symbol}[i + ${poprec.src_pop_start_index} ];
+                for(int i=0;i<${poprec.size};i++) global_data.recordings_new.data_buffers[${poprec.global_offset}+i][global_data.recordings_new.n_results_written] = data_${poprec.src_population.name}.${poprec.node.symbol}[i + ${poprec.src_pop_start_index} ].v;
                 %endfor
 
                 global_data.recordings_new.n_results_written++;
@@ -1588,17 +1594,20 @@ namespace NS_${projection.name}
         const IntType sub_upscale = max( upscale_V_pre, upscale_V_post);
         const IntType curr_upscale = max( upscale_iinj_pre, upscale_iinj_post);
 
+        /*
         for(GJList::iterator it = gap_junctions.begin(); it != gap_junctions.end();it++)
         {
+            FixedPoint<curr_upscale> curr = ( src.V[get_value32(it->i)] -  dst.V[get_value32(it->j)] ) * FixedPoint<  ${projection.strength_S_upscale} > (  it->strength_S );
+
+
             IntType sub = do_sub_op( src.V[get_value32(it->i)], upscale_V_pre,  dst.V[get_value32(it->j)], upscale_V_post, sub_upscale, -1);
             IntType curr = do_mul_op( it->strength_S, ${projection.strength_S_upscale},
                                       sub, sub_upscale, curr_upscale, -1 );
 
             src.${post_iinj_node.symbol}[get_value32(it->i)] -= auto_shift( curr, curr_upscale-upscale_iinj_pre) ;
             src.${post_iinj_node.symbol}[get_value32(it->j)] += auto_shift( curr, curr_upscale-upscale_iinj_post) ;
-
-
         }
+        */
     }
 }
 
