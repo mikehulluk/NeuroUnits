@@ -29,15 +29,6 @@
 
 
 
-"""
-
-
-
-
-"""
-
-# Add 'straight.plugin' into the python path
-
 try:
     import straight.plugin
 
@@ -52,7 +43,6 @@ except ImportError:
 
 
 
-# Standard imports:
 
 from neurounits.neurounitparser import NeuroUnitParser, MQ1
 from neurounits.neurounitparser import NeuroUnitParserOptions
@@ -67,4 +57,5 @@ from neurounits.librarymanager import LibraryManager
 
 Q1 = lambda o: NeuroUnitParser.QuantitySimple(o).as_quantities_quantity()
 Q2 = lambda o: NeuroUnitParser.QuantityExpr(o).as_quantities_quantity()
+
 

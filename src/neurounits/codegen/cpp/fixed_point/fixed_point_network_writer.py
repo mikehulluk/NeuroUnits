@@ -544,6 +544,10 @@ namespace IntegerFixedPoint
         {
             return FixedFloatConversion::to_float(v, UP);
         }
+        inline IntType to_int() const
+        {
+            return v;
+        }
 
         // No implicit scaling-conversion:
         bool operator<=( const FixedPoint<UPSCALE>& rhs)
@@ -628,6 +632,12 @@ namespace DoubleFixedPoint
         {
             return v_float;
         }
+        inline IntType to_int() const
+        {
+            return (FixedFloatConversion::from_float(v_float,UPSCALE) );
+        }
+
+
 
         // No implicit scaling-conversion:
         bool operator<=( const FixedPoint<UPSCALE>& rhs)
@@ -679,6 +689,8 @@ namespace DoubleFixedPoint
 
 using IntegerFixedPoint::FixedPoint;
 using IntegerFixedPoint::FPOP;
+//using DoubleFixedPoint::FixedPoint;
+//using DoubleFixedPoint::FPOP;
 
 
 
@@ -710,7 +722,8 @@ struct TimeInfo
 
     TimeInfo(IntType step_count)
         : step_count(step_count),
-          time_fixed(  inttype32_from_inttype64<IntType>( auto_shift64( get_value64(dt_fixed.v) * get_value64(step_count), get_value64(dt_fixed.UP - time_upscale) ))  )
+          //time_fixed(  inttype32_from_inttype64<IntType>( auto_shift64( get_value64(dt_fixed.v) * get_value64(step_count), get_value64(dt_fixed.UP - time_upscale) ))  )
+          time_fixed(  inttype32_from_inttype64<IntType>( auto_shift64( get_value64(dt_fixed.to_int() ) * get_value64(step_count), get_value64(dt_fixed.UP - time_upscale) ))  )
     {
 
     }
@@ -801,18 +814,10 @@ namespace rnd
 
     double rand_in_range(double min, double max)
     {
-        //double r = (double)rand() / INT_MAX;
         double r = (double) rand_kiss() / INT_MAX;
         return r * (max-min) + min;
     }
 
-    template<int U1, int U2>
-    IntType uniform(IntType up, FixedPoint<U1> min, FixedPoint<U2> max)
-    {
-        return IntType( FixedFloatConversion::from_float(
-            rand_in_range(FixedFloatConversion::to_float(min.v, U1), FixedFloatConversion::to_float(max.v, U2)),
-            up) );
-    }
 
 
 
@@ -824,7 +829,12 @@ namespace rnd
         template<int U1, int U2>
         static FixedPoint<UP> uniform(FixedPoint<U1> min, FixedPoint<U2> max)
         {
-            return FixedPoint<UP>( FixedFloatConversion::from_float( rand_in_range(FixedFloatConversion::to_float(min.v, U1), FixedFloatConversion::to_float(max.v, U2)), UP) );
+            return FixedPoint<UP>( 
+                FixedFloatConversion::from_float( 
+                    rand_in_range(
+                        min.to_float(), 
+                        max.to_float()
+                        ), UP) );
         }
     };
 
@@ -1072,7 +1082,6 @@ void initialise_statevars(NrnPopData& d)
     for(int i=0;i<NrnPopData::size;i++)
     {
         % for sv_def in population.component.state_variables:
-        //d.${sv_def.symbol}[i] = FixedPoint<${sv_def.initial_value.annotations['fixed-point-format'].upscale}>( ${sv_def.initial_value.annotations['fixed-point-format'].const_value_as_int} ).rescale_to< ${sv_def.annotations['fixed-point-format'].upscale} > ();
         d.${sv_def.symbol}[i] = FixedPoint<${sv_def.initial_value.annotations['fixed-point-format'].upscale}>( ${sv_def.initial_value.annotations['fixed-point-format'].const_value_as_int} );
         % endfor
 
@@ -1207,7 +1216,7 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 {
 
     const FixedPoint<time_upscale> t = time_info.time_fixed;
-    assert(t.v>=0); // Suppress compiler warning about unused variable
+    //assert(t.v>=0); // Suppress compiler warning about unused variable
 
 
 
@@ -1351,7 +1360,7 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
 {
     const FixedPoint<time_upscale> t = time_info.time_fixed;
-    assert(t.v>=0); // Suppress compiler warning about unused variable
+    //assert(t.v>=0); // Suppress compiler warning about unused variable
 
     for(int i=0;i<NrnPopData::size;i++)
     {
@@ -1609,11 +1618,11 @@ int main()
             if(get_value32(time_info.step_count) % get_value32(record_rate)==0)
             {
                 // Save time:
-                global_data.recordings_new.time_buffer[global_data.recordings_new.n_results_written] = time_info.time_fixed.v;
+                global_data.recordings_new.time_buffer[global_data.recordings_new.n_results_written] = time_info.time_fixed.to_int();
                 //write_time_to_hdf5(time_info);
                 %for poprec in network.all_trace_recordings:
                 // Record: ${poprec}
-                for(int i=0;i<${poprec.size};i++) global_data.recordings_new.data_buffers[${poprec.global_offset}+i][global_data.recordings_new.n_results_written] = data_${poprec.src_population.name}.${poprec.node.symbol}[i + ${poprec.src_pop_start_index} ].v;
+                for(int i=0;i<${poprec.size};i++) global_data.recordings_new.data_buffers[${poprec.global_offset}+i][global_data.recordings_new.n_results_written] = data_${poprec.src_population.name}.${poprec.node.symbol}[i + ${poprec.src_pop_start_index} ].to_int();
                 %endfor
 
                 global_data.recordings_new.n_results_written++;
@@ -1954,7 +1963,7 @@ struct RecordMgr
             int s=0;
             for(SpikeList::iterator it=emitted_spikes[buffer_offset].begin(); it!=emitted_spikes[buffer_offset].end(); it++,s++)
             {
-                buffer_int[s] = get_value32(it->time.v);
+                buffer_int[s] = get_value32(it->time.to_int());
                 buffer_float[s] = buffer_int[s] * dt_float;
             }
 

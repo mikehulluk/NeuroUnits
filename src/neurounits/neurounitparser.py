@@ -47,7 +47,6 @@ class NeuroUnitParser(object):
 
     @classmethod
     def get_defaultBackend(cls):
-        """Blah Blha"""
         from .units_backends.mh import MHUnitBackend as defaultbackend
         return defaultbackend()
 

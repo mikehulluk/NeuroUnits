@@ -154,11 +154,11 @@ class CBasedFixedWriterStd(ASTVisitorBase):
         ann_gt_upscale = o.greater_than.annotations['fixed-point-format'].upscale
 
         if ann_lt_upscale < ann_gt_upscale:
-            res= "( ((%s).v>>IntType(%d)) < ( (%s).v) )" %( self.visit(o.lesser_than, **kwargs), (ann_gt_upscale-ann_lt_upscale),  self.visit(o.greater_than, **kwargs) )
+            res= "( ((%s).to_int() >>IntType(%d)) < ( (%s).to_int()) )" %( self.visit(o.lesser_than, **kwargs), (ann_gt_upscale-ann_lt_upscale),  self.visit(o.greater_than, **kwargs) )
         elif ann_lt_upscale > ann_gt_upscale:
-            res= "( (%s).v < ( (%s).v >>IntType(%d)))" %( self.visit(o.lesser_than, **kwargs), self.visit(o.greater_than, **kwargs), (ann_lt_upscale-ann_gt_upscale) )
+            res= "( (%s).to_int() < ( (%s).to_int() >>IntType(%d)))" %( self.visit(o.lesser_than, **kwargs), self.visit(o.greater_than, **kwargs), (ann_lt_upscale-ann_gt_upscale) )
         else:
-            res= "( (%s).v < (%s).v )" %( self.visit(o.lesser_than, **kwargs), self.visit(o.greater_than, **kwargs) )
+            res= "( (%s).to_int() < (%s).to_int() )" %( self.visit(o.lesser_than, **kwargs), self.visit(o.greater_than, **kwargs) )
         return res
 
 
@@ -191,7 +191,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
         ann_func_upscale = o.annotations['fixed-point-format'].upscale
         ann_param_upscale = param.rhs_ast.annotations['fixed-point-format'].upscale
         expr_num = o.annotations['node-id']
-        res = """ FixedPoint<%d> ( int_exp( %s.v, IntType(%d), IntType(%d), IntType(%d), %s ) )""" %(ann_func_upscale, param_term, ann_param_upscale, ann_func_upscale, expr_num, param_lut )
+        res = """ FixedPoint<%d> ( int_exp( %s.to_int(), IntType(%d), IntType(%d), IntType(%d), %s ) )""" %(ann_func_upscale, param_term, ann_param_upscale, ann_func_upscale, expr_num, param_lut )
         return self.add_range_check(o, res)
 
     def VisitFunctionDefInstantiationParameter(self, o):

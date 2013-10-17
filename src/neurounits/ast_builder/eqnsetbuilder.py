@@ -658,7 +658,6 @@ class AbstractBlockBuilder(object):
         self.builddata._assigments_per_regime.append(a)
 
     def finalise(self):
-        print 'Finalising...', self
         # A few sanity checks....
         # ########################
         assert self.active_scope is None
@@ -902,7 +901,7 @@ class AbstractBlockBuilder(object):
 
         # 2. Setup the meta-data in each node from IO lines
         for io_data in io_data:
-            print io_data.iotype
+            #print io_data.iotype
             allow_missing = ( io_data.iotype==IOType.Input and options.allow_unused_suppliedvalue_declarations ) or \
                             ( io_data.iotype==IOType.Parameter and options.allow_unused_parameter_declarations )
 
@@ -922,7 +921,7 @@ class AbstractBlockBuilder(object):
 
 
         # 5. Add the annotation infrastructure:
-        from neurounits.ast_annotations import ASTTreeAnnotationManager, ASTNodeAnnotationData
+        #from neurounits.ast_annotations import ASTTreeAnnotationManager, ASTNodeAnnotationData
         #ast_object.annotation_mgr = ASTTreeAnnotationManager()
         #print 'Finalising library:', ast_object
         #for node in set(ast_object.all_ast_nodes() ):
