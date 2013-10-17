@@ -353,21 +353,6 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
                 )
         return res
 
-        #rhs_c = self.visit(o.rhs, **kwargs)
-        #rhs_str = "%s.rescale_to<T_%d>()" % (
-        #        self.get_var_str(o.lhs.symbol),
-        #        o.lhs.annotations['fixed-point-format'].upscale,
-        #        rhs_c, o.rhs.annotations['fixed-point-format'].upscale - o.lhs.annotations['fixed-point-format'].upscale )
-        #return rhs_str
-
-
-    #def VisitOnEventStateAssignmentOLD(self, o, **kwargs):
-    #    rhs_c = self.visit(o.rhs, **kwargs)
-    #    rhs_str = "%s = FixedPoint<%d> (auto_shift( %s.v, IntType(%d) ) )" % (
-    #            self.get_var_str(o.lhs.symbol),
-    #            o.lhs.annotations['fixed-point-format'].upscale,
-    #            rhs_c, o.rhs.annotations['fixed-point-format'].upscale - o.lhs.annotations['fixed-point-format'].upscale )
-    #    return rhs_str
 
     def VisitEmitEvent(self, o, **kwargs):
         return 'event_handlers::on_%s(IntType(i), time_info)'% o.port.symbol
