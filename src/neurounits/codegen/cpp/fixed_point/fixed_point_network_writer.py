@@ -526,13 +526,28 @@ struct FixedPoint
 
     // Rescaling between different scaling factors:
     template<int NEW_UPSCALE>
-    FixedPoint<NEW_UPSCALE> rescale_to( )
+    FixedPoint<NEW_UPSCALE> rescale_to( ) const
     {
         return FixedPoint<NEW_UPSCALE>( auto_shift(v, UPSCALE - NEW_UPSCALE) );
     }
 
 
+    inline double to_float() const
+    {
+        return FixedFloatConversion::to_float(v, UP);
+    }
+
+
+
+    // No implicit scaling-conversion:
+    bool operator<=( const FixedPoint<UPSCALE>& rhs)
+    {
+        return v <=rhs.v;
+    }
+
 };
+
+
 
 
 
@@ -586,13 +601,18 @@ const FixedPoint<${dt_upscale}> dt_fixed( ${dt_int} );
 
 const IntType time_upscale = IntType(${time_upscale});
 
+
+typedef FixedPoint<time_upscale>  TimeType;
+
 struct TimeInfo
 {
     const IntType time_step;
-    const IntType time_int;
+
+    const TimeType time_fixed;
+
     TimeInfo(IntType time_step)
         : time_step(time_step),
-          time_int( inttype32_from_inttype64<IntType>( auto_shift64( get_value64(dt_fixed.v) * get_value64(time_step), get_value64(dt_fixed.UP - time_upscale) )) )
+          time_fixed(  inttype32_from_inttype64<IntType>( auto_shift64( get_value64(dt_fixed.v) * get_value64(time_step), get_value64(dt_fixed.UP - time_upscale) ))  )
     {
 
     }
@@ -785,7 +805,8 @@ namespace NS_${population.name}
         struct Event_${in_port.symbol}
         {
 
-            IntType delivery_time;
+            //IntType delivery_time;
+            TimeType delivery_time;
             %for param in in_port.parameters:
             //IntType ${param.symbol}; // Upscale: ${param.annotations['fixed-point-format'].upscale}
             typedef FixedPoint<${param.annotations['fixed-point-format'].upscale}> ${param.symbol}Type; // Upscale: ${param.annotations['fixed-point-format'].upscale}
@@ -793,7 +814,7 @@ namespace NS_${population.name}
             %endfor
 
             Event_${in_port.symbol}(
-                IntType delivery_time
+                TimeType delivery_time
                 ${ ' '.join( [ ',%sType %s' % (param.symbol,param.symbol) for param in in_port.parameters ] ) }
             )
             :
@@ -973,7 +994,7 @@ namespace event_handlers
         // Lets records!
         if( (index >= IntType(${poprec.src_pop_start_index})) && (index < IntType(${poprec.src_pop_end_index})))
         {
-            record_event( IntType(${poprec.global_offset}) + index - IntType(${poprec.src_pop_start_index}) , SpikeEmission(time_info.time_int) );
+            record_event( IntType(${poprec.global_offset}) + index - IntType(${poprec.src_pop_start_index}) , SpikeEmission(time_info.time_fixed) );
         }
         %endif
         %endfor
@@ -1018,9 +1039,9 @@ namespace event_handlers
                 if( d.incoming_events_${tr.port.symbol}[i].size() == 0 ) break;
 
                 input_event_types::Event_${tr.port.symbol}& evt = d.incoming_events_${tr.port.symbol}[i].front();
-                IntType evt_time = evt.delivery_time;
+                TimeType evt_time = evt.delivery_time;
 
-                if(evt_time <= time_info.time_int )
+                if(evt_time <= time_info.time_fixed )
                 {
                     // Handle the event:
                     LOG_COMPONENT_EVENTHANDLER( std::cout << "\n **** HANDLING EVENT (on ${tr.port.symbol}) *****"; )
@@ -1066,8 +1087,7 @@ namespace event_handlers
 void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 {
 
-    //const IntType t = time_info.time_int;
-    const FixedPoint<time_upscale> t(time_info.time_int);
+    const FixedPoint<time_upscale> t = time_info.time_fixed;
     assert(t.v>=0); // Suppress compiler warning about unused variable
 
 
@@ -1083,17 +1103,16 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         LOG_COMPONENT_STATEUPDATE(
         cout << "\n";
         cout << "\nFor ${population.name} " << i;
-        cout << "\nAt: t=" << t << "\t(" << FixedFloatConversion::to_float(t, time_upscale) * 1000. << "ms)";
+        cout << "\nAt: t=" << t << "\t(" << t.to_float() * 1000.0 << "ms)";
         cout << "\nStarting State Variables:";
         cout << "\n-------------------------";
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
-        cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
+        cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i]  << " (" << d.${td.lhs.symbol}[i].to_float() << ")" << std::flush;
         % endfor
         cout << "\nSupplied Variables:";
         cout << "\n-------------------------";
         %for suppliedvalue in population.component.suppliedvalues:
-        cout << "\n d.${suppliedvalue.symbol}: " << d.${suppliedvalue.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${suppliedvalue.symbol}[i], ${suppliedvalue.annotations['fixed-point-format'].upscale})  << ")" << std::flush;
-        CHECK_IN_RANGE_VARIABLE( d.${suppliedvalue.symbol}[i], ${suppliedvalue.annotations['fixed-point-format'].upscale}, ${suppliedvalue.annotations['node-value-range'].min}, ${suppliedvalue.annotations['node-value-range'].max}, "d.${suppliedvalue.symbol}" );
+        cout << "\n d.${suppliedvalue.symbol}: " << d.${suppliedvalue.symbol}[i]  << " (" << d.${suppliedvalue.symbol}[i].to_float() << ")" << std::flush;
         %endfor
         cout << "\nUpdates:";
         )
@@ -1119,18 +1138,16 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         // Calculate assignments:
         % for ass in population.component.ordered_assignments_by_dependancies:
         d.${ass.lhs.symbol}[i] = ${writer.to_c(ass, population_access_index='i', data_prefix='d.')} ;
-        LOG_COMPONENT_STATEUPDATE( cout << "\n d.${ass.lhs.symbol}: " << d.${ass.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${ass.lhs.symbol}[i], ${ass.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush;)
-        CHECK_IN_RANGE_VARIABLE( d.${ass.lhs.symbol}[i], ${ass.lhs.annotations['fixed-point-format'].upscale}, ${ass.lhs.annotations['node-value-range'].min}, ${ass.lhs.annotations['node-value-range'].max}, "d.${ass.lhs.symbol}" );
+        LOG_COMPONENT_STATEUPDATE( cout << "\n d.${ass.lhs.symbol}: " << d.${ass.lhs.symbol}[i]  << " (" << d.${ass.lhs.symbol}[i].to_float()  << ")" << std::flush;)
         % endfor
 
         // Calculate delta's for all state-variables:
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
         <% cs1, cs2 = writer.to_c(td, population_access_index='i', data_prefix='d.') %>
         d.d_${td.lhs.symbol}[i] = ${cs1} ;
-        d.${td.lhs.symbol}[i] = FPOP<${td.lhs.annotations['fixed-point-format'].upscale}>::add( d.${td.lhs.symbol}[i], ${cs2}) ;
-        LOG_COMPONENT_STATEUPDATE( cout << "\n delta:${td.lhs.symbol}: " << d_${td.lhs.symbol}  << " (" << FixedFloatConversion::to_float(d_${td.lhs.symbol}, ${td.lhs.annotations['fixed-point-format'].delta_upscale})  << ")" << std::flush; )
-        LOG_COMPONENT_STATEUPDATE( cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i]  << " (" << FixedFloatConversion::to_float(d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale})  << ")" << std::flush; )
-        CHECK_IN_RANGE_VARIABLE( d.${td.lhs.symbol}[i], ${td.lhs.annotations['fixed-point-format'].upscale}, ${td.lhs.annotations['node-value-range'].min}, ${td.lhs.annotations['node-value-range'].max}, "d.${td.lhs.symbol}" );
+        d.${td.lhs.symbol}[i] = FPOP<NrnPopData::T_${td.lhs.symbol}::UP>::add( d.${td.lhs.symbol}[i], d.d_${td.lhs.symbol}[i] ) ;
+        LOG_COMPONENT_STATEUPDATE( cout << "\n delta:${td.lhs.symbol}: " << d_${td.lhs.symbol}  << " (" << d_${td.lhs.symbol}.to_float()  << ")" << std::flush; )
+        LOG_COMPONENT_STATEUPDATE( cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i]  << " (" << d.${td.lhs.symbol}[i].to_float()  << ")" << std::flush; )
         % endfor
 
     }
@@ -1214,9 +1231,8 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 
 void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
 {
-    const IntType t = time_info.time_int;
-
-    assert(t>=0); // Suppress compiler warning about unused variable
+    const FixedPoint<time_upscale> t = time_info.time_fixed;
+    assert(t.v>=0); // Suppress compiler warning about unused variable
 
     for(int i=0;i<NrnPopData::size;i++)
     {
@@ -1428,18 +1444,15 @@ int main()
 
 
             TimeInfo time_info(time_step);
-            //cout << "\n\nTIME:" << time_step << "\n";
 
 
-            DBG.update(FixedFloatConversion::to_float(time_info.time_int, time_upscale) );
+            DBG.update( time_info.time_fixed.to_float() );
 
             #if DISPLAY_LOOP_INFO
             if(get_value32(time_step)%100 == 0)
             {
                 std::cout << "Loop: " << time_step << "\n";
-                std::cout << "t: " << time_info.time_int << "\n";
-                std::cout << "(t: " << FixedFloatConversion::to_float(time_info.time_int, time_upscale) * 1000 << "ms)\n";
-
+                std::cout << "(t: " << time_info.time_fixed.to_float() * 1000 << "ms)\n";
                 std::cout << "EmittedSpikes[0]: " << global_data.recordings_new.emitted_spikes[0].size() << "\n";
 
             }
@@ -1477,7 +1490,7 @@ int main()
             if(get_value32(time_info.time_step) % get_value32(record_rate)==0)
             {
                 // Save time:
-                global_data.recordings_new.time_buffer[global_data.recordings_new.n_results_written] = time_info.time_int;
+                global_data.recordings_new.time_buffer[global_data.recordings_new.n_results_written] = time_info.time_fixed.v;
                 //write_time_to_hdf5(time_info);
                 %for poprec in network.all_trace_recordings:
                 // Record: ${poprec}
@@ -1550,10 +1563,12 @@ namespace NS_${projection.name}
     struct GapJunction
     {
         IntType i,j;
-        IntType strength_S;
+        //IntType strength_S;
+
+        FixedPoint<${projection.strength_S_upscale}>  strength_S_fixed;
 
         GapJunction(IntType i, IntType j, IntType strength)
-         : i(i), j(j), strength_S(strength)
+         : i(i), j(j), strength_S_fixed(strength)
         {
 
 
@@ -1586,30 +1601,22 @@ namespace NS_${projection.name}
         post_V_node = projection.dst_population.component.get_terminal_obj_or_port('V')
         pre_iinj_node = projection.src_population.component.get_terminal_obj_or_port(projection.injected_port_name)
         post_iinj_node = projection.dst_population.component.get_terminal_obj_or_port(projection.injected_port_name)
+        v_upscale = max( [pre_V_node.annotations['fixed-point-format'].upscale, post_V_node.annotations['fixed-point-format'].upscale] )
+        curr_upscale = max( [pre_iinj_node.annotations['fixed-point-format'].upscale, post_iinj_node.annotations['fixed-point-format'].upscale] )
         %>
-        IntType upscale_V_pre = IntType( ${pre_V_node.annotations['fixed-point-format'].upscale} );
-        IntType upscale_V_post = IntType(${post_V_node.annotations['fixed-point-format'].upscale} );
 
-        IntType upscale_iinj_pre = IntType(${pre_iinj_node.annotations['fixed-point-format'].upscale} );
-        IntType upscale_iinj_post = IntType(${post_iinj_node.annotations['fixed-point-format'].upscale} );
-
-        const IntType sub_upscale = max( upscale_V_pre, upscale_V_post);
-        const IntType curr_upscale = max( upscale_iinj_pre, upscale_iinj_post);
-
-        /*
         for(GJList::iterator it = gap_junctions.begin(); it != gap_junctions.end();it++)
         {
-            FixedPoint<curr_upscale> curr = ( src.V[get_value32(it->i)] -  dst.V[get_value32(it->j)] ) * FixedPoint<  ${projection.strength_S_upscale} > (  it->strength_S );
+            FixedPoint<${curr_upscale}> curr = FPOP<${curr_upscale}>::mul(
+                    FPOP<${v_upscale}>::sub( src.V[get_value32(it->i)], dst.V[get_value32(it->j)] ),
+                    it->strength_S_fixed
+                );
 
+            src.${pre_iinj_node.symbol}[get_value32(it->i)]  = FPOP<${pre_iinj_node.annotations['fixed-point-format'].upscale}>::sub (src.${pre_iinj_node.symbol}[get_value32(it->i)], curr);
+            src.${post_iinj_node.symbol}[get_value32(it->j)] = FPOP<${post_iinj_node.annotations['fixed-point-format'].upscale}>::add (src.${post_iinj_node.symbol}[get_value32(it->j)], curr);
 
-            IntType sub = do_sub_op( src.V[get_value32(it->i)], upscale_V_pre,  dst.V[get_value32(it->j)], upscale_V_post, sub_upscale, -1);
-            IntType curr = do_mul_op( it->strength_S, ${projection.strength_S_upscale},
-                                      sub, sub_upscale, curr_upscale, -1 );
-
-            src.${post_iinj_node.symbol}[get_value32(it->i)] -= auto_shift( curr, curr_upscale-upscale_iinj_pre) ;
-            src.${post_iinj_node.symbol}[get_value32(it->j)] += auto_shift( curr, curr_upscale-upscale_iinj_post) ;
         }
-        */
+
     }
 }
 
@@ -1650,13 +1657,16 @@ namespace NS_eventcoupling_${projection.name}
             return;
 
 
+        const FixedPoint<${projection.delay_upscale}> delay( ${projection.delay_int} );
+
 
         TargetList& targets = projections[get_value32(src_neuron - ${projection.src_population.start_index} )];
         for( TargetList::iterator it = targets.begin(); it!=targets.end();it++)
         {
             <% evt_type = 'NS_%s::input_event_types::Event_%s' % (projection.dst_population.population.name, projection.dst_port.symbol)%>
 
-            IntType evt_time = do_add_op( time_info.time_int, time_upscale, IntType(${projection.delay_int}), IntType(${projection.delay_upscale}), time_upscale, IntType(0));
+
+            TimeType evt_time = FPOP<time_upscale>::add(time_info.time_fixed, delay);
 
             // Create the event, remebering to rescale parameters between source and target appropriately:
             %for p in projection.dst_port.alphabetic_params:

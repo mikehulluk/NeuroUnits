@@ -117,7 +117,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
     def _VisitIfThenElse(self, o, **kwargs):
 
 
-        L = " ( (%s) ? (%s).rescale_to<%d>() :  (%s).rescale_to<%d>() )" % ( 
+        L = " ( (%s) ? (%s).rescale_to<%d>() :  (%s).rescale_to<%d>() )" % (
                     self.visit(o.predicate, for_bluevec=False, **kwargs),
                     self.visit(o.if_true_ast, for_bluevec=False, **kwargs),
                     o.annotations['fixed-point-format'].upscale,
@@ -199,11 +199,13 @@ class CBasedFixedWriterStd(ASTVisitorBase):
         res = o.symbol
         return self.add_range_check(o, res)
 
+
+
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
-        res =  " FixedPoint<%d>( auto_shift( (%s).v, IntType(%d) ) )" % (
-                o.lhs.annotations['fixed-point-format'].upscale,
+        res =  "(%s).rescale_to<NrnPopData::T_%s::UP>()" % (
                 self.visit(o.rhs_map, **kwargs),
-                o.rhs_map.annotations['fixed-point-format'].upscale - o.lhs.annotations['fixed-point-format'].upscale )
+                o.lhs.symbol
+                )
         return res
 
 
@@ -213,13 +215,9 @@ class CBasedFixedWriterStd(ASTVisitorBase):
         c1 = "FPOP<%d>::mul(%s , dt_fixed) " % (
                 delta_upscale,
                 self.visit(o.rhs_map, **kwargs),
-                #o.rhs_map.annotations['fixed-point-format'].upscale,
                 )
 
-        c2 = "FixedPoint<%d>( auto_shift( d.d_%s[i].v, IntType(%d) - IntType(%d) ) )" % (
-                o.lhs.annotations['fixed-point-format'].upscale,
-                o.lhs.symbol, delta_upscale,
-                o.lhs.annotations['fixed-point-format'].upscale)
+        c2 = ''
         return c1, c2
 
 
@@ -347,12 +345,29 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
 
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
-        rhs_c = self.visit(o.rhs, **kwargs)
-        rhs_str = "%s = FixedPoint<%d> (auto_shift( %s.v, IntType(%d) ) )" % (
-                self.get_var_str(o.lhs.symbol),
-                o.lhs.annotations['fixed-point-format'].upscale,
-                rhs_c, o.rhs.annotations['fixed-point-format'].upscale - o.lhs.annotations['fixed-point-format'].upscale )
-        return rhs_str
+
+        res =  "%s = (%s).rescale_to<NrnPopData::T_%s::UP>()" % (
+                self.get_var_str(o.lhs.symbol), 
+                self.visit(o.rhs, **kwargs),
+                o.lhs.symbol
+                )
+        return res
+
+        #rhs_c = self.visit(o.rhs, **kwargs)
+        #rhs_str = "%s.rescale_to<T_%d>()" % (
+        #        self.get_var_str(o.lhs.symbol),
+        #        o.lhs.annotations['fixed-point-format'].upscale,
+        #        rhs_c, o.rhs.annotations['fixed-point-format'].upscale - o.lhs.annotations['fixed-point-format'].upscale )
+        #return rhs_str
+
+
+    #def VisitOnEventStateAssignmentOLD(self, o, **kwargs):
+    #    rhs_c = self.visit(o.rhs, **kwargs)
+    #    rhs_str = "%s = FixedPoint<%d> (auto_shift( %s.v, IntType(%d) ) )" % (
+    #            self.get_var_str(o.lhs.symbol),
+    #            o.lhs.annotations['fixed-point-format'].upscale,
+    #            rhs_c, o.rhs.annotations['fixed-point-format'].upscale - o.lhs.annotations['fixed-point-format'].upscale )
+    #    return rhs_str
 
     def VisitEmitEvent(self, o, **kwargs):
         return 'event_handlers::on_%s(IntType(i), time_info)'% o.port.symbol
