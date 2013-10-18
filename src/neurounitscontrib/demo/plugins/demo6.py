@@ -1,4 +1,7 @@
 
+import mreorg
+import pylab
+
 
 neuron_def = r'''
 library my_neuro {

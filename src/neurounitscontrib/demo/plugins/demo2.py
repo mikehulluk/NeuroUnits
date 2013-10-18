@@ -1,6 +1,6 @@
 
 
-
+import mreorg
 from neurounitscontrib.demo import DemoPluginBase
 class Demo2(DemoPluginBase):
     
@@ -19,7 +19,6 @@ class Demo2(DemoPluginBase):
 
 
 import neurounits
-import neurounits.nineml
 import numpy as np
 
 
@@ -267,7 +266,8 @@ def test2():
     ani = animation.FuncAnimation(fig, simPoints, simData, blit=False, interval=1, repeat=True, save_count=1000)
 
     #ani.save('myoutput.avi', writer='ffmpeg', bitrate=200, fps=20, codec='ffv1' )#extra_args=['-vcodec huffyuv']) # codec='ffv1')
-    ani.save('myoutput.avi', writer='ffmpeg',  fps=40, codec='ffv1' )#extra_args=['-vcodec huffyuv']) # codec='ffv1')
+    ani.save('myoutput.avi', fps=40, codec='ffv1' )#extra_args=['-vcodec huffyuv']) # codec='ffv1')
+    #writer='ffmpeg',
 
 
 

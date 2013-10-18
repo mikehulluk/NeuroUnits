@@ -1,14 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+import mreorg
 import neurounits
 import sys
 import numpy as np
 import itertools
 
 import pylab
-#from neurounits.nineml import build_compound_component, auto_plot
-#from neurounits.nineml import simulate_component
+
 import glob
 import warnings
 
@@ -118,11 +117,11 @@ def main():
     warnings.simplefilter('error', UserWarning)
     warnings.simplefilter('error', Warning)
 
-    level='WARNING'
-    from logbook import FileHandler, StreamHandler
+    #level='WARNING'
+    #from logbook import FileHandler, StreamHandler
 
-    log_handler1 = FileHandler('application.log')
-    log_handler1.push_application()
+    #log_handler1 = FileHandler('application.log')
+    #log_handler1.push_application()
 
     test4()
     pylab.show()

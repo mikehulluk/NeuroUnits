@@ -34,7 +34,7 @@ import numpy as np
 from neurounits import ast
 from neurounits.units_backends.mh import MHUnitBackend
 from collections import defaultdict
-from neurounits.units_misc import DebugScope
+#from neurounits.units_misc import DebugScope
 
 
 
@@ -48,8 +48,8 @@ def with_number_check(func, src_obj):
 
     def my_func(*args, **kwargs):
         #print 'Evaluating Node', src_obj
-        with DebugScope(''):
-            res = func(*args, **kwargs)
+        #with DebugScope(''):
+        res = func(*args, **kwargs)
         print 'Value of node:', repr(src_obj), res
         return res
     return my_func
@@ -159,8 +159,8 @@ class FunctorGenerator(ASTVisitorBase):
         self.assignment_evaluators[o.lhs.symbol] = self.visit(o.rhs_map)
 
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
-        with DebugScope('VisitTimeDerivativeByRegime (%s)' % o.lhs.symbol):
-            self.timederivative_evaluators[o.lhs.symbol] = self.visit(o.rhs_map)
+        #with DebugScope('VisitTimeDerivativeByRegime (%s)' % o.lhs.symbol):
+        self.timederivative_evaluators[o.lhs.symbol] = self.visit(o.rhs_map)
 
 
 
