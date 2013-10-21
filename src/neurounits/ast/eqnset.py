@@ -432,6 +432,8 @@ class NineMLComponent(Block):
         assert sym in self.terminal_symbols
         if not sym._metadata:
             return None
+        if isinstance(sym._metadata, dict):
+            return sym._metadata
         return sym._metadata.metadata
 
 
