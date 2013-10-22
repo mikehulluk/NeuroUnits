@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name = "NeuroUnits",
-    version = "0.0.0.1-rc0d",
+    version = "0.1",
     author = "Mike Hull",
     author_email = "mikehulluk@gmail.com",
     description = ("A library for parsing quantities and sets of equations involving units for computational neuroscience."),
