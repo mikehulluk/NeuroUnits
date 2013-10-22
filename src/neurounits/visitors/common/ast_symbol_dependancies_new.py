@@ -29,15 +29,10 @@
 
 from neurounits.visitors import ASTVisitorBase
 import itertools
-import networkx as nx
 from itertools import chain
 import pylab
-
-
-
 import neurounits.ast as ast
-
-
+import networkx as nx
 
 
 class VisitorSymbolDependance(object):

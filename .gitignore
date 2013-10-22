@@ -47,3 +47,6 @@ src/testing/.coverage
 
 out/*
 .coverage
+
+dist/
+src/NeuroUnits.egg-info/

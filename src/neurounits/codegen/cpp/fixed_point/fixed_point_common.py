@@ -178,6 +178,12 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
     def VisitFunctionDefBuiltInInstantiation(self,o, for_bluevec, **kwargs):
         assert o.function_def.is_builtin() and o.function_def.funcname == '__exp__'
+
+        # Hack for floating point:
+        param = o.parameters.values()[0]
+        return "FixedPoint<1>( exp(%s.to_float()) )" %  self.visit(param.rhs_ast, for_bluevec=for_bluevec, **kwargs)
+
+
         param = o.parameters.values()[0]
         param_term = self.visit(param.rhs_ast, for_bluevec=for_bluevec, **kwargs)
 

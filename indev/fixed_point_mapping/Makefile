@@ -5,3 +5,5 @@ clean:
 	rm -f output.hd5
 	rm -f *parsetab.py
 	rm -rf _output/
+	rm -f *.hdf
+	rm -f *.hdf5

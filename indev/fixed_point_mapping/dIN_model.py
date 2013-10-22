@@ -15,12 +15,12 @@ def get_dIN(nbits):
         <=> TIME t:(ms)
         <=> INPUT i_injected:(mA)
 
-        iInj_local = [75pA] if [ 75ms < t < 80ms] else [0pA] 
+        iInj_local = [50pA] if [ 50ms < t < 200ms] else [0pA] 
         Cap = 10 pF
 
         #V' = (1/Cap) * (iInj_local + i_injected + iLk + iKs + iKf +iNa + iCa + syn_nmda_i + syn_ampa_i + syn_inhib_i)
         #V' = (1/Cap) * ( ( iLk + iInj_local + iKs + iKf +iNa + iCa + syn_nmda_i + syn_ampa_i + syn_inhib_i +  i_injected) )
-        V' = (1/Cap) * ( ( iLk + iInj_local + iKs + iKf +iNa +  syn_nmda_i + syn_ampa_i + syn_inhib_i +  i_injected) )
+        V' = (1/Cap) * ( ( iLk + iInj_local + iKs + iKf +iNa + iCa +  syn_nmda_i + syn_ampa_i + syn_inhib_i +  i_injected) )
 
         k = i_injected
 
@@ -283,7 +283,6 @@ def get_dIN(nbits):
         'iKf' : '',
         'kf_n': '',
         'iInj_local': '',
-
     }
 
 
@@ -305,7 +304,7 @@ def get_dIN(nbits):
     comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 
     from neurounits.ast_annotations.common import NodeTagger
-    #NodeTagger(var_annots_tags).visit(comp)
+    NodeTagger(var_annots_tags).visit(comp)
 
     return comp
 

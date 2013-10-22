@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name = "NeuroUnits",
-    version = "0.0.0.1-rc0a",
+    version = "0.0.0.1-rc0d",
     author = "Mike Hull",
     author_email = "mikehulluk@gmail.com",
     description = ("A library for parsing quantities and sets of equations involving units for computational neuroscience."),
@@ -77,7 +77,7 @@ setup(
     #            ],
 
 
-    install_requires=['matplotlib','quantities'],
+    install_requires=['matplotlib','quantities', 'straight.plugin','networkx'],
 
     long_description=read('README.txt'),
     classifiers=[

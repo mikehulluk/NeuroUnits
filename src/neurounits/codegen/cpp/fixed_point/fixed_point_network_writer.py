@@ -687,10 +687,10 @@ namespace DoubleFixedPoint
 
 
 
-using IntegerFixedPoint::FixedPoint;
-using IntegerFixedPoint::FPOP;
-//using DoubleFixedPoint::FixedPoint;
-//using DoubleFixedPoint::FPOP;
+//using IntegerFixedPoint::FixedPoint;
+//using IntegerFixedPoint::FPOP;
+using DoubleFixedPoint::FixedPoint;
+using DoubleFixedPoint::FPOP;
 
 
 
@@ -2051,7 +2051,7 @@ struct RecordMgr
                 }
 
                 int nrn_offset = i + ${poprec.src_pop_start_index};
-                string tag_string = "${poprec.node.symbol},POP:${poprec.src_population.name},${','.join(poprec.tags)}";
+                string tag_string = "${poprec.node.symbol},POP:${poprec.src_population.name},${','.join(poprec.tags)},${','.join(poprec.node.annotations['tags'])}";
                 string tag_string_index = (boost::format("POPINDEX:%04d")%nrn_offset).str();
 
 
@@ -2125,6 +2125,7 @@ void record_event( IntType global_buffer, const SpikeEmission& evt )
 
 from fixed_point_common import IntermediateNodeFinder, CBasedFixedWriter
 
+import hdfjive
 
 
 
@@ -2165,7 +2166,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
         t_stop = 1.0
-        t_stop = 0.3
+        #t_stop = 0.3
         n_steps = t_stop / self.dt_float
         std_variables = {
             'nsim_steps' : n_steps,
@@ -2280,8 +2281,11 @@ class CBasedEqnWriterFixedNetwork(object):
             with open(output_c_filename,'w') as f:
                 f.write(cfile)
 
+        self.results = None
         if compile:
             self.compile_and_run(cfile, output_c_filename=output_c_filename, run=run, CPPFLAGS=CPPFLAGS,  output_exec_filename=output_exec_filename)
+            self.results = hdfjive.HDF5SimulationResultFile(output_filename)
+
 
 
 
@@ -2308,10 +2312,6 @@ class CBasedEqnWriterFixedNetwork(object):
                                     output_filename=output_exec_filename or None,
                                     intermediate_filename = output_c_filename or None,
                                     )
-        self.results = None
-        return
-
-#-D_GLIBCXX_DEBUG
 
 
 

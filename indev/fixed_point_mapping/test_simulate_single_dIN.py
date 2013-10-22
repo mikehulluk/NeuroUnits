@@ -1,17 +1,16 @@
 
 
 import mreorg
-mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG] #,mreorg.FigFormat.SVG]
+mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG]
 
 import os
-import neurounits
-
-import numpy as np
-import random
 import pylab
+import cPickle as pickle
+import hashlib
 
+
+import neurounits
 from neurounits.codegen.cpp.fixed_point import CBasedEqnWriterFixedNetwork
-from hdfjive import HDF5SimulationResultFile
 from neurounits.visualisation.mredoc import MRedocWriterVisitor
 from neurounits.codegen.population_infrastructure import *
 
@@ -19,10 +18,14 @@ from neurounits.codegen.population_infrastructure import *
 import dIN_model
 import mn_model
 import rb_input_model
-import cPickle as pickle
 
-from mreorg import PM
-import hashlib
+
+
+
+hdffile = __file__ + '.output.hdf5'
+if os.path.exists(hdffile):
+    os.unlink(hdffile)
+
 
 
 src_string = open('dIN_model.py').read() + open('mn_model.py').read()
@@ -30,7 +33,6 @@ md5_str = hashlib.md5(src_string).hexdigest()
 
 
 use_cache=True
-#use_cache=False
 cache_file = 'caches/.din_model_cache_%s'%(md5_str)
 if not os.path.exists('caches/'):
     os.makedirs('caches')
@@ -74,42 +76,33 @@ network = Network()
 
 dINs = network.create_population(name='dINs', component=dIN_comp, size=30)
 
-network.create_eventportconnector(
-            src_population=dINs,
-            dst_population=dINs,
-            src_port_name='spike',
-            dst_port_name='recv_nmda_spike',
-            name="dIN_dIN_NMDA", delay='1ms',
-            connector=AllToAllConnector(0.3),
-            parameter_map= {'weight': FixedValue("0.2nS")}
-        )
+#network.create_eventportconnector(
+#            src_population=dINs,
+#            dst_population=dINs,
+#            src_port_name='spike',
+#            dst_port_name='recv_nmda_spike',
+#            name="dIN_dIN_NMDA", delay='1ms',
+#            connector=AllToAllConnector(0.3),
+#            parameter_map= {'weight': FixedValue("0.2nS")}
+#        )
+#
+#network.create_electricalsynapseprojection(
+#    src_population=dINs,
+#    dst_population=dINs,
+#    connector=AllToAllConnector(0.3),
+#    strength_S = 0.3e-9,
+#    injected_port_name='i_injected',
+#    name='E_Couple')
 
-network.create_electricalsynapseprojection(
-    src_population=dINs,
-    dst_population=dINs,
-    connector=AllToAllConnector(0.3),
-    strength_S = 0.3e-9,
-    injected_port_name='i_injected',
-    name='E_Couple')
-    
 
 
 network.record_output_events(dINs, 'spike' )
 network.record_traces(dINs, 'V' )
 network.record_traces(dINs, 'iCa iNa iKf iKs iLk syn_nmda_i' )
 network.record_traces(dINs, 'nmda_vdep' )
-#network.record_traces(dINs, 'exp_neg_nu nu' )
 
 
-fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ').results
-results = HDF5SimulationResultFile("output.hd5")
-
-
-
-
-
-
-
+results = CBasedEqnWriterFixedNetwork(network, output_filename=hdffile, CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ').results
 
 
 filters_traces = [
@@ -125,7 +118,6 @@ filters_spikes = [
 
 
 results.plot(trace_filters=filters_traces, spike_filters=filters_spikes, legend=True, xlim = (0.075,0.20)  )
-#results.plot(trace_filters=filters_traces, spike_filters=filters_spikes, legend=True, xlim = (0.0851,0.08545)  )
 
 
 

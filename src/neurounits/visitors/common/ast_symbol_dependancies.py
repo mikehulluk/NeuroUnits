@@ -28,7 +28,6 @@
 
 from neurounits.visitors import ASTVisitorBase
 import itertools
-import networkx as nx
 from itertools import chain
 
 
@@ -108,6 +107,7 @@ class VisitorFindDirectSymbolDependance_OLD(ASTVisitorBase):
 
     @classmethod
     def build_direct_dependancy_graph(cls, component):
+        import networkx as nx
         assert False, 'Move to new version of this class!'
         import neurounits.ast as ast
         dep_find = VisitorFindDirectSymbolDependance_OLD()
