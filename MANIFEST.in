@@ -1,19 +1,19 @@
 
 
-include src/data/stdlib/stdlib.eqn
-include src/data/test_data/l4-9ml/examples/digital.9ml
-include src/data/test_data/l4-9ml/examples/lorenz.9ml
-include src/data/test_data/l4-9ml/examples/tapole_struggle.9ml
-include src/data/test_data/l4-9ml/examples/van_de_pol.9ml
-include src/data/test_data/l4-9ml/std/030_neuron_interfaces.9ml
-include src/data/test_data/l4-9ml/std/050_spike_generators.9ml
-include src/data/test_data/l4-9ml/std/080_hh_neuron_base.9ml
-include src/data/test_data/l4-9ml/std/090_hh_neuron_chls.9ml
-include src/data/test_data/l4-9ml/std/090_hh_neuron_chls_tadpole.9ml
-include src/data/test_data/l4-9ml/std/100_coba_synapses.9ml
-include src/data/test_data/l4-9ml/std/110_current_clamps.9ml
-include src/data/test_data/l4-9ml/std/120_gap_junctions.9ml
-include src/data/test_data/l4-9ml/std/150_tadpole_components.9ml
-include src/data/test_data/thesis_l1.nuts
-include src/data/test_data/valid_l1.nuts
-include src/data/test_data/to_convert_to_new_from_old_testing.nuts
+include src/neurounits/data/stdlib/stdlib.eqn
+include src/neurounits/data/test_data/l4-9ml/examples/digital.9ml
+include src/neurounits/data/test_data/l4-9ml/examples/lorenz.9ml
+include src/neurounits/data/test_data/l4-9ml/examples/tapole_struggle.9ml
+include src/neurounits/data/test_data/l4-9ml/examples/van_de_pol.9ml
+include src/neurounits/data/test_data/l4-9ml/std/030_neuron_interfaces.9ml
+include src/neurounits/data/test_data/l4-9ml/std/050_spike_generators.9ml
+include src/neurounits/data/test_data/l4-9ml/std/080_hh_neuron_base.9ml
+include src/neurounits/data/test_data/l4-9ml/std/090_hh_neuron_chls.9ml
+include src/neurounits/data/test_data/l4-9ml/std/090_hh_neuron_chls_tadpole.9ml
+include src/neurounits/data/test_data/l4-9ml/std/100_coba_synapses.9ml
+include src/neurounits/data/test_data/l4-9ml/std/110_current_clamps.9ml
+include src/neurounits/data/test_data/l4-9ml/std/120_gap_junctions.9ml
+include src/neurounits/data/test_data/l4-9ml/std/150_tadpole_components.9ml
+include src/neurounits/data/test_data/thesis_l1.nuts
+include src/neurounits/data/test_data/valid_l1.nuts
+include src/neurounits/data/test_data/to_convert_to_new_from_old_testing.nuts
