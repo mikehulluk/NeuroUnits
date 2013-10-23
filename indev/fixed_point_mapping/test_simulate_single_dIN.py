@@ -7,6 +7,7 @@ import os
 import pylab
 import cPickle as pickle
 import hashlib
+import shutil
 
 
 import neurounits
@@ -74,7 +75,7 @@ with open(cache_file) as f:
 
 network = Network()
 
-dINs = network.create_population(name='dINs', component=dIN_comp, size=30)
+dINs = network.create_population(name='dINs', component=dIN_comp, size=1)
 
 #network.create_eventportconnector(
 #            src_population=dINs,
@@ -103,6 +104,7 @@ network.record_traces(dINs, 'nmda_vdep' )
 
 
 results = CBasedEqnWriterFixedNetwork(network, output_filename=hdffile, CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ').results
+shutil.copy(hdffile, os.path.expanduser("~/debugging/") )
 
 
 filters_traces = [

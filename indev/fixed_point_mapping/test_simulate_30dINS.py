@@ -81,7 +81,7 @@ network.create_eventportconnector(
             dst_port_name='recv_nmda_spike',
             name="dIN_dIN_NMDA", delay='1ms',
             connector=AllToAllConnector(0.3),
-            parameter_map= {'weight': FixedValue("0.2nS")}
+            parameter_map= {'weight': FixedValue("0.002nS")}
         )
 
 network.create_electricalsynapseprojection(
@@ -124,7 +124,7 @@ filters_spikes = [
 ]
 
 
-results.plot(trace_filters=filters_traces, spike_filters=filters_spikes, legend=True, xlim = (0.075,0.20)  )
+results.plot(trace_filters=filters_traces, spike_filters=filters_spikes, legend=True )#, xlim = (0.075,0.20)  )
 #results.plot(trace_filters=filters_traces, spike_filters=filters_spikes, legend=True, xlim = (0.0851,0.08545)  )
 
 

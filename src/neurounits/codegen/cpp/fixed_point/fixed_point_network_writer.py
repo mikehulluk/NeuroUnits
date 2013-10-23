@@ -179,7 +179,8 @@ const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP = 300;
 
 // Define how often to record values:
 //const int record_rate = int( 1.e-3 /  ${dt_float} ) + 1;
-const int record_rate = 10;
+//const int record_rate = 10;
+const int record_rate = 1;
 
 
 
@@ -829,10 +830,10 @@ namespace rnd
         template<int U1, int U2>
         static FixedPoint<UP> uniform(FixedPoint<U1> min, FixedPoint<U2> max)
         {
-            return FixedPoint<UP>( 
-                FixedFloatConversion::from_float( 
+            return FixedPoint<UP>(
+                FixedFloatConversion::from_float(
                     rand_in_range(
-                        min.to_float(), 
+                        min.to_float(),
                         max.to_float()
                         ), UP) );
         }
@@ -931,10 +932,8 @@ namespace NS_${population.name}
         struct Event_${in_port.symbol}
         {
 
-            //IntType delivery_time;
             TimeType delivery_time;
             %for param in in_port.parameters:
-            //IntType ${param.symbol}; // Upscale: ${param.annotations['fixed-point-format'].upscale}
             typedef FixedPoint<${param.annotations['fixed-point-format'].upscale}> ${param.symbol}Type; // Upscale: ${param.annotations['fixed-point-format'].upscale}
             ${param.symbol}Type ${param.symbol}; // Upscale: ${param.annotations['fixed-point-format'].upscale}
             %endfor
@@ -1054,7 +1053,7 @@ void initialise_autoregressivenodes(NrnPopData& d)
     for(int i=0;i<NrnPopData::size;i++) d._AR${ar.annotations['node-id']}_t${i}[i] = 0;
     %endfor
     %endfor
-    
+
 */
 }
 
@@ -1272,7 +1271,9 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         // Calculate delta's for all state-variables:
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
         <% cs1, cs2 = writer.to_c(td, population_access_index='i', data_prefix='d.') %>
-        d.d_${td.lhs.symbol}[i] = ${cs1} ;
+        d.d_${td.lhs.symbol}[i] = ${cs1};
+
+
         d.${td.lhs.symbol}[i] = FPOP<NrnPopData::T_${td.lhs.symbol}::UP>::add( d.${td.lhs.symbol}[i], d.d_${td.lhs.symbol}[i] ) ;
         LOG_COMPONENT_STATEUPDATE( cout << "\n delta:${td.lhs.symbol}: " << d_${td.lhs.symbol}  << " (" << d_${td.lhs.symbol}.to_float()  << ")" << std::flush; )
         LOG_COMPONENT_STATEUPDATE( cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i]  << " (" << d.${td.lhs.symbol}[i].to_float()  << ")" << std::flush; )
@@ -2135,7 +2136,7 @@ class CBasedEqnWriterFixedNetwork(object):
         network.finalise()
 
         self.dt_float = 0.02e-3
-        self.dt_float = 0.01e-3
+        self.dt_float = 0.1e-3
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
 
 
@@ -2154,6 +2155,15 @@ class CBasedEqnWriterFixedNetwork(object):
 
         self.dt_int = NodeFixedPointFormatAnnotator.encode_value_cls(self.dt_float, self.dt_upscale, self.nbits )
 
+
+        #print
+        #print ' ------ DT -------'
+        #print 'dt_float', self.dt_float
+        #print 'dt_int', self.dt_int
+        #print 'dt_upscale', self.dt_upscale
+        #print 'nbits', self.nbits
+        #print
+        #assert False
 
 
         # Make sure the events can be connected:

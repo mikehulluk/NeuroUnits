@@ -101,7 +101,7 @@ def get_MN(nbits):
         glk_noise4 =  ~uniform(min=noise_min, max=noise_max)[when=SIM_INIT, share=PER_NEURON]
 
 
-        glk_noise = (glk_noise1 + glk_noise2 ) / 4.0
+        glk_noise = (glk_noise1 + glk_noise2 ) / 2.0
 
 
 

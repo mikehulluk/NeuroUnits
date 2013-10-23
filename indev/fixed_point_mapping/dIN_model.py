@@ -15,12 +15,14 @@ def get_dIN(nbits):
         <=> TIME t:(ms)
         <=> INPUT i_injected:(mA)
 
-        iInj_local = [50pA] if [ 50ms < t < 200ms] else [0pA] 
+        iInj_local = [50pA] if [ 50ms < t < 200ms] else [0pA]
+        #iInj_local = [50pA] if [ 50ms < t < 55ms] else [0pA] 
         Cap = 10 pF
 
-        #V' = (1/Cap) * (iInj_local + i_injected + iLk + iKs + iKf +iNa + iCa + syn_nmda_i + syn_ampa_i + syn_inhib_i)
-        #V' = (1/Cap) * ( ( iLk + iInj_local + iKs + iKf +iNa + iCa + syn_nmda_i + syn_ampa_i + syn_inhib_i +  i_injected) )
+        
         V' = (1/Cap) * ( ( iLk + iInj_local + iKs + iKf +iNa + iCa +  syn_nmda_i + syn_ampa_i + syn_inhib_i +  i_injected) )
+
+        #V' = (1/Cap) * ( ( iLk ) )
 
         k = i_injected
 
@@ -106,13 +108,17 @@ def get_dIN(nbits):
         noise_min = 0.5
         noise_max = 1.5
 
-        glk_noise1 =  ~uniform(min=noise_min, max=noise_max)[when=SIM_INIT, share=PER_NEURON]
-        glk_noise2 =  ~uniform(min=noise_min, max=noise_max + eK/{1V})[when=SIM_INIT, share=PER_POPULATION]
-        glk_noise3 =  ~uniform(min=noise_min, max=noise_max)[when=SIM_INIT, share=PER_POPULATION]
-        glk_noise4 =  ~uniform(min=noise_min, max=noise_max)[when=SIM_INIT, share=PER_NEURON]
+        #glk_noise1 =  ~uniform(min=noise_min, max=noise_max)[when=SIM_INIT, share=PER_NEURON]
+        #glk_noise2 =  ~uniform(min=noise_min, max=noise_max + eK/{1V})[when=SIM_INIT, share=PER_POPULATION]
+        #glk_noise3 =  ~uniform(min=noise_min, max=noise_max)[when=SIM_INIT, share=PER_POPULATION]
+        #glk_noise4 =  ~uniform(min=noise_min, max=noise_max)[when=SIM_INIT, share=PER_NEURON]
 
+        glk_noise1 = 1
+        glk_noise2 = 1
+        glk_noise3 = 1
+        glk_noise4 = 1 
 
-        glk_noise = (glk_noise1 + glk_noise2 ) / 4.0
+        glk_noise = (glk_noise1 + glk_noise2 + glk_noise3 + glk_noise4 ) / 4.0
 
 
 
@@ -128,6 +134,7 @@ def get_dIN(nbits):
 
         # Leak
         iLk = gLk * (eLk-V) * glk_noise
+        #iLk = gLk * (eLk-V) 
 
         # Slow Potassium (Ks):
         alpha_ks_n = AlphaBetaFunc(v=V, A=0.462ms-1, B=8.2e-3ms-1 mV-1, C=4.59, D=-4.21mV,E=-11.97mV)
