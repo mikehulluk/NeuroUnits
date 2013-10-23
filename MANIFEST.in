@@ -1,6 +1,6 @@
 
 
-include src/neurounits/data/stdlib/stdlib.eqn
+include src/neurounits/data/stdlib/stdlib.9ml
 include src/neurounits/data/test_data/l4-9ml/examples/digital.9ml
 include src/neurounits/data/test_data/l4-9ml/examples/lorenz.9ml
 include src/neurounits/data/test_data/l4-9ml/examples/tapole_struggle.9ml
@@ -17,3 +17,4 @@ include src/neurounits/data/test_data/l4-9ml/std/150_tadpole_components.9ml
 include src/neurounits/data/test_data/thesis_l1.nuts
 include src/neurounits/data/test_data/valid_l1.nuts
 include src/neurounits/data/test_data/to_convert_to_new_from_old_testing.nuts
+

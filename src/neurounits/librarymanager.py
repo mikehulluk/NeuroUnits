@@ -316,7 +316,6 @@ class LibraryManager(object):
         self.open_block(LibraryBuilder(library_manager=self, name=name))
 
     def end_library_block(self):
-        #print 'End library block'
         lib = self.pop_block()
         lib.finalise()
 

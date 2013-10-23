@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name = "NeuroUnits",
-    version = "0.1.1-rc0",
+    version = "0.1.1",
     author = "Mike Hull",
     author_email = "mikehulluk@gmail.com",
     description = ("A library for parsing quantities and sets of equations involving units for computational neuroscience."),
@@ -65,8 +65,12 @@ setup(
 
     package_data={
         'neurounits':[
-            'data/stdlib/*',
-            'data/test_data/*',
+            
+            'data/stdlib/*.9ml',
+            #'data/test_data/*.9ml',
+            'data/test_data/l4-9ml/std/*.9ml',
+            'data/test_data/l4-9ml/examples/*.9ml'
+            
             ]
         },
 

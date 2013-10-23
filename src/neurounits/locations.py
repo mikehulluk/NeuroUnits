@@ -11,7 +11,7 @@ class Locations(object):
     @classmethod    
     def get_default_9ml_locations(cls):
         src_loc = 'data/test_data/l4-9ml/std/'
-        fnames = pkg_resources.resource_listdir('neurounits', src_loc)
+        fnames = sorted( pkg_resources.resource_listdir('neurounits', src_loc) )
         fnames = [os.path.join(src_loc, f) for f in fnames]
         fnames = [fname for fname in fnames if fname.endswith('.9ml')]
         if not fnames:
