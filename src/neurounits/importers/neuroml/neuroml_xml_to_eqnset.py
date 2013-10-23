@@ -339,7 +339,7 @@ def build_component( chlmlinfo, componentname=None ):
     options = NeuroUnitParserOptions(
                 allow_unused_parameter_declarations=True,
                 allow_unused_suppliedvalue_declarations=True)
-    eqnset = NeuroUnitParser.Parse9MLFile(text=neuroEqn, options=options  )
+    eqnset = NeuroUnitParser.Parse9MLFile(neuroEqn, options=options  )
 
 
     default_params = {
