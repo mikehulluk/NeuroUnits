@@ -1324,7 +1324,6 @@ def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=No
 
 
 def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
-    #debug=True
     start_symbol = ParseDetails.start_symbols[parse_type]
 
     # Build the lexer and the parser:
@@ -1340,7 +1339,6 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
     # stdlib functions. Therefore; we we need a 'block_builder':
     if parse_type in [ParseTypes.L3_QuantityExpr]:
         parser.library_manager.start_component_block(name='anon')
-        #parser.library_manager.get_current_block_builder().set_name('anon')
 
     pRes = parser.parse(text_eqn, lexer=lexer, debug=debug)
 
