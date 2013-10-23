@@ -27,8 +27,9 @@
 # -------------------------------------------------------------------------------
 
 from neurounits.unit_expr_parsing import units_expr_yacc
-from neurounits.misc import SeqUtils
+#from neurounits.misc import SeqUtils
 
+import pkg_resources
 import neurounits.nulogging as logging
 
 class NeuroUnitParserOptions(object):
@@ -41,7 +42,7 @@ class NeuroUnitParserOptions(object):
 
 
 class NeuroUnitParser(object):
-    """ 
+    """
     Interface for parsing NeuroUnit strings and equations
     """
 
@@ -79,7 +80,44 @@ class NeuroUnitParser(object):
         return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L6_TextBlock, working_dir=working_dir, backend=backend, options=options, name=name)
 
     @classmethod
-    def Parse9MLFile(cls, text, debug=False, backend=None, working_dir=None, options=None, **kwargs):
+    def Parse9MLFile(cls, input_, debug=False, backend=None, working_dir=None, options=None, **kwargs):
+
+
+        text = None
+
+        if hasattr(input_, 'read'):
+            text = input_.read()
+
+        elif isinstance(input_, basestring):
+
+            # 1. Lets try and open the file (normal):
+            if not text:
+                try:
+                    with open(input_,'w') as f:
+                        text = f.read()
+                except IOError:
+                    pass
+                except:
+                    raise
+
+            # 2. Lets try and open the file (as resource):
+            if not text:
+                try:
+                    text = pkg_resources.resource_string('neurounits', input_)
+                except IOError:
+                    pass
+                except:
+                    raise
+
+            # 3. Let assume that string is the contents:
+            if not text:
+                text = input_
+
+        else:
+            assert False, 'Unexpected input: %s %s' % ( type(input_), input_)
+
+
+
         logging.log_neurounits.info('Parse9MLFile:')
         logging.log_neurounits.info('Options: %s'%options)
         logging.log_neurounits.info('Text: \n%s' % text)
@@ -88,11 +126,10 @@ class NeuroUnitParser(object):
 
 
     @classmethod
-    def Parse9MLFiles(cls, filenames, debug=False, backend=None, working_dir=None, options=None, **kwargs):
+    def Parse9MLFiles(cls, inputs, debug=False, backend=None, working_dir=None, options=None, **kwargs):
         library_manager = None
-        for filename in filenames:
-            with open(filename) as f:
-                library_manager = cls.Parse9MLFile(text = f.read(), library_manager=library_manager, debug=debug, backend=backend, working_dir=working_dir, options=options)
+        for input_ in inputs:
+            library_manager = cls.Parse9MLFile(input_ = input_, library_manager=library_manager, debug=debug, backend=backend, working_dir=working_dir, options=options)
         return library_manager
 
 

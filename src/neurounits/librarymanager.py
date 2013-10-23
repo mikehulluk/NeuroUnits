@@ -25,16 +25,18 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
+import pkg_resources
+import glob
+import os
+
 
 from neurounits.misc import SeqUtils
-
 from neurounits.ast_builder import EqnSetBuilder
 from neurounits.ast_builder.eqnsetbuilder import LibraryBuilder
 from neurounits.ast_builder.eqnsetbuilder import NineMLComponentBuilder
 
 from itertools import chain
-import glob
-import os
+
 from neurounits.units_misc import LookUpDict
 import neurounits.ast as ast
 
@@ -204,10 +206,22 @@ class LibraryManager(object):
             # Load in the standard libraries:
             from neurounits.unit_expr_parsing.units_expr_yacc import parse_expr, ParseTypes
             LibraryManager._stdlib_cache_loading = True
-            for f in glob.glob(self._stdlibdir + '/*.eqn'):
-                with open(f) as l:
-                    print 'Loading StdLib file:', f
-                    parse_expr(l.read(), parse_type=ParseTypes.N6_9MLFile, library_manager=self)
+
+            # New packaging version:
+            src_loc = 'data/stdlib/'
+            fnames = [ os.path.join(src_loc, fname) for fname in pkg_resources.resource_listdir('neurounits', src_loc)]
+            if not fnames:
+                raise RuntimeError('Unable to load standard-libraries')
+            for f in fnames:
+                file_contents = pkg_resources.resource_string('neurounits',f)
+                parse_expr(file_contents, parse_type=ParseTypes.N6_9MLFile, library_manager=self)
+                
+            # Old version:
+            #for f in glob.glob(self._stdlibdir + '/*.eqn'):
+            #    with open(f) as l:
+            #        print 'Loading StdLib file:', f
+            #        parse_expr(l.read(), parse_type=ParseTypes.N6_9MLFile, library_manager=self)
+
 
             LibraryManager._stdlib_cache_loading = False
             # Copy the old namespace object accross

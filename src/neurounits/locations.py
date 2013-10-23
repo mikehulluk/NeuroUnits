@@ -4,36 +4,28 @@
 import os 
 import itertools
 import glob
-
+import pkg_resources
 
 class Locations(object):
-    @classmethod
-    def get_package_root(cls):
-        return os.path.abspath( os.path.join( os.path.dirname(__file__), '../../' ) )
-        
-    
     
     @classmethod    
     def get_default_9ml_locations(cls):
-        locs = [ cls.get_package_root() + '/src/test_data/l4-9ml/std/*.9ml'  ]
-        assert locs
-        print locs
-        
-        src_files = sorted(list(itertools.chain( * [glob.glob(l) for l in locs] )))
-        assert src_files
-        return src_files
+        src_loc = 'data/test_data/l4-9ml/std/'
+        fnames = pkg_resources.resource_listdir('neurounits', src_loc)
+        fnames = [os.path.join(src_loc, f) for f in fnames]
+        fnames = [fname for fname in fnames if fname.endswith('.9ml')]
+        if not fnames:
+            raise RuntimeError("Can't find any 9ml test files, perhaps the something in wring in packaging")
+        return fnames
         
 
+        
     class Test(object):
-        
-        
-        
         @classmethod
-        def get_nuts_filenames(cls):
-            p = os.path.join( Locations.get_package_root(), "src/test_data/" ) 
-            return [
-                p + 'thesis_l1.nuts',
-                p + 'valid_l1.nuts',
-            ]
-            
-            
+        def get_nuts_fileobjs(cls):
+
+            fobjs = [
+                pkg_resources.resource_stream('neurounits', 'data/test_data/thesis_l1.nuts'),
+                pkg_resources.resource_stream('neurounits', 'data/test_data/valid_l1.nuts')
+                ]
+            return fobjs

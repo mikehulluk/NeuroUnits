@@ -16,18 +16,28 @@ class NutsIO(object):
     def load(cls, filename):
         options = NutsOptions()
         nuts_lines = []
-        with open(filename) as f:
-            for (lineno, line) in enumerate(f.readlines()):
-                line = line.strip()
-                if not line:
-                    continue
-                elif line.startswith('#@'):
-                    options = copy.deepcopy(options)
-                    options.update(line[2:])
-                elif line.startswith('#'):
-                    pass
-                else:
-                    nuts_lines.append(NutsIOLine(line=line, lineno=lineno, options=options))
+
+        src_lines = None
+        if hasattr(filename, 'read'):
+            src_lines = filename.readlines()
+        else:
+            with open(filename) as f:
+                src_lines = f.readlines()
+
+
+        for (lineno, line) in enumerate(src_lines):
+            line = line.strip()
+            if not line:
+                continue
+            elif line.startswith('#@'):
+                options = copy.deepcopy(options)
+                options.update(line[2:])
+            elif line.startswith('#'):
+                pass
+            else:
+                nuts_lines.append(NutsIOLine(line=line, lineno=lineno, options=options))
+
+
         return nuts_lines
 
     @classmethod

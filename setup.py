@@ -56,19 +56,19 @@ setup(
                'neurounitscontrib.test.plugins',
               ],
     # Could also have been done with 'scripts=':
-    #entry_points = {
-    #    'console_scripts': [
-    #        'mreorg.curate = mreorg.curator.cmdline.mreorg_curate:main',
-    #    ],
-    #},
+    entry_points = {
+        'console_scripts': [
+            'neurounits.nine = neurounits.frontend.cmdline.nineml_fe:main',
+            'neurounits = neurounits.frontend.cmdline.neurounits:main',
+        ],
+    },
 
-    #package_data={
-    #    'mredoc':[
-    #        'resources/*',
-    #        'testing/*',
-    #        'testing/test_data',
-    #        ]
-    #    },
+    package_data={
+        'neurounits':[
+            'data/stdlib/*',
+            'data/test_data/*',
+            ]
+        },
 
 
     #data_files=[('mreorg/etc', ['etc/configspec.ini']),

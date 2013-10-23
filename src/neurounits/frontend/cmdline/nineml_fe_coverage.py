@@ -20,7 +20,7 @@ def do_coverage(args):
     
     cov.stop()
     cov.save()
-    cov_dir = os.path.join( neurounits.locations.Locations.get_package_root(), 'out/coverage/' )
+    cov_dir = os.path.expanduser('~/.neurounits/.coverage/')
     
     if os.path.exists(cov_dir):
         shutil.rmtree(cov_dir)

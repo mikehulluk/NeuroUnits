@@ -65,25 +65,14 @@ class Demo4(DemoPluginBase):
 
 
 
-
+import pkg_resources
 
 
 def test4():
     import neurounits
 
-
-
-    #src_files = sorted( glob.glob("/home/michael/hw_to_come/NeuroUnits/src/test_data/l4-9ml/std/*.9ml" ))
-
-    src_files =  neurounits.Locations.get_default_9ml_locations()
+    src_files =  [pkg_resources.resource_stream('neurounits',f) for f in neurounits.Locations.get_default_9ml_locations()]
     library_manager = neurounits.NeuroUnitParser.Parse9MLFiles( src_files)
-
-    #for obj in library_manager.objects:
-    #    print "Summarising", obj
-    #    obj.to_redoc()
-
-    
-
 
     print
     print 'Available Interfaces:'

@@ -36,7 +36,7 @@ class TestNutsFiles(TestingPluginBase):
         #src_dir = '/home/michael/hw/NeuroUnits/src/test_data/'
         #files = glob.glob(src_dir + '/*.nuts')
 
-        files = Locations.Test.get_nuts_filenames()
+        files = Locations.Test.get_nuts_fileobjs()
         print 'Files:', files
         
         

@@ -27,23 +27,6 @@
 # -------------------------------------------------------------------------------
 
 
-
-
-try:
-    import straight.plugin
-
-except ImportError:
-    import sys, os
-    localdir = os.path.dirname( __file__ )
-    ext_deps_dir = os.path.abspath( os.path.join( localdir, '../../ext_deps/') )
-    print ext_deps_dir
-    sys.path.append(os.path.join(ext_deps_dir, 'straight.plugin/') )
-
-    import straight.plugin
-
-
-
-
 from neurounits.neurounitparser import NeuroUnitParser, MQ1
 from neurounits.neurounitparser import NeuroUnitParserOptions
 from neurounits.unit_expr_parsing.units_expr_yacc import ParseTypes
