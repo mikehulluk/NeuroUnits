@@ -266,7 +266,10 @@ def test2():
     ani = animation.FuncAnimation(fig, simPoints, simData, blit=False, interval=1, repeat=True, save_count=1000)
 
     #ani.save('myoutput.avi', writer='ffmpeg', bitrate=200, fps=20, codec='ffv1' )#extra_args=['-vcodec huffyuv']) # codec='ffv1')
-    ani.save('myoutput.avi', fps=40, codec='ffv1' )#extra_args=['-vcodec huffyuv']) # codec='ffv1')
+    try:
+        ani.save('myoutput.avi', fps=40, codec='ffv1' )#extra_args=['-vcodec huffyuv']) # codec='ffv1')
+    except:
+        print 'Unable to save video (issue with matplotlib)'
     #writer='ffmpeg',
 
 
