@@ -179,9 +179,10 @@ class CBasedFixedWriterStd(ASTVisitorBase):
     def VisitFunctionDefBuiltInInstantiation(self,o, for_bluevec, **kwargs):
         assert o.function_def.is_builtin() and o.function_def.funcname == '__exp__'
 
+        if self.as_float:
         # Hack for floating point:
-        param = o.parameters.values()[0]
-        return "FixedPoint<1>( exp(%s.to_float()) )" %  self.visit(param.rhs_ast, for_bluevec=for_bluevec, **kwargs)
+            param = o.parameters.values()[0]
+            return "FixedPoint<1>( exp(%s.to_float()) )" %  self.visit(param.rhs_ast, for_bluevec=for_bluevec, **kwargs)
 
 
         param = o.parameters.values()[0]
@@ -232,10 +233,13 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 class CBasedFixedWriter(CBasedFixedWriterStd):
 
-    def __init__(self, component, population_access_index=None, data_prefix=None ):
+    def __init__(self, component, population_access_index=None, data_prefix=None, as_float=None ):
         super(CBasedFixedWriter, self).__init__()
         self.population_access_index=population_access_index
         self.data_prefix=data_prefix
+
+        assert as_float is not None
+        self.as_float=as_float
 
     def get_var_str(self, name):
         s = name
@@ -282,6 +286,8 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
 
     def VisitSuppliedValue(self, o, **kwargs):
         return self.get_var_str(o.symbol)
+
+
     def VisitTimeVariable(self, o, **kwargs):
         return 't'
 

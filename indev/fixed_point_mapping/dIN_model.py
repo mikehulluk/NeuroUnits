@@ -20,9 +20,9 @@ def get_dIN(nbits):
         Cap = 10 pF
 
         
-        #V' = (1/Cap) * ( ( iLk + iInj_local + iKs + iKf +iNa + iCa +  syn_nmda_i + syn_ampa_i + syn_inhib_i +  i_injected) )
+        V' = (1/Cap) * ( ( iLk + iInj_local + iKs + iKf +iNa + iCa +  syn_nmda_i + syn_ampa_i + syn_inhib_i +  i_injected) )
 
-        V' = (1/Cap) * ( ( iLk + iInj_local ) )
+        #V' = (1/Cap) * ( ( iLk + iInj_local ) )
 
         k = i_injected
 

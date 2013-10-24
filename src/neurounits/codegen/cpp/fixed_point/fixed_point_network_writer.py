@@ -180,7 +180,7 @@ const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP = 300;
 // Define how often to record values:
 //const int record_rate = int( 1.e-3 /  ${dt_float} ) + 1;
 //const int record_rate = 10;
-const int record_rate = 1;
+const int record_rate = 10;
 
 
 
@@ -2083,7 +2083,12 @@ struct RecordMgr
                 #if SAVE_HDF5_FLOAT
                 HDF5GroupPtr pGroup_float = file->get_group((boost::format("simulation_fixed/double/${poprec.src_population.name}/%04d/variables/${poprec.node.symbol}")%nrn_offset).str());
                 pGroup_float->add_attribute("hdf-jive","trace");
-                pGroup_float->add_attribute("hdf-jive:tags",string("fixed-float,") + tag_string + "," + tag_string_index);
+
+                %if as_float:
+                pGroup_float->add_attribute("hdf-jive:tags",string("float,") + tag_string + "," + tag_string_index);
+                %else:
+                pGroup_float->add_attribute("hdf-jive:tags",string("fixed,") + tag_string + "," + tag_string_index);
+                %endif
                 pGroup_float->get_subgroup("raw")->create_softlink(time_dataset_float, "time");
                 HDF5DataSet2DStdPtr pDataset_float = pGroup_float->get_subgroup("raw")->create_empty_dataset2D("data", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
                 pDataset_float->set_data(n_results_written,1, data_float);
@@ -2236,7 +2241,7 @@ class CBasedEqnWriterFixedNetwork(object):
             component = population.component
 
 
-            self.writer = CBasedFixedWriter(component=population.component, population_access_index='i', data_prefix='d.')
+            self.writer = CBasedFixedWriter(component=population.component, population_access_index='i', data_prefix='d.', as_float=as_float)
 
 
             rv_per_neuron = []

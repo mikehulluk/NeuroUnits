@@ -162,6 +162,7 @@ class PopRec(object):
 
 class Network(object):
     def __init__(self, ):
+        self.is_frozen=False
         self.populations = []
         self.event_port_connectors = []
         self.electrical_synapse_projections = []
@@ -184,14 +185,17 @@ class Network(object):
     # Syntactic sugar
     # ================
     def create_population(self, **kwargs):
+        assert not self.is_frozen
         pop = Population(**kwargs)
         self.add(pop)
         return pop
     def create_eventportconnector(self, **kwargs):
+        assert not self.is_frozen
         pop = EventPortConnector(**kwargs)
         self.add(pop)
         return pop
     def create_electricalsynapseprojection(self, **kwargs):
+        assert not self.is_frozen
         pop = ElectricalSynapseProjection(**kwargs)
         self.add(pop)
         return pop
@@ -199,6 +203,7 @@ class Network(object):
 
 
     def record_traces(self, subpopulations, terminal_node_names):
+        assert not self.is_frozen
         if isinstance(terminal_node_names, basestring):
             terminal_node_names = terminal_node_names.split()
 
@@ -211,12 +216,14 @@ class Network(object):
                 self._record_trace_for_population(subpop, terminal_node_name)
 
     def record_output_events(self, subpopulations, port_name):
+        assert not self.is_frozen
         if isinstance(subpopulations, (Population,SubPopulation)):
             subpopulations = [subpopulations]
         for subpop in subpopulations:
             self._record_output_events_for_population(subpop, port_name)
 
     def record_input_events(self, subpopulations, port_name):
+        assert not self.is_frozen
         if isinstance(subpopulations, (Population,SubPopulation)):
             subpopulations = [subpopulations]
         for subpop in subpopulations:
@@ -251,6 +258,9 @@ class Network(object):
 
 
     def finalise(self):
+        if self.is_frozen:
+            return 
+        self.is_frozen=True
         # Work out which traces to record:
         def curr_rec_offset(lst):
             return 0 if lst == [] else ( lst[-1].global_offset + lst[-1].size )
