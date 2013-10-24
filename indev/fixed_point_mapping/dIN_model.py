@@ -20,9 +20,9 @@ def get_dIN(nbits):
         Cap = 10 pF
 
         
-        V' = (1/Cap) * ( ( iLk + iInj_local + iKs + iKf +iNa + iCa +  syn_nmda_i + syn_ampa_i + syn_inhib_i +  i_injected) )
+        #V' = (1/Cap) * ( ( iLk + iInj_local + iKs + iKf +iNa + iCa +  syn_nmda_i + syn_ampa_i + syn_inhib_i +  i_injected) )
 
-        #V' = (1/Cap) * ( ( iLk ) )
+        V' = (1/Cap) * ( ( iLk + iInj_local ) )
 
         k = i_injected
 
@@ -149,8 +149,8 @@ def get_dIN(nbits):
         inf_kf_n = alpha_kf_n / (alpha_kf_n + beta_kf_n)
         tau_kf_n = 1.0 / (alpha_kf_n + beta_kf_n)
         kf_n' = (inf_kf_n - kf_n) / tau_kf_n
-        iKf = gKf * (eK-V) * kf_n2 #kf_n*kf_n * kf_n*kf_n
-        kf_n2 = kf_n*kf_n * kf_n * kf_n
+        iKf = gKf * (eK-V) * kf_n4
+        kf_n4 = kf_n * kf_n * kf_n * kf_n
 
         # Sodium (Na):
         alpha_na_m = AlphaBetaFunc(v=V, A=8.67ms-1, B=0.0ms-1 mV-1, C=1.0, D=-1.01mV,E=-12.56mV)
@@ -300,7 +300,7 @@ def get_dIN(nbits):
     OptimiseEquations(comp)
 
     comp.annotate_ast( NodeRangeByOptimiser(var_annots_ranges))
-    RangeExpander().visit(comp)
+    RangeExpander(expand_by=4).visit(comp)
 
 
     comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )

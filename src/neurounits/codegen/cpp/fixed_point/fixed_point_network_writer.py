@@ -687,12 +687,17 @@ namespace DoubleFixedPoint
 
 
 
-
+%if as_float:
+//using IntegerFixedPoint::FixedPoint;
+//using IntegerFixedPoint::FPOP;
+using DoubleFixedPoint::FixedPoint;
+using DoubleFixedPoint::FPOP;
+%else:
 using IntegerFixedPoint::FixedPoint;
 using IntegerFixedPoint::FPOP;
 //using DoubleFixedPoint::FixedPoint;
 //using DoubleFixedPoint::FPOP;
-
+%endif
 
 
 
@@ -2137,12 +2142,11 @@ import hdfjive
 
 
 class CBasedEqnWriterFixedNetwork(object):
-    def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None, output_exec_filename=None):
+    def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None, output_exec_filename=None, step_size=0.01, run_until=1.0, as_float=False):
 
         network.finalise()
 
-        self.dt_float = 0.02e-3
-        self.dt_float = 0.01e-3
+        self.dt_float = step_size 
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
 
 
@@ -2181,8 +2185,7 @@ class CBasedEqnWriterFixedNetwork(object):
             evt_src_to_evtportconns[key].append(evt_conn)
 
 
-        t_stop = 1.0
-        #t_stop = 0.3
+        t_stop = run_until 
         n_steps = t_stop / self.dt_float
         std_variables = {
             'nsim_steps' : n_steps,
@@ -2194,6 +2197,7 @@ class CBasedEqnWriterFixedNetwork(object):
             'output_filename' : output_filename,
             'network':network,
             'evt_src_to_evtportconns': evt_src_to_evtportconns,
+            'as_float':as_float
                          }
 
 

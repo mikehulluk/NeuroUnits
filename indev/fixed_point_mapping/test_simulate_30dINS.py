@@ -98,16 +98,28 @@ dINs = network.create_population(name='dINs', component=dIN_comp, size=30)
 network.record_output_events(dINs, 'spike' )
 network.record_traces(dINs, 'V' )
 network.record_traces(dINs, 'iCa iNa iKf iKs iLk syn_nmda_i' )
-network.record_traces(dINs, 'kf_n ks_n' )
+network.record_traces(dINs, 'kf_n ks_n na_m na_h' )
+network.record_traces(dINs, 'alpha_kf_n beta_kf_n' )
+network.record_traces(dINs, 'alpha_ks_n beta_ks_n' )
 network.record_traces(dINs, 'nmda_vdep' )
 network.record_traces(dINs, 'syn_nmda_A syn_nmda_B' )
 network.record_traces(dINs, 'syn_nmda_g_raw' )
 
 
-if os.path.exists('output.hd5'):
-    os.unlink('output.hd5')
-fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ').results
-results = HDF5SimulationResultFile("output.hd5")
+
+op_filename = 'output.hd5'
+if os.path.exists(op_filename):
+    os.unlink(op_filename)
+
+results = CBasedEqnWriterFixedNetwork(
+                    network, 
+                    output_filename=op_filename, 
+                    CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
+                    step_size=0.1e-3,
+                    run_until=0.1,
+                    as_float=False,
+                    ).results
+
 
 
 
@@ -119,9 +131,12 @@ results = HDF5SimulationResultFile("output.hd5")
 
 filters_traces = [
    "ALL{V}",
-   "ALL{POPINDEX:0000} AND ANY{iLk,iKs,iKf}",
-   "ALL{POPINDEX:0000} AND ANY{kf_n}",
-   "ALL{POPINDEX:0000} AND ANY{ks_n}",
+   "ALL{POPINDEX:0000} AND ANY{iLk,iKs,iKf,iNa}",
+   "ALL{POPINDEX:0000} AND ANY{kf_n,ks_n,na_h,na_m}",
+
+   "ALL{POPINDEX:0000} AND ANY{alpha_kf_n,beta_kf_n}",
+   "ALL{POPINDEX:0000} AND ANY{alpha_ks_n,beta_ks_n}",
+   #"ALL{POPINDEX:0000} AND ANY{ks_n}",
    #"ALL{POPINDEX:0000} AND ANY{syn_nmda_i}",
    #"ALL{POPINDEX:0000} AND ANY{syn_nmda_A,syn_nmda_B}",
    #"ALL{POPINDEX:0000} AND ANY{syn_nmda_g_raw}",
