@@ -150,10 +150,14 @@ IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_l
     v = auto_shift64(v, get_value32( up1-up2 - up_local) );
     if (! ( v < (1<<(VAR_NBITS) ) ) )
     {
-        cout << "\n Error in Division:";
+        cout << "\n Error in Division (overflows target):";
         cout << "\n Expr ID: " << expr_id;
         cout << "\n Nom: " << FixedFloatConversion::to_float(v1,up1);
         cout << "\n Denim: " << FixedFloatConversion::to_float(v2,up2);
+        cout << "\n Result: (upscale) " << up_local;
+        cout << "\n (int-max) " << (1l<<24);
+        cout << "\n Result: (int) " << v;
+        cout << "\n Result: (float) " << FixedFloatConversion::to_float(v, up_local);
         cout << "\n" << std::flush;
 
         assert(0);

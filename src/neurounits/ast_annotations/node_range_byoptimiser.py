@@ -469,7 +469,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
             res_min = res_max = None
 
 
-            n_trials = 20
+            n_trials = 50
             for i in range(n_trials):
 
 

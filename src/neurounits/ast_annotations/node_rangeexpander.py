@@ -9,9 +9,9 @@ from neurounits.ast_annotations.common import _NodeRangeFloat
 
 class RangeExpander(ASTActionerDefault):
 
-    def __init__(self, ):
+    def __init__(self, expand_by=0.25):
         super(RangeExpander, self).__init__( action_predicates=[SingleVisitPredicate()])
-        self.expand_by = 0.25
+        self.expand_by = expand_by
     def ActionNode(self,o):
         #print o
         if not 'node-value-range' in o.annotations:

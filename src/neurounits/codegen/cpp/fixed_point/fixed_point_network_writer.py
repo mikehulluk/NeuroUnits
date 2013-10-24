@@ -90,7 +90,7 @@ Two defines control the setup:
 
 /* Runtime logging: */
 #define RUNTIME_LOGGING_ON false
-#define RUNTIME_LOGGING_STARTTIME 131.4e-3
+#define RUNTIME_LOGGING_STARTTIME -1 
 // #define RUNTIME_LOGGING_STARTTIME 100e-3
 
 
@@ -688,10 +688,10 @@ namespace DoubleFixedPoint
 
 
 
-//using IntegerFixedPoint::FixedPoint;
-//using IntegerFixedPoint::FPOP;
-using DoubleFixedPoint::FixedPoint;
-using DoubleFixedPoint::FPOP;
+using IntegerFixedPoint::FixedPoint;
+using IntegerFixedPoint::FPOP;
+//using DoubleFixedPoint::FixedPoint;
+//using DoubleFixedPoint::FPOP;
 
 
 
@@ -1178,11 +1178,11 @@ namespace event_handlers
                     ${writer.to_c(action, population_access_index='i', data_prefix='d.')};
                     %endfor
 
-                    cout << "\n ===== Event ===== ";
-                    cout << "\n evt.weight: " << evt.weight.to_float();
-                    cout << "\n d.syn_nmda_A: " << d.syn_nmda_A[i].to_float();
-                    cout << "\n";
-                    //assert(0);
+                    //cout << "\n ===== Event ===== ";
+                    //cout << "\n evt.weight: " << evt.weight.to_float();
+                    //cout << "\n d.syn_nmda_A: " << d.syn_nmda_A[i].to_float();
+                    //cout << "\n";
+                    ////assert(0);
 
                     // Switch regime?
                     %if tr.changes_regime():
@@ -1236,16 +1236,16 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         LOG_COMPONENT_STATEUPDATE(
         cout << "\n";
         cout << "\nFor ${population.name} " << i;
-        cout << "\nAt: t=" << t << "\t(" << t.to_float() * 1000.0 << "ms)";
+        cout << "\nAt: t=" << t.to_int() << "\t(" << t.to_float() * 1000.0 << "ms)";
         cout << "\nStarting State Variables:";
         cout << "\n-------------------------";
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
-        cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i]  << " (" << d.${td.lhs.symbol}[i].to_float() << ")" << std::flush;
+        cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i].to_int()  << " (" << d.${td.lhs.symbol}[i].to_float() << ")" << std::flush;
         % endfor
         cout << "\nSupplied Variables:";
         cout << "\n-------------------------";
         %for suppliedvalue in population.component.suppliedvalues:
-        cout << "\n d.${suppliedvalue.symbol}: " << d.${suppliedvalue.symbol}[i]  << " (" << d.${suppliedvalue.symbol}[i].to_float() << ")" << std::flush;
+        cout << "\n d.${suppliedvalue.symbol}: " << d.${suppliedvalue.symbol}[i].to_int()  << " (" << d.${suppliedvalue.symbol}[i].to_float() << ")" << std::flush;
         %endfor
         cout << "\nUpdates:";
         )
@@ -1271,7 +1271,7 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         // Calculate assignments:
         % for ass in population.component.ordered_assignments_by_dependancies:
         d.${ass.lhs.symbol}[i] = ${writer.to_c(ass, population_access_index='i', data_prefix='d.')} ;
-        LOG_COMPONENT_STATEUPDATE( cout << "\n d.${ass.lhs.symbol}: " << d.${ass.lhs.symbol}[i]  << " (" << d.${ass.lhs.symbol}[i].to_float()  << ")" << std::flush;)
+        LOG_COMPONENT_STATEUPDATE( cout << "\n d.${ass.lhs.symbol}: " << d.${ass.lhs.symbol}[i].to_int()  << " (" << d.${ass.lhs.symbol}[i].to_float()  << ")" << std::flush;)
         % endfor
 
         // Calculate delta's for all state-variables:
@@ -1281,8 +1281,8 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 
 
         d.${td.lhs.symbol}[i] = FPOP<NrnPopData::T_${td.lhs.symbol}::UP>::add( d.${td.lhs.symbol}[i], d.d_${td.lhs.symbol}[i] ) ;
-        LOG_COMPONENT_STATEUPDATE( cout << "\n delta:${td.lhs.symbol}: " << d_${td.lhs.symbol}  << " (" << d_${td.lhs.symbol}.to_float()  << ")" << std::flush; )
-        LOG_COMPONENT_STATEUPDATE( cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i]  << " (" << d.${td.lhs.symbol}[i].to_float()  << ")" << std::flush; )
+        LOG_COMPONENT_STATEUPDATE( cout << "\n delta:${td.lhs.symbol}: " << d.d_${td.lhs.symbol}[i].to_int()  << " (" << d.d_${td.lhs.symbol}[i].to_float()  << ")" << std::flush; )
+        LOG_COMPONENT_STATEUPDATE( cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i].to_int()  << " (" << d.${td.lhs.symbol}[i].to_float()  << ")" << std::flush; )
         % endfor
 
     }
@@ -2142,7 +2142,7 @@ class CBasedEqnWriterFixedNetwork(object):
         network.finalise()
 
         self.dt_float = 0.02e-3
-        self.dt_float = 0.1e-3
+        self.dt_float = 0.01e-3
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
 
 
