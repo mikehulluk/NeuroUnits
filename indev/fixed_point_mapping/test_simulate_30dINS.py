@@ -72,6 +72,7 @@ with open(cache_file) as f:
 
 network = Network()
 
+#dINs = network.create_population(name='dINs', component=dIN_comp, size=30)
 dINs = network.create_population(name='dINs', component=dIN_comp, size=30)
 
 network.create_eventportconnector(
@@ -80,8 +81,8 @@ network.create_eventportconnector(
             src_port_name='spike',
             dst_port_name='recv_nmda_spike',
             name="dIN_dIN_NMDA", delay='1ms',
-            connector=AllToAllConnector(0.3),
-            parameter_map= {'weight': FixedValue("0.002nS")}
+            connector=AllToAllConnector(0.2),
+            parameter_map= {'weight': FixedValue("100pS")}
         )
 
 network.create_electricalsynapseprojection(
@@ -98,7 +99,8 @@ network.record_output_events(dINs, 'spike' )
 network.record_traces(dINs, 'V' )
 network.record_traces(dINs, 'iCa iNa iKf iKs iLk syn_nmda_i' )
 network.record_traces(dINs, 'nmda_vdep' )
-#network.record_traces(dINs, 'exp_neg_nu nu' )
+network.record_traces(dINs, 'syn_nmda_A syn_nmda_B' )
+network.record_traces(dINs, 'syn_nmda_g_raw' )
 
 
 fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ').results
@@ -114,8 +116,9 @@ results = HDF5SimulationResultFile("output.hd5")
 
 filters_traces = [
    "ALL{V}",
-   "ALL{POPINDEX:0000} AND ANY{iCa,iNa,iLk,iKf,iKs,syn_nmda_i}",
-   "ALL{POPINDEX:0000} AND ANY{nmda_vdep}",
+   "ALL{POPINDEX:0000} AND ANY{syn_nmda_i}",
+   "ALL{POPINDEX:0000} AND ANY{syn_nmda_A,syn_nmda_B}",
+   "ALL{POPINDEX:0000} AND ANY{syn_nmda_g_raw}",
 ]
 
 filters_spikes = [
@@ -123,6 +126,8 @@ filters_spikes = [
     "ALL{EVENT:spike}",
 ]
 
+#"ALL{POPINDEX:0000} AND ANY{iCa,iNa,iLk,iKf,iKs,syn_nmda_i}",
+#"ALL{POPINDEX:0000} AND ANY{nmda_vdep}",
 
 results.plot(trace_filters=filters_traces, spike_filters=filters_spikes, legend=True )#, xlim = (0.075,0.20)  )
 #results.plot(trace_filters=filters_traces, spike_filters=filters_spikes, legend=True, xlim = (0.0851,0.08545)  )

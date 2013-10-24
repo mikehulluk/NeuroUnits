@@ -740,7 +740,7 @@ struct SpikeEmission
     SpikeEmission(const SpikeTime& time) : time(time) {}
 };
 
-void record_event(IntType global_buffer, const SpikeEmission& evt );
+void record_output_event(IntType global_buffer, const SpikeEmission& evt );
 
 
 
@@ -1118,10 +1118,10 @@ namespace event_handlers
         //And lets see what to record from these:
         %for poprec in network.all_output_event_recordings:
         %if poprec.src_population == population:
-        // Lets records!
+        // Lets record!
         if( (index >= IntType(${poprec.src_pop_start_index})) && (index < IntType(${poprec.src_pop_end_index})))
         {
-            record_event( IntType(${poprec.global_offset}) + index - IntType(${poprec.src_pop_start_index}) , SpikeEmission(time_info.time_fixed) );
+            record_output_event( IntType(${poprec.global_offset}) + index - IntType(${poprec.src_pop_start_index}) , SpikeEmission(time_info.time_fixed) );
         }
         %endif
         %endfor
@@ -1177,6 +1177,12 @@ namespace event_handlers
                     %for action in tr.actions:
                     ${writer.to_c(action, population_access_index='i', data_prefix='d.')};
                     %endfor
+
+                    cout << "\n ===== Event ===== ";
+                    cout << "\n evt.weight: " << evt.weight.to_float();
+                    cout << "\n d.syn_nmda_A: " << d.syn_nmda_A[i].to_float();
+                    cout << "\n";
+                    //assert(0);
 
                     // Switch regime?
                     %if tr.changes_regime():
@@ -2111,7 +2117,7 @@ GlobalData global_data;
 
 
 
-void record_event( IntType global_buffer, const SpikeEmission& evt )
+void record_output_event( IntType global_buffer, const SpikeEmission& evt )
 {
     global_data.recordings_new.emitted_spikes[get_value32(global_buffer)].push_back(evt);
 }

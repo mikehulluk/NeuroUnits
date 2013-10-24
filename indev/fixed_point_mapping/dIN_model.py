@@ -37,7 +37,7 @@ def get_dIN(nbits):
 
 
         syn_sat = 1
-        syn_nmda_g =  1nS
+        syn_nmda_g_bar =  1nS
         syn_ampa_g =  1nS
         syn_inhib_g = 0nS 
 
@@ -48,20 +48,20 @@ def get_dIN(nbits):
         # =======================
         syn_nmda_A_tau = 4ms
         syn_nmda_B_tau = 80ms
-        syn_nmda_i = ( syn_nmda_g * (syn_nmda_B - syn_nmda_A) * (syn_nmda_erev - V) * (1/nmda_val_max) * nmda_vdep )
+        syn_nmda_i = ( syn_nmda_g_raw * (syn_nmda_erev - V) * nmda_vdep )
+        syn_nmda_g_raw = ( syn_nmda_g_bar * (syn_nmda_B - syn_nmda_A) * (1/nmda_val_max) )
         syn_nmda_A' = -syn_nmda_A / syn_nmda_A_tau
         syn_nmda_B' = -syn_nmda_B / syn_nmda_B_tau
         # Normalisation:
-        nmda_tc_max =  ln( syn_nmda_A_tau / syn_nmda_B_tau) * (syn_nmda_A_tau * syn_nmda_B_tau) / (syn_nmda_A_tau - syn_nmda_B_tau)
-        nmda_val_max = (  exp( -nmda_tc_max / syn_ampa_B_tau) -  exp( -nmda_tc_max / syn_ampa_A_tau)  )
+        nmda_tc_max =  ln( syn_nmda_B_tau / syn_nmda_A_tau) * (syn_nmda_A_tau * syn_nmda_B_tau) / (syn_nmda_B_tau - syn_nmda_A_tau)
+        nmda_val_max = (  exp( -nmda_tc_max / syn_nmda_B_tau) -  exp( -nmda_tc_max / syn_nmda_A_tau)  )
+        #nmda_val_max = 0.811
         syn_nmda_erev = 0mV
         v_scale = V * {-0.08mV-1}
         nmda_vdep =  1./(1. + 0.05 * exp(v_scale) )
         on recv_nmda_spike(weight:(S)){
             syn_nmda_A = syn_nmda_A + (weight/{1nS})
             syn_nmda_B = syn_nmda_B + (weight/{1nS})
-            #syn_nmda_A = ClipMax( x=syn_nmda_A + (weight/{1nS}) , x_max=syn_sat )
-            #syn_nmda_B = ClipMax( x=syn_nmda_B + (weight/{1nS}) , x_max=syn_sat )
         }
         # ===========================
 
@@ -81,8 +81,6 @@ def get_dIN(nbits):
         on recv_ampa_spike(weight:(S)){
             syn_ampa_A = syn_ampa_A + (weight/{1nS}) 
             syn_ampa_B = syn_ampa_B + (weight/{1nS}) 
-            #syn_nmda_A = ClipMax( x=syn_nmda_A + (weight/{1nS}) , x_max=syn_sat )
-            #syn_nmda_B = ClipMax( x=syn_nmda_B + (weight/{1nS}) , x_max=syn_sat )
         }
         # ===========================
 
@@ -100,8 +98,6 @@ def get_dIN(nbits):
         on recv_inh_spike(weight:(S)){
             syn_inhib_A = syn_inhib_A + (weight/{1nS}) 
             syn_inhib_B = syn_inhib_B + (weight/{1nS}) 
-            #syn_nmda_A = ClipMax( x=syn_nmda_A + (weight/{1nS}) , x_max=syn_sat )
-            #syn_nmda_B = ClipMax( x=syn_nmda_B + (weight/{1nS}) , x_max=syn_sat )
         }
         # ===========================
 
@@ -116,7 +112,7 @@ def get_dIN(nbits):
         glk_noise1 = 1
         glk_noise2 = 1
         glk_noise3 = 1
-        glk_noise4 = 1 
+        glk_noise4 = 1
 
         glk_noise = (glk_noise1 + glk_noise2 + glk_noise3 + glk_noise4 ) / 4.0
 
@@ -201,8 +197,8 @@ def get_dIN(nbits):
         ca_v_eps = 10e-1mV
         #iCa_ungated =  [-z *  pca *  F * ( (nu*( Cai - Cao*exp_neg_nu) ) / (1-exp_neg_nu)) ] 
         iCa_ungated =  [ -z *  pca *  F * ( (nu*( Cai - Cao*exp_neg_nu) ) / (1-exp_neg_nu)) ] \
-                if [ (V > ca_v_eps) or (V < -ca_v_eps)] \
-                else [pca * (-z) * F * (Cai-Cao) ]
+                            if [ (V > ca_v_eps) or (V < -ca_v_eps)] \
+                            else [pca * (-z) * F * (Cai-Cao) ]
 
         iCa_disp = [2.9e-10] if [ (V > ca_v_eps) or (V < -ca_v_eps) ] else [3.1e-10]
         iCa =  iCa_ungated *  ca_m * ca_m
