@@ -55,7 +55,6 @@ def get_dIN(nbits):
         # Normalisation:
         nmda_tc_max =  ln( syn_nmda_B_tau / syn_nmda_A_tau) * (syn_nmda_A_tau * syn_nmda_B_tau) / (syn_nmda_B_tau - syn_nmda_A_tau)
         nmda_val_max = (  exp( -nmda_tc_max / syn_nmda_B_tau) -  exp( -nmda_tc_max / syn_nmda_A_tau)  )
-        #nmda_val_max = 0.811
         syn_nmda_erev = 0mV
         v_scale = V * {-0.08mV-1}
         nmda_vdep =  1./(1. + 0.05 * exp(v_scale) )
@@ -75,7 +74,7 @@ def get_dIN(nbits):
         syn_ampa_B' = -syn_ampa_B / syn_ampa_B_tau
 
         # Normalisation:
-        ampa_tc_max =  ln( syn_ampa_A_tau / syn_ampa_B_tau) * (syn_ampa_A_tau * syn_ampa_B_tau) / (syn_ampa_A_tau - syn_ampa_B_tau)
+        ampa_tc_max =  ln( syn_ampa_B_tau / syn_ampa_A_tau) * (syn_ampa_A_tau * syn_ampa_B_tau) / (syn_ampa_B_tau - syn_ampa_A_tau)
         ampa_val_max =  (exp( -ampa_tc_max / syn_ampa_B_tau) -  exp( -ampa_tc_max / syn_ampa_A_tau) )
         syn_ampa_erev = 0mV
         on recv_ampa_spike(weight:(S)){
