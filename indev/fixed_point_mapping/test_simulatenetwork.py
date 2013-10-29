@@ -99,7 +99,13 @@ for syn_index, ((pop1_name, pop2_name, (syn_type, strength) ), conns) in enumera
     synpop_name='SynPop%02d' % syn_index
     weight = '%f nS'%strength
     network.add(
-            EventPortConnector(p1,p2, src_port_name='spike', dst_port_name='recv_%s_spike' %syn_type, name=synpop_name, delay='1ms', connector=ExplicitIndicesSet(conns), parameter_map= {'weight': FixedValue(weight)} )
+            EventPortConnector(p1,p2, 
+                src_port_name='spike', 
+                dst_port_name='recv_%s_spike' %syn_type, 
+                name=synpop_name, 
+                delay='1ms', 
+                connector=ExplicitIndicesSet(conns), 
+                parameter_map= {'weight': FixedValue(weight)} )
         )
 #assert False
 
@@ -159,8 +165,8 @@ network.add(
 
 
 # Work out the electrical coupling indices:
-f = pylab.figure()
-ax = f.add_subplot(111)
+#f = pylab.figure()
+#ax = f.add_subplot(111)
 gap_junction_indices =   []
 for dIN_pop in [(pop_LHS_dIN), (pop_RHS_dIN)]:
     print dIN_pop
@@ -174,13 +180,20 @@ for dIN_pop in [(pop_LHS_dIN), (pop_RHS_dIN)]:
                 continue
             gap_junction_indices.append( (i,j) )
 
-            ax.plot([i],[j], 'x')
-            ax.plot([j],[i], 'x')
+            #ax.plot([i],[j], 'x')
+            #ax.plot([j],[i], 'x')
 
 
-#network.add(
-#    ElectricalSynapseProjection( src_population =  dINs, dst_population =  dINs, connector=ExplicitIndicesLoop(gap_junction_indices), strength_S = 0.2e-9, injected_port_name = 'i_injected', name='E_Couple')
-#)
+network.add(
+    ElectricalSynapseProjection(
+        src_population =  dINs, 
+        dst_population =  dINs, 
+        connector=ExplicitIndicesLoop(gap_junction_indices), 
+        #strength_S = 0.2e-9,
+        strength_S = 2e-9,
+        injected_port_name = 'i_injected', 
+        name='E_Couple')
+)
 
 
 
@@ -206,44 +219,51 @@ network.record_output_events( [rb_drivers] , 'spike' )
 network.record_output_events( [pop_LHS_dIN, pop_RHS_dIN] , 'spike' )
 network.record_output_events( [pop_LHS_RB, pop_RHS_RB] , 'spike' )
 
-#network.record_traces(pop_LHS_RB , 'syn_ampa_g' )
 network.record_input_events( rhs_subpops+lhs_subpops , 'recv_nmda_spike' )
 
 
-#network.finalise()
 
 
-### Generate for NIOS:
-##fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', output_c_filename='/tmp/nu/compilation/sim_WITHOUTBLUE.cpp', CPPFLAGS='-DON_NIOS=false -DUSE_BLUEVEC=false ', compile=True, output_exec_filename='/tmp/nu/compilation/sim_WITHOUTBLUE.x', run=False)
-##fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', output_c_filename='/tmp/nu/compilation/sim_WITHBLUE.cpp', CPPFLAGS='-DON_NIOS=false -DUSE_BLUEVEC=true ',  compile=True, output_exec_filename='/tmp/nu/compilation/sim_WITHBLUE.x', run=False)
-##assert False
+
+results = CBasedEqnWriterFixedNetwork(
+                    network,
+                    #output_filename=op_filename,
+                    CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
+                    step_size=0.1e-3 / 2.,
+                    run_until=0.75,
+                    #run_until=0.12,
+                    as_float=True,
+                    ).results
 
 
 #fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ').results
-results = HDF5SimulationResultFile("output.hd5")
+#results = HDF5SimulationResultFile("output.hd5")
 
 
 filters_traces = [
    "ALL{V,dIN,LHS}",
    "ALL{V,dIN,LHS,POPINDEX:0000}",
-   "ALL{dIN,LHS,POPINDEX:0000} AND ANY{syn_ampa_i,syn_nmda_i,syn_inhib_i}",
    "ALL{V,dIN,RHS}",
-   "ALL{i_injected,dIN,LHS}",
-   "ALL{i_injected,dIN,RHS}",
-   
-   "ALL{V,dIN,LHS,POPINDEX:0000}",
-   
-   "ALL{V,RB,LHS}",
-   "ALL{V,RB,LHS,POPINDEX:0000}",
-   "ALL{RB,LHS,POPINDEX:0000} AND ANY{syn_ampa_i,syn_nmda_i,syn_inhib_i}",
-   "ALL{V,RB,RHS}",
-   "ALL{i_injected,RB,LHS}",
-   "ALL{i_injected,RB,RHS}",
-   
-   "ALL{V,RB,LHS,POPINDEX:0000}",
+   "ALL{V,dIN,RHS,POPINDEX:0118}",
+
+   #"ALL{dIN,LHS,POPINDEX:0000} AND ANY{syn_ampa_i,syn_nmda_i,syn_inhib_i}",
+   #"ALL{V,dIN,RHS}",
+   #"ALL{i_injected,dIN,LHS}",
+   #"ALL{i_injected,dIN,RHS}",
+   #
+   #"ALL{V,dIN,LHS,POPINDEX:0000}",
+   #
+   #"ALL{V,RB,LHS}",
+   #"ALL{V,RB,LHS,POPINDEX:0000}",
+   #"ALL{RB,LHS,POPINDEX:0000} AND ANY{syn_ampa_i,syn_nmda_i,syn_inhib_i}",
+   #"ALL{V,RB,RHS}",
+   #"ALL{i_injected,RB,LHS}",
+   #"ALL{i_injected,RB,RHS}",
+   #
+   #"ALL{V,RB,LHS,POPINDEX:0000}",
 
 
-    "ANY{syn_nmda_A,syn_nmda_B,syn_ampa_A,syn_ampa_B} AND ALL{dIN,LHS,POPINDEX:0000}"
+   # "ANY{syn_nmda_A,syn_nmda_B,syn_ampa_A,syn_ampa_B} AND ALL{dIN,LHS,POPINDEX:0000}"
 
 
    # "ALL{V,RB,LHS}",
@@ -276,29 +296,29 @@ filters_traces = [
 
 filters_spikes = [
 
-    "ALL{EVENT:spike,RBINPUT}",
-    "ALL{EVENT:spike,RB,LHS}",
-    "ALL{EVENT:spike,RB,RHS}",
+    #"ALL{EVENT:spike,RBINPUT}",
+    #"ALL{EVENT:spike,RB,LHS}",
+    #"ALL{EVENT:spike,RB,RHS}",
 
-    "ALL{EVENT:spike,dIN,LHS}",
-    "ALL{EVENT:spike,dIN,RHS}",
+    #"ALL{EVENT:spike,dIN,LHS}",
+    #"ALL{EVENT:spike,dIN,RHS}",
 
-#    "ALL{EVENT:spike,dla,LHS}",
-#    "ALL{EVENT:spike,dla,RHS}",
-#    "ALL{EVENT:spike,dlc,LHS}",
-#    "ALL{EVENT:spike,dlc,RHS}",
+#   # "ALL{EVENT:spike,dla,LHS}",
+#   # "ALL{EVENT:spike,dla,RHS}",
+#   # "ALL{EVENT:spike,dlc,LHS}",
+#   # "ALL{EVENT:spike,dlc,RHS}",
 #
-#    "ALL{EVENT:spike,MN,LHS}",
-#    "ALL{EVENT:spike,MN,RHS}",
+#   # "ALL{EVENT:spike,MN,LHS}",
+#   # "ALL{EVENT:spike,MN,RHS}",
 #
-#    "ALL{EVENT:spike,aIN,LHS}",
-#    "ALL{EVENT:spike,aIN,RHS}",
+#   # "ALL{EVENT:spike,aIN,LHS}",
+#   # "ALL{EVENT:spike,aIN,RHS}",
 #
-#    "ALL{EVENT:spike,cIN,LHS}",
-#    "ALL{EVENT:spike,cIN,RHS}",
+#   # "ALL{EVENT:spike,cIN,LHS}",
+#   # "ALL{EVENT:spike,cIN,RHS}",
 
-    "ALL{EVENT:spike,dIN}",
-    "ALL{EVENT:spike,MN}",
+    #"ALL{EVENT:spike,dIN}",
+    #"ALL{EVENT:spike,MN}",
 ]
 
 sim_start = 0

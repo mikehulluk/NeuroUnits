@@ -16,21 +16,19 @@ def get_dIN(nbits):
         <=> INPUT i_injected:(mA)
 
         iInj_local = [50pA] if [ 50ms < t < 200ms] else [0pA]
-        #iInj_local = [50pA] if [ 50ms < t < 55ms] else [0pA] 
+        #iInj_local = [50pA] if [ 50ms < t < 55ms] else [0pA]
         Cap = 10 pF
 
-        
+
         V' = (1/Cap) * ( ( iLk + iInj_local + iKs + iKf +iNa + iCa +  syn_nmda_i + syn_ampa_i + syn_inhib_i +  i_injected) )
 
         #V' = (1/Cap) * ( ( iLk + iInj_local ) )
 
         k = i_injected
 
-        V_noisy = V + ~ar_model(0.3) * {2mV}
-
-        V_vnoisy = V_noisy + ~ar_model() * 1mV + ~ar_model(p0=0.3,p1=0.3) * {3mV}
-
-        noise = ~ar_model(0.3) * {3mV}
+        #V_noisy = V + ~ar_model(0.3) * {2mV}
+        #V_vnoisy = V_noisy + ~ar_model() * 1mV + ~ar_model(p0=0.3,p1=0.3) * {3mV}
+        #noise = ~ar_model(0.3) * {3mV}
 
         ClipMax(x, x_max) = [x] if [x<x_max] else [x_max]
 
@@ -39,7 +37,7 @@ def get_dIN(nbits):
         syn_sat = 1
         syn_nmda_g_bar =  1nS
         syn_ampa_g =  1nS
-        syn_inhib_g = 0nS 
+        syn_inhib_g = 1nS
 
 
 
@@ -69,7 +67,7 @@ def get_dIN(nbits):
         # =======================
         syn_ampa_A_tau = 0.1ms
         syn_ampa_B_tau = 3ms
-        syn_ampa_i = syn_ampa_g * (syn_ampa_B - syn_ampa_A) * (syn_ampa_erev - V)  *(1/ampa_val_max) 
+        syn_ampa_i = syn_ampa_g * (syn_ampa_B - syn_ampa_A) * (syn_ampa_erev - V)  *(1/ampa_val_max)
         syn_ampa_A' = -syn_ampa_A / syn_ampa_A_tau
         syn_ampa_B' = -syn_ampa_B / syn_ampa_B_tau
 
@@ -78,8 +76,8 @@ def get_dIN(nbits):
         ampa_val_max =  (exp( -ampa_tc_max / syn_ampa_B_tau) -  exp( -ampa_tc_max / syn_ampa_A_tau) )
         syn_ampa_erev = 0mV
         on recv_ampa_spike(weight:(S)){
-            syn_ampa_A = syn_ampa_A + (weight/{1nS}) 
-            syn_ampa_B = syn_ampa_B + (weight/{1nS}) 
+            syn_ampa_A = syn_ampa_A + (weight/{1nS})
+            syn_ampa_B = syn_ampa_B + (weight/{1nS})
         }
         # ===========================
 
@@ -91,12 +89,12 @@ def get_dIN(nbits):
         syn_inhib_A' = -syn_inhib_A / syn_inhib_A_tau
         syn_inhib_B' = -syn_inhib_B / syn_inhib_B_tau
         # Normalisation:
-        inhib_tc_max =  ln( syn_inhib_A_tau / syn_inhib_B_tau) * (syn_inhib_A_tau * syn_inhib_B_tau) / (syn_inhib_A_tau - syn_inhib_B_tau)
+        inhib_tc_max =  ln( syn_inhib_B_tau / syn_inhib_A_tau) * (syn_inhib_A_tau * syn_inhib_B_tau) / (syn_inhib_B_tau - syn_inhib_A_tau)
         inhib_val_max =  ( exp( -inhib_tc_max / syn_inhib_B_tau) -  exp( -inhib_tc_max / syn_inhib_A_tau)  )
         syn_inhib_erev = -60mV
         on recv_inh_spike(weight:(S)){
-            syn_inhib_A = syn_inhib_A + (weight/{1nS}) 
-            syn_inhib_B = syn_inhib_B + (weight/{1nS}) 
+            syn_inhib_A = syn_inhib_A + (weight/{1nS})
+            syn_inhib_B = syn_inhib_B + (weight/{1nS})
         }
         # ===========================
 
@@ -129,7 +127,7 @@ def get_dIN(nbits):
 
         # Leak
         iLk = gLk * (eLk-V) * glk_noise
-        #iLk = gLk * (eLk-V) 
+        #iLk = gLk * (eLk-V)
 
         # Slow Potassium (Ks):
         alpha_ks_n = AlphaBetaFunc(v=V, A=0.462ms-1, B=8.2e-3ms-1 mV-1, C=4.59, D=-4.21mV,E=-11.97mV)
@@ -182,7 +180,7 @@ def get_dIN(nbits):
         ca_m' =  (ca_m_inf_cl - ca_m) / tau_ca_m
 
 
-        ff = 1.0 
+        ff = 1.0
         pca = {0.16 (mm3)/s} * 1e-6 * ff
         F = 96485 C / mol
         R = 8.3144 J/ (mol K)
@@ -194,7 +192,7 @@ def get_dIN(nbits):
         exp_neg_nu = exp( -1. * nu )
         #ca_v_eps = 1e-2mV
         ca_v_eps = 10e-1mV
-        #iCa_ungated =  [-z *  pca *  F * ( (nu*( Cai - Cao*exp_neg_nu) ) / (1-exp_neg_nu)) ] 
+        #iCa_ungated =  [-z *  pca *  F * ( (nu*( Cai - Cao*exp_neg_nu) ) / (1-exp_neg_nu)) ]
         iCa_ungated =  [ -z *  pca *  F * ( (nu*( Cai - Cao*exp_neg_nu) ) / (1-exp_neg_nu)) ] \
                             if [ (V > ca_v_eps) or (V < -ca_v_eps)] \
                             else [pca * (-z) * F * (Cai-Cao) ]
@@ -299,7 +297,8 @@ def get_dIN(nbits):
     OptimiseEquations(comp)
 
     comp.annotate_ast( NodeRangeByOptimiser(var_annots_ranges))
-    RangeExpander(expand_by=4).visit(comp)
+    RangeExpander().visit(comp)
+    #RangeExpander(expand_by=4).visit(comp)
 
 
     comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )

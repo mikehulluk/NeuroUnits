@@ -93,7 +93,7 @@ class NeuroUnitParser(object):
             # 1. Lets try and open the file (normal):
             if not text:
                 try:
-                    with open(input_,'w') as f:
+                    with open(input_) as f:
                         text = f.read()
                 except IOError:
                     pass

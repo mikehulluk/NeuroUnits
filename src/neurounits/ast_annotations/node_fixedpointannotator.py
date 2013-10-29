@@ -112,6 +112,7 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
 
     def ActionSuppliedValue(self, o):
         self.ActionNodeStd(o)
+
     def ActionTimeVariable(self, o):
         self.ActionNodeStd(o)
 

@@ -31,7 +31,7 @@ def get_MN(nbits):
         syn_sat = 1
         syn_nmda_g = 1nS 
         syn_ampa_g = 1nS
-        syn_inhib_g = 0nS
+        syn_inhib_g = 1nS
 
         # NMDA
         # =======================
@@ -230,18 +230,17 @@ def get_MN(nbits):
         'recv_inh_spike::weight': NodeRange(min='0nS',max='10nS'),
         }
 
-    #var_annots_tags = {
-    #    'V': 'Voltage',
-    #    'syn_nmda_A':'',
-    #    'syn_nmda_B' : '',
-    #    'i_nmda' : '',
-    #    'nmda_vdep' :'',
-    #    'iLk' : '',
-    #    'iKf' : '',
-    #    'kf_n': '',
-    #    'iInj_local': '',
-
-    #}
+    var_annots_tags = {
+        'V': 'Voltage',
+        'syn_nmda_A':'',
+        'syn_nmda_B' : '',
+        'i_nmda' : '',
+        'nmda_vdep' :'',
+        'iLk' : '',
+        'iKf' : '',
+        'kf_n': '',
+        'iInj_local': '',
+    }
 
 
 
@@ -261,7 +260,7 @@ def get_MN(nbits):
     comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 
     from neurounits.ast_annotations.common import NodeTagger
-    #NodeTagger(var_annots_tags).visit(comp)
+    NodeTagger(var_annots_tags).visit(comp)
 
     return comp
 

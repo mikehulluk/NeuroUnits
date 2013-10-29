@@ -90,7 +90,7 @@ Two defines control the setup:
 
 /* Runtime logging: */
 #define RUNTIME_LOGGING_ON false
-#define RUNTIME_LOGGING_STARTTIME -1 
+#define RUNTIME_LOGGING_STARTTIME 61.2998e-3 
 // #define RUNTIME_LOGGING_STARTTIME 100e-3
 
 
@@ -140,7 +140,8 @@ struct DebugCfg
 
 #define LOG_COMPONENT_STATEUPDATE(a)
 #define LOG_COMPONENT_EVENTDISPATCH(a)
-#define LOG_COMPONENT_EVENTHANDLER(a) {a}
+//#define LOG_COMPONENT_EVENTHANDLER(a) 
+#define LOG_COMPONENT_EVENTHANDLER(a) 
 #define LOG_COMPONENT_TRANSITION(a)
 
 #define CHECK_IN_RANGE_NODE(a,b,c,d,e) (a)
@@ -1005,12 +1006,12 @@ struct NrnPopData
 
 
     // AutoRegressive nodes:
-    %for ar in population.component.autoregressive_model_nodes:
-    FixedPoint<${ar.annotations['fixed-point-format'].upscale}> AR${ar.annotations['node-id']}[size];
-    %for i in range( len( ar.coefficients)):
-    FixedPoint<${ar.annotations['fixed-point-format'].upscale}> _AR${ar.annotations['node-id']}_t${i}[size];
-    %endfor
-    %endfor
+    ## %for ar in population.component.autoregressive_model_nodes:
+    ## FixedPoint<${ar.annotations['fixed-point-format'].upscale}> AR${ar.annotations['node-id']}[size];
+    ## %for i in range( len( ar.coefficients)):
+    ## FixedPoint<${ar.annotations['fixed-point-format'].upscale}> _AR${ar.annotations['node-id']}_t${i}[size];
+    ## %endfor
+    ## %endfor
 
 
     // Regimes:
@@ -1050,16 +1051,15 @@ void set_supplied_values_to_zero(NrnPopData& d)
 
 void initialise_autoregressivenodes(NrnPopData& d)
 {
-// TO REINSTATE:
-/*
-    %for ar in population.component.autoregressive_model_nodes:
-    for(int i=0;i<NrnPopData::size;i++) d.AR${ar.annotations['node-id']}[i] = 0;
-    %for i in range( len( ar.coefficients)):
-    for(int i=0;i<NrnPopData::size;i++) d._AR${ar.annotations['node-id']}_t${i}[i] = 0;
-    %endfor
-    %endfor
-
-*/
+    ## // TO REINSTATE:
+    ## /*
+    ## %for ar in population.component.autoregressive_model_nodes:
+    ## for(int i=0;i<NrnPopData::size;i++) d.AR${ar.annotations['node-id']}[i] = 0;
+    ## %for i in range( len( ar.coefficients)):
+    ## for(int i=0;i<NrnPopData::size;i++) d._AR${ar.annotations['node-id']}_t${i}[i] = 0;
+    ## %endfor
+    ## %endfor
+    ## */
 }
 
 void initialise_randomvariables(NrnPopData& d)
@@ -1255,21 +1255,21 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         cout << "\nUpdates:";
         )
 
-        // To reinstate:
-        // // Calculate the autoregressive nodes:
-        // %for ar in population.component.autoregressive_model_nodes:
-        // //Update the current value:
-        // d.${writer.to_c(ar)}[i] = ${writer.VisitAutoRegressiveModelUpdate(ar)};
-        // // Save the old values:
-        // %for i in range( len( ar.coefficients) -1 ):
-        // %if i==0:
-        // d._AR${ar.annotations['node-id']}_t0[i] = d.AR${ar.annotations['node-id']}[i];
-        // %else:
-        // d._AR${ar.annotations['node-id']}_t${i}[i] = d._AR${ar.annotations['node-id']}_t${i+1}[i] = 0;
-        // %endif
-        // %endfor
+        ## // To reinstate:
+        ## // // Calculate the autoregressive nodes:
+        ## // %for ar in population.component.autoregressive_model_nodes:
+        ## // //Update the current value:
+        ## // d.${writer.to_c(ar)}[i] = ${writer.VisitAutoRegressiveModelUpdate(ar)};
+        ## // // Save the old values:
+        ## // %for i in range( len( ar.coefficients) -1 ):
+        ## // %if i==0:
+        ## // d._AR${ar.annotations['node-id']}_t0[i] = d.AR${ar.annotations['node-id']}[i];
+        ## // %else:
+        ## // d._AR${ar.annotations['node-id']}_t${i}[i] = d._AR${ar.annotations['node-id']}_t${i+1}[i] = 0;
+        ## // %endif
+        ## // %endfor
 
-        // %endfor
+        ## // %endfor
 
 
 
@@ -1543,7 +1543,8 @@ int main()
 
     // Enable floating point exception trapping:
     #if !ON_NIOS
-    feenableexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW | FE_INVALID);
+    //feenableexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW | FE_INVALID);
+    feenableexcept(FE_DIVBYZERO |  FE_OVERFLOW | FE_INVALID);
     #endif //!ON_NIOS
 
 
@@ -1589,11 +1590,11 @@ int main()
             DBG.update( time_info.time_fixed.to_float() );
 
             #if DISPLAY_LOOP_INFO
-            if(get_value32(step_count)%100 == 0)
+            if(get_value32(step_count)%1 == 0)
             {
                 std::cout << "Loop: " << step_count << "\n";
                 std::cout << "(t: " << time_info.time_fixed.to_float() * 1000 << "ms)\n";
-                std::cout << "EmittedSpikes[0]: " << global_data.recordings_new.emitted_spikes[0].size() << "\n";
+                std::cout << "Total spikes emitted: " << global_data.recordings_new.nspikes_emitted << "\n";
 
             }
             #endif
@@ -1862,7 +1863,7 @@ struct RecordMgr
 
 
     int n_results_written;
-
+    int nspikes_emitted;
 
 
 
@@ -1888,7 +1889,8 @@ struct RecordMgr
 
 
     RecordMgr()
-    : n_results_written(0)
+    : n_results_written(0),
+      nspikes_emitted(0)
     {
     }
 
@@ -2130,6 +2132,7 @@ GlobalData global_data;
 void record_output_event( IntType global_buffer, const SpikeEmission& evt )
 {
     global_data.recordings_new.emitted_spikes[get_value32(global_buffer)].push_back(evt);
+    global_data.recordings_new.nspikes_emitted++;
 }
 
 
@@ -2147,9 +2150,14 @@ import hdfjive
 
 
 class CBasedEqnWriterFixedNetwork(object):
-    def __init__(self, network, output_filename, output_c_filename=None, run=True, compile=True, CPPFLAGS=None, output_exec_filename=None, step_size=0.01, run_until=1.0, as_float=False):
+    def __init__(self, network, output_filename=None, output_c_filename=None, run=True, compile=True, CPPFLAGS=None, output_exec_filename=None, step_size=0.01, run_until=1.0, as_float=False):
 
         network.finalise()
+
+
+        if output_filename is None:
+            output_filename = 'neuronits.results.hdf'
+
 
         self.dt_float = step_size 
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
@@ -2271,6 +2279,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
                             **std_variables
                             )
+
 
             code_per_pop.append(cfile)
 
