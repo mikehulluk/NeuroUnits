@@ -90,7 +90,7 @@ Two defines control the setup:
 
 /* Runtime logging: */
 #define RUNTIME_LOGGING_ON false
-#define RUNTIME_LOGGING_STARTTIME 61.2998e-3 
+#define RUNTIME_LOGGING_STARTTIME 61.2998e-3
 // #define RUNTIME_LOGGING_STARTTIME 100e-3
 
 
@@ -140,8 +140,8 @@ struct DebugCfg
 
 #define LOG_COMPONENT_STATEUPDATE(a)
 #define LOG_COMPONENT_EVENTDISPATCH(a)
-//#define LOG_COMPONENT_EVENTHANDLER(a) 
-#define LOG_COMPONENT_EVENTHANDLER(a) 
+//#define LOG_COMPONENT_EVENTHANDLER(a)
+#define LOG_COMPONENT_EVENTHANDLER(a)
 #define LOG_COMPONENT_TRANSITION(a)
 
 #define CHECK_IN_RANGE_NODE(a,b,c,d,e) (a)
@@ -208,6 +208,7 @@ const int record_rate = 10;
 #if ON_NIOS
 #else
 #include <boost/format.hpp>
+#include <boost/assign/list_of.hpp>
 #include <cinttypes>
 #include <fenv.h>
 #include <gmpxx.h>
@@ -220,7 +221,11 @@ const int record_rate = 10;
 #include <unordered_map>
 // For Saving the data to HDF5:
 #include "hdfjive.h"
+#include "hdfjive-neuro.h"
 const string output_filename = "${output_filename}";
+const string simulation_name = "Sim1";
+
+
 
 // Data types used for storing in HDF5:
 const hid_t hdf5_type_int = H5T_NATIVE_INT;
@@ -1513,8 +1518,12 @@ void my_terminate (int parameter)
 
     // Dump to HDF5
     cout << "\nWriting HDF5 output" << std::flush;
-    global_data.recordings_new.write_all_traces_to_hdf();
-    global_data.recordings_new.write_all_output_events_to_hdf();
+
+    {
+        SimulationResultsPtr hdf_output = SimulationResultsFile(output_filename).Simulation(simulation_name);
+        global_data.recordings_new.write_all_traces_to_hdf(hdf_output);
+        global_data.recordings_new.write_all_output_events_to_hdf(hdf_output);
+    }
 
     cout << "\n\nERROR!!!\n\n";
     exit(0);
@@ -1654,8 +1663,10 @@ int main()
 
     // Dump to HDF5
     cout << "\nWriting HDF5 output" << std::flush;
-    global_data.recordings_new.write_all_traces_to_hdf();
-    global_data.recordings_new.write_all_output_events_to_hdf();
+    SimulationResultsPtr hdf_output = SimulationResultsFile(output_filename).Simulation(simulation_name);
+
+    global_data.recordings_new.write_all_traces_to_hdf(hdf_output);
+    global_data.recordings_new.write_all_output_events_to_hdf(hdf_output);
 
 
     #if ON_NIOS
@@ -1952,7 +1963,7 @@ struct RecordMgr
 
 
 
-    void write_all_output_events_to_hdf()
+    void write_all_output_events_to_hdf(SimulationResultsPtr hdf_output)
     {
         #if USE_HDF
         %if network.all_output_event_recordings:
@@ -2021,35 +2032,19 @@ struct RecordMgr
     }
 
 
-    void write_all_traces_to_hdf()
+    void write_all_traces_to_hdf(SimulationResultsPtr output)
     {
         #if USE_HDF
 
         cout << "\n\nWriting traces to HDF5";
-
-        // Working buffers:
-        T_hdf5_type_int data_int[n_results_written];
-        T_hdf5_type_float data_float[n_results_written];
-
-
-        HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
-
-        HDF5DataSet2DStdPtr time_dataset_int = file->get_group("simulation_fixed/int")->create_empty_dataset2D("time", HDF5DataSet2DStdSettings(hdf5_type_int, 1) );
-        HDF5DataSet2DStdPtr time_dataset_float = file->get_group("simulation_fixed/double")->create_empty_dataset2D("time", HDF5DataSet2DStdSettings(hdf5_type_float, 1) );
-
-
         T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
-        for(int t=0;t<n_results_written;t++)
-        {
-            data_int[t] = get_value32(time_buffer[t]);
-            data_float[t]  = data_int[t] * dt_float;
-        }
-        time_dataset_int->set_data(n_results_written,1, data_int);
-        time_dataset_float->set_data(n_results_written,1, data_float);
 
-
+        // New version:
+        SharedTimeBufferPtr times = output->write_shared_time_buffer(n_results_written, &time_buffer[0]);
+        times->get_dataset()->set_scaling_factor(dt_float);
 
         %for i,poprec in enumerate(network.all_trace_recordings):
+        // Write out values for ${poprec.src_population.name}.${poprec.node.symbol}:
         {
             // Save: ${poprec}
             const T_hdf5_type_float node_sf = pow(2.0, ${poprec.node.annotations['fixed-point-format'].upscale} - (VAR_NBITS-1));
@@ -2057,51 +2052,17 @@ struct RecordMgr
             for(int i=0;i<${poprec.size};i++)
             {
                 int buffer_offset = ${poprec.global_offset}+i;
+                //int nrn_offset = i + ${poprec.src_pop_start_index};
+                TagList tags = boost::assign::list_of( "${','.join(poprec.tags)}")("${','.join(poprec.node.annotations['tags'])}");
 
-                for(int t=0;t<n_results_written;t++)
-                {
-                    data_int[t] = get_value32( data_buffers[buffer_offset][t] );
-                    data_float[t] = data_int[t] * node_sf;
-                }
-
-                int nrn_offset = i + ${poprec.src_pop_start_index};
-                string tag_string = "${poprec.node.symbol},POP:${poprec.src_population.name},${','.join(poprec.tags)},${','.join(poprec.node.annotations['tags'])}";
-                string tag_string_index = (boost::format("POPINDEX:%04d")%nrn_offset).str();
-
-
-                #if SAVE_HDF5_INT
-                HDF5GroupPtr pGroup_int = file->get_group((boost::format("simulation_fixed/int/${poprec.src_population.name}/%04d/variables/${poprec.node.symbol}")%nrn_offset).str());
-                pVecInt[${poprec.src_pop_start_index}+i]->set_data(n_results_written,1, data_int);
-                HDF5GroupPtr pGroup_int = file->get_group((boost::format("simulation_fixed/int/${poprec.src_population.name}/%04d/variables/${poprec.node.symbol}")%nrn_offset).str());
-                pGroup_int->add_attribute("hdf-jive","trace");
-
-                pGroup_int->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
-                pGroup_int->get_subgroup("raw")->create_softlink(time_dataset_int, "time");
-                pHDF5DataSet2DStdPtr pDataset_int = pGroup_int->get_subgroup("raw")->create_empty_dataset2D("data", HDF5DataSet2DStdSettings(hdf5_type_int,1));
-                pDataset_int->set_data(n_results_written,1, data_int);
-                #endif
-
-
-                #if SAVE_HDF5_FLOAT
-                HDF5GroupPtr pGroup_float = file->get_group((boost::format("simulation_fixed/double/${poprec.src_population.name}/%04d/variables/${poprec.node.symbol}")%nrn_offset).str());
-                pGroup_float->add_attribute("hdf-jive","trace");
-
-                %if as_float:
-                pGroup_float->add_attribute("hdf-jive:tags",string("float,") + tag_string + "," + tag_string_index);
-                %else:
-                pGroup_float->add_attribute("hdf-jive:tags",string("fixed,") + tag_string + "," + tag_string_index);
-                %endif
-                pGroup_float->get_subgroup("raw")->create_softlink(time_dataset_float, "time");
-                HDF5DataSet2DStdPtr pDataset_float = pGroup_float->get_subgroup("raw")->create_empty_dataset2D("data", HDF5DataSet2DStdSettings(hdf5_type_float,1) );
-                pDataset_float->set_data(n_results_written,1, data_float);
-                #endif
-
+                HDF5DataSet2DStdPtr pDataset = output->write_trace("${poprec.src_population.name}", i, "${poprec.node.symbol}", times, &(data_buffers[buffer_offset][0]), tags );
+                pDataset->set_scaling_factor(node_sf);
             }
         }
         %endfor
+
         cout << "\n\nFisnihed Writing to HDF5";
         #endif //USE_HDF
-
     } // void write_all_to_hdf5()
 
 
@@ -2159,7 +2120,7 @@ class CBasedEqnWriterFixedNetwork(object):
             output_filename = 'neuronits.results.hdf'
 
 
-        self.dt_float = step_size 
+        self.dt_float = step_size
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
 
 
@@ -2198,7 +2159,7 @@ class CBasedEqnWriterFixedNetwork(object):
             evt_src_to_evtportconns[key].append(evt_conn)
 
 
-        t_stop = run_until 
+        t_stop = run_until
         n_steps = t_stop / self.dt_float
         std_variables = {
             'nsim_steps' : n_steps,
