@@ -1989,7 +1989,7 @@ struct RecordMgr
             #if SAVE_HDF5_INT
             string location_int =  (boost::format("simulation_fixed/int/${poprec.src_population.name}/%04d/output_events/")%nrn_offset).str();
             HDF5GroupPtr pGroup_int = file->get_group(location_int + "${poprec.node.symbol}");
-            HDF5DataSet2DStdPtr event_output_int  = pGroup_int->create_empty_dataset2D("${poprec.node.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
+            HDF5DataSet2DStdPtr event_output_int  = pGroup_int->create_empty_dataset2D("${poprec.node.symbol}", HDF5DataSet2DStdSettings(hdf5_type_int, 1) );
             if(nspikes>0) event_output_int->set_data(nspikes, 1, buffer_int);
             pGroup_int->add_attribute("hdf-jive","events");
             pGroup_int->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
@@ -1998,7 +1998,7 @@ struct RecordMgr
             #if SAVE_HDF5_FLOAT
             string location_float =  (boost::format("simulation_fixed/double/${poprec.src_population.name}/%04d/output_events/")%nrn_offset).str();
             HDF5GroupPtr pGroup_float = file->get_group(location_float + "${poprec.node.symbol}");
-            HDF5DataSet2DStdPtr event_output_float = pGroup_float->create_empty_dataset2D("${poprec.node.symbol}", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+            HDF5DataSet2DStdPtr event_output_float = pGroup_float->create_empty_dataset2D("${poprec.node.symbol}", HDF5DataSet2DStdSettings(hdf5_type_float, 1) );
             if(nspikes>0) event_output_float->set_data(nspikes, 1, buffer_float);
             pGroup_float->add_attribute("hdf-jive","events");
             pGroup_float->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
@@ -2034,8 +2034,8 @@ struct RecordMgr
 
         HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
 
-        HDF5DataSet2DStdPtr time_dataset_int = file->get_group("simulation_fixed/int")->create_empty_dataset2D("time", HDF5DataSet2DStdSettings(1, hdf5_type_int) );
-        HDF5DataSet2DStdPtr time_dataset_float = file->get_group("simulation_fixed/double")->create_empty_dataset2D("time", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+        HDF5DataSet2DStdPtr time_dataset_int = file->get_group("simulation_fixed/int")->create_empty_dataset2D("time", HDF5DataSet2DStdSettings(hdf5_type_int, 1) );
+        HDF5DataSet2DStdPtr time_dataset_float = file->get_group("simulation_fixed/double")->create_empty_dataset2D("time", HDF5DataSet2DStdSettings(hdf5_type_float, 1) );
 
 
         T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
@@ -2077,7 +2077,7 @@ struct RecordMgr
 
                 pGroup_int->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
                 pGroup_int->get_subgroup("raw")->create_softlink(time_dataset_int, "time");
-                pHDF5DataSet2DStdPtr pDataset_int = pGroup_int->get_subgroup("raw")->create_empty_dataset2D("data", HDF5DataSet2DStdSettings(1, hdf5_type_int));
+                pHDF5DataSet2DStdPtr pDataset_int = pGroup_int->get_subgroup("raw")->create_empty_dataset2D("data", HDF5DataSet2DStdSettings(hdf5_type_int,1));
                 pDataset_int->set_data(n_results_written,1, data_int);
                 #endif
 
@@ -2092,7 +2092,7 @@ struct RecordMgr
                 pGroup_float->add_attribute("hdf-jive:tags",string("fixed,") + tag_string + "," + tag_string_index);
                 %endif
                 pGroup_float->get_subgroup("raw")->create_softlink(time_dataset_float, "time");
-                HDF5DataSet2DStdPtr pDataset_float = pGroup_float->get_subgroup("raw")->create_empty_dataset2D("data", HDF5DataSet2DStdSettings(1, hdf5_type_float) );
+                HDF5DataSet2DStdPtr pDataset_float = pGroup_float->get_subgroup("raw")->create_empty_dataset2D("data", HDF5DataSet2DStdSettings(hdf5_type_float,1) );
                 pDataset_float->set_data(n_results_written,1, data_float);
                 #endif
 
