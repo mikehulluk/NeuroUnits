@@ -85,7 +85,7 @@ def get_results():
                 connector=AllToAllConnector(0.2),
                 parameter_map= {'weight': FixedValue("100pS")}
             )
-    
+
     network.create_electricalsynapseprojection(
         src_population=dINs,
         dst_population=dINs,
@@ -98,17 +98,20 @@ def get_results():
 
     network.record_output_events(dINs, 'spike' )
     network.record_traces(dINs, '*' )
-    #network.record_traces(dINs, 'V' )
-    #network.record_traces(dINs, 'iCa iNa iKf iKs iLk syn_nmda_i' )
-    #network.record_traces(dINs, 'kf_n ks_n na_m na_h' )
-    #network.record_traces(dINs, 'alpha_kf_n beta_kf_n' )
-    #network.record_traces(dINs, 'alpha_ks_n beta_ks_n' )
-    #network.record_traces(dINs, 'nmda_vdep' )
-    #network.record_traces(dINs, 'syn_nmda_A syn_nmda_B' )
-    #network.record_traces(dINs, 'syn_nmda_g_raw' )
 
 
+    op_filename = 'output_float.hd5'
+    if os.path.exists(op_filename):
+        os.unlink(op_filename)
 
+    results1 = CBasedEqnWriterFixedNetwork(
+                        network,
+                        output_filename=op_filename,
+                        CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
+                        step_size=0.1e-3,
+                        run_until=1.0,
+                        as_float=True,
+                        ).results
 
 
     op_filename = 'output_fixed.hd5'
@@ -124,19 +127,6 @@ def get_results():
                         as_float=False,
                         ).results
 
-    op_filename = 'output_float.hd5'
-    if os.path.exists(op_filename):
-        os.unlink(op_filename)
-
-    results1 = CBasedEqnWriterFixedNetwork(
-                        network,
-                        output_filename=op_filename,
-                        CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
-                        step_size=0.1e-3,
-                        run_until=1.0,
-                        as_float=True,
-                        ).results
-    #return results
 
 
 
@@ -149,8 +139,8 @@ pylab.margins(0.1)
 
 filters_traces = [
     'ALL{POPINDEX:0000,V}',
-    'ALL{float,V}', 
-    'ALL{fixed,V}', 
+    'ALL{float,V}',
+    'ALL{fixed,V}',
     ]
 for symbol in sorted(dIN_comp.terminal_symbols, key=lambda o:o.symbol):
     filters_traces.append( "ALL{POPINDEX:0000} AND ANY{%s}" % symbol.symbol )

@@ -2047,16 +2047,15 @@ struct RecordMgr
         // Write out values for ${poprec.src_population.name}.${poprec.node.symbol}:
         {
             // Save: ${poprec}
-            const T_hdf5_type_float node_sf = pow(2.0, ${poprec.node.annotations['fixed-point-format'].upscale} - (VAR_NBITS-1));
+            //const T_hdf5_type_float node_sf = ;
 
             for(int i=0;i<${poprec.size};i++)
             {
                 int buffer_offset = ${poprec.global_offset}+i;
-                //int nrn_offset = i + ${poprec.src_pop_start_index};
                 TagList tags = boost::assign::list_of( "${','.join(poprec.tags)}")("${','.join(poprec.node.annotations['tags'])}");
 
                 HDF5DataSet2DStdPtr pDataset = output->write_trace("${poprec.src_population.name}", i, "${poprec.node.symbol}", times, &(data_buffers[buffer_offset][0]), tags );
-                pDataset->set_scaling_factor(node_sf);
+                pDataset->set_scaling_factor( pow(2.0, ${poprec.node.annotations['fixed-point-format'].upscale} - (VAR_NBITS-1)) );
             }
         }
         %endfor
