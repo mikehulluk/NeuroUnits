@@ -942,26 +942,44 @@ namespace NS_${population.name}
     %for in_port in population.component.input_event_port_lut:
         struct Event_${in_port.symbol}
         {
-
             TimeType delivery_time;
             %for param in in_port.parameters:
             typedef FixedPoint<${param.annotations['fixed-point-format'].upscale}> ${param.symbol}Type; // Upscale: ${param.annotations['fixed-point-format'].upscale}
             ${param.symbol}Type ${param.symbol}; // Upscale: ${param.annotations['fixed-point-format'].upscale}
             %endfor
 
-            Event_${in_port.symbol}(
-                TimeType delivery_time
-                ${ ' '.join( [ ',%sType %s' % (param.symbol,param.symbol) for param in in_port.parameters ] ) }
-            )
-            :
-              delivery_time(delivery_time)
-              ${ ' '.join( [ ',%s(%s)' % (param.symbol,param.symbol) for param in in_port.parameters ] ) }
+            Event_${in_port.symbol}( TimeType delivery_time ${ ' '.join( [ ', %sType %s' % (param.symbol,param.symbol) for param in in_port.parameters ] ) })
+              : delivery_time(delivery_time) ${ ' '.join( [ ',%s(%s)' % (param.symbol,param.symbol) for param in in_port.parameters ] ) }
             { }
 
-
         };
+
     %endfor
     }
+
+    namespace output_event_types
+    {
+    %for in_port in population.component.output_event_port_lut:
+        struct Event_${in_port.symbol}
+        {
+            TimeType delivery_time;
+            %for param in in_port.parameters:
+            typedef FixedPoint<${param.annotations['fixed-point-format'].upscale}> ${param.symbol}Type; // Upscale: ${param.annotations['fixed-point-format'].upscale}
+            ${param.symbol}Type ${param.symbol}; // Upscale: ${param.annotations['fixed-point-format'].upscale}
+            %endfor
+
+            Event_${in_port.symbol}( TimeType delivery_time ${ ' '.join( [ ',%sType %s' % (param.symbol,param.symbol) for param in in_port.parameters ] ) })
+              : delivery_time(delivery_time) ${ ' '.join( [ ',%s(%s)' % (param.symbol,param.symbol) for param in in_port.parameters ] ) } 
+              { }
+
+        };
+
+    %endfor
+    }
+
+
+
+
 
 
 
@@ -1873,10 +1891,6 @@ struct RecordMgr
     static const int buffer_size = n_expected_recording_times;
 
 
-    int n_results_written;
-    int nspikes_emitted;
-
-
 
     // What are we recording:
     %for poprec in network.all_trace_recordings:
@@ -1885,16 +1899,32 @@ struct RecordMgr
     static const int n_rec_buffers = ${network.n_trace_recording_buffers};
 
 
+    // Traces:
     typedef std::array<IntType, buffer_size>  RecordingBuffer;
-    typedef  list<SpikeEmission> SpikeList;
-
     // Allocate the storage for the traces:
     RecordingBuffer time_buffer;
     std::array<RecordingBuffer, n_rec_buffers> data_buffers;
+    int n_results_written;
 
 
-    // Allocate space for the spikes:
+
+    // Events:
+    int nspikes_emitted;
+    typedef  list<SpikeEmission> SpikeList;
     std::array<SpikeList,  ${network.n_output_event_recording_buffers} >  emitted_spikes;
+
+
+
+    // What events are we recording:
+    %for pop, port in network._record_output_events:
+    // Output event:    ${pop} :  ${port}
+    //    -- ${port.parameters}
+    //list< NS_${pop.name}::
+
+    %endfor
+
+
+
 
 
 
@@ -1948,14 +1978,111 @@ struct RecordMgr
         cout << "\n\nFinished Writing to HDF5";
 
 
+    }
 
 
 
-        cout << "\n#! FINISHED\n";
 
 
 
 
+    void write_all_traces_to_hdf(SimulationResultsPtr output)
+    {
+        #if USE_HDF
+
+        cout << "\n\nWriting traces to HDF5";
+        T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
+
+        // New version:
+        SharedTimeBufferPtr times = output->write_shared_time_buffer(n_results_written, &time_buffer[0]);
+        times->get_dataset()->set_scaling_factor(dt_float);
+
+        %for i,poprec in enumerate(network.all_trace_recordings):
+        // Write out values for ${poprec.src_population.name}.${poprec.node.symbol}:
+        {
+            for(int i=0;i<${poprec.size};i++)
+            {
+                int buffer_offset = ${poprec.global_offset}+i;
+                TagList tags = boost::assign::list_of( "${','.join(poprec.tags)}")("${','.join(poprec.node.annotations['tags'])}");
+
+                HDF5DataSet2DStdPtr pDataset = output->write_trace("${poprec.src_population.name}", i, "${poprec.node.symbol}", times, &(data_buffers[buffer_offset][0]), tags );
+                pDataset->set_scaling_factor( pow(2.0, ${poprec.node.annotations['fixed-point-format'].upscale} - (VAR_NBITS-1)) );
+            }
+        }
+        %endfor
+
+        cout << "\n\nFisnihed Writing to HDF5";
+        #endif //USE_HDF
+    } // void write_all_to_hdf5()
+
+
+
+
+
+
+
+
+
+
+    void write_all_output_events_to_hdf_OLD(SimulationResultsPtr hdf_output)
+    {
+        #if USE_HDF
+        %if network.all_output_event_recordings:
+        cout << "\n\nWriting spikes to HDF5";
+        HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
+        const T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
+        %endif
+
+
+        %for i,poprec in enumerate(network.all_output_event_recordings):
+
+
+            for(int i=0; i< ${poprec.size};i++)
+            {
+                cout << "\nWriting spikes for index: " << i << flush;
+                const int buffer_offset = ${poprec.global_offset}+i;
+                int nrn_offset = i + ${poprec.src_pop_start_index};
+                const int nspikes = emitted_spikes[buffer_offset].size();
+                //cout << "\nSpikes:"  << nspikes;
+                int buffer_int[nspikes];
+                double buffer_float[nspikes];
+                int s=0;
+                for(SpikeList::iterator it=emitted_spikes[buffer_offset].begin(); it!=emitted_spikes[buffer_offset].end(); it++,s++)
+                {
+                    buffer_int[s] = get_value32(it->time.to_int());
+                    buffer_float[s] = buffer_int[s] * dt_float;
+                }
+
+                // Tagging:
+                string tag_string = "EVENT:${poprec.node.symbol},SRCPOP:${poprec.src_population.name},${','.join(poprec.tags)}";
+                string tag_string_index = (boost::format("POPINDEX:%04d")%nrn_offset).str();
+
+
+                #if SAVE_HDF5_INT
+                string location_int =  (boost::format("simulation_fixed/int/${poprec.src_population.name}/%04d/output_events/")%nrn_offset).str();
+                HDF5GroupPtr pGroup_int = file->get_group(location_int + "${poprec.node.symbol}");
+                HDF5DataSet2DStdPtr event_output_int  = pGroup_int->create_empty_dataset2D("${poprec.node.symbol}", HDF5DataSet2DStdSettings(hdf5_type_int, 1) );
+                if(nspikes>0) event_output_int->set_data(nspikes, 1, buffer_int);
+                pGroup_int->add_attribute("hdf-jive","events");
+                pGroup_int->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
+                #endif
+
+                #if SAVE_HDF5_FLOAT
+                string location_float =  (boost::format("simulation_fixed/double/${poprec.src_population.name}/%04d/output_events/")%nrn_offset).str();
+                HDF5GroupPtr pGroup_float = file->get_group(location_float + "${poprec.node.symbol}");
+                HDF5DataSet2DStdPtr event_output_float = pGroup_float->create_empty_dataset2D("${poprec.node.symbol}", HDF5DataSet2DStdSettings(hdf5_type_float, 1) );
+                if(nspikes>0) event_output_float->set_data(nspikes, 1, buffer_float);
+                pGroup_float->add_attribute("hdf-jive","events");
+                pGroup_float->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
+                #endif
+
+            }
+
+
+        %endfor
+
+
+        #endif //USE_HDF
     }
 
 
@@ -1976,93 +2103,79 @@ struct RecordMgr
         %for i,poprec in enumerate(network.all_output_event_recordings):
 
 
-        for(int i=0; i< ${poprec.size};i++)
-        {
-            cout << "\nWriting spikes for index: " << i << flush;
-            const int buffer_offset = ${poprec.global_offset}+i;
-            int nrn_offset = i + ${poprec.src_pop_start_index};
-            const int nspikes = emitted_spikes[buffer_offset].size();
-            //cout << "\nSpikes:"  << nspikes;
-            int buffer_int[nspikes];
-            double buffer_float[nspikes];
-            int s=0;
-            for(SpikeList::iterator it=emitted_spikes[buffer_offset].begin(); it!=emitted_spikes[buffer_offset].end(); it++,s++)
+            for(int i=0; i< ${poprec.size};i++)
             {
-                buffer_int[s] = get_value32(it->time.to_int());
-                buffer_float[s] = buffer_int[s] * dt_float;
+                cout << "\nWriting spikes for index: " << i << flush;
+                const int buffer_offset = ${poprec.global_offset}+i;
+                int nrn_offset = i + ${poprec.src_pop_start_index};
+                const int nspikes = emitted_spikes[buffer_offset].size();
+                //cout << "\nSpikes:"  << nspikes;
+                int buffer_int[nspikes];
+                double buffer_float[nspikes];
+                int s=0;
+                for(SpikeList::iterator it=emitted_spikes[buffer_offset].begin(); it!=emitted_spikes[buffer_offset].end(); it++,s++)
+                {
+                    buffer_int[s] = get_value32(it->time.to_int());
+                    buffer_float[s] = buffer_int[s] * dt_float;
+                }
+
+                // Tagging:
+                string tag_string = "EVENT:${poprec.node.symbol},SRCPOP:${poprec.src_population.name},${','.join(poprec.tags)}";
+                string tag_string_index = (boost::format("POPINDEX:%04d")%nrn_offset).str();
+
+
+                #if SAVE_HDF5_INT
+                string location_int =  (boost::format("simulation_fixed/int/${poprec.src_population.name}/%04d/output_events/")%nrn_offset).str();
+                HDF5GroupPtr pGroup_int = file->get_group(location_int + "${poprec.node.symbol}");
+                HDF5DataSet2DStdPtr event_output_int  = pGroup_int->create_empty_dataset2D("${poprec.node.symbol}", HDF5DataSet2DStdSettings(hdf5_type_int, 1) );
+                if(nspikes>0) event_output_int->set_data(nspikes, 1, buffer_int);
+                pGroup_int->add_attribute("hdf-jive","events");
+                pGroup_int->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
+                #endif
+
+                #if SAVE_HDF5_FLOAT
+                string location_float =  (boost::format("simulation_fixed/double/${poprec.src_population.name}/%04d/output_events/")%nrn_offset).str();
+                HDF5GroupPtr pGroup_float = file->get_group(location_float + "${poprec.node.symbol}");
+                HDF5DataSet2DStdPtr event_output_float = pGroup_float->create_empty_dataset2D("${poprec.node.symbol}", HDF5DataSet2DStdSettings(hdf5_type_float, 1) );
+                if(nspikes>0) event_output_float->set_data(nspikes, 1, buffer_float);
+                pGroup_float->add_attribute("hdf-jive","events");
+                pGroup_float->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
+                #endif
+
             }
-
-            // Tagging:
-            string tag_string = "EVENT:${poprec.node.symbol},SRCPOP:${poprec.src_population.name},${','.join(poprec.tags)}";
-            string tag_string_index = (boost::format("POPINDEX:%04d")%nrn_offset).str();
-
-
-            #if SAVE_HDF5_INT
-            string location_int =  (boost::format("simulation_fixed/int/${poprec.src_population.name}/%04d/output_events/")%nrn_offset).str();
-            HDF5GroupPtr pGroup_int = file->get_group(location_int + "${poprec.node.symbol}");
-            HDF5DataSet2DStdPtr event_output_int  = pGroup_int->create_empty_dataset2D("${poprec.node.symbol}", HDF5DataSet2DStdSettings(hdf5_type_int, 1) );
-            if(nspikes>0) event_output_int->set_data(nspikes, 1, buffer_int);
-            pGroup_int->add_attribute("hdf-jive","events");
-            pGroup_int->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
-            #endif
-
-            #if SAVE_HDF5_FLOAT
-            string location_float =  (boost::format("simulation_fixed/double/${poprec.src_population.name}/%04d/output_events/")%nrn_offset).str();
-            HDF5GroupPtr pGroup_float = file->get_group(location_float + "${poprec.node.symbol}");
-            HDF5DataSet2DStdPtr event_output_float = pGroup_float->create_empty_dataset2D("${poprec.node.symbol}", HDF5DataSet2DStdSettings(hdf5_type_float, 1) );
-            if(nspikes>0) event_output_float->set_data(nspikes, 1, buffer_float);
-            pGroup_float->add_attribute("hdf-jive","events");
-            pGroup_float->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
-            #endif
-
-        }
-
-
-
 
 
         %endfor
 
 
         #endif //USE_HDF
-
-
-
-
     }
 
 
-    void write_all_traces_to_hdf(SimulationResultsPtr output)
-    {
-        #if USE_HDF
 
-        cout << "\n\nWriting traces to HDF5";
-        T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
 
-        // New version:
-        SharedTimeBufferPtr times = output->write_shared_time_buffer(n_results_written, &time_buffer[0]);
-        times->get_dataset()->set_scaling_factor(dt_float);
 
-        %for i,poprec in enumerate(network.all_trace_recordings):
-        // Write out values for ${poprec.src_population.name}.${poprec.node.symbol}:
-        {
-            // Save: ${poprec}
-            //const T_hdf5_type_float node_sf = ;
 
-            for(int i=0;i<${poprec.size};i++)
-            {
-                int buffer_offset = ${poprec.global_offset}+i;
-                TagList tags = boost::assign::list_of( "${','.join(poprec.tags)}")("${','.join(poprec.node.annotations['tags'])}");
 
-                HDF5DataSet2DStdPtr pDataset = output->write_trace("${poprec.src_population.name}", i, "${poprec.node.symbol}", times, &(data_buffers[buffer_offset][0]), tags );
-                pDataset->set_scaling_factor( pow(2.0, ${poprec.node.annotations['fixed-point-format'].upscale} - (VAR_NBITS-1)) );
-            }
-        }
-        %endfor
 
-        cout << "\n\nFisnihed Writing to HDF5";
-        #endif //USE_HDF
-    } // void write_all_to_hdf5()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
