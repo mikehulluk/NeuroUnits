@@ -1721,6 +1721,7 @@ int main()
 
     global_data.recordings_new.write_all_traces_to_hdf(hdf_output);
     global_data.recordings_new.write_all_output_events_to_hdf(hdf_output);
+    global_data.recordings_new.write_all_input_events_to_hdf(hdf_output);
 
 
     #if ON_NIOS
@@ -1947,10 +1948,10 @@ struct RecordMgr
     // Events:
     typedef  list<SpikeEmission> SpikeList;
     int nspikes_emitted;
-    std::array<SpikeList,  ${network.n_output_event_recording_buffers} >  emitted_spikes;
+    std::array<SpikeList,  ${network.n_output_event_recording_buffers} >  spikerecordbuffers_send;
 
     int nspikes_recv;
-    std::array<SpikeList, ${network.n_input_event_recording_buffers}> recv_spikes;
+    std::array<SpikeList, ${network.n_input_event_recording_buffers}> spikerecordbuffers_recv;
 
 
 
@@ -2089,7 +2090,20 @@ struct RecordMgr
         for(int i=0; i< ${poprec.size};i++)
         {
             int buffer_offset = ${poprec.global_offset}+i;
-            EventDataSetTuple evtdata = output->write_outputevents_byobjects_extractor<SpikeEmissionExtractor>("${poprec.src_population.name}", i, "${poprec.node.symbol}",  emitted_spikes[buffer_offset].begin(), emitted_spikes[buffer_offset].end() );
+            EventDataSetTuple evtdata = output->write_outputevents_byobjects_extractor<SpikeEmissionExtractor>("${poprec.src_population.name}", i, "${poprec.node.symbol}",  spikerecordbuffers_send[buffer_offset].begin(), spikerecordbuffers_send[buffer_offset].end() );
+            evtdata.spiketimes->set_scaling_factor(dt_float);
+        }
+        %endfor
+    }
+
+    void write_all_input_events_to_hdf(SimulationResultsPtr output)
+    {
+        T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
+        %for i,poprec in enumerate(network.all_input_event_recordings):
+        for(int i=0; i< ${poprec.size};i++)
+        {
+            int buffer_offset = ${poprec.global_offset}+i;
+            EventDataSetTuple evtdata = output->write_inputevents_byobjects_extractor<SpikeEmissionExtractor>("${poprec.src_population.name}", i, "${poprec.node.symbol}",  spikerecordbuffers_recv[buffer_offset].begin(), spikerecordbuffers_recv[buffer_offset].end() );
             evtdata.spiketimes->set_scaling_factor(dt_float);
         }
         %endfor
@@ -2097,75 +2111,6 @@ struct RecordMgr
 
 
 
-
-
-
-
-
-    void write_all_output_events_to_hdf_old(SimulationResultsPtr output)
-    {
-
-        write_all_output_events_to_hdf(output);
-
-        #if USE_HDF
-        %if network.all_output_event_recordings:
-        cout << "\n\nWriting spikes to HDF5";
-        HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
-        const T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
-        %endif
-
-
-        %for i,poprec in enumerate(network.all_output_event_recordings):
-
-
-            for(int i=0; i< ${poprec.size};i++)
-            {
-
-                cout << "\nWriting spikes for index: " << i << flush;
-                const int buffer_offset = ${poprec.global_offset}+i;
-                int nrn_offset = i + ${poprec.src_pop_start_index};
-                const int nspikes = emitted_spikes[buffer_offset].size();
-                //cout << "\nSpikes:"  << nspikes;
-                int buffer_int[nspikes];
-                double buffer_float[nspikes];
-                int s=0;
-                for(SpikeList::iterator it=emitted_spikes[buffer_offset].begin(); it!=emitted_spikes[buffer_offset].end(); it++,s++)
-                {
-                    buffer_int[s] = get_value32(it->time.to_int());
-                    buffer_float[s] = buffer_int[s] * dt_float;
-                }
-
-                // Tagging:
-                string tag_string = "EVENT:${poprec.node.symbol},SRCPOP:${poprec.src_population.name},${','.join(poprec.tags)}";
-                string tag_string_index = (boost::format("POPINDEX:%04d")%nrn_offset).str();
-
-
-                #if SAVE_HDF5_INT
-                string location_int =  (boost::format("simulation_fixed/int/${poprec.src_population.name}/%04d/output_events/")%nrn_offset).str();
-                HDF5GroupPtr pGroup_int = file->get_group(location_int + "${poprec.node.symbol}");
-                HDF5DataSet2DStdPtr event_output_int  = pGroup_int->create_empty_dataset2D("${poprec.node.symbol}", HDF5DataSet2DStdSettings(hdf5_type_int, 1) );
-                if(nspikes>0) event_output_int->set_data(nspikes, 1, buffer_int);
-                pGroup_int->add_attribute("hdf-jive","events");
-                pGroup_int->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
-                #endif
-
-                #if SAVE_HDF5_FLOAT
-                string location_float =  (boost::format("simulation_fixed/double/${poprec.src_population.name}/%04d/output_events/")%nrn_offset).str();
-                HDF5GroupPtr pGroup_float = file->get_group(location_float + "${poprec.node.symbol}");
-                HDF5DataSet2DStdPtr event_output_float = pGroup_float->create_empty_dataset2D("${poprec.node.symbol}", HDF5DataSet2DStdSettings(hdf5_type_float, 1) );
-                if(nspikes>0) event_output_float->set_data(nspikes, 1, buffer_float);
-                pGroup_float->add_attribute("hdf-jive","events");
-                pGroup_float->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
-                #endif
-
-            }
-
-
-        %endfor
-
-
-        #endif //USE_HDF
-    }
 
 
 
@@ -2220,14 +2165,14 @@ GlobalData global_data;
 
 void record_output_event( IntType global_buffer, const SpikeEmission& evt )
 {
-    global_data.recordings_new.emitted_spikes[get_value32(global_buffer)].push_back(evt);
+    global_data.recordings_new.spikerecordbuffers_send[get_value32(global_buffer)].push_back(evt);
     global_data.recordings_new.nspikes_emitted++;
 }
 
 
 void record_input_event( IntType global_buffer, const SpikeEmission& evt )
 {
-    global_data.recordings_new.recv_spikes[get_value32(global_buffer)].push_back(evt);
+    global_data.recordings_new.spikerecordbuffers_recv[get_value32(global_buffer)].push_back(evt);
     global_data.recordings_new.nspikes_recv++;
 }
 
