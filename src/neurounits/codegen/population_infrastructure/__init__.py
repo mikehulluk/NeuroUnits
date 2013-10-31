@@ -178,6 +178,8 @@ class Network(object):
         self.n_trace_recording_buffers = None
         self.all_output_event_recordings = None
         self.n_output_event_recording_buffers = None
+        self.all_input_event_recordings = None
+        self.n_input_event_recording_buffers = None
 
 
 
@@ -285,8 +287,17 @@ class Network(object):
                 size = indices[1] - indices[0]
                 self.all_output_event_recordings.append( PopRec( global_offset=global_offset, size=size, src_population=population, src_pop_start_index=indices[0], node=terminal_node, tags=autotag ) )
         self.n_output_event_recording_buffers =  curr_rec_offset(self.all_output_event_recordings)
-        #print self.all_output_event_recordings
-        #assert False
+
+
+         # input events:
+        assert self.all_input_event_recordings is None
+        self.all_input_event_recordings = []
+        for (population, terminal_node), values in sorted(self._record_input_events.items()):
+            for indices, autotag in sorted(values):
+                global_offset = curr_rec_offset(self.all_input_event_recordings)
+                size = indices[1] - indices[0]
+                self.all_input_event_recordings.append( PopRec( global_offset=global_offset, size=size, src_population=population, src_pop_start_index=indices[0], node=terminal_node, tags=autotag ) )
+        self.n_input_event_recording_buffers =  curr_rec_offset(self.all_input_event_recordings)
 
 
         # Resolve all the connections:

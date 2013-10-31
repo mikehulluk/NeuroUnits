@@ -601,8 +601,6 @@ namespace IntegerFixedPoint
         static inline FixedPoint<UOUT> exp( const FixedPoint<U1>& a)
         {
             return FixedPoint<UOUT> ( int_exp( a.v, U1, UOUT, -1, lookuptables.exponential ) );
-            //inline IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id, const LUTTYPE& lut) {
-            //return FixedPoint<UOUT>( std::exp(a.to_float()) );
         }
 
     };
@@ -690,7 +688,7 @@ namespace DoubleFixedPoint
         {
             return FixedPoint<UOUT> ( a.v_float / b.v_float );
         }
-        
+
         template<int U1>
         static inline FixedPoint<UOUT> exp( const FixedPoint<U1>& a)
         {
@@ -768,7 +766,8 @@ struct SpikeEmission
 
 
 
-void record_output_event(IntType global_buffer, const SpikeEmission& evt ); 
+void record_output_event(IntType global_buffer, const SpikeEmission& evt );
+void record_input_event(IntType global_buffer, const SpikeEmission& evt );
 
 
 
@@ -1221,6 +1220,22 @@ namespace event_handlers
                 {
                     // Handle the event:
                     LOG_COMPONENT_EVENTHANDLER( std::cout << "\n **** HANDLING EVENT (on ${tr.port.symbol}) *****"; )
+
+
+
+                    %for poprec in network.all_input_event_recordings:
+                    %if poprec.src_population == population:
+                    // Lets record!
+                    if( (i >= IntType(${poprec.src_pop_start_index})) && (i < IntType(${poprec.src_pop_end_index})))
+                    {
+                        record_input_event( IntType(${poprec.global_offset}) + i - IntType(${poprec.src_pop_start_index}) , SpikeEmission(time_info.time_fixed) );
+                    }
+                    %endif
+                    %endfor
+
+
+
+
 
                      // Actions ...
                     %for action in tr.actions:
@@ -1930,9 +1945,12 @@ struct RecordMgr
 
 
     // Events:
-    int nspikes_emitted;
     typedef  list<SpikeEmission> SpikeList;
+    int nspikes_emitted;
     std::array<SpikeList,  ${network.n_output_event_recording_buffers} >  emitted_spikes;
+
+    int nspikes_recv;
+    std::array<SpikeList, ${network.n_input_event_recording_buffers}> recv_spikes;
 
 
 
@@ -2036,7 +2054,7 @@ struct RecordMgr
                 int buffer_offset = ${poprec.global_offset}+i;
                 TagList tags = boost::assign::list_of( "${','.join(poprec.tags)}")("${','.join(poprec.node.annotations['tags'])}");
 
-                HDF5DataSet2DStdPtr pDataset = output->write_trace("${poprec.src_population.name}", i, "${poprec.node.symbol}", times, &(data_buffers[buffer_offset][0]), tags );
+                HDF5DataSet2DStdPtr pDataset = output->write_trace("${poprec.src_population.name}", i, "${poprec.node.symbol}", times, &(data_buffers[buffer_offset][0]), tags);
                 pDataset->set_scaling_factor( pow(2.0, ${poprec.node.annotations['fixed-point-format'].upscale} - (VAR_NBITS-1)) );
             }
         }
@@ -2044,76 +2062,37 @@ struct RecordMgr
 
         cout << "\n\nFisnihed Writing to HDF5";
         #endif //USE_HDF
-    } // void write_all_to_hdf5()
+    } 
 
 
 
 
-
-
-
-
-
-
-    void write_all_output_events_to_hdf_OLD(SimulationResultsPtr hdf_output)
+    struct SpikeEmissionExtractor
     {
-        #if USE_HDF
-        %if network.all_output_event_recordings:
-        cout << "\n\nWriting spikes to HDF5";
-        HDF5FilePtr file = HDFManager::getInstance().get_file(output_filename);
-        const T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
-        %endif
+        typedef SpikeEmission EVENTTYPE;
+        typedef int DTYPE;
+        static const int NPARAMS = 0;
+        static DTYPE get_time(const EVENTTYPE& o) { return o.time.to_int(); }
+        static DTYPE get_parameter_value(const EVENTTYPE& o, int i) {  assert(0);  }
+        static string get_parameter_name( int i) { assert(0); }
+
+        static const size_t NSRCINDICES = 0;
+        static DTYPE get_srcindex_value(const EVENTTYPE& o, size_t i) { return 0; }
+    };
 
 
+
+    void write_all_output_events_to_hdf(SimulationResultsPtr output)
+    {
+        T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
         %for i,poprec in enumerate(network.all_output_event_recordings):
-
-
-            for(int i=0; i< ${poprec.size};i++)
-            {
-                cout << "\nWriting spikes for index: " << i << flush;
-                const int buffer_offset = ${poprec.global_offset}+i;
-                int nrn_offset = i + ${poprec.src_pop_start_index};
-                const int nspikes = emitted_spikes[buffer_offset].size();
-                //cout << "\nSpikes:"  << nspikes;
-                int buffer_int[nspikes];
-                double buffer_float[nspikes];
-                int s=0;
-                for(SpikeList::iterator it=emitted_spikes[buffer_offset].begin(); it!=emitted_spikes[buffer_offset].end(); it++,s++)
-                {
-                    buffer_int[s] = get_value32(it->time.to_int());
-                    buffer_float[s] = buffer_int[s] * dt_float;
-                }
-
-                // Tagging:
-                string tag_string = "EVENT:${poprec.node.symbol},SRCPOP:${poprec.src_population.name},${','.join(poprec.tags)}";
-                string tag_string_index = (boost::format("POPINDEX:%04d")%nrn_offset).str();
-
-
-                #if SAVE_HDF5_INT
-                string location_int =  (boost::format("simulation_fixed/int/${poprec.src_population.name}/%04d/output_events/")%nrn_offset).str();
-                HDF5GroupPtr pGroup_int = file->get_group(location_int + "${poprec.node.symbol}");
-                HDF5DataSet2DStdPtr event_output_int  = pGroup_int->create_empty_dataset2D("${poprec.node.symbol}", HDF5DataSet2DStdSettings(hdf5_type_int, 1) );
-                if(nspikes>0) event_output_int->set_data(nspikes, 1, buffer_int);
-                pGroup_int->add_attribute("hdf-jive","events");
-                pGroup_int->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
-                #endif
-
-                #if SAVE_HDF5_FLOAT
-                string location_float =  (boost::format("simulation_fixed/double/${poprec.src_population.name}/%04d/output_events/")%nrn_offset).str();
-                HDF5GroupPtr pGroup_float = file->get_group(location_float + "${poprec.node.symbol}");
-                HDF5DataSet2DStdPtr event_output_float = pGroup_float->create_empty_dataset2D("${poprec.node.symbol}", HDF5DataSet2DStdSettings(hdf5_type_float, 1) );
-                if(nspikes>0) event_output_float->set_data(nspikes, 1, buffer_float);
-                pGroup_float->add_attribute("hdf-jive","events");
-                pGroup_float->add_attribute("hdf-jive:tags",string("fixed-int,") + tag_string + "," + tag_string_index);
-                #endif
-
-            }
-
-
+        for(int i=0; i< ${poprec.size};i++)
+        {
+            int buffer_offset = ${poprec.global_offset}+i;
+            EventDataSetTuple evtdata = output->write_outputevents_byobjects_extractor<SpikeEmissionExtractor>("${poprec.src_population.name}", i, "${poprec.node.symbol}",  emitted_spikes[buffer_offset].begin(), emitted_spikes[buffer_offset].end() );
+            evtdata.spiketimes->set_scaling_factor(dt_float);
+        }
         %endfor
-
-
-        #endif //USE_HDF
     }
 
 
@@ -2121,8 +2100,13 @@ struct RecordMgr
 
 
 
-    void write_all_output_events_to_hdf(SimulationResultsPtr hdf_output)
+
+
+    void write_all_output_events_to_hdf_old(SimulationResultsPtr output)
     {
+
+        write_all_output_events_to_hdf(output);
+
         #if USE_HDF
         %if network.all_output_event_recordings:
         cout << "\n\nWriting spikes to HDF5";
@@ -2136,6 +2120,7 @@ struct RecordMgr
 
             for(int i=0; i< ${poprec.size};i++)
             {
+
                 cout << "\nWriting spikes for index: " << i << flush;
                 const int buffer_offset = ${poprec.global_offset}+i;
                 int nrn_offset = i + ${poprec.src_pop_start_index};
@@ -2240,9 +2225,15 @@ void record_output_event( IntType global_buffer, const SpikeEmission& evt )
 }
 
 
+void record_input_event( IntType global_buffer, const SpikeEmission& evt )
+{
+    global_data.recordings_new.recv_spikes[get_value32(global_buffer)].push_back(evt);
+    global_data.recordings_new.nspikes_recv++;
+}
 
 
-    
+
+
     %for pop, port in network._record_output_events:
     void record_output_event_new( const NS_${pop.name}::output_event_types::OutEvent_${port.symbol}& evt)
     {

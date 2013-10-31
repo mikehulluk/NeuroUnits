@@ -178,31 +178,32 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
     def VisitFunctionDefBuiltInInstantiation(self,o, for_bluevec, **kwargs):
         assert o.function_def.is_builtin() and o.function_def.funcname == '__exp__'
-
-        if self.as_float:
-        # Hack for floating point:
-            param = o.parameters.values()[0]
-            #return "FixedPoint<1>( exp(%s.to_float()) )" %  self.visit(param.rhs_ast, for_bluevec=for_bluevec, **kwargs)
-            return "FPOP<1>::exp( %s )" %  self.visit(param.rhs_ast, for_bluevec=for_bluevec, **kwargs)
-
-
+        
         param = o.parameters.values()[0]
         param_term = self.visit(param.rhs_ast, for_bluevec=for_bluevec, **kwargs)
+        res = """ FPOP<%d>::exp( %s )""" %(o.annotations['fixed-point-format'].upscale, param_term)
+        return res
 
-        if for_bluevec:
-            param_lut = 'bv_explut'
-        else:
-            param_lut = 'lookuptables.exponential'
+        #if self.as_float:
+        ## Hack for floating point:
+        #    param = o.parameters.values()[0]
+        #    #return "FixedPoint<1>( exp(%s.to_float()) )" %  self.visit(param.rhs_ast, for_bluevec=for_bluevec, **kwargs)
+        #    return "FPOP<1>::exp( %s )" %  self.visit(param.rhs_ast, for_bluevec=for_bluevec, **kwargs)
 
-        # Add range checking:
-        param_term = self.add_range_check(param, param_term)
-        ann_func_upscale = o.annotations['fixed-point-format'].upscale
-        #ann_param_upscale = param.rhs_ast.annotations['fixed-point-format'].upscale
-        #expr_num = o.annotations['node-id']
-        #res = """ FixedPoint<%d> ( int_exp( %s.to_int(), IntType(%d), IntType(%d), IntType(%d), %s ) )""" %(ann_func_upscale, param_term, ann_param_upscale, ann_func_upscale, expr_num, param_lut )
-        
-        res = """ FPOP<%d>::exp( %s )""" %(ann_func_upscale, param_term)
-        return self.add_range_check(o, res)
+
+
+        #if for_bluevec:
+        #    param_lut = 'bv_explut'
+        #else:
+        #    param_lut = 'lookuptables.exponential'
+
+        ## Add range checking:
+        #param_term = self.add_range_check(param, param_term)
+        #ann_func_upscale =         #ann_param_upscale = param.rhs_ast.annotations['fixed-point-format'].upscale
+        ##expr_num = o.annotations['node-id']
+        ##res = """ FixedPoint<%d> ( int_exp( %s.to_int(), IntType(%d), IntType(%d), IntType(%d), %s ) )""" %(ann_func_upscale, param_term, ann_param_upscale, ann_func_upscale, expr_num, param_lut )
+        #
+        #return self.add_range_check(o, res)
 
     def VisitFunctionDefInstantiationParameter(self, o):
         assert False
