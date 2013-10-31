@@ -596,6 +596,15 @@ namespace IntegerFixedPoint
             return FixedPoint<UOUT> (res);
         }
 
+
+        template<int U1>
+        static inline FixedPoint<UOUT> exp( const FixedPoint<U1>& a)
+        {
+            return FixedPoint<UOUT> ( int_exp( a.v, U1, UOUT, -1, lookuptables.exponential ) );
+            //inline IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id, const LUTTYPE& lut) {
+            //return FixedPoint<UOUT>( std::exp(a.to_float()) );
+        }
+
     };
 };
 
@@ -681,6 +690,12 @@ namespace DoubleFixedPoint
         {
             return FixedPoint<UOUT> ( a.v_float / b.v_float );
         }
+        
+        template<int U1>
+        static inline FixedPoint<UOUT> exp( const FixedPoint<U1>& a)
+        {
+            return FixedPoint<UOUT>( std::exp(a.to_float()) );
+        }
 
     };
 };
@@ -751,7 +766,10 @@ struct SpikeEmission
     SpikeEmission(const SpikeTime& time) : time(time) {}
 };
 
-void record_output_event(IntType global_buffer, const SpikeEmission& evt );
+
+
+void record_output_event(IntType global_buffer, const SpikeEmission& evt ); 
+
 
 
 
@@ -940,7 +958,7 @@ namespace NS_${population.name}
     namespace input_event_types
     {
     %for in_port in population.component.input_event_port_lut:
-        struct Event_${in_port.symbol}
+        struct InEvent_${in_port.symbol}
         {
             TimeType delivery_time;
             %for param in in_port.parameters:
@@ -948,7 +966,7 @@ namespace NS_${population.name}
             ${param.symbol}Type ${param.symbol}; // Upscale: ${param.annotations['fixed-point-format'].upscale}
             %endfor
 
-            Event_${in_port.symbol}( TimeType delivery_time ${ ' '.join( [ ', %sType %s' % (param.symbol,param.symbol) for param in in_port.parameters ] ) })
+            InEvent_${in_port.symbol}( TimeType delivery_time ${ ' '.join( [ ', %sType %s' % (param.symbol,param.symbol) for param in in_port.parameters ] ) })
               : delivery_time(delivery_time) ${ ' '.join( [ ',%s(%s)' % (param.symbol,param.symbol) for param in in_port.parameters ] ) }
             { }
 
@@ -960,7 +978,7 @@ namespace NS_${population.name}
     namespace output_event_types
     {
     %for in_port in population.component.output_event_port_lut:
-        struct Event_${in_port.symbol}
+        struct OutEvent_${in_port.symbol}
         {
             TimeType delivery_time;
             %for param in in_port.parameters:
@@ -968,8 +986,8 @@ namespace NS_${population.name}
             ${param.symbol}Type ${param.symbol}; // Upscale: ${param.annotations['fixed-point-format'].upscale}
             %endfor
 
-            Event_${in_port.symbol}( TimeType delivery_time ${ ' '.join( [ ',%sType %s' % (param.symbol,param.symbol) for param in in_port.parameters ] ) })
-              : delivery_time(delivery_time) ${ ' '.join( [ ',%s(%s)' % (param.symbol,param.symbol) for param in in_port.parameters ] ) } 
+            OutEvent_${in_port.symbol}( TimeType delivery_time ${ ' '.join( [ ',%sType %s' % (param.symbol,param.symbol) for param in in_port.parameters ] ) })
+              : delivery_time(delivery_time) ${ ' '.join( [ ',%s(%s)' % (param.symbol,param.symbol) for param in in_port.parameters ] ) }
               { }
 
         };
@@ -1054,7 +1072,7 @@ struct NrnPopData
 
     // Incoming event queues:
     %for in_port in population.component.input_event_port_lut:
-    typedef std::list<input_event_types::Event_${in_port.symbol}>  EventQueueType_${in_port.symbol};
+    typedef std::list<input_event_types::InEvent_${in_port.symbol}>  EventQueueType_${in_port.symbol};
     EventQueueType_${in_port.symbol} incoming_events_${in_port.symbol}[size];
     %endfor
 
@@ -1150,6 +1168,9 @@ namespace event_handlers
         if( (index >= IntType(${poprec.src_pop_start_index})) && (index < IntType(${poprec.src_pop_end_index})))
         {
             record_output_event( IntType(${poprec.global_offset}) + index - IntType(${poprec.src_pop_start_index}) , SpikeEmission(time_info.time_fixed) );
+
+            <%pop,port=population,out_event_port%>
+
         }
         %endif
         %endfor
@@ -1193,7 +1214,7 @@ namespace event_handlers
             {
                 if( d.incoming_events_${tr.port.symbol}[i].size() == 0 ) break;
 
-                input_event_types::Event_${tr.port.symbol}& evt = d.incoming_events_${tr.port.symbol}[i].front();
+                input_event_types::InEvent_${tr.port.symbol}& evt = d.incoming_events_${tr.port.symbol}[i].front();
                 TimeType evt_time = evt.delivery_time;
 
                 if(evt_time <= time_info.time_fixed )
@@ -1833,7 +1854,7 @@ namespace NS_eventcoupling_${projection.name}
         TargetList& targets = projections[get_value32(src_neuron - ${projection.src_population.start_index} )];
         for( TargetList::iterator it = targets.begin(); it!=targets.end();it++)
         {
-            <% evt_type = 'NS_%s::input_event_types::Event_%s' % (projection.dst_population.population.name, projection.dst_port.symbol)%>
+            <% evt_type = 'NS_%s::input_event_types::InEvent_%s' % (projection.dst_population.population.name, projection.dst_port.symbol)%>
 
 
             TimeType evt_time = FPOP<time_upscale>::add(time_info.time_fixed, delay);
@@ -1916,10 +1937,20 @@ struct RecordMgr
 
 
     // What events are we recording:
+    // NOT YET USED!
     %for pop, port in network._record_output_events:
     // Output event:    ${pop} :  ${port}
     //    -- ${port.parameters}
-    //list< NS_${pop.name}::
+    typedef list< NS_${pop.name}::output_event_types::OutEvent_${port.symbol}> List${pop.name}Out${port.symbol};
+    List${pop.name}Out${port.symbol} ${pop.name}_out_${port.symbol}[NS_${pop.name}::NrnPopData::size];
+
+
+
+
+
+
+
+
 
     %endfor
 
@@ -2207,6 +2238,19 @@ void record_output_event( IntType global_buffer, const SpikeEmission& evt )
     global_data.recordings_new.emitted_spikes[get_value32(global_buffer)].push_back(evt);
     global_data.recordings_new.nspikes_emitted++;
 }
+
+
+
+
+    
+    %for pop, port in network._record_output_events:
+    void record_output_event_new( const NS_${pop.name}::output_event_types::OutEvent_${port.symbol}& evt)
+    {
+
+    }
+    %endfor
+
+
 
 
 

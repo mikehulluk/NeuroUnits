@@ -182,7 +182,8 @@ class CBasedFixedWriterStd(ASTVisitorBase):
         if self.as_float:
         # Hack for floating point:
             param = o.parameters.values()[0]
-            return "FixedPoint<1>( exp(%s.to_float()) )" %  self.visit(param.rhs_ast, for_bluevec=for_bluevec, **kwargs)
+            #return "FixedPoint<1>( exp(%s.to_float()) )" %  self.visit(param.rhs_ast, for_bluevec=for_bluevec, **kwargs)
+            return "FPOP<1>::exp( %s )" %  self.visit(param.rhs_ast, for_bluevec=for_bluevec, **kwargs)
 
 
         param = o.parameters.values()[0]
@@ -196,9 +197,11 @@ class CBasedFixedWriterStd(ASTVisitorBase):
         # Add range checking:
         param_term = self.add_range_check(param, param_term)
         ann_func_upscale = o.annotations['fixed-point-format'].upscale
-        ann_param_upscale = param.rhs_ast.annotations['fixed-point-format'].upscale
-        expr_num = o.annotations['node-id']
-        res = """ FixedPoint<%d> ( int_exp( %s.to_int(), IntType(%d), IntType(%d), IntType(%d), %s ) )""" %(ann_func_upscale, param_term, ann_param_upscale, ann_func_upscale, expr_num, param_lut )
+        #ann_param_upscale = param.rhs_ast.annotations['fixed-point-format'].upscale
+        #expr_num = o.annotations['node-id']
+        #res = """ FixedPoint<%d> ( int_exp( %s.to_int(), IntType(%d), IntType(%d), IntType(%d), %s ) )""" %(ann_func_upscale, param_term, ann_param_upscale, ann_func_upscale, expr_num, param_lut )
+        
+        res = """ FPOP<%d>::exp( %s )""" %(ann_func_upscale, param_term)
         return self.add_range_check(o, res)
 
     def VisitFunctionDefInstantiationParameter(self, o):
