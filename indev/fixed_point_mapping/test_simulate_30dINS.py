@@ -101,6 +101,7 @@ def get_results():
     network.record_input_events(dINs, 'recv_ampa_spike' )
     network.record_output_events(dINs, 'spike' )
     network.record_traces(dINs, '*' )
+    network.record_traces(dINs, 'V' )
 
 
     op_filename = 'output_float.hd5'

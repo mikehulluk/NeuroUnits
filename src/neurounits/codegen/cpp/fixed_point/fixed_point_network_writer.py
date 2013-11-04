@@ -199,6 +199,8 @@ const int record_rate = 10;
 #include <climits>
 #include <stdint.h>
 #include <array>
+#include <string>
+using namespace std;
 
 
 
@@ -1653,7 +1655,7 @@ int main()
             DBG.update( time_info.time_fixed.to_float() );
 
             #if DISPLAY_LOOP_INFO
-            if(get_value32(step_count)%1 == 0)
+            if(get_value32(step_count)%10000 == 0)
             {
                 std::cout << "Loop: " << step_count << "\n";
                 std::cout << "(t: " << time_info.time_fixed.to_float() * 1000 << "ms)\n";
@@ -2026,8 +2028,6 @@ struct RecordMgr
         }
         %endfor
         cout << "\n\nFinished Writing to HDF5";
-
-
     }
 
 
@@ -2055,7 +2055,7 @@ struct RecordMgr
                 int buffer_offset = ${poprec.global_offset}+i;
                 TagList tags = boost::assign::list_of( "${','.join(poprec.tags)}")("${','.join(poprec.node.annotations['tags'])}");
 
-                HDF5DataSet2DStdPtr pDataset = output->write_trace("${poprec.src_population.name}", i, "${poprec.node.symbol}", times, &(data_buffers[buffer_offset][0]), tags);
+                HDF5DataSet2DStdPtr pDataset = output->write_trace("${poprec.src_population.name}", buffer_offset, "${poprec.node.symbol}", times, &(data_buffers[buffer_offset][0]), tags);
                 pDataset->set_scaling_factor( pow(2.0, ${poprec.node.annotations['fixed-point-format'].upscale} - (VAR_NBITS-1)) );
             }
         }
@@ -2063,7 +2063,7 @@ struct RecordMgr
 
         cout << "\n\nFisnihed Writing to HDF5";
         #endif //USE_HDF
-    } 
+    }
 
 
 
@@ -2090,7 +2090,7 @@ struct RecordMgr
         for(int i=0; i< ${poprec.size};i++)
         {
             int buffer_offset = ${poprec.global_offset}+i;
-            EventDataSetTuple evtdata = output->write_outputevents_byobjects_extractor<SpikeEmissionExtractor>("${poprec.src_population.name}", i, "${poprec.node.symbol}",  spikerecordbuffers_send[buffer_offset].begin(), spikerecordbuffers_send[buffer_offset].end() );
+            EventDataSetTuple evtdata = output->write_outputevents_byobjects_extractor<SpikeEmissionExtractor>("${poprec.src_population.name}", buffer_offset, "${poprec.node.symbol}",  spikerecordbuffers_send[buffer_offset].begin(), spikerecordbuffers_send[buffer_offset].end() );
             evtdata.spiketimes->set_scaling_factor(dt_float);
         }
         %endfor
@@ -2103,7 +2103,7 @@ struct RecordMgr
         for(int i=0; i< ${poprec.size};i++)
         {
             int buffer_offset = ${poprec.global_offset}+i;
-            EventDataSetTuple evtdata = output->write_inputevents_byobjects_extractor<SpikeEmissionExtractor>("${poprec.src_population.name}", i, "${poprec.node.symbol}",  spikerecordbuffers_recv[buffer_offset].begin(), spikerecordbuffers_recv[buffer_offset].end() );
+            EventDataSetTuple evtdata = output->write_inputevents_byobjects_extractor<SpikeEmissionExtractor>("${poprec.src_population.name}", buffer_offset, "${poprec.node.symbol}",  spikerecordbuffers_recv[buffer_offset].begin(), spikerecordbuffers_recv[buffer_offset].end() );
             evtdata.spiketimes->set_scaling_factor(dt_float);
         }
         %endfor
@@ -2392,7 +2392,9 @@ class CBasedEqnWriterFixedNetwork(object):
                                         additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/"), os.path.expanduser("~/hw/BlueVec/lib/")],
                                         libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl', 'bv_proxy'],
                                         #compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x -O2   -g  ' + (CPPFLAGS if CPPFLAGS else '') ]
-                                        compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O2 -g -D_GLIBCXX_DEBUG ' + (CPPFLAGS if CPPFLAGS else '') ]
+                                        compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O2  -g -D_GLIBCXX_DEBUG ' + (CPPFLAGS if CPPFLAGS else '') ]
+
+                                        #compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O3 -ffast-math -g -march=native ' + (CPPFLAGS if CPPFLAGS else '') ]
                                     ),
                                     #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x -O3  -g -march=native ' + (CPPFLAGS if CPPFLAGS else '') ]),
                                     run=run,
