@@ -1,7 +1,7 @@
 
 
 import mreorg
-mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG] #,mreorg.FigFormat.SVG]
+mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG]#, mreorg.FigFormat.SVG]
 
 import os
 import neurounits
@@ -218,7 +218,7 @@ results = CBasedEqnWriterFixedNetwork(
                     CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
                     step_size=0.1e-3 / 2.,
                     run_until=0.95, #0.75,
-                    as_float=True,
+                    as_float=False,
                     ).results
 
 
