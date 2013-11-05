@@ -15,6 +15,8 @@ def build_raster_plot_obj(name, side):
 
 
 
+xlim=(95e-3,150e-3)
+
 results.raster_plot([
         RasterGroup('RB', [
             RasterSubgroup('Spike', "ALL{spike,RBINPUT}", {'color':'red'})
@@ -36,12 +38,16 @@ results.raster_plot([
         
         build_raster_plot_obj('cIN', 'RHS'),
         build_raster_plot_obj('cIN', 'LHS'),
-
-
         ],
 
-        xlim=(95e-3,200e-3) )
+        xlim=xlim
+        )
 
 
+filters_traces = [
+   "ALL{V,dla,RHS}",
+   "ALL{V,dlc,RHS}",
+   ]
 
+results.plot(trace_filters=filters_traces, legend=False, xlim=xlim )
 

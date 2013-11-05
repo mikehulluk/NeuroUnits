@@ -217,7 +217,7 @@ results = CBasedEqnWriterFixedNetwork(
                     network,
                     CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
                     step_size=0.1e-3 / 2.,
-                    run_until=0.105, #0.75,
+                    run_until=0.15, #0.75,
                     as_float=True,
                     ).results
 
