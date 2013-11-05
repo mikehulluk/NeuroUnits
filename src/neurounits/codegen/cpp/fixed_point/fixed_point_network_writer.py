@@ -139,9 +139,9 @@ struct DebugCfg
 #else // RUNTIME_LOGGING_ON
 
 #define LOG_COMPONENT_STATEUPDATE(a)
-#define LOG_COMPONENT_EVENTDISPATCH(a)
+#define LOG_COMPONENT_EVENTDISPATCH(a) a
 //#define LOG_COMPONENT_EVENTHANDLER(a)
-#define LOG_COMPONENT_EVENTHANDLER(a)
+#define LOG_COMPONENT_EVENTHANDLER(a) a
 #define LOG_COMPONENT_TRANSITION(a)
 
 #define CHECK_IN_RANGE_NODE(a,b,c,d,e) (a)
@@ -1152,29 +1152,30 @@ namespace event_handlers
     //Events emitted from: ${population.name}
     void on_${out_event_port.symbol}(IntType index, const TimeInfo& time_info /*Params*/)
     {
-        LOG_COMPONENT_EVENTHANDLER(std::cout << "\n on_${out_event_port.symbol}: " <<  index; )
+        LOG_COMPONENT_EVENTHANDLER(std::cout << "\nOutputEvent ${population.name}[" << index  << "]::${out_event_port.symbol}: "; )
 
-        %if (population,out_event_port) in evt_src_to_evtportconns:
-        %for conn in evt_src_to_evtportconns[(population,out_event_port)]:
-        // Via ${conn.name} -> ${conn.dst_population.name}
-        NS_eventcoupling_${conn.name}::dispatch_event(index, time_info);
-        %endfor
-        %endif
-
-
-        //And lets see what to record from these:
+        // 1. Lets see what to record from these:
         %for poprec in network.all_output_event_recordings:
         %if poprec.src_population == population:
         // Lets record!
         if( (index >= IntType(${poprec.src_pop_start_index})) && (index < IntType(${poprec.src_pop_end_index})))
         {
             record_output_event( IntType(${poprec.global_offset}) + index - IntType(${poprec.src_pop_start_index}) , SpikeEmission(time_info.time_fixed) );
-
             <%pop,port=population,out_event_port%>
-
         }
         %endif
         %endfor
+
+        // 2. Lets see which populations the event is routed to:
+        %if (population,out_event_port) in evt_src_to_evtportconns:
+        %for conn in evt_src_to_evtportconns[(population,out_event_port)]:
+        // Via ${conn.name} -> ${conn.dst_population.name}
+        LOG_COMPONENT_EVENTHANDLER(std::cout << "\n -- Dispatching via connection: ${conn.name} to ${conn.dst_population.name}::${conn.dst_port.symbol} "; )
+        NS_eventcoupling_${conn.name}::dispatch_event(index, time_info);
+        %endfor
+        %endif
+
+
 
     }
 %endfor
@@ -1210,7 +1211,7 @@ namespace event_handlers
 
 
 
-<%def name="trigger_event_block(tr, rtgraph)">
+<%def name="trigger_event_block(tr, rtgraph, population)">
             while(true)
             {
                 if( d.incoming_events_${tr.port.symbol}[i].size() == 0 ) break;
@@ -1221,12 +1222,12 @@ namespace event_handlers
                 if(evt_time <= time_info.time_fixed )
                 {
                     // Handle the event:
-                    LOG_COMPONENT_EVENTHANDLER( std::cout << "\n **** HANDLING EVENT (on ${tr.port.symbol}) *****"; )
+                    LOG_COMPONENT_EVENTHANDLER( std::cout << "\nHandling InputEvent: ${population.name}[" << i << "]::${tr.port.symbol}:"; )
 
 
 
                     %for poprec in network.all_input_event_recordings:
-                    %if poprec.src_population == population:
+                    %if (poprec.src_population == population) and (poprec.node == tr.port) :
                     // Lets record!
                     if( (i >= IntType(${poprec.src_pop_start_index})) && (i < IntType(${poprec.src_pop_end_index})))
                     {
@@ -1465,7 +1466,7 @@ void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
 
             // ==== Event Transitions: ====
             %for tr in population.component.eventtransitions_from_regime(regime):
-            ${trigger_event_block(tr, rtgraph)}
+            ${trigger_event_block(tr, rtgraph, population)}
             %endfor
 
             break;
@@ -1481,7 +1482,7 @@ void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
 
         // ==== Event Transitions: ====
         %for tr in population.component.eventtransitions_from_regime(rtgraph.get_regime(None)):
-        ${trigger_event_block(tr, rtgraph)}
+        ${trigger_event_block(tr, rtgraph, population)}
         %endfor
 
 
@@ -1496,7 +1497,7 @@ void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
 
             // ==== Event Transitions: ====
             %for tr in population.component.eventtransitions_from_regime(rtgraph.get_regime(None)):
-            ${trigger_event_block(tr, rtgraph)}
+            ${trigger_event_block(tr, rtgraph, population)}
             %endfor
 
         %endif:
@@ -1868,6 +1869,8 @@ namespace NS_eventcoupling_${projection.name}
 
         const FixedPoint<${projection.delay_upscale}> delay( ${projection.delay_int} );
 
+        
+        string output = "";
 
         TargetList& targets = projections[get_value32(src_neuron - ${projection.src_population.start_index} )];
         for( TargetList::iterator it = targets.begin(); it!=targets.end();it++)
@@ -1889,7 +1892,13 @@ namespace NS_eventcoupling_${projection.name}
             int tgt_nrn_index = get_value32(*it) + ${projection.dst_population.start_index};
 
             data_${projection.dst_population.population.name}.incoming_events_${projection.dst_port.symbol}[tgt_nrn_index].push_back( evt ) ;
+
+            output += boost::lexical_cast<string>(tgt_nrn_index) + ",";
         }
+        
+        LOG_COMPONENT_EVENTDISPATCH( cout << "\n   -> Disptached to indices: [" << output << "]"; )
+
+
     }
 }
 
@@ -2053,9 +2062,10 @@ struct RecordMgr
             for(int i=0;i<${poprec.size};i++)
             {
                 int buffer_offset = ${poprec.global_offset}+i;
+                int neuron_index = i + ${poprec.src_pop_start_index};
                 TagList tags = boost::assign::list_of( "${','.join(poprec.tags)}")("${','.join(poprec.node.annotations['tags'])}");
 
-                HDF5DataSet2DStdPtr pDataset = output->write_trace("${poprec.src_population.name}", buffer_offset, "${poprec.node.symbol}", times, &(data_buffers[buffer_offset][0]), tags);
+                HDF5DataSet2DStdPtr pDataset = output->write_trace("${poprec.src_population.name}", neuron_index, "${poprec.node.symbol}", times, &(data_buffers[buffer_offset][0]), tags);
                 pDataset->set_scaling_factor( pow(2.0, ${poprec.node.annotations['fixed-point-format'].upscale} - (VAR_NBITS-1)) );
             }
         }
@@ -2090,7 +2100,9 @@ struct RecordMgr
         for(int i=0; i< ${poprec.size};i++)
         {
             int buffer_offset = ${poprec.global_offset}+i;
-            EventDataSetTuple evtdata = output->write_outputevents_byobjects_extractor<SpikeEmissionExtractor>("${poprec.src_population.name}", buffer_offset, "${poprec.node.symbol}",  spikerecordbuffers_send[buffer_offset].begin(), spikerecordbuffers_send[buffer_offset].end() );
+            int neuron_index = i + ${poprec.src_pop_start_index};
+            TagList tags = boost::assign::list_of( "${','.join(poprec.tags)}");
+            EventDataSetTuple evtdata = output->write_outputevents_byobjects_extractor<SpikeEmissionExtractor>("${poprec.src_population.name}", neuron_index, "${poprec.node.symbol}",  spikerecordbuffers_send[buffer_offset].begin(), spikerecordbuffers_send[buffer_offset].end(), tags );
             evtdata.spiketimes->set_scaling_factor(dt_float);
         }
         %endfor
@@ -2103,7 +2115,9 @@ struct RecordMgr
         for(int i=0; i< ${poprec.size};i++)
         {
             int buffer_offset = ${poprec.global_offset}+i;
-            EventDataSetTuple evtdata = output->write_inputevents_byobjects_extractor<SpikeEmissionExtractor>("${poprec.src_population.name}", buffer_offset, "${poprec.node.symbol}",  spikerecordbuffers_recv[buffer_offset].begin(), spikerecordbuffers_recv[buffer_offset].end() );
+            int neuron_index = i + ${poprec.src_pop_start_index};
+            TagList tags = boost::assign::list_of( "${','.join(poprec.tags)}");
+            EventDataSetTuple evtdata = output->write_inputevents_byobjects_extractor<SpikeEmissionExtractor>("${poprec.src_population.name}", neuron_index, "${poprec.node.symbol}",  spikerecordbuffers_recv[buffer_offset].begin(), spikerecordbuffers_recv[buffer_offset].end(), tags );
             evtdata.spiketimes->set_scaling_factor(dt_float);
         }
         %endfor
@@ -2165,6 +2179,7 @@ GlobalData global_data;
 
 void record_output_event( IntType global_buffer, const SpikeEmission& evt )
 {
+    //cout << "\n -- Recording output-event to buffer:" << global_buffer;
     global_data.recordings_new.spikerecordbuffers_send[get_value32(global_buffer)].push_back(evt);
     global_data.recordings_new.nspikes_emitted++;
 }
@@ -2172,6 +2187,7 @@ void record_output_event( IntType global_buffer, const SpikeEmission& evt )
 
 void record_input_event( IntType global_buffer, const SpikeEmission& evt )
 {
+    //cout << "\n -- Recording input-event to buffer:" << global_buffer;
     global_data.recordings_new.spikerecordbuffers_recv[get_value32(global_buffer)].push_back(evt);
     global_data.recordings_new.nspikes_recv++;
 }

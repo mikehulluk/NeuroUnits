@@ -29,26 +29,28 @@ def get_MN(nbits):
 
 
         syn_sat = 1
-        syn_nmda_g = 1nS 
-        syn_ampa_g = 1nS
+        syn_nmda_g_bar =  1nS
+        syn_ampa_g =  1nS
         syn_inhib_g = 1nS
+
+
+
 
         # NMDA
         # =======================
         syn_nmda_A_tau = 4ms
         syn_nmda_B_tau = 80ms
-        syn_nmda_i = ( syn_nmda_g * (syn_nmda_B - syn_nmda_A) * (syn_nmda_erev - V) * (1/nmda_val_max) * nmda_vdep )
+        syn_nmda_i = ( syn_nmda_g_raw * (syn_nmda_erev - V) * nmda_vdep )
+        syn_nmda_g_raw = ( syn_nmda_g_bar * (syn_nmda_B - syn_nmda_A) * (1/nmda_val_max) )
         syn_nmda_A' = -syn_nmda_A / syn_nmda_A_tau
         syn_nmda_B' = -syn_nmda_B / syn_nmda_B_tau
         # Normalisation:
-        nmda_tc_max =  ln( syn_nmda_A_tau / syn_nmda_B_tau) * (syn_nmda_A_tau * syn_nmda_B_tau) / (syn_nmda_A_tau - syn_nmda_B_tau)
-        nmda_val_max =  (exp( -nmda_tc_max / syn_ampa_B_tau) -  exp( -nmda_tc_max / syn_ampa_A_tau) )
+        nmda_tc_max =  ln( syn_nmda_B_tau / syn_nmda_A_tau) * (syn_nmda_A_tau * syn_nmda_B_tau) / (syn_nmda_B_tau - syn_nmda_A_tau)
+        nmda_val_max = (  exp( -nmda_tc_max / syn_nmda_B_tau) -  exp( -nmda_tc_max / syn_nmda_A_tau)  )
         syn_nmda_erev = 0mV
         v_scale = V * {-0.08mV-1}
         nmda_vdep =  1./(1. + 0.05 * exp(v_scale) )
         on recv_nmda_spike(weight:(S)){
-            #syn_nmda_A = ClipMax( x=syn_nmda_A + (weight/{1nS}) , x_max=syn_sat )
-            #syn_nmda_B = ClipMax( x=syn_nmda_B + (weight/{1nS}) , x_max=syn_sat )
             syn_nmda_A = syn_nmda_A + (weight/{1nS})
             syn_nmda_B = syn_nmda_B + (weight/{1nS})
         }
@@ -59,18 +61,17 @@ def get_MN(nbits):
         # =======================
         syn_ampa_A_tau = 0.1ms
         syn_ampa_B_tau = 3ms
-        syn_ampa_i = ( syn_ampa_g * (syn_ampa_erev - V)  * syn_ampa_open )
-        syn_ampa_open = (syn_ampa_B - syn_ampa_A) * (1/ampa_val_max)
+        syn_ampa_i = syn_ampa_g * (syn_ampa_B - syn_ampa_A) * (syn_ampa_erev - V)  *(1/ampa_val_max)
         syn_ampa_A' = -syn_ampa_A / syn_ampa_A_tau
         syn_ampa_B' = -syn_ampa_B / syn_ampa_B_tau
 
         # Normalisation:
-        ampa_tc_max =  ln( syn_ampa_A_tau / syn_ampa_B_tau) * (syn_ampa_A_tau * syn_ampa_B_tau) / (syn_ampa_A_tau - syn_ampa_B_tau)
+        ampa_tc_max =  ln( syn_ampa_B_tau / syn_ampa_A_tau) * (syn_ampa_A_tau * syn_ampa_B_tau) / (syn_ampa_B_tau - syn_ampa_A_tau)
         ampa_val_max =  (exp( -ampa_tc_max / syn_ampa_B_tau) -  exp( -ampa_tc_max / syn_ampa_A_tau) )
         syn_ampa_erev = 0mV
         on recv_ampa_spike(weight:(S)){
-            syn_ampa_A = syn_ampa_A + (weight/{1nS}) 
-            syn_ampa_B = syn_ampa_B + (weight/{1nS}) 
+            syn_ampa_A = syn_ampa_A + (weight/{1nS})
+            syn_ampa_B = syn_ampa_B + (weight/{1nS})
         }
         # ===========================
 
@@ -78,16 +79,16 @@ def get_MN(nbits):
         # =======================
         syn_inhib_A_tau = 1.5ms
         syn_inhib_B_tau = 4ms
-        syn_inhib_i = ( syn_inhib_g * (syn_inhib_B - syn_inhib_A) * (syn_inhib_erev - V)  * (1/inhib_val_max) )
+        syn_inhib_i = (syn_inhib_g * (syn_inhib_B - syn_inhib_A) * (syn_inhib_erev - V)  * (1/inhib_val_max))
         syn_inhib_A' = -syn_inhib_A / syn_inhib_A_tau
         syn_inhib_B' = -syn_inhib_B / syn_inhib_B_tau
         # Normalisation:
-        inhib_tc_max =  ln( syn_inhib_A_tau / syn_inhib_B_tau) * (syn_inhib_A_tau * syn_inhib_B_tau) / (syn_inhib_A_tau - syn_inhib_B_tau)
-        inhib_val_max = ( exp( -inhib_tc_max / syn_inhib_B_tau) -  exp( -inhib_tc_max / syn_inhib_A_tau) )
+        inhib_tc_max =  ln( syn_inhib_B_tau / syn_inhib_A_tau) * (syn_inhib_A_tau * syn_inhib_B_tau) / (syn_inhib_B_tau - syn_inhib_A_tau)
+        inhib_val_max =  ( exp( -inhib_tc_max / syn_inhib_B_tau) -  exp( -inhib_tc_max / syn_inhib_A_tau)  )
         syn_inhib_erev = -60mV
         on recv_inh_spike(weight:(S)){
-            syn_inhib_A = syn_inhib_A + (weight/{1nS}) 
-            syn_inhib_B = syn_inhib_B + (weight/{1nS}) 
+            syn_inhib_A = syn_inhib_A + (weight/{1nS})
+            syn_inhib_B = syn_inhib_B + (weight/{1nS})
         }
         # ===========================
 

@@ -15,8 +15,12 @@ def get_dIN(nbits):
         <=> TIME t:(ms)
         <=> INPUT i_injected:(mA)
 
-        iInj_local = [50pA] if [ 50ms < t < 200ms] else [0pA]
-        #iInj_local = [50pA] if [ 50ms < t < 55ms] else [0pA]
+        iInj_local = [50pA] if [ 50ms < t < 200ms] else [0pA] * 0.0
+        
+        
+        #iInj_local = [0pA] if [ 50ms < t < 55ms] else [0pA]
+
+
         Cap = 10 pF
 
 

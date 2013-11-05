@@ -10,6 +10,8 @@ class NodeTagger(ASTActionerDefault):
         super(NodeTagger, self).__init__(**kwargs)
 
     def ActionNode(self,o):
+        ##print 'NodeTagger::ActionNode:', o
+
         if not 'tags' in o.annotations:
             o.annotations['tags'] = set()
 

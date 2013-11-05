@@ -83,21 +83,13 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
     def VisitNineMLComponent(self, o, **kwargs):
 
-
         self.visit(o._time_node, **kwargs)
         subnodes = set(itertools.chain(o.ordered_assignments_by_dependancies, o.timederivatives, o.functiondefs, o.symbolicconstants, o.transitions, o._event_port_connections, o.rt_graphs, o._interface_connectors))
         for f in subnodes:
             self.visit(f, **kwargs)
 
-
         self._ActionNineMLComponent(o, **kwargs)
 
-    #def VisitOnEvent(self, o, **kwargs):
-    #    for p in o.parameters.values():
-    #        self.visit(p, **kwargs)
-    #    for action in o.actions:
-    #        self.visit(action, **kwargs)
-    #    self._ActionOnEvent(o, **kwargs)
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)

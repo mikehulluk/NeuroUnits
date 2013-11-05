@@ -94,6 +94,8 @@ for pop_name, pop_size in pop_sizes.items():
 for syn_index, ((pop1_name, pop2_name, (syn_type, strength) ), conns) in enumerate(connections.items()):
     print 'Adding connection: %s -> %s [type:%s strength:%s, num:%d]' % (pop1_name, pop2_name, syn_type, strength, len(conns))
 
+    #if syn_type != 'ampa':
+    #    continue
     p1 = pops_by_name[pop1_name]
     p2 = pops_by_name[pop2_name]
     synpop_name='SynPop%02d' % syn_index
@@ -119,21 +121,21 @@ for syn_index, ((pop1_name, pop2_name, (syn_type, strength) ), conns) in enumera
 
 
 #network.provide_events( pops_by_name['pop1'], event_port='recv_ampa_spike', evt_details = [50,60,70] )
+non_dINs = pops_by_name['NondINs']
+pop_LHS_MN  = non_dINs.get_subpopulation(start_index=0,   end_index=169, subname='LHS_MN',  autotag=['LHS','MN'])
+pop_LHS_RB  = non_dINs.get_subpopulation(start_index=169, end_index=232, subname='LHS_RB',  autotag=['LHS','RB'])
+pop_LHS_aIN = non_dINs.get_subpopulation(start_index=232, end_index=300, subname='LHS_aIN', autotag=['LHS','aIN'])
+pop_LHS_cIN = non_dINs.get_subpopulation(start_index=300, end_index=492, subname='LHS_cIN', autotag=['LHS','cIN'])
+pop_LHS_dla = non_dINs.get_subpopulation(start_index=492, end_index=521, subname='LHS_dla', autotag=['LHS','dla'])
+pop_LHS_dlc = non_dINs.get_subpopulation(start_index=521, end_index=573, subname='LHS_dlc', autotag=['LHS','dlc'])
 
-pop_LHS_MN  = pops_by_name['NondINs'].get_subpopulation(start_index=0,   end_index=169, subname='LHS_MN',  autotag=['LHS','MN'])
-pop_LHS_RB  = pops_by_name['NondINs'].get_subpopulation(start_index=169, end_index=232, subname='LHS_RB',  autotag=['LHS','RB'])
-pop_LHS_aIN = pops_by_name['NondINs'].get_subpopulation(start_index=232, end_index=300, subname='LHS_aIN', autotag=['LHS','aIN'])
-pop_LHS_cIN = pops_by_name['NondINs'].get_subpopulation(start_index=300, end_index=492, subname='LHS_cIN', autotag=['LHS','cIN'])
-pop_LHS_dla = pops_by_name['NondINs'].get_subpopulation(start_index=492, end_index=521, subname='LHS_dla', autotag=['LHS','dla'])
-pop_LHS_dlc = pops_by_name['NondINs'].get_subpopulation(start_index=521, end_index=573, subname='LHS_dlc', autotag=['LHS','dlc'])
 
-
-pop_RHS_MN  = pops_by_name['NondINs'].get_subpopulation(start_index=573,  end_index=742,  subname='RHS_MN',  autotag=['RHS','MN'])
-pop_RHS_RB  = pops_by_name['NondINs'].get_subpopulation(start_index=742,  end_index=805,  subname='RHS_RB',  autotag=['RHS','RB'])
-pop_RHS_aIN = pops_by_name['NondINs'].get_subpopulation(start_index=805,  end_index=873,  subname='RHS_aIN', autotag=['RHS','aIN'])
-pop_RHS_cIN = pops_by_name['NondINs'].get_subpopulation(start_index=873,  end_index=1065, subname='RHS_cIN', autotag=['RHS','cIN'])
-pop_RHS_dla = pops_by_name['NondINs'].get_subpopulation(start_index=1065, end_index=1094, subname='RHS_dla', autotag=['RHS','dla'])
-pop_RHS_dlc = pops_by_name['NondINs'].get_subpopulation(start_index=1094, end_index=1146, subname='RHS_dlc', autotag=['RHS','dlc'])
+pop_RHS_MN  = non_dINs.get_subpopulation(start_index=573,  end_index=742,  subname='RHS_MN',  autotag=['RHS','MN'])
+pop_RHS_RB  = non_dINs.get_subpopulation(start_index=742,  end_index=805,  subname='RHS_RB',  autotag=['RHS','RB'])
+pop_RHS_aIN = non_dINs.get_subpopulation(start_index=805,  end_index=873,  subname='RHS_aIN', autotag=['RHS','aIN'])
+pop_RHS_cIN = non_dINs.get_subpopulation(start_index=873,  end_index=1065, subname='RHS_cIN', autotag=['RHS','cIN'])
+pop_RHS_dla = non_dINs.get_subpopulation(start_index=1065, end_index=1094, subname='RHS_dla', autotag=['RHS','dla'])
+pop_RHS_dlc = non_dINs.get_subpopulation(start_index=1094, end_index=1146, subname='RHS_dlc', autotag=['RHS','dlc'])
 
 
 dINs = pops_by_name['dINs']
@@ -151,7 +153,7 @@ network.add(rb_drivers)
 network.add(
         EventPortConnector(
             rb_drivers, 
-            pop_LHS_RB.get_subpopulation(start_index=0,end_index=1,subname='triggered',autotag=[]),
+            pop_RHS_RB.get_subpopulation(start_index=0,end_index=1,subname='triggered',autotag=[]),
             src_port_name='spike', 
             dst_port_name='recv_ampa_spike', 
             name='RBDrives' , 
@@ -189,7 +191,6 @@ network.add(
         src_population =  dINs, 
         dst_population =  dINs, 
         connector=ExplicitIndicesLoop(gap_junction_indices), 
-        #strength_S = 0.2e-9,
         strength_S = 2e-9,
         injected_port_name = 'i_injected', 
         name='E_Couple')
@@ -197,29 +198,16 @@ network.add(
 
 
 
-network.record_traces([pop_LHS_dIN, pop_RHS_dIN], 'V' )
-network.record_traces([pop_LHS_dIN, pop_RHS_dIN], 'i_injected' )
-network.record_traces([pop_LHS_dIN, pop_RHS_dIN], 'syn_ampa_i' )
-network.record_traces([pop_LHS_dIN, pop_RHS_dIN], 'syn_nmda_i' )
-network.record_traces([pop_LHS_dIN, pop_RHS_dIN], 'syn_inhib_i' )
-
-
-network.record_traces([pop_LHS_dIN, pop_RHS_dIN], 'syn_nmda_A' )
-network.record_traces([pop_LHS_dIN, pop_RHS_dIN], 'syn_nmda_B' )
-network.record_traces([pop_LHS_dIN, pop_RHS_dIN], 'syn_ampa_A' )
-network.record_traces([pop_LHS_dIN, pop_RHS_dIN], 'syn_ampa_B' )
-
-network.record_traces([pop_LHS_RB, pop_RHS_RB], 'V' )
-network.record_traces([pop_LHS_RB, pop_RHS_RB], 'syn_ampa_i' )
-network.record_traces([pop_LHS_RB, pop_RHS_RB], 'syn_nmda_i' )
-network.record_traces([pop_LHS_RB, pop_RHS_RB], 'syn_inhib_i' )
 
 
 network.record_output_events( [rb_drivers] , 'spike' )
-network.record_output_events( [pop_LHS_dIN, pop_RHS_dIN] , 'spike' )
-network.record_output_events( [pop_LHS_RB, pop_RHS_RB] , 'spike' )
+network.record_output_events( lhs_subpops+rhs_subpops , 'spike' )
 
+
+network.record_traces(lhs_subpops+rhs_subpops, 'V' )
+network.record_input_events( rhs_subpops+lhs_subpops , 'recv_ampa_spike' )
 network.record_input_events( rhs_subpops+lhs_subpops , 'recv_nmda_spike' )
+network.record_input_events( rhs_subpops+lhs_subpops , 'recv_inh_spike' )
 
 
 
@@ -227,106 +215,48 @@ network.record_input_events( rhs_subpops+lhs_subpops , 'recv_nmda_spike' )
 
 results = CBasedEqnWriterFixedNetwork(
                     network,
-                    #output_filename=op_filename,
                     CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
                     step_size=0.1e-3 / 2.,
-                    run_until=0.75,
-                    #run_until=0.12,
+                    run_until=0.105, #0.75,
                     as_float=True,
                     ).results
 
 
-#fixed_sim_res = CBasedEqnWriterFixedNetwork(network, output_filename='output.hd5', CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ').results
-#results = HDF5SimulationResultFile("output.hd5")
+results = HDF5SimulationResultFile("neuronits.results.hdf")
 
 
-filters_traces = [
-   "ALL{V,dIN,LHS}",
-   "ALL{V,dIN,LHS,POPINDEX:0000}",
-   "ALL{V,dIN,RHS}",
-   "ALL{V,dIN,RHS,POPINDEX:0118}",
-
-   #"ALL{dIN,LHS,POPINDEX:0000} AND ANY{syn_ampa_i,syn_nmda_i,syn_inhib_i}",
-   #"ALL{V,dIN,RHS}",
-   #"ALL{i_injected,dIN,LHS}",
-   #"ALL{i_injected,dIN,RHS}",
-   #
-   #"ALL{V,dIN,LHS,POPINDEX:0000}",
-   #
-   #"ALL{V,RB,LHS}",
-   #"ALL{V,RB,LHS,POPINDEX:0000}",
-   #"ALL{RB,LHS,POPINDEX:0000} AND ANY{syn_ampa_i,syn_nmda_i,syn_inhib_i}",
-   #"ALL{V,RB,RHS}",
-   #"ALL{i_injected,RB,LHS}",
-   #"ALL{i_injected,RB,RHS}",
-   #
-   #"ALL{V,RB,LHS,POPINDEX:0000}",
 
 
-   # "ANY{syn_nmda_A,syn_nmda_B,syn_ampa_A,syn_ampa_B} AND ALL{dIN,LHS,POPINDEX:0000}"
+import test_simulatenetwork_plot
 
 
-   # "ALL{V,RB,LHS}",
-   # "ALL{V,RB,RHS}",
-
-   # "ALL{V,dla,LHS}",
-   # "ALL{V,dla,RHS}",
-
-   # "ALL{V,dlc,LHS}",
-   # "ALL{V,dlc,RHS}",
-
-   #"ALL{V,dIN,LHS}",
-   #"ALL{V,dIN,RHS}",
-
-   # "ALL{V,aIN,LHS}",
-   # "ALL{V,aIN,RHS}",
-
-   # "ALL{V,cIN,LHS}",
-   # "ALL{V,cIN,RHS}",
-
-   # "ALL{V,MN,LHS}",
-   # "ALL{V,MN,RHS}",
-
-   # "ALL{syn_ampa_open,RB,LHS}",
-   # "ALL{syn_ampa_g,RB,LHS}",
-   # "ALL{syn_ampa_i,RB,LHS}",
 
 
-        ]
-
-filters_spikes = [
-
-    #"ALL{EVENT:spike,RBINPUT}",
-    #"ALL{EVENT:spike,RB,LHS}",
-    #"ALL{EVENT:spike,RB,RHS}",
-
-    #"ALL{EVENT:spike,dIN,LHS}",
-    #"ALL{EVENT:spike,dIN,RHS}",
-
-#   # "ALL{EVENT:spike,dla,LHS}",
-#   # "ALL{EVENT:spike,dla,RHS}",
-#   # "ALL{EVENT:spike,dlc,LHS}",
-#   # "ALL{EVENT:spike,dlc,RHS}",
+#filters_traces = [
+#   "ALL{V,dIN,LHS}",
+#   "ALL{V,dIN,LHS,POPINDEX:0000}",
+#   "ALL{V,dIN,RHS}",
+#   "ALL{V,dIN,RHS,POPINDEX:0118}",
+#        ]
 #
-#   # "ALL{EVENT:spike,MN,LHS}",
-#   # "ALL{EVENT:spike,MN,RHS}",
+#filters_spikes = [
+#    "ALL{spike,RBINPUT}",
+#    "ALL{spike,RB,LHS}",
+#    "ALL{spike,RB,RHS}",
 #
-#   # "ALL{EVENT:spike,aIN,LHS}",
-#   # "ALL{EVENT:spike,aIN,RHS}",
+#    "ALL{spike,dIN,LHS}",
+#    "ALL{spike,dIN,RHS}",
 #
-#   # "ALL{EVENT:spike,cIN,LHS}",
-#   # "ALL{EVENT:spike,cIN,RHS}",
-
-    #"ALL{EVENT:spike,dIN}",
-    #"ALL{EVENT:spike,MN}",
-]
-
-sim_start = 0
-sim_end = 1.0
+#]
+#
+#
+#
+#results.plot(trace_filters=filters_traces, spike_filters=filters_spikes, legend=True )
 
 
-results.plot(trace_filters=filters_traces, spike_filters=filters_spikes, legend=True )
-#results.plot(trace_filters=filters_traces) #, spike_filters=None, xlim = (0,1) )
+
+
+
 
 
 

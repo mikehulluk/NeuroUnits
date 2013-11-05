@@ -67,6 +67,10 @@ class SubPopulation(object):
         return self.autotag + self._population.autotag + ['subpop']
 
 
+    def __str__(self):
+        return "<SubPopulation: %s>" % self.name
+
+
 
     def get_subpopulation(self, start_index, end_index, subname, autotag):
         assert 0<=start_index<=self.end_index
@@ -229,6 +233,7 @@ class Network(object):
         if isinstance(subpopulations, (Population,SubPopulation)):
             subpopulations = [subpopulations]
         for subpop in subpopulations:
+            #print 'Recordings', subpop
             self._record_input_events_for_population(subpop, port_name)
 
 
@@ -276,6 +281,8 @@ class Network(object):
                 size = indices[1] - indices[0]
                 self.all_trace_recordings.append( PopRec( global_offset=global_offset, size=size, src_population=population, src_pop_start_index=indices[0], node=terminal_node, tags=autotag ) )
         self.n_trace_recording_buffers =  curr_rec_offset(self.all_trace_recordings)
+
+
 
 
          # Output events:

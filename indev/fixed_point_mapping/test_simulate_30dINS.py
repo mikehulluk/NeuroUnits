@@ -96,6 +96,7 @@ def get_results():
 
 
 
+
     network.record_input_events(dINs, 'recv_nmda_spike' )
     network.record_input_events(dINs, 'recv_inh_spike' )
     network.record_input_events(dINs, 'recv_ampa_spike' )
