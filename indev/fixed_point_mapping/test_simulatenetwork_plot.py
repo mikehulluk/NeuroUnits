@@ -15,7 +15,7 @@ def build_raster_plot_obj(name, side):
 
 
 
-xlim=(95e-3,150e-3)
+xlim=(95e-3,750e-3)
 
 results.raster_plot([
         RasterGroup('RB', [
@@ -32,12 +32,22 @@ results.raster_plot([
 
         build_raster_plot_obj('dIN', 'RHS'),
         build_raster_plot_obj('dIN', 'LHS'),
-        
+
         build_raster_plot_obj('aIN', 'RHS'),
         build_raster_plot_obj('aIN', 'LHS'),
-        
+
         build_raster_plot_obj('cIN', 'RHS'),
         build_raster_plot_obj('cIN', 'LHS'),
+
+        build_raster_plot_obj('MN', 'RHS'),
+        build_raster_plot_obj('MN', 'LHS'),
+
+
+        RasterGroup('MN', [
+            RasterSubgroup("MN:LHS", "ALL{spike,MN,LHS}", {'color':'blue', 'marker':'x', 's':2}),
+            RasterSubgroup("MN:RHS", "ALL{spike,MN,RHS}", {'color':'green', 'marker':'x', 's':2}),
+            ] )
+
         ],
 
         xlim=xlim
@@ -45,8 +55,18 @@ results.raster_plot([
 
 
 filters_traces = [
+   "ALL{V,RB,RHS}",
+   "ALL{V,RB,LHS}",
    "ALL{V,dla,RHS}",
+   "ALL{V,dla,LHS}",
    "ALL{V,dlc,RHS}",
+   "ALL{V,dlc,LHS}",
+   "ALL{V,aIN,RHS}",
+   "ALL{V,aIN,LHS}",
+   "ALL{V,cIN,RHS}",
+   "ALL{V,cIN,LHS}",
+   "ALL{V,MN,RHS}",
+   "ALL{V,MN,LHS}",
    ]
 
 results.plot(trace_filters=filters_traces, legend=False, xlim=xlim )

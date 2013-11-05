@@ -139,9 +139,9 @@ struct DebugCfg
 #else // RUNTIME_LOGGING_ON
 
 #define LOG_COMPONENT_STATEUPDATE(a)
-#define LOG_COMPONENT_EVENTDISPATCH(a) a
+#define LOG_COMPONENT_EVENTDISPATCH(a) 
 //#define LOG_COMPONENT_EVENTHANDLER(a)
-#define LOG_COMPONENT_EVENTHANDLER(a) a
+#define LOG_COMPONENT_EVENTHANDLER(a) 
 #define LOG_COMPONENT_TRANSITION(a)
 
 #define CHECK_IN_RANGE_NODE(a,b,c,d,e) (a)
@@ -2036,7 +2036,7 @@ struct RecordMgr
             }
         }
         %endfor
-        cout << "\n\nFinished Writing to HDF5";
+        cout << "\n\nFinished writing to HDF5";
     }
 
 
@@ -2071,7 +2071,7 @@ struct RecordMgr
         }
         %endfor
 
-        cout << "\n\nFisnihed Writing to HDF5";
+        cout << "\n\nFinished Writing to HDF5";
         #endif //USE_HDF
     }
 
