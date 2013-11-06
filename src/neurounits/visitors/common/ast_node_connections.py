@@ -116,7 +116,7 @@ class ASTAllConnections(ASTActionerDepthFirst):
             iter(o._eqn_time_derivatives),
             iter(o._symbolicconstants),
             iter(o._transitions_conditiontriggers),
-            iter(o._transitions_crossestriggers),
+            #iter(o._transitions_crossestriggers),
             iter(o._transitions_events),
             iter(o.rt_graphs),
             iter(o._interface_connectors),
@@ -241,10 +241,7 @@ class ASTAllConnections(ASTActionerDepthFirst):
 
     def VisitOnConditionTriggerTransition(self, o, **kwargs):
         return [o.trigger, o.src_regime, o.target_regime ] + list(o.actions)
-    def VisitOnCrossesTriggerTransition(self, o, **kwargs):
-        assert False, 'Deprecated Nov 2013'
 
-        return [o.crosses_lhs, o.crosses_rhs, o.src_regime, o.target_regime ] + list(o.actions)
 
     def VisitOnTransitionEvent(self, o, **kwargs):
         return [ o.src_regime, o.target_regime, o.port] + list(o.actions) + list(o.parameters)

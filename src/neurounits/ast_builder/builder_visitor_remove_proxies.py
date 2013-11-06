@@ -208,13 +208,6 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
             self.visit(a)
         self.visit(o.trigger)
 
-    def VisitOnCrossesTriggerTransition(self, o, **kwargs):
-        assert False, 'Deprecated Nov 2013'
-
-        for a in o.actions:
-            self.visit(a)
-        o.crosses_lhs = self.followSymbolProxy(o.crosses_lhs)
-        o.crosses_rhs = self.followSymbolProxy(o.crosses_rhs)
 
     def VisitOnTransitionEvent(self, o, **kwargs):
         o.parameters = LookUpDict(

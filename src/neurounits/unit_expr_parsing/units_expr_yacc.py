@@ -425,17 +425,6 @@ def p_parse_on_transition_event(p):
     p.parser.library_manager.get_current_block_builder().close_scope_and_create_transition_event(event_name=event_name, event_params=event_params, actions=actions, target_regime=target_regime)
 
 
-#def p_parse_on_transition_trigger_crosses(p):
-#    """on_transition : ON LBRACKET  crosses_expr  RBRACKET  LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
-#    (crosses_lhs,crosses_rhs), (on_rising, on_falling) = p[3]
-#    actions = p[6]
-#    target_regime = p[7]
-#    p.parser.library_manager.get_current_block_builder().close_scope_and_create_transition_crossestrigger(
-#            crosses_lhs=crosses_lhs, crosses_rhs=crosses_rhs,
-#            on_rising=on_rising, on_falling=on_falling,
-#            actions=actions, target_regime=target_regime)
-#
-#
 def p_parse_on_transition_trigger_crosses_expr0(p):
     """crosses_expr : rhs_term CROSSES rhs_term """
     p[0] = ast.OnConditionCrossing(crosses_lhs=p[1], crosses_rhs=p[3], on_rising=True, on_falling=True)

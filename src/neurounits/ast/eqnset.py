@@ -280,7 +280,7 @@ class NineMLComponent(Block):
         from neurounits.ast import AutoRegressiveModel
         t = EqnsetVisitorNodeCollector(obj=self)
         return LookUpDict(t.nodes[AutoRegressiveModel] )
-    
+
     @property
     def conditioncrosses_nodes(self):
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
@@ -475,7 +475,6 @@ class NineMLComponent(Block):
 
 
         self._transitions_conditiontriggers = LookUpDict( builddata.transitions_conditiontriggers )
-        self._transitions_crossestriggers = LookUpDict( builddata.transitions_crossestriggers )
         self._transitions_events = LookUpDict( builddata.transitions_events )
         self._rt_graphs = LookUpDict( builddata.rt_graphs)
 
@@ -544,7 +543,7 @@ class NineMLComponent(Block):
 
     @property
     def transitions(self):
-        return itertools.chain( self._transitions_conditiontriggers, self._transitions_crossestriggers, self._transitions_events)
+        return itertools.chain( self._transitions_conditiontriggers, self._transitions_events)
 
     @property
     def eventtransitions(self):
@@ -553,10 +552,7 @@ class NineMLComponent(Block):
     @property
     def conditiontriggertransitions(self):
         return self._transitions_conditiontriggers
-    
-    @property
-    def crossestriggertransitions(self):
-        return self._transitions_crossestriggers
+
 
     def transitions_from_regime(self, regime):
         assert isinstance(regime,Regime)
@@ -571,9 +567,6 @@ class NineMLComponent(Block):
         assert isinstance(regime,Regime)
         return [tr for tr in self.conditiontriggertransitions if tr.src_regime == regime]
 
-    def crossestriggertransitions_from_regime(self, regime):
-        assert isinstance(regime,Regime)
-        return [tr for tr in self.crossestriggertransitions if tr.src_regime == regime]
 
 
 

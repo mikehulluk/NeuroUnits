@@ -172,8 +172,6 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         pass
     def ActionOnConditionTriggerTransition(self, o):
         pass
-    def ActionOnCrossesTriggerTransition(self, o):
-        pass
     def ActionOnTransitionEvent(self, o):
         pass
     def ActionOnEventStateAssignment(self, o):

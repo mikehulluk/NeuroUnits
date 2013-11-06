@@ -103,7 +103,6 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
             builddata.rt_graphs.append(rt_graph)
 
         builddata.transitions_conditiontriggers.extend(c._transitions_conditiontriggers)
-        builddata.transitions_crossestriggers.extend(c._transitions_crossestriggers)
         builddata.transitions_events.extend(c._transitions_events)
 
     builddata.time_node = time_node

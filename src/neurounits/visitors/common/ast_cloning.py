@@ -74,7 +74,7 @@ class ASTClone(object):
 
 
         builddata.transitions_conditiontriggers = o._transitions_conditiontriggers.copy()
-        builddata.transitions_crossestriggers = o._transitions_crossestriggers.copy()
+        #builddata.transitions_crossestriggers = o._transitions_crossestriggers.copy()
         builddata.transitions_events =  o._transitions_events.copy()
 
         #builddata.transitions_triggers = o._transitions_conditiontriggers.copy()

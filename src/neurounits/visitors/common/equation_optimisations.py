@@ -139,9 +139,7 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
         pass # TODO: Optimisiations possible
         #assert False
     
-    def ActionOnCrossesTriggerTransition(self, o, **kwargs):
-        pass # TODO: Optimisiations possible
-        #assert False
+
 
     def ActionOnTransitionEvent(self, o, **kwargs):
         pass # TODO: Optimisiations possible

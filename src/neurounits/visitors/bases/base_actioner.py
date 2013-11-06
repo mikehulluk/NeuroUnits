@@ -240,14 +240,6 @@ class ASTActionerDepthFirst(ASTVisitorBase):
             self.visit(a, **kwargs)
         self._ActionOnConditionTriggerTransition(o, **kwargs)
 
-    def VisitOnCrossesTriggerTransition(self, o, **kwargs):
-        assert False, 'Deprecated Nov 2013'
-
-        self.visit(o.crosses_lhs, **kwargs)
-        self.visit(o.crosses_rhs, **kwargs)
-        for a in o.actions:
-            self.visit(a, **kwargs)
-        self._ActionOnCrossesTriggerTransition(o, **kwargs)
 
     def VisitOnTransitionEvent(self, o, **kwargs):
         for a in o.parameters:
@@ -471,9 +463,6 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionOnConditionTriggerTransition(o, **kwargs)
 
-    def _ActionOnCrossesTriggerTransition(self, o, **kwargs):
-        if self._ActionPredicate(o, **kwargs):
-            return self.ActionOnCrossesTriggerTransition(o, **kwargs)
 
     def _ActionOnTransitionEvent(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):

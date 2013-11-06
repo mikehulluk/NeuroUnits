@@ -232,8 +232,6 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
     def ActionOnConditionTriggerTransition(self, o, **kwarg):
         pass
 
-    def ActionOnCrossesTriggerTransition(self, o, **kwarg):
-        self.verify_equal_units([o.crosses_lhs, o.crosses_rhs])
 
     def ActionOnTransitionEvent(self, o, **kwargs):
         pass
@@ -664,13 +662,7 @@ class DimensionResolver(ASTVisitorBase):
             self.visit(a)
         self.visit(o.trigger)
 
-    def VisitOnCrossesTriggerTransition(self, o, **kwargs):
-        assert False, 'Deprecated Nov 2013'
-        #self.EnsureEqualDimensions([o.crosses_lhs, o.crosses_rhs],)
-        #for a in o.actions:
-        #    self.visit(a)
-        #self.visit(o.crosses_lhs)
-        #self.visit(o.crosses_rhs)
+
 
     def VisitOnTransitionEvent(self, o, **kwargs):
         for p in o.parameters:

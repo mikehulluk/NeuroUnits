@@ -287,7 +287,7 @@ class BuildData(object):
         self.io_data_lines = []
 
         self.transitions_conditiontriggers = []
-        self.transitions_crossestriggers = []
+        #self.transitions_crossestriggers = []
         self.transitions_events = []
 
         self.timederivatives = None
@@ -580,27 +580,6 @@ class AbstractBlockBuilder(object):
                 actions=actions, target_regime=target_regime, src_regime=src_regime))
 
 
-    def close_scope_and_create_transition_crossestrigger(self, crosses_lhs, crosses_rhs, on_rising, on_falling, actions, target_regime):
-        #assert self.active_scope is not None
-        #scope = self.active_scope
-        ##self.active_scope = None
-
-        ## Resolve all symbols from the global namespace:
-        #for (sym, obj) in scope.iteritems():
-        #    obj.set_target(self.global_scope.getSymbolOrProxy(sym))
-
-        src_regime = self.get_current_regime()
-        if target_regime is None:
-            target_regime = src_regime
-        else:
-            target_regime = self._current_rt_graph.get_or_create_regime(target_regime)
-
-        assert self.active_scope is None
-        self.builddata.transitions_crossestriggers.append(ast.OnCrossesTriggerTransition(
-                crosses_lhs = crosses_lhs, crosses_rhs = crosses_rhs,
-                on_rising = on_rising, on_falling = on_falling,
-                actions=actions, target_regime=target_regime, src_regime=src_regime))
-
 
 
     def create_function_call(self, funcname, parameters):
@@ -750,7 +729,7 @@ class AbstractBlockBuilder(object):
 
         # Ok, so if we have state variables with no explcity state time derivatives, then
         # lets create them:
-        for tr in self.builddata.transitions_conditiontriggers + self.builddata.transitions_crossestriggers +  self.builddata.transitions_events:
+        for tr in self.builddata.transitions_conditiontriggers +  self.builddata.transitions_events:
             for action in tr.actions:
                 if isinstance( action, ast.OnEventStateAssignment ):
 
@@ -767,7 +746,6 @@ class AbstractBlockBuilder(object):
 
                         target_name = self.global_scope.get_proxy_targetname(n)
                         ensure_state_variable(target_name)
-                        #print 'Unresolved target:'
 
 
                     else:
@@ -781,7 +759,6 @@ class AbstractBlockBuilder(object):
             sv_obj = sv_objs[0]
 
             sv_obj.initial_value = initial_value
-            #print repr(sv_obj)
 
 
 

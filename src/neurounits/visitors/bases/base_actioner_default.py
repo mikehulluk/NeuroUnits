@@ -139,8 +139,6 @@ class ASTActionerDefault(ASTActionerDepthFirst):
 
     def ActionOnConditionTriggerTransition(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
-    def ActionOnCrossesTriggerTransition(self, o, **kwargs):
-        return self.ActionNode(o, **kwargs)
 
     def ActionOnTransitionEvent(self, o, **kwargs):
         return self.ActionNode(o, **kwargs)
