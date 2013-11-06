@@ -478,11 +478,11 @@ namespace IntegerFixedPoint
 
     // New fixed point classes:
     template<int UPSCALE>
-    struct FixedPoint
+    struct ScalarType
     {
         IntType v;
-        explicit FixedPoint(int v) : v(v) { }
-        FixedPoint() {};
+        explicit ScalarType(int v) : v(v) { }
+        ScalarType() {};
 
         const static int UP = UPSCALE;
 
@@ -491,7 +491,7 @@ namespace IntegerFixedPoint
 
         // Automatic rescaling during assignments:
         template<int OTHER_UP>
-        FixedPoint<UPSCALE>& operator=(const FixedPoint<OTHER_UP>& rhs)
+        ScalarType<UPSCALE>& operator=(const ScalarType<OTHER_UP>& rhs)
         {
             v = rhs.rescale_to<UPSCALE>().v;
             return *this;
@@ -501,9 +501,9 @@ namespace IntegerFixedPoint
 
         // Explicit rescaling between different scaling factors:
         template<int NEW_UPSCALE>
-        FixedPoint<NEW_UPSCALE> rescale_to( ) const
+        ScalarType<NEW_UPSCALE> rescale_to( ) const
         {
-            return FixedPoint<NEW_UPSCALE>( auto_shift(v, UPSCALE - NEW_UPSCALE) );
+            return ScalarType<NEW_UPSCALE>( auto_shift(v, UPSCALE - NEW_UPSCALE) );
         }
 
         inline double to_float() const
@@ -515,50 +515,48 @@ namespace IntegerFixedPoint
             return v;
         }
 
-        // No implicit scaling-conversion:
-        bool operator<=( const FixedPoint<UPSCALE>& rhs)
+        bool operator<=( const ScalarType<UPSCALE>& rhs)
         {
             return v <=rhs.v;
         }
-
     };
 
 
     template<int UOUT>
-    struct FPOP
+    struct ScalarOp
     {
         template<int U1, int U2>
-        static inline FixedPoint<UOUT> add( const FixedPoint<U1>& a, const FixedPoint<U2>& b)
+        static inline ScalarType<UOUT> add( const ScalarType<U1>& a, const ScalarType<U2>& b)
         {
             IntType res = tmpl_fp_ops::do_add_op(a.v, U1, b.v, U2, UOUT, -1);
-            return FixedPoint<UOUT> (res);
+            return ScalarType<UOUT> (res);
         }
 
         template<int U1, int U2>
-        static inline FixedPoint<UOUT> sub( const FixedPoint<U1>& a, const FixedPoint<U2>& b)
+        static inline ScalarType<UOUT> sub( const ScalarType<U1>& a, const ScalarType<U2>& b)
         {
             IntType res = tmpl_fp_ops::do_sub_op(a.v, U1, b.v, U2, UOUT, -1);
-            return FixedPoint<UOUT> (res);
+            return ScalarType<UOUT> (res);
         }
 
         template<int U1, int U2>
-        static inline FixedPoint<UOUT> mul( const FixedPoint<U1>& a, const FixedPoint<U2>& b)
+        static inline ScalarType<UOUT> mul( const ScalarType<U1>& a, const ScalarType<U2>& b)
         {
             IntType res = tmpl_fp_ops::do_mul_op(a.v, U1, b.v, U2, UOUT, -1);
-            return FixedPoint<UOUT> (res);
+            return ScalarType<UOUT> (res);
         }
 
         template<int U1, int U2>
-        static inline FixedPoint<UOUT> div( const FixedPoint<U1>& a, const FixedPoint<U2>& b)
+        static inline ScalarType<UOUT> div( const ScalarType<U1>& a, const ScalarType<U2>& b)
         {
             IntType res = tmpl_fp_ops::do_div_op(a.v, U1, b.v, U2, UOUT, -1);
-            return FixedPoint<UOUT> (res);
+            return ScalarType<UOUT> (res);
         }
 
         template<int U1>
-        static inline FixedPoint<UOUT> exp( const FixedPoint<U1>& a)
+        static inline ScalarType<UOUT> exp( const ScalarType<U1>& a)
         {
-            return FixedPoint<UOUT> ( tmpl_fp_ops::int_exp( a.v, U1, UOUT, -1, lookuptables.exponential ) );
+            return ScalarType<UOUT> ( tmpl_fp_ops::int_exp( a.v, U1, UOUT, -1, lookuptables.exponential ) );
         }
 
     };
@@ -571,12 +569,12 @@ namespace DoubleFixedPoint
 
     // New fixed point classes:
     template<int UPSCALE>
-    struct FixedPoint
+    struct ScalarType
     {
         double v_float;
-        explicit FixedPoint(int v) : v_float(FixedFloatConversion::to_float(v, UPSCALE)) { }
-        explicit FixedPoint(double v) : v_float(v) { }
-        FixedPoint() {};
+        explicit ScalarType(int v) : v_float(FixedFloatConversion::to_float(v, UPSCALE)) { }
+        explicit ScalarType(double v) : v_float(v) { }
+        ScalarType() {};
 
         const static int UP = UPSCALE;
 
@@ -585,7 +583,7 @@ namespace DoubleFixedPoint
 
         // Automatic rescaling during assignments:
         template<int OTHER_UP>
-        FixedPoint<UPSCALE>& operator=(const FixedPoint<OTHER_UP>& rhs)
+        ScalarType<UPSCALE>& operator=(const ScalarType<OTHER_UP>& rhs)
         {
             v_float = rhs.v_float;
             return *this;
@@ -595,9 +593,9 @@ namespace DoubleFixedPoint
 
         // Explicit rescaling between different scaling factors:
         template<int NEW_UPSCALE>
-        FixedPoint<NEW_UPSCALE> rescale_to( ) const
+        ScalarType<NEW_UPSCALE> rescale_to( ) const
         {
-            return FixedPoint<NEW_UPSCALE>( v_float );
+            return ScalarType<NEW_UPSCALE>( v_float );
         }
 
         inline double to_float() const
@@ -612,7 +610,7 @@ namespace DoubleFixedPoint
 
 
         // No implicit scaling-conversion:
-        bool operator<=( const FixedPoint<UPSCALE>& rhs)
+        bool operator<=( const ScalarType<UPSCALE>& rhs)
         {
             return v_float <= rhs.v_float;
         }
@@ -621,36 +619,36 @@ namespace DoubleFixedPoint
 
 
     template<int UOUT>
-    struct FPOP
+    struct ScalarOp
     {
         template<int U1, int U2>
-        static inline FixedPoint<UOUT> add( const FixedPoint<U1>& a, const FixedPoint<U2>& b)
+        static inline ScalarType<UOUT> add( const ScalarType<U1>& a, const ScalarType<U2>& b)
         {
-            return FixedPoint<UOUT> ( a.v_float + b.v_float );
+            return ScalarType<UOUT> ( a.v_float + b.v_float );
         }
 
         template<int U1, int U2>
-        static inline FixedPoint<UOUT> sub( const FixedPoint<U1>& a, const FixedPoint<U2>& b)
+        static inline ScalarType<UOUT> sub( const ScalarType<U1>& a, const ScalarType<U2>& b)
         {
-            return FixedPoint<UOUT> ( a.v_float - b.v_float );
+            return ScalarType<UOUT> ( a.v_float - b.v_float );
         }
 
         template<int U1, int U2>
-        static inline FixedPoint<UOUT> mul( const FixedPoint<U1>& a, const FixedPoint<U2>& b)
+        static inline ScalarType<UOUT> mul( const ScalarType<U1>& a, const ScalarType<U2>& b)
         {
-            return FixedPoint<UOUT> ( a.v_float * b.v_float );
+            return ScalarType<UOUT> ( a.v_float * b.v_float );
         }
 
         template<int U1, int U2>
-        static inline FixedPoint<UOUT> div( const FixedPoint<U1>& a, const FixedPoint<U2>& b)
+        static inline ScalarType<UOUT> div( const ScalarType<U1>& a, const ScalarType<U2>& b)
         {
-            return FixedPoint<UOUT> ( a.v_float / b.v_float );
+            return ScalarType<UOUT> ( a.v_float / b.v_float );
         }
 
         template<int U1>
-        static inline FixedPoint<UOUT> exp( const FixedPoint<U1>& a)
+        static inline ScalarType<UOUT> exp( const ScalarType<U1>& a)
         {
-            return FixedPoint<UOUT>( std::exp(a.to_float()) );
+            return ScalarType<UOUT>( std::exp(a.to_float()) );
         }
 
     };
@@ -665,15 +663,15 @@ namespace DoubleFixedPoint
 
 
 %if as_float:
-//using IntegerFixedPoint::FixedPoint;
-//using IntegerFixedPoint::FPOP;
-using DoubleFixedPoint::FixedPoint;
-using DoubleFixedPoint::FPOP;
+//using IntegerFixedPoint::ScalarType;
+//using IntegerFixedPoint::ScalarOp;
+using DoubleFixedPoint::ScalarType;
+using DoubleFixedPoint::ScalarOp;
 %else:
-using IntegerFixedPoint::FixedPoint;
-using IntegerFixedPoint::FPOP;
-//using DoubleFixedPoint::FixedPoint;
-//using DoubleFixedPoint::FPOP;
+using IntegerFixedPoint::ScalarType;
+using IntegerFixedPoint::ScalarOp;
+//using DoubleFixedPoint::ScalarType;
+//using DoubleFixedPoint::ScalarOp;
 %endif
 
 
@@ -689,13 +687,13 @@ using IntegerFixedPoint::FPOP;
 
 
 
-const FixedPoint<${dt_upscale}> dt_fixed( ${dt_int} );
+const ScalarType<${dt_upscale}> dt_fixed( ${dt_int} );
 
 
 const IntType time_upscale = IntType(${time_upscale});
 
 
-typedef FixedPoint<time_upscale>  TimeType;
+typedef ScalarType<time_upscale>  TimeType;
 
 struct TimeInfo
 {
@@ -714,7 +712,7 @@ struct TimeInfo
 };
 
 
-typedef FixedPoint<time_upscale>  SpikeTime;
+typedef ScalarType<time_upscale>  SpikeTime;
 
 struct SpikeEmission
 {
@@ -814,9 +812,9 @@ namespace rnd
     {
 
         template<int U1, int U2>
-        static FixedPoint<UP> uniform(FixedPoint<U1> min, FixedPoint<U2> max)
+        static ScalarType<UP> uniform(ScalarType<U1> min, ScalarType<U2> max)
         {
-            return FixedPoint<UP>(
+            return ScalarType<UP>(
                 FixedFloatConversion::from_float(
                     rand_in_range(
                         min.to_float(),
@@ -919,7 +917,7 @@ namespace NS_${population.name}
         {
             TimeType delivery_time;
             %for param in in_port.parameters:
-            typedef FixedPoint<${param.annotations['fixed-point-format'].upscale}> ${param.symbol}Type; // Upscale: ${param.annotations['fixed-point-format'].upscale}
+            typedef ScalarType<${param.annotations['fixed-point-format'].upscale}> ${param.symbol}Type; // Upscale: ${param.annotations['fixed-point-format'].upscale}
             ${param.symbol}Type ${param.symbol}; // Upscale: ${param.annotations['fixed-point-format'].upscale}
             %endfor
 
@@ -939,7 +937,7 @@ namespace NS_${population.name}
         {
             TimeType delivery_time;
             %for param in in_port.parameters:
-            typedef FixedPoint<${param.annotations['fixed-point-format'].upscale}> ${param.symbol}Type; // Upscale: ${param.annotations['fixed-point-format'].upscale}
+            typedef ScalarType<${param.annotations['fixed-point-format'].upscale}> ${param.symbol}Type; // Upscale: ${param.annotations['fixed-point-format'].upscale}
             ${param.symbol}Type ${param.symbol}; // Upscale: ${param.annotations['fixed-point-format'].upscale}
             %endfor
 
@@ -966,21 +964,21 @@ struct NrnPopData
 
     // Parameters:
     % for p in population.component.parameters:
-    typedef FixedPoint<${p.annotations['fixed-point-format'].upscale}> T_${p.symbol};
+    typedef ScalarType<${p.annotations['fixed-point-format'].upscale}> T_${p.symbol};
     T_${p.symbol} ${p.symbol}[size];
     % endfor
 
     // Assignments:
     % for ass in population.component.assignedvalues:
-    typedef FixedPoint<${ass.annotations['fixed-point-format'].upscale}> T_${ass.symbol};
+    typedef ScalarType<${ass.annotations['fixed-point-format'].upscale}> T_${ass.symbol};
     T_${ass.symbol} ${ass.symbol}[size];
     % endfor
 
     // States:
     % for sv_def in population.component.state_variables:
-    typedef FixedPoint<${sv_def.annotations['fixed-point-format'].upscale}> T_${sv_def.symbol};
+    typedef ScalarType<${sv_def.annotations['fixed-point-format'].upscale}> T_${sv_def.symbol};
     T_${sv_def.symbol} ${sv_def.symbol}[size];
-    typedef FixedPoint<${sv_def.annotations['fixed-point-format'].delta_upscale}> T_d_${sv_def.symbol};
+    typedef ScalarType<${sv_def.annotations['fixed-point-format'].delta_upscale}> T_d_${sv_def.symbol};
     T_d_${sv_def.symbol} d_${sv_def.symbol}[size];
 
     % endfor
@@ -988,26 +986,26 @@ struct NrnPopData
 
     // Supplied:
     % for sv_def in population.component.suppliedvalues:
-    typedef FixedPoint<${sv_def.annotations['fixed-point-format'].upscale}> T_${sv_def.symbol};
+    typedef ScalarType<${sv_def.annotations['fixed-point-format'].upscale}> T_${sv_def.symbol};
     T_${sv_def.symbol} ${sv_def.symbol}[size];
-    //FixedPoint<${sv_def.annotations['fixed-point-format'].upscale}> ${sv_def.symbol}[size];
+    //ScalarType<${sv_def.annotations['fixed-point-format'].upscale}> ${sv_def.symbol}[size];
     % endfor
 
 
     // Random Variable nodes
     %for rv, _pstring in rv_per_population:
-    FixedPoint<${rv.annotations['fixed-point-format'].upscale}> RV${rv.annotations['node-id']};
+    ScalarType<${rv.annotations['fixed-point-format'].upscale}> RV${rv.annotations['node-id']};
     %endfor
     %for rv, _pstring in rv_per_neuron:
-    FixedPoint<${rv.annotations['fixed-point-format'].upscale}> RV${rv.annotations['node-id']}[size];
+    ScalarType<${rv.annotations['fixed-point-format'].upscale}> RV${rv.annotations['node-id']}[size];
     %endfor
 
 
     // AutoRegressive nodes:
     ## %for ar in population.component.autoregressive_model_nodes:
-    ## FixedPoint<${ar.annotations['fixed-point-format'].upscale}> AR${ar.annotations['node-id']}[size];
+    ## ScalarType<${ar.annotations['fixed-point-format'].upscale}> AR${ar.annotations['node-id']}[size];
     ## %for i in range( len( ar.coefficients)):
-    ## FixedPoint<${ar.annotations['fixed-point-format'].upscale}> _AR${ar.annotations['node-id']}_t${i}[size];
+    ## ScalarType<${ar.annotations['fixed-point-format'].upscale}> _AR${ar.annotations['node-id']}_t${i}[size];
     ## %endfor
     ## %endfor
 
@@ -1084,7 +1082,7 @@ void initialise_statevars(NrnPopData& d)
     for(int i=0;i<NrnPopData::size;i++)
     {
         % for sv_def in population.component.state_variables:
-        d.${sv_def.symbol}[i] = FixedPoint<${sv_def.initial_value.annotations['fixed-point-format'].upscale}>( ${sv_def.initial_value.annotations['fixed-point-format'].const_value_as_int} );
+        d.${sv_def.symbol}[i] = ScalarType<${sv_def.initial_value.annotations['fixed-point-format'].upscale}>( ${sv_def.initial_value.annotations['fixed-point-format'].const_value_as_int} );
         % endfor
 
         // Initial regimes:
@@ -1243,7 +1241,7 @@ namespace event_handlers
 void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 {
 
-    const FixedPoint<time_upscale> t = time_info.time_fixed;
+    const ScalarType<time_upscale> t = time_info.time_fixed;
     //assert(t.v>=0); // Suppress compiler warning about unused variable
 
 
@@ -1303,7 +1301,7 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         d.d_${td.lhs.symbol}[i] = ${cs1};
 
 
-        d.${td.lhs.symbol}[i] = FPOP<NrnPopData::T_${td.lhs.symbol}::UP>::add( d.${td.lhs.symbol}[i], d.d_${td.lhs.symbol}[i] ) ;
+        d.${td.lhs.symbol}[i] = ScalarOp<NrnPopData::T_${td.lhs.symbol}::UP>::add( d.${td.lhs.symbol}[i], d.d_${td.lhs.symbol}[i] ) ;
         LOG_COMPONENT_STATEUPDATE( cout << "\n delta:${td.lhs.symbol}: " << d.d_${td.lhs.symbol}[i].to_int()  << " (" << d.d_${td.lhs.symbol}[i].to_float()  << ")" << std::flush; )
         LOG_COMPONENT_STATEUPDATE( cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i].to_int()  << " (" << d.${td.lhs.symbol}[i].to_float()  << ")" << std::flush; )
         % endfor
@@ -1389,7 +1387,7 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 
 void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
 {
-    const FixedPoint<time_upscale> t = time_info.time_fixed;
+    const ScalarType<time_upscale> t = time_info.time_fixed;
     //assert(t.v>=0); // Suppress compiler warning about unused variable
 
     for(int i=0;i<NrnPopData::size;i++)
@@ -1731,7 +1729,7 @@ namespace NS_${projection.name}
         IntType i,j;
         //IntType strength_S;
 
-        FixedPoint<${projection.strength_S_upscale}>  strength_S_fixed;
+        ScalarType<${projection.strength_S_upscale}>  strength_S_fixed;
 
         GapJunction(IntType i, IntType j, IntType strength)
          : i(i), j(j), strength_S_fixed(strength)
@@ -1773,13 +1771,13 @@ namespace NS_${projection.name}
 
         for(GJList::iterator it = gap_junctions.begin(); it != gap_junctions.end();it++)
         {
-            FixedPoint<${curr_upscale}> curr = FPOP<${curr_upscale}>::mul(
-                    FPOP<${v_upscale}>::sub( src.V[get_value32(it->i)], dst.V[get_value32(it->j)] ),
+            ScalarType<${curr_upscale}> curr = ScalarOp<${curr_upscale}>::mul(
+                    ScalarOp<${v_upscale}>::sub( src.V[get_value32(it->i)], dst.V[get_value32(it->j)] ),
                     it->strength_S_fixed
                 );
 
-            src.${pre_iinj_node.symbol}[get_value32(it->i)]  = FPOP<${pre_iinj_node.annotations['fixed-point-format'].upscale}>::sub (src.${pre_iinj_node.symbol}[get_value32(it->i)], curr);
-            src.${post_iinj_node.symbol}[get_value32(it->j)] = FPOP<${post_iinj_node.annotations['fixed-point-format'].upscale}>::add (src.${post_iinj_node.symbol}[get_value32(it->j)], curr);
+            src.${pre_iinj_node.symbol}[get_value32(it->i)]  = ScalarOp<${pre_iinj_node.annotations['fixed-point-format'].upscale}>::sub (src.${pre_iinj_node.symbol}[get_value32(it->i)], curr);
+            src.${post_iinj_node.symbol}[get_value32(it->j)] = ScalarOp<${post_iinj_node.annotations['fixed-point-format'].upscale}>::add (src.${post_iinj_node.symbol}[get_value32(it->j)], curr);
 
         }
 
@@ -1823,7 +1821,7 @@ namespace NS_eventcoupling_${projection.name}
             return;
 
 
-        const FixedPoint<${projection.delay_upscale}> delay( ${projection.delay_int} );
+        const ScalarType<${projection.delay_upscale}> delay( ${projection.delay_int} );
 
         
         string output = "";
@@ -1834,12 +1832,12 @@ namespace NS_eventcoupling_${projection.name}
             <% evt_type = 'NS_%s::input_event_types::InEvent_%s' % (projection.dst_population.population.name, projection.dst_port.symbol)%>
 
 
-            TimeType evt_time = FPOP<time_upscale>::add(time_info.time_fixed, delay);
+            TimeType evt_time = ScalarOp<time_upscale>::add(time_info.time_fixed, delay);
 
             // Create the event, remebering to rescale parameters between source and target appropriately:
             %for p in projection.dst_port.alphabetic_params:
             <% upscale = projection.dst_port.parameters.get_single_obj_by(symbol=p.symbol).annotations['fixed-point-format'].upscale %>
-            FixedPoint<${upscale}> param_${p.symbol}( ${projection.parameter_map[p.symbol].value_scaled_for_target} ) ;
+            ScalarType<${upscale}> param_${p.symbol}( ${projection.parameter_map[p.symbol].value_scaled_for_target} ) ;
             %endfor
 
 
@@ -2284,7 +2282,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
                 assert rv.functionname == 'uniform'
                 params = [ rv.parameters.get_single_obj_by(name='min'), rv.parameters.get_single_obj_by(name='max'), ]
-                param_string = ','.join( "FixedPoint<%d>(%s)" % (p.rhs_ast.annotations['fixed-point-format'].upscale, self.writer.visit( p.rhs_ast)  ) for p in params )
+                param_string = ','.join( "ScalarType<%d>(%s)" % (p.rhs_ast.annotations['fixed-point-format'].upscale, self.writer.visit( p.rhs_ast)  ) for p in params )
 
                 if rv.modes['share']=='PER_NEURON':
                     rv_per_neuron.append( (rv,param_string) )

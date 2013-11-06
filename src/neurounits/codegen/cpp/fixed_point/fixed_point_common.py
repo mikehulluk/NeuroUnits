@@ -86,7 +86,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
         expr_lhs = self.visit(o.lhs, **kwargs)
         expr_rhs = self.visit(o.rhs, **kwargs)
-        res = "FPOP<%d>::%s( %s, %s )" % (
+        res = "ScalarOp<%d>::%s( %s, %s )" % (
                                             o.annotations['fixed-point-format'].upscale,
                                             op,
                                             expr_lhs,
@@ -135,7 +135,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 
         # For BlueVec:
-        L = "FixedPoint<%d>( do_ifthenelse_op(%s, %s, %d, %s, %d ) )"
+        L = "ScalarType<%d>( do_ifthenelse_op(%s, %s, %d, %s, %d ) )"
 
         res = L % (
                     o.annotations['fixed-point-format'].upscale,
@@ -181,7 +181,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
         param = o.parameters.values()[0]
         param_term = self.visit(param.rhs_ast, for_bluevec=for_bluevec, **kwargs)
-        res = """ FPOP<%d>::exp( %s )""" %(o.annotations['fixed-point-format'].upscale, param_term)
+        res = """ ScalarOp<%d>::exp( %s )""" %(o.annotations['fixed-point-format'].upscale, param_term)
         return res
 
 
@@ -203,7 +203,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         delta_upscale = o.lhs.annotations['fixed-point-format'].delta_upscale
-        c1 = "FPOP<%d>::mul(%s , dt_fixed) " % (
+        c1 = "ScalarOp<%d>::mul(%s , dt_fixed) " % (
                 delta_upscale,
                 self.visit(o.rhs_map, **kwargs),
                 )
@@ -246,7 +246,7 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         return self.add_range_check(o, res)
 
     def VisitSymbolicConstant(self, o, **kwargs):
-        res = "FixedPoint<%d>(%d)" % (
+        res = "ScalarType<%d>(%d)" % (
                 o.annotations['fixed-point-format'].upscale,
                 o.annotations['fixed-point-format'].const_value_as_int )
         return self.add_range_check(o, res)
@@ -256,13 +256,13 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         return self.add_range_check(o, res)
 
     def VisitConstant(self, o, **kwargs):
-        res = "FixedPoint<%d>(%d)" % (
+        res = "ScalarType<%d>(%d)" % (
                 o.annotations['fixed-point-format'].upscale,
                 o.annotations['fixed-point-format'].const_value_as_int )
         return self.add_range_check(o, res)
 
     def VisitConstantZero(self, o, **kwargs):
-        res = "FixedPoint<0>(0)"
+        res = "ScalarType<0>(0)"
         return self.add_range_check(o, res)
 
 
