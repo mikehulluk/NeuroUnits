@@ -473,49 +473,6 @@ LookUpTables lookuptables;
 
 
 
-inline IntType do_add_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
-    IntType res = tmpl_fp_ops::do_add_op(v1, up1, v2, up2, up_local, expr_id);
-    return res;
-}
-inline IntType do_sub_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
-    IntType res =  tmpl_fp_ops::do_sub_op(v1, up1, v2, up2, up_local, expr_id);
-    return res;
-}
-
-inline IntType do_mul_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
-    IntType res =  tmpl_fp_ops::do_mul_op(v1, up1, v2, up2, up_local, expr_id);
-    return res;
-}
-
-inline IntType do_div_op(IntType v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
-    IntType res = tmpl_fp_ops::do_div_op(v1, up1, v2, up2, up_local, expr_id);
-    return res;
-}
-
-
-inline IntType do_ifthenelse_op(bool pred, IntType v1, IntType up1, IntType v2, IntType up2){
-    return ( pred ? auto_shift(v1,up1) : auto_shift(v2, up2) );
-}
-
-
-
-template<typename LUTTYPE>
-inline IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id, const LUTTYPE& lut) {
-    IntType res = tmpl_fp_ops::int_exp(v1, up1, up_local, expr_id, lut);
-    //cout << "\n\tExp:" << v1 << " (" << up1 << ") " <<  " -> "  << res << " (" << up_local << ")";
-    return res;
-}
-
-
-
-
-
-
-
-
-
-
-
 namespace IntegerFixedPoint
 {
 
@@ -598,11 +555,10 @@ namespace IntegerFixedPoint
             return FixedPoint<UOUT> (res);
         }
 
-
         template<int U1>
         static inline FixedPoint<UOUT> exp( const FixedPoint<U1>& a)
         {
-            return FixedPoint<UOUT> ( int_exp( a.v, U1, UOUT, -1, lookuptables.exponential ) );
+            return FixedPoint<UOUT> ( tmpl_fp_ops::int_exp( a.v, U1, UOUT, -1, lookuptables.exponential ) );
         }
 
     };
@@ -2318,7 +2274,7 @@ class CBasedEqnWriterFixedNetwork(object):
             component = population.component
 
 
-            self.writer = CBasedFixedWriter(component=population.component, population_access_index='i', data_prefix='d.', as_float=as_float)
+            self.writer = CBasedFixedWriter(component=population.component, population_access_index='i', data_prefix='d.')
 
 
             rv_per_neuron = []

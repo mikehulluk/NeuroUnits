@@ -211,13 +211,20 @@ network.record_input_events( rhs_subpops+lhs_subpops , 'recv_inh_spike' )
 
 
 
+results = CBasedEqnWriterFixedNetwork(
+                    network,
+                    CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
+                    step_size=0.1e-3 / 2.,
+                    run_until=0.95, 
+                    as_float=True,
+                    ).results
 
 
 results = CBasedEqnWriterFixedNetwork(
                     network,
                     CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
                     step_size=0.1e-3 / 2.,
-                    run_until=0.95, #0.75,
+                    run_until=0.95, 
                     as_float=False,
                     ).results
 
