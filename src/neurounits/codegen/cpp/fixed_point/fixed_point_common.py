@@ -304,7 +304,7 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         node_upscale = o.annotations['fixed-point-format'].upscale
 
 
-        rhs = " ScalarType<0>(0) "
+        rhs = "ScalarType<0>(0) "
         for i,coeff_as_int in enumerate(o.annotations['fixed-point-format'].coeffs_as_consts):
             i_prev_value_name = "d._%s_t%d[i]" % (node_name, i)
 
@@ -320,7 +320,7 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         # Lets add the random bit:
         # USE uniform random numbers (hack!) should be gaussian:
 
-        res = """ ScalarOp<%d>::add( 
+        res = """ScalarOp<%d>::add( 
                     ScalarType<0>( rnd::rand_kiss()-((1>>7)*2 >> 8)), 
                     %s )  """ % (
                     node_upscale,
