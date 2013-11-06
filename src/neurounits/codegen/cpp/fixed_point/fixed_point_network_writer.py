@@ -482,6 +482,7 @@ namespace IntegerFixedPoint
     {
         IntType v;
         explicit ScalarType(int v) : v(v) { }
+        //explicit ScalarType(IntType v) : v(v.get_value32()) { }
         ScalarType() {};
 
         const static int UP = UPSCALE;
@@ -573,6 +574,7 @@ namespace DoubleFixedPoint
     {
         double v_float;
         explicit ScalarType(int v) : v_float(FixedFloatConversion::to_float(v, UPSCALE)) { }
+        explicit ScalarType(long unsigned int v) : v_float(FixedFloatConversion::to_float(v, UPSCALE)) { }
         explicit ScalarType(double v) : v_float(v) { }
         ScalarType() {};
 
@@ -675,6 +677,15 @@ using IntegerFixedPoint::ScalarOp;
 %endif
 
 
+
+
+## // Defining VectorTypes:
+## 
+## template<typename SCALARTYPE, int SIZE>
+## struct VectorType
+## {
+## 
+## }:
 
 
 
@@ -793,10 +804,6 @@ namespace rnd
     }
 
 
-
-
-
-
     double rand_in_range(double min, double max)
     {
         double r = (double) rand_kiss() / INT_MAX;
@@ -827,8 +834,6 @@ namespace rnd
 
 
 }
-
-
 
 
 IntType _check_in_range(IntType val, IntType upscale, double min, double max, const std::string& description, bool do_check)
@@ -1002,12 +1007,12 @@ struct NrnPopData
 
 
     // AutoRegressive nodes:
-    ## %for ar in population.component.autoregressive_model_nodes:
-    ## ScalarType<${ar.annotations['fixed-point-format'].upscale}> AR${ar.annotations['node-id']}[size];
-    ## %for i in range( len( ar.coefficients)):
-    ## ScalarType<${ar.annotations['fixed-point-format'].upscale}> _AR${ar.annotations['node-id']}_t${i}[size];
-    ## %endfor
-    ## %endfor
+    %for ar in population.component.autoregressive_model_nodes:
+    ScalarType<${ar.annotations['fixed-point-format'].upscale}> AR${ar.annotations['node-id']}[size];
+    %for i in range( len( ar.coefficients)):
+    ScalarType<${ar.annotations['fixed-point-format'].upscale}> _AR${ar.annotations['node-id']}_t${i}[size];
+    %endfor
+    %endfor
 
 
     // Regimes:
@@ -1047,15 +1052,14 @@ void set_supplied_values_to_zero(NrnPopData& d)
 
 void initialise_autoregressivenodes(NrnPopData& d)
 {
-    ## // TO REINSTATE:
-    ## /*
-    ## %for ar in population.component.autoregressive_model_nodes:
-    ## for(int i=0;i<NrnPopData::size;i++) d.AR${ar.annotations['node-id']}[i] = 0;
-    ## %for i in range( len( ar.coefficients)):
-    ## for(int i=0;i<NrnPopData::size;i++) d._AR${ar.annotations['node-id']}_t${i}[i] = 0;
-    ## %endfor
-    ## %endfor
-    ## */
+     // TO REINSTATE:
+     %for ar in population.component.autoregressive_model_nodes:
+     for(int i=0;i<NrnPopData::size;i++) d.AR${ar.annotations['node-id']}[i] = ScalarType<${ar.annotations['fixed-point-format'].upscale}>(0);
+     %for i in range( len( ar.coefficients)):
+     for(int i=0;i<NrnPopData::size;i++) d._AR${ar.annotations['node-id']}_t${i}[i] = ScalarType<${ar.annotations['fixed-point-format'].upscale}>(0);
+     %endfor
+     %endfor
+
 }
 
 void initialise_randomvariables(NrnPopData& d)
@@ -1271,21 +1275,21 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         cout << "\nUpdates:";
         )
 
-        ## // To reinstate:
-        ## // // Calculate the autoregressive nodes:
-        ## // %for ar in population.component.autoregressive_model_nodes:
-        ## // //Update the current value:
-        ## // d.${writer.to_c(ar)}[i] = ${writer.VisitAutoRegressiveModelUpdate(ar)};
-        ## // // Save the old values:
-        ## // %for i in range( len( ar.coefficients) -1 ):
-        ## // %if i==0:
-        ## // d._AR${ar.annotations['node-id']}_t0[i] = d.AR${ar.annotations['node-id']}[i];
-        ## // %else:
-        ## // d._AR${ar.annotations['node-id']}_t${i}[i] = d._AR${ar.annotations['node-id']}_t${i+1}[i] = 0;
-        ## // %endif
-        ## // %endfor
+         // To reinstate:
+         // // Calculate the autoregressive nodes:
+         %for ar in population.component.autoregressive_model_nodes:
+         //Update the current value:
+         d.${writer.to_c(ar)}[i] = ${writer.VisitAutoRegressiveModelUpdate(ar)};
+         // Save the old values:
+         %for i in range( len( ar.coefficients) -1 ):
+         %if i==0:
+         d._AR${ar.annotations['node-id']}_t0[i] = d.AR${ar.annotations['node-id']}[i];
+         %else:
+         d._AR${ar.annotations['node-id']}_t${i}[i] = d._AR${ar.annotations['node-id']}_t${i+1}[i] = 0;
+         %endif
+         %endfor
 
-        ## // %endfor
+         %endfor
 
 
 

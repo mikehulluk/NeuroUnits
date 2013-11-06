@@ -301,32 +301,30 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         # Upscaling of the coefficients, (by default probably between zero and 1
 
         node_name = 'AR%s' % o.annotations['node-id']
-        #node = "d.%s" % node_name
-        #update = " 0"
         node_upscale = o.annotations['fixed-point-format'].upscale
 
 
-        rhs = " 0 "
+        rhs = " ScalarType<0>(0) "
         for i,coeff_as_int in enumerate(o.annotations['fixed-point-format'].coeffs_as_consts):
             i_prev_value_name = "d._%s_t%d[i]" % (node_name, i)
-            rhs_term = "do_mul_op(%s, IntType(%d), IntType(%d), IntType(%d), IntType(%d), -1)" % (
-                    i_prev_value_name,
-                    node_upscale,
-                    coeff_as_int,
-                    o.annotations['fixed-point-format'].coefficient_upscale,
-                    node_upscale,
-                    )
 
-            rhs = """do_add_op( %s, IntType(%d), %s, IntType(%d), IntType(%d), -1 )""" %(
-                        rhs, node_upscale, rhs_term, node_upscale, node_upscale)
+            rhs_term = "ScalarOp<%d>::mul( %s, ScalarType<%d>(%d) )" %(
+                        node_upscale,
+                        i_prev_value_name,
+                        o.annotations['fixed-point-format'].coefficient_upscale,
+                        coeff_as_int)
+
+            rhs = """ScalarOp<%d>::add(%s, %s) """ % (node_upscale, rhs, rhs_term)
+
 
         # Lets add the random bit:
         # USE uniform random numbers (hack!) should be gaussian:
 
-        res = " do_add_op( ((IntType(rnd::rand_kiss())-(1>>7))*2 >> 8), IntType(0), %s, IntType(%d), IntType(%d), -1)  " % (
+        res = """ ScalarOp<%d>::add( 
+                    ScalarType<0>( rnd::rand_kiss()-((1>>7)*2 >> 8)), 
+                    %s )  """ % (
+                    node_upscale,
                     rhs,
-                    node_upscale,
-                    node_upscale,
                 )
 
 
@@ -334,7 +332,6 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
 
     def VisitAutoRegressiveModel(self, o, **kwargs):
         node_name = 'AR%s' % o.annotations['node-id']
-        #%node = "d.%s" % node_name
         return self.get_var_str( node_name )
 
 
@@ -371,84 +368,3 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
 
 
 
-#class CBasedFixedWriterBlueVec(CBasedFixedWriterStd):
-#
-#    def __init__(self, component):
-#        super(CBasedFixedWriterBlueVec, self).__init__()
-#        #self.population_access_index=population_access_index
-#
-#    def get_var_str(self, name):
-#        s =  "d.%s" % name
-#        if self.population_access_index!=None:
-#            s += '[%s]'%self.population_access_index
-#        return s
-#
-#
-#    def VisitFunctionDefParameter(self, o):
-#        assert False
-#        res = o.symbol
-#        return self.add_range_check(o, res)
-#
-#    def VisitStateVariable(self, o):
-#        res = self.get_var_str(o.symbol)
-#        return self.add_range_check(o, res)
-#
-#    def VisitParameter(self, o):
-#        res = self.get_var_str(o.symbol)
-#        return self.add_range_check(o, res)
-#
-#    def VisitSymbolicConstant(self, o):
-#        res = "IntType(%d)" % o.annotations['fixed-point-format'].const_value_as_int
-#        return self.add_range_check(o, res)
-#
-#    def VisitAssignedVariable(self, o):
-#        res = self.get_var_str(o.symbol)
-#        return self.add_range_check(o, res)
-#
-#    def VisitConstant(self, o):
-#        res = "IntType(%d)" % o.annotations['fixed-point-format'].const_value_as_int
-#        return self.add_range_check(o, res)
-#
-#    def VisitConstantZero(self, o):
-#        res = "IntType(0)"
-#        return self.add_range_check(o, res)
-#
-#
-#    def VisitSuppliedValue(self, o):
-#        if o.symbol == 't':
-#            return 't'
-#        return self.get_var_str(o.symbol)
-#
-#
-#
-#    def VisitRandomVariable(self, o):
-#
-#        assert o.modes['when'] in ('SIM_INIT')
-#        assert o.modes['share'] in ('PER_NEURON', 'PER_POPULATION')
-#
-#        node_name = 'RV%s' % o.annotations['node-id']
-#
-#        if o.modes['share'] =='PER_NEURON':
-#            res = 'd.%s[i]' % node_name
-#        elif o.modes['share'] == 'PER_POPULATION':
-#            res = 'd.%s' % node_name
-#        else:
-#            assert False
-#
-#
-#        return self.add_range_check(o, res)
-#
-#
-#    def VisitOnEventStateAssignment(self, o):
-#        rhs_c = self.visit(o.rhs)
-#        rhs_str = "%s = auto_shift( %s, IntType(%d) )" % (
-#                self.get_var_str(o.lhs.symbol),
-#                rhs_c, o.rhs.annotations['fixed-point-format'].upscale - o.lhs.annotations['fixed-point-format'].upscale )
-#        return rhs_str
-#
-#    def VisitEmitEvent(self, o):
-#        return 'event_handlers::on_%s(IntType(i), time_info)'% o.port.symbol
-#
-#
-#    def VisitOnEventDefParameter(self, o):
-#        return 'evt.%s' % o.symbol

@@ -71,6 +71,10 @@ filters_traces = [
    "ALL{V,cIN,LHS}",
    "ALL{V,MN,RHS}",
    "ALL{V,MN,LHS}",
+
+   "ALL{dIN,V_vnoisy,RHS}",
+   "ALL{dIN,V_vnoisy,LHS}",
+   "ALL{V,MN,LHS}",
    ]
 
 results.plot(trace_filters=filters_traces, legend=False, xlim=xlim )
