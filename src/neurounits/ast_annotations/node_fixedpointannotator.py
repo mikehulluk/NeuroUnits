@@ -154,6 +154,8 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         pass
     def ActionInEquality(self, o):
         pass
+    def ActionOnConditionCrossing(self, o):
+        pass
     def ActionFunctionDefParameter(self, o):
         pass
     def ActionFunctionDefBuiltIn(self, o):

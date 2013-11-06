@@ -40,9 +40,9 @@ if not use_cache:
         os.unlink(cache_file)
 
 if not os.path.exists(cache_file):
+    dIN_comp = dIN_model.get_dIN(nbits=24)
     MN_comp = mn_model.get_MN(nbits=24)
     RB_input = rb_input_model.get_rb_input(nbits=24)
-    dIN_comp = dIN_model.get_dIN(nbits=24)
     with open(cache_file,'w') as f:
         pickle.dump([dIN_comp, MN_comp, RB_input], f, )
 

@@ -131,10 +131,10 @@ class ASTAllConnections(ASTActionerDepthFirst):
 
 
 
-    
+
     def VisitRandomVariable(self, o, **kwargs):
         return list(o.parameters)
-    
+
     def VisitRandomVariableParameter(self, o, **kwargs):
         return [o.rhs_ast]
 
@@ -149,6 +149,9 @@ class ASTAllConnections(ASTActionerDepthFirst):
 
     def VisitInEquality(self, o, **kwargs):
         return [o.lesser_than, o.greater_than]
+
+    def VisitOnConditionCrossing(self, o, **kwargs):
+        return [o.crosses_lhs, o.crosses_rhs]
 
     def VisitBoolAnd(self, o, **kwargs):
         return [o.lhs, o.rhs]
@@ -239,6 +242,8 @@ class ASTAllConnections(ASTActionerDepthFirst):
     def VisitOnConditionTriggerTransition(self, o, **kwargs):
         return [o.trigger, o.src_regime, o.target_regime ] + list(o.actions)
     def VisitOnCrossesTriggerTransition(self, o, **kwargs):
+        assert False, 'Deprecated Nov 2013'
+
         return [o.crosses_lhs, o.crosses_rhs, o.src_regime, o.target_regime ] + list(o.actions)
 
     def VisitOnTransitionEvent(self, o, **kwargs):

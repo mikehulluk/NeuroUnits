@@ -149,6 +149,21 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 
 
+
+    def _VisitOnConditionCrossing(self, o, **kwargs):
+        ann_lt_upscale = o.crosses_lhs.annotations['fixed-point-format'].upscale
+        ann_gt_upscale = o.crosses_rhs.annotations['fixed-point-format'].upscale
+
+        if ann_lt_upscale < ann_gt_upscale:
+            res= "( ((%s).to_int() >>IntType(%d)) < ( (%s).to_int()) )" %( self.visit(o.crosses_lhs, **kwargs), (ann_gt_upscale-ann_lt_upscale),  self.visit(o.crosses_rhs, **kwargs) )
+        elif ann_lt_upscale > ann_gt_upscale:
+            res= "( (%s).to_int() < ( (%s).to_int() >>IntType(%d)))" %( self.visit(o.crosses_lhs, **kwargs), self.visit(o.crosses_rhs, **kwargs), (ann_lt_upscale-ann_gt_upscale) )
+        else:
+            res= "( (%s).to_int() < (%s).to_int() )" %( self.visit(o.crosses_lhs, **kwargs), self.visit(o.crosses_rhs, **kwargs) )
+        return res
+
+
+
     def VisitInEquality(self, o, **kwargs):
         ann_lt_upscale = o.lesser_than.annotations['fixed-point-format'].upscale
         ann_gt_upscale = o.greater_than.annotations['fixed-point-format'].upscale
@@ -161,6 +176,23 @@ class CBasedFixedWriterStd(ASTVisitorBase):
             res= "( (%s).to_int() < (%s).to_int() )" %( self.visit(o.lesser_than, **kwargs), self.visit(o.greater_than, **kwargs) )
         return res
 
+
+
+    def VisitOnConditionCrossing(self, o, **kwargs):
+        node_name = "d.C_%s_lhs_is_gt_rhs[i]" % o.annotations['node-id']
+        node_name_prev = "d.C_%s_lhs_is_gt_rhs_prev[i]" % o.annotations['node-id']
+        expr = None
+        if o.on_rising and o.on_falling:
+            expr = "(%s != %s)" % (node_name_prev, node_name)
+        elif o.on_rising and not o.on_falling:
+            expr = "((%s == false) && (%s==true))" % (node_name_prev, node_name)
+        elif not o.on_rising and o.on_falling:
+            expr = "((%s == true) && (%s==false))" % (node_name_prev, node_name)
+        else:
+            assert False
+
+
+        return "(is_condition_activation_guard && %s)" % expr
 
 
     def VisitBoolAnd(self, o, **kwargs):
@@ -296,7 +328,7 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
 
 
     def VisitAutoRegressiveModelUpdate(self, o, **kwargs):
-        print 'AR updscale: ', o.annotations['fixed-point-format'].upscale
+        print 'AR upscale: ', o.annotations['fixed-point-format'].upscale
 
         # Upscaling of the coefficients, (by default probably between zero and 1
 

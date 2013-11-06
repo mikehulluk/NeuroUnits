@@ -153,6 +153,12 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         o.greater_than = self.followSymbolProxy(o.greater_than)
         self.visit(o.lesser_than)
         self.visit(o.greater_than)
+    
+    def VisitOnConditionCrossing(self, o, **kwargs):
+        o.crosses_lhs = self.followSymbolProxy(o.crosses_lhs)
+        o.crosses_rhs = self.followSymbolProxy(o.crosses_rhs)
+        self.visit(o.crosses_lhs)
+        self.visit(o.crosses_rhs)
 
     def VisitBoolAnd(self, o, **kwargs):
         o.lhs = self.followSymbolProxy(o.lhs)
@@ -203,6 +209,8 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         self.visit(o.trigger)
 
     def VisitOnCrossesTriggerTransition(self, o, **kwargs):
+        assert False, 'Deprecated Nov 2013'
+
         for a in o.actions:
             self.visit(a)
         o.crosses_lhs = self.followSymbolProxy(o.crosses_lhs)

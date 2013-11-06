@@ -106,6 +106,11 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         self.visit(o.lesser_than, **kwargs)
         self.visit(o.greater_than, **kwargs)
         self._ActionInEquality(o, **kwargs)
+    
+    def VisitOnConditionCrossing(self, o, **kwargs):
+        self.visit(o.crosses_lhs, **kwargs)
+        self.visit(o.crosses_rhs, **kwargs)
+        self._ActionOnConditionCrossing(o, **kwargs)
 
     def VisitBoolAnd(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
@@ -236,6 +241,8 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         self._ActionOnConditionTriggerTransition(o, **kwargs)
 
     def VisitOnCrossesTriggerTransition(self, o, **kwargs):
+        assert False, 'Deprecated Nov 2013'
+
         self.visit(o.crosses_lhs, **kwargs)
         self.visit(o.crosses_rhs, **kwargs)
         for a in o.actions:
@@ -342,6 +349,10 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def _ActionInEquality(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionInEquality(o, **kwargs)
+    
+    def _ActionOnConditionCrossing(self, o, **kwargs):
+        if self._ActionPredicate(o, **kwargs):
+            return self.ActionOnConditionCrossing(o, **kwargs)
 
     def _ActionBoolAnd(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):

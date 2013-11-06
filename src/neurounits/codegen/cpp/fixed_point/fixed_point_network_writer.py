@@ -139,9 +139,9 @@ struct DebugCfg
 #else // RUNTIME_LOGGING_ON
 
 #define LOG_COMPONENT_STATEUPDATE(a)
-#define LOG_COMPONENT_EVENTDISPATCH(a) 
+#define LOG_COMPONENT_EVENTDISPATCH(a)
 //#define LOG_COMPONENT_EVENTHANDLER(a)
-#define LOG_COMPONENT_EVENTHANDLER(a) 
+#define LOG_COMPONENT_EVENTHANDLER(a)
 #define LOG_COMPONENT_TRANSITION(a)
 
 #define CHECK_IN_RANGE_NODE(a,b,c,d,e) (a)
@@ -680,11 +680,11 @@ using IntegerFixedPoint::ScalarOp;
 
 
 ## // Defining VectorTypes:
-## 
+##
 ## template<typename SCALARTYPE, int SIZE>
 ## struct VectorType
 ## {
-## 
+##
 ## }:
 
 
@@ -1014,6 +1014,11 @@ struct NrnPopData
     %endfor
     %endfor
 
+    // Crossing Nodes:
+    %for cc in population.component.conditioncrosses_nodes:
+    bool C_${cc.annotations['node-id']}_lhs_is_gt_rhs[size];
+    bool C_${cc.annotations['node-id']}_lhs_is_gt_rhs_prev[size];
+    %endfor
 
     // Regimes:
     %for rtgraph in population.component.rt_graphs:
@@ -1046,6 +1051,8 @@ void set_supplied_values_to_zero(NrnPopData& d)
     for(int i=0;i<NrnPopData::size;i++) d.${sv_def.symbol}[i] = NrnPopData::T_${sv_def.symbol}( 0 );
 % endfor
 }
+
+
 
 
 
@@ -1182,8 +1189,6 @@ namespace event_handlers
                     // Handle the event:
                     LOG_COMPONENT_EVENTHANDLER( std::cout << "\nHandling InputEvent: ${population.name}[" << i << "]::${tr.port.symbol}:"; )
 
-
-
                     %for poprec in network.all_input_event_recordings:
                     %if (poprec.src_population == population) and (poprec.node == tr.port) :
                     // Lets record!
@@ -1193,9 +1198,6 @@ namespace event_handlers
                     }
                     %endif
                     %endfor
-
-
-
 
 
                      // Actions ...
@@ -1310,6 +1312,18 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         LOG_COMPONENT_STATEUPDATE( cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i].to_int()  << " (" << d.${td.lhs.symbol}[i].to_float()  << ")" << std::flush; )
         % endfor
 
+
+
+        // Crossing Nodes:
+        %for cc in population.component.conditioncrosses_nodes:
+        // Copy the old value accross:
+        d.C_${cc.annotations['node-id']}_lhs_is_gt_rhs_prev[i] = d.C_${cc.annotations['node-id']}_lhs_is_gt_rhs[i];
+        // Calculate the next value:
+        d.C_${cc.annotations['node-id']}_lhs_is_gt_rhs[i] = ${writer._VisitOnConditionCrossing(cc)};
+
+        %endfor
+
+
     }
 
 #endif
@@ -1391,6 +1405,10 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 
 void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
 {
+    
+    // Make sure that we skip 2 steps before activating any crossing conditions:
+    const bool is_condition_activation_guard = (time_info.step_count > 2);
+
     const ScalarType<time_upscale> t = time_info.time_fixed;
     //assert(t.v>=0); // Suppress compiler warning about unused variable
 
@@ -1419,6 +1437,10 @@ void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
 
             // ==== Triggered Transitions: ====
             %for tr in population.component.conditiontriggertransitions_from_regime(regime):
+            ${trigger_transition_block(tr=tr, rtgraph=rtgraph)}
+            %endfor
+
+            %for tr in population.component.crossestriggertransitions_from_regime(regime):
             ${trigger_transition_block(tr=tr, rtgraph=rtgraph)}
             %endfor
 
@@ -1827,7 +1849,7 @@ namespace NS_eventcoupling_${projection.name}
 
         const ScalarType<${projection.delay_upscale}> delay( ${projection.delay_int} );
 
-        
+
         string output = "";
 
         TargetList& targets = projections[get_value32(src_neuron - ${projection.src_population.start_index} )];
@@ -1853,7 +1875,7 @@ namespace NS_eventcoupling_${projection.name}
 
             output += boost::lexical_cast<string>(tgt_nrn_index) + ",";
         }
-        
+
         LOG_COMPONENT_EVENTDISPATCH( cout << "\n   -> Disptached to indices: [" << output << "]"; )
 
 

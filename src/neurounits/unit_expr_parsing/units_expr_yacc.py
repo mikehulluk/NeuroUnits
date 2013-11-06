@@ -409,10 +409,10 @@ def p_open_new_scope(p):
     p.parser.library_manager.get_current_block_builder().open_new_scope()
 
 def p_parse_on_transition_trigger(p):
-    """on_transition : ON LBRACKET bool_expr RBRACKET LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
-    trigger = p[3]
-    actions = p[6]
-    target_regime = p[7]
+    """on_transition : ON bool_expr LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
+    trigger = p[2]
+    actions = p[4]
+    target_regime = p[5]
     p.parser.library_manager.get_current_block_builder().close_scope_and_create_transition_conditiontrigger(trigger=trigger, actions=actions, target_regime=target_regime)
 
 
@@ -425,26 +425,27 @@ def p_parse_on_transition_event(p):
     p.parser.library_manager.get_current_block_builder().close_scope_and_create_transition_event(event_name=event_name, event_params=event_params, actions=actions, target_regime=target_regime)
 
 
-def p_parse_on_transition_trigger_crosses(p):
-    """on_transition : ON LBRACKET  crosses_expr  RBRACKET  LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
-    (crosses_lhs,crosses_rhs), (on_rising, on_falling) = p[3]
-    actions = p[6]
-    target_regime = p[7]
-    p.parser.library_manager.get_current_block_builder().close_scope_and_create_transition_crossestrigger(
-            crosses_lhs=crosses_lhs, crosses_rhs=crosses_rhs,
-            on_rising=on_rising, on_falling=on_falling,
-            actions=actions, target_regime=target_regime)
-
-
+#def p_parse_on_transition_trigger_crosses(p):
+#    """on_transition : ON LBRACKET  crosses_expr  RBRACKET  LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
+#    (crosses_lhs,crosses_rhs), (on_rising, on_falling) = p[3]
+#    actions = p[6]
+#    target_regime = p[7]
+#    p.parser.library_manager.get_current_block_builder().close_scope_and_create_transition_crossestrigger(
+#            crosses_lhs=crosses_lhs, crosses_rhs=crosses_rhs,
+#            on_rising=on_rising, on_falling=on_falling,
+#            actions=actions, target_regime=target_regime)
+#
+#
 def p_parse_on_transition_trigger_crosses_expr0(p):
     """crosses_expr : rhs_term CROSSES rhs_term """
-    p[0] = (p[1], p[3]),(True,True)
+    p[0] = ast.OnConditionCrossing(crosses_lhs=p[1], crosses_rhs=p[3], on_rising=True, on_falling=True)
+
 def p_parse_on_transition_trigger_crosses_expr1(p):
     """crosses_expr : rhs_term CROSSES LBRACKET RISING RBRACKET rhs_term """
-    p[0] = (p[1], p[6]),(True,False)
+    p[0] = ast.OnConditionCrossing(crosses_lhs=p[1], crosses_rhs=p[6], on_rising=True, on_falling=False)
 def p_parse_on_transition_trigger_crosses_expr2(p):
     """crosses_expr : rhs_term CROSSES LBRACKET FALLING RBRACKET rhs_term """
-    p[0] = (p[1], p[6]),(False,True)
+    p[0] = ast.OnConditionCrossing(crosses_lhs=p[1], crosses_rhs=p[6], on_rising=False, on_falling=True)
 
 
 
@@ -893,6 +894,17 @@ def p_bool_term_c(p):
 
     p[0] = ast.BoolAnd(t1, t2)
 
+# Allow 'crosses exoressions in boolean expressions'
+def p_bool_term_d(p):
+    """bool_term : crosses_expr"""
+    p[0] = p[1]
+
+
+
+
+
+
+
 
 
 
@@ -926,7 +938,6 @@ def p_bool_term4(p):
 
 def p_rhs_term_conditional(p):
     """rhs_term : LSQUAREBRACKET rhs_generic RSQUAREBRACKET IF LSQUAREBRACKET bool_expr RSQUAREBRACKET ELSE LSQUAREBRACKET rhs_generic RSQUAREBRACKET"""
-    #            | LBRACKET rhs_generic RBRACKET IF LBRACKET bool_expr RBRACKET ELSE LBRACKET rhs_generic RBRACKET"""
     p[0] = ast.IfThenElse(predicate=p[6],
                         if_true_ast=p[2],
                         if_false_ast=p[10])
@@ -1225,7 +1236,7 @@ class ParserMgr(object):
     def build_parser(cls, start_symbol, debug):
 
         debug=True
-        debug=False
+        #debug=False
 
         from neurounits.nulogging import log_neurounits
         log_neurounits.info('Building Parser for: %s' % start_symbol)
@@ -1233,7 +1244,7 @@ class ParserMgr(object):
 
         username = 'tmp_%d' % os.getuid()
         tables_loc = EnsureExisits('/tmp/%s/nu/yacc/parse_eqn_block' % username)
-        parser = yacc.yacc(debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1, errorlog=log_neurounits,  )
+        parser = yacc.yacc(debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1) #, errorlog=log_neurounits,  )
 
         return parser
 
@@ -1241,7 +1252,7 @@ class ParserMgr(object):
     def get_parser(cls, start_symbol, debug):
 
         debug=True
-        debug=False
+        #debug=False
 
         k = (start_symbol, debug)
         if not k in cls.parsers:

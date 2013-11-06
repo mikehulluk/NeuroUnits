@@ -146,21 +146,58 @@ class OnConditionTriggerTransition(Transition):
     def accept_visitor(self, v, **kwargs):
         return v.VisitOnConditionTriggerTransition(self, **kwargs)
 
-class OnCrossesTriggerTransition(Transition):
 
-    def __init__(self, crosses_lhs, crosses_rhs, on_rising=True, on_falling=True, **kwargs):
-        super(OnCrossesTriggerTransition, self).__init__(**kwargs)
-        self.crosses_lhs = crosses_lhs
-        self.crosses_rhs = crosses_rhs
-        self.on_rising = on_rising
-        self.on_falling = on_falling
 
-    def __repr__(self):
-        return '<CrossesTriggerTransition %s -> %s (%d actions)>' % (repr(self.src_regime), repr(self.target_regime), len(self.actions))
+#class OnConditionEquality(ASTObject):
+#    def __init__(self, bool_expr):
+#        super(OnConditionEquality, self).__init__()
+#        self.bool_expr = bool_expr
+#    def accept_visitor(self, v, **kwargs):
+#        return v.VisitOnConditionEquality(self, **kwargs)
+#
+#
+#
+#class OnConditionNot(ASTObject):
+#    def __init__(self, lhs):
+#        super(OnConditionNot, self).__init__()
+#        self.lhs = lhs
+#    def accept_visitor(self, v, **kwargs):
+#        return v.VisitOnConditionNot(self, **kwargs)
+#
+#class OnConditionAnd(ASTObject):
+#    def __init__(self, lhs, rhs):
+#        super(OnConditionAnd, self).__init__()
+#        self.lhs = lhs
+#        self.rhs = rhs
+#    def accept_visitor(self, v, **kwargs):
+#        return v.VisitOnConditionAnd(self, **kwargs)
+#
+#class OnConditionOr(ASTObject):
+#    def __init__(self, lhs, rhs):
+#        super(OnConditionOr, self).__init__()
+#        self.lhs = lhs
+#        self.rhs = rhs
+#    def accept_visitor(self, v, **kwargs):
+#        return v.VisitOnConditionOr(self, **kwargs)
 
-    def accept_visitor(self, v, **kwargs):
-        return v.VisitOnCrossesTriggerTransition(self, **kwargs)
 
+
+
+#class OnCrossesTriggerTransition(Transition):
+#
+#    def __init__(self, crosses_lhs, crosses_rhs, on_rising=True, on_falling=True, **kwargs):
+#        super(OnCrossesTriggerTransition, self).__init__(**kwargs)
+#        self.crosses_lhs = crosses_lhs
+#        self.crosses_rhs = crosses_rhs
+#        self.on_rising = on_rising
+#        self.on_falling = on_falling
+#
+#    def __repr__(self):
+#        return '<CrossesTriggerTransition %s -> %s (%d actions)>' % (repr(self.src_regime), repr(self.target_regime), len(self.actions))
+#
+#    def accept_visitor(self, v, **kwargs):
+#        return v.VisitOnCrossesTriggerTransition(self, **kwargs)
+#
 
 
 

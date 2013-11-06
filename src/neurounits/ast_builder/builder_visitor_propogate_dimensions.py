@@ -132,7 +132,9 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
         self.verify_equal_units([o, o.if_true_ast, o.if_false_ast])
 
     def ActionInEquality(self, o, **kwargs):
-        pass
+        self.verify_equal_units([o.lesser_than, o.greater_than])
+    def ActionOnConditionCrossing(self, o, **kwargs):
+        self.verify_equal_units([o.crosses_lhs, o.crosses_rhs])
 
     def ActionBoolAnd(self, o, **kwargs):
         pass
@@ -409,6 +411,8 @@ class DimensionResolver(ASTVisitorBase):
 
     def VisitInEquality(self, o, **kwargs):
         self.EnsureEqualDimensions([o.lesser_than, o.greater_than])
+    def VisitOnConditionCrossing(self, o, **kwargs):
+        self.EnsureEqualDimensions([o.crosses_lhs, o.crosses_rhs])
 
     def VisitBoolAnd(self, o, **kwargs):
         pass
@@ -661,11 +665,12 @@ class DimensionResolver(ASTVisitorBase):
         self.visit(o.trigger)
 
     def VisitOnCrossesTriggerTransition(self, o, **kwargs):
-        self.EnsureEqualDimensions([o.crosses_lhs, o.crosses_rhs],)
-        for a in o.actions:
-            self.visit(a)
-        self.visit(o.crosses_lhs)
-        self.visit(o.crosses_rhs)
+        assert False, 'Deprecated Nov 2013'
+        #self.EnsureEqualDimensions([o.crosses_lhs, o.crosses_rhs],)
+        #for a in o.actions:
+        #    self.visit(a)
+        #self.visit(o.crosses_lhs)
+        #self.visit(o.crosses_rhs)
 
     def VisitOnTransitionEvent(self, o, **kwargs):
         for p in o.parameters:

@@ -269,6 +269,11 @@ class _DependancyFinder(ASTVisitorBase):
         d2 = self.visit(o.greater_than, **kwargs)
         return d1 + d2
 
+    @save_deps_for_node
+    def VisitOnConditionCrossing(self, o, **kwargs):
+        d1 = self.visit(o.crosses_lhs, **kwargs)
+        d2 = self.visit(o.crosses_rhs, **kwargs)
+        return d1 + d2
 
     def VisitBoolAnd(self, o, **kwargs):
         d1 = self.visit(o.lhs, **kwargs)

@@ -206,27 +206,30 @@ def get_dIN(nbits):
 
 
 
-        #on ( V crosses (rising) 0V ) {
-        #    emit spike()
-        #};
+        on (V crosses (rising) 0V) and (t>3ms)  {
+            emit spike()
+        };
 
-        #on ( V crosses (falling) 0V ) {
-        #    emit falling_spike()
-        #};
-
+        on ( V crosses (falling) 0V ) {
+            emit falling_spike()
+        };
 
         regime sub{
-            on (V > 0mV) {
-                emit spike()
-                transition_to super
-            };
+
         }
-        regime super{
-           #on (V < -10mV) {
-           on (V < 0mV) {
-            transition_to sub
-            };
-        }
+
+        #regime sub{
+        #    on (V > 0mV) {
+        #        emit spike()
+        #        transition_to super
+        #    };
+        #}
+        #regime super{
+        #   #on (V < -10mV) {
+        #   on (V < 0mV) {
+        #    transition_to sub
+        #    };
+        #}
 
 
         initial {

@@ -77,10 +77,19 @@ class IfThenElse(ASTExpressionObject):
         self.if_true_ast = if_true_ast
         self.if_false_ast = if_false_ast
 
+        # Sanity check:
+        assert isinstance( predicate, ASTBooleanExpression)
+        assert predicate._is_allowed_in_ifthenelse()
 
 
 
-class InEquality(ASTObject):
+
+class ASTBooleanExpression(ASTObject):
+    def _is_allowed_in_ifthenelse(self):
+        raise NotImplementedError()
+
+
+class InEquality(ASTBooleanExpression):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitInEquality(self, **kwargs)
@@ -90,8 +99,29 @@ class InEquality(ASTObject):
         self.lesser_than = lesser_than
         self.greater_than = greater_than
 
+    def _is_allowed_in_ifthenelse(self):
+        return True
 
-class BoolAnd(ASTObject):
+
+class OnConditionCrossing(ASTBooleanExpression):
+    def __init__(self, crosses_lhs, crosses_rhs, on_rising=True, on_falling=True, **kwargs):
+        super(OnConditionCrossing, self).__init__()
+        self.crosses_lhs = crosses_lhs
+        self.crosses_rhs = crosses_rhs
+        self.on_rising = on_rising
+        self.on_falling = on_falling
+
+    def accept_visitor(self, v, **kwargs):
+        return v.VisitOnConditionCrossing(self, **kwargs)
+
+    def _is_allowed_in_ifthenelse(self):
+        return False
+
+
+
+
+
+class BoolAnd(ASTBooleanExpression):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitBoolAnd(self, **kwargs)
@@ -101,8 +131,10 @@ class BoolAnd(ASTObject):
         self.lhs = lhs
         self.rhs = rhs
 
+    def _is_allowed_in_ifthenelse(self):
+        return self.lhs._is_allowed_in_ifthenelse() and self.rhs._is_allowed_in_ifthenelse()
 
-class BoolOr(ASTObject):
+class BoolOr(ASTBooleanExpression):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitBoolOr(self, **kwargs)
@@ -112,8 +144,10 @@ class BoolOr(ASTObject):
         self.lhs = lhs
         self.rhs = rhs
 
+    def _is_allowed_in_ifthenelse(self):
+        return self.lhs._is_allowed_in_ifthenelse() and self.rhs._is_allowed_in_ifthenelse()
 
-class BoolNot(ASTObject):
+class BoolNot(ASTBooleanExpression):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitBoolNot(self, **kwargs)
@@ -122,6 +156,8 @@ class BoolNot(ASTObject):
         super(BoolNot, self).__init__(**kwargs)
         self.lhs = lhs
 
+    def _is_allowed_in_ifthenelse(self):
+        return self.lhs._is_allowed_in_ifthenelse()
 
 
 

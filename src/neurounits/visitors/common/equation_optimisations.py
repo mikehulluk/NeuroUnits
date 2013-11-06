@@ -97,9 +97,6 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
 
 
     def _ActionBinOp(self, o, op):
-#        #print 'BinOp'
-#        #print '  -', o.lhs
-#        #print '  -', o.rhs
         if self.const_value[o.lhs] is None or self.const_value[o.rhs] is None:
             self.const_value[o] = None
         else:
@@ -222,6 +219,8 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
 
 
     def ActionInEquality(self, o, **kwargs):
+        pass # TODO: Optimisation here?
+    def ActionOnConditionCrossing(self, o, **kwargs):
         pass # TODO: Optimisation here?
 
     def ActionBoolAnd(self, o, **kwargs):

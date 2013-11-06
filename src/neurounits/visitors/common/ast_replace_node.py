@@ -205,6 +205,11 @@ class ReplaceNode(ASTVisitorBase):
         o.lesser_than = self.replace_or_visit(o.lesser_than)
         o.greater_than = self.replace_or_visit(o.greater_than)
         return o
+    
+    def VisitOnConditionCrossing(self, o, **kwargs):
+        o.crosses_lhs = self.replace_or_visit(o.crosses_lhs)
+        o.crosses_rhs = self.replace_or_visit(o.crosses_rhs)
+        return o
 
     def VisitBoolAnd(self, o, **kwargs):
         o.lhs = self.replace_or_visit(o.lhs, **kwargs)
