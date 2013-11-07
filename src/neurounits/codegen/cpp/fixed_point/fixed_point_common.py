@@ -13,10 +13,6 @@ from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 
 
 
-#class Eqn(object):
-#    def __init__(self, node, rhs_cstr):
-#        self.node = node
-#        self.rhs_cstr = rhs_cstr
 
 class IntermediateNodeFinder(ASTActionerDefaultIgnoreMissing):
 
@@ -352,8 +348,10 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         # Lets add the random bit:
         # USE uniform random numbers (hack!) should be gaussian:
 
+        #ScalarType<0>( rnd::rand_kiss()-((1>>7)*2 >> 8)), 
+        #//- (1<<24) 
         res = """ScalarOp<%d>::add( 
-                    ScalarType<0>( rnd::rand_kiss()-((1>>7)*2 >> 8)), 
+                    ScalarType<0>( ((int) rnd::rand_kiss() ) - (1<<23) ), 
                     %s )  """ % (
                     node_upscale,
                     rhs,

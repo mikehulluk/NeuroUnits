@@ -1059,7 +1059,6 @@ void set_supplied_values_to_zero(NrnPopData& d)
 
 void initialise_autoregressivenodes(NrnPopData& d)
 {
-     // TO REINSTATE:
      %for ar in population.component.autoregressive_model_nodes:
      for(int i=0;i<NrnPopData::size;i++) d.AR${ar.annotations['node-id']}[i] = ScalarType<${ar.annotations['fixed-point-format'].upscale}>(0);
      %for i in range( len( ar.coefficients)):
@@ -1440,10 +1439,6 @@ void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
             ${trigger_transition_block(tr=tr, rtgraph=rtgraph)}
             %endfor
 
-            %for tr in population.component.crossestriggertransitions_from_regime(regime):
-            ${trigger_transition_block(tr=tr, rtgraph=rtgraph)}
-            %endfor
-
             // ==== Event Transitions: ====
             %for tr in population.component.eventtransitions_from_regime(regime):
             ${trigger_event_block(tr, rtgraph, population)}
@@ -1577,7 +1572,7 @@ int main()
     clock_t begin_main = clock();
 
     // Setup the random number generator:
-    rnd::seed_rand_kiss(100);
+    rnd::seed_rand_kiss(1);
 
 
     // Lets handle signals:
