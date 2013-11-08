@@ -667,7 +667,6 @@ namespace StdCVectorType
         typedef DATATYPE_ DATATYPE;
         DATATYPE _data[SIZE];
 
-
         // Default Constructor - initialise everything to zero
         DataVector( )
         {
@@ -683,9 +682,26 @@ namespace StdCVectorType
         {
             return _data[index];
         }
+    };
+
+    template<int SIZE>
+    struct BoolVector
+    {
+        bool _data[SIZE];
+        BoolVector() {}
+
+        bool& operator[](size_t index)
+        {
+            return _data[index];
+        }
+
 
 
     };
+
+
+
+
 
 };
 
@@ -723,6 +739,7 @@ using IntegerFixedPoint::ScalarOp;
 
 
 using StdCVectorType::DataVector;
+using StdCVectorType::BoolVector;
 
 
 
@@ -1044,7 +1061,6 @@ struct NrnPopData
 
     %for rv, _pstring in rv_per_neuron:
     <% rv_node_name = "RV%s" % rv.annotations['node-id'] %>
-    //ScalarType<${rv.annotations['fixed-point-format'].upscale}> RV${rv.annotations['node-id']}[size];
     typedef DataVector<  ScalarType<${rv.annotations['fixed-point-format'].upscale}>, size> T_${rv_node_name};
     T_${rv_node_name} ${rv_node_name};
     %endfor
@@ -1052,16 +1068,20 @@ struct NrnPopData
 
     // AutoRegressive nodes:
     %for ar in population.component.autoregressive_model_nodes:
-    ScalarType<${ar.annotations['fixed-point-format'].upscale}> AR${ar.annotations['node-id']}[size];
+    <% ar_node_name = "AR%s" % ar.annotations['node-id'] %>
+    typedef DataVector<  ScalarType<${ar.annotations['fixed-point-format'].upscale}>, size> T_${ar_node_name};
+    T_${ar_node_name} ${ar_node_name};
+    //ScalarType<${ar.annotations['fixed-point-format'].upscale}> ${ar_node_name}[size];
     %for i in range( len( ar.coefficients)):
-    ScalarType<${ar.annotations['fixed-point-format'].upscale}> _AR${ar.annotations['node-id']}_t${i}[size];
+    //ScalarType<${ar.annotations['fixed-point-format'].upscale}> _${ar_node_name}_t${i}[size];
+    T_${ar_node_name} _${ar_node_name}_t${i};
     %endfor
     %endfor
 
     // Crossing Nodes:
     %for cc in population.component.conditioncrosses_nodes:
-    bool C_${cc.annotations['node-id']}_lhs_is_gt_rhs[size];
-    bool C_${cc.annotations['node-id']}_lhs_is_gt_rhs_prev[size];
+    BoolVector<size> C_${cc.annotations['node-id']}_lhs_is_gt_rhs;
+    BoolVector<size> C_${cc.annotations['node-id']}_lhs_is_gt_rhs_prev;
     %endfor
 
     // Regimes:

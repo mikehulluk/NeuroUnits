@@ -377,15 +377,9 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
 
-        #res =  "%s = (%s).rescale_to<NrnPopData::T_%s::UP>()" % (
-        #        self.get_var_str(o.lhs.symbol),
-        #        self.visit(o.rhs, **kwargs),
-        #        o.lhs.symbol
-        #        )
         res =  "%s = (%s)" % (
                 self.get_var_str(o.lhs.symbol),
                 self.visit(o.rhs, **kwargs),
-                #o.lhs.symbol
                 )
         return res
 
