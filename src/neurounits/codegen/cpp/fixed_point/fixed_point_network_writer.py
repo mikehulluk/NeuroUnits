@@ -77,9 +77,9 @@ Two defines control the setup:
 
 
 
-#if USE_BLUEVEC
-#include <BlueVecProxy.h>
-#endif
+## #if USE_BLUEVEC
+## #include <BlueVecProxy.h>
+## #endif
 
 
 
@@ -204,7 +204,7 @@ using namespace std;
 
 
 
-#include <BlueVecProxy.h>
+## #include <BlueVecProxy.h>
 
 // Headers to use when we are not on the NIOS:
 #if ON_NIOS
@@ -482,7 +482,6 @@ namespace IntegerFixedPoint
     {
         IntType v;
         explicit ScalarType(int v) : v(v) { }
-        //explicit ScalarType(IntType v) : v(v.get_value32()) { }
         ScalarType() {};
 
         const static int UP = UPSCALE;
@@ -660,6 +659,51 @@ namespace DoubleFixedPoint
 
 
 
+namespace StdCVectorType
+{
+    template<typename DATATYPE_, int SIZE>
+    struct DataVector
+    {
+        typedef DATATYPE_ DATATYPE;
+        DATATYPE _data[SIZE];
+
+
+        // Default Constructor - initialise everything to zero
+        DataVector( )
+        {
+            for(int i=0;i<SIZE;i++) _data[i] = DATATYPE(0);
+        }
+
+        DataVector( int t )
+        {
+            for(int i=0;i<SIZE;i++) _data[i] = DATATYPE(t);
+        }
+
+        DATATYPE& operator[](size_t index)
+        {
+            return _data[index];
+        }
+
+
+    };
+
+};
+
+
+namespace BlueVecVectorType
+{
+    template<typename DATATYPE, int SIZE>
+    struct DataVector
+    {
+
+
+
+    };
+
+};
+
+
+
 
 
 
@@ -678,14 +722,7 @@ using IntegerFixedPoint::ScalarOp;
 
 
 
-
-## // Defining VectorTypes:
-##
-## template<typename SCALARTYPE, int SIZE>
-## struct VectorType
-## {
-##
-## }:
+using StdCVectorType::DataVector;
 
 
 
@@ -967,42 +1004,49 @@ struct NrnPopData
 {
     static const int size = ${population.get_size()};
 
+
+
     // Parameters:
     % for p in population.component.parameters:
-    typedef ScalarType<${p.annotations['fixed-point-format'].upscale}> T_${p.symbol};
-    T_${p.symbol} ${p.symbol}[size];
+    typedef  DataVector<  ScalarType<${p.annotations['fixed-point-format'].upscale}>, size> T_${p.symbol};
+    T_${p.symbol} ${p.symbol};
+    % endfor
+
+    // Supplied:
+    % for sv_def in population.component.suppliedvalues:
+    typedef  DataVector<  ScalarType<${sv_def.annotations['fixed-point-format'].upscale}>, size> T_${sv_def.symbol};
+    T_${sv_def.symbol} ${sv_def.symbol};
     % endfor
 
     // Assignments:
     % for ass in population.component.assignedvalues:
-    typedef ScalarType<${ass.annotations['fixed-point-format'].upscale}> T_${ass.symbol};
-    T_${ass.symbol} ${ass.symbol}[size];
+    typedef DataVector<  ScalarType<${ass.annotations['fixed-point-format'].upscale}>, size> T_${ass.symbol};
+    T_${ass.symbol} ${ass.symbol};
     % endfor
 
     // States:
     % for sv_def in population.component.state_variables:
-    typedef ScalarType<${sv_def.annotations['fixed-point-format'].upscale}> T_${sv_def.symbol};
-    T_${sv_def.symbol} ${sv_def.symbol}[size];
-    typedef ScalarType<${sv_def.annotations['fixed-point-format'].delta_upscale}> T_d_${sv_def.symbol};
-    T_d_${sv_def.symbol} d_${sv_def.symbol}[size];
+    typedef  DataVector<  ScalarType<${sv_def.annotations['fixed-point-format'].upscale}>, size> T_${sv_def.symbol};
+    T_${sv_def.symbol} ${sv_def.symbol};
+    typedef  DataVector<  ScalarType<${sv_def.annotations['fixed-point-format'].delta_upscale}>, size> T_d_${sv_def.symbol};
+    T_d_${sv_def.symbol} d_${sv_def.symbol};
 
     % endfor
 
 
-    // Supplied:
-    % for sv_def in population.component.suppliedvalues:
-    typedef ScalarType<${sv_def.annotations['fixed-point-format'].upscale}> T_${sv_def.symbol};
-    T_${sv_def.symbol} ${sv_def.symbol}[size];
-    //ScalarType<${sv_def.annotations['fixed-point-format'].upscale}> ${sv_def.symbol}[size];
-    % endfor
 
 
     // Random Variable nodes
     %for rv, _pstring in rv_per_population:
+    <% rv_node_name = "RV%s" % rv.annotations['node-id'] %>
     ScalarType<${rv.annotations['fixed-point-format'].upscale}> RV${rv.annotations['node-id']};
     %endfor
+
     %for rv, _pstring in rv_per_neuron:
-    ScalarType<${rv.annotations['fixed-point-format'].upscale}> RV${rv.annotations['node-id']}[size];
+    <% rv_node_name = "RV%s" % rv.annotations['node-id'] %>
+    //ScalarType<${rv.annotations['fixed-point-format'].upscale}> RV${rv.annotations['node-id']}[size];
+    typedef DataVector<  ScalarType<${rv.annotations['fixed-point-format'].upscale}>, size> T_${rv_node_name};
+    T_${rv_node_name} ${rv_node_name};
     %endfor
 
 
@@ -1048,7 +1092,7 @@ struct NrnPopData
 void set_supplied_values_to_zero(NrnPopData& d)
 {
 % for sv_def in population.component.suppliedvalues:
-    for(int i=0;i<NrnPopData::size;i++) d.${sv_def.symbol}[i] = NrnPopData::T_${sv_def.symbol}( 0 );
+    for(int i=0;i<NrnPopData::size;i++) d.${sv_def.symbol}[i] = NrnPopData::T_${sv_def.symbol}::DATATYPE( 0 );
 % endfor
 }
 
@@ -1198,17 +1242,10 @@ namespace event_handlers
                     %endif
                     %endfor
 
-
                      // Actions ...
                     %for action in tr.actions:
                     ${writer.to_c(action, population_access_index='i', data_prefix='d.')};
                     %endfor
-
-                    //cout << "\n ===== Event ===== ";
-                    //cout << "\n evt.weight: " << evt.weight.to_float();
-                    //cout << "\n d.syn_nmda_A: " << d.syn_nmda_A[i].to_float();
-                    //cout << "\n";
-                    ////assert(0);
 
                     // Switch regime?
                     %if tr.changes_regime():
@@ -1304,9 +1341,8 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
         <% cs1, cs2 = writer.to_c(td, population_access_index='i', data_prefix='d.') %>
         d.d_${td.lhs.symbol}[i] = ${cs1};
+        d.${td.lhs.symbol}[i] = ScalarOp<NrnPopData::T_${td.lhs.symbol}::DATATYPE::UP>::add( d.${td.lhs.symbol}[i], d.d_${td.lhs.symbol}[i] ) ;
 
-
-        d.${td.lhs.symbol}[i] = ScalarOp<NrnPopData::T_${td.lhs.symbol}::UP>::add( d.${td.lhs.symbol}[i], d.d_${td.lhs.symbol}[i] ) ;
         LOG_COMPONENT_STATEUPDATE( cout << "\n delta:${td.lhs.symbol}: " << d.d_${td.lhs.symbol}[i].to_int()  << " (" << d.d_${td.lhs.symbol}[i].to_float()  << ")" << std::flush; )
         LOG_COMPONENT_STATEUPDATE( cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i].to_int()  << " (" << d.${td.lhs.symbol}[i].to_float()  << ")" << std::flush; )
         % endfor
@@ -1404,7 +1440,7 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 
 void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
 {
-    
+
     // Make sure that we skip 2 steps before activating any crossing conditions:
     const bool is_condition_activation_guard = (time_info.step_count > 2);
 
@@ -1514,11 +1550,12 @@ namespace NS_${population.name}
 
 void print_results_from_NIOS(NrnPopData* d)
 {
+    // Temporarily commented out:
     // Assignments + states:
     % for ass in population.component.assignedvalues + population.component.state_variables:
-    cout << "\n#!DATA{ 'name':'${ass.symbol}' } {'size': ${nsim_steps},  'fixed_point': {'upscale':${ass.annotations['fixed-point-format'].upscale}, 'nbits':${nbits}} } [";
-    for(IntType i=IntType(0);i<GlobalConstants::nsim_steps;i++) cout << d[ get_value32(i)].${ass.symbol} << " ";
-    cout << "]\n";
+    //cout << "\n#!DATA{ 'name':'${ass.symbol}' } {'size': ${nsim_steps},  'fixed_point': {'upscale':${ass.annotations['fixed-point-format'].upscale}, 'nbits':${nbits}} } [";
+    //for(IntType i=IntType(0);i<GlobalConstants::nsim_steps;i++) cout << d[ get_value32(i)].${ass.symbol} << " ";
+    //cout << "]\n";
     % endfor
     cout << "\n#! FINISHED\n";
 }
@@ -2170,12 +2207,6 @@ void record_input_event( IntType global_buffer, const SpikeEmission& evt )
 
 
 
-    %for pop, port in network._record_output_events:
-    void record_output_event_new( const NS_${pop.name}::output_event_types::OutEvent_${port.symbol}& evt)
-    {
-
-    }
-    %endfor
 
 
 
@@ -2190,6 +2221,23 @@ void record_input_event( IntType global_buffer, const SpikeEmission& evt )
 from fixed_point_common import IntermediateNodeFinder, CBasedFixedWriter
 
 import hdfjive
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

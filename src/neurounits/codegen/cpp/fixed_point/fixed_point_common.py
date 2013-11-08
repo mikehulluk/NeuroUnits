@@ -111,6 +111,11 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 
     def _VisitIfThenElse(self, o, **kwargs):
+        #L = " ( (%s) ? (%s) :  (%s) )" % (
+        #            self.visit(o.predicate, for_bluevec=False, **kwargs),
+        #            self.visit(o.if_true_ast, for_bluevec=False, **kwargs),
+        #            self.visit(o.if_false_ast, for_bluevec=False, **kwargs),
+        #            )
 
 
         L = " ( (%s) ? (%s).rescale_to<%d>() :  (%s).rescale_to<%d>() )" % (
@@ -220,11 +225,16 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 
 
+    #def VisitEqnAssignmentByRegime(self, o, **kwargs):
+    #    res =  "(%s).rescale_to<NrnPopData::T_%s::UP>()" % (
+    #            self.visit(o.rhs_map, **kwargs),
+    #            o.lhs.symbol
+    #            )
+    #    return res
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
-        res =  "(%s).rescale_to<NrnPopData::T_%s::UP>()" % (
-                self.visit(o.rhs_map, **kwargs),
-                o.lhs.symbol
-                )
+        res =  "(%s)" % self.visit(o.rhs_map, **kwargs)
+                #o.lhs.symbol
+                #)
         return res
 
 
@@ -367,10 +377,15 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
 
-        res =  "%s = (%s).rescale_to<NrnPopData::T_%s::UP>()" % (
+        #res =  "%s = (%s).rescale_to<NrnPopData::T_%s::UP>()" % (
+        #        self.get_var_str(o.lhs.symbol),
+        #        self.visit(o.rhs, **kwargs),
+        #        o.lhs.symbol
+        #        )
+        res =  "%s = (%s)" % (
                 self.get_var_str(o.lhs.symbol),
                 self.visit(o.rhs, **kwargs),
-                o.lhs.symbol
+                #o.lhs.symbol
                 )
         return res
 
