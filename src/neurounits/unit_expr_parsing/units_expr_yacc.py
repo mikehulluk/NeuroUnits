@@ -1225,7 +1225,7 @@ class ParserMgr(object):
     def build_parser(cls, start_symbol, debug):
 
         debug=True
-        #debug=False
+        debug=False
 
         from neurounits.nulogging import log_neurounits
         log_neurounits.info('Building Parser for: %s' % start_symbol)
@@ -1241,7 +1241,7 @@ class ParserMgr(object):
     def get_parser(cls, start_symbol, debug):
 
         debug=True
-        #debug=False
+        debug=False
 
         k = (start_symbol, debug)
         if not k in cls.parsers:

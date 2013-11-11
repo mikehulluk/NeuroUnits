@@ -304,6 +304,8 @@ LookUpTables lookuptables;
 
 
 
+#include "/home/mh735/from_Matt/BlueVec.h"
+typedef Stream DataStream;
 
 
 
@@ -323,10 +325,10 @@ LookUpTables lookuptables;
 
 
 
-
-
-#if USE_BLUEVEC
-
+#ifdef USE_BLUEVEC
+/*
+namespace BVOps
+{
 
     DataStream auto_shift(DataStream da, IntType amount)
     {
@@ -404,7 +406,6 @@ LookUpTables lookuptables;
         return ifthenelse(pred, auto_shift(v1, up1), auto_shift(v2, up2));
     }
 
-
     // Exponential lookup on the BlueVec emulator:
     DataStream _get_upscale_for_xindex(DataStream index)
     {
@@ -456,10 +457,11 @@ LookUpTables lookuptables;
         return (d1 + d2);
     }
 
+
+
+}
+*/
 #endif
-
-
-
 
 
 
@@ -485,9 +487,6 @@ namespace IntegerFixedPoint
         ScalarType() {};
 
         const static int UP = UPSCALE;
-
-
-
 
         // Automatic rescaling during assignments:
         template<int OTHER_UP>
@@ -515,9 +514,22 @@ namespace IntegerFixedPoint
             return v;
         }
 
-        bool operator<=( const ScalarType<UPSCALE>& rhs)
+        bool operator<=( const ScalarType<UPSCALE>& rhs) const
         {
             return v <=rhs.v;
+        }
+
+
+        template<int RHS_UPSCALE>
+        inline bool operator<( const ScalarType<RHS_UPSCALE>& rhs) const
+        {
+            if(  UPSCALE < RHS_UPSCALE) {
+                return (this->rescale_to<RHS_UPSCALE>().v < rhs.v);
+            } else if( UPSCALE > RHS_UPSCALE) {
+                return ( v < rhs.rescale_to<UPSCALE>().v );
+            } else {
+                return (v < rhs.v);
+            }
         }
     };
 
@@ -561,6 +573,156 @@ namespace IntegerFixedPoint
 
     };
 };
+
+
+
+
+
+
+
+
+
+
+
+namespace BlueVecFixedPoint
+{
+
+    // New fixed point classes:
+    template<int UPSCALE>
+    struct ScalarType
+    {
+        Stream s;
+        explicit ScalarType(Stream s) : s(s) { }
+        ScalarType() {};
+
+        const static int UP = UPSCALE;
+
+        // Automatic rescaling during assignments:
+        template<int OTHER_UP>
+        ScalarType<UPSCALE>& operator=(const ScalarType<OTHER_UP>& rhs)
+        {
+            s = rhs.rescale_to<UPSCALE>().s;
+            return *this;
+        }
+
+
+
+        // Explicit rescaling between different scaling factors:
+        template<int NEW_UPSCALE>
+        ScalarType<NEW_UPSCALE> rescale_to( ) const
+        {
+            if(UPSCALE==NEW_UPSCALE) {
+                return ScalarType<NEW_UPSCALE>(s);
+            } else if(UPSCALE>NEW_UPSCALE){
+                return s << (UPSCALE-NEW_UPSCALE);
+            } else{
+                return s >> (NEW_UPSCALE-UPSCALE);
+            }
+
+            // WAS:
+            //return ScalarType<NEW_UPSCALE>( auto_shift(s, UPSCALE - NEW_UPSCALE) );
+        }
+
+        inline double to_float() const
+        {
+            assert(0);
+        }
+        inline IntType to_int() const
+        {
+            assert(0);
+        }
+
+        bool operator<=( const ScalarType<UPSCALE>& rhs) const
+        {
+            return s <=rhs.s;
+        }
+
+
+        template<int RHS_UPSCALE>
+        inline bool operator<( const ScalarType<RHS_UPSCALE>& rhs) const
+        {
+            if(  UPSCALE < RHS_UPSCALE) {
+                return (this->rescale_to<RHS_UPSCALE>().s < rhs.s);
+            } else if( UPSCALE > RHS_UPSCALE) {
+                return ( s < rhs.rescale_to<UPSCALE>().s );
+            } else {
+                return (s < rhs.s);
+            }
+        }
+    };
+
+
+
+
+
+
+    template<int UOUT_>
+    struct ScalarOp
+    {
+        static const int UOUT = UOUT_;
+
+        template<int U1, int U2>
+        static inline ScalarType<UOUT> add( const ScalarType<U1>& a, const ScalarType<U2>& b)
+        {
+
+            //cout << "Hello";
+            //return ScalarType<UOUT>( a  );
+            ScalarType<UOUT> s = a.rescale_to();
+            ScalarType<UOUT> t = a.rescale_to();
+            return s+t;
+            //return ScalarType<UOUT>( a.rescale_to()  );
+            //return ScalarType<UOUT>( a.rescale_to<UOUT>()  );
+            //return (a.rescale_to<UOUT>() + b.rescale_to<UOUT>());
+
+
+
+
+            //return ScalarType<UOUT>(a.rescale_to<UOUT>() + b.rescale_to<UOUT>());
+        }
+
+        template<int U1, int U2>
+        static inline ScalarType<UOUT> sub( const ScalarType<U1>& a, const ScalarType<U2>& b)
+        {
+            //IntType res = BVOps::do_sub_op(a.v, U1, b.v, U2, UOUT, -1);
+            //return ScalarType<UOUT> (res);
+        }
+
+        template<int U1, int U2>
+        static inline ScalarType<UOUT> mul( const ScalarType<U1>& a, const ScalarType<U2>& b)
+        {
+            //IntType res = BVOps::do_mul_op(a.v, U1, b.v, U2, UOUT, -1);
+            //return ScalarType<UOUT> (res);
+        }
+
+        template<int U1, int U2>
+        static inline ScalarType<UOUT> div( const ScalarType<U1>& a, const ScalarType<U2>& b)
+        {
+            //IntType res = BVOps::do_div_op(a.v, U1, b.v, U2, UOUT, -1);
+            //return ScalarType<UOUT> (res);
+        }
+
+        template<int U1>
+        static inline ScalarType<UOUT> exp( const ScalarType<U1>& a)
+        {
+            //return ScalarType<UOUT> ( BVOps::int_exp( a.v, U1, UOUT, -1, lookuptables.exponential ) );
+        }
+
+    };
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -611,10 +773,19 @@ namespace DoubleFixedPoint
 
 
         // No implicit scaling-conversion:
-        bool operator<=( const ScalarType<UPSCALE>& rhs)
+        bool operator<=( const ScalarType<UPSCALE>& rhs) const
         {
             return v_float <= rhs.v_float;
         }
+
+
+        template<int RHS_UPSCALE>
+        inline
+        bool operator<( const ScalarType<RHS_UPSCALE>& rhs) const
+        {
+            return v_float < rhs.v_float;
+        }
+
 
     };
 
@@ -668,7 +839,7 @@ namespace StdCVectorType
         DATATYPE _data[SIZE];
 
         // Default Constructor - initialise everything to zero
-        DataVector( )
+        DataVector()
         {
             for(int i=0;i<SIZE;i++) _data[i] = DATATYPE(0);
         }
@@ -694,9 +865,6 @@ namespace StdCVectorType
         {
             return _data[index];
         }
-
-
-
     };
 
 
@@ -706,17 +874,6 @@ namespace StdCVectorType
 };
 
 
-namespace BlueVecVectorType
-{
-    template<typename DATATYPE, int SIZE>
-    struct DataVector
-    {
-
-
-
-    };
-
-};
 
 
 
@@ -724,22 +881,16 @@ namespace BlueVecVectorType
 
 
 
-%if as_float:
-//using IntegerFixedPoint::ScalarType;
-//using IntegerFixedPoint::ScalarOp;
-using DoubleFixedPoint::ScalarType;
-using DoubleFixedPoint::ScalarOp;
-%else:
 using IntegerFixedPoint::ScalarType;
 using IntegerFixedPoint::ScalarOp;
-//using DoubleFixedPoint::ScalarType;
-//using DoubleFixedPoint::ScalarOp;
-%endif
-
 
 
 using StdCVectorType::DataVector;
 using StdCVectorType::BoolVector;
+
+
+
+
 
 
 
@@ -1300,54 +1451,45 @@ namespace event_handlers
 
 
 // Update-function
-void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
+void sim_step_update_sv_sequential(NrnPopData& d, TimeInfo time_info)
 {
 
     const ScalarType<time_upscale> t = time_info.time_fixed;
-    //assert(t.v>=0); // Suppress compiler warning about unused variable
-
-
-
-
-#if !USE_BLUEVEC
 
     // Serial Version:
-    NrnPopData& d = d_in;
     for(int i=0;i<NrnPopData::size;i++)
     {
 
         LOG_COMPONENT_STATEUPDATE(
-        cout << "\n";
-        cout << "\nFor ${population.name} " << i;
-        cout << "\nAt: t=" << t.to_int() << "\t(" << t.to_float() * 1000.0 << "ms)";
-        cout << "\nStarting State Variables:";
-        cout << "\n-------------------------";
-        % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
-        cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i].to_int()  << " (" << d.${td.lhs.symbol}[i].to_float() << ")" << std::flush;
-        % endfor
-        cout << "\nSupplied Variables:";
-        cout << "\n-------------------------";
-        %for suppliedvalue in population.component.suppliedvalues:
-        cout << "\n d.${suppliedvalue.symbol}: " << d.${suppliedvalue.symbol}[i].to_int()  << " (" << d.${suppliedvalue.symbol}[i].to_float() << ")" << std::flush;
+            cout << "\n";
+            cout << "\nFor ${population.name} " << i;
+            cout << "\nAt: t=" << t.to_int() << "\t(" << t.to_float() * 1000.0 << "ms)";
+            cout << "\nStarting State Variables:";
+            cout << "\n-------------------------";
+            % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
+            cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i].to_int()  << " (" << d.${td.lhs.symbol}[i].to_float() << ")" << std::flush;
+            % endfor
+            cout << "\nSupplied Variables:";
+            cout << "\n-------------------------";
+            %for suppliedvalue in population.component.suppliedvalues:
+            cout << "\n d.${suppliedvalue.symbol}: " << d.${suppliedvalue.symbol}[i].to_int()  << " (" << d.${suppliedvalue.symbol}[i].to_float() << ")" << std::flush;
+            %endfor
+            cout << "\nUpdates:";
+            )
+
+        // // Calculate the autoregressive nodes:
+        %for ar in population.component.autoregressive_model_nodes:
+        //Update the current value:
+        d.${writer.to_c(ar)}[i] = ${writer.VisitAutoRegressiveModelUpdate(ar)};
+        // Save the old values:
+        %for i in range( len( ar.coefficients) -1 ):
+        %if i==0:
+        d._AR${ar.annotations['node-id']}_t0[i] = d.AR${ar.annotations['node-id']}[i];
+        %else:
+        d._AR${ar.annotations['node-id']}_t${i}[i] = d._AR${ar.annotations['node-id']}_t${i+1}[i] = 0;
+        %endif
         %endfor
-        cout << "\nUpdates:";
-        )
-
-         // To reinstate:
-         // // Calculate the autoregressive nodes:
-         %for ar in population.component.autoregressive_model_nodes:
-         //Update the current value:
-         d.${writer.to_c(ar)}[i] = ${writer.VisitAutoRegressiveModelUpdate(ar)};
-         // Save the old values:
-         %for i in range( len( ar.coefficients) -1 ):
-         %if i==0:
-         d._AR${ar.annotations['node-id']}_t0[i] = d.AR${ar.annotations['node-id']}[i];
-         %else:
-         d._AR${ar.annotations['node-id']}_t${i}[i] = d._AR${ar.annotations['node-id']}_t${i+1}[i] = 0;
-         %endif
-         %endfor
-
-         %endfor
+        %endfor
 
 
 
@@ -1378,41 +1520,52 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 
         %endfor
 
-
     }
 
-#endif
-
-#if USE_BLUEVEC
-
-
-        // Calculate the autoregressive nodes:
-        %if population.component.autoregressive_model_nodes:
-        assert(0); // Unhandled autoregressive nodes
-        %endif
+    LOG_COMPONENT_STATEUPDATE( cout << "\n"; )
+}
 
 
-        // Vector Compute Version:
+
+
+
+
+
+
+
+void sim_step_update_sv_bluevec(NrnPopData& d, TimeInfo time_info)
+{
+
+        // A. Load in all the data (state-variables, supplied_values, random_nodes, ar-nodes):
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
-        DataStream bv_${td.lhs.symbol} = load( d_in.${td.lhs.symbol} );
+        DataStream bv_${td.lhs.symbol} = load( &(d.${td.lhs.symbol}[0].v) );
         %endfor
 
         % for suppl in population.component.suppliedvalues:
-        DataStream bv_${suppl.symbol} = load( d_in.${suppl.symbol} );
+        DataStream bv_${suppl.symbol} = load( &(d.${suppl.symbol}[0]).v );
         %endfor
 
         // Random Variable nodes
         %for rv, _pstring in rv_per_population:
-        IntType RV${rv.annotations['node-id']} =  d_in.RV${rv.annotations['node-id']};
+        IntType RV${rv.annotations['node-id']} =  d.RV${rv.annotations['node-id']};
         %endfor
         %for rv, _pstring in rv_per_neuron:
-        DataStream bv_RV${rv.annotations['node-id']} = load( d_in.RV${rv.annotations['node-id']});
+        DataStream bv_RV${rv.annotations['node-id']} = load( &(d.RV${rv.annotations['node-id']}[0].v) );
         %endfor
 
+        // AutoRegressive nodes:
+        %for ar in population.component.autoregressive_model_nodes:
+        <% ar_node_name = "AR%s" % ar.annotations['node-id'] %>
+        DataStream bv_${ar_node_name} = load( &(d.${ar_node_name}[0].v));
+        %for i in range( len( ar.coefficients)):
+        DataStream bv__${ar_node_name}_t${i} = load( &(d._${ar_node_name}_t${i}[0].v));
+        %endfor
+        %endfor
 
-        // Load the exponential table:
-        LUT bv_explut = load_lut( &(lookuptables.exponential.pData[0]), lookuptables.exponential.table_size);
-
+        // B.Load the exponential table:
+        assert(0); // WTF!
+        //LUT bv_explut = load_lut( &(lookuptables.exponential.pData[0]), lookuptables.exponential.table_size);
+        int bv_explut;
 
 
 
@@ -1424,39 +1577,99 @@ void sim_step_update_sv(NrnPopData& d_in, TimeInfo time_info)
 
         % endfor
 
-        // Calculate delta's for all state-variables:
-        % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
-        <% cs1, cs2 = writer.to_c(td, population_access_index=None, data_prefix='bv_', for_bluevec=True) %>
-        bv_print("\nCalculating state_variable:: ${td.lhs.symbol}");
-        DataStream d_${td.lhs.symbol} = ensure_DS( ${cs1} ) ;
-        DataStream new_bv_${td.lhs.symbol} = bv_${td.lhs.symbol} + ${cs2};
-        bv_print("Finished calculating state_variable:: ${td.lhs.symbol}");
-
-        % endfor
 
 
 
-        // And lets read them back out:
-        // Calculate delta's for all state-variables:
-        % for td in population.component.timederivatives:
-        store( new_bv_${td.lhs.symbol}, d_in.${td.lhs.symbol}  );
-        %endfor
 
-        % for ass in population.component.assignments:
-        store( bv_${ass.lhs.symbol}, d_in.${ass.lhs.symbol}  );
-        %endfor
+        ##// // Calculate the autoregressive nodes:
+        ##%for ar in population.component.autoregressive_model_nodes:
+        ##//Update the current value:
+        ##d.${writer.to_c(ar)}[i] = ${writer.VisitAutoRegressiveModelUpdate(ar)};
+        ##// Save the old values:
+        ##%for i in range( len( ar.coefficients) -1 ):
+        ##%if i==0:
+        ##d._AR${ar.annotations['node-id']}_t0[i] = d.AR${ar.annotations['node-id']}[i];
+        ##%else:
+        ##d._AR${ar.annotations['node-id']}_t${i}[i] = d._AR${ar.annotations['node-id']}_t${i+1}[i] = 0;
+        ##%endif
+        ##%endfor
+        ##%endfor
 
-        issue(NrnPopData::size);
 
 
-#endif
+        ##// Calculate assignments:
+        ##% for ass in population.component.ordered_assignments_by_dependancies:
+        ##d.${ass.lhs.symbol}[i] = ${writer.to_c(ass, population_access_index='i', data_prefix='d.')} ;
+        ##LOG_COMPONENT_STATEUPDATE( cout << "\n d.${ass.lhs.symbol}: " << d.${ass.lhs.symbol}[i].to_int()  << " (" << d.${ass.lhs.symbol}[i].to_float()  << ")" << std::flush;)
+        ##% endfor
+
+        ##// Calculate delta's for all state-variables:
+        ##% for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
+        ##<% cs1, cs2 = writer.to_c(td, population_access_index='i', data_prefix='d.') %>
+        ##d.d_${td.lhs.symbol}[i] = ${cs1};
+        ##d.${td.lhs.symbol}[i] = ScalarOp<NrnPopData::T_${td.lhs.symbol}::DATATYPE::UP>::add( d.${td.lhs.symbol}[i], d.d_${td.lhs.symbol}[i] ) ;
+
+        ##LOG_COMPONENT_STATEUPDATE( cout << "\n delta:${td.lhs.symbol}: " << d.d_${td.lhs.symbol}[i].to_int()  << " (" << d.d_${td.lhs.symbol}[i].to_float()  << ")" << std::flush; )
+        ##LOG_COMPONENT_STATEUPDATE( cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i].to_int()  << " (" << d.${td.lhs.symbol}[i].to_float()  << ")" << std::flush; )
+        ##% endfor
 
 
 
+        ##// Crossing Nodes:
+        ##%for cc in population.component.conditioncrosses_nodes:
+        ##// Copy the old value accross:
+        ##d.C_${cc.annotations['node-id']}_lhs_is_gt_rhs_prev[i] = d.C_${cc.annotations['node-id']}_lhs_is_gt_rhs[i];
+        ##// Calculate the next value:
+        ##d.C_${cc.annotations['node-id']}_lhs_is_gt_rhs[i] = ${writer._VisitOnConditionCrossing(cc)};
+
+        ##%endfor
 
 
     LOG_COMPONENT_STATEUPDATE( cout << "\n"; )
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void sim_step_update_sv(NrnPopData& d, TimeInfo time_info)
+{
+    // Sequential Solving:
+    //sim_step_update_sv_sequential(d, time_info);
+    sim_step_update_sv_bluevec(d, time_info);
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void sim_step_update_rt(NrnPopData& d, TimeInfo time_info)
 {
@@ -2238,7 +2451,7 @@ void record_input_event( IntType global_buffer, const SpikeEmission& evt )
 
 
 
-from fixed_point_common import IntermediateNodeFinder, CBasedFixedWriter
+from fixed_point_common import  CBasedFixedWriter
 
 import hdfjive
 
@@ -2355,8 +2568,6 @@ class CBasedEqnWriterFixedNetwork(object):
 
         for population in network.populations:
 
-            intermediate_nodes = IntermediateNodeFinder(population.component).valid_nodes
-            self.intermediate_store_locs = [("op%d" % o.annotations['node-id'], o_number) for (o, o_number) in intermediate_nodes.items()]
 
             component = population.component
 
@@ -2371,7 +2582,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
                 assert rv.functionname == 'uniform'
                 params = [ rv.parameters.get_single_obj_by(name='min'), rv.parameters.get_single_obj_by(name='max'), ]
-                param_string = ','.join( "ScalarType<%d>(%s)" % (p.rhs_ast.annotations['fixed-point-format'].upscale, self.writer.visit( p.rhs_ast)  ) for p in params )
+                param_string = ','.join( "(%s)" % (self.writer.visit( p.rhs_ast)  ) for p in params )
 
                 if rv.modes['share']=='PER_NEURON':
                     rv_per_neuron.append( (rv,param_string) )
@@ -2384,7 +2595,6 @@ class CBasedEqnWriterFixedNetwork(object):
                             population=population,
 
                             writer = self.writer,
-                            intermediate_store_locs=self.intermediate_store_locs,
 
                             rv_per_neuron = rv_per_neuron,
                             rv_per_population = rv_per_population,

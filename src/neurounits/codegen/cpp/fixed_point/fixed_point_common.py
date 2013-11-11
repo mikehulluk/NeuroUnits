@@ -14,35 +14,35 @@ from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 
 
 
-class IntermediateNodeFinder(ASTActionerDefaultIgnoreMissing):
-
-    def __init__(self, component):
-        self.valid_nodes = {}
-        super(IntermediateNodeFinder,self).__init__(component=component)
-
-    # How many values do we store per operation:
-    def ActionAddOp(self, o, **kwargs):
-        self.valid_nodes[o] = 3
-
-    def ActionSubOp(self, o, **kwargs):
-        self.valid_nodes[o] = 3
-
-    def ActionMulOp(self, o, **kwargs):
-        self.valid_nodes[o] = 3
-
-    def ActionDivOp(self, o, **kwargs):
-        self.valid_nodes[o] = 3
-
-    def ActionExpOp(self, o, **kwargs):
-        assert False
-        self.valid_nodes[o] = 3
-
-    def ActionFunctionDefBuiltInInstantiation(self, o, **kwargs):
-        assert o.function_def.funcname in ['__exp__', '__ln__']
-        self.valid_nodes[o] = 2
-
-    def ActionFunctionDefUserInstantiation(self, o, **kwargs):
-        assert False
+#class IntermediateNodeFinder(ASTActionerDefaultIgnoreMissing):
+#
+#    def __init__(self, component):
+#        self.valid_nodes = {}
+#        super(IntermediateNodeFinder,self).__init__(component=component)
+#
+#    # How many values do we store per operation:
+#    def ActionAddOp(self, o, **kwargs):
+#        self.valid_nodes[o] = 3
+#
+#    def ActionSubOp(self, o, **kwargs):
+#        self.valid_nodes[o] = 3
+#
+#    def ActionMulOp(self, o, **kwargs):
+#        self.valid_nodes[o] = 3
+#
+#    def ActionDivOp(self, o, **kwargs):
+#        self.valid_nodes[o] = 3
+#
+#    def ActionExpOp(self, o, **kwargs):
+#        assert False
+#        self.valid_nodes[o] = 3
+#
+#    def ActionFunctionDefBuiltInInstantiation(self, o, **kwargs):
+#        assert o.function_def.funcname in ['__exp__', '__ln__']
+#        self.valid_nodes[o] = 2
+#
+#    def ActionFunctionDefUserInstantiation(self, o, **kwargs):
+#        assert False
 
 
 
@@ -52,25 +52,23 @@ class IntermediateNodeFinder(ASTActionerDefaultIgnoreMissing):
 
 
 class CBasedFixedWriterStd(ASTVisitorBase):
-    def add_range_check(self, node, expr):
-        return expr
-
-        return """CHECK_IN_RANGE_NODE(%s, IntType(%d), %g, %g, "%s")""" %(
-                    expr,
-                    node.annotations['fixed-point-format'].upscale,
-                    node.annotations['node-value-range'].min,
-                    node.annotations['node-value-range'].max,
-                    repr(node)+str(node)+' ID: ' + str(node.annotations['node-id'])
-                )
 
     def to_c(self, obj, population_access_index=None, data_prefix=None, for_bluevec=False):
         population_access_index_prev = self.population_access_index
         self.population_access_index = population_access_index
         data_prefix_prev = self.data_prefix
         self.data_prefix = data_prefix
+
+        old_op_scalar_type, self.op_scalar_type = self.op_scalar_type, ('BlueVecFixedPoint::ScalarType' if for_bluevec else  'ScalarType')
+        old_op_scalar_op, self.op_scalar_op = self.op_scalar_type, ('BlueVecFixedPoint::ScalarOp' if for_bluevec else  'ScalarOp')
         res =  self.visit(obj, for_bluevec=for_bluevec)
+        self.op_scalar_type = old_op_scalar_type
+        self.op_scalar_op = old_op_scalar_op
+
+
         self.population_access_index = population_access_index_prev
         self.data_prefix = data_prefix_prev
+
         return res
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
@@ -82,7 +80,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
         expr_lhs = self.visit(o.lhs, **kwargs)
         expr_rhs = self.visit(o.rhs, **kwargs)
-        res = "ScalarOp<%d>::%s( %s, %s )" % (
+        res = "%s<%d>::%s( %s, %s )" % (    self.op_scalar_op,
                                             o.annotations['fixed-point-format'].upscale,
                                             op,
                                             expr_lhs,
@@ -111,13 +109,6 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 
     def _VisitIfThenElse(self, o, **kwargs):
-        #L = " ( (%s) ? (%s) :  (%s) )" % (
-        #            self.visit(o.predicate, for_bluevec=False, **kwargs),
-        #            self.visit(o.if_true_ast, for_bluevec=False, **kwargs),
-        #            self.visit(o.if_false_ast, for_bluevec=False, **kwargs),
-        #            )
-
-
         L = " ( (%s) ? (%s).rescale_to<%d>() :  (%s).rescale_to<%d>() )" % (
                     self.visit(o.predicate, for_bluevec=False, **kwargs),
                     self.visit(o.if_true_ast, for_bluevec=False, **kwargs),
@@ -136,7 +127,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 
         # For BlueVec:
-        L = "ScalarType<%d>( do_ifthenelse_op(%s, %s, %d, %s, %d ) )"
+        L = "BlueVecFixedPoint<%d>( do_ifthenelse_op(%s, %s, %d, %s, %d ) )"
 
         res = L % (
                     o.annotations['fixed-point-format'].upscale,
@@ -152,30 +143,19 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 
     def _VisitOnConditionCrossing(self, o, **kwargs):
-        ann_lt_upscale = o.crosses_lhs.annotations['fixed-point-format'].upscale
-        ann_gt_upscale = o.crosses_rhs.annotations['fixed-point-format'].upscale
+        return " ( (%s) < (%s) )" % (
+                self.visit(o.crosses_lhs, **kwargs),
+                self.visit(o.crosses_rhs, **kwargs),
+                )
 
-        if ann_lt_upscale < ann_gt_upscale:
-            res= "( ((%s).to_int() >>IntType(%d)) < ( (%s).to_int()) )" %( self.visit(o.crosses_lhs, **kwargs), (ann_gt_upscale-ann_lt_upscale),  self.visit(o.crosses_rhs, **kwargs) )
-        elif ann_lt_upscale > ann_gt_upscale:
-            res= "( (%s).to_int() < ( (%s).to_int() >>IntType(%d)))" %( self.visit(o.crosses_lhs, **kwargs), self.visit(o.crosses_rhs, **kwargs), (ann_lt_upscale-ann_gt_upscale) )
-        else:
-            res= "( (%s).to_int() < (%s).to_int() )" %( self.visit(o.crosses_lhs, **kwargs), self.visit(o.crosses_rhs, **kwargs) )
-        return res
 
 
 
     def VisitInEquality(self, o, **kwargs):
-        ann_lt_upscale = o.lesser_than.annotations['fixed-point-format'].upscale
-        ann_gt_upscale = o.greater_than.annotations['fixed-point-format'].upscale
-
-        if ann_lt_upscale < ann_gt_upscale:
-            res= "( ((%s).to_int() >>IntType(%d)) < ( (%s).to_int()) )" %( self.visit(o.lesser_than, **kwargs), (ann_gt_upscale-ann_lt_upscale),  self.visit(o.greater_than, **kwargs) )
-        elif ann_lt_upscale > ann_gt_upscale:
-            res= "( (%s).to_int() < ( (%s).to_int() >>IntType(%d)))" %( self.visit(o.lesser_than, **kwargs), self.visit(o.greater_than, **kwargs), (ann_lt_upscale-ann_gt_upscale) )
-        else:
-            res= "( (%s).to_int() < (%s).to_int() )" %( self.visit(o.lesser_than, **kwargs), self.visit(o.greater_than, **kwargs) )
-        return res
+        return " ( (%s) < (%s) )" % (
+                self.visit(o.lesser_than, **kwargs),
+                self.visit(o.greater_than, **kwargs),
+                )
 
 
 
@@ -225,23 +205,16 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 
 
-    #def VisitEqnAssignmentByRegime(self, o, **kwargs):
-    #    res =  "(%s).rescale_to<NrnPopData::T_%s::UP>()" % (
-    #            self.visit(o.rhs_map, **kwargs),
-    #            o.lhs.symbol
-    #            )
-    #    return res
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         res =  "(%s)" % self.visit(o.rhs_map, **kwargs)
-                #o.lhs.symbol
-                #)
         return res
 
 
 
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         delta_upscale = o.lhs.annotations['fixed-point-format'].delta_upscale
-        c1 = "ScalarOp<%d>::mul(%s , dt_fixed) " % (
+        c1 = "%s<%d>::mul(%s , dt_fixed) " % (
+                self.op_scalar_op,
                 delta_upscale,
                 self.visit(o.rhs_map, **kwargs),
                 )
@@ -253,13 +226,23 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 
 
+
+
+
 class CBasedFixedWriter(CBasedFixedWriterStd):
+
+    def add_range_check(self, o, res ):
+        return res
+        
 
     def __init__(self, component, population_access_index=None, data_prefix=None ):
         super(CBasedFixedWriter, self).__init__()
         self.population_access_index=population_access_index
         self.data_prefix=data_prefix
 
+
+        self.op_scalar_type = 'ScalarType'
+        self.op_scalar_op = 'ScalarOp'
 
     def get_var_str(self, name):
         s = name
@@ -284,7 +267,8 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         return self.add_range_check(o, res)
 
     def VisitSymbolicConstant(self, o, **kwargs):
-        res = "ScalarType<%d>(%d)" % (
+        res = "%s<%d>(%d)" % (
+                self.op_scalar_type,
                 o.annotations['fixed-point-format'].upscale,
                 o.annotations['fixed-point-format'].const_value_as_int )
         return self.add_range_check(o, res)
@@ -294,13 +278,14 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         return self.add_range_check(o, res)
 
     def VisitConstant(self, o, **kwargs):
-        res = "ScalarType<%d>(%d)" % (
+        res = "%s<%d>(%d)" % (
+                self.op_scalar_type,
                 o.annotations['fixed-point-format'].upscale,
                 o.annotations['fixed-point-format'].const_value_as_int )
         return self.add_range_check(o, res)
 
     def VisitConstantZero(self, o, **kwargs):
-        res = "ScalarType<0>(0)"
+        res = "%s<0>(0)" %(self.op_scalar_type)
         return self.add_range_check(o, res)
 
 
@@ -342,28 +327,35 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         node_upscale = o.annotations['fixed-point-format'].upscale
 
 
-        rhs = "ScalarType<0>(0) "
+        rhs = "%s<0>(0) " % self.op_scalar_type
         for i,coeff_as_int in enumerate(o.annotations['fixed-point-format'].coeffs_as_consts):
             i_prev_value_name = "d._%s_t%d[i]" % (node_name, i)
 
-            rhs_term = "ScalarOp<%d>::mul( %s, ScalarType<%d>(%d) )" %(
+            rhs_term = "%s<%d>::mul( %s, ScalarType<%d>(%d) )" %(
+                        self.op_scalar_op,
                         node_upscale,
                         i_prev_value_name,
                         o.annotations['fixed-point-format'].coefficient_upscale,
                         coeff_as_int)
 
-            rhs = """ScalarOp<%d>::add(%s, %s) """ % (node_upscale, rhs, rhs_term)
+            rhs = """%s<%d>::add(%s, %s) """ % (
+                    self.op_scalar_op,
+                    node_upscale,
+                    rhs,
+                    rhs_term)
 
 
         # Lets add the random bit:
         # USE uniform random numbers (hack!) should be gaussian:
 
-        #ScalarType<0>( rnd::rand_kiss()-((1>>7)*2 >> 8)), 
-        #//- (1<<24) 
-        res = """ScalarOp<%d>::add( 
-                    ScalarType<0>( ((int) rnd::rand_kiss() ) - (1<<23) ), 
+        #ScalarType<0>( rnd::rand_kiss()-((1>>7)*2 >> 8)),
+        #//- (1<<24)
+        res = """%s<%d>::add(
+                    %s<0>( ((int) rnd::rand_kiss() ) - (1<<23) ),
                     %s )  """ % (
+                    self.op_scalar_op,
                     node_upscale,
+                    self.op_scalar_type,
                     rhs,
                 )
 
@@ -404,6 +396,17 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
 
 
 
+
+class CBasedFixedWriterBlueVecOps(CBasedFixedWriterStd):
+
+    def __init__(self, component, population_access_index=None, data_prefix=None ):
+        super(CBasedFixedWriter, self).__init__()
+        self.population_access_index=population_access_index
+        self.data_prefix=data_prefix
+
+
+        self.op_scalar_type = 'ScalarType'
+        self.op_scalar_op = 'ScalarOp'
 
 
 
