@@ -1679,8 +1679,8 @@ Kernel sim_step_update_sv_bluevec_build_kernel(NrnPopData& d)
 
 
         cout << "\nBuilding Kernel";
-        Kernel k;
-        return k;
+        //Kernel k;
+        return kernel();
 
 
 }
