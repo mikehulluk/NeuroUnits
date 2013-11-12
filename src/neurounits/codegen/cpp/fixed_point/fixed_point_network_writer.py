@@ -704,21 +704,27 @@ namespace StdCVectorType
     struct DataVector
     {
         typedef DATATYPE_ DATATYPE;
-        DATATYPE _data[SIZE];
+        DATATYPE* _data; //[SIZE];
 
         // Default Constructor - initialise everything to zero
         DataVector()
         {
+            assert(sizeof(int)==sizeof(DATATYPE));
+            _data = (DATATYPE*) bvMalloc(sizeof(DATATYPE) * SIZE);
             for(int i=0;i<SIZE;i++) _data[i] = DATATYPE(0);
         }
 
         DataVector( int t )
         {
+            assert(sizeof(int)==sizeof(DATATYPE));
+            _data = (DATATYPE*) bvMalloc(sizeof(DATATYPE) * SIZE);
             for(int i=0;i<SIZE;i++) _data[i] = DATATYPE(t);
         }
 
         DATATYPE& operator[](size_t index)
         {
+            assert(sizeof(int)==sizeof(DATATYPE));
+            _data = (DATATYPE*) bvMalloc(sizeof(DATATYPE) * SIZE);
             return _data[index];
         }
     };
@@ -793,12 +799,11 @@ template<int UPSCALE>
 struct FixedPointDataStream
 {
     Stream s;
-    explicit FixedPointDataStream(Stream s) : s(s) { }
     explicit FixedPointDataStream(int k) : s(constant(k))  {}
-
-    // From data pointer:
     explicit FixedPointDataStream(int* pData) : s(load(pData)) {}
-    //FixedPointDataStream() {};
+    explicit FixedPointDataStream(Stream s) : s(s) { }
+
+
 
     const static int UP = UPSCALE;
 
