@@ -49,7 +49,8 @@ class CCompiler(object):
                            compilation_settings = None,
                            run=False,
                            intermediate_filename=None, #'/tmp/nu/compilation/compile1.cpp',
-                           output_filename = None
+                           output_filename = None,
+                           compiler=None
                         ):
 
         if output_filename == None:
@@ -57,6 +58,9 @@ class CCompiler(object):
 
         if intermediate_filename == None:
             intermediate_filename='/tmp/nu/compilation/compile1.cpp'
+
+        if compiler is None:
+            compiler='g++'
 
         # Only one form of input:
         assert  bool(src_text) != bool(src_files)
@@ -82,7 +86,7 @@ class CCompiler(object):
 
         # OK, lets compile!
         compilation_dict = {
-            'CC': 'g++',
+            'CC': compiler,
             'INPUT_FILES' : ' '.join(src_files),
             'CXX_FLAGS' :   ' '.join(compilation_settings.compile_flags),
             'CXX_INCL_PATHS' : ' '.join(['-I'+ a for a in compilation_settings.additional_include_paths]),

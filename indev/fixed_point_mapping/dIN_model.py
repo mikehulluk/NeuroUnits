@@ -15,10 +15,10 @@ def get_dIN(nbits):
         <=> TIME t:(ms)
         <=> INPUT i_injected:(mA)
 
-        iInj_local = [50pA] if [ 50ms < t < 200ms] else [0pA] * 0.0
+        #iInj_local = [50pA] if [ 50ms < t < 200ms] else [0pA] * 0.0
 
 
-        #iInj_local = [0pA] if [ 50ms < t < 55ms] else [0pA]
+        iInj_local = [30pA] if [ 50ms < t < 55ms] else [0pA]
 
 
         Cap = 10 pF
@@ -30,10 +30,10 @@ def get_dIN(nbits):
 
         k = i_injected
 
-        V_noisy = V + ~ar_model(0.3) * {2mV}
-        V_vnoisy = V_noisy + ~ar_model() * 1mV + ~ar_model(p0=0.3,p1=0.3) * {3mV}
-        noise = ~ar_model(0.3) * {3mV}
-        noise_raw = ~ar_model()
+        ##V_noisy = V + ~ar_model(0.3) * {2mV}
+        ##V_vnoisy = V_noisy + ~ar_model() * 1mV + ~ar_model(p0=0.3,p1=0.3) * {3mV}
+        ##noise = ~ar_model(0.3) * {3mV}
+        ##noise_raw = ~ar_model()
 
         ClipMax(x, x_max) = [x] if [x<x_max] else [x_max]
 

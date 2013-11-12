@@ -408,11 +408,19 @@ class NineMLComponent(Block):
         import neurounits.ast as ast
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         t = EqnsetVisitorNodeCollector(obj=self)
-        nodes = t.nodes[ast.TimeVariable]
+        nodes = list( t.nodes[ast.TimeVariable] )
         if len(nodes) == 0:
             return None
+        elif len(nodes) == 1:
+            return nodes[0]
+        else:
+            assert False
+        
 
 
+    @property
+    def time_node(self):
+        return self.get_time_node
 
 
     def has_terminal_obj(self, symbol):

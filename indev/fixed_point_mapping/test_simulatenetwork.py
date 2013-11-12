@@ -205,7 +205,7 @@ network.record_output_events( lhs_subpops+rhs_subpops , 'spike' )
 
 
 network.record_traces(lhs_subpops+rhs_subpops, 'V' )
-network.record_traces([pop_LHS_dIN,pop_RHS_dIN], 'noise V_vnoisy noise_raw' )
+#network.record_traces([pop_LHS_dIN,pop_RHS_dIN], 'noise V_vnoisy noise_raw' )
 network.record_input_events( rhs_subpops+lhs_subpops , 'recv_ampa_spike' )
 network.record_input_events( rhs_subpops+lhs_subpops , 'recv_nmda_spike' )
 network.record_input_events( rhs_subpops+lhs_subpops , 'recv_inh_spike' )

@@ -4,7 +4,6 @@
 from mako.template import Template
 import numpy as np
 import os
-from mako import exceptions
 from neurounits.ast_annotations.common import NodeFixedPointFormatAnnotator
 
 
@@ -584,131 +583,6 @@ namespace IntegerFixedPoint
 
 
 
-namespace BlueVecFixedPoint
-{
-
-    // New fixed point classes:
-    template<int UPSCALE>
-    struct ScalarType
-    {
-        Stream s;
-        explicit ScalarType(Stream s) : s(s) { }
-        ScalarType() {};
-
-        const static int UP = UPSCALE;
-
-        // Automatic rescaling during assignments:
-        template<int OTHER_UP>
-        ScalarType<UPSCALE>& operator=(const ScalarType<OTHER_UP>& rhs)
-        {
-            s = rhs.rescale_to<UPSCALE>().s;
-            return *this;
-        }
-
-
-
-        // Explicit rescaling between different scaling factors:
-        template<int NEW_UPSCALE>
-        ScalarType<NEW_UPSCALE> rescale_to( ) const
-        {
-            if(UPSCALE==NEW_UPSCALE) {
-                return ScalarType<NEW_UPSCALE>(s);
-            } else if(UPSCALE>NEW_UPSCALE){
-                return s << (UPSCALE-NEW_UPSCALE);
-            } else{
-                return s >> (NEW_UPSCALE-UPSCALE);
-            }
-
-            // WAS:
-            //return ScalarType<NEW_UPSCALE>( auto_shift(s, UPSCALE - NEW_UPSCALE) );
-        }
-
-        inline double to_float() const
-        {
-            assert(0);
-        }
-        inline IntType to_int() const
-        {
-            assert(0);
-        }
-
-        bool operator<=( const ScalarType<UPSCALE>& rhs) const
-        {
-            return s <=rhs.s;
-        }
-
-
-        template<int RHS_UPSCALE>
-        inline bool operator<( const ScalarType<RHS_UPSCALE>& rhs) const
-        {
-            if(  UPSCALE < RHS_UPSCALE) {
-                return (this->rescale_to<RHS_UPSCALE>().s < rhs.s);
-            } else if( UPSCALE > RHS_UPSCALE) {
-                return ( s < rhs.rescale_to<UPSCALE>().s );
-            } else {
-                return (s < rhs.s);
-            }
-        }
-    };
-
-
-
-
-
-
-    template<int UOUT_>
-    struct ScalarOp
-    {
-        static const int UOUT = UOUT_;
-
-        template<int U1, int U2>
-        static inline ScalarType<UOUT> add( const ScalarType<U1>& a, const ScalarType<U2>& b)
-        {
-
-            //cout << "Hello";
-            //return ScalarType<UOUT>( a  );
-            ScalarType<UOUT> s = a.rescale_to();
-            ScalarType<UOUT> t = a.rescale_to();
-            return s+t;
-            //return ScalarType<UOUT>( a.rescale_to()  );
-            //return ScalarType<UOUT>( a.rescale_to<UOUT>()  );
-            //return (a.rescale_to<UOUT>() + b.rescale_to<UOUT>());
-
-
-
-
-            //return ScalarType<UOUT>(a.rescale_to<UOUT>() + b.rescale_to<UOUT>());
-        }
-
-        template<int U1, int U2>
-        static inline ScalarType<UOUT> sub( const ScalarType<U1>& a, const ScalarType<U2>& b)
-        {
-            //IntType res = BVOps::do_sub_op(a.v, U1, b.v, U2, UOUT, -1);
-            //return ScalarType<UOUT> (res);
-        }
-
-        template<int U1, int U2>
-        static inline ScalarType<UOUT> mul( const ScalarType<U1>& a, const ScalarType<U2>& b)
-        {
-            //IntType res = BVOps::do_mul_op(a.v, U1, b.v, U2, UOUT, -1);
-            //return ScalarType<UOUT> (res);
-        }
-
-        template<int U1, int U2>
-        static inline ScalarType<UOUT> div( const ScalarType<U1>& a, const ScalarType<U2>& b)
-        {
-            //IntType res = BVOps::do_div_op(a.v, U1, b.v, U2, UOUT, -1);
-            //return ScalarType<UOUT> (res);
-        }
-
-        template<int U1>
-        static inline ScalarType<UOUT> exp( const ScalarType<U1>& a)
-        {
-            //return ScalarType<UOUT> ( BVOps::int_exp( a.v, U1, UOUT, -1, lookuptables.exponential ) );
-        }
-
-    };
-};
 
 
 
@@ -741,9 +615,6 @@ namespace DoubleFixedPoint
 
         const static int UP = UPSCALE;
 
-
-
-
         // Automatic rescaling during assignments:
         template<int OTHER_UP>
         ScalarType<UPSCALE>& operator=(const ScalarType<OTHER_UP>& rhs)
@@ -751,8 +622,6 @@ namespace DoubleFixedPoint
             v_float = rhs.v_float;
             return *this;
         }
-
-
 
         // Explicit rescaling between different scaling factors:
         template<int NEW_UPSCALE>
@@ -785,7 +654,6 @@ namespace DoubleFixedPoint
         {
             return v_float < rhs.v_float;
         }
-
 
     };
 
@@ -887,6 +755,184 @@ using IntegerFixedPoint::ScalarOp;
 
 using StdCVectorType::DataVector;
 using StdCVectorType::BoolVector;
+
+
+
+
+
+
+
+
+
+
+
+
+
+struct BoolDataStream
+{
+    Stream s;
+    BoolDataStream(Stream s) : s(s) {}
+};
+
+
+
+
+BoolDataStream operator||( const BoolDataStream& lhs, const BoolDataStream& rhs ) { return BoolDataStream( lhs.s || rhs.s ); }
+BoolDataStream operator&&( const BoolDataStream& lhs, const BoolDataStream& rhs ) { return BoolDataStream( lhs.s && rhs.s ); }
+
+
+
+
+
+
+
+
+
+// New fixed point classes:
+template<int UPSCALE>
+struct FixedPointDataStream
+{
+    Stream s;
+    explicit FixedPointDataStream(Stream s) : s(s) { }
+    explicit FixedPointDataStream(int k) : s(constant(k))  {}
+
+    // From data pointer:
+    explicit FixedPointDataStream(int* pData) : s(load(pData)) {}
+    //FixedPointDataStream() {};
+
+    const static int UP = UPSCALE;
+
+    // Automatic rescaling during assignments:
+    template<int OTHER_UP>
+    FixedPointDataStream<UPSCALE>& operator=(const FixedPointDataStream<OTHER_UP>& rhs)
+    {
+        s = rhs.rescale_to<UPSCALE>().s;
+        return *this;
+    }
+
+
+
+    // Explicit rescaling between different scaling factors:
+    template<int NEW_UPSCALE>
+    FixedPointDataStream<NEW_UPSCALE> rescale_to( ) const
+    {
+        if(UPSCALE==NEW_UPSCALE) {
+            return FixedPointDataStream<NEW_UPSCALE>(s);
+        } else if(UPSCALE>NEW_UPSCALE){
+            return FixedPointDataStream<NEW_UPSCALE>( s << (UPSCALE-NEW_UPSCALE) );
+        } else{
+            return FixedPointDataStream<NEW_UPSCALE>( s >> (NEW_UPSCALE-UPSCALE) );
+        }
+
+        // WAS:
+        //return FixedPointDataStream<NEW_UPSCALE>( auto_shift(s, UPSCALE - NEW_UPSCALE) );
+    }
+
+
+    bool operator<=( const FixedPointDataStream<UPSCALE>& rhs) const
+    {
+        return s <=rhs.s;
+    }
+
+
+    template<int RHS_UPSCALE>
+    inline BoolDataStream operator<( const FixedPointDataStream<RHS_UPSCALE>& rhs) const
+    {
+        if(  UPSCALE < RHS_UPSCALE) {
+            return (this->rescale_to<RHS_UPSCALE>().s < rhs.s);
+        } else if( UPSCALE > RHS_UPSCALE) {
+            return ( s < rhs.rescale_to<UPSCALE>().s );
+        } else {
+            return (s < rhs.s);
+        }
+    }
+};
+
+
+
+
+
+
+
+
+
+
+template<int UOUT_>
+struct FixedPointDataStreamOp
+{
+    static const int UOUT = UOUT_;
+
+    template<int U1, int U2>
+    static inline FixedPointDataStream<UOUT> add( const FixedPointDataStream<U1>& a, const FixedPointDataStream<U2>& b)
+    {
+        return FixedPointDataStream<UOUT> (a.template rescale_to<UOUT>().s + b.template rescale_to<UOUT>().s);
+    }
+
+    template<int U1, int U2>
+    static inline FixedPointDataStream<UOUT> sub( const FixedPointDataStream<U1>& a, const FixedPointDataStream<U2>& b)
+    {
+        return FixedPointDataStream<UOUT> (a.template rescale_to<UOUT>().s - b.template rescale_to<UOUT>().s);
+    }
+
+    template<int U1, int U2>
+    static inline FixedPointDataStream<UOUT> mul( const FixedPointDataStream<U1>& a, const FixedPointDataStream<U2>& b)
+    {
+        return FixedPointDataStream<UOUT> (a.template rescale_to<UOUT>().s * b.template rescale_to<UOUT>().s);
+    }
+
+    template<int U1, int U2>
+    static inline FixedPointDataStream<UOUT> div( const FixedPointDataStream<U1>& a, const FixedPointDataStream<U2>& b)
+    {
+        return FixedPointDataStream<UOUT> (a.template rescale_to<UOUT>().s / b.template rescale_to<UOUT>().s);
+    }
+
+    template<int U1>
+    static inline FixedPointDataStream<UOUT> exp( const FixedPointDataStream<U1>& a)
+    {
+        cout << "MISSING EXP FUNCTION";
+        return FixedPointDataStream<UOUT>(0);
+        //return FixedPointDataStream<UOUT> ( BVOps::int_exp( a.v, U1, UOUT, -1, lookuptables.exponential ) );
+    }
+
+
+    template<int U1, int U2>
+    static inline FixedPointDataStream<UOUT> ifthenelse( const BoolDataStream& p, const FixedPointDataStream<U1>& a, const FixedPointDataStream<U2>& b)
+    {
+        setCond(p.s);
+        return FixedPointDataStream<UOUT>( cond(a.template rescale_to<UOUT>().s,b .template rescale_to<UOUT>().s) );
+    }
+
+
+    template<int U1>
+    static inline FixedPointDataStream<UOUT> mul( const FixedPointDataStream<U1>& a, Arg b)
+    {
+        return FixedPointDataStream<UOUT> (a.template rescale_to<UOUT>().s * b);
+    }
+
+
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1369,11 +1415,11 @@ namespace event_handlers
 ## Template functions:
 ## ===================
 <%def name="trigger_transition_block(tr, rtgraph)">
-            if(${writer.to_c(tr.trigger, population_access_index='i', data_prefix='d.')})
+            if(${writer_stdc.to_c(tr.trigger, population_access_index='i', data_prefix='d.')})
             {
                 // Actions ...
                 %for action in tr.actions:
-                ${writer.to_c(action, population_access_index='i', data_prefix='d.')};
+                ${writer_stdc.to_c(action, population_access_index='i', data_prefix='d.')};
                 %endfor
 
                 // Switch regime?
@@ -1415,7 +1461,7 @@ namespace event_handlers
 
                      // Actions ...
                     %for action in tr.actions:
-                    ${writer.to_c(action, population_access_index='i', data_prefix='d.')};
+                    ${writer_stdc.to_c(action, population_access_index='i', data_prefix='d.')};
                     %endfor
 
                     // Switch regime?
@@ -1480,7 +1526,7 @@ void sim_step_update_sv_sequential(NrnPopData& d, TimeInfo time_info)
         // // Calculate the autoregressive nodes:
         %for ar in population.component.autoregressive_model_nodes:
         //Update the current value:
-        d.${writer.to_c(ar)}[i] = ${writer.VisitAutoRegressiveModelUpdate(ar)};
+        d.${writer_stdc.to_c(ar)}[i] = ${writer_stdc.VisitAutoRegressiveModelUpdate(ar)};
         // Save the old values:
         %for i in range( len( ar.coefficients) -1 ):
         %if i==0:
@@ -1495,13 +1541,13 @@ void sim_step_update_sv_sequential(NrnPopData& d, TimeInfo time_info)
 
         // Calculate assignments:
         % for ass in population.component.ordered_assignments_by_dependancies:
-        d.${ass.lhs.symbol}[i] = ${writer.to_c(ass, population_access_index='i', data_prefix='d.')} ;
+        d.${ass.lhs.symbol}[i] = ${writer_stdc.to_c(ass, population_access_index='i', data_prefix='d.')} ;
         LOG_COMPONENT_STATEUPDATE( cout << "\n d.${ass.lhs.symbol}: " << d.${ass.lhs.symbol}[i].to_int()  << " (" << d.${ass.lhs.symbol}[i].to_float()  << ")" << std::flush;)
         % endfor
 
         // Calculate delta's for all state-variables:
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
-        <% cs1, cs2 = writer.to_c(td, population_access_index='i', data_prefix='d.') %>
+        <% cs1, cs2 = writer_stdc.to_c(td, population_access_index='i', data_prefix='d.') %>
         d.d_${td.lhs.symbol}[i] = ${cs1};
         d.${td.lhs.symbol}[i] = ScalarOp<NrnPopData::T_${td.lhs.symbol}::DATATYPE::UP>::add( d.${td.lhs.symbol}[i], d.d_${td.lhs.symbol}[i] ) ;
 
@@ -1516,7 +1562,7 @@ void sim_step_update_sv_sequential(NrnPopData& d, TimeInfo time_info)
         // Copy the old value accross:
         d.C_${cc.annotations['node-id']}_lhs_is_gt_rhs_prev[i] = d.C_${cc.annotations['node-id']}_lhs_is_gt_rhs[i];
         // Calculate the next value:
-        d.C_${cc.annotations['node-id']}_lhs_is_gt_rhs[i] = ${writer._VisitOnConditionCrossing(cc)};
+        d.C_${cc.annotations['node-id']}_lhs_is_gt_rhs[i] = ${writer_stdc._VisitOnConditionCrossing(cc)};
 
         %endfor
 
@@ -1531,18 +1577,19 @@ void sim_step_update_sv_sequential(NrnPopData& d, TimeInfo time_info)
 
 
 
-
-
-void sim_step_update_sv_bluevec(NrnPopData& d, TimeInfo time_info)
+Kernel sim_step_update_sv_bluevec_build_kernel(NrnPopData& d)
 {
+        Arg t;
+        Stream _bv_t = load(t);
+        FixedPointDataStream<${time_upscale}> bv_t(_bv_t);
 
         // A. Load in all the data (state-variables, supplied_values, random_nodes, ar-nodes):
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
-        DataStream bv_${td.lhs.symbol} = load( &(d.${td.lhs.symbol}[0].v) );
+        FixedPointDataStream<${td.lhs.annotations['fixed-point-format'].upscale}> bv_${td.lhs.symbol}( &(d.${td.lhs.symbol}[0].v) );
         %endfor
 
         % for suppl in population.component.suppliedvalues:
-        DataStream bv_${suppl.symbol} = load( &(d.${suppl.symbol}[0]).v );
+        FixedPointDataStream<${suppl.annotations['fixed-point-format'].upscale}> bv_${suppl.symbol}( &(d.${suppl.symbol}[0]).v );
         %endfor
 
         // Random Variable nodes
@@ -1550,32 +1597,27 @@ void sim_step_update_sv_bluevec(NrnPopData& d, TimeInfo time_info)
         IntType RV${rv.annotations['node-id']} =  d.RV${rv.annotations['node-id']};
         %endfor
         %for rv, _pstring in rv_per_neuron:
-        DataStream bv_RV${rv.annotations['node-id']} = load( &(d.RV${rv.annotations['node-id']}[0].v) );
+        FixedPointDataStream <${rv.annotations['fixed-point-format'].upscale}> bv_RV${rv.annotations['node-id']}( &(d.RV${rv.annotations['node-id']}[0].v) );
         %endfor
 
         // AutoRegressive nodes:
         %for ar in population.component.autoregressive_model_nodes:
         <% ar_node_name = "AR%s" % ar.annotations['node-id'] %>
-        DataStream bv_${ar_node_name} = load( &(d.${ar_node_name}[0].v));
+        <% ar_upscale = ar.annotations['fixed-point-format'].upscale %>
+        FixedPointDataStream<${ar_upscale}> bv_${ar_node_name}( &(d.${ar_node_name}[0].v));
         %for i in range( len( ar.coefficients)):
-        DataStream bv__${ar_node_name}_t${i} = load( &(d._${ar_node_name}_t${i}[0].v));
+        FixedPointDataStream<${ar_upscale}> bv__${ar_node_name}_t${i}( &(d._${ar_node_name}_t${i}[0].v));
         %endfor
         %endfor
 
+        //FixedPointDataStream<${population.component.time_node.annotations['fixed-point-format'].upscale}> bv_t( time_info.time_fixed.v );
+
         // B.Load the exponential table:
-        assert(0); // WTF!
+        //assert(0); // WTF!
         //LUT bv_explut = load_lut( &(lookuptables.exponential.pData[0]), lookuptables.exponential.table_size);
         int bv_explut;
 
 
-
-        // Calculate assignments:
-        % for ass in population.component.ordered_assignments_by_dependancies:
-        bv_print("\nCalculating assignment: ${ass.lhs.symbol}");
-        DataStream bv_${ass.lhs.symbol} = ensure_DS(  ${writer.to_c(ass, population_access_index=None, data_prefix='bv_', for_bluevec=True)} );
-        bv_print("Finished calculating assignment: ${ass.lhs.symbol}");
-
-        % endfor
 
 
 
@@ -1584,7 +1626,7 @@ void sim_step_update_sv_bluevec(NrnPopData& d, TimeInfo time_info)
         ##// // Calculate the autoregressive nodes:
         ##%for ar in population.component.autoregressive_model_nodes:
         ##//Update the current value:
-        ##d.${writer.to_c(ar)}[i] = ${writer.VisitAutoRegressiveModelUpdate(ar)};
+        ##d.${writer_stdc.to_c(ar)}[i] = ${writer_stdc.VisitAutoRegressiveModelUpdate(ar)};
         ##// Save the old values:
         ##%for i in range( len( ar.coefficients) -1 ):
         ##%if i==0:
@@ -1597,21 +1639,22 @@ void sim_step_update_sv_bluevec(NrnPopData& d, TimeInfo time_info)
 
 
 
-        ##// Calculate assignments:
-        ##% for ass in population.component.ordered_assignments_by_dependancies:
-        ##d.${ass.lhs.symbol}[i] = ${writer.to_c(ass, population_access_index='i', data_prefix='d.')} ;
-        ##LOG_COMPONENT_STATEUPDATE( cout << "\n d.${ass.lhs.symbol}: " << d.${ass.lhs.symbol}[i].to_int()  << " (" << d.${ass.lhs.symbol}[i].to_float()  << ")" << std::flush;)
-        ##% endfor
 
-        ##// Calculate delta's for all state-variables:
-        ##% for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
-        ##<% cs1, cs2 = writer.to_c(td, population_access_index='i', data_prefix='d.') %>
-        ##d.d_${td.lhs.symbol}[i] = ${cs1};
-        ##d.${td.lhs.symbol}[i] = ScalarOp<NrnPopData::T_${td.lhs.symbol}::DATATYPE::UP>::add( d.${td.lhs.symbol}[i], d.d_${td.lhs.symbol}[i] ) ;
+        // Calculate assignments:
+        % for ass in population.component.ordered_assignments_by_dependancies:
+        bv_print("\nCalculating assignment: ${ass.lhs.symbol}");
+        FixedPointDataStream<${ass.lhs.annotations['fixed-point-format'].upscale}> bv_${ass.lhs.symbol} = ${writer_bluevec.to_c(ass, population_access_index=None, data_prefix='bv_')};
+        bv_print("Finished calculating assignment: ${ass.lhs.symbol}");
+        % endfor
 
-        ##LOG_COMPONENT_STATEUPDATE( cout << "\n delta:${td.lhs.symbol}: " << d.d_${td.lhs.symbol}[i].to_int()  << " (" << d.d_${td.lhs.symbol}[i].to_float()  << ")" << std::flush; )
-        ##LOG_COMPONENT_STATEUPDATE( cout << "\n d.${td.lhs.symbol}: " << d.${td.lhs.symbol}[i].to_int()  << " (" << d.${td.lhs.symbol}[i].to_float()  << ")" << std::flush; )
-        ##% endfor
+
+        // Calculate delta's for all state-variables:
+        %for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
+        FixedPointDataStream<${td.lhs.annotations['fixed-point-format'].delta_upscale}> bv_d_${td.lhs.symbol} = ${writer_bluevec.to_c(td.rhs_map ) }.rescale_to<${td.lhs.annotations['fixed-point-format'].delta_upscale}>()  ;
+        bv_${td.lhs.symbol} = FixedPointDataStreamOp<${td.lhs.annotations['fixed-point-format'].upscale}>::add( bv_${td.lhs.symbol}, bv_d_${td.lhs.symbol});
+        % endfor
+
+
 
 
 
@@ -1620,9 +1663,44 @@ void sim_step_update_sv_bluevec(NrnPopData& d, TimeInfo time_info)
         ##// Copy the old value accross:
         ##d.C_${cc.annotations['node-id']}_lhs_is_gt_rhs_prev[i] = d.C_${cc.annotations['node-id']}_lhs_is_gt_rhs[i];
         ##// Calculate the next value:
-        ##d.C_${cc.annotations['node-id']}_lhs_is_gt_rhs[i] = ${writer._VisitOnConditionCrossing(cc)};
+        ##d.C_${cc.annotations['node-id']}_lhs_is_gt_rhs[i] = ${writer_stdc._VisitOnConditionCrossing(cc)};
 
         ##%endfor
+
+
+        // Write back:
+        // We need to copy all state-variables, plus anything that might be recorded:
+        % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
+        store(bv_${td.lhs.symbol}.s, &(d.${td.lhs.symbol}[0].v));
+        %endfor
+
+
+
+
+
+        cout << "\nBuilding Kernel";
+        Kernel k;
+        return k;
+
+
+}
+
+
+void sim_step_update_sv_bluevec(NrnPopData& d, TimeInfo time_info)
+{
+        // Only build kernel once:
+        static Kernel k  = sim_step_update_sv_bluevec_build_kernel(d);
+
+        // And run:
+        cout << "\nInvoking Kernel";
+        call(128, k, time_info.time_fixed.rescale_to<${time_upscale}>().v );
+        cout << "\nInvoke done!";
+
+
+
+
+
+
 
 
     LOG_COMPONENT_STATEUPDATE( cout << "\n"; )
@@ -2444,14 +2522,14 @@ void record_input_event( IntType global_buffer, const SpikeEmission& evt )
 
 
 
-
+#include "/home/mh735/from_Matt/BlueVec.cpp"
 
 
 """
 
 
 
-from fixed_point_common import  CBasedFixedWriter
+from fixed_point_common import  CBasedFixedWriter, CBasedFixedWriterBlueVecOps
 
 import hdfjive
 
@@ -2572,7 +2650,8 @@ class CBasedEqnWriterFixedNetwork(object):
             component = population.component
 
 
-            self.writer = CBasedFixedWriter(component=population.component, population_access_index='i', data_prefix='d.')
+            self.writer_stdc = CBasedFixedWriter(component=population.component, population_access_index='i', data_prefix='d.')
+            self.writer_bluevec = CBasedFixedWriterBlueVecOps(component=population.component, population_access_index='i', data_prefix='d.')
 
 
             rv_per_neuron = []
@@ -2582,7 +2661,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
                 assert rv.functionname == 'uniform'
                 params = [ rv.parameters.get_single_obj_by(name='min'), rv.parameters.get_single_obj_by(name='max'), ]
-                param_string = ','.join( "(%s)" % (self.writer.visit( p.rhs_ast)  ) for p in params )
+                param_string = ','.join( "(%s)" % (self.writer_stdc.visit( p.rhs_ast)  ) for p in params )
 
                 if rv.modes['share']=='PER_NEURON':
                     rv_per_neuron.append( (rv,param_string) )
@@ -2594,7 +2673,8 @@ class CBasedEqnWriterFixedNetwork(object):
             cfile = Template(c_population_details_tmpl).render(
                             population=population,
 
-                            writer = self.writer,
+                            writer_stdc = self.writer_stdc,
+                            writer_bluevec = self.writer_bluevec,
 
                             rv_per_neuron = rv_per_neuron,
                             rv_per_population = rv_per_population,
@@ -2649,8 +2729,6 @@ class CBasedEqnWriterFixedNetwork(object):
     def compile_and_run(self, cfile, output_c_filename, run, CPPFLAGS,  output_exec_filename):
 
         from neurounits.codegen.utils.c_compilation import CCompiler, CCompilationSettings
-        #if not output_exec_filename:
-        #    output_exec_filename = '/tmp/nu/compilation/exec.x'
 
 
 
@@ -2660,16 +2738,13 @@ class CBasedEqnWriterFixedNetwork(object):
                                         additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/'), os.path.expanduser("~/hw/BlueVec/include/") ],
                                         additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/"), os.path.expanduser("~/hw/BlueVec/lib/")],
                                         libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl', 'bv_proxy'],
-                                        #compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x -O2   -g  ' + (CPPFLAGS if CPPFLAGS else '') ]
                                         compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O2  -g -D_GLIBCXX_DEBUG ' + (CPPFLAGS if CPPFLAGS else '') ]
-
-                                        #compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O3 -ffast-math -g -march=native ' + (CPPFLAGS if CPPFLAGS else '') ]
-                                    ),
-                                    #compile_flags=['-Wall -Werror  -Wfatal-errors -std=gnu++0x -O3  -g -march=native ' + (CPPFLAGS if CPPFLAGS else '') ]),
+                                        ),
                                     run=run,
                                     output_filename=output_exec_filename or None,
                                     intermediate_filename = output_c_filename or None,
                                     )
+
 
 
 
