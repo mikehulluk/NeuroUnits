@@ -19,8 +19,10 @@ def build_raster_plot_obj(name, side):
 
 
 
-xlim=(95e-3,750e-3)
-xlim=(95e-3,300e-3)
+#xlim=(95e-3,750e-3)
+#xlim=(95e-3,300e-3)
+xlim=(0e-3,200e-3)
+
 
 results.raster_plot([
         RasterGroup('RB', [
@@ -82,6 +84,14 @@ filters_traces = [
    "ALL{dIN,noise_raw,RHS}",
    "ALL{dIN,noise_raw,LHS}",
    "ALL{V,MN,LHS}",
+   ]
+
+
+filters_traces = [
+   "ALL{V,dIN}",
+   "ALL{iInj_local,dIN}",
+   "ALL{itot,dIN}",
+   "ALL{iLk,dIN}",
    ]
 
 results.plot(trace_filters=filters_traces, legend=False, xlim=xlim )

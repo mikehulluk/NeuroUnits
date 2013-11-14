@@ -99,18 +99,22 @@ dINs = network.create_population(name='dINs', component=dIN_comp, size=1)
 
 network.record_output_events(dINs, 'spike' )
 network.record_traces(dINs, 'V' )
-network.record_traces(dINs, 'iCa iNa iKf iKs iLk syn_nmda_i' )
+network.record_traces(dINs, 'iCa iNa iKf iKs iLk syn_nmda_i iInj_local' )
+network.record_traces(dINs, 'ks_n kf_n na_m na_h ca_m' )
+network.record_traces(dINs, '' )
 network.record_traces(dINs, 'nmda_vdep' )
 
 
-results = CBasedEqnWriterFixedNetwork(network, output_filename=hdffile, CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ').results
+results = CBasedEqnWriterFixedNetwork(network, output_filename=hdffile, CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ', step_size=0.01e-3).results
 shutil.copy(hdffile, os.path.expanduser("~/debugging/") )
 
 
 filters_traces = [
    "ALL{V}",
-   "ALL{POPINDEX:0000} AND ANY{iCa,iNa,iLk,iKf,iKs,syn_nmda_i}",
-   "ALL{POPINDEX:0000} AND ANY{nmda_vdep}",
+   "ALL{POPINDEX:0000} AND ANY{iLk,iInj_local}",
+   "ALL{POPINDEX:0000} AND ANY{ks_n,kf_n,na_m,na_h}",
+   #"ALL{POPINDEX:0000} AND ANY{iCa,iNa,iLk,iKf,iKs,syn_nmda_i}",
+   #"ALL{POPINDEX:0000} AND ANY{nmda_vdep}",
 ]
 
 filters_spikes = [
@@ -119,7 +123,7 @@ filters_spikes = [
 ]
 
 
-results.plot(trace_filters=filters_traces, spike_filters=filters_spikes, legend=True, xlim = (0.075,0.20)  )
+results.plot(trace_filters=filters_traces, spike_filters=filters_spikes, legend=True, xlim = (0.0,0.07)  )
 
 
 

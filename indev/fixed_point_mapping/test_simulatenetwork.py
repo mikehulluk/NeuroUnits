@@ -204,7 +204,9 @@ network.record_output_events( [rb_drivers] , 'spike' )
 network.record_output_events( lhs_subpops+rhs_subpops , 'spike' )
 
 
-network.record_traces(lhs_subpops+rhs_subpops, 'V' )
+#network.record_traces(lhs_subpops+rhs_subpops, 'V' )
+#network.record_traces([pop_LHS_dIN,pop_RHS_dIN], 'iInj_local itot' )
+network.record_traces([pop_LHS_dIN,pop_RHS_dIN], '*' )
 #network.record_traces([pop_LHS_dIN,pop_RHS_dIN], 'noise V_vnoisy noise_raw' )
 network.record_input_events( rhs_subpops+lhs_subpops , 'recv_ampa_spike' )
 network.record_input_events( rhs_subpops+lhs_subpops , 'recv_nmda_spike' )
@@ -225,7 +227,7 @@ results = CBasedEqnWriterFixedNetwork(
                     network,
                     CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
                     step_size=0.1e-3 / 2.,
-                    run_until=0.95, 
+                    run_until=0.30, 
                     as_float=False,
                     ).results
 

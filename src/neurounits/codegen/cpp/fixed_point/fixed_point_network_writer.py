@@ -276,7 +276,7 @@ using mh::auto_shift64;
 struct LookUpTables
 {
     LookUpTables()
-        : exponential(8, 4)    // (nbits, upscale)
+        : exponential(5, 4)    // (nbits, upscale)
         //: exponential(5, 3)    // (nbits, upscale)
     { }
 
@@ -723,10 +723,16 @@ namespace StdCVectorType
 
         DATATYPE& operator[](size_t index)
         {
-            assert(sizeof(int)==sizeof(DATATYPE));
-            _data = (DATATYPE*) bvMalloc(sizeof(DATATYPE) * SIZE);
             return _data[index];
         }
+
+        //~DataVector()
+        //{
+        //    //cout << "\nCalling DataVector destructor" << flush;
+
+        //}
+
+
     };
 
     template<int SIZE>
@@ -862,6 +868,8 @@ struct FixedPointDataStream
 
 
 
+
+
 template<int UOUT_>
 struct FixedPointDataStreamOp
 {
@@ -882,21 +890,124 @@ struct FixedPointDataStreamOp
     template<int U1, int U2>
     static inline FixedPointDataStream<UOUT> mul( const FixedPointDataStream<U1>& a, const FixedPointDataStream<U2>& b)
     {
-        return FixedPointDataStream<UOUT> (a.template rescale_to<UOUT>().s * b.template rescale_to<UOUT>().s);
+        return FixedPointDataStream<UOUT> ( multiply64_and_rshift(a.s, b.s, -(U1+U2-UOUT-(VAR_NBITS-1)) ) );
+        //return FixedPointDataStream<UOUT> (a.template rescale_to<UOUT>().s * b.template rescale_to<UOUT>().s);
+        //return FixedPointDataStream<UOUT> ( multiply64_and_rshift(a.s, b.s,
+
     }
 
     template<int U1, int U2>
     static inline FixedPointDataStream<UOUT> div( const FixedPointDataStream<U1>& a, const FixedPointDataStream<U2>& b)
     {
+        //return divide64_and_rshift(v1, v2, -(up1-up2-up_local) );
         return FixedPointDataStream<UOUT> (a.template rescale_to<UOUT>().s / b.template rescale_to<UOUT>().s);
     }
+
+
+
+
+
+    // Exponential lookup on the BlueVec emulator:
+    static
+    DataStream _get_upscale_for_xindex(DataStream index)
+    {
+        LookUpTableExpPower2<VAR_NBITS, IntType>& table = lookuptables.exponential;
+
+        const NativeInt32 n_bits_recip_ln_two = 12;
+        const NativeInt32 recip_ln_two_as_int =  NativeInt32( ceil(recip_ln_two * pow(2.0, n_bits_recip_ln_two) ) );
+        const IntType P = (table.upscale+1-n_bits_recip_ln_two-table.nbits_table) * -1;
+        DataStream result_int = ((recip_ln_two_as_int *(index - table.table_size_half) )>> P) + 1;
+
+        return result_int;
+    }
+
+
+
+
 
     template<int U1>
     static inline FixedPointDataStream<UOUT> exp( const FixedPointDataStream<U1>& a)
     {
-        cout << "MISSING EXP FUNCTION";
-        return FixedPointDataStream<UOUT>(0);
+    using boost::lexical_cast;
+        //cout << "MISSING EXP FUNCTION";
+        //return FixedPointDataStream<UOUT>(0);
         //return FixedPointDataStream<UOUT> ( BVOps::int_exp( a.v, U1, UOUT, -1, lookuptables.exponential ) );
+        //return ScalarType<UOUT> ( tmpl_fp_ops::int_exp( a.v, U1, UOUT, -1, lookuptables.exponential ) );
+
+
+        const DataStream& x = a.s;
+        const IntType up_x = U1;
+        const IntType up_out = UOUT;
+        IntType expr_id=-1;
+
+        LookUpTableExpPower2<VAR_NBITS, IntType>& table = lookuptables.exponential;
+
+        bvPrint("");
+
+        bvPrint("Calculating Exponential:");
+        bvPrint(string(" -- UOUT:") + lexical_cast<string>(UOUT) );
+        bvPrint(string(" -- U1:") + lexical_cast<string>(U1) );
+        bvPrint(a.s);
+
+        const IntType nbit_variables = IntType( VAR_NBITS );
+
+        // 1. Calculate the X-indices to use to lookup in the table with:
+        IntType rshift = -(up_x - nbit_variables -table.upscale+table.nbits_table);
+        bvPrint( string("rshift:") + lexical_cast<string>(rshift));
+        DataStream table_index = (x>>rshift) + table.table_size_half;
+
+        // 2. Lookup the yvalues, and also account for differences in fixed point format:
+        int lut = -1;
+
+        bvPrint(" -- (About to lookup in table) ");
+        bvPrint(table_index);
+        DataStream yn =   lookup_lut(lut, table_index) ;
+        DataStream yn1 =  lookup_lut(lut, table_index+1) ;
+
+        // 2a.Find the x-values at the each:
+        DataStream xn  = (((x>>rshift)+0) << rshift);
+
+
+        DataStream L1 = _get_upscale_for_xindex(table_index);
+        DataStream L2 = _get_upscale_for_xindex(table_index+1);
+
+        DataStream yn_upscale =   L1;
+        DataStream yn1_upscale =  L2;
+
+
+        // 3. Perform the linear interpolation:
+        DataStream yn_rel_upscale = yn1_upscale-yn_upscale;
+        DataStream yn_rescaled = (yn>>yn_rel_upscale);
+
+
+        //REPLACED: DataStream d1 = auto_shift(yn, yn_upscale-up_out);
+        DataStream shift = yn_upscale-up_out;
+        DataStream d1 = ::ifthenelse( shift >= 0, yn << shift, yn >> (-shift));
+
+        DataStream d2 = multiply64_and_rshift( (yn1-yn_rescaled), (x-xn), (yn1_upscale - up_out-rshift) * -1 );
+
+        FixedPointDataStream<UOUT> res = FixedPointDataStream<UOUT>( d1 + d2 );
+        bvPrint("Result:");
+        bvPrint(res.s);
+
+
+        bvPrint("Finished calculating exponential:");
+        bvAssert();
+        return res;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
 
@@ -908,11 +1019,11 @@ struct FixedPointDataStreamOp
     }
 
 
-    template<int U1>
-    static inline FixedPointDataStream<UOUT> mul( const FixedPointDataStream<U1>& a, Arg b)
-    {
-        return FixedPointDataStream<UOUT> (a.template rescale_to<UOUT>().s * b);
-    }
+    //template<int U1>
+    //static inline FixedPointDataStream<UOUT> mul( const FixedPointDataStream<U1>& a, Arg b)
+    //{
+    //    return FixedPointDataStream<UOUT> (a.template rescale_to<UOUT>().s * b);
+    //}
 
 
 };
@@ -1585,11 +1696,17 @@ void sim_step_update_sv_sequential(NrnPopData& d, TimeInfo time_info)
 Kernel sim_step_update_sv_bluevec_build_kernel(NrnPopData& d)
 {
         Arg t;
-        Stream _bv_t = load(t);
+        Stream _bv_t = constant(t);
         FixedPointDataStream<${time_upscale}> bv_t(_bv_t);
+
+
+
+        Stream _bv_dt = constant( dt_fixed.to_int() );
+        FixedPointDataStream<${dt_upscale}> bv_dt(_bv_dt);
 
         // A. Load in all the data (state-variables, supplied_values, random_nodes, ar-nodes):
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
+        bvPrint("Loading ${td.lhs.symbol}");
         FixedPointDataStream<${td.lhs.annotations['fixed-point-format'].upscale}> bv_${td.lhs.symbol}( &(d.${td.lhs.symbol}[0].v) );
         %endfor
 
@@ -1647,16 +1764,26 @@ Kernel sim_step_update_sv_bluevec_build_kernel(NrnPopData& d)
 
         // Calculate assignments:
         % for ass in population.component.ordered_assignments_by_dependancies:
-        bv_print("\nCalculating assignment: ${ass.lhs.symbol}");
+        bvPrint("");
+        bvPrint("Calculating assignment: ${ass.lhs.symbol}");
         FixedPointDataStream<${ass.lhs.annotations['fixed-point-format'].upscale}> bv_${ass.lhs.symbol} = ${writer_bluevec.to_c(ass, population_access_index=None, data_prefix='bv_')};
-        bv_print("Finished calculating assignment: ${ass.lhs.symbol}");
+        bvPrint("Finished calculating assignment: ${ass.lhs.symbol}");
         % endfor
 
 
         // Calculate delta's for all state-variables:
         %for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
-        FixedPointDataStream<${td.lhs.annotations['fixed-point-format'].delta_upscale}> bv_d_${td.lhs.symbol} = ${writer_bluevec.to_c(td.rhs_map ) }.rescale_to<${td.lhs.annotations['fixed-point-format'].delta_upscale}>()  ;
-        bv_${td.lhs.symbol} = FixedPointDataStreamOp<${td.lhs.annotations['fixed-point-format'].upscale}>::add( bv_${td.lhs.symbol}, bv_d_${td.lhs.symbol});
+        bvPrint("");
+        bvPrint("Calculating state variable: ${td.lhs.symbol}");
+        FixedPointDataStream<${td.lhs.annotations['fixed-point-format'].delta_upscale}> bv_d_${td.lhs.symbol} = FixedPointDataStreamOp<${td.lhs.annotations['fixed-point-format'].delta_upscale}> ::mul(
+                ${writer_bluevec.to_c(td.rhs_map ) },
+                bv_dt
+        );
+        bv_${td.lhs.symbol} = FixedPointDataStreamOp<${td.lhs.annotations['fixed-point-format'].upscale}>::add(
+                                bv_${td.lhs.symbol},
+                                bv_d_${td.lhs.symbol});
+        bvPrint("Finished calculating state variable: ${td.lhs.symbol}");
+
         % endfor
 
 
@@ -1674,18 +1801,28 @@ Kernel sim_step_update_sv_bluevec_build_kernel(NrnPopData& d)
 
 
         // Write back:
-        // We need to copy all state-variables, plus anything that might be recorded:
+        // We need to copy all state-variables, plus anything that might be recorded, as well as anything that might trigger transition changes.
+        // For now, lets just copy everything.
+
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
+        bvPrint("Storing: ${td.lhs.symbol}");
         store(bv_${td.lhs.symbol}.s, &(d.${td.lhs.symbol}[0].v));
         %endfor
+        % for ass in population.component.ordered_assignments_by_dependancies:
+        bvPrint("Storing: ${ass.lhs.symbol}");
+        store(bv_${ass.lhs.symbol}.s, &(d.${ass.lhs.symbol}[0].v));
+        % endfor
 
 
 
 
 
-        cout << "\nBuilding Kernel";
-        //Kernel k;
-        return kernel();
+        cout << "\nBuilding Kernel" << flush;
+        Kernel k = kernel();
+        cout << "\nFinished building kernel" << flush;
+        return k;;
+
+
 
 
 }
@@ -1697,9 +1834,11 @@ void sim_step_update_sv_bluevec(NrnPopData& d, TimeInfo time_info)
         static Kernel k  = sim_step_update_sv_bluevec_build_kernel(d);
 
         // And run:
-        cout << "\nInvoking Kernel";
-        call(128, k, time_info.time_fixed.rescale_to<${time_upscale}>().v );
-        cout << "\nInvoke done!";
+        //cout << "\nInvoking Kernel";
+        //call(128, k, time_info.time_fixed.rescale_to<${time_upscale}>().v );
+        call(NrnPopData::size, k, time_info.time_fixed.rescale_to<${time_upscale}>().v );
+        //cout << "\nInvoke done!";
+
 
 
 
@@ -1942,6 +2081,15 @@ int main()
     #endif //!ON_NIOS
 
 
+
+    // Setup the exponential lookup tables for bluevec:
+    cout << "loading LUT of size: " << lookuptables.exponential.table_size << " into BlueVec\n";
+
+    load_lut( &(lookuptables.exponential.pData[0]), lookuptables.exponential.table_size);
+
+
+
+
     // Setup the variables:
     %for pop in network.populations:
     NS_${pop.name}::initialise_statevars(data_${pop.name});
@@ -1970,7 +2118,7 @@ int main()
     #if NSIM_REPS
     for(int k=0;k<NSIM_REPS;k++)
     {
-        if(k%100==0) cout << "Loop: " << k << "\n" << flush;
+        if(k%10==0) cout << "Loop: " << k << "\n" << flush;
     #endif
 
         global_data.recordings_new.n_results_written=0;
@@ -1984,7 +2132,7 @@ int main()
             DBG.update( time_info.time_fixed.to_float() );
 
             #if DISPLAY_LOOP_INFO
-            if(get_value32(step_count)%10000 == 0)
+            if(get_value32(step_count)%100 == 0)
             {
                 std::cout << "Loop: " << step_count << "\n";
                 std::cout << "(t: " << time_info.time_fixed.to_float() * 1000 << "ms)\n";
@@ -2558,7 +2706,7 @@ import hdfjive
 
 
 class CBasedEqnWriterFixedNetwork(object):
-    def __init__(self, network, output_filename=None, output_c_filename=None, run=True, compile=True, CPPFLAGS=None, output_exec_filename=None, step_size=0.01, run_until=1.0, as_float=False):
+    def __init__(self, network, output_filename=None, output_c_filename=None, run=True, compile=True, CPPFLAGS=None, output_exec_filename=None, step_size=0.1e-3, run_until=0.3, as_float=False):
 
         network.finalise()
 
