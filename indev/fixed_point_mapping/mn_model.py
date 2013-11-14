@@ -20,7 +20,7 @@ def get_MN(nbits):
 
         Cap = 10 pF
 
-        i_sum = iLk + iInj_local + iKs + iKf + iNa + syn_nmda_i + syn_ampa_i + syn_inhib_i
+        i_sum = iLk #+ iInj_local + iKs + iKf + iNa + syn_nmda_i + syn_ampa_i + syn_inhib_i
         V' = (1/Cap) * i_sum
 
 
@@ -102,7 +102,8 @@ def get_MN(nbits):
         glk_noise4 =  ~uniform(min=noise_min, max=noise_max)[when=SIM_INIT, share=PER_NEURON]
 
 
-        glk_noise = (glk_noise1 + glk_noise2 ) / 2.0
+        #glk_noise = (glk_noise1 + glk_noise2 ) / 2.0
+        glk_noise = 1.0
 
 
 

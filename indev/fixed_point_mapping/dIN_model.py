@@ -16,17 +16,18 @@ def get_dIN(nbits):
         <=> INPUT i_injected:(mA)
 
         #iInj_local = [50pA] if [ 50ms < t < 200ms] else [0pA] * 0.0
+        iInj_local = 0pA
 
 
-        iInj_local = [30pA] if [ 50ms < t < 155ms] else [0pA]
+        #iInj_local = [30pA] if [ 50ms < t < 155ms] else [0pA]
 
 
         Cap = 10 pF
 
 
         V' = (1/Cap) * ( itot) 
-        itot = iLk + iInj_local + iKs + iKf +iNa + iCa +  syn_nmda_i + syn_ampa_i + syn_inhib_i +  i_injected
-        #itot = iLk + iInj_local 
+        #itot = iLk + iInj_local + iKs + iKf +iNa + iCa +  syn_nmda_i + syn_ampa_i + syn_inhib_i +  i_injected
+        itot = iLk + iInj_local 
 
         #V' = (1/Cap) * ( ( iLk + iInj_local ) )
 

@@ -12,7 +12,7 @@ from neurounits.ast_annotations.common import NodeFixedPointFormatAnnotator
 c_prog_header_tmpl = r"""
 
 
-#define DEBUG 1
+// #define DEBUG 1
 
 /*
 Two defines control the setup:
@@ -756,16 +756,15 @@ struct FixedPointDataStreamOp
     static inline FixedPointDataStream<UOUT> mul( const FixedPointDataStream<U1>& a, const FixedPointDataStream<U2>& b)
     {
         return FixedPointDataStream<UOUT> ( multiply64_and_rshift(a.s, b.s, -(U1+U2-UOUT-(VAR_NBITS-1)) ) );
-        //return FixedPointDataStream<UOUT> (a.template rescale_to<UOUT>().s * b.template rescale_to<UOUT>().s);
-        //return FixedPointDataStream<UOUT> ( multiply64_and_rshift(a.s, b.s,
 
     }
 
     template<int U1, int U2>
     static inline FixedPointDataStream<UOUT> div( const FixedPointDataStream<U1>& a, const FixedPointDataStream<U2>& b)
     {
+        return FixedPointDataStream<UOUT> ( divide64_and_rshift(a.s, b.s, -(U1-U2-UOUT) ) );
         //return divide64_and_rshift(v1, v2, -(up1-up2-up_local) );
-        return FixedPointDataStream<UOUT> (a.template rescale_to<UOUT>().s / b.template rescale_to<UOUT>().s);
+        //return FixedPointDataStream<UOUT> (a.template rescale_to<UOUT>().s / b.template rescale_to<UOUT>().s);
     }
 
 
@@ -799,7 +798,7 @@ struct FixedPointDataStreamOp
         const IntType up_x = U1;
         const IntType up_out = UOUT;
         
-        IntType expr_id=-1;
+        ##IntType expr_id=-1;
 
         LookUpTableExpPower2<VAR_NBITS, IntType>& table = lookuptables.exponential;
 
@@ -1629,6 +1628,11 @@ Kernel sim_step_update_sv_bluevec_build_kernel(NrnPopData& d)
         bvPrint("Calculating assignment: ${ass.lhs.symbol}");
         FixedPointDataStream<${ass.lhs.annotations['fixed-point-format'].upscale}> bv_${ass.lhs.symbol} = ${writer_bluevec.to_c(ass, population_access_index=None, data_prefix='bv_')};
         bvPrint("Finished calculating assignment: ${ass.lhs.symbol}");
+        
+        bvPrint( bv_${ass.lhs.symbol}.s );
+        ## %if ass.lhs.symbol=='alpha_ks_n':
+        ##     bvAssert();
+        ## %endif
         % endfor
 
 
@@ -1727,10 +1731,20 @@ void sim_step_update_sv_bluevec(NrnPopData& d, TimeInfo time_info)
 
 void sim_step_update_sv(NrnPopData& d, TimeInfo time_info)
 {
+
+
+
+
     // Sequential Solving:
     //sim_step_update_sv_sequential(d, time_info);
     //assert(0);
+
+    #if USE_BLUEVEC
     sim_step_update_sv_bluevec(d, time_info);
+    #else
+    sim_step_update_sv_sequential(d, time_info);
+    #endif
+
 
 }
 
@@ -1989,11 +2003,30 @@ int main()
         for(IntType step_count=IntType(0);step_count<GlobalConstants::nsim_steps;step_count++)
         {
 
-
             TimeInfo time_info(step_count);
-
-
             DBG.update( time_info.time_fixed.to_float() );
+
+
+
+
+
+            // C. Save the recorded values:
+            if(get_value32(time_info.step_count) % get_value32(record_rate)==0)
+            {
+                // Save time:
+                global_data.recordings_new.time_buffer[global_data.recordings_new.n_results_written] = time_info.time_fixed.to_int();
+                //write_time_to_hdf5(time_info);
+                %for poprec in network.all_trace_recordings:
+                // Record: ${poprec}
+                for(int i=0;i<${poprec.size};i++) global_data.recordings_new.data_buffers[${poprec.global_offset}+i][global_data.recordings_new.n_results_written] = data_${poprec.src_population.name}.${poprec.node.symbol}[i + ${poprec.src_pop_start_index} ].to_int();
+                %endfor
+
+                global_data.recordings_new.n_results_written++;
+            }
+
+
+
+
 
             #if DISPLAY_LOOP_INFO
             if(get_value32(step_count)%100 == 0)
@@ -2033,19 +2066,6 @@ int main()
 
 
 
-            // C. Save the recorded values:
-            if(get_value32(time_info.step_count) % get_value32(record_rate)==0)
-            {
-                // Save time:
-                global_data.recordings_new.time_buffer[global_data.recordings_new.n_results_written] = time_info.time_fixed.to_int();
-                //write_time_to_hdf5(time_info);
-                %for poprec in network.all_trace_recordings:
-                // Record: ${poprec}
-                for(int i=0;i<${poprec.size};i++) global_data.recordings_new.data_buffers[${poprec.global_offset}+i][global_data.recordings_new.n_results_written] = data_${poprec.src_population.name}.${poprec.node.symbol}[i + ${poprec.src_pop_start_index} ].to_int();
-                %endfor
-
-                global_data.recordings_new.n_results_written++;
-            }
 
 
         }

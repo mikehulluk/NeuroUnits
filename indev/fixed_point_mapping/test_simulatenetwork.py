@@ -207,7 +207,13 @@ network.record_output_events( lhs_subpops+rhs_subpops , 'spike' )
 #network.record_traces(lhs_subpops+rhs_subpops, 'V' )
 #network.record_traces([pop_LHS_dIN,pop_RHS_dIN], 'iInj_local itot' )
 #network.record_traces([pop_LHS_dIN,pop_RHS_dIN], '*' )
-network.record_traces(lhs_subpops+rhs_subpops, '*' )
+network.record_traces(lhs_subpops+rhs_subpops, 'V' )
+network.record_traces(lhs_subpops+rhs_subpops, 'iLk' )
+network.record_traces(lhs_subpops+rhs_subpops, 'alpha_ks_n' )
+network.record_traces(lhs_subpops+rhs_subpops, 'syn_nmda_A' )
+
+
+#network.record_traces(lhs_subpops+rhs_subpops, '*' )
 #network.record_traces([pop_LHS_dIN,pop_RHS_dIN], 'noise V_vnoisy noise_raw' )
 network.record_input_events( rhs_subpops+lhs_subpops , 'recv_ampa_spike' )
 network.record_input_events( rhs_subpops+lhs_subpops , 'recv_nmda_spike' )
@@ -224,17 +230,29 @@ network.record_input_events( rhs_subpops+lhs_subpops , 'recv_inh_spike' )
 #                    ).results
 #
 
+t_stop = 0.05
+
 results = CBasedEqnWriterFixedNetwork(
                     network,
                     CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
                     step_size=0.1e-3 / 2.,
-                    run_until=0.30, 
+                    run_until=t_stop,
                     as_float=False,
+                    output_filename="/local/scratch/mh735/neuronits.results-Seq.hdf",
+                    output_c_filename='op-seq.cpp'
                     ).results
 
+results = CBasedEqnWriterFixedNetwork(
+                    network,
+                    CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=true ',
+                    step_size=0.1e-3 / 2.,
+                    run_until=t_stop, 
+                    as_float=False,
+                    output_filename="/local/scratch/mh735/neuronits.results-BV.hdf",
+                    output_c_filename='op-bv.cpp'
+                    ).results
 
-results = HDF5SimulationResultFile("neuronits.results.hdf")
-
+sys.exit(0)
 
 
 

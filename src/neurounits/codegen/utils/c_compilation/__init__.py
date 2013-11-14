@@ -36,7 +36,7 @@ class CCompiler(object):
     @classmethod
     def prepare_to_create_file(cls, filename):
         output_dir = os.path.dirname(filename)
-        if not os.path.exists(output_dir):
+        if output_dir and not os.path.exists(output_dir):
             os.makedirs(output_dir)
         if os.path.exists(filename):
             os.unlink(filename)
