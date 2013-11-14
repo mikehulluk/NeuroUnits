@@ -227,7 +227,7 @@ public:
             cout << "\nyn1_dbl: " << yn1_dbl;
             assert( yn_dbl <= exp(dbg_x_as_float) );
             assert( yn1_dbl > exp(dbg_x_as_float) );
-            assert(0); // Debugging disabled!?
+            //assert(0); // Debugging disabled!?
             #endif
 
 

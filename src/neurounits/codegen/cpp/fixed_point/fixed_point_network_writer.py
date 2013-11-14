@@ -12,6 +12,8 @@ from neurounits.ast_annotations.common import NodeFixedPointFormatAnnotator
 c_prog_header_tmpl = r"""
 
 
+#define DEBUG 1
+
 /*
 Two defines control the setup:
     ON_NIOS
@@ -276,7 +278,7 @@ using mh::auto_shift64;
 struct LookUpTables
 {
     LookUpTables()
-        : exponential(5, 4)    // (nbits, upscale)
+        : exponential(8, 5)    // (nbits, upscale)
         //: exponential(5, 3)    // (nbits, upscale)
     { }
 
@@ -324,143 +326,6 @@ typedef Stream DataStream;
 
 
 
-#ifdef USE_BLUEVEC
-/*
-namespace BVOps
-{
-
-    DataStream auto_shift(DataStream da, IntType amount)
-    {
-        if(amount==0)
-        {
-            return da;
-        }
-        else
-        {
-            if(amount>0) return da<<amount;
-            else return da>>(-amount);
-        }
-    }
-
-    DataStream auto_shift(DataStream da, DataStream amount)
-    {
-        return ifthenelse(amount==0, da, (ifthenelse(amount>0, da<<amount, da>>(-1 * amount)) ) );
-    }
-
-    // Add:
-    inline DataStream do_add_op(DataStream v1, IntType up1, DataStream v2, IntType up2, IntType up_local, IntType expr_id) {
-        DataStream res = auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local);
-        return res;
-    }
-    inline DataStream do_add_op(IntType v1, IntType up1, DataStream v2, IntType up2, IntType up_local, IntType expr_id) {
-        DataStream res = auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local);
-        return res;
-    }
-    inline DataStream do_add_op(DataStream v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
-        DataStream res = auto_shift(v1, up1-up_local) + auto_shift(v2, up2-up_local);
-        return res;
-    }
-
-    // Sub:
-    inline DataStream do_sub_op(DataStream v1, IntType up1, DataStream v2, IntType up2, IntType up_local, IntType expr_id) {
-        return auto_shift(v1, up1-up_local) - auto_shift(v2, up2-up_local);
-    }
-    inline DataStream do_sub_op(IntType v1, IntType up1, DataStream v2, IntType up2, IntType up_local, IntType expr_id) {
-        return auto_shift(v1, up1-up_local) - auto_shift(v2, up2-up_local);
-    }
-    inline DataStream do_sub_op(DataStream v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
-        return auto_shift(v1, up1-up_local) - auto_shift(v2, up2-up_local);
-    }
-
-    // Mul:
-    inline DataStream do_mul_op(DataStream v1, IntType up1, DataStream v2, IntType up2, IntType up_local, IntType expr_id) {
-        return multiply64_and_rshift(v1, v2, -(up1+up2-up_local-(VAR_NBITS-1)) );
-    }
-    inline DataStream do_mul_op(IntType v1, IntType up1, DataStream v2, IntType up2, IntType up_local, IntType expr_id) {
-        return multiply64_and_rshift(v1, v2, -(up1+up2-up_local-(VAR_NBITS-1)) );
-    }
-    inline DataStream do_mul_op(DataStream v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
-        return multiply64_and_rshift(v1, v2, -(up1+up2-up_local-(VAR_NBITS-1)) );
-    }
-
-
-    // Div:
-    inline DataStream do_div_op(DataStream v1, IntType up1, DataStream v2, IntType up2, IntType up_local, IntType expr_id) {
-        return divide64_and_rshift(v1, v2, -(up1-up2-up_local) );
-    }
-    inline DataStream do_div_op(IntType v1, IntType up1, DataStream v2, IntType up2, IntType up_local, IntType expr_id) {
-        return divide64_and_rshift(v1, v2, -(up1-up2-up_local) );
-    }
-    inline DataStream do_div_op(DataStream v1, IntType up1, IntType v2, IntType up2, IntType up_local, IntType expr_id) {
-        return divide64_and_rshift(v1, v2, -(up1-up2-up_local) );
-    }
-
-    inline DataStream do_ifthenelse_op(BoolStream pred, DataStream v1, IntType up1, DataStream v2, IntType up2) {
-        return ifthenelse(pred, auto_shift(v1, up1), auto_shift(v2, up2));
-    }
-    inline DataStream do_ifthenelse_op(BoolStream pred, IntType v1, IntType up1, DataStream v2, IntType up2) {
-        return ifthenelse(pred, auto_shift(v1, up1), auto_shift(v2, up2));
-    }
-    inline DataStream do_ifthenelse_op(BoolStream pred, DataStream v1, IntType up1, IntType v2, IntType up2) {
-        return ifthenelse(pred, auto_shift(v1, up1), auto_shift(v2, up2));
-    }
-
-    // Exponential lookup on the BlueVec emulator:
-    DataStream _get_upscale_for_xindex(DataStream index)
-    {
-        LookUpTableExpPower2<VAR_NBITS, IntType>& table = lookuptables.exponential;
-
-        const NativeInt32 n_bits_recip_ln_two = 12;
-        const NativeInt32 recip_ln_two_as_int =  NativeInt32( ceil(recip_ln_two * pow(2.0, n_bits_recip_ln_two) ) );
-        const IntType P = (table.upscale+1-n_bits_recip_ln_two-table.nbits_table) * -1;
-        DataStream result_int = ((recip_ln_two_as_int *(index - table.table_size_half) )>> P) + 1;
-
-        return result_int;
-    }
-
-    template<typename LUTTYPE>
-    inline DataStream int_exp(DataStream x, IntType up_x, IntType up_out, IntType expr_id, LUTTYPE lut ) {
-
-
-        LookUpTableExpPower2<VAR_NBITS, IntType>& table = lookuptables.exponential;
-
-        const IntType nbit_variables = IntType( VAR_NBITS );
-
-        // 1. Calculate the X-indices to use to lookup in the table with:
-        IntType rshift = -(up_x - nbit_variables -table.upscale+table.nbits_table);
-        DataStream table_index = (x>>rshift) + table.table_size_half;
-
-        // 2. Lookup the yvalues, and also account for differences in fixed point format:
-        DataStream yn =   lookup_lut(lut, table_index) ;
-        DataStream yn1 =  lookup_lut(lut, table_index+1) ;
-
-        // 2a.Find the x-values at the each:
-        DataStream xn  = (((x>>rshift)+0) << rshift);
-
-
-        DataStream L1 = _get_upscale_for_xindex(table_index);
-        DataStream L2 = _get_upscale_for_xindex(table_index+1);
-
-        DataStream yn_upscale =   L1;
-        DataStream yn1_upscale =  L2;
-
-
-        // 3. Perform the linear interpolation:
-        DataStream yn_rel_upscale = yn1_upscale-yn_upscale;
-        DataStream yn_rescaled = (yn>>yn_rel_upscale);
-
-
-        DataStream d1 = auto_shift(yn, yn_upscale-up_out);
-        DataStream d2 = multiply64_and_rshift( (yn1-yn_rescaled), (x-xn), (yn1_upscale - up_out-rshift) * -1 );
-
-        return (d1 + d2);
-    }
-
-
-
-}
-*/
-#endif
 
 
 
@@ -928,16 +793,12 @@ struct FixedPointDataStreamOp
     template<int U1>
     static inline FixedPointDataStream<UOUT> exp( const FixedPointDataStream<U1>& a)
     {
-    using boost::lexical_cast;
-        //cout << "MISSING EXP FUNCTION";
-        //return FixedPointDataStream<UOUT>(0);
-        //return FixedPointDataStream<UOUT> ( BVOps::int_exp( a.v, U1, UOUT, -1, lookuptables.exponential ) );
-        //return ScalarType<UOUT> ( tmpl_fp_ops::int_exp( a.v, U1, UOUT, -1, lookuptables.exponential ) );
-
+        using boost::lexical_cast;
 
         const DataStream& x = a.s;
         const IntType up_x = U1;
         const IntType up_out = UOUT;
+        
         IntType expr_id=-1;
 
         LookUpTableExpPower2<VAR_NBITS, IntType>& table = lookuptables.exponential;
@@ -964,6 +825,10 @@ struct FixedPointDataStreamOp
         DataStream yn =   lookup_lut(lut, table_index) ;
         DataStream yn1 =  lookup_lut(lut, table_index+1) ;
 
+        bvPrint(" -- (Values found:) ");
+        bvPrint(yn);
+        bvPrint(yn1);
+        
         // 2a.Find the x-values at the each:
         DataStream xn  = (((x>>rshift)+0) << rshift);
 
@@ -992,7 +857,7 @@ struct FixedPointDataStreamOp
 
 
         bvPrint("Finished calculating exponential:");
-        bvAssert();
+        //bvAssert();
         return res;
 
 
@@ -1734,10 +1599,6 @@ Kernel sim_step_update_sv_bluevec_build_kernel(NrnPopData& d)
 
         //FixedPointDataStream<${population.component.time_node.annotations['fixed-point-format'].upscale}> bv_t( time_info.time_fixed.v );
 
-        // B.Load the exponential table:
-        //assert(0); // WTF!
-        //LUT bv_explut = load_lut( &(lookuptables.exponential.pData[0]), lookuptables.exponential.table_size);
-        int bv_explut;
 
 
 
@@ -1868,6 +1729,7 @@ void sim_step_update_sv(NrnPopData& d, TimeInfo time_info)
 {
     // Sequential Solving:
     //sim_step_update_sv_sequential(d, time_info);
+    //assert(0);
     sim_step_update_sv_bluevec(d, time_info);
 
 }
@@ -2086,6 +1948,8 @@ int main()
     cout << "loading LUT of size: " << lookuptables.exponential.table_size << " into BlueVec\n";
 
     load_lut( &(lookuptables.exponential.pData[0]), lookuptables.exponential.table_size);
+    Kernel initLut = kernel();
+    call(lookuptables.exponential.table_size*32, initLut);
 
 
 

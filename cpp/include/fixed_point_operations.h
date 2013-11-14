@@ -206,7 +206,6 @@ template<typename EXPLUT_TYPE>
 inline 
 IntType int_exp(IntType v1, IntType up1, IntType up_local, IntType expr_id, const EXPLUT_TYPE& exponential_lut)
 {
-    //IntType res_int = lookuptables.exponential.get( v1, up1, up_local );
     IntType res_int = exponential_lut.get( v1, up1, up_local );
 
 

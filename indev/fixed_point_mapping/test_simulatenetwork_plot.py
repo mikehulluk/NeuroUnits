@@ -87,12 +87,12 @@ filters_traces = [
    ]
 
 
-filters_traces = [
-   "ALL{V,dIN}",
-   "ALL{iInj_local,dIN}",
-   "ALL{itot,dIN}",
-   "ALL{iLk,dIN}",
-   ]
+#filters_traces = [
+#   "ALL{V,dIN}",
+#   "ALL{iInj_local,dIN}",
+#   "ALL{itot,dIN}",
+#   "ALL{iLk,dIN}",
+#   ]
 
 results.plot(trace_filters=filters_traces, legend=False, xlim=xlim )
 
