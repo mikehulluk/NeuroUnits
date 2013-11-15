@@ -20,7 +20,7 @@ def get_MN(nbits):
 
         Cap = 10 pF
 
-        i_sum = iLk #+ iInj_local + iKs + iKf + iNa + syn_nmda_i + syn_ampa_i + syn_inhib_i
+        i_sum = iLk + iInj_local + iKs + iKf + iNa + syn_nmda_i + syn_ampa_i + syn_inhib_i
         V' = (1/Cap) * i_sum
 
 
@@ -131,7 +131,9 @@ def get_MN(nbits):
 
 
         # Fast potassium (Kf):
-        alpha_denom = ( 1.0 + exp( (V + {-27.5mV}) / {-9.3mV}) )
+        alpha_denom_x = (V + {-27.5mV}) / {-9.3mV}
+        alpha_denom_exp = exp(alpha_denom_x)
+        alpha_denom = ( 1.0 + alpha_denom_exp )
         alpha_denom_cl = [alpha_denom] if [alpha_denom < 2800] else [2800]
         alpha_kf_n = {3.1ms-1} / alpha_denom_cl
         beta_kf_n = AlphaBetaFunc(v=V, A=0.44ms-1, B=0.0ms-1 mV-1, C=1.0, D=8.98mV,E=16.19mV)

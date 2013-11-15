@@ -101,12 +101,12 @@ for syn_index, ((pop1_name, pop2_name, (syn_type, strength) ), conns) in enumera
     synpop_name='SynPop%02d' % syn_index
     weight = '%f nS'%strength
     network.add(
-            EventPortConnector(p1,p2, 
-                src_port_name='spike', 
-                dst_port_name='recv_%s_spike' %syn_type, 
-                name=synpop_name, 
-                delay='1ms', 
-                connector=ExplicitIndicesSet(conns), 
+            EventPortConnector(p1,p2,
+                src_port_name='spike',
+                dst_port_name='recv_%s_spike' %syn_type,
+                name=synpop_name,
+                delay='1ms',
+                connector=ExplicitIndicesSet(conns),
                 parameter_map= {'weight': FixedValue(weight)} )
         )
 #assert False
@@ -152,14 +152,14 @@ rb_drivers = Population('RBInput', component = RB_input, size=10, autotag=['RBIN
 network.add(rb_drivers)
 network.add(
         EventPortConnector(
-            rb_drivers, 
+            rb_drivers,
             pop_RHS_RB.get_subpopulation(start_index=0,end_index=1,subname='triggered',autotag=[]),
-            src_port_name='spike', 
-            dst_port_name='recv_ampa_spike', 
-            name='RBDrives' , 
-            connector=AllToAllConnector(connection_probability=1.0), 
-            delay='0ms', 
-            parameter_map= {'weight': FixedValue('1nS')}  
+            src_port_name='spike',
+            dst_port_name='recv_ampa_spike',
+            name='RBDrives' ,
+            connector=AllToAllConnector(connection_probability=1.0),
+            delay='0ms',
+            parameter_map= {'weight': FixedValue('1nS')}
             )
         )
 
@@ -188,11 +188,11 @@ for dIN_pop in [(pop_LHS_dIN), (pop_RHS_dIN)]:
 
 network.add(
     ElectricalSynapseProjection(
-        src_population =  dINs, 
-        dst_population =  dINs, 
-        connector=ExplicitIndicesLoop(gap_junction_indices), 
+        src_population =  dINs,
+        dst_population =  dINs,
+        connector=ExplicitIndicesLoop(gap_junction_indices),
         strength_S = 2e-9,
-        injected_port_name = 'i_injected', 
+        injected_port_name = 'i_injected',
         name='E_Couple')
 )
 
@@ -207,10 +207,19 @@ network.record_output_events( lhs_subpops+rhs_subpops , 'spike' )
 #network.record_traces(lhs_subpops+rhs_subpops, 'V' )
 #network.record_traces([pop_LHS_dIN,pop_RHS_dIN], 'iInj_local itot' )
 #network.record_traces([pop_LHS_dIN,pop_RHS_dIN], '*' )
+#network.record_traces(lhs_subpops+rhs_subpops, 'V' )
+#network.record_traces(lhs_subpops+rhs_subpops, 'iLk' )
+#network.record_traces(lhs_subpops+rhs_subpops, 'alpha_ks_n' )
+#network.record_traces(lhs_subpops+rhs_subpops, 'syn_nmda_A' )
+
+#network.record_traces(lhs_subpops+rhs_subpops, '*' )
 network.record_traces(lhs_subpops+rhs_subpops, 'V' )
-network.record_traces(lhs_subpops+rhs_subpops, 'iLk' )
-network.record_traces(lhs_subpops+rhs_subpops, 'alpha_ks_n' )
-network.record_traces(lhs_subpops+rhs_subpops, 'syn_nmda_A' )
+
+
+non_dINs = [pop_LHS_MN, pop_LHS_RB, pop_LHS_aIN, pop_LHS_cIN, pop_LHS_dla, pop_LHS_dlc, pop_RHS_MN, pop_RHS_RB, pop_RHS_aIN, pop_RHS_cIN, pop_RHS_dla, pop_RHS_dlc]
+network.record_traces(non_dINs, 'alpha_denom_x alpha_denom_exp alpha_denom' )
+
+
 
 
 #network.record_traces(lhs_subpops+rhs_subpops, '*' )
@@ -225,12 +234,12 @@ network.record_input_events( rhs_subpops+lhs_subpops , 'recv_inh_spike' )
 #                    network,
 #                    CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
 #                    step_size=0.1e-3 / 2.,
-#                    run_until=0.95, 
+#                    run_until=0.95,
 #                    as_float=True,
 #                    ).results
 #
 
-t_stop = 0.05
+t_stop = 0.1
 
 results = CBasedEqnWriterFixedNetwork(
                     network,
@@ -246,7 +255,7 @@ results = CBasedEqnWriterFixedNetwork(
                     network,
                     CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=true ',
                     step_size=0.1e-3 / 2.,
-                    run_until=t_stop, 
+                    run_until=t_stop,
                     as_float=False,
                     output_filename="/local/scratch/mh735/neuronits.results-BV.hdf",
                     output_c_filename='op-bv.cpp'

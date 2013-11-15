@@ -26,8 +26,8 @@ def get_dIN(nbits):
 
 
         V' = (1/Cap) * ( itot) 
-        #itot = iLk + iInj_local + iKs + iKf +iNa + iCa +  syn_nmda_i + syn_ampa_i + syn_inhib_i +  i_injected
-        itot = iLk + iInj_local 
+        itot = iLk + iInj_local + iKs + iKf +iNa + iCa +  syn_nmda_i + syn_ampa_i + syn_inhib_i +  i_injected
+        #itot = iLk + iInj_local 
 
         #V' = (1/Cap) * ( ( iLk + iInj_local ) )
 

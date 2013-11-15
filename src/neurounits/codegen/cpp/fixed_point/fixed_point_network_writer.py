@@ -797,7 +797,7 @@ struct FixedPointDataStreamOp
         const DataStream& x = a.s;
         const IntType up_x = U1;
         const IntType up_out = UOUT;
-        
+
         ##IntType expr_id=-1;
 
         LookUpTableExpPower2<VAR_NBITS, IntType>& table = lookuptables.exponential;
@@ -827,7 +827,7 @@ struct FixedPointDataStreamOp
         bvPrint(" -- (Values found:) ");
         bvPrint(yn);
         bvPrint(yn1);
-        
+
         // 2a.Find the x-values at the each:
         DataStream xn  = (((x>>rshift)+0) << rshift);
 
@@ -1628,7 +1628,7 @@ Kernel sim_step_update_sv_bluevec_build_kernel(NrnPopData& d)
         bvPrint("Calculating assignment: ${ass.lhs.symbol}");
         FixedPointDataStream<${ass.lhs.annotations['fixed-point-format'].upscale}> bv_${ass.lhs.symbol} = ${writer_bluevec.to_c(ass, population_access_index=None, data_prefix='bv_')};
         bvPrint("Finished calculating assignment: ${ass.lhs.symbol}");
-        
+
         bvPrint( bv_${ass.lhs.symbol}.s );
         ## %if ass.lhs.symbol=='alpha_ks_n':
         ##     bvAssert();
@@ -1655,14 +1655,6 @@ Kernel sim_step_update_sv_bluevec_build_kernel(NrnPopData& d)
 
 
 
-        ##// Crossing Nodes:
-        ##%for cc in population.component.conditioncrosses_nodes:
-        ##// Copy the old value accross:
-        ##d.C_${cc.annotations['node-id']}_lhs_is_gt_rhs_prev[i] = d.C_${cc.annotations['node-id']}_lhs_is_gt_rhs[i];
-        ##// Calculate the next value:
-        ##d.C_${cc.annotations['node-id']}_lhs_is_gt_rhs[i] = ${writer_stdc._VisitOnConditionCrossing(cc)};
-
-        ##%endfor
 
 
         // Write back:
@@ -1705,6 +1697,16 @@ void sim_step_update_sv_bluevec(NrnPopData& d, TimeInfo time_info)
         //cout << "\nInvoke done!";
 
 
+        // Crossings (to move into kernel more properly):
+        for(int i=0;i<NrnPopData::size;i++)
+        {
+            %for cc in population.component.conditioncrosses_nodes:
+            // Copy the old value accross:
+            d.C_${cc.annotations['node-id']}_lhs_is_gt_rhs_prev[i] = d.C_${cc.annotations['node-id']}_lhs_is_gt_rhs[i];
+            // Calculate the next value:
+            d.C_${cc.annotations['node-id']}_lhs_is_gt_rhs[i] = ${writer_stdc._VisitOnConditionCrossing(cc)};
+            %endfor
+        }
 
 
 
@@ -2409,13 +2411,18 @@ struct RecordMgr
     {
         #if USE_HDF
 
-        cout << "\n\nWriting traces to HDF5";
+        cout << "\n\nWriting traces to HDF5\n";
         T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
-
         // New version:
         SharedTimeBufferPtr times = output->write_shared_time_buffer(n_results_written, &time_buffer[0]);
         times->get_dataset()->set_scaling_factor(dt_float);
 
+
+        ## How many recs?
+        <%n_tot = sum([poprec.size for poprec in network.all_trace_recordings]) %>
+
+
+        int hdf_n_written = 0;
         %for i,poprec in enumerate(network.all_trace_recordings):
         // Write out values for ${poprec.src_population.name}.${poprec.node.symbol}:
         {
@@ -2427,7 +2434,11 @@ struct RecordMgr
 
                 HDF5DataSet2DStdPtr pDataset = output->write_trace("${poprec.src_population.name}", neuron_index, "${poprec.node.symbol}", times, &(data_buffers[buffer_offset][0]), tags);
                 pDataset->set_scaling_factor( pow(2.0, ${poprec.node.annotations['fixed-point-format'].upscale} - (VAR_NBITS-1)) );
+
             }
+            hdf_n_written +=${poprec.size};
+            cout << "\rWriting trace: " << hdf_n_written << " of " << ${n_tot} << "           ";
+
         }
         %endfor
 
@@ -2455,6 +2466,7 @@ struct RecordMgr
 
     void write_all_output_events_to_hdf(SimulationResultsPtr output)
     {
+        cout << "\n\nWriting output events\n";
         T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
         %for i,poprec in enumerate(network.all_output_event_recordings):
         for(int i=0; i< ${poprec.size};i++)
@@ -2464,12 +2476,14 @@ struct RecordMgr
             TagList tags = boost::assign::list_of( "${','.join(poprec.tags)}");
             EventDataSetTuple evtdata = output->write_outputevents_byobjects_extractor<SpikeEmissionExtractor>("${poprec.src_population.name}", neuron_index, "${poprec.node.symbol}",  spikerecordbuffers_send[buffer_offset].begin(), spikerecordbuffers_send[buffer_offset].end(), tags );
             evtdata.spiketimes->set_scaling_factor(dt_float);
+            cout << "\rWriting events: " << i << " of " << ${poprec.size} << "           ";
         }
         %endfor
     }
 
     void write_all_input_events_to_hdf(SimulationResultsPtr output)
     {
+        cout << "\n\nWriting input events\n";
         T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
         %for i,poprec in enumerate(network.all_input_event_recordings):
         for(int i=0; i< ${poprec.size};i++)
@@ -2479,6 +2493,7 @@ struct RecordMgr
             TagList tags = boost::assign::list_of( "${','.join(poprec.tags)}");
             EventDataSetTuple evtdata = output->write_inputevents_byobjects_extractor<SpikeEmissionExtractor>("${poprec.src_population.name}", neuron_index, "${poprec.node.symbol}",  spikerecordbuffers_recv[buffer_offset].begin(), spikerecordbuffers_recv[buffer_offset].end(), tags );
             evtdata.spiketimes->set_scaling_factor(dt_float);
+            cout << "\rWriting events: " << i << " of " << ${poprec.size} << "           ";
         }
         %endfor
     }

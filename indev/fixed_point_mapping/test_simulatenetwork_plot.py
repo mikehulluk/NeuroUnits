@@ -1,7 +1,7 @@
 
 from hdfjive import HDF5SimulationResultFile, RasterGroup, RasterSubgroup
 
-results = HDF5SimulationResultFile("/local/scratch/mh735/neuronits.results.hdf")
+results = HDF5SimulationResultFile("/local/scratch/mh735/neuronits.results-Seq.hdf")
 
 import mreorg
 mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG] # , mreorg.FigFormat.SVG]
@@ -12,8 +12,8 @@ def build_raster_plot_obj(name, side):
         return RasterGroup('%s\n%s' % (name, side), [
             RasterSubgroup("OUT:Spike", "ALL{spike,%s,%s}"%(name,side), {'color':'black', 'marker':'x', 's':2}),
             RasterSubgroup("IN: AMPA", "ALL{recv_ampa_spike,%s,%s}"%(name,side), {'color':'blue', 'marker':'.', 's':size }),
-            RasterSubgroup("IN: NMDA", "ALL{recv_nmda_spike,%s,%s}"%(name,side), {'color':'green', 'marker':'.', 's':size }),
-            RasterSubgroup("IN: Inhib", "ALL{recv_inh_spike,%s,%s} "%(name,side), {'color':'red', 'marker':'.', 's':size }),
+            #RasterSubgroup("IN: NMDA", "ALL{recv_nmda_spike,%s,%s}"%(name,side), {'color':'green', 'marker':'.', 's':size }),
+            #RasterSubgroup("IN: Inhib", "ALL{recv_inh_spike,%s,%s} "%(name,side), {'color':'red', 'marker':'.', 's':size }),
             ] )
 
 
@@ -21,7 +21,7 @@ def build_raster_plot_obj(name, side):
 
 #xlim=(95e-3,750e-3)
 #xlim=(95e-3,300e-3)
-xlim=(0e-3,200e-3)
+xlim=(50e-3,70e-3)
 
 
 results.raster_plot([
