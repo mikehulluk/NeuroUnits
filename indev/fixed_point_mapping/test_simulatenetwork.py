@@ -213,20 +213,20 @@ network.record_output_events( lhs_subpops+rhs_subpops , 'spike' )
 #network.record_traces(lhs_subpops+rhs_subpops, 'syn_nmda_A' )
 
 #network.record_traces(lhs_subpops+rhs_subpops, '*' )
-network.record_traces(lhs_subpops+rhs_subpops, 'V' )
-
-
-non_dINs = [pop_LHS_MN, pop_LHS_RB, pop_LHS_aIN, pop_LHS_cIN, pop_LHS_dla, pop_LHS_dlc, pop_RHS_MN, pop_RHS_RB, pop_RHS_aIN, pop_RHS_cIN, pop_RHS_dla, pop_RHS_dlc]
-network.record_traces(non_dINs, 'alpha_denom_x alpha_denom_exp alpha_denom' )
-
-
-
-
-#network.record_traces(lhs_subpops+rhs_subpops, '*' )
-#network.record_traces([pop_LHS_dIN,pop_RHS_dIN], 'noise V_vnoisy noise_raw' )
-network.record_input_events( rhs_subpops+lhs_subpops , 'recv_ampa_spike' )
-network.record_input_events( rhs_subpops+lhs_subpops , 'recv_nmda_spike' )
-network.record_input_events( rhs_subpops+lhs_subpops , 'recv_inh_spike' )
+#network.record_traces(lhs_subpops+rhs_subpops, 'V' )
+#
+#
+#non_dINs = [pop_LHS_MN, pop_LHS_RB, pop_LHS_aIN, pop_LHS_cIN, pop_LHS_dla, pop_LHS_dlc, pop_RHS_MN, pop_RHS_RB, pop_RHS_aIN, pop_RHS_cIN, pop_RHS_dla, pop_RHS_dlc]
+#network.record_traces(non_dINs, 'alpha_denom_x alpha_denom_exp alpha_denom' )
+#
+#
+#
+#
+##network.record_traces(lhs_subpops+rhs_subpops, '*' )
+##network.record_traces([pop_LHS_dIN,pop_RHS_dIN], 'noise V_vnoisy noise_raw' )
+#network.record_input_events( rhs_subpops+lhs_subpops , 'recv_ampa_spike' )
+#network.record_input_events( rhs_subpops+lhs_subpops , 'recv_nmda_spike' )
+#network.record_input_events( rhs_subpops+lhs_subpops , 'recv_inh_spike' )
 
 
 
@@ -239,7 +239,7 @@ network.record_input_events( rhs_subpops+lhs_subpops , 'recv_inh_spike' )
 #                    ).results
 #
 
-t_stop = 0.1
+t_stop = 1.0
 
 results = CBasedEqnWriterFixedNetwork(
                     network,

@@ -199,7 +199,6 @@ const int record_rate = 10;
 #include <assert.h>
 #include <climits>
 #include <stdint.h>
-#include <array>
 #include <string>
 using namespace std;
 
@@ -209,12 +208,24 @@ using namespace std;
 
 // Headers to use when we are not on the NIOS:
 #if ON_NIOS
+#include <stdio.h>
+#include <alt_types.h>
+#include <system.h>
+#include <io.h>
+#include "HAL/inc/sys/alt_cache.h"
+#include "mh_buffer.h"
+using mhbuffer::array;
+
+
+
 #else
+
 #include <boost/format.hpp>
 #include <boost/assign/list_of.hpp>
 #include <cinttypes>
 #include <fenv.h>
 #include <gmpxx.h>
+#include <array>
 #endif
 
 
@@ -591,11 +602,6 @@ namespace StdCVectorType
             return _data[index];
         }
 
-        //~DataVector()
-        //{
-        //    //cout << "\nCalling DataVector destructor" << flush;
-
-        //}
 
 
     };
@@ -792,7 +798,6 @@ struct FixedPointDataStreamOp
     template<int U1>
     static inline FixedPointDataStream<UOUT> exp( const FixedPointDataStream<U1>& a)
     {
-        using boost::lexical_cast;
 
         const DataStream& x = a.s;
         const IntType up_x = U1;
@@ -802,31 +807,31 @@ struct FixedPointDataStreamOp
 
         LookUpTableExpPower2<VAR_NBITS, IntType>& table = lookuptables.exponential;
 
-        bvPrint("");
+        //bvPrint("");
 
-        bvPrint("Calculating Exponential:");
-        bvPrint(string(" -- UOUT:") + lexical_cast<string>(UOUT) );
-        bvPrint(string(" -- U1:") + lexical_cast<string>(U1) );
-        bvPrint(a.s);
+        //bvPrint("Calculating Exponential:");
+        //bvPrint(string(" -- UOUT:") + boost::lexical_cast<string>(UOUT) );
+        //bvPrint(string(" -- U1:") + boost::lexical_cast<string>(U1) );
+        //bvPrint(a.s);
 
         const IntType nbit_variables = IntType( VAR_NBITS );
 
         // 1. Calculate the X-indices to use to lookup in the table with:
         IntType rshift = -(up_x - nbit_variables -table.upscale+table.nbits_table);
-        bvPrint( string("rshift:") + lexical_cast<string>(rshift));
+        //bvPrint( string("rshift:") + boost::lexical_cast<string>(rshift));
         DataStream table_index = (x>>rshift) + table.table_size_half;
 
         // 2. Lookup the yvalues, and also account for differences in fixed point format:
         int lut = -1;
 
-        bvPrint(" -- (About to lookup in table) ");
-        bvPrint(table_index);
+        //bvPrint(" -- (About to lookup in table) ");
+        //bvPrint(table_index);
         DataStream yn =   lookup_lut(lut, table_index) ;
         DataStream yn1 =  lookup_lut(lut, table_index+1) ;
 
-        bvPrint(" -- (Values found:) ");
-        bvPrint(yn);
-        bvPrint(yn1);
+        //bvPrint(" -- (Values found:) ");
+        //bvPrint(yn);
+        ////bvPrint(yn1);
 
         // 2a.Find the x-values at the each:
         DataStream xn  = (((x>>rshift)+0) << rshift);
@@ -851,11 +856,11 @@ struct FixedPointDataStreamOp
         DataStream d2 = multiply64_and_rshift( (yn1-yn_rescaled), (x-xn), (yn1_upscale - up_out-rshift) * -1 );
 
         FixedPointDataStream<UOUT> res = FixedPointDataStream<UOUT>( d1 + d2 );
-        bvPrint("Result:");
-        bvPrint(res.s);
+        //bvPrint("Result:");
+        //bvPrint(res.s);
 
 
-        bvPrint("Finished calculating exponential:");
+        //bvPrint("Finished calculating exponential:");
         //bvAssert();
         return res;
 
@@ -1570,7 +1575,7 @@ Kernel sim_step_update_sv_bluevec_build_kernel(NrnPopData& d)
 
         // A. Load in all the data (state-variables, supplied_values, random_nodes, ar-nodes):
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
-        bvPrint("Loading ${td.lhs.symbol}");
+        //bvPrint("Loading ${td.lhs.symbol}");
         FixedPointDataStream<${td.lhs.annotations['fixed-point-format'].upscale}> bv_${td.lhs.symbol}( &(d.${td.lhs.symbol}[0].v) );
         %endfor
 
@@ -1624,12 +1629,12 @@ Kernel sim_step_update_sv_bluevec_build_kernel(NrnPopData& d)
 
         // Calculate assignments:
         % for ass in population.component.ordered_assignments_by_dependancies:
-        bvPrint("");
-        bvPrint("Calculating assignment: ${ass.lhs.symbol}");
+        //bvPrint("");
+        //bvPrint("Calculating assignment: ${ass.lhs.symbol}");
         FixedPointDataStream<${ass.lhs.annotations['fixed-point-format'].upscale}> bv_${ass.lhs.symbol} = ${writer_bluevec.to_c(ass, population_access_index=None, data_prefix='bv_')};
-        bvPrint("Finished calculating assignment: ${ass.lhs.symbol}");
+        //bvPrint("Finished calculating assignment: ${ass.lhs.symbol}");
 
-        bvPrint( bv_${ass.lhs.symbol}.s );
+        //bvPrint( bv_${ass.lhs.symbol}.s );
         ## %if ass.lhs.symbol=='alpha_ks_n':
         ##     bvAssert();
         ## %endif
@@ -1638,8 +1643,8 @@ Kernel sim_step_update_sv_bluevec_build_kernel(NrnPopData& d)
 
         // Calculate delta's for all state-variables:
         %for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
-        bvPrint("");
-        bvPrint("Calculating state variable: ${td.lhs.symbol}");
+        //bvPrint("");
+        //bvPrint("Calculating state variable: ${td.lhs.symbol}");
         FixedPointDataStream<${td.lhs.annotations['fixed-point-format'].delta_upscale}> bv_d_${td.lhs.symbol} = FixedPointDataStreamOp<${td.lhs.annotations['fixed-point-format'].delta_upscale}> ::mul(
                 ${writer_bluevec.to_c(td.rhs_map ) },
                 bv_dt
@@ -1647,7 +1652,7 @@ Kernel sim_step_update_sv_bluevec_build_kernel(NrnPopData& d)
         bv_${td.lhs.symbol} = FixedPointDataStreamOp<${td.lhs.annotations['fixed-point-format'].upscale}>::add(
                                 bv_${td.lhs.symbol},
                                 bv_d_${td.lhs.symbol});
-        bvPrint("Finished calculating state variable: ${td.lhs.symbol}");
+        //bvPrint("Finished calculating state variable: ${td.lhs.symbol}");
 
         % endfor
 
@@ -1662,11 +1667,11 @@ Kernel sim_step_update_sv_bluevec_build_kernel(NrnPopData& d)
         // For now, lets just copy everything.
 
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
-        bvPrint("Storing: ${td.lhs.symbol}");
+        //bvPrint("Storing: ${td.lhs.symbol}");
         store(bv_${td.lhs.symbol}.s, &(d.${td.lhs.symbol}[0].v));
         %endfor
         % for ass in population.component.ordered_assignments_by_dependancies:
-        bvPrint("Storing: ${ass.lhs.symbol}");
+        //bvPrint("Storing: ${ass.lhs.symbol}");
         store(bv_${ass.lhs.symbol}.s, &(d.${ass.lhs.symbol}[0].v));
         % endfor
 
@@ -1692,9 +1697,8 @@ void sim_step_update_sv_bluevec(NrnPopData& d, TimeInfo time_info)
 
         // And run:
         //cout << "\nInvoking Kernel";
-        //call(128, k, time_info.time_fixed.rescale_to<${time_upscale}>().v );
+        alt_dcache_flush_all();
         call(NrnPopData::size, k, time_info.time_fixed.rescale_to<${time_upscale}>().v );
-        //cout << "\nInvoke done!";
 
 
         // Crossings (to move into kernel more properly):
@@ -1919,12 +1923,13 @@ void my_terminate (int parameter)
     cout << "\n\nIN MY SIGNAL HANDLER\n" << flush;
 
     // Dump to HDF5
-    cout << "\nWriting HDF5 output" << std::flush;
-
     {
+        #if USE_HDF
+        cout << "\nWriting HDF5 output" << std::flush;
         SimulationResultsPtr hdf_output = SimulationResultsFile(output_filename).Simulation(simulation_name);
         global_data.recordings_new.write_all_traces_to_hdf(hdf_output);
         global_data.recordings_new.write_all_output_events_to_hdf(hdf_output);
+        #endif
     }
 
     cout << "\n\nERROR!!!\n\n";
@@ -1965,6 +1970,7 @@ int main()
 
     load_lut( &(lookuptables.exponential.pData[0]), lookuptables.exponential.table_size);
     Kernel initLut = kernel();
+    alt_dcache_flush_all();
     call(lookuptables.exponential.table_size*32, initLut);
 
 
@@ -2081,12 +2087,13 @@ int main()
 
 
     // Dump to HDF5
+    #if USE_HDF
     cout << "\nWriting HDF5 output" << std::flush;
     SimulationResultsPtr hdf_output = SimulationResultsFile(output_filename).Simulation(simulation_name);
-
     global_data.recordings_new.write_all_traces_to_hdf(hdf_output);
     global_data.recordings_new.write_all_output_events_to_hdf(hdf_output);
     global_data.recordings_new.write_all_input_events_to_hdf(hdf_output);
+    #endif // USE_HDF
 
 
     #if ON_NIOS
@@ -2232,7 +2239,7 @@ namespace NS_eventcoupling_${projection.name}
         const ScalarType<${projection.delay_upscale}> delay( ${projection.delay_int} );
 
 
-        string output = "";
+        //string output = "";
 
         TargetList& targets = projections[get_value32(src_neuron - ${projection.src_population.start_index} )];
         for( TargetList::iterator it = targets.begin(); it!=targets.end();it++)
@@ -2255,7 +2262,7 @@ namespace NS_eventcoupling_${projection.name}
 
             data_${projection.dst_population.population.name}.incoming_events_${projection.dst_port.symbol}[tgt_nrn_index].push_back( evt ) ;
 
-            output += boost::lexical_cast<string>(tgt_nrn_index) + ",";
+            //output += boost::lexical_cast<string>(tgt_nrn_index) + ",";
         }
 
         LOG_COMPONENT_EVENTDISPATCH( cout << "\n   -> Disptached to indices: [" << output << "]"; )
@@ -2310,10 +2317,10 @@ struct RecordMgr
 
 
     // Traces:
-    typedef std::array<IntType, buffer_size>  RecordingBuffer;
+    typedef array<IntType, buffer_size>  RecordingBuffer;
     // Allocate the storage for the traces:
     RecordingBuffer time_buffer;
-    std::array<RecordingBuffer, n_rec_buffers> data_buffers;
+    array<RecordingBuffer, n_rec_buffers> data_buffers;
     int n_results_written;
 
 
@@ -2321,10 +2328,10 @@ struct RecordMgr
     // Events:
     typedef  list<SpikeEmission> SpikeList;
     int nspikes_emitted;
-    std::array<SpikeList,  ${network.n_output_event_recording_buffers} >  spikerecordbuffers_send;
+    array<SpikeList,  ${network.n_output_event_recording_buffers} >  spikerecordbuffers_send;
 
     int nspikes_recv;
-    std::array<SpikeList, ${network.n_input_event_recording_buffers}> spikerecordbuffers_recv;
+    array<SpikeList, ${network.n_input_event_recording_buffers}> spikerecordbuffers_recv;
 
 
 
@@ -2407,9 +2414,9 @@ struct RecordMgr
 
 
 
+    #if USE_HDF
     void write_all_traces_to_hdf(SimulationResultsPtr output)
     {
-        #if USE_HDF
 
         cout << "\n\nWriting traces to HDF5\n";
         T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
@@ -2443,7 +2450,6 @@ struct RecordMgr
         %endfor
 
         cout << "\n\nFinished Writing to HDF5";
-        #endif //USE_HDF
     }
 
 
@@ -2498,6 +2504,7 @@ struct RecordMgr
         %endfor
     }
 
+    #endif //USE_HDF
 
 
 
@@ -2654,7 +2661,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
         t_stop = run_until
-        n_steps = t_stop / self.dt_float
+        n_steps = int( t_stop / self.dt_float )
         std_variables = {
             'nsim_steps' : n_steps,
             'nbits':self.nbits,
