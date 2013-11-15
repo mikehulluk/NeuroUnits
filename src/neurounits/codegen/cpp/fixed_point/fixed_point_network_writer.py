@@ -316,7 +316,7 @@ LookUpTables lookuptables;
 
 
 
-#include "/home/mh735/from_Matt/BlueVec.h"
+#include "/home/mh735/hw/BlueVec/BlueVec.h"
 typedef Stream DataStream;
 
 
@@ -2581,7 +2581,7 @@ void record_input_event( IntType global_buffer, const SpikeEmission& evt )
 
 
 
-#include "/home/mh735/from_Matt/BlueVec.cpp"
+#include "/home/mh735/hw/BlueVec/BlueVec.cpp"
 
 
 """
