@@ -49,13 +49,20 @@ def get_dIN(nbits):
 
 
 
+        # Functions for working out the scaling factors of synapses, based on
+        # their time constants:
+        #_SynTimeMax(tc_open,tc_close) = ln( tc_close / tc_open) * (tc_open * tc_close) / (tc_close - tc_open)
+        #SynScale(tc_open,tc_close) = 1 / (  exp( -_SynTimeMax(tc_open=tc_open, tc_close=tc_close) / tc_close) -  exp( -_SynTimeMax(tc_open=tc_open, tc_close=tc_close) / tc_open)  )
+
+
 
         # NMDA
         # =======================
         syn_nmda_A_tau = 4ms
         syn_nmda_B_tau = 80ms
         syn_nmda_i = ( syn_nmda_g_raw * (syn_nmda_erev - V) * nmda_vdep )
-        syn_nmda_g_raw = ( syn_nmda_g_bar * (syn_nmda_B - syn_nmda_A) * (1/nmda_val_max) )
+        #syn_nmda_g_raw = ( syn_nmda_g_bar * (syn_nmda_B - syn_nmda_A) * SynScale(tc_open=syn_nmda_A_tau, tc_close=syn_nmda_B_tau ) )
+        syn_nmda_g_raw = ( syn_nmda_g_bar * (syn_nmda_B - syn_nmda_A) *  (1/nmda_val_max) )
         syn_nmda_A' = -syn_nmda_A / syn_nmda_A_tau
         syn_nmda_B' = -syn_nmda_B / syn_nmda_B_tau
         # Normalisation:

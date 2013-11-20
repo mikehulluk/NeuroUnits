@@ -383,8 +383,8 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
         self.data_prefix=data_prefix
 
 
-        self.op_scalar_type = 'FixedPointDataStream'
-        self.op_scalar_op = 'FixedPointDataStreamOp'
+        self.op_scalar_type = 'FixedPointStream'
+        self.op_scalar_op = 'FixedPointStreamOp'
 
 
     def to_c(self, obj, population_access_index=None, data_prefix='bv_', ):

@@ -28,7 +28,7 @@ Two defines control the setup:
 
 // By default, we run optimised on the PC:
 #ifndef ON_NIOS
-#define ON_NIOS false
+#define ON_NIOS true
 #endif
 
 #ifndef PC_DEBUG
@@ -73,7 +73,7 @@ Two defines control the setup:
 
 
 #ifndef USE_BLUEVEC
-#define USE_BLUEVEC false
+#define USE_BLUEVEC true
 #endif
 
 
@@ -315,9 +315,10 @@ LookUpTables lookuptables;
 
 
 
-
+#if USE_BLUEVEC
 #include "/home/mh735/hw/BlueVec/BlueVec.h"
-typedef Stream DataStream;
+//typedef Stream DataStream;
+#endif
 
 
 
@@ -586,14 +587,22 @@ namespace StdCVectorType
         DataVector()
         {
             assert(sizeof(int)==sizeof(DATATYPE));
+            #if USE_BLUEVEC
             _data = (DATATYPE*) bvMalloc(sizeof(DATATYPE) * SIZE);
+            #else
+            _data = (DATATYPE*) malloc(sizeof(DATATYPE) * SIZE);
+            #endif
             for(int i=0;i<SIZE;i++) _data[i] = DATATYPE(0);
         }
 
         DataVector( int t )
         {
             assert(sizeof(int)==sizeof(DATATYPE));
+            #if USE_BLUEVEC
             _data = (DATATYPE*) bvMalloc(sizeof(DATATYPE) * SIZE);
+            #else
+            _data = (DATATYPE*) malloc(sizeof(DATATYPE) * SIZE);
+            #endif
             for(int i=0;i<SIZE;i++) _data[i] = DATATYPE(t);
         }
 
@@ -647,21 +656,22 @@ using StdCVectorType::BoolVector;
 
 
 
+#if USE_BLUEVEC
 
 
 
 
-struct BoolDataStream
+struct BoolStream
 {
     Stream s;
-    BoolDataStream(Stream s) : s(s) {}
+    BoolStream(Stream s) : s(s) {}
 };
 
 
 
 
-BoolDataStream operator||( const BoolDataStream& lhs, const BoolDataStream& rhs ) { return BoolDataStream( lhs.s || rhs.s ); }
-BoolDataStream operator&&( const BoolDataStream& lhs, const BoolDataStream& rhs ) { return BoolDataStream( lhs.s && rhs.s ); }
+BoolStream operator||( const BoolStream& lhs, const BoolStream& rhs ) { return BoolStream( lhs.s || rhs.s ); }
+BoolStream operator&&( const BoolStream& lhs, const BoolStream& rhs ) { return BoolStream( lhs.s && rhs.s ); }
 
 
 
@@ -673,12 +683,12 @@ BoolDataStream operator&&( const BoolDataStream& lhs, const BoolDataStream& rhs 
 
 // New fixed point classes:
 template<int UPSCALE>
-struct FixedPointDataStream
+struct FixedPointStream
 {
     Stream s;
-    explicit FixedPointDataStream(int k) : s(constant(k))  {}
-    explicit FixedPointDataStream(int* pData) : s(load(pData)) {}
-    explicit FixedPointDataStream(Stream s) : s(s) { }
+    explicit FixedPointStream(int k) : s(constant(k))  {}
+    explicit FixedPointStream(int* pData) : s(load(pData)) {}
+    explicit FixedPointStream(Stream s) : s(s) { }
 
 
 
@@ -686,7 +696,7 @@ struct FixedPointDataStream
 
     // Automatic rescaling during assignments:
     template<int OTHER_UP>
-    FixedPointDataStream<UPSCALE>& operator=(const FixedPointDataStream<OTHER_UP>& rhs)
+    FixedPointStream<UPSCALE>& operator=(const FixedPointStream<OTHER_UP>& rhs)
     {
         s = rhs.rescale_to<UPSCALE>().s;
         return *this;
@@ -696,29 +706,29 @@ struct FixedPointDataStream
 
     // Explicit rescaling between different scaling factors:
     template<int NEW_UPSCALE>
-    FixedPointDataStream<NEW_UPSCALE> rescale_to( ) const
+    FixedPointStream<NEW_UPSCALE> rescale_to( ) const
     {
         if(UPSCALE==NEW_UPSCALE) {
-            return FixedPointDataStream<NEW_UPSCALE>(s);
+            return FixedPointStream<NEW_UPSCALE>(s);
         } else if(UPSCALE>NEW_UPSCALE){
-            return FixedPointDataStream<NEW_UPSCALE>( s << (UPSCALE-NEW_UPSCALE) );
+            return FixedPointStream<NEW_UPSCALE>( s << (UPSCALE-NEW_UPSCALE) );
         } else{
-            return FixedPointDataStream<NEW_UPSCALE>( s >> (NEW_UPSCALE-UPSCALE) );
+            return FixedPointStream<NEW_UPSCALE>( s >> (NEW_UPSCALE-UPSCALE) );
         }
 
         // WAS:
-        //return FixedPointDataStream<NEW_UPSCALE>( auto_shift(s, UPSCALE - NEW_UPSCALE) );
+        //return FixedPointStream<NEW_UPSCALE>( auto_shift(s, UPSCALE - NEW_UPSCALE) );
     }
 
 
-    bool operator<=( const FixedPointDataStream<UPSCALE>& rhs) const
+    bool operator<=( const FixedPointStream<UPSCALE>& rhs) const
     {
         return s <=rhs.s;
     }
 
 
     template<int RHS_UPSCALE>
-    inline BoolDataStream operator<( const FixedPointDataStream<RHS_UPSCALE>& rhs) const
+    inline BoolStream operator<( const FixedPointStream<RHS_UPSCALE>& rhs) const
     {
         if(  UPSCALE < RHS_UPSCALE) {
             return (this->rescale_to<RHS_UPSCALE>().s < rhs.s);
@@ -742,35 +752,35 @@ struct FixedPointDataStream
 
 
 template<int UOUT_>
-struct FixedPointDataStreamOp
+struct FixedPointStreamOp
 {
     static const int UOUT = UOUT_;
 
     template<int U1, int U2>
-    static inline FixedPointDataStream<UOUT> add( const FixedPointDataStream<U1>& a, const FixedPointDataStream<U2>& b)
+    static inline FixedPointStream<UOUT> add( const FixedPointStream<U1>& a, const FixedPointStream<U2>& b)
     {
-        return FixedPointDataStream<UOUT> (a.template rescale_to<UOUT>().s + b.template rescale_to<UOUT>().s);
+        return FixedPointStream<UOUT> (a.template rescale_to<UOUT>().s + b.template rescale_to<UOUT>().s);
     }
 
     template<int U1, int U2>
-    static inline FixedPointDataStream<UOUT> sub( const FixedPointDataStream<U1>& a, const FixedPointDataStream<U2>& b)
+    static inline FixedPointStream<UOUT> sub( const FixedPointStream<U1>& a, const FixedPointStream<U2>& b)
     {
-        return FixedPointDataStream<UOUT> (a.template rescale_to<UOUT>().s - b.template rescale_to<UOUT>().s);
+        return FixedPointStream<UOUT> (a.template rescale_to<UOUT>().s - b.template rescale_to<UOUT>().s);
     }
 
     template<int U1, int U2>
-    static inline FixedPointDataStream<UOUT> mul( const FixedPointDataStream<U1>& a, const FixedPointDataStream<U2>& b)
+    static inline FixedPointStream<UOUT> mul( const FixedPointStream<U1>& a, const FixedPointStream<U2>& b)
     {
-        return FixedPointDataStream<UOUT> ( multiply64_and_rshift(a.s, b.s, -(U1+U2-UOUT-(VAR_NBITS-1)) ) );
+        return FixedPointStream<UOUT> ( multiply64_and_rshift(a.s, b.s, -(U1+U2-UOUT-(VAR_NBITS-1)) ) );
 
     }
 
     template<int U1, int U2>
-    static inline FixedPointDataStream<UOUT> div( const FixedPointDataStream<U1>& a, const FixedPointDataStream<U2>& b)
+    static inline FixedPointStream<UOUT> div( const FixedPointStream<U1>& a, const FixedPointStream<U2>& b)
     {
-        return FixedPointDataStream<UOUT> ( divide64_and_rshift(a.s, b.s, -(U1-U2-UOUT) ) );
+        return FixedPointStream<UOUT> ( divide64_and_rshift(a.s, b.s, -(U1-U2-UOUT) ) );
         //return divide64_and_rshift(v1, v2, -(up1-up2-up_local) );
-        //return FixedPointDataStream<UOUT> (a.template rescale_to<UOUT>().s / b.template rescale_to<UOUT>().s);
+        //return FixedPointStream<UOUT> (a.template rescale_to<UOUT>().s / b.template rescale_to<UOUT>().s);
     }
 
 
@@ -779,14 +789,14 @@ struct FixedPointDataStreamOp
 
     // Exponential lookup on the BlueVec emulator:
     static
-    DataStream _get_upscale_for_xindex(DataStream index)
+    Stream _get_upscale_for_xindex(Stream index)
     {
         LookUpTableExpPower2<VAR_NBITS, IntType>& table = lookuptables.exponential;
 
         const NativeInt32 n_bits_recip_ln_two = 12;
         const NativeInt32 recip_ln_two_as_int =  NativeInt32( ceil(recip_ln_two * pow(2.0, n_bits_recip_ln_two) ) );
         const IntType P = (table.upscale+1-n_bits_recip_ln_two-table.nbits_table) * -1;
-        DataStream result_int = ((recip_ln_two_as_int *(index - table.table_size_half) )>> P) + 1;
+        Stream result_int = ((recip_ln_two_as_int *(index - table.table_size_half) )>> P) + 1;
 
         return result_int;
     }
@@ -796,10 +806,10 @@ struct FixedPointDataStreamOp
 
 
     template<int U1>
-    static inline FixedPointDataStream<UOUT> exp( const FixedPointDataStream<U1>& a)
+    static inline FixedPointStream<UOUT> exp( const FixedPointStream<U1>& a)
     {
 
-        const DataStream& x = a.s;
+        const Stream& x = a.s;
         const IntType up_x = U1;
         const IntType up_out = UOUT;
 
@@ -819,43 +829,43 @@ struct FixedPointDataStreamOp
         // 1. Calculate the X-indices to use to lookup in the table with:
         IntType rshift = -(up_x - nbit_variables -table.upscale+table.nbits_table);
         //bvPrint( string("rshift:") + boost::lexical_cast<string>(rshift));
-        DataStream table_index = (x>>rshift) + table.table_size_half;
+        Stream table_index = (x>>rshift) + table.table_size_half;
 
         // 2. Lookup the yvalues, and also account for differences in fixed point format:
         int lut = -1;
 
         //bvPrint(" -- (About to lookup in table) ");
         //bvPrint(table_index);
-        DataStream yn =   lookup_lut(lut, table_index) ;
-        DataStream yn1 =  lookup_lut(lut, table_index+1) ;
+        Stream yn =   lookup_lut(lut, table_index) ;
+        Stream yn1 =  lookup_lut(lut, table_index+1) ;
 
         //bvPrint(" -- (Values found:) ");
         //bvPrint(yn);
         ////bvPrint(yn1);
 
         // 2a.Find the x-values at the each:
-        DataStream xn  = (((x>>rshift)+0) << rshift);
+        Stream xn  = (((x>>rshift)+0) << rshift);
 
 
-        DataStream L1 = _get_upscale_for_xindex(table_index);
-        DataStream L2 = _get_upscale_for_xindex(table_index+1);
+        Stream L1 = _get_upscale_for_xindex(table_index);
+        Stream L2 = _get_upscale_for_xindex(table_index+1);
 
-        DataStream yn_upscale =   L1;
-        DataStream yn1_upscale =  L2;
+        Stream yn_upscale =   L1;
+        Stream yn1_upscale =  L2;
 
 
         // 3. Perform the linear interpolation:
-        DataStream yn_rel_upscale = yn1_upscale-yn_upscale;
-        DataStream yn_rescaled = (yn>>yn_rel_upscale);
+        Stream yn_rel_upscale = yn1_upscale-yn_upscale;
+        Stream yn_rescaled = (yn>>yn_rel_upscale);
 
 
-        //REPLACED: DataStream d1 = auto_shift(yn, yn_upscale-up_out);
-        DataStream shift = yn_upscale-up_out;
-        DataStream d1 = ::ifthenelse( shift >= 0, yn << shift, yn >> (-shift));
+        //REPLACED: Stream d1 = auto_shift(yn, yn_upscale-up_out);
+        Stream shift = yn_upscale-up_out;
+        Stream d1 = ::ifthenelse( shift >= 0, yn << shift, yn >> (-shift));
 
-        DataStream d2 = multiply64_and_rshift( (yn1-yn_rescaled), (x-xn), (yn1_upscale - up_out-rshift) * -1 );
+        Stream d2 = multiply64_and_rshift( (yn1-yn_rescaled), (x-xn), (yn1_upscale - up_out-rshift) * -1 );
 
-        FixedPointDataStream<UOUT> res = FixedPointDataStream<UOUT>( d1 + d2 );
+        FixedPointStream<UOUT> res = FixedPointStream<UOUT>( d1 + d2 );
         //bvPrint("Result:");
         //bvPrint(res.s);
 
@@ -881,18 +891,13 @@ struct FixedPointDataStreamOp
 
 
     template<int U1, int U2>
-    static inline FixedPointDataStream<UOUT> ifthenelse( const BoolDataStream& p, const FixedPointDataStream<U1>& a, const FixedPointDataStream<U2>& b)
+    static inline FixedPointStream<UOUT> ifthenelse( const BoolStream& p, const FixedPointStream<U1>& a, const FixedPointStream<U2>& b)
     {
         setCond(p.s);
-        return FixedPointDataStream<UOUT>( cond(a.template rescale_to<UOUT>().s,b .template rescale_to<UOUT>().s) );
+        return FixedPointStream<UOUT>( cond(a.template rescale_to<UOUT>().s,b .template rescale_to<UOUT>().s) );
     }
 
 
-    //template<int U1>
-    //static inline FixedPointDataStream<UOUT> mul( const FixedPointDataStream<U1>& a, Arg b)
-    //{
-    //    return FixedPointDataStream<UOUT> (a.template rescale_to<UOUT>().s * b);
-    //}
 
 
 };
@@ -901,7 +906,7 @@ struct FixedPointDataStreamOp
 
 
 
-
+#endif
 
 
 
@@ -1561,26 +1566,26 @@ void sim_step_update_sv_sequential(NrnPopData& d, TimeInfo time_info)
 
 
 
-
+#if USE_BLUEVEC
 Kernel sim_step_update_sv_bluevec_build_kernel(NrnPopData& d)
 {
         Arg t;
         Stream _bv_t = constant(t);
-        FixedPointDataStream<${time_upscale}> bv_t(_bv_t);
+        FixedPointStream<${time_upscale}> bv_t(_bv_t);
 
 
 
         Stream _bv_dt = constant( dt_fixed.to_int() );
-        FixedPointDataStream<${dt_upscale}> bv_dt(_bv_dt);
+        FixedPointStream<${dt_upscale}> bv_dt(_bv_dt);
 
         // A. Load in all the data (state-variables, supplied_values, random_nodes, ar-nodes):
         % for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
         //bvPrint("Loading ${td.lhs.symbol}");
-        FixedPointDataStream<${td.lhs.annotations['fixed-point-format'].upscale}> bv_${td.lhs.symbol}( &(d.${td.lhs.symbol}[0].v) );
+        FixedPointStream<${td.lhs.annotations['fixed-point-format'].upscale}> bv_${td.lhs.symbol}( &(d.${td.lhs.symbol}[0].v) );
         %endfor
 
         % for suppl in population.component.suppliedvalues:
-        FixedPointDataStream<${suppl.annotations['fixed-point-format'].upscale}> bv_${suppl.symbol}( &(d.${suppl.symbol}[0]).v );
+        FixedPointStream<${suppl.annotations['fixed-point-format'].upscale}> bv_${suppl.symbol}( &(d.${suppl.symbol}[0]).v );
         %endfor
 
         // Random Variable nodes
@@ -1588,20 +1593,20 @@ Kernel sim_step_update_sv_bluevec_build_kernel(NrnPopData& d)
         IntType RV${rv.annotations['node-id']} =  d.RV${rv.annotations['node-id']};
         %endfor
         %for rv, _pstring in rv_per_neuron:
-        FixedPointDataStream <${rv.annotations['fixed-point-format'].upscale}> bv_RV${rv.annotations['node-id']}( &(d.RV${rv.annotations['node-id']}[0].v) );
+        FixedPointStream <${rv.annotations['fixed-point-format'].upscale}> bv_RV${rv.annotations['node-id']}( &(d.RV${rv.annotations['node-id']}[0].v) );
         %endfor
 
         // AutoRegressive nodes:
         %for ar in population.component.autoregressive_model_nodes:
         <% ar_node_name = "AR%s" % ar.annotations['node-id'] %>
         <% ar_upscale = ar.annotations['fixed-point-format'].upscale %>
-        FixedPointDataStream<${ar_upscale}> bv_${ar_node_name}( &(d.${ar_node_name}[0].v));
+        FixedPointStream<${ar_upscale}> bv_${ar_node_name}( &(d.${ar_node_name}[0].v));
         %for i in range( len( ar.coefficients)):
-        FixedPointDataStream<${ar_upscale}> bv__${ar_node_name}_t${i}( &(d._${ar_node_name}_t${i}[0].v));
+        FixedPointStream<${ar_upscale}> bv__${ar_node_name}_t${i}( &(d._${ar_node_name}_t${i}[0].v));
         %endfor
         %endfor
 
-        //FixedPointDataStream<${population.component.time_node.annotations['fixed-point-format'].upscale}> bv_t( time_info.time_fixed.v );
+        //FixedPointStream<${population.component.time_node.annotations['fixed-point-format'].upscale}> bv_t( time_info.time_fixed.v );
 
 
 
@@ -1631,7 +1636,7 @@ Kernel sim_step_update_sv_bluevec_build_kernel(NrnPopData& d)
         % for ass in population.component.ordered_assignments_by_dependancies:
         //bvPrint("");
         //bvPrint("Calculating assignment: ${ass.lhs.symbol}");
-        FixedPointDataStream<${ass.lhs.annotations['fixed-point-format'].upscale}> bv_${ass.lhs.symbol} = ${writer_bluevec.to_c(ass, population_access_index=None, data_prefix='bv_')};
+        FixedPointStream<${ass.lhs.annotations['fixed-point-format'].upscale}> bv_${ass.lhs.symbol} = ${writer_bluevec.to_c(ass, population_access_index=None, data_prefix='bv_')};
         //bvPrint("Finished calculating assignment: ${ass.lhs.symbol}");
 
         //bvPrint( bv_${ass.lhs.symbol}.s );
@@ -1645,11 +1650,11 @@ Kernel sim_step_update_sv_bluevec_build_kernel(NrnPopData& d)
         %for td in sorted(population.component.timederivatives, key=lambda td:td.lhs.symbol):
         //bvPrint("");
         //bvPrint("Calculating state variable: ${td.lhs.symbol}");
-        FixedPointDataStream<${td.lhs.annotations['fixed-point-format'].delta_upscale}> bv_d_${td.lhs.symbol} = FixedPointDataStreamOp<${td.lhs.annotations['fixed-point-format'].delta_upscale}> ::mul(
+        FixedPointStream<${td.lhs.annotations['fixed-point-format'].delta_upscale}> bv_d_${td.lhs.symbol} = FixedPointStreamOp<${td.lhs.annotations['fixed-point-format'].delta_upscale}> ::mul(
                 ${writer_bluevec.to_c(td.rhs_map ) },
                 bv_dt
         );
-        bv_${td.lhs.symbol} = FixedPointDataStreamOp<${td.lhs.annotations['fixed-point-format'].upscale}>::add(
+        bv_${td.lhs.symbol} = FixedPointStreamOp<${td.lhs.annotations['fixed-point-format'].upscale}>::add(
                                 bv_${td.lhs.symbol},
                                 bv_d_${td.lhs.symbol});
         //bvPrint("Finished calculating state variable: ${td.lhs.symbol}");
@@ -1689,9 +1694,12 @@ Kernel sim_step_update_sv_bluevec_build_kernel(NrnPopData& d)
 
 }
 
+#endif
+
 
 void sim_step_update_sv_bluevec(NrnPopData& d, TimeInfo time_info)
 {
+#if USE_BLUEVEC
         // Only build kernel once:
         static Kernel k  = sim_step_update_sv_bluevec_build_kernel(d);
 
@@ -1712,11 +1720,7 @@ void sim_step_update_sv_bluevec(NrnPopData& d, TimeInfo time_info)
             %endfor
         }
 
-
-
-
-
-
+#endif
 
     LOG_COMPONENT_STATEUPDATE( cout << "\n"; )
 }
@@ -1908,6 +1912,70 @@ void print_results_from_NIOS(NrnPopData* d)
 
 
 
+c_nios_plotting_tmpl = r"""
+
+#if ON_NIOS
+#include "lcd_graphics.h"
+#endif
+
+struct NIOSPlotInfo {
+    const static int TimeBarXStart = 300;
+    const static int TimeBarXStop = 700;
+    const static int TimeBarYStart = 25;
+    const static int TimeBarYStop = 50;
+
+    const static int TimeStepsPerPixel = (int) ( GlobalConstants::nsim_steps / (TimeBarXStop - TimeBarXStart ) );
+
+
+};
+
+
+NIOSPlotInfo nios_plot_info;
+
+void nios_plot_init()
+{
+
+    lcd_blend(0, 0x80, 0x80, 0x00);
+    // Setup the screen:
+    clear_screen( 0xFFFFFF);
+
+
+    // The time box:
+    plot_box( NIOSPlotInfo::TimeBarXStart, NIOSPlotInfo::TimeBarXStop, NIOSPlotInfo::TimeBarYStart, NIOSPlotInfo::TimeBarYStop, 0xFF00FF);
+
+
+
+
+}
+
+
+
+void nios_plot_update(const TimeInfo& time_info)
+{
+    int filled_x_pixels = time_info.step_count / NIOSPlotInfo::TimeStepsPerPixel;
+    plot_line(
+        filled_x_pixels + NIOSPlotInfo::TimeBarXStart,
+        NIOSPlotInfo::TimeBarYStart,
+        filled_x_pixels + NIOSPlotInfo::TimeBarXStart,
+        NIOSPlotInfo::TimeBarYStop,
+        0xEE00EE);
+
+
+
+}
+
+
+
+
+
+
+
+"""
+
+
+
+
+
 
 
 c_main_loop_tmpl = r"""
@@ -1940,41 +2008,23 @@ void my_terminate (int parameter)
 
 
 
-int main()
+
+
+
+
+
+void run_simulation()
 {
 
-    // Start the clock:
+    #if ON_NIOS
+    nios_plot_init();
+    #endif
+
+
     clock_t begin_main = clock();
 
     // Setup the random number generator:
     rnd::seed_rand_kiss(1);
-
-
-    // Lets handle signals:
-    signal (SIGTERM,my_terminate);
-    signal (SIGABRT,my_terminate);
-
-
-
-
-    // Enable floating point exception trapping:
-    #if !ON_NIOS
-    //feenableexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW | FE_INVALID);
-    feenableexcept(FE_DIVBYZERO |  FE_OVERFLOW | FE_INVALID);
-    #endif //!ON_NIOS
-
-
-
-    // Setup the exponential lookup tables for bluevec:
-    cout << "loading LUT of size: " << lookuptables.exponential.table_size << " into BlueVec\n";
-
-    load_lut( &(lookuptables.exponential.pData[0]), lookuptables.exponential.table_size);
-    Kernel initLut = kernel();
-    alt_dcache_flush_all();
-    call(lookuptables.exponential.table_size*32, initLut);
-
-
-
 
     // Setup the variables:
     %for pop in network.populations:
@@ -1995,92 +2045,71 @@ int main()
 
 
 
-
-
-
     clock_t begin_sim = clock();
 
 
-    #if NSIM_REPS
-    for(int k=0;k<NSIM_REPS;k++)
+
+    global_data.recordings_new.n_results_written=0;
+    for(IntType step_count=IntType(0);step_count<GlobalConstants::nsim_steps;step_count++)
     {
-        if(k%10==0) cout << "Loop: " << k << "\n" << flush;
-    #endif
 
-        global_data.recordings_new.n_results_written=0;
-        for(IntType step_count=IntType(0);step_count<GlobalConstants::nsim_steps;step_count++)
+        TimeInfo time_info(step_count);
+        DBG.update( time_info.time_fixed.to_float() );
+
+
+        #if ON_NIOS
+        nios_plot_update(time_info);
+        #endif
+
+        // C. Save the recorded values:
+        if(get_value32(time_info.step_count) % get_value32(record_rate)==0)
         {
-
-            TimeInfo time_info(step_count);
-            DBG.update( time_info.time_fixed.to_float() );
-
-
-
-
-
-            // C. Save the recorded values:
-            if(get_value32(time_info.step_count) % get_value32(record_rate)==0)
-            {
-                // Save time:
-                global_data.recordings_new.time_buffer[global_data.recordings_new.n_results_written] = time_info.time_fixed.to_int();
-                //write_time_to_hdf5(time_info);
-                %for poprec in network.all_trace_recordings:
-                // Record: ${poprec}
-                for(int i=0;i<${poprec.size};i++) global_data.recordings_new.data_buffers[${poprec.global_offset}+i][global_data.recordings_new.n_results_written] = data_${poprec.src_population.name}.${poprec.node.symbol}[i + ${poprec.src_pop_start_index} ].to_int();
-                %endfor
-
-                global_data.recordings_new.n_results_written++;
-            }
-
-
-
-
-
-            #if DISPLAY_LOOP_INFO
-            if(get_value32(step_count)%100 == 0)
-            {
-                std::cout << "Loop: " << step_count << "\n";
-                std::cout << "(t: " << time_info.time_fixed.to_float() * 1000 << "ms)\n";
-                std::cout << "Total spikes emitted: " << global_data.recordings_new.nspikes_emitted << "\n";
-
-            }
-            #endif
-
-
-            // 0. Reset the injected currents:
-            %for pop in network.populations:
-            NS_${pop.name}::set_supplied_values_to_zero(data_${pop.name});
+            // Save time:
+            global_data.recordings_new.time_buffer[global_data.recordings_new.n_results_written] = time_info.time_fixed.to_int();
+            %for poprec in network.all_trace_recordings:
+            // Record: ${poprec}
+            for(int i=0;i<${poprec.size};i++) global_data.recordings_new.data_buffers[${poprec.global_offset}+i][global_data.recordings_new.n_results_written] = data_${poprec.src_population.name}.${poprec.node.symbol}[i + ${poprec.src_pop_start_index} ].to_int();
             %endfor
 
-
-
-            // A. Electrical coupling:
-            %for proj in network.electrical_synapse_projections:
-            NS_${proj.name}::calculate_electrical_coupling( data_${proj.src_population.population.name}, data_${proj.dst_population.population.name} );
-            %endfor
-
-
-
-            // B. Integrate all the state_variables of all the neurons:
-            %for pop in network.populations:
-            NS_${pop.name}::sim_step_update_sv( data_${pop.name}, time_info);
-            %endfor
-
-            // C. Resolve state transitions:
-            %for pop in network.populations:
-            NS_${pop.name}::sim_step_update_rt( data_${pop.name}, time_info);
-            %endfor
-
-
-
-
-
-
+            global_data.recordings_new.n_results_written++;
         }
 
-    #if NSIM_REPS
+
+
+
+
+        #if DISPLAY_LOOP_INFO
+        if(get_value32(step_count)%100 == 0)
+        {
+            std::cout << "Loop: " << step_count << "\n";
+            std::cout << "(t: " << time_info.time_fixed.to_float() * 1000 << "ms)\n";
+            std::cout << "Total spikes emitted: " << global_data.recordings_new.nspikes_emitted << "\n";
+        }
+        #endif
+
+
+        // 0. Reset the injected currents:
+        %for pop in network.populations:
+        NS_${pop.name}::set_supplied_values_to_zero(data_${pop.name});
+        %endfor
+
+        // A. Electrical coupling:
+        %for proj in network.electrical_synapse_projections:
+        NS_${proj.name}::calculate_electrical_coupling( data_${proj.src_population.population.name}, data_${proj.dst_population.population.name} );
+        %endfor
+
+        // B. Integrate all the state_variables of all the neurons:
+        %for pop in network.populations:
+        NS_${pop.name}::sim_step_update_sv( data_${pop.name}, time_info);
+        %endfor
+
+        // C. Resolve state transitions:
+        %for pop in network.populations:
+        NS_${pop.name}::sim_step_update_rt( data_${pop.name}, time_info);
+        %endfor
+
     }
-    #endif
+
 
 
     clock_t end_sim = clock();
@@ -2115,6 +2144,48 @@ int main()
     cout << "\nTime taken (sim-total):"<< elapsed_secs_sim;
     cout << "\nTime taken (hdf):"<< elapsed_secs_hdf;
     cout << "\nTime taken (combined):"<< elapsed_secs_total;
+
+
+
+}
+
+
+
+
+
+
+int main()
+{
+
+    // Start the clock:
+
+
+    // Lets handle signals:
+    signal (SIGTERM,my_terminate);
+    signal (SIGABRT,my_terminate);
+
+    // Enable floating point exception trapping:
+    #if !ON_NIOS
+    //feenableexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW | FE_INVALID);
+    feenableexcept(FE_DIVBYZERO |  FE_OVERFLOW | FE_INVALID);
+    #endif //!ON_NIOS
+
+
+
+    // Setup the exponential lookup tables for bluevec:
+    #if USE_BLUEVEC
+    cout << "loading LUT of size: " << lookuptables.exponential.table_size << " into BlueVec\n";
+    load_lut( &(lookuptables.exponential.pData[0]), lookuptables.exponential.table_size);
+    Kernel initLut = kernel();
+    alt_dcache_flush_all();
+    call(lookuptables.exponential.table_size*32, initLut);
+    #endif
+
+
+    run_simulation();
+
+
+
 
 }
 
@@ -2580,8 +2651,9 @@ void record_input_event( IntType global_buffer, const SpikeEmission& evt )
 
 
 
-
+#if USE_BLUEVEC
 #include "/home/mh735/hw/BlueVec/BlueVec.cpp"
+#endif
 
 
 """
@@ -2605,14 +2677,30 @@ import hdfjive
 
 
 
-
+class NIOSOptions(object):
+    def __init__(self, plots, use_bluevec=True, plot_realtime=True):
+        self.plots = plots
+        self.use_bluevec = use_bluevec
+        self.plot_realtime = plot_realtime
 
 
 
 
 
 class CBasedEqnWriterFixedNetwork(object):
-    def __init__(self, network, output_filename=None, output_c_filename=None, run=True, compile=True, CPPFLAGS=None, output_exec_filename=None, step_size=0.1e-3, run_until=0.3, as_float=False):
+    def __init__(self,
+            network,
+            output_filename=None,
+            output_c_filename=None,
+            run=True,
+            compile=True,
+            CPPFLAGS=None,
+            output_exec_filename=None,
+            step_size=0.1e-3,
+            run_until=0.3,
+            as_float=False,
+            nios_options=None
+            ):
 
         network.finalise()
 
@@ -2754,6 +2842,10 @@ class CBasedEqnWriterFixedNetwork(object):
                           ** std_variables
                         )
 
+        c_nios_plotting = Template(c_nios_plotting_tmpl).render(
+                        ** std_variables
+                        )
+
         c_main_loop = Template(c_main_loop_tmpl).render(
                         ** std_variables
                         )
@@ -2765,7 +2857,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
 
-        cfile = '\n'.join([c_prog_header] +  code_per_pop +  [popl_objs] + code_per_electrical_projection +  code_per_eventport_projection + cout_data_writers + [c_main_loop])
+        cfile = '\n'.join([c_prog_header] +  code_per_pop +  [popl_objs] + code_per_electrical_projection +  code_per_eventport_projection + cout_data_writers +[c_nios_plotting_tmpl] + [c_main_loop])
 
         for f in ['sim1.cpp','a.out',output_filename, 'debug.log',]:
             if os.path.exists(f):
@@ -2794,9 +2886,9 @@ class CBasedEqnWriterFixedNetwork(object):
         # The executable:
         CCompiler.build_executable( src_text=cfile,
                                     compilation_settings = CCompilationSettings(
-                                        additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/'), os.path.expanduser("~/hw/BlueVec/include/") ],
+                                        additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/'), ],
                                         additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/"), os.path.expanduser("~/hw/BlueVec/lib/")],
-                                        libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl', 'bv_proxy'],
+                                        libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl'],
                                         compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O2  -g -D_GLIBCXX_DEBUG ' + (CPPFLAGS if CPPFLAGS else '') ]
                                         ),
                                     run=run,

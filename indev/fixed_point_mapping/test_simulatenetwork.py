@@ -246,22 +246,32 @@ results = CBasedEqnWriterFixedNetwork(
                     CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
                     step_size=0.1e-3 / 2.,
                     run_until=t_stop,
-                    as_float=False,
-                    output_filename="/local/scratch/mh735/neuronits.results-Seq.hdf",
+                    as_float=True,
+                    output_filename="/local/scratch/mh735/neuronits.results-Seq-float.hdf",
                     output_c_filename='op-seq.cpp'
                     ).results
 
-results = CBasedEqnWriterFixedNetwork(
-                    network,
-                    CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=true ',
-                    step_size=0.1e-3 / 2.,
-                    run_until=t_stop,
-                    as_float=False,
-                    output_filename="/local/scratch/mh735/neuronits.results-BV.hdf",
-                    output_c_filename='op-bv.cpp'
-                    ).results
-
-sys.exit(0)
+#results = CBasedEqnWriterFixedNetwork(
+#                    network,
+#                    CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
+#                    step_size=0.1e-3 / 2.,
+#                    run_until=t_stop,
+#                    as_float=False,
+#                    output_filename="/local/scratch/mh735/neuronits.results-Seq.hdf",
+#                    output_c_filename='op-seq.cpp'
+#                    ).results
+#
+#results = CBasedEqnWriterFixedNetwork(
+#                    network,
+#                    CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=true ',
+#                    step_size=0.1e-3 / 2.,
+#                    run_until=t_stop,
+#                    as_float=False,
+#                    output_filename="/local/scratch/mh735/neuronits.results-BV.hdf",
+#                    output_c_filename='op-bv.cpp'
+#                    ).results
+#
+#sys.exit(0)
 
 
 

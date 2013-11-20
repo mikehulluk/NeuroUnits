@@ -1,7 +1,7 @@
 
 from hdfjive import HDF5SimulationResultFile, RasterGroup, RasterSubgroup
 
-results = HDF5SimulationResultFile("/local/scratch/mh735/neuronits.results-Seq.hdf")
+results = HDF5SimulationResultFile("/local/scratch/mh735/neuronits.results-Seq-float.hdf")
 
 import mreorg
 mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG] # , mreorg.FigFormat.SVG]
@@ -22,6 +22,7 @@ def build_raster_plot_obj(name, side):
 #xlim=(95e-3,750e-3)
 #xlim=(95e-3,300e-3)
 xlim=(50e-3,70e-3)
+xlim=(30e-3,1000e-3)
 
 
 results.raster_plot([
