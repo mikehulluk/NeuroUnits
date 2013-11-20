@@ -1914,9 +1914,103 @@ void print_results_from_NIOS(NrnPopData* d)
 
 c_nios_plotting_tmpl = r"""
 
+typedef vector<size_t> RecIndicesList;
+
+
 #if ON_NIOS
 #include "lcd_graphics.h"
 #endif
+
+struct PlotBox
+{
+    int x0,x1, y0,y1;
+    PlotBox(int x0, int x1, int y0, int y1, int padding=0): x0(x0), x1(x1), y0(y0+padding), y1(y1-padding) {
+            cout << "PlotBox()\n";
+
+    }
+
+
+
+};
+
+struct Axis
+{
+    PlotBox box;
+    int ylim_int_min;
+    int ylim_int_max;
+    RecIndicesList rec_indices;
+    RecIndicesList x_prev;
+    RecIndicesList y_prev;
+
+    Axis( const PlotBox& box, int ylim_int_min, int ylim_int_max, RecIndicesList rec_indices)
+        :   box(box),
+            ylim_int_min(ylim_int_min),
+            ylim_int_max(ylim_int_max),
+            rec_indices(rec_indices)
+        {
+            cout << "Axis()\n";
+        }
+
+    void plot_axes()
+    {
+        plot_box( box.x0, box.x1, box.y0, box.y1, 0x77EE77);
+        int y0_as_pix = yvalue_to_pixel(0);
+        plot_line( box.x0, y0_as_pix, box.x1, y0_as_pix, 0x000000);
+
+        plot_line( box.x0, box.y0, box.x0, box.y1, 0x000000);
+
+    }
+
+
+    int yvalue_to_pixel(int value)
+    {
+        return (int) (((float) value-ylim_int_min) / ( ylim_int_max - ylim_int_min) * ( box.y1-box.y0) ) + box.y0;
+    }
+
+    int time_to_pixel(int step_count)
+    {
+        return (int) (((float) step_count) / ( GlobalConstants::nsim_steps) * ( box.x1-box.x0) ) + box.x0;
+    }
+
+
+    void update_plot(const TimeInfo& time_info)
+    {
+        int px_x = time_to_pixel( time_info.step_count ) ;
+
+        if( global_data.recordings_new.n_results_written <= 0){
+            return;
+        }
+
+        RecIndicesList x_prev_new, y_prev_new;
+
+        for(size_t i = 0; i < rec_indices.size(); i++)
+        {
+            int y = global_data.recordings_new.data_buffers[rec_indices[i]][global_data.recordings_new.n_results_written-1];
+            int px_y = yvalue_to_pixel(y);
+
+            if( x_prev.size() ) {
+                //plot_pixel(px_x, px_y, 0x0000FF);
+                plot_line(x_prev[i], y_prev[i], px_x, px_y, 0x0000FF);
+            }
+
+            x_prev_new.push_back( px_x );
+            y_prev_new.push_back( px_y );
+
+        }
+
+        x_prev = x_prev_new;
+        y_prev = y_prev_new;
+
+
+    }
+
+
+
+
+
+};
+
+
 
 struct NIOSPlotInfo {
     const static int TimeBarXStart = 300;
@@ -1925,6 +2019,17 @@ struct NIOSPlotInfo {
     const static int TimeBarYStop = 50;
 
     const static int TimeStepsPerPixel = (int) ( GlobalConstants::nsim_steps / (TimeBarXStop - TimeBarXStart ) );
+
+    const static int PlotRegionYStart = TimeBarYStop + 50;
+    const static int PlotRegionYEnd = LCD_HEIGHT - 50;
+    const static int PlotRegionYSize = PlotRegionYEnd - PlotRegionYStart;
+
+    const static int PlotRegionSizePerGraph = PlotRegionYSize / ${len(nios_options.plots)};
+
+
+    const static int PlotPadding = 20;
+
+    vector<Axis> axes;
 
 
 };
@@ -1939,9 +2044,49 @@ void nios_plot_init()
     // Setup the screen:
     clear_screen( 0xFFFFFF);
 
+    cout << "AT A\n" << flush;
 
     // The time box:
     plot_box( NIOSPlotInfo::TimeBarXStart, NIOSPlotInfo::TimeBarXStop, NIOSPlotInfo::TimeBarYStart, NIOSPlotInfo::TimeBarYStop, 0xFF00FF);
+
+
+    cout << "AT B\n" << flush;
+
+
+    %for i, plt in enumerate(nios_options.plots):
+    {
+    RecIndicesList  global_rec_indices;
+    %for r in plt._global_rec_indices:
+    global_rec_indices.push_back(${r});
+    %endfor
+
+    nios_plot_info.axes.push_back(
+        Axis(
+            PlotBox(
+                50, 750,
+                NIOSPlotInfo::PlotRegionYStart + (${i}) * (NIOSPlotInfo::PlotRegionSizePerGraph),
+                NIOSPlotInfo::PlotRegionYStart + (${i}+1) * (NIOSPlotInfo::PlotRegionSizePerGraph),
+                20
+                ),
+            ${plt.ylimits_int[0]},
+            ${plt.ylimits_int[1]},
+            global_rec_indices
+            )
+        );
+    }
+    %endfor
+
+    cout << "AT C\n" << flush;
+    for(size_t ax_i = 0; ax_i != nios_plot_info.axes.size(); ax_i++)
+    {
+       nios_plot_info.axes[ax_i].plot_axes();
+
+    }
+
+    cout << "AT D\n" << flush;
+
+
+
 
 
 
@@ -1960,6 +2105,13 @@ void nios_plot_update(const TimeInfo& time_info)
         NIOSPlotInfo::TimeBarYStop,
         0xEE00EE);
 
+
+    // Update the axes:
+    for(size_t ax_i = 0; ax_i != nios_plot_info.axes.size(); ax_i++)
+    {
+       nios_plot_info.axes[ax_i].update_plot(time_info);
+
+    }
 
 
 }
@@ -2057,9 +2209,6 @@ void run_simulation()
         DBG.update( time_info.time_fixed.to_float() );
 
 
-        #if ON_NIOS
-        nios_plot_update(time_info);
-        #endif
 
         // C. Save the recorded values:
         if(get_value32(time_info.step_count) % get_value32(record_rate)==0)
@@ -2068,10 +2217,16 @@ void run_simulation()
             global_data.recordings_new.time_buffer[global_data.recordings_new.n_results_written] = time_info.time_fixed.to_int();
             %for poprec in network.all_trace_recordings:
             // Record: ${poprec}
-            for(int i=0;i<${poprec.size};i++) global_data.recordings_new.data_buffers[${poprec.global_offset}+i][global_data.recordings_new.n_results_written] = data_${poprec.src_population.name}.${poprec.node.symbol}[i + ${poprec.src_pop_start_index} ].to_int();
+            for(int i=0;i<${poprec.size};i++)
+                global_data.recordings_new.data_buffers[${poprec.global_offset}+i][global_data.recordings_new.n_results_written] = data_${poprec.src_population.name}.${poprec.node.symbol}[i + ${poprec.src_pop_start_index} ].to_int();
             %endfor
 
             global_data.recordings_new.n_results_written++;
+
+
+            #if ON_NIOS
+            nios_plot_update(time_info);
+            #endif
         }
 
 
@@ -2084,6 +2239,7 @@ void run_simulation()
             std::cout << "Loop: " << step_count << "\n";
             std::cout << "(t: " << time_info.time_fixed.to_float() * 1000 << "ms)\n";
             std::cout << "Total spikes emitted: " << global_data.recordings_new.nspikes_emitted << "\n";
+
         }
         #endif
 
@@ -2843,6 +2999,7 @@ class CBasedEqnWriterFixedNetwork(object):
                         )
 
         c_nios_plotting = Template(c_nios_plotting_tmpl).render(
+                        nios_options = nios_options,
                         ** std_variables
                         )
 
@@ -2857,7 +3014,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
 
-        cfile = '\n'.join([c_prog_header] +  code_per_pop +  [popl_objs] + code_per_electrical_projection +  code_per_eventport_projection + cout_data_writers +[c_nios_plotting_tmpl] + [c_main_loop])
+        cfile = '\n'.join([c_prog_header] +  code_per_pop +  [popl_objs] + code_per_electrical_projection +  code_per_eventport_projection + cout_data_writers +[c_nios_plotting] + [c_main_loop])
 
         for f in ['sim1.cpp','a.out',output_filename, 'debug.log',]:
             if os.path.exists(f):

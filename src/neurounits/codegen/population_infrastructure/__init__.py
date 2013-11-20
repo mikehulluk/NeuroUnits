@@ -233,7 +233,6 @@ class Network(object):
         if isinstance(subpopulations, (Population,SubPopulation)):
             subpopulations = [subpopulations]
         for subpop in subpopulations:
-            #print 'Recordings', subpop
             self._record_input_events_for_population(subpop, port_name)
 
 
