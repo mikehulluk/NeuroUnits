@@ -76,7 +76,7 @@ pop_components = {
         'dINs': dIN_comp,
         }
 pop_params = {
-    'dINs': {'nmda_multiplier': 1.0},
+    'dINs': {'nmda_multiplier': 1.0, 'ampa_multiplier': 'uniform(min=0.5,max=1.5)' },
     'NondINs': {}
 }
 

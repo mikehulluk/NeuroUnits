@@ -524,7 +524,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
 
         # 0. Ensure all the state-variables have ranges:
         for sv in list(component.state_variables) + list(component.suppliedvalues) + [component._time_node] + list(component.parameters):
-            assert sv.symbol in self.var_annots_ranges, 'Annotation missing for variable: %s' % sv.symbol
+            assert sv.symbol in self.var_annots_ranges, 'Range-annotation missing for variable: %s' % sv.symbol
             ann_in = self.var_annots_ranges[sv.symbol]
             sv.annotations['node-value-range'] = _NodeRangeFloat(min_=ann_in.min.float_in_si(), max_=ann_in.max.float_in_si() )
 
