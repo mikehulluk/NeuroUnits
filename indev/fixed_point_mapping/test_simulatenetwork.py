@@ -59,8 +59,8 @@ with open(cache_file) as f:
 
 
 
-
-
+import gp_model
+gj = gp_model.get_gj()
 
 
 
@@ -109,7 +109,7 @@ for syn_index, ((pop1_name, pop2_name, (syn_type, strength) ), conns) in enumera
                 connector=ExplicitIndicesSet(conns),
                 parameter_map= {'weight': FixedValue(weight)} )
         )
-#assert False
+
 
 
 
@@ -195,6 +195,13 @@ network.add(
         injected_port_name = 'i_injected',
         name='E_Couple')
 )
+
+
+network.add(
+    AnalogPortConnector()
+    
+)
+
 
 
 
