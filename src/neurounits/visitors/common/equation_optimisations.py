@@ -62,7 +62,9 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
         self.const_value[o] = o.value
 
     def ActionParameter(self, o, **kwargs):
-        assert False
+        # Parameters are not 'constants' becase they can be different for 
+        # each neuron in a population
+        self.const_value[o] = None
 
     def ActionConstant(self, o, **kwargs):
         self.const_value[o] = o.value
@@ -373,5 +375,8 @@ class ReplaceWithOptimisedNodes(ASTVisitorBase):
 
 
     def VisitIfThenElse(self, o):
+        pass
+
+    def VisitParameter(self, o):
         pass
 

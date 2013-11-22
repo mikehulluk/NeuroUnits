@@ -135,6 +135,25 @@ class NeuroUnitParser(object):
 
 
 
+    @classmethod
+    def _string_to_expr_node(cls, s):
+        import neurounits
+
+        if isinstance(s, basestring):
+            s = cls.QuantitySimple(s)
+        if isinstance(s, (float,int)):
+            #import quantities as pq
+            from neurounits.units_backends.mh import MMUnit,MMQuantity
+            s = MMQuantity(s, MMUnit() )
+            #s = s * pq.dimensionless
+
+        return neurounits.ast.ConstValue(value=s)
+        #if isinstance(s, basestring):
+        #    try:
+
+
+
+
 
 def MQ1(s):
     return NeuroUnitParser.QuantitySimple(s)

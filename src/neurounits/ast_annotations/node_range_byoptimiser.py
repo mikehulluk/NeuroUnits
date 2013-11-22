@@ -120,7 +120,6 @@ class CFloatEval(ASTVisitorBase):
 
     def VisitBoolNot(self, o, **kwargs):
         return " ( ! (%s))" % (self.visit(o.lhs) )
-        raise NotImplementedError()
 
     def VisitFunctionDefUser(self, o, **kwargs):
         raise NotImplementedError()
@@ -131,8 +130,8 @@ class CFloatEval(ASTVisitorBase):
     def VisitAutoRegressiveModel(self, n, **kwargs):
         return 'input_data->%s' %  n.annotations['_range-finding-c-var-name']
 
-    def VisitParameter(self, o, **kwargs):
-        raise NotImplementedError()
+    def VisitParameter(self, n, **kwargs):
+        return 'input_data->%s' %  n.annotations['_range-finding-c-var-name']
 
     def VisitConstant(self, o, **kwargs):
         return "%g" % (o.value.float_in_si() )
@@ -196,18 +195,24 @@ class NodeEvaluatorCCode(ASTActionerDefault):
 
 
     def ActionNode(self, n, **kwargs):
+        print 'Skipping;', n
         pass
+
+    #    assert False
 
     def BuildEvalFunc(self, n):
         if n in self.node_code:
             return
-        #print n
         name = n.annotations['_range-finding-c-func-name']
         code = CFloatEval(the_component=self.component).visit(n)
         assert not n in self.node_code
         self.node_code[n] = (name, code)
 
 
+    #def ActionSymbolicConstant(self, o, **kwargs):
+    #    pass
+    #def ActionConstant(self, o, **kwargs):
+    #    pass
 
     def ActionIfThenElse(self, o, **kwargs):
         return self.BuildEvalFunc(o)
@@ -225,6 +230,8 @@ class NodeEvaluatorCCode(ASTActionerDefault):
         return self.BuildEvalFunc(o)
 
     def ActionParameter(self, o, **kwargs):
+        #print o
+        #assert False
         return self.BuildEvalFunc(o)
 
     def ActionConstantZero(self, o, **kwargs):
@@ -324,8 +331,9 @@ class NodeRangeCCodeNodeNamer( ASTTreeAnnotator, ASTActionerDefault):
         self.visit(component)
 
     def ActionNode(self, n):
-        pass
         #print 'Skipping', n
+        pass
+        #assert False
 
     def set_var_name(self, n, name):
         n.annotations['_range-finding-c-var-name'] = name
@@ -354,6 +362,8 @@ class NodeRangeCCodeNodeNamer( ASTTreeAnnotator, ASTActionerDefault):
     def ActionSuppliedValue(self, o):
         self._ActionSymbolTerminal(o)
     def ActionTimeVariable(self, o):
+        self._ActionSymbolTerminal(o)
+    def ActionParameter(self, o):
         self._ActionSymbolTerminal(o)
 
     def ActionInEquality(self, n, **kwargs):
@@ -390,6 +400,14 @@ class NodeRangeCCodeNodeNamer( ASTTreeAnnotator, ASTActionerDefault):
         self.set_var_name(o, name=o.symbol + '_%s' % str(id(o)) )
         self.set_func_name(o)
 
+
+    # Types we can skip:
+    def ActionSymbolicConstant(self, o):
+        pass
+    def ActionConstant(self, o):
+        pass
+    def ActionRegime(self, o):
+        pass
 
 
 
@@ -505,8 +523,8 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
     def annotate_ast(self, component, **kwargs):
 
         # 0. Ensure all the state-variables have ranges:
-        for sv in list(component.state_variables) + list(component.suppliedvalues) + [component._time_node]:
-            assert sv.symbol in self.var_annots_ranges, 'Annotation missing for state-variable: %s' % sv.symbol
+        for sv in list(component.state_variables) + list(component.suppliedvalues) + [component._time_node] + list(component.parameters):
+            assert sv.symbol in self.var_annots_ranges, 'Annotation missing for variable: %s' % sv.symbol
             ann_in = self.var_annots_ranges[sv.symbol]
             sv.annotations['node-value-range'] = _NodeRangeFloat(min_=ann_in.min.float_in_si(), max_=ann_in.max.float_in_si() )
 
@@ -516,7 +534,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
                 lookup_name = "%s::%s" % (tr.port.symbol, p.symbol)
                 ann_in = self.var_annots_ranges[lookup_name]
                 p.annotations['node-value-range'] = _NodeRangeFloat(min_=ann_in.min.float_in_si(), max_=ann_in.max.float_in_si() )
-                print 'Setting event transition node-range', p, tr
+                #print 'Setting event transition node-range', p, tr
 
         # ... which allows us to work out the mins and maxs for the event port:
         for in_evt_port in component.input_event_port_lut:

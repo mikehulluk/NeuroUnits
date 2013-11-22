@@ -153,3 +153,16 @@ class NeuroUnitParsingErrorUnexpectedToken(NeuroUnitParsingError):
 class InvalidUnitTermError(ValueError):
     pass
 
+
+
+
+
+class ASTMissingAnnotationError(RuntimeError):
+    def __init__(self, node, annotation):
+        super(ASTMissingAnnotationError, self).__init__()
+        self.node = node
+        self.annotation = annotation
+    def __repr__(self, ):
+        return "Annotation: '%s' not found for  %s (type: %s)" % (self.annotation, self.node, type(self.node) )
+    def __str__(self, ):
+        return repr(self)

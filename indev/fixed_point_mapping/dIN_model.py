@@ -14,22 +14,20 @@ def get_dIN(nbits):
 
         <=> TIME t:(ms)
         <=> INPUT i_injected:(mA)
+        <=> PARAMETER nmda_multiplier:()
 
         #iInj_local = [50pA] if [ 50ms < t < 200ms] else [0pA] * 0.0
-        iInj_local = 0pA
+        iInj_local = 0pA 
 
-
-        #iInj_local = [30pA] if [ 50ms < t < 155ms] else [0pA]
-
+        
+        
+        
 
         Cap = 10 pF
 
-
         V' = (1/Cap) * ( itot) 
         itot = iLk + iInj_local + iKs + iKf +iNa + iCa +  syn_nmda_i + syn_ampa_i + syn_inhib_i +  i_injected
-        #itot = iLk + iInj_local 
 
-        #V' = (1/Cap) * ( ( iLk + iInj_local ) )
 
         k = i_injected
 
@@ -43,7 +41,7 @@ def get_dIN(nbits):
 
 
         syn_sat = 1
-        syn_nmda_g_bar =  1nS
+        syn_nmda_g_bar =  1nS * nmda_multiplier
         syn_ampa_g =  1nS
         syn_inhib_g = 1nS
 
@@ -290,6 +288,8 @@ def get_dIN(nbits):
         'recv_ampa_spike::weight': NodeRange(min='0nS',max='10nS'),
         'recv_nmda_spike::weight': NodeRange(min='0nS',max='10nS'),
         'recv_inh_spike::weight': NodeRange(min='0nS',max='10nS'),
+
+        'nmda_multiplier' : NodeRange(min='0',max='2'),
         }
 
     var_annots_tags = {

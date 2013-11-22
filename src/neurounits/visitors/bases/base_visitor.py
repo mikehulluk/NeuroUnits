@@ -81,6 +81,7 @@ class ASTVisitorBase(object):
         raise NotImplementedError()
 
     def VisitParameter(self, o, **kwargs):
+        print self, o
         raise NotImplementedError()
 
     def VisitConstant(self, o, **kwargs):

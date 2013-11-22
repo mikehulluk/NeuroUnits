@@ -6,11 +6,33 @@ import numpy as np
 
 
 class Population(object):
-    def __init__(self, name, component, size, autotag=None):
+    def __init__(self, name, component, size, parameters=None, autotag=None):
         self.name = name
         self.component = component
         self._size = size
         self.autotag = autotag if autotag is not None else []
+        parameters = parameters if parameters else {}
+
+        # Check all the parameters are set:
+        expected_params = set([p.symbol for p in  component.parameters])
+        given_params = set(parameters.keys())
+        if expected_params != given_params:
+            print 'Population was not instantiated with correct parameters:'
+            print 'Expected:', expected_params
+            print 'Given:', given_params
+            assert False
+
+        from neurounits.ast import ConstValue
+        from neurounits.ast_annotations import NodeFixedPointFormatAnnotator
+
+        # Remap all the parameters to nodes, and copy accross range/fixed-point information from the component:
+        self.parameters = { k: NeuroUnitParser._string_to_expr_node(v) for (k,v) in parameters.items() }
+        for k,v in self.parameters.items():
+            v.annotations['fixed-point-format'] = self.component.get_terminal_obj(symbol=k).annotations['fixed-point-format'] 
+            if isinstance(v, ConstValue):
+                #print v.value, type(v.value)
+                v.annotations['fixed-point-format'].const_value_as_int = NodeFixedPointFormatAnnotator.encode_value_cls(v.value.float_in_si() , v.annotations['fixed-point-format'].upscale, 24 )
+
 
     def get_subpopulation(self, start_index, end_index, subname, autotag):
         return SubPopulation(population=self,

@@ -34,7 +34,9 @@ def get_gj(nbits):
         }
 
     var_annots_tags = {
-        'V': 'Voltage',
+        'v1': 'Voltage',
+        'v2': 'Voltage',
+        
 
     }
 

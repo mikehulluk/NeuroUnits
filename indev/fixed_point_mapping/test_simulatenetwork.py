@@ -59,8 +59,8 @@ with open(cache_file) as f:
 
 
 
-import gp_model
-gj = gp_model.get_gj()
+#import gp_model
+#gj = gp_model.get_gj()
 
 
 
@@ -75,7 +75,10 @@ pop_components = {
         'NondINs': MN_comp,
         'dINs': dIN_comp,
         }
-
+pop_params = {
+    'dINs': {'nmda_multiplier': 1.0},
+    'NondINs': {}
+}
 
 with open('mh_reduced_connectome.pickle') as f:
     pop_sizes, connections, pop_breakdowns, cell_positions = pickle.load(f)
@@ -85,7 +88,7 @@ with open('mh_reduced_connectome.pickle') as f:
 network = Network()
 pops_by_name = {}
 for pop_name, pop_size in pop_sizes.items():
-    p = Population(name=pop_name, component=pop_components[pop_name], size=pop_size)
+    p = Population(name=pop_name, component=pop_components[pop_name], size=pop_size, parameters=pop_params[pop_name] )
     network.add(p)
     assert not pop_name in pops_by_name
     pops_by_name[pop_name] = p
@@ -197,10 +200,9 @@ network.add(
 )
 
 
-network.add(
-    AnalogPortConnector()
-    
-)
+#network.add(
+#    AnalogPortConnector()    
+#)
 
 
 

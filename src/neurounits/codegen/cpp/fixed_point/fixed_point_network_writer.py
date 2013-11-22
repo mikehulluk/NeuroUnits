@@ -1334,10 +1334,6 @@ void initialise_randomvariables(NrnPopData& d)
     }
 }
 
-
-
-
-
 void initialise_statevars(NrnPopData& d)
 {
     for(int i=0;i<NrnPopData::size;i++)
@@ -1353,11 +1349,21 @@ void initialise_statevars(NrnPopData& d)
         %endif
         %endfor
     }
+}
+
+void initialise_parameters(NrnPopData& d)
+{
+
+    for(int i=0;i<NrnPopData::size;i++)
+    {
+%for param in population.component.parameters:
+        d.${param.symbol}[i] = ${ writer_stdc.visit(population.parameters[param.symbol] ) }  ;
+%endfor
+    }
 
 
 
 }
-
 
 
 namespace event_handlers
@@ -2181,6 +2187,7 @@ void run_simulation()
     // Setup the variables:
     %for pop in network.populations:
     NS_${pop.name}::initialise_statevars(data_${pop.name});
+    NS_${pop.name}::initialise_parameters(data_${pop.name});
     NS_${pop.name}::initialise_randomvariables(data_${pop.name});
     NS_${pop.name}::initialise_autoregressivenodes(data_${pop.name} );
     %endfor
@@ -2998,10 +3005,12 @@ class CBasedEqnWriterFixedNetwork(object):
                           ** std_variables
                         )
 
-        c_nios_plotting = Template(c_nios_plotting_tmpl).render(
-                        nios_options = nios_options,
-                        ** std_variables
-                        )
+        c_nios_plotting = ""
+        if nios_options:
+            c_nios_plotting = Template(c_nios_plotting_tmpl).render(
+                            nios_options = nios_options,
+                            ** std_variables
+                            )
 
         c_main_loop = Template(c_main_loop_tmpl).render(
                         ** std_variables

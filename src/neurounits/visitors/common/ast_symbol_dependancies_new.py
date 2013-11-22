@@ -114,7 +114,7 @@ class VisitorSymbolDependance(object):
 
 
         if expand_assignments:
-            dependancies_statevars =   set([dep for dep in dependancies if isinstance(dep, (ast.StateVariable, ast.RandomVariable, ast.SuppliedValue, ast.OnEventDefParameter, ast.TimeVariable, ast.AutoRegressiveModel))])
+            dependancies_statevars =   set([dep for dep in dependancies if isinstance(dep, (ast.StateVariable, ast.RandomVariable, ast.SuppliedValue, ast.OnEventDefParameter, ast.TimeVariable, ast.AutoRegressiveModel, ast.Parameter))])
             unexpanded_assignment_dependancies = set([dep for dep in dependancies if isinstance(dep, ast.AssignedVariable)])
             assert len(dependancies_statevars) + len(unexpanded_assignment_dependancies) == len(set(dependancies))
 
@@ -129,7 +129,7 @@ class VisitorSymbolDependance(object):
                 ass_deps = nx.bfs_successors(self.direct_dependancy_graph, assignment_node )[assignment_node]
 
                 for ass_dep in ass_deps:
-                    if isinstance( ass_dep, (ast.StateVariable, ast.RandomVariable, ast.SuppliedValue, ast.TimeVariable, ast.AutoRegressiveModel)):
+                    if isinstance( ass_dep, (ast.StateVariable, ast.RandomVariable, ast.SuppliedValue, ast.TimeVariable, ast.AutoRegressiveModel, ast.Parameter)):
                         dependancies_statevars.add(ass_dep)
                     elif isinstance( ass_dep, ast.AssignedVariable):
                         if ass_dep in expanded_assignment_dependancies:
@@ -141,6 +141,9 @@ class VisitorSymbolDependance(object):
                     else:
                         if isinstance(ass_dep, ast.RTBlock):
                                 continue
+                        print
+                        print ass_dep
+                        print
                         assert False
 
             dependancies = dependancies_statevars

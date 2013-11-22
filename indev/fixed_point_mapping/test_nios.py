@@ -85,7 +85,12 @@ with open('mh_reduced_connectome.pickle') as f:
 network = Network()
 pops_by_name = {}
 for pop_name, pop_size in pop_sizes.items():
-    p = Population(name=pop_name, component=pop_components[pop_name], size=pop_size)
+    p = Population(
+            name=pop_name,
+            component=pop_components[pop_name],
+            size=pop_size,
+            parameters={'nmda_multiplier': 1.0} )
+            
     network.add(p)
     assert not pop_name in pops_by_name
     pops_by_name[pop_name] = p

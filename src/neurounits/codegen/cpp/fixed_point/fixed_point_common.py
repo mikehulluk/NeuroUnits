@@ -460,6 +460,10 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
         res = "%s<0>(0)" %(self.op_scalar_type)
         return self.add_range_check(o, res)
 
+    
+    def VisitParameter(self, o, **kwargs):
+        res = self.get_var_str(o.symbol)
+        return self.add_range_check(o, res)
 
     def VisitSuppliedValue(self, o, **kwargs):
         return self.get_var_str(o.symbol)

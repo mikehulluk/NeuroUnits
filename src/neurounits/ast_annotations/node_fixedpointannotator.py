@@ -25,7 +25,6 @@ class FixedPointData(object):
 
 class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
 
-    #annotator_dependancies = [NodeRangeAnnotator]
 
     def __init__(self, nbits, datatype='int'):
         super(NodeFixedPointFormatAnnotator, self ).__init__()
@@ -109,6 +108,8 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         # Assume that the delta needs the same range as the original data (safer, but maybe not optimal!)
         o.annotations['fixed-point-format'].delta_upscale = o.annotations['fixed-point-format'].upscale
 
+    def ActionParameter(self, o):
+        self.ActionNodeStd(o)
 
     def ActionSuppliedValue(self, o):
         self.ActionNodeStd(o)

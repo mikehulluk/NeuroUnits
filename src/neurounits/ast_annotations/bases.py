@@ -1,4 +1,5 @@
 
+from neurounits.unit_errors import  ASTMissingAnnotationError
 
 
 
@@ -28,7 +29,10 @@ class ASTNodeAnnotationData():
         self._data[key] = value
 
     def __getitem__(self, key):
-        return self._data[key]
+        try:
+            return self._data[key]
+        except KeyError:
+            raise ASTMissingAnnotationError(node=self._node, annotation=key)
 
     def __setitem__(self, key, value):
         self._data[key] = value
