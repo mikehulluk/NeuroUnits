@@ -59,8 +59,6 @@ with open(cache_file) as f:
 
 
 
-#import gp_model
-#gj = gp_model.get_gj()
 
 
 
@@ -76,7 +74,7 @@ pop_components = {
         'dINs': dIN_comp,
         }
 pop_params = {
-    'dINs': {'nmda_multiplier': 1.0, 'ampa_multiplier': 'uniform(min=0.5,max=1.5)' },
+    'dINs': {'nmda_multiplier': 1.0, 'ampa_multiplier': '~uniform(min=0.5,max=1.5)[]' },
     'NondINs': {}
 }
 
@@ -96,9 +94,6 @@ for pop_name, pop_size in pop_sizes.items():
 
 for syn_index, ((pop1_name, pop2_name, (syn_type, strength) ), conns) in enumerate(connections.items()):
     print 'Adding connection: %s -> %s [type:%s strength:%s, num:%d]' % (pop1_name, pop2_name, syn_type, strength, len(conns))
-
-    #if syn_type != 'ampa':
-    #    continue
     p1 = pops_by_name[pop1_name]
     p2 = pops_by_name[pop2_name]
     synpop_name='SynPop%02d' % syn_index
@@ -189,6 +184,8 @@ for dIN_pop in [(pop_LHS_dIN), (pop_RHS_dIN)]:
             #ax.plot([j],[i], 'x')
 
 
+#import gp_model
+#gj = gp_model.get_gj()
 network.add(
     ElectricalSynapseProjection(
         src_population =  dINs,

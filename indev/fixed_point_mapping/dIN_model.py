@@ -18,15 +18,15 @@ def get_dIN(nbits):
         <=> PARAMETER ampa_multiplier:()
 
         #iInj_local = [50pA] if [ 50ms < t < 200ms] else [0pA] * 0.0
-        iInj_local = 0pA 
+        iInj_local = 0pA
 
-        
-        
-        
+
+
+
 
         Cap = 10 pF
 
-        V' = (1/Cap) * ( itot) 
+        V' = (1/Cap) * ( itot)
         itot = iLk + iInj_local + iKs + iKf +iNa + iCa +  syn_nmda_i + syn_ampa_i + syn_inhib_i +  i_injected
 
 

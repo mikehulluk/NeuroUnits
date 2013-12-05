@@ -79,9 +79,9 @@ def include_id_in_overbrace(func):
         return r'\overbrace{%s}^{ID:%s/%s, US:%s (M/M:%s/%s)}' % (res, 
                 id(o), 
                 o.annotations.get('node-id','??'), 
-                o.annotations['fixed-point-format'].upscale,
-                o.annotations['node-value-range'].min,
-                o.annotations['node-value-range'].max,
+                o.annotations['fixed-point-format'].upscale if 'fixed-point-format' in o.annotations else '??',
+                o.annotations['node-value-range'].min if 'node-value-range' in o.annotations else '??',
+                o.annotations['node-value-range'].max if 'node-value-range' in o.annotations else '??',
                 ) 
     return new_func
 

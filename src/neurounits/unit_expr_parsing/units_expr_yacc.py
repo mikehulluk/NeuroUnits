@@ -772,6 +772,7 @@ def p_rhs_term4(p):
 # ==========================
 def p_rv_expr(p):
     """ rhs_term : random_variable """
+    print  "ERROR! THE RANDOM NODE IS NOT REALLY GENERATING RANDOM NUMBERS!!"
     backend = p.parser.library_manager.backend
     p[0] = ast.RandomVariable(
             function_name='uniform',
@@ -781,13 +782,14 @@ def p_rv_expr(p):
                 ],
             modes = {
                 'when':'SIM_INIT', 'share':'PER_NEURON'
-
                 }
             )
 
 
 def p_rv_expr1(p):
     """ random_variable : TILDE ALPHATOKEN LBRACKET rv_params RBRACKET LSQUAREBRACKET rv_modes RSQUAREBRACKET"""
+
+    print 'Parsed RANDOM NODE'
     p[0] = ast.RandomVariable(
             function_name=p[2],
             parameters = p[4],
@@ -863,6 +865,8 @@ def p_ar_model_2(p):
 
 def p_lhs(p):
     """rhs_generic : rhs_term"""
+    print 'p_lhs!', p[1]
+
     p[0] = p[1]
 
 
@@ -1214,6 +1218,7 @@ class ParseDetails(object):
         ParseTypes.L2_QuantitySimple: 'quantity_expr',
         ParseTypes.L3_QuantityExpr: 'rhs_generic',
         ParseTypes.N6_9MLFile: 'nineml_file',
+        ParseTypes.L6_ExprNode: 'rhs_generic',
         }
 
 
@@ -1225,7 +1230,7 @@ class ParserMgr(object):
     def build_parser(cls, start_symbol, debug):
 
         debug=True
-        debug=False
+        #debug=False
 
         from neurounits.nulogging import log_neurounits
         log_neurounits.info('Building Parser for: %s' % start_symbol)
@@ -1241,7 +1246,7 @@ class ParserMgr(object):
     def get_parser(cls, start_symbol, debug):
 
         debug=True
-        debug=False
+        #debug=False
 
         k = (start_symbol, debug)
         if not k in cls.parsers:
@@ -1258,6 +1263,7 @@ from neurounits.nulogging import MLine
 
 def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
 
+
     logging.log_neurounits.info('In parse_expr()')
 
 
@@ -1273,7 +1279,6 @@ def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=No
     #logging.log_neurounits.info('Text after preprocessing: %s' % MLine(text))
 
 
-    # Diff:
 
 
 
@@ -1302,7 +1307,8 @@ def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=No
     ret = { ParseTypes.L1_Unit:             lambda: pRes,
             ParseTypes.L2_QuantitySimple:   lambda: pRes,
             ParseTypes.L3_QuantityExpr:     lambda: pRes,
-            ParseTypes.N6_9MLFile:        lambda: library_manager,
+            ParseTypes.N6_9MLFile:          lambda: library_manager,
+            ParseTypes.L6_ExprNode:         lambda: pRes,
     }
 
 
@@ -1326,10 +1332,13 @@ def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=No
 def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
     start_symbol = ParseDetails.start_symbols[parse_type]
 
+
     # Build the lexer and the parser:
     lexer = units_expr_lexer.UnitExprLexer()
     parser = ParserMgr.get_parser(start_symbol=start_symbol, debug=debug)
     parser.library_manager = library_manager
+
+    print 'Parsing:', text_eqn
 
     # TODO: I think this can be removed.
     parser.src_text = text_eqn
@@ -1337,13 +1346,14 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
 
     # 'A': When loading QuantityExpr or Functions, we might use
     # stdlib functions. Therefore; we we need a 'block_builder':
-    if parse_type in [ParseTypes.L3_QuantityExpr]:
+
+    if parse_type in [ParseTypes.L3_QuantityExpr, ParseTypes.L6_ExprNode]:
         parser.library_manager.start_component_block(name='anon')
 
     pRes = parser.parse(text_eqn, lexer=lexer, debug=debug)
 
     # Close the block we opened in 'A'
-    if parse_type in [ParseTypes.L3_QuantityExpr]:
+    if parse_type in [ParseTypes.L3_QuantityExpr,  ParseTypes.L6_ExprNode]:
         parser.library_manager.end_component_block()
 
     parser.library_manager = None

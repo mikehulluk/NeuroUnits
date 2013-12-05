@@ -62,13 +62,13 @@ class ActionerPlotNetworkX(object):
 
 
         if isinstance(colors, dict):
-            color_lut =  colors 
+            color_lut =  colors
             colors = [ color_lut.get(node,'white') for node in graph]
 
         if colors == None:
             nc = DefaultNodeColors()
             colors = [nc.visit(v) for v in graph]
-        
+
         elif isinstance( colors, ASTVisitorBase):
             colors = [colors.visit(v) for v in graph]
 
@@ -90,7 +90,7 @@ class ActionerPlotNetworkX(object):
 
         ax = plt.gca()
         ax.text(0.5, 0.5, 'Hello')
-        
+
         plt.show()
 
 
@@ -138,10 +138,10 @@ class ActionerGetConnections(ASTActionerDefault):
         pass
     def ActionEmitEventParameter(self, o, **kwargs):
         self.connections[o].extend([o.rhs, o.port_parameter_obj])
-        
+
     def ActionOutEventPort(self, o, **kwargs):
         self.connections[o].extend( list(o.parameters))
-        
+
 
 
 
@@ -203,6 +203,8 @@ class ActionerGetConnections(ASTActionerDefault):
 
     def ActionSuppliedValue(self, o, **kwargs):
         pass
+    def ActionTimeVariable(self, o, **kwargs):
+        pass
 
     def ActionTimeDerivativeByRegime(self, o, **kwargs):
         self.connections[o].append(o.lhs)
@@ -247,6 +249,11 @@ class ActionerGetConnections(ASTActionerDefault):
     def ActionOnConditionTriggerTransition(self, o, **kwargs):
         self.connections[o].append(o.trigger)
         self.connections[o].extend(o.actions)
+
+    def ActionOnConditionCrossing(self, o, **kwargs):
+        self.connections[o].append(o.crosses_lhs)
+        self.connections[o].append(o.crosses_rhs)
+
 
     def ActionOnTransitionEvent(self, o, **kwargs):
         self.connections[o].extend(list(o.parameters))

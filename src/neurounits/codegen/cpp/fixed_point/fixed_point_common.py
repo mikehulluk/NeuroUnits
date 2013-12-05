@@ -14,35 +14,6 @@ from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 
 
 
-#class IntermediateNodeFinder(ASTActionerDefaultIgnoreMissing):
-#
-#    def __init__(self, component):
-#        self.valid_nodes = {}
-#        super(IntermediateNodeFinder,self).__init__(component=component)
-#
-#    # How many values do we store per operation:
-#    def ActionAddOp(self, o, **kwargs):
-#        self.valid_nodes[o] = 3
-#
-#    def ActionSubOp(self, o, **kwargs):
-#        self.valid_nodes[o] = 3
-#
-#    def ActionMulOp(self, o, **kwargs):
-#        self.valid_nodes[o] = 3
-#
-#    def ActionDivOp(self, o, **kwargs):
-#        self.valid_nodes[o] = 3
-#
-#    def ActionExpOp(self, o, **kwargs):
-#        assert False
-#        self.valid_nodes[o] = 3
-#
-#    def ActionFunctionDefBuiltInInstantiation(self, o, **kwargs):
-#        assert o.function_def.funcname in ['__exp__', '__ln__']
-#        self.valid_nodes[o] = 2
-#
-#    def ActionFunctionDefUserInstantiation(self, o, **kwargs):
-#        assert False
 
 
 
@@ -103,7 +74,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 
     def VisitIfThenElse(self, o, **kwargs):
-        L = " ( (%s) ? (%s).rescale_to<%d>() :  (%s).rescale_to<%d>() )" % (
+        L = " ( (%s) ? (%s).rescale_to<%d>() : (%s).rescale_to<%d>() )" % (
                     self.visit(o.predicate,  **kwargs),
                     self.visit(o.if_true_ast,  **kwargs),
                     o.annotations['fixed-point-format'].upscale,
@@ -151,13 +122,13 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 
     def VisitBoolAnd(self, o, **kwargs):
-        res = " ((%s) && (%s))"% (self.visit(o.lhs, **kwargs), self.visit(o.rhs, **kwargs))
+        res = "((%s) && (%s))"% (self.visit(o.lhs, **kwargs), self.visit(o.rhs, **kwargs))
         return res
     def VisitBoolOr(self, o, **kwargs):
-        res = " ((%s) || (%s))"% (self.visit(o.lhs, **kwargs), self.visit(o.rhs, **kwargs))
+        res = "((%s) || (%s))"% (self.visit(o.lhs, **kwargs), self.visit(o.rhs, **kwargs))
         return res
     def VisitBoolNot(self, o, **kwargs):
-        res = " (!(%s))"% (self.visit(o.lhs, **kwargs))
+        res = "(!(%s))"% (self.visit(o.lhs, **kwargs))
         return res
 
     def VisitFunctionDefUserInstantiation(self,o):
@@ -168,7 +139,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
         param = o.parameters.values()[0]
         param_term = self.visit(param.rhs_ast, **kwargs)
-        res = """ ScalarOp<%d>::exp( %s )""" %(o.annotations['fixed-point-format'].upscale, param_term)
+        res = """ScalarOp<%d>::exp( %s )""" %(o.annotations['fixed-point-format'].upscale, param_term)
         return res
 
 
@@ -372,7 +343,6 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
 
 
 class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
-#class CBasedFixedWriterBlueVecOps(CBasedFixedWriterStd):
 
     def add_range_check(self, o, res):
         return res
@@ -514,15 +484,12 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
 
 
     def VisitIfThenElse(self, o, **kwargs):
-        #L = " ( (%s) ? (%s).rescale_to<%d>() :  (%s).rescale_to<%d>() )" % (
         L = "  %s<%d>::ifthenelse(%s, %s,  %s)" % (
                     self.op_scalar_op,
                     o.annotations['fixed-point-format'].upscale,
                     self.visit(o.predicate,  **kwargs),
                     self.visit(o.if_true_ast,  **kwargs),
-                    #o.annotations['fixed-point-format'].upscale,
                     self.visit(o.if_false_ast, **kwargs),
-                    #o.annotations['fixed-point-format'].upscale,
                     )
         return self.add_range_check(o, L)
 

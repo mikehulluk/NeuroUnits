@@ -66,12 +66,12 @@ class NeuroUnitParser(object):
         backend = backend or cls.get_defaultBackend()
         return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L3_QuantityExpr, backend=backend)
 
-    @classmethod
-    def Function(cls, text, debug=False, backend=None):
-        assert False
-        """ Should return a callable"""
-        backend = backend or cls.get_defaultBackend()
-        return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L1_Unit, backend=backend)
+    #@classmethod
+    #def Function(cls, text, debug=False, backend=None):
+    #    assert False
+    #    """ Should return a callable"""
+    #    backend = backend or cls.get_defaultBackend()
+    #    return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L1_Unit, backend=backend)
 
 
     @classmethod
@@ -136,20 +136,25 @@ class NeuroUnitParser(object):
 
 
     @classmethod
-    def _string_to_expr_node(cls, s):
+    def _string_to_expr_node(cls, s, working_dir=None, debug=False, backend=None, options=None, ):
         import neurounits
 
+        print 'Converting ', s, 'to nodes:'
+
         if isinstance(s, basestring):
-            s = cls.QuantitySimple(s)
+            backend = backend or cls.get_defaultBackend()
+            s = units_expr_yacc.parse_expr(s, parse_type=units_expr_yacc.ParseTypes.L6_ExprNode, working_dir=working_dir, backend=backend, options=options,)
+            return s
         if isinstance(s, (float,int)):
             #import quantities as pq
             from neurounits.units_backends.mh import MMUnit,MMQuantity
-            s = MMQuantity(s, MMUnit() )
-            #s = s * pq.dimensionless
-
-        return neurounits.ast.ConstValue(value=s)
-        #if isinstance(s, basestring):
-        #    try:
+            s = neurounits.ast.ConstValue( value=MMQuantity(s, MMUnit() ) )
+        
+        print s, type(s)
+        assert isinstance( s, neurounits.ast.ASTExpressionObject) 
+        return s
+        #assert False
+        #return neurounits.ast.ConstValue(value=s)
 
 
 

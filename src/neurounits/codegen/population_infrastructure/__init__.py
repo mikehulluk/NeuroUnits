@@ -28,10 +28,17 @@ class Population(object):
         # Remap all the parameters to nodes, and copy accross range/fixed-point information from the component:
         self.parameters = { k: NeuroUnitParser._string_to_expr_node(v) for (k,v) in parameters.items() }
         for k,v in self.parameters.items():
-            v.annotations['fixed-point-format'] = self.component.get_terminal_obj(symbol=k).annotations['fixed-point-format'] 
-            if isinstance(v, ConstValue):
-                #print v.value, type(v.value)
-                v.annotations['fixed-point-format'].const_value_as_int = NodeFixedPointFormatAnnotator.encode_value_cls(v.value.float_in_si() , v.annotations['fixed-point-format'].upscale, 24 )
+            # Create a new node-id for the node:
+            id_annotator = self.component.annotation_mgr._annotators['node-ids']
+            id_annotator.visit(v)
+            
+            # Sort out the ranges and upscale of the parameters:
+            fp_annotator = self.component.annotation_mgr._annotators['fixed-point-format-ann']
+            fp_annotator.visit(v)
+
+            #v.annotations['fixed-point-format'] = self.component.get_terminal_obj(symbol=k).annotations['fixed-point-format'] 
+            #if isinstance(v, ConstValue):
+            #    v.annotations['fixed-point-format'].const_value_as_int = NodeFixedPointFormatAnnotator.encode_value_cls(v.value.float_in_si() , v.annotations['fixed-point-format'].upscale, 24 )
 
 
     def get_subpopulation(self, start_index, end_index, subname, autotag):

@@ -364,8 +364,8 @@ class FunctionDefBuiltInInstantiation(ASTExpressionObject):
 
 
     def summarise_node(self):
-        assert len(self.parameters) == 1
-        return '{%s( <id:%s>)}' % (self.function_def.funcname, id(list(self.parameters.values())[0].rhs_ast) )
+        print "params:", self.parameters
+        return '{%s( <id:%s>)}' % (self.function_def.funcname, ','.join( ['%s:%s' % (k, id(v)) for (k,v) in self.parameters.items() ] ) )
 
 
 

@@ -2882,6 +2882,13 @@ class CBasedEqnWriterFixedNetwork(object):
         assert len(nbits) == 1
         self.nbits = list(nbits)[0]
 
+
+
+        # Lets visit all the parameters
+
+
+
+
         #ENCODING OF TIME:
         time_upscale = set([pop.component._time_node.annotations['fixed-point-format'].upscale for pop in network.populations])
         print time_upscale
@@ -2890,17 +2897,6 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
         self.dt_int = NodeFixedPointFormatAnnotator.encode_value_cls(self.dt_float, self.dt_upscale, self.nbits )
-
-
-        #print
-        #print ' ------ DT -------'
-        #print 'dt_float', self.dt_float
-        #print 'dt_int', self.dt_int
-        #print 'dt_upscale', self.dt_upscale
-        #print 'nbits', self.nbits
-        #print
-        #assert False
-
 
         # Make sure the events can be connected:
         evt_src_to_evtportconns = {}
