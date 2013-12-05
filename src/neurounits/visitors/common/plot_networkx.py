@@ -9,37 +9,157 @@ from neurounits.ast_builder.eqnsetbuilder_symbol_proxy import SymbolProxy
 from neurounits.ast import OnEventStateAssignment
 import neurounits.ast as ast
 import itertools
+import neurounits
 
+import inspect
 import collections
 
 
+def inheritors(klass):
+    subclasses = set()
+    work = [klass]
+    while work:
+        parent = work.pop()
+        for child in parent.__subclasses__():
+            if child not in subclasses:
+                subclasses.add(child)
+                work.append(child)
+    return subclasses
 
-class DefaultNodeColors(ASTVisitorBase):
 
-    def VisitLibrary(self, o, **kwargs):
-        return 'green'
+pastels = [	
+    "#F7977A",
+    "#F9AD81",
+    "#FDC68A",
+    "#FFF79A",
+    "#C4DF9B",
+    "#A2D39C",
+    "#82CA9D",
+    "#7BCDC8",
+    "#6ECFF6",
+    "#7EA7D8",
+    "#8493CA",
+    "#8882BE",
+    "#A187BE",
+    "#BC8DBF",
+    "#F49AC2",
+    "#F6989D",
+]
 
-    def visit(self, o):
 
-        if isinstance(o, SymbolProxy):
-            return 'red'
-        if isinstance(o, OnEventStateAssignment):
-            return 'orange'
-        if isinstance(o, ast.NineMLComponent):
-            return 'yellow'
-        if isinstance(o, ast.OnEventTransition):
-            return 'pink'
-        if isinstance(o, ast.OnConditionTriggerTransition):
-            return 'cyan'
-        if isinstance(o, ast.CompoundPortConnector):
-            return 'red'
 
-        return 'blue'
 
-        try:
-            return ASTVisitorBase.visit(self, o)
-        except NotImplementedError:
-            return 'red'
+
+class TypeBasedLookupDict(object):
+    def __init__(self, data):
+        self._data = data
+
+
+    def __getitem__(self, k):
+
+        # Are we passed in type or object:
+        if type(k) != type:
+            k = type(k)
+
+
+        parents = inspect.getmro(k)
+        
+        for p in parents:
+            if p in self._data:
+                return self._data[p]
+        
+        assert False, 'Unable to find suitable entry for: %s'%k
+
+
+
+
+
+
+class DefaultNodeColors(ASTActionerDefault):
+    def ActionNode(self, o, **kwargs):
+
+        #clses = inheritors( ast.ASTObject )
+        #for cls in sorted(clses):
+        #    print cls.__name__
+
+
+        class_colors= TypeBasedLookupDict( {
+            #ast.ASTExpressionObject: 'blue',
+            ast.IfThenElse: 'blue',
+            ast.ASTBooleanExpression: 'blue',
+            ast.InEquality: 'blue',
+            ast.OnConditionCrossing: 'blue',
+            ast.BoolAnd: pastels[3],
+            ast.BoolOr: pastels[3],
+            ast.BoolNot: pastels[3],
+
+            ast.ASTSymbolNode: pastels[1],
+            ast.ASTConstNode: pastels[2],
+            #ast.AssignedVariable: 'blue',
+            #ast.SuppliedValue: 'blue',
+            #ast.StateVariable: 'blue',
+            #ast.Parameter: 'blue',
+            #ast.TimeVariable: 'blue',
+            #ast.ConstValue: 'blue',
+            #ast.ConstValueZero: 'blue',
+            #ast.SymbolicConstant: 'blue',
+            ast.FunctionDefBuiltIn: 'blue',
+            ast.FunctionDefUser: 'blue',
+            ast.FunctionDefParameter: 'blue',
+            ast.FunctionDefUserInstantiation: 'blue',
+            ast.FunctionDefBuiltInInstantiation: 'blue',
+            ast.FunctionDefParameterInstantiation: 'blue',
+
+            ast.BinaryOp: pastels[0],
+            #ast.AddOp: pastels[0],
+            #ast.SubOp: pastels[0],
+            #ast.MulOp: pastels[0],
+            #ast.DivOp: pastels[0],
+            #ast.ExpOp: pastels[0],
+
+            ast.OnConditionTriggerTransition: 'blue',
+            ast.OnEventTransition: 'blue',
+            ast.OnEventDefParameter: 'blue',
+            ast.EmitEvent: 'blue',
+            ast.EmitEventParameter: 'blue',
+            ast.OnEventStateAssignment: 'blue',
+            ast.Regime: 'blue',
+            ast.RTBlock: 'blue',
+            ast.EqnTimeDerivativePerRegime: 'blue',
+            ast.EqnAssignmentPerRegime: 'blue',
+            ast.AnalogReducePort: 'blue',
+            ast.InEventPort: 'blue',
+            ast.EqnAssignmentByRegime: 'blue',
+            ast.EqnTimeDerivativeByRegime: 'blue',
+            ast.EqnRegimeDispatchMap: 'blue',
+            ast.Transition: 'blue',
+            ast.InEventPortParameter: 'blue',
+            ast.OutEventPort: 'blue',
+            ast.OutEventPortParameter: 'blue',
+            ast.EventPortConnection: 'blue',
+            ast.Library: 'blue',
+            ast.InterfaceWire: 'blue',
+            ast.NineMLComponent: 'blue',
+            ast.InterfaceWireContinuous: 'blue',
+            ast.InterfaceWireEvent: 'blue',
+            ast.Interface: 'blue',
+            ast.CompoundPortConnectorWireMapping: 'blue',
+            ast.CompoundPortConnector: 'blue',
+            ast.RandomVariable: 'blue',
+            ast.RandomVariableParameter: 'blue',
+            ast.AutoRegressiveModel: 'blue',
+            neurounits.LibraryManager: 'blue',
+            })
+
+        return class_colors[type(o)]
+        
+
+
+
+class DefaultNodeLabels(ASTActionerDefault):
+    def ActionNode(self, n, **kwargs):
+        return n.summarise_node_short()
+
 
 
 
@@ -47,20 +167,25 @@ class DefaultNodeColors(ASTVisitorBase):
 
 
 class ActionerPlotNetworkX(object):
-    def __init__(self, o, labels = None, colors=None):
+    def __init__(self, o, labels = None, colors=None, include_types=None):
 
+        if include_types is None:
+            include_types = inheritors(ast.ASTObject)
 
         graph = nx.DiGraph()
 
         connections = ActionerGetConnections(o).get_connections()
         for node in connections.keys():
-            graph.add_node(node, color='green', label='"%s"' % repr(node) )
+            if type(node) in include_types:
+                graph.add_node(node, color='green', label='"%s"' % node.summarise_node_short() )
 
         for (node, connections) in connections.items():
             for c in connections:
-                graph.add_edge(node, c, color='blue')
+                if type(node) in include_types and type(c) in include_types:
+                    graph.add_edge(node, c, color='blue')
 
 
+        # Colors:
         if isinstance(colors, dict):
             color_lut =  colors
             colors = [ color_lut.get(node,'white') for node in graph]
@@ -73,21 +198,44 @@ class ActionerPlotNetworkX(object):
             colors = [colors.visit(v) for v in graph]
 
 
-        if isinstance(labels, dict):
-            for node in  graph.nodes_iter():
-                if not node in labels:
-                    labels[node] = repr(node)
+        # Labelling:
+        label_dict = {}
+        default_labeller = DefaultNodeLabels()
+        for node in graph.nodes_iter():
+            node_label = None
 
-        if labels == None:
-            labels=dict( (s, repr(s)) for s in graph.nodes_iter( ) )
+            # Try to subscript the object:
+            if isinstance(labels, dict):
+                try:
+                    node_label = labels[node]
+                except KeyError:
+                    pass
 
-        graph_nodes = set(  graph.nodes_iter() )
-        labels = dict([(k,v) for (k,v) in labels.items() if k in graph_nodes])
+            # Try to call the object:
+            if not node_label:
+                try:
+                    node_label = labels(node)
+                except TypeError:
+                    pass
+
+            # Try to 'visit' the object:
+            if not node_label and isinstance(labels, ASTVisitorBase):
+                node_label = labels.visit(node)
+
+            # OK, apply the default label:
+            if node_label is None:
+                node_label = default_labeller.visit(node)
+
+
+            label_dict[node] = node_label
+
+
+
 
 
         print 'Plotting!'
         f = plt.figure()
-        nx.draw_graphviz(graph, font_size=10, iteration=200, node_color=colors,scale=1, labels=labels )
+        nx.draw_graphviz(graph, font_size=10, iteration=200, node_color=colors,scale=1, labels=label_dict )
 
         ax = plt.gca()
         ax.text(0.5, 0.5, 'Hello')

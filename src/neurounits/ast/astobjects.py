@@ -117,6 +117,9 @@ class OnConditionCrossing(ASTBooleanExpression):
     def _is_allowed_in_ifthenelse(self):
         return False
 
+    def _summarise_node_short(self):
+        return 'crosses'
+
 
 
 
@@ -169,8 +172,11 @@ class ASTSymbolNode(ASTExpressionObject):
         super(ASTSymbolNode, self).__init__(**kwargs)
         self.symbol = symbol
 
-    def summarise_node(self):
+    def _summarise_node_full(self):
         return "Symbol: '%s'" % self.symbol
+    
+    def _summarise_node_short(self, use_latex=False):
+        return self.symbol
 
 class ASTConstNode(ASTExpressionObject):
     def __init__(self, value, **kwargs):
@@ -178,8 +184,11 @@ class ASTConstNode(ASTExpressionObject):
         self.value = value
         self.set_dimensionality(value.units.with_no_powerten())
 
-    def summarise_node(self):
+    def _summarise_node_full(self):
         return "Value: '%s'" % self.value
+
+    def _summarise_node_short(self, use_latex=False):
+        return self.value
 # ===============
 
 
@@ -238,9 +247,8 @@ class TimeVariable(ASTSymbolNode):
 
     def __init__(self,  **kwargs):
         import neurounits
-        s = neurounits.units_backends.mh.MMUnit(second=1) 
+        s = neurounits.units_backends.mh.MMUnit(second=1)
         super(TimeVariable, self).__init__(dimension=s, **kwargs)
-        #self.set_dimensionality( neurounits.units_backends.mh.MMUnit(second=1) )
 
 
 
@@ -271,10 +279,10 @@ class SymbolicConstant(ASTConstNode, ASTSymbolNode):
     def __init__(self,**kwargs):
         super(SymbolicConstant, self).__init__(**kwargs)
 
-    def summarise_node(self):
+    def _summarise_node_full(self):
         return '%s %s' % (
-                ASTConstNode.summarise_node(self),
-                ASTSymbolNode.summarise_node(self)
+                ASTConstNode._summarise_node_full(self),
+                ASTSymbolNode._summarise_node_full(self)
                 )
 
 
@@ -314,7 +322,7 @@ class FunctionDefUser(ASTExpressionObject):
         self.funcname = funcname
         self.parameters = parameters
         self.rhs = rhs
-    
+
     def __repr__(self,):
         return '<FunctionDefUser: %s>' % (self.funcname)
 
@@ -363,7 +371,7 @@ class FunctionDefBuiltInInstantiation(ASTExpressionObject):
         assert function_def.is_builtin()
 
 
-    def summarise_node(self):
+    def _summarise_node_full(self):
         print "params:", self.parameters
         return '{%s( <id:%s>)}' % (self.function_def.funcname, ','.join( ['%s:%s' % (k, id(v)) for (k,v) in self.parameters.items() ] ) )
 
@@ -406,32 +414,40 @@ class AddOp(BinaryOp):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitAddOp(self, **kwargs)
-    def __repr__(self, ):
+    def _summarise_node_short(self, ):
         return '+'
+    def _summarise_node_full(self, ):
+        return ''
 
 
 class SubOp(BinaryOp):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitSubOp(self, **kwargs)
-    def __repr__(self, ):
+    def _summarise_node_short(self, ):
         return '-'
+    def _summarise_node_full(self, ):
+        return ''
 
 
 class MulOp(BinaryOp):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitMulOp(self, **kwargs)
-    def __repr__(self, ):
+    def _summarise_node_short(self, ):
         return '*'
+    def _summarise_node_full(self, ):
+        return ''
 
 
 class DivOp(BinaryOp):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitDivOp(self, **kwargs)
-    def __repr__(self, ):
+    def _summarise_node_short(self, ):
         return '/'
+    def _summarise_node_full(self, ):
+        return ''
 
 
 class ExpOp(BinaryOp):

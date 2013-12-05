@@ -42,6 +42,8 @@ import neurounits.ast as ast
 
 
 
+
+
 class DuplicateNameError(RuntimeError):
     pass
 
@@ -164,7 +166,7 @@ class ComponentNamespace(object):
 
 
 
-class LibraryManager(object):
+class LibraryManager(ast.ASTObject):
     """LibMan class docstring"""
     _stdlib_cache = None
     _stdlib_cache_loading = False
@@ -183,6 +185,8 @@ class LibraryManager(object):
             return self.block_stack[-1]
 
     def __init__(self,backend, working_dir=None, options=None, name=None, src_text=None, is_stdlib_cache=False):
+
+        super(LibraryManager, self).__init__()
         from neurounits.neurounitparser import NeuroUnitParserOptions
         self.options = options or NeuroUnitParserOptions()
 
@@ -294,7 +298,7 @@ class LibraryManager(object):
 
 
         # Testing: make sure all nodes accounted for:
-        from neurounits.visitors.common.ast_node_connections import ASTAllConnections
+        #from neurounits.visitors.common.ast_node_connections import ASTAllConnections
         from neurounits.visitors.common.ast_node_connections import ASTAllConnectionsCheck
         ASTAllConnectionsCheck().visit(ls[0])
         return ls[0]
@@ -343,7 +347,9 @@ class LibraryManager(object):
     def summary(self, details=True):
         name = self.name if self.name else ''
         simple = '<LibraryManager: %s Components: %d Libraries:%d>' % (name, len(self.components), len(self.libraries))
-
         return simple
+
+    def _summarise_node_short(self,):
+            return 'LibraryManager'
 
 

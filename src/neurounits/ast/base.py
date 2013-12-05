@@ -45,26 +45,8 @@ class ASTObject(object):
 
 
 
-
-
-    def __str__(self):
-        return unicode(self)
-    def __repr__(self):
-        return unicode(self)
-
-    def __unicode__(self):
-        node_data = self.summarise_node() if hasattr(self, 'summarise_node') else '[??]' #'[]'
-        annotation_data = self._annotations.get_summary_str() #str(self._annotations)
-        s  = string.Template('<${class_name} [id:${id}] ${node_data} ${annotation_data}>').substitute(
-                class_name=type(self).__name__.split('.')[-1],
-                id=id(self),
-                node_data = node_data,
-                annotation_data = annotation_data,
-                )
-        return s
-
-
     def get_dimension(self):
+        assert False, "We shouldn't really get here, deprecated Dec 2013"
         return None
 
 
@@ -73,6 +55,49 @@ class ASTObject(object):
     def annotations(self):
         assert self._annotations is not None
         return self._annotations
+
+
+    # These should be implemented to allow nodes to be printed in different
+    # situations:
+    def _summarise_node_full(self):
+        raise NotImplementedError()
+    def _summarise_node_short(self, use_latex=False):
+        raise NotImplementedError()
+
+
+    def summarise_node_full(self):
+        try:
+            print type(self)
+            return self._summarise_node_full()
+        except NotImplementedError:
+            return '[??]'
+    def summarise_node_short(self):
+        try:
+            return self._summarise_node_short()
+        except NotImplementedError:
+            print self
+            assert False
+            return '[??]'
+
+
+
+
+
+    def __str__(self):
+        return unicode(self)
+    def __repr__(self):
+        return unicode(self)
+
+    def __unicode__(self):
+        return string.Template('<${class_name} [id:${id}] ${node_data} ${annotation_data}>').substitute(
+                class_name=type(self).__name__.split('.')[-1], id=id(self),
+                node_data = self.summarise_node_full(),
+                annotation_data = self.annotations.get_summary_str()
+                )
+
+
+
+
 
 
 

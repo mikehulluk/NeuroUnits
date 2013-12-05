@@ -42,10 +42,10 @@ class EqnAssignmentByRegime(ASTObject):
         self.lhs = lhs
         self.rhs_map = rhs_map
 
-    #def __repr__(self):
-    #    return '<Assignment to: %s>' % self.lhs.symbol
-    def summarise_node(self):
+    def _summarise_node_full(self):
         return 'Symbol: %s' %(self.lhs.symbol)
+    def _summarise_node_short(self):
+        return '%s' %(self.lhs.symbol)
 
 
 class EqnTimeDerivativeByRegime(ASTObject):
@@ -68,8 +68,10 @@ class EqnTimeDerivativeByRegime(ASTObject):
 
     rhs_map = property(get_rhs_map, set_rhs_map)
 
-    def __repr__(self):
-        return '<TimeDerivative (new) of: %s>' % self.lhs.symbol
+    def _summarise_node_full(self):
+        return 'Derivative: d%s/dt' %(self.lhs.symbol)
+    def _summarise_node_short(self):
+        return 'd%s/dt' %(self.lhs.symbol)
 
 
 class EqnRegimeDispatchMap(ASTExpressionObject):
@@ -103,8 +105,9 @@ class EqnRegimeDispatchMap(ASTExpressionObject):
             return self.rhs_map[regime]
         return self.rhs_map[None]
 
-    def __repr__(self,):
-        return '<DispatchMap>'
+
+    def _summarise_node_short(self):
+        return 'DispatchMap'
 
 
 class Transition(ASTObject):
@@ -140,11 +143,13 @@ class OnConditionTriggerTransition(Transition):
         super(OnConditionTriggerTransition, self).__init__(**kwargs)
         self.trigger = trigger
 
-    def __repr__(self):
-        return '<ConditionTriggerTransition %s -> %s (%d actions)>' % (repr(self.src_regime), repr(self.target_regime), len(self.actions))
-
     def accept_visitor(self, v, **kwargs):
         return v.VisitOnConditionTriggerTransition(self, **kwargs)
+
+    def _summarise_node_short(self):
+        return 'Trigger'
+    def _summarise_node_full(self):
+        return 'Trigger'
 
 
 
@@ -163,8 +168,6 @@ class OnEventTransition(Transition):
 
         assert isinstance( self.parameters, LookUpDict)
 
-    def __repr__(self):
-        return '<OnEventTransition [%s] %s -> %s (%d actions)>' % (repr(self.port), repr(self.src_regime), repr(self.target_regime), len(self.actions))
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitOnTransitionEvent(self, **kwargs)
@@ -172,6 +175,11 @@ class OnEventTransition(Transition):
     @property
     def alphabetic_params(self,):
         return sorted(self.parameters, key=lambda o:o.symbol)
+
+    def _summarise_node_short(self):
+        return 'Event-Transition: %s' % self.port.symbol
+    def _summarise_node_full(self):
+        return 'Event-Transition: %s' % self.port.symbol
 
 
 class OnEventDefParameter(ASTExpressionObject):
@@ -185,9 +193,7 @@ class OnEventDefParameter(ASTExpressionObject):
         if dimension is not None:
             self.set_dimensionality(dimension)
 
-    def __repr__(self):
-        return "<OnEventDefParameter '%s'>" % self.symbol
-    def summarise_node(self):
+    def _summarise_node_full(self):
         return 'Symbol: %s' %(self.symbol)
 
 
@@ -202,8 +208,11 @@ class EmitEvent(ASTObject):
         self.parameters = parameters
         assert isinstance( self.parameters, LookUpDict)
 
-    def __repr__(self):
-        return "<EmitEvent: '%s'>" % repr(self.port)
+    def _summarise_node_short(self):
+        return 'Emit: %s' % self.port.symbol
+    def _summarise_node_full(self):
+        return 'Emit: %s' % self.port.symbol
+
 
 class EmitEventParameter(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):
@@ -232,8 +241,10 @@ class OnEventStateAssignment(ASTExpressionObject):
     def accept_visitor(self, o, **kwargs):
         return o.VisitOnEventStateAssignment(self, **kwargs)
 
-    def __repr__(self):
-        return '<OnEventStateAssignment: %s>' % id(self)
+    def _summarise_node_short(self):
+        return 'StateAssignment to: %s' % self.lhs.symbol
+    def _summarise_node_full(self):
+        return 'StateAssignment'
 
 class Regime(ASTObject):
 
@@ -245,11 +256,10 @@ class Regime(ASTObject):
         self.name = name
         self.parent_rt_graph = parent_rt_graph
 
-    def __repr__(self):
-        return "<Regime: '%s'>" % self.ns_string()
-
-    def summarise_node(self):
+    def _summarise_node_full(self):
         return 'Name: %s' %(self.ns_string())
+    def _summarise_node_short(self):
+        return 'Regime: %s' %(self.ns_string())
 
     def ns_string(self):
         return '%s.%s' % (self.parent_rt_graph.ns_string(), self.name)
@@ -272,9 +282,6 @@ class RTBlock(ASTObject):
         return (self.name if self.name is not None else '')
 
     def get_regime(self, name):
-        #if name==None:
-            #assert len(self.regimes) in [1]
-            #return list(self.regimes)[0]
         return self.regimes.get_single_obj_by(name=name)
 
     def get_or_create_regime(self, name):
@@ -282,12 +289,13 @@ class RTBlock(ASTObject):
             self.regimes._add_item( Regime(name=name, parent_rt_graph=self) )
         return self.regimes.get_single_obj_by(name=name)
 
-
-    def __repr__(self):
-        return '<RT Block: %s>' % self.name
-
     def has_regime(self, name):
         return self.regimes.has_obj(name=name)
+    
+    def _summarise_node_full(self):
+        return 'Name: %s' %(self.ns_string())
+    def _summarise_node_short(self):
+        return 'RT-Block: %s' %(self.ns_string())
 
 
  # Temporary objects used only during building:
@@ -342,13 +350,15 @@ class InEventPort(ASTObject):
         self.parameters = parameters
         assert isinstance(self.symbol, basestring)
         assert isinstance(self.parameters, LookUpDict)
-    def __repr__(self,):
-        return '<InPort: %s>' % self.symbol
     @property
     def alphabetic_params(self,):
         return sorted(self.parameters, key=lambda o:o.symbol)
-    def summarise_node(self):
+
+
+    def _summarise_node_full(self):
         return 'Symbol: %s' %(self.symbol)
+    def _summarise_node_short(self):
+        return 'InEventPort: %s' %(self.symbol)
 
 
 
@@ -359,8 +369,6 @@ class InEventPortParameter(ASTExpressionObject):
     def __init__(self, symbol, **kwargs):
         super(InEventPortParameter, self).__init__(**kwargs)
         self.symbol = symbol
-    def __repr__(self,):
-        return '<InPortparameter: %s>' % self.symbol
 
 
 
@@ -377,8 +385,10 @@ class OutEventPort(ASTObject):
         assert isinstance(self.symbol, basestring)
         assert isinstance(self.parameters, LookUpDict)
 
-    def __repr__(self,):
-        return '<OutPort: %s>' % self.symbol
+    def _summarise_node_full(self):
+        return 'Symbol: %s' %(self.symbol)
+    def _summarise_node_short(self):
+        return 'OutEventPort: %s' %(self.symbol)
 
 
 

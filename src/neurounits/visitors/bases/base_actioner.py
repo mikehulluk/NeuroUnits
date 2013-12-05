@@ -48,24 +48,25 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         super(ASTActionerDepthFirst, self).__init__(**kwargs)
 
 
+
     def VisitLibraryManager(self, o, **kwargs):
         for c in itertools.chain(o.components, o.libraries):
             self.visit(c)
-        self._ActionLibraryManager( o, **kwargs)
+        return self._ActionLibraryManager( o, **kwargs)
 
     def VisitInterface(self, o, **kwargs):
-        self._ActionInterface( o, **kwargs)
+        return self._ActionInterface( o, **kwargs)
 
     def VisitCompoundPortConnector(self, o, **kwargs):
         self.visit(o.interface_def)
         for wire in o.wire_mappings:
             self.visit(wire)
-        self._ActionCompoundPortConnector(o, **kwargs)
+        return self._ActionCompoundPortConnector(o, **kwargs)
 
     def VisitCompoundPortConnectorWireMapping(self, o, **kwargs):
         self.visit(o.component_port)
         self.visit(o.interface_port)
-        self._ActionCompoundPortConnectorWireMapping(o, **kwargs)
+        return self._ActionCompoundPortConnectorWireMapping(o, **kwargs)
 
     def VisitInterfaceWireContinuous(self, o, **kwargs):
         pass
@@ -78,7 +79,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         for f in subnodes:
             self.visit(f, **kwargs)
 
-        self._ActionLibrary(o, **kwargs)
+        return self._ActionLibrary(o, **kwargs)
 
 
     def VisitNineMLComponent(self, o, **kwargs):
@@ -88,48 +89,50 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         for f in subnodes:
             self.visit(f, **kwargs)
 
-        self._ActionNineMLComponent(o, **kwargs)
+        return self._ActionNineMLComponent(o, **kwargs)
 
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
         self.visit(o.rhs, **kwargs)
-        self._ActionOnEventStateAssignment(o, **kwargs)
+        return self._ActionOnEventStateAssignment(o, **kwargs)
 
     def VisitIfThenElse(self, o, **kwargs):
         self.visit(o.predicate, **kwargs)
         self.visit(o.if_true_ast, **kwargs)
         self.visit(o.if_false_ast, **kwargs)
-        self._ActionIfThenElse(o, **kwargs)
+        return self._ActionIfThenElse(o, **kwargs)
 
     def VisitInEquality(self, o, **kwargs):
         self.visit(o.lesser_than, **kwargs)
         self.visit(o.greater_than, **kwargs)
-        self._ActionInEquality(o, **kwargs)
-    
-    def VisitOnConditionTriggerTransition(self, o, **kwargs):
-        self.visit(o.crosses_lhs, **kwargs)
-        self.visit(o.crosses_rhs, **kwargs)
-        self._ActionOnConditionTriggerTransition(o, **kwargs)
-    
+        return self._ActionInEquality(o, **kwargs)
+
     def VisitOnConditionCrossing(self, o, **kwargs):
         self.visit(o.crosses_lhs, **kwargs)
         self.visit(o.crosses_rhs, **kwargs)
-        self._ActionOnConditionCrossing(o, **kwargs)
+        return self._ActionOnConditionCrossing(o, **kwargs)
+
+    
+    def VisitOnConditionTriggerTransition(self, o, **kwargs):
+        self.visit(o.trigger, **kwargs)
+        for a in o.actions:
+            self.visit(a, **kwargs)
+        return self._ActionOnConditionTriggerTransition(o, **kwargs)
 
     def VisitBoolAnd(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
         self.visit(o.rhs, **kwargs)
-        self._ActionBoolAnd(o, **kwargs)
+        return self._ActionBoolAnd(o, **kwargs)
 
     def VisitBoolOr(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
         self.visit(o.rhs, **kwargs)
-        self._ActionBoolOr(o, **kwargs)
+        return self._ActionBoolOr(o, **kwargs)
 
     def VisitBoolNot(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
-        self._ActionBoolNot(o, **kwargs)
+        return self._ActionBoolNot(o, **kwargs)
 
 
     # Function Definitions:
@@ -137,50 +140,50 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         for p in o.parameters.values():
             self.visit(p, **kwargs)
         self.visit(o.rhs, **kwargs)
-        self._ActionFunctionDefUser(o, **kwargs)
+        return self._ActionFunctionDefUser(o, **kwargs)
 
     def VisitFunctionDefBuiltIn(self, o, **kwargs):
         for p in o.parameters.values():
             self.visit(p, **kwargs)
-        self._ActionFunctionDefBuiltIn(o, **kwargs)
+        return self._ActionFunctionDefBuiltIn(o, **kwargs)
 
     def VisitFunctionDefParameter(self, o, **kwargs):
-        self._ActionFunctionDefParameter(o, **kwargs)
+        return self._ActionFunctionDefParameter(o, **kwargs)
 
     # Terminals:
     def VisitStateVariable(self, o, **kwargs):
         if o.initial_value:
             self.visit(o.initial_value)
-        self._ActionStateVariable(o, **kwargs)
+        return self._ActionStateVariable(o, **kwargs)
 
     def VisitSymbolicConstant(self, o, **kwargs):
-        self._ActionSymbolicConstant(o, **kwargs)
+        return self._ActionSymbolicConstant(o, **kwargs)
 
     def VisitParameter(self, o, **kwargs):
-        self._ActionParameter(o, **kwargs)
+        return self._ActionParameter(o, **kwargs)
 
     def VisitConstant(self, o, **kwargs):
-        self._ActionConstant(o, **kwargs)
+        return self._ActionConstant(o, **kwargs)
 
     def VisitConstantZero(self, o, **kwargs):
-        self._ActionConstantZero(o, **kwargs)
+        return self._ActionConstantZero(o, **kwargs)
 
     def VisitAssignedVariable(self, o, **kwargs):
-        self._ActionAssignedVariable(o, **kwargs)
+        return self._ActionAssignedVariable(o, **kwargs)
 
     def VisitSuppliedValue(self, o, **kwargs):
-        self._ActionSuppliedValue(o, **kwargs)
+        return self._ActionSuppliedValue(o, **kwargs)
 
     def VisitTimeVariable(self, o, **kwargs):
-        self._ActionTimeVariable(o, **kwargs)
+        return self._ActionTimeVariable(o, **kwargs)
 
     def VisitAnalogReducePort(self, o, **kwargs):
-        self._ActionAnalogReducePort(o, **kwargs)
+        return self._ActionAnalogReducePort(o, **kwargs)
 
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
         self.visit(o.rhs_map, **kwargs)
-        self._ActionTimeDerivativeByRegime(o, **kwargs)
+        return self._ActionTimeDerivativeByRegime(o, **kwargs)
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
         for rhs in o.rhs_map.values():
@@ -189,61 +192,56 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         for rhs in o.rhs_map.keys():
             self.visit(rhs, **kwargs)
 
-        self._ActionRegimeDispatchMap(o, **kwargs)
+        return self._ActionRegimeDispatchMap(o, **kwargs)
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
         self.visit(o.rhs_map, **kwargs)
-        self._ActionEqnAssignmentByRegime(o, **kwargs)
+        return self._ActionEqnAssignmentByRegime(o, **kwargs)
 
     def VisitAddOp(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
         self.visit(o.rhs, **kwargs)
-        self._ActionAddOp(o, **kwargs)
+        return self._ActionAddOp(o, **kwargs)
 
     def VisitSubOp(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
         self.visit(o.rhs, **kwargs)
-        self._ActionSubOp(o, **kwargs)
+        return self._ActionSubOp(o, **kwargs)
 
     def VisitMulOp(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
         self.visit(o.rhs, **kwargs)
-        self._ActionMulOp(o, **kwargs)
+        return self._ActionMulOp(o, **kwargs)
 
     def VisitDivOp(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
         self.visit(o.rhs, **kwargs)
-        self._ActionDivOp(o, **kwargs)
+        return self._ActionDivOp(o, **kwargs)
 
     def VisitExpOp(self, o, **kwargs):
         self.visit(o.lhs, **kwargs)
-        self._ActionExpOp(o, **kwargs)
+        return self._ActionExpOp(o, **kwargs)
 
     def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
         for p in o.parameters.values():
             self.visit(p, **kwargs)
         self.visit(o.function_def, **kwargs)
-        self._ActionFunctionDefBuiltInInstantiation(o, **kwargs)
+        return self._ActionFunctionDefBuiltInInstantiation(o, **kwargs)
 
     def VisitFunctionDefUserInstantiation(self, o, **kwargs):
         for p in o.parameters.values():
             self.visit(p, **kwargs)
         self.visit(o.function_def, **kwargs)
-        self._ActionFunctionDefUserInstantiation(o, **kwargs)
+        return self._ActionFunctionDefUserInstantiation(o, **kwargs)
 
 
 
 
     def VisitFunctionDefInstantiationParameter(self, o, **kwargs):
         self.visit(o.rhs_ast, **kwargs)
-        self._ActionFunctionDefInstantiationParameter(o, **kwargs)
+        return self._ActionFunctionDefInstantiationParameter(o, **kwargs)
 
-    def VisitOnConditionTriggerTransition(self, o, **kwargs):
-        self.visit(o.trigger, **kwargs)
-        for a in o.actions:
-            self.visit(a, **kwargs)
-        self._ActionOnConditionTriggerTransition(o, **kwargs)
 
 
     def VisitOnTransitionEvent(self, o, **kwargs):
@@ -252,49 +250,49 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         for a in o.actions:
             self.visit(a, **kwargs)
         self.visit(o.port, **kwargs)
-        self._ActionOnTransitionEvent(o, **kwargs)
+        return self._ActionOnTransitionEvent(o, **kwargs)
 
     def VisitOnEventDefParameter(self, o, **kwargs):
-        self._ActionOnEventDefParameter(o, **kwargs)
+        return self._ActionOnEventDefParameter(o, **kwargs)
 
     def VisitEmitEvent(self, o, **kwargs):
         for a in o.parameters:
             self.visit(a, **kwargs)
         self.visit(o.port, **kwargs)
-        self._ActionEmitEvent(o, **kwargs)
+        return self._ActionEmitEvent(o, **kwargs)
 
     def VisitEmitEventParameter(self, o, **kwargs):
         self.visit(o.port_parameter_obj, **kwargs)
         self.visit(o.rhs, **kwargs)
-        self._ActionEmitEventParameter(o, **kwargs)
+        return self._ActionEmitEventParameter(o, **kwargs)
 
 
 
     def VisitInEventPort(self, o, **kwargs):
         for a in o.parameters:
             self.visit(a, **kwargs)
-        self._ActionInEventPort(o, **kwargs)
+        return self._ActionInEventPort(o, **kwargs)
     def VisitInEventPortParameter(self, o, **kwargs):
-        self._ActionInEventPortParameter(o, **kwargs)
+        return self._ActionInEventPortParameter(o, **kwargs)
     def VisitOutEventPort(self, o, **kwargs):
         for a in o.parameters:
             self.visit(a, **kwargs)
-        self._ActionOutEventPort(o, **kwargs)
+        return self._ActionOutEventPort(o, **kwargs)
     def VisitOutEventPortParameter(self, o,  **kwargs):
-        self._ActionOutEventPortParameter(o, **kwargs)
+        return self._ActionOutEventPortParameter(o, **kwargs)
 
     def VisitRTGraph(self, o, **kwargs):
         if o.default_regime:
             assert o.default_regime in o.regimes
         for r in o.regimes:
             self.visit(r, **kwargs)
-        self._ActionRTGraph(o, **kwargs)
+        return self._ActionRTGraph(o, **kwargs)
 
     def VisitRegime(self, o, **kwargs):
-        self._ActionRegime(o, **kwargs)
+        return self._ActionRegime(o, **kwargs)
 
     def VisitEventPortConnection(self, o, **kwargs):
-        self._ActionEventPortConnection(o, **kwargs)
+        return self._ActionEventPortConnection(o, **kwargs)
 
 
 
@@ -302,14 +300,14 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def VisitRandomVariable(self, o, **kwargs):
         for p in o.parameters:
             self.visit(p, **kwargs)
-        self._ActionRandomVariable(o)
+        return self._ActionRandomVariable(o)
 
     def VisitRandomVariableParameter(self, o, **kwargs):
         self.visit(o.rhs_ast)
-        self._ActionRandomVariableParameter(o)
+        return self._ActionRandomVariableParameter(o)
 
     def VisitAutoRegressiveModel(self, o, **kwargs):
-        self._ActionAutoRegressiveModel(o, **kwargs)
+        return self._ActionAutoRegressiveModel(o, **kwargs)
 
 
 
@@ -331,10 +329,6 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionLibrary(o, **kwargs)
 
-    #def _ActionEqnSet(self, o, **kwargs):
-    #    if self._ActionPredicate(o, **kwargs):
-    #        return self.ActionEqnSet(o, **kwargs)
-
     def _ActionNineMLComponent(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionNineMLComponent(o, **kwargs)
@@ -346,11 +340,11 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def _ActionInEquality(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionInEquality(o, **kwargs)
-    
+
     def _ActionOnConditionCrossing(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionOnConditionCrossing(o, **kwargs)
-    
+
     def _ActionOnCrossesTriggerTransition(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionOnCrossesTriggerTransition(o, **kwargs)
@@ -459,10 +453,6 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def _ActionFunctionDefInstantiationParameter(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
             return self.ActionFunctionDefInstantiationParameter(o, **kwargs)
-
-    #def _ActionOnEvent(self, o, **kwargs):
-    #    if self._ActionPredicate(o, **kwargs):
-    #        return self.ActionOnEvent(o, **kwargs)
 
     def _ActionOnEventStateAssignment(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):

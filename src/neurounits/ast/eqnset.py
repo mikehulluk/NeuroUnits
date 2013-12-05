@@ -578,6 +578,11 @@ class NineMLComponent(Block):
 
 
 
+    def _summarise_node_full(self):
+        return self.summarise()
+    def _summarise_node_short(self):
+        return 'NineML Component: %s' % self.name
+
 
     def summarise(self):
         print
