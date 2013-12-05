@@ -36,6 +36,7 @@ from .builder_visitor_remove_proxies import RemoveAllSymbolProxy
 from .eqnsetbuilder_symbol_proxy import SymbolProxy
 from neurounits.visitors.common.clone_from_eqnset import CloneObject
 from neurounits.visitors.common.simplify_symbolic_constants import ReduceConstants
+from neurounits.visitors.common.ast_remove_unnecessary_rt import RemoveUnusedRT
 from neurounits.ast.astobjects import SymbolicConstant
 from neurounits.ast.astobjects_nineml import RTBlock
 
@@ -908,6 +909,9 @@ class AbstractBlockBuilder(object):
         #    if node._annotations is None:
         #        print ' ** Actually doing it!', node
         #        node.annotations = ASTNodeAnnotationData(mgr=ast_object.annotation_mgr, node=node)
+
+        # 6. Remove unnessesary regime transition-grpahs
+        RemoveUnusedRT().visit(ast_object)
 
 
 

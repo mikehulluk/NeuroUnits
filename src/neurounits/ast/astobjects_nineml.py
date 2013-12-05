@@ -45,7 +45,7 @@ class EqnAssignmentByRegime(ASTObject):
     def _summarise_node_full(self):
         return 'Symbol: %s' %(self.lhs.symbol)
     def _summarise_node_short(self):
-        return '%s' %(self.lhs.symbol)
+        return '%s=' %(self.lhs.symbol)
 
 
 class EqnTimeDerivativeByRegime(ASTObject):
@@ -71,7 +71,7 @@ class EqnTimeDerivativeByRegime(ASTObject):
     def _summarise_node_full(self):
         return 'Derivative: d%s/dt' %(self.lhs.symbol)
     def _summarise_node_short(self):
-        return 'd%s/dt' %(self.lhs.symbol)
+        return 'd%s/dt=' %(self.lhs.symbol)
 
 
 class EqnRegimeDispatchMap(ASTExpressionObject):
@@ -177,7 +177,7 @@ class OnEventTransition(Transition):
         return sorted(self.parameters, key=lambda o:o.symbol)
 
     def _summarise_node_short(self):
-        return 'Event-Transition: %s' % self.port.symbol
+        return 'On: %s' % self.port.symbol
     def _summarise_node_full(self):
         return 'Event-Transition: %s' % self.port.symbol
 
@@ -242,7 +242,7 @@ class OnEventStateAssignment(ASTExpressionObject):
         return o.VisitOnEventStateAssignment(self, **kwargs)
 
     def _summarise_node_short(self):
-        return 'StateAssignment to: %s' % self.lhs.symbol
+        return '%s=' % self.lhs.symbol
     def _summarise_node_full(self):
         return 'StateAssignment'
 

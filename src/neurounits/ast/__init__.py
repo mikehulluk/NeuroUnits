@@ -27,14 +27,15 @@
 # -------------------------------------------------------------------------------
 
 from .astobjects import *
-#from .astobjects_events import *
 from .eqnset import  Library, NineMLComponent 
-from astobjects_nineml import EqnTimeDerivativePerRegime, EqnAssignmentPerRegime
-from astobjects_nineml import EqnTimeDerivativeByRegime,  EqnAssignmentByRegime
-from astobjects_nineml import EqnRegimeDispatchMap
+#from astobjects_nineml import EqnTimeDerivativePerRegime, EqnAssignmentPerRegime
+#from astobjects_nineml import EqnTimeDerivativeByRegime,  EqnAssignmentByRegime
+#from astobjects_nineml import EqnRegimeDispatchMap
 
 from astobjects_nineml import *
 from compoundports import *
 from astobjects_randomvariables import *
+
+from astobjects import IfThenElse
 
 #from .neurounits.librarymanager import LibraryManager

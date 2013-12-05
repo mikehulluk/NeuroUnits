@@ -603,14 +603,10 @@ class NineMLComponent(Block):
 
         for td in self.timederivatives:
             print '    %s -> ' % td.lhs.symbol
-            for (regime, rhs) in td.rhs_map.rhs_map.items():
-                print '      [%s] -> %s' % (regime.ns_string(), rhs)
 
         print '  Assignments:'
         for td in self.assignments:
             print '    %s -> ' % td.lhs.symbol
-            for (regime, rhs) in td.rhs_map.rhs_map.items():
-                print '      [In Regime:%s] -> %s' % (regime.ns_string(), rhs)
 
         print '  RT Graphs'
         for rt in self.rt_graphs:

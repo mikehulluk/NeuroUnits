@@ -78,13 +78,8 @@ class TypeBasedLookupDict(object):
 class DefaultNodeColors(ASTActionerDefault):
     def ActionNode(self, o, **kwargs):
 
-        #clses = inheritors( ast.ASTObject )
-        #for cls in sorted(clses):
-        #    print cls.__name__
-
 
         class_colors= TypeBasedLookupDict( {
-            #ast.ASTExpressionObject: 'blue',
             ast.IfThenElse: 'blue',
             ast.ASTBooleanExpression: 'blue',
             ast.InEquality: 'blue',
@@ -95,14 +90,6 @@ class DefaultNodeColors(ASTActionerDefault):
 
             ast.ASTSymbolNode: pastels[1],
             ast.ASTConstNode: pastels[2],
-            #ast.AssignedVariable: 'blue',
-            #ast.SuppliedValue: 'blue',
-            #ast.StateVariable: 'blue',
-            #ast.Parameter: 'blue',
-            #ast.TimeVariable: 'blue',
-            #ast.ConstValue: 'blue',
-            #ast.ConstValueZero: 'blue',
-            #ast.SymbolicConstant: 'blue',
             ast.FunctionDefBuiltIn: 'blue',
             ast.FunctionDefUser: 'blue',
             ast.FunctionDefParameter: 'blue',
@@ -111,26 +98,21 @@ class DefaultNodeColors(ASTActionerDefault):
             ast.FunctionDefParameterInstantiation: 'blue',
 
             ast.BinaryOp: pastels[0],
-            #ast.AddOp: pastels[0],
-            #ast.SubOp: pastels[0],
-            #ast.MulOp: pastels[0],
-            #ast.DivOp: pastels[0],
-            #ast.ExpOp: pastels[0],
 
             ast.OnConditionTriggerTransition: 'blue',
-            ast.OnEventTransition: 'blue',
+            ast.OnEventTransition: pastels[8],
             ast.OnEventDefParameter: 'blue',
             ast.EmitEvent: 'blue',
             ast.EmitEventParameter: 'blue',
-            ast.OnEventStateAssignment: 'blue',
+            ast.OnEventStateAssignment: pastels[7],
             ast.Regime: 'blue',
             ast.RTBlock: 'blue',
             ast.EqnTimeDerivativePerRegime: 'blue',
             ast.EqnAssignmentPerRegime: 'blue',
             ast.AnalogReducePort: 'blue',
-            ast.InEventPort: 'blue',
-            ast.EqnAssignmentByRegime: 'blue',
-            ast.EqnTimeDerivativeByRegime: 'blue',
+            ast.InEventPort: pastels[6],
+            ast.EqnAssignmentByRegime: pastels[4],
+            ast.EqnTimeDerivativeByRegime: pastels[5],
             ast.EqnRegimeDispatchMap: 'blue',
             ast.Transition: 'blue',
             ast.InEventPortParameter: 'blue',
@@ -167,21 +149,34 @@ class DefaultNodeLabels(ASTActionerDefault):
 
 
 class ActionerPlotNetworkX(object):
-    def __init__(self, o, labels = None, colors=None, include_types=None):
+    def __init__(self, o, labels = None, colors=None, include_types=None, exclude_connections=None, figure=None):
 
+        ast_types = inheritors(ast.ASTObject)
         if include_types is None:
-            include_types = inheritors(ast.ASTObject)
+            include_types = ast_types
+
+        if not exclude_connections:
+            exclude_connections=set()
+        for ex in exclude_connections:
+            assert isinstance(ex, set) 
+            assert len(ex) == 2
+            assert (list(ex)[0]) in ast_types
+            assert (list(ex)[1]) in ast_types
+
+
 
         graph = nx.DiGraph()
 
         connections = ActionerGetConnections(o).get_connections()
         for node in connections.keys():
             if type(node) in include_types:
-                graph.add_node(node, color='green', label='"%s"' % node.summarise_node_short() )
+                graph.add_node(node, color='green', label='"%s"' % node.summarise_node_short(), penwidth=0.00001 )
 
         for (node, connections) in connections.items():
             for c in connections:
-                if type(node) in include_types and type(c) in include_types:
+                if type(node) in include_types and \
+                   type(c) in include_types and \
+                   set([type(node),type(c)]) not in exclude_connections:
                     graph.add_edge(node, c, color='blue')
 
 
@@ -234,13 +229,13 @@ class ActionerPlotNetworkX(object):
 
 
         print 'Plotting!'
-        f = plt.figure()
-        nx.draw_graphviz(graph, font_size=10, iteration=200, node_color=colors,scale=1, labels=label_dict )
+        if not figure:
+            plt.figure()
+        nx.draw_graphviz(graph, font_size=8, iteration=200, node_color=colors, penwidth=0.001, scale=1, labels=label_dict )
 
-        ax = plt.gca()
-        ax.text(0.5, 0.5, 'Hello')
+        #ax = plt.gca()
 
-        plt.show()
+        #plt.show()
 
 
 
