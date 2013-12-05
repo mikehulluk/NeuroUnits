@@ -85,6 +85,7 @@ class ActionerPlotNetworkX(object):
         labels = dict([(k,v) for (k,v) in labels.items() if k in graph_nodes])
 
 
+        print 'Plotting!'
         f = plt.figure()
         nx.draw_graphviz(graph, font_size=10, iteration=200, node_color=colors,scale=1, labels=labels )
 
