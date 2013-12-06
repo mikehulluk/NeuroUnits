@@ -316,17 +316,15 @@ def get_dIN(nbits):
     # Optimise the equations, to turn constant-divisions into multiplications:
     from neurounits.visitors.common.equation_optimisations import OptimiseEquations
     OptimiseEquations(comp)
-
     comp.annotate_ast( NodeRangeByOptimiser(var_annots_ranges))
     RangeExpander().visit(comp)
-    #RangeExpander(expand_by=4).visit(comp)
 
+    from neurounits.ast_annotations.common import NodeTagger
+    NodeTagger(var_annots_tags).visit(comp)
 
     comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
     comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 
-    from neurounits.ast_annotations.common import NodeTagger
-    NodeTagger(var_annots_tags).visit(comp)
 
     return comp
 

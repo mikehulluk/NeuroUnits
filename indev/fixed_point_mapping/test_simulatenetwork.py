@@ -214,40 +214,6 @@ network.record_output_events( [rb_drivers] , 'spike' )
 network.record_output_events( lhs_subpops+rhs_subpops , 'spike' )
 
 
-#network.record_traces(lhs_subpops+rhs_subpops, 'V' )
-#network.record_traces([pop_LHS_dIN,pop_RHS_dIN], 'iInj_local itot' )
-#network.record_traces([pop_LHS_dIN,pop_RHS_dIN], '*' )
-#network.record_traces(lhs_subpops+rhs_subpops, 'V' )
-#network.record_traces(lhs_subpops+rhs_subpops, 'iLk' )
-#network.record_traces(lhs_subpops+rhs_subpops, 'alpha_ks_n' )
-#network.record_traces(lhs_subpops+rhs_subpops, 'syn_nmda_A' )
-
-#network.record_traces(lhs_subpops+rhs_subpops, '*' )
-#network.record_traces(lhs_subpops+rhs_subpops, 'V' )
-#
-#
-#non_dINs = [pop_LHS_MN, pop_LHS_RB, pop_LHS_aIN, pop_LHS_cIN, pop_LHS_dla, pop_LHS_dlc, pop_RHS_MN, pop_RHS_RB, pop_RHS_aIN, pop_RHS_cIN, pop_RHS_dla, pop_RHS_dlc]
-#network.record_traces(non_dINs, 'alpha_denom_x alpha_denom_exp alpha_denom' )
-#
-#
-#
-#
-##network.record_traces(lhs_subpops+rhs_subpops, '*' )
-##network.record_traces([pop_LHS_dIN,pop_RHS_dIN], 'noise V_vnoisy noise_raw' )
-#network.record_input_events( rhs_subpops+lhs_subpops , 'recv_ampa_spike' )
-#network.record_input_events( rhs_subpops+lhs_subpops , 'recv_nmda_spike' )
-#network.record_input_events( rhs_subpops+lhs_subpops , 'recv_inh_spike' )
-
-
-
-#results = CBasedEqnWriterFixedNetwork(
-#                    network,
-#                    CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
-#                    step_size=0.1e-3 / 2.,
-#                    run_until=0.95,
-#                    as_float=True,
-#                    ).results
-#
 
 t_stop = 1.0
 
@@ -261,27 +227,6 @@ results = CBasedEqnWriterFixedNetwork(
                     output_c_filename='op-seq.cpp'
                     ).results
 
-#results = CBasedEqnWriterFixedNetwork(
-#                    network,
-#                    CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
-#                    step_size=0.1e-3 / 2.,
-#                    run_until=t_stop,
-#                    as_float=False,
-#                    output_filename="/local/scratch/mh735/neuronits.results-Seq.hdf",
-#                    output_c_filename='op-seq.cpp'
-#                    ).results
-#
-#results = CBasedEqnWriterFixedNetwork(
-#                    network,
-#                    CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=true ',
-#                    step_size=0.1e-3 / 2.,
-#                    run_until=t_stop,
-#                    as_float=False,
-#                    output_filename="/local/scratch/mh735/neuronits.results-BV.hdf",
-#                    output_c_filename='op-bv.cpp'
-#                    ).results
-#
-#sys.exit(0)
 
 
 
@@ -289,27 +234,6 @@ import test_simulatenetwork_plot
 
 
 
-
-#filters_traces = [
-#   "ALL{V,dIN,LHS}",
-#   "ALL{V,dIN,LHS,POPINDEX:0000}",
-#   "ALL{V,dIN,RHS}",
-#   "ALL{V,dIN,RHS,POPINDEX:0118}",
-#        ]
-#
-#filters_spikes = [
-#    "ALL{spike,RBINPUT}",
-#    "ALL{spike,RB,LHS}",
-#    "ALL{spike,RB,RHS}",
-#
-#    "ALL{spike,dIN,LHS}",
-#    "ALL{spike,dIN,RHS}",
-#
-#]
-#
-#
-#
-#results.plot(trace_filters=filters_traces, spike_filters=filters_spikes, legend=True )
 
 
 
