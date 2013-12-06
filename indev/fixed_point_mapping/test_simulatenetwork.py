@@ -15,10 +15,6 @@ from hdfjive import HDF5SimulationResultFile
 from neurounits.visualisation.mredoc import MRedocWriterVisitor
 from neurounits.codegen.population_infrastructure import *
 
-
-#~ import dIN_model
-#~ import mn_model
-#~ import rb_input_model
 import cPickle as pickle
 
 from mreorg import PM
