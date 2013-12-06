@@ -2,6 +2,11 @@
 
 
 
+
+#class AnnotatorTypes(object):
+    
+
+
 class AnnotatorLibrary(object):
 
     _annotator_functors = {}
@@ -12,5 +17,8 @@ class AnnotatorLibrary(object):
         cls._annotator_functors[name] = annotator_functor
 
     @classmethod
-    def apply_annotator(cls, 
+    def apply_annotator(cls, component, annotator_name):
+        annotator_functor = cls.annotator_functors[annotator_name]
+        annotator = annotator_functor()
+        annotator.annotate_ast(component)
 

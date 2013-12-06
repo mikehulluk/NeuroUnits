@@ -1,7 +1,7 @@
 
 
 import mreorg
-mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG]#, mreorg.FigFormat.SVG]
+mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG]
 
 import os
 import neurounits
@@ -16,51 +16,18 @@ from neurounits.visualisation.mredoc import MRedocWriterVisitor
 from neurounits.codegen.population_infrastructure import *
 
 
-import dIN_model
-import mn_model
-import rb_input_model
+#~ import dIN_model
+#~ import mn_model
+#~ import rb_input_model
 import cPickle as pickle
 
 from mreorg import PM
-import hashlib
 
 
-src_string = open('dIN_model.py').read() + open('mn_model.py').read()
-md5_str = hashlib.md5(src_string).hexdigest()
-
-
-use_cache=True
-#use_cache=False
-cache_file = 'caches/.din_model_cache_%s'%(md5_str)
-if not os.path.exists('caches/'):
-    os.makedirs('caches')
-# Delete the cache-file if we are not using it:
-if not use_cache:
-    if os.path.exists(cache_file):
-        os.unlink(cache_file)
-
-if not os.path.exists(cache_file):
-    dIN_comp = dIN_model.get_dIN(nbits=24)
-    MN_comp = mn_model.get_MN(nbits=24)
-    RB_input = rb_input_model.get_rb_input(nbits=24)
-    with open(cache_file,'w') as f:
-        pickle.dump([dIN_comp, MN_comp, RB_input], f, )
-
-    # For debugging:
-    MRedocWriterVisitor().visit(dIN_comp).to_pdf("op_dIN.pdf")
-    MRedocWriterVisitor().visit(MN_comp).to_pdf("op_MN.pdf")
-
-    del dIN_comp
-    del MN_comp
-    del RB_input
-
-with open(cache_file) as f:
-    dIN_comp,MN_comp,RB_input = pickle.load(f)
-
-
-
-
-
+import components
+dIN_comp = neurounits.ComponentLibrary.instantiate_component('dIN', nbits=24)
+MN_comp =  neurounits.ComponentLibrary.instantiate_component('MN', nbits=24)
+RB_input = neurounits.ComponentLibrary.instantiate_component('RBInput', nbits=24)
 
 
 

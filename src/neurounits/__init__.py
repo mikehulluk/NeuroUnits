@@ -42,3 +42,4 @@ Q1 = lambda o: NeuroUnitParser.QuantitySimple(o).as_quantities_quantity()
 Q2 = lambda o: NeuroUnitParser.QuantityExpr(o).as_quantities_quantity()
 
 
+from neurounits.libraries.componentlibrary import ComponentLibrary

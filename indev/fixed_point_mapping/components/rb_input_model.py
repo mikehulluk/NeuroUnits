@@ -68,3 +68,6 @@ def get_rb_input(nbits):
 
     return comp
 
+
+from neurounits import ComponentLibrary
+ComponentLibrary.register_component_functor('RBInput', get_rb_input )

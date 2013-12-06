@@ -319,6 +319,9 @@ def get_dIN(nbits):
     comp.annotate_ast( NodeRangeByOptimiser(var_annots_ranges))
     RangeExpander().visit(comp)
 
+
+
+
     from neurounits.ast_annotations.common import NodeTagger
     NodeTagger(var_annots_tags).visit(comp)
 
@@ -328,3 +331,7 @@ def get_dIN(nbits):
 
     return comp
 
+
+
+from neurounits import ComponentLibrary
+ComponentLibrary.register_component_functor('dIN', get_dIN )

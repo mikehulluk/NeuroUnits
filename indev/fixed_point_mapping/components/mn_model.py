@@ -268,3 +268,5 @@ def get_MN(nbits):
 
     return comp
 
+from neurounits import ComponentLibrary
+ComponentLibrary.register_component_functor('MN', get_MN )
