@@ -60,7 +60,7 @@ def get_rb_input(nbits):
     comp.annotate_ast( NodeRangeByOptimiser(var_annots_ranges))
 
 
-    comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
+    #comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
     comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 
     from neurounits.ast_annotations.common import NodeTagger

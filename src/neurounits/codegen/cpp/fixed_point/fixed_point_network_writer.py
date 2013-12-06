@@ -2862,7 +2862,8 @@ class CBasedEqnWriterFixedNetwork(object):
             step_size=0.1e-3,
             run_until=0.3,
             as_float=False,
-            nios_options=None
+            nios_options=None,
+            nbits=24
             ):
 
         network.finalise()
@@ -2876,11 +2877,24 @@ class CBasedEqnWriterFixedNetwork(object):
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
 
 
+        from neurounits.ast_annotations.common import  NodeFixedPointFormatAnnotator #, NodeToIntAnnotator
+        #from neurounits.ast_annotations.node_range_byoptimiser import NodeRangeByOptimiser
+        #from neurounits.ast_annotations.node_rangeexpander import RangeExpander
+        for pop in network.populations:
+            pop.component.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
+            #pop.component.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
+
+
+
+
+
         # Check all the components use the same floating point formats:
         # NBITS:
-        nbits = set([ pop.component.annotation_mgr._annotators['fixed-point-format-ann'].nbits for pop in network.populations])
-        assert len(nbits) == 1
+        # This is redundant now, but keep it in during transition for testing (Dec 2013)
+        nbits_check = set([ pop.component.annotation_mgr._annotators['fixed-point-format-ann'].nbits for pop in network.populations])
+        assert len(nbits_check) == 1
         self.nbits = list(nbits)[0]
+        assert nbits == self.nbits
 
 
 

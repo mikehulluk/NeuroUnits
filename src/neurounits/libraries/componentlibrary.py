@@ -93,10 +93,6 @@ class _CachedFileAccessData(object):
 
 class ComponentLibrary(object):
 
-
-
-
-
     _component_functors = {}
     _cache_dir = os.path.expanduser("~/.neurounits/component_cache/")
     if not os.path.exists(_cache_dir):

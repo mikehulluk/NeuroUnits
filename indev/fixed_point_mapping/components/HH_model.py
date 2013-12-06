@@ -8,8 +8,9 @@ from neurounits.ast_annotations.node_range_byoptimiser import NodeRangeByOptimis
 from neurounits.ast_annotations.node_rangeexpander import RangeExpander
 
 
-def get_dIN(nbits):
+def get_HH(nbits):
     src_text = """
+
     define_component simple_hh {
         from std.math import exp, ln
 
@@ -17,9 +18,10 @@ def get_dIN(nbits):
         <=> INPUT i_injected:(mA)
         <=> PARAMETER nmda_multiplier:()
         <=> PARAMETER ampa_multiplier:()
+        <=> PARAMETER inj_current:(pA)
 
-        #iInj_local = [50pA] if [ 50ms < t < 200ms] else [0pA] * 0.0
-        iInj_local = 0pA
+        iInj_local = [inj_current] if [ 50ms < t < 500ms] else [0pA]
+        #iInj_local = 0pA
 
 
 
@@ -267,6 +269,8 @@ def get_dIN(nbits):
 
 
 
+
+
     """
 
 
@@ -293,6 +297,7 @@ def get_dIN(nbits):
 
         'nmda_multiplier' : NodeRange(min='0',max='2'),
         'ampa_multiplier' : NodeRange(min='0',max='2'),
+        'inj_current' : NodeRange(min='-300pA',max='300pA'),
         }
 
     var_annots_tags = {
@@ -308,7 +313,7 @@ def get_dIN(nbits):
     }
 
 
-
+    
     library_manager = neurounits.NeuroUnitParser.Parse9MLFile( src_text)
     comp = library_manager['simple_hh']
     comp.expand_all_function_calls()
@@ -320,13 +325,9 @@ def get_dIN(nbits):
     comp.annotate_ast( NodeRangeByOptimiser(var_annots_ranges))
     RangeExpander().visit(comp)
 
-
-
-
     from neurounits.ast_annotations.common import NodeTagger
     NodeTagger(var_annots_tags).visit(comp)
 
-    comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
     comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 
 
@@ -335,4 +336,4 @@ def get_dIN(nbits):
 
 
 from neurounits import ComponentLibrary
-ComponentLibrary.register_component_functor('dIN', get_dIN )
+ComponentLibrary.register_component_functor('HH', get_HH )

@@ -26,6 +26,10 @@ MN_comp =  neurounits.ComponentLibrary.instantiate_component('MN', nbits=24)
 RB_input = neurounits.ComponentLibrary.instantiate_component('RBInput', nbits=24)
 
 
+nbits=24
+#for comp in [dIN_comp, MN_comp, RB_input]:
+#    comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
+#    comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 
 
 
