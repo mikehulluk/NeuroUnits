@@ -21,55 +21,17 @@ from neurounits.codegen.population_infrastructure import *
 
 
 
-hdffile = __file__ + '.output.hdf5'
-if os.path.exists(hdffile):
-    os.unlink(hdffile)
 
 
-
-#~ src_string = open('dIN_model.py').read() + open('mn_model.py').read()
-#~ md5_str = hashlib.md5(src_string).hexdigest()
-#~ 
-#~ 
-#~ use_cache=True
-#~ cache_file = 'caches/.din_model_cache_%s'%(md5_str)
-#~ if not os.path.exists('caches/'):
-    #~ os.makedirs('caches')
-#~ # Delete the cache-file if we are not using it:
-#~ if not use_cache:
-    #~ if os.path.exists(cache_file):
-        #~ os.unlink(cache_file)
-#~ 
-#~ if not os.path.exists(cache_file):
-    #~ MN_comp = mn_model.get_MN(nbits=24)
-    #~ RB_input = rb_input_model.get_rb_input(nbits=24)
-    #~ dIN_comp = dIN_model.get_dIN(nbits=24)
-    #~ with open(cache_file,'w') as f:
-        #~ pickle.dump([dIN_comp, MN_comp, RB_input], f, )
-#~ 
-    #~ # For debugging:
-    #~ MRedocWriterVisitor().visit(dIN_comp).to_pdf("op_dIN.pdf")
-    #~ MRedocWriterVisitor().visit(MN_comp).to_pdf("op_MN.pdf")
-#~ 
-    #~ del dIN_comp
-    #~ del MN_comp
-    #~ del RB_input
-#~ 
-#~ with open(cache_file) as f:
-    #~ dIN_comp,MN_comp,RB_input = pickle.load(f)
 
 
 
 import components
-dIN_comp = neurounits.ComponentLibrary.instantiate_component('dIN', nbits=24)
-MN_comp =  neurounits.ComponentLibrary.instantiate_component('MN', nbits=24)
-RB_input = neurounits.ComponentLibrary.instantiate_component('RBInput', nbits=24)
+dIN_comp = neurounits.ComponentLibrary.instantiate_component('dIN')
+MN_comp =  neurounits.ComponentLibrary.instantiate_component('MN')
+RB_input = neurounits.ComponentLibrary.instantiate_component('RBInput')
 
 nbits=24
-#for comp in [dIN_comp, MN_comp, RB_input]:
-#    comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
-#    comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
-
 
 
 
@@ -112,7 +74,7 @@ network.record_traces(dINs, '' )
 network.record_traces(dINs, 'nmda_vdep' )
 
 
-results = CBasedEqnWriterFixedNetwork(network, output_filename=hdffile, CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ', step_size=0.01e-3).results
+results = CBasedEqnWriterFixedNetwork(network, CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ', step_size=0.01e-3).results
 shutil.copy(hdffile, os.path.expanduser("~/debugging/") )
 
 

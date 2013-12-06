@@ -8,7 +8,7 @@ from neurounits.ast_annotations.node_range_byoptimiser import NodeRangeByOptimis
 from neurounits.ast_annotations.node_rangeexpander import RangeExpander
 
 
-def get_rb_input(nbits):
+def get_rb_input():
     src_text = """
     define_component simple_input {
 

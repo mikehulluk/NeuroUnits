@@ -2851,6 +2851,8 @@ class NIOSOptions(object):
 
 
 class CBasedEqnWriterFixedNetwork(object):
+    op_file_cnt = 0
+
     def __init__(self,
             network,
             output_filename=None,
@@ -2870,19 +2872,25 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
         if output_filename is None:
-            output_filename = 'neuronits.results.hdf'
+            output_filename = 'neuronits%03d.results.hdf' % CBasedEqnWriterFixedNetwork.op_file_cnt
+            CBasedEqnWriterFixedNetwork.op_file_cnt += 1
+
 
 
         self.dt_float = step_size
         self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
 
 
-        from neurounits.ast_annotations.common import  NodeFixedPointFormatAnnotator #, NodeToIntAnnotator
-        #from neurounits.ast_annotations.node_range_byoptimiser import NodeRangeByOptimiser
-        #from neurounits.ast_annotations.node_rangeexpander import RangeExpander
+        from neurounits.ast_annotations.common import  NodeFixedPointFormatAnnotator
         for pop in network.populations:
-            pop.component.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
-            #pop.component.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
+            fp_ann = NodeFixedPointFormatAnnotator(nbits=nbits)
+
+            #
+            pop.component.annotate_ast(fp_ann , ast_label='fixed-point-format-ann' )
+
+            # And the parameters:
+            for pval in pop.parameters.values():
+                fp_ann.visit(pval)
 
 
 
@@ -2893,12 +2901,8 @@ class CBasedEqnWriterFixedNetwork(object):
         # This is redundant now, but keep it in during transition for testing (Dec 2013)
         nbits_check = set([ pop.component.annotation_mgr._annotators['fixed-point-format-ann'].nbits for pop in network.populations])
         assert len(nbits_check) == 1
-        self.nbits = list(nbits)[0]
+        self.nbits = list(nbits_check)[0]
         assert nbits == self.nbits
-
-
-
-        # Lets visit all the parameters
 
 
 
@@ -3043,6 +3047,11 @@ class CBasedEqnWriterFixedNetwork(object):
         if not compile and output_c_filename:
             with open(output_c_filename,'w') as f:
                 f.write(cfile)
+
+        #print 'File created. Outputfile is', output_filename
+        #print output_c_filename
+        #assert False
+
 
         self.results = None
         if compile:

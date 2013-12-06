@@ -21,16 +21,12 @@ from mreorg import PM
 
 
 import components
-dIN_comp = neurounits.ComponentLibrary.instantiate_component('dIN', nbits=24)
-MN_comp =  neurounits.ComponentLibrary.instantiate_component('MN', nbits=24)
-RB_input = neurounits.ComponentLibrary.instantiate_component('RBInput', nbits=24)
+dIN_comp = neurounits.ComponentLibrary.instantiate_component('dIN')
+MN_comp =  neurounits.ComponentLibrary.instantiate_component('MN')
+RB_input = neurounits.ComponentLibrary.instantiate_component('RBInput')
 
 
 nbits=24
-#for comp in [dIN_comp, MN_comp, RB_input]:
-#    comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
-#    comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
-
 
 
 

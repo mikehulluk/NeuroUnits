@@ -22,8 +22,8 @@ class Population(object):
             print 'Given:', given_params
             assert False
 
-        from neurounits.ast import ConstValue
-        from neurounits.ast_annotations import NodeFixedPointFormatAnnotator
+        #from neurounits.ast import ConstValue
+        #from neurounits.ast_annotations import NodeFixedPointFormatAnnotator
 
         # Remap all the parameters to nodes, and copy accross range/fixed-point information from the component:
         self.parameters = { k: NeuroUnitParser._string_to_expr_node(v) for (k,v) in parameters.items() }
@@ -32,9 +32,9 @@ class Population(object):
             id_annotator = self.component.annotation_mgr._annotators['node-ids']
             id_annotator.visit(v)
             
-            # Sort out the ranges and upscale of the parameters:
-            fp_annotator = self.component.annotation_mgr._annotators['fixed-point-format-ann']
-            fp_annotator.visit(v)
+            ## Sort out the ranges and upscale of the parameters:
+            #fp_annotator = self.component.annotation_mgr._annotators['fixed-point-format-ann']
+            #fp_annotator.visit(v)
 
             #v.annotations['fixed-point-format'] = self.component.get_terminal_obj(symbol=k).annotations['fixed-point-format'] 
             #if isinstance(v, ConstValue):

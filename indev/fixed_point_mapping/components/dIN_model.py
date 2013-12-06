@@ -7,7 +7,7 @@ from neurounits.ast_annotations.node_range_byoptimiser import NodeRangeByOptimis
 from neurounits.ast_annotations.node_rangeexpander import RangeExpander
 
 
-def get_dIN(nbits):
+def get_dIN():
     src_text = """
     define_component simple_hh {
         from std.math import exp, ln
