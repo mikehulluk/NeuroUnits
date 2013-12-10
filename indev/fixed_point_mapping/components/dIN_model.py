@@ -18,7 +18,7 @@ def get_dIN():
         <=> PARAMETER ampa_multiplier:()
         <=> PARAMETER inj_current:(pA)
 
-        iInj_local = [inj_current] if [ 50ms < t < 500ms] else [0pA]
+        iInj_local = [inj_current] if [ 50ms < t < 100ms] else [0pA]
         #iInj_local = 0pA
 
 

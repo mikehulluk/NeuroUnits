@@ -26,7 +26,7 @@ MN_comp =  neurounits.ComponentLibrary.instantiate_component('MN')
 RB_input = neurounits.ComponentLibrary.instantiate_component('RBInput')
 
 
-nbits=24
+#nbits=24
 
 
 
@@ -38,9 +38,10 @@ pop_components = {
         }
 pop_params = {
     'dINs': {
-            'nmda_multiplier': 1.0, 
-            #'ampa_multiplier': '~uniform(min=0.5,max=1.5)[]' 
-            'ampa_multiplier': 1.0, 
+            'nmda_multiplier': 1.0,
+            #'ampa_multiplier': '~uniform(min=0.5,max=1.5)[]'
+            'ampa_multiplier': 1.0,
+            'inj_current':'0pA',
             },
     'NondINs': {}
 }
@@ -163,10 +164,32 @@ network.add(
         name='E_Couple')
 )
 
+GJ_comp =  neurounits.ComponentLibrary.instantiate_component('GJ')
+assert not GJ_comp.has_state()
 
-#network.add(
-#    AnalogPortConnector()    
-#)
+
+
+
+
+network.add(
+    AnalogPortConnector(
+        src_population =  dINs,
+        dst_population =  dINs,
+        port_map = [
+            ('v1', 'src.V'),
+            ('i1', 'src.i_injected'),
+            ('v2', 'src.V'),
+            ('i2', 'src.i_injected'),
+            ],
+        connector=ExplicitIndicesLoop(gap_junction_indices),
+        connection_object=GJ_comp,
+        connector_properties={
+
+            },
+
+        )
+
+)
 
 
 

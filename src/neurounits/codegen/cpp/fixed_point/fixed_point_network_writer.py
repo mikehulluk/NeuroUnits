@@ -2868,32 +2868,26 @@ class CBasedEqnWriterFixedNetwork(object):
             nbits=24
             ):
 
-        network.finalise()
 
-
-        if output_filename is None:
-            output_filename = 'neuronits%03d.results.hdf' % CBasedEqnWriterFixedNetwork.op_file_cnt
-            CBasedEqnWriterFixedNetwork.op_file_cnt += 1
-
-
-
-        self.dt_float = step_size
-        self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
-
-
+        # There is an opportunity here. Sometimes, the parameters are going to be constants - so
+        # we can re-run the optimiser to remove constants:
         from neurounits.ast_annotations.common import  NodeFixedPointFormatAnnotator
         for pop in network.populations:
             fp_ann = NodeFixedPointFormatAnnotator(nbits=nbits)
 
-            #
+            # Annotate the parameters:
             pop.component.annotate_ast(fp_ann , ast_label='fixed-point-format-ann' )
 
             # And the parameters:
             for pval in pop.parameters.values():
                 fp_ann.visit(pval)
 
+        network.finalise()
 
 
+        # Integerisation of time:
+        self.dt_float = step_size
+        self.dt_upscale = int(np.ceil(np.log2(self.dt_float)))
 
 
         # Check all the components use the same floating point formats:
@@ -2905,6 +2899,10 @@ class CBasedEqnWriterFixedNetwork(object):
         assert nbits == self.nbits
 
 
+        # Where shall we save the results?
+        if output_filename is None:
+            output_filename = 'neuronits%03d.results.hdf' % CBasedEqnWriterFixedNetwork.op_file_cnt
+            CBasedEqnWriterFixedNetwork.op_file_cnt += 1
 
 
         #ENCODING OF TIME:

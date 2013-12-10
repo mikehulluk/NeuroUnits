@@ -149,21 +149,26 @@ class ComponentLibrary(object):
                 continue
             if filename.startswith("build/bdist.linux-x86_64/egg/"):
                 continue
+            if '.local/lib/python2.7/site-packages/' in filename:
+                continue
 
             if not filename in _accessed_functions:
                 _accessed_functions[filename] = []
             _accessed_functions[filename].append(linenumber)
 
-        for filename, linenumbers in _accessed_functions.iteritems():
+        for filename, linenumbers in sorted(_accessed_functions.iteritems()):
             print filename, linenumbers
 
         cache_data = []
         for filename, linenumbers in _accessed_functions.iteritems():
             if filename == '<string>':
                 print 'Unexpected filename=<string> found. Lines: (%s)' % ','.join(str(l) for l in linenumbers)
-            else:
-                cd = _CachedFileAccessData(filename=filename, linenumbers=linenumbers)
-                cache_data.append(cd)
+                continue
+                #assert False
+                #assert False
+            #else:
+            cd = _CachedFileAccessData(filename=filename, linenumbers=linenumbers)
+            cache_data.append(cd)
 
         # And lets save the results:
         with open(expected_filename,'w') as f:

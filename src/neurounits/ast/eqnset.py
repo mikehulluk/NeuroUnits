@@ -852,4 +852,9 @@ class NineMLComponent(Block):
 
 
 
+    def has_state(self):
+        #TODO - what about RT graphs.
+        return len(self.timederivatives)
+
+
 
