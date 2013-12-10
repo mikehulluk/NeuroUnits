@@ -473,3 +473,12 @@ class ExplicitIndicesLoop(PopulationConnector):
                 add_connection_functor = add_connection_functor,
                 src_tgt_map=src_tgt_map
                 )
+
+
+
+
+
+
+class AnalogPortConnector(object):
+    def __init__(self, src_population, dst_population, port_map, connector, connection_object, connection_properties):
+        assert False

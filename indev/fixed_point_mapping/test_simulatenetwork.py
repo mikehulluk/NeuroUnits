@@ -176,15 +176,15 @@ network.add(
         src_population =  dINs,
         dst_population =  dINs,
         port_map = [
-            ('v1', 'src.V'),
-            ('i1', 'src.i_injected'),
-            ('v2', 'src.V'),
-            ('i2', 'src.i_injected'),
+            ('conn.v1', 'src.V'),
+            ('conn.i1', 'src.i_injected'),
+            ('conn.v2', 'src.V'),
+            ('conn.i2', 'src.i_injected'),
             ],
         connector=ExplicitIndicesLoop(gap_junction_indices),
         connection_object=GJ_comp,
-        connector_properties={
-
+        connection_properties={
+            'g': "2nS",
             },
 
         )
