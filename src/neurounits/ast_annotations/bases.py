@@ -1,10 +1,10 @@
 
-from neurounits.unit_errors import  ASTMissingAnnotationError
+from neurounits.unit_errors import ASTMissingAnnotationError
 
 
 
 class ASTTreeAnnotationManager(object):
-    def __init__(self, ):
+    def __init__(self):
         self._annotators = {}
 
     def add_annotator(self, name, annotator):
@@ -12,7 +12,7 @@ class ASTTreeAnnotationManager(object):
         self._annotators[name] = annotator
 
 
-class ASTNodeAnnotationData():
+class ASTNodeAnnotationData:
     def __init__(self, node):
         self._node = node
         self._mgr = None
@@ -20,7 +20,7 @@ class ASTNodeAnnotationData():
         self._data = {}
 
     def __str__(self):
-        return "<ASTNodeAnnotationData: %s >" % str(self._data)
+        return '<ASTNodeAnnotationData: %s >' % str(self._data)
 
     def add(self, key, value):
         assert not key in self._data

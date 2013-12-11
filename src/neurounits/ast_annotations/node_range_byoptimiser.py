@@ -26,9 +26,10 @@ import math
 class CriticalPointFinder(ASTActionerDefault):
     def __init__(self, component):
         self.critical_points = defaultdict(set)
-        super(CriticalPointFinder,self).__init__()
+        super(CriticalPointFinder, self).__init__()
         self.visit(component)
-    def ActionNode(self,n):
+
+    def ActionNode(self, n):
         pass
 
     def ActionInEquality(self, n):
@@ -76,7 +77,7 @@ class CFloatEval(ASTVisitorBase):
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
         assert len(o.rhs_map) == 1
-        return self.visit( o.rhs_map.values()[0] )
+        return self.visit(o.rhs_map.values()[0])
 
     def VisitAddOp(self, o, **kwargs):
         return '((%s) + (%s))' % (self.visit(o.lhs), self.visit(o.rhs))
@@ -93,17 +94,17 @@ class CFloatEval(ASTVisitorBase):
 
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
-        return self.visit( o.rhs )
+        return self.visit(o.rhs)
 
     def VisitSymbolicConstant(self, o, **kwargs):
-        return "%g" % (o.value.float_in_si() )
+        return '%g' % o.value.float_in_si()
 
 
     def VisitIfThenElse(self, o, **kwargs):
         return "( (%s) ? (%s) : (%s) )" %(
                             self.visit(o.predicate),
                             self.visit(o.if_true_ast),
-                            self.visit(o.if_false_ast) )
+                            self.visit(o.if_false_ast))
 
     def VisitInEquality(self, o, **kwargs):
         return "( (%s) < (%s) )" % (
@@ -112,14 +113,14 @@ class CFloatEval(ASTVisitorBase):
                                     )
 
     def VisitBoolAnd(self, o, **kwargs):
-        return " ( (%s) && (%s) )" % (self.visit(o.lhs),self.visit(o.rhs), )
+        return "((%s)&&(%s))" % (self.visit(o.lhs), self.visit(o.rhs))
 
     def VisitBoolOr(self, o, **kwargs):
-        return " ( (%s) || (%s) )" % (self.visit(o.lhs),self.visit(o.rhs), )
+        return "((%s)||(%s))" % (self.visit(o.lhs), self.visit(o.rhs))
 
 
     def VisitBoolNot(self, o, **kwargs):
-        return " ( ! (%s))" % (self.visit(o.lhs) )
+        return "(!(%s))" % self.visit(o.lhs)
 
     def VisitFunctionDefUser(self, o, **kwargs):
         raise NotImplementedError()
@@ -155,7 +156,7 @@ class CFloatEval(ASTVisitorBase):
 
     def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
         if o.function_def.funcname == '__exp__':
-            return 'exp(%s)'%(self.visit(o.parameters.values()[0]))
+            return 'exp(%s)' % self.visit(o.parameters.values()[0])
         assert False
 
     def VisitFunctionDefInstantiationParameter(self, o, **kwargs):
@@ -191,7 +192,7 @@ class NodeEvaluatorCCode(ASTActionerDefault):
     def __init__(self, component):
         self.node_code = {}
         self.component = component
-        super(NodeEvaluatorCCode,self).__init__(component=component)
+        super(NodeEvaluatorCCode, self).__init__(component=component)
 
 
     def ActionNode(self, n, **kwargs):
@@ -207,12 +208,6 @@ class NodeEvaluatorCCode(ASTActionerDefault):
         code = CFloatEval(the_component=self.component).visit(n)
         assert not n in self.node_code
         self.node_code[n] = (name, code)
-
-
-    #def ActionSymbolicConstant(self, o, **kwargs):
-    #    pass
-    #def ActionConstant(self, o, **kwargs):
-    #    pass
 
     def ActionIfThenElse(self, o, **kwargs):
         return self.BuildEvalFunc(o)
@@ -230,8 +225,6 @@ class NodeEvaluatorCCode(ASTActionerDefault):
         return self.BuildEvalFunc(o)
 
     def ActionParameter(self, o, **kwargs):
-        #print o
-        #assert False
         return self.BuildEvalFunc(o)
 
     def ActionConstantZero(self, o, **kwargs):
@@ -295,10 +288,10 @@ class NodeEvaluatorCCode(ASTActionerDefault):
     def ActionOutEventPortParameter(self, o, **kwargs):
         return self.BuildEvalFunc(o)
 
-    def ActionRandomVariable(self,o,**kwargs):
+    def ActionRandomVariable(self, o, **kwargs):
         return self.BuildEvalFunc(o)
 
-    def ActionAutoRegressiveModel(self,o,**kwargs):
+    def ActionAutoRegressiveModel(self, o, **kwargs):
         return self.BuildEvalFunc(o)
 
 
@@ -325,15 +318,14 @@ typedef struct  {
 
 
 
-class NodeRangeCCodeNodeNamer( ASTTreeAnnotator, ASTActionerDefault):
+class NodeRangeCCodeNodeNamer(ASTTreeAnnotator, ASTActionerDefault):
 
     def annotate_ast(self, component):
         self.visit(component)
 
     def ActionNode(self, n):
-        #print 'Skipping', n
         pass
-        #assert False
+
 
     def set_var_name(self, n, name):
         n.annotations['_range-finding-c-var-name'] = name

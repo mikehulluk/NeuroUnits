@@ -38,15 +38,15 @@ class EqnAssignmentByRegime(ASTObject):
 
     def __init__(self, lhs, rhs_map):
         super(EqnAssignmentByRegime, self).__init__()
-        #assert isinstance(rhs_map, EqnRegimeDispatchMap)
+
         assert isinstance(rhs_map, ASTExpressionObject)
         self.lhs = lhs
         self.rhs_map = rhs_map
 
     def _summarise_node_full(self):
-        return 'Symbol: %s' %(self.lhs.symbol)
+        return 'Symbol: %s' % self.lhs.symbol
     def _summarise_node_short(self):
-        return '%s=' %(self.lhs.symbol)
+        return '%s=' % self.lhs.symbol
 
 
 class EqnTimeDerivativeByRegime(ASTObject):
@@ -57,7 +57,6 @@ class EqnTimeDerivativeByRegime(ASTObject):
     def __init__(self, lhs, rhs_map):
         super(EqnTimeDerivativeByRegime, self).__init__()
         self.lhs = lhs
-        #assert isinstance(rhs_map, EqnRegimeDispatchMap)
         assert isinstance(rhs_map, ASTExpressionObject)
         self.rhs_map = rhs_map
 
@@ -71,9 +70,9 @@ class EqnTimeDerivativeByRegime(ASTObject):
     rhs_map = property(get_rhs_map, set_rhs_map)
 
     def _summarise_node_full(self):
-        return 'Derivative: d%s/dt' %(self.lhs.symbol)
+        return 'Derivative: d%s/dt' % self.lhs.symbol
     def _summarise_node_short(self):
-        return 'd%s/dt=' %(self.lhs.symbol)
+        return 'd%s/dt=' % self.lhs.symbol
 
 
 class EqnRegimeDispatchMap(ASTExpressionObject):
@@ -120,7 +119,7 @@ class Transition(ASTObject):
         self.actions = actions
     @property
     def rt_graph(self):
-        rt_graphs = set( [self.src_regime.parent_rt_graph, self.target_regime.parent_rt_graph ])
+        rt_graphs = set([self.src_regime.parent_rt_graph, self.target_regime.parent_rt_graph])
         assert len(rt_graphs) == 1
         return list(rt_graphs)[0]
 
@@ -128,12 +127,12 @@ class Transition(ASTObject):
         return self.src_regime != self.target_regime
 
     @property
-    def emitted_events(self,):
+    def emitted_events(self):
         import neurounits.ast as ast
         return [a for a in self.actions if isinstance(a, ast.EmitEvent)]
 
     @property
-    def state_assignments(self,):
+    def state_assignments(self):
         import neurounits.ast as ast
         return [a for a in self.actions if isinstance(a, ast.OnEventStateAssignment)]
 
@@ -168,15 +167,15 @@ class OnEventTransition(Transition):
         self.port = port
         self.parameters = parameters
 
-        assert isinstance( self.parameters, LookUpDict)
+        assert isinstance(self.parameters, LookUpDict)
 
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitOnTransitionEvent(self, **kwargs)
 
     @property
-    def alphabetic_params(self,):
-        return sorted(self.parameters, key=lambda o:o.symbol)
+    def alphabetic_params(self):
+        return sorted(self.parameters, key=lambda o: o.symbol)
 
     def _summarise_node_short(self):
         return 'On: %s' % self.port.symbol
@@ -196,7 +195,7 @@ class OnEventDefParameter(ASTExpressionObject):
             self.set_dimensionality(dimension)
 
     def _summarise_node_full(self):
-        return 'Symbol: %s' %(self.symbol)
+        return 'Symbol: %s' % self.symbol
 
 
 class EmitEvent(ASTObject):
@@ -205,10 +204,10 @@ class EmitEvent(ASTObject):
         return v.VisitEmitEvent(self, **kwargs)
 
     def __init__(self, port, parameters, **kwargs):
-        super(EmitEvent,self).__init__(**kwargs)
+        super(EmitEvent, self).__init__(**kwargs)
         self.port = port
         self.parameters = parameters
-        assert isinstance( self.parameters, LookUpDict)
+        assert isinstance(self.parameters, LookUpDict)
 
     def _summarise_node_short(self):
         return 'Emit: %s' % self.port.symbol
@@ -227,9 +226,9 @@ class EmitEventParameter(ASTExpressionObject):
             self.set_port_parameter_obj(port_parameter_obj)
         self.rhs = rhs
     def set_port_parameter_obj(self, p_obj):
-        assert isinstance (p_obj, OutEventPortParameter )
+        assert isinstance(p_obj, OutEventPortParameter)
         self.port_parameter_obj = p_obj
-        self._dbg_symbol=self._symbol
+        self._dbg_symbol = self._symbol
         del self._symbol
 
 
@@ -259,9 +258,9 @@ class Regime(ASTObject):
         self.parent_rt_graph = parent_rt_graph
 
     def _summarise_node_full(self):
-        return 'Name: %s' %(self.ns_string())
+        return 'Name: %s' % self.ns_string()
     def _summarise_node_short(self):
-        return 'Regime: %s' %(self.ns_string())
+        return 'Regime: %s' % self.ns_string()
 
     def ns_string(self):
         return '%s.%s' % (self.parent_rt_graph.ns_string(), self.name)
@@ -274,7 +273,7 @@ class RTBlock(ASTObject):
         return v.VisitRTGraph(self)
 
 
-    def __init__(self, name=None,):
+    def __init__(self, name=None):
         super(RTBlock, self).__init__()
         self.name = name
         self.regimes = LookUpDict([Regime(None, parent_rt_graph=self)])
@@ -288,16 +287,17 @@ class RTBlock(ASTObject):
 
     def get_or_create_regime(self, name):
         if not self.regimes.has_obj(name=name):
-            self.regimes._add_item( Regime(name=name, parent_rt_graph=self) )
+            self.regimes._add_item(Regime(name=name, parent_rt_graph=self))
         return self.regimes.get_single_obj_by(name=name)
 
     def has_regime(self, name):
         return self.regimes.has_obj(name=name)
-    
+
     def _summarise_node_full(self):
-        return 'Name: %s' %(self.ns_string())
+        return 'Name: %s' % self.ns_string()
+
     def _summarise_node_short(self):
-        return 'RT-Block: %s' %(self.ns_string())
+        return 'RT-Block: %s' % self.ns_string()
 
 
  # Temporary objects used only during building:
@@ -332,12 +332,12 @@ class AnalogReducePort(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitAnalogReducePort(self, **kwargs)
 
-    def __init__(self, symbol, rhses = None, **kwargs):
+    def __init__(self, symbol, rhses=None, **kwargs):
         super(AnalogReducePort, self).__init__(**kwargs)
         self.symbol = symbol
         if rhses is None:
             self.rhses = LookUpDict()
-        else :
+        else:
             self.rhses = LookUpDict(rhses)
 
 
@@ -353,15 +353,15 @@ class InEventPort(ASTObject):
         assert isinstance(self.symbol, basestring)
         assert isinstance(self.parameters, LookUpDict)
     @property
-    def alphabetic_params(self,):
-        return sorted(self.parameters, key=lambda o:o.symbol)
+    def alphabetic_params(self):
+        return sorted(self.parameters, key=lambda o: o.symbol)
 
 
     def _summarise_node_full(self):
-        return 'Symbol: %s' %(self.symbol)
-    def _summarise_node_short(self):
-        return 'InEventPort: %s' %(self.symbol)
+        return 'Symbol: %s' % self.symbol
 
+    def _summarise_node_short(self):
+        return 'InEventPort: %s' % self.symbol
 
 
 class InEventPortParameter(ASTExpressionObject):
@@ -388,10 +388,10 @@ class OutEventPort(ASTObject):
         assert isinstance(self.parameters, LookUpDict)
 
     def _summarise_node_full(self):
-        return 'Symbol: %s' %(self.symbol)
-    def _summarise_node_short(self):
-        return 'OutEventPort: %s' %(self.symbol)
+        return 'Symbol: %s' % self.symbol
 
+    def _summarise_node_short(self):
+        return 'OutEventPort: %s' % self.symbol
 
 
 class OutEventPortParameter(ASTExpressionObject):
@@ -411,12 +411,12 @@ class EventPortConnection(ASTObject):
         self.dst_port = dst_port
         self.src_port = src_port
         self.delay = delay
-        assert isinstance( dst_port, InEventPort)
-        assert isinstance( src_port, OutEventPort)
+        assert isinstance(dst_port, InEventPort)
+        assert isinstance(src_port, OutEventPort)
 
 
-        assert len( src_port.parameters) == len( dst_port.parameters )
-        if len( src_port.parameters) > 1:
+        assert len(src_port.parameters) == len(dst_port.parameters)
+        if len(src_port.parameters) > 1:
             assert set(src_port.parameters.get_objects_attibutes(attr='symbol')) == set(dst_port.parameters.get_objects_attibutes(attr='symbol'))
 
 

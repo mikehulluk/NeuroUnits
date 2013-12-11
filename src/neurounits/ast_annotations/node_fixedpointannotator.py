@@ -1,6 +1,9 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 from neurounits.ast_annotations.bases import ASTTreeAnnotator
 from neurounits.visitors.bases.base_actioner_default import ASTActionerDefault
-#from neurounits.ast_annotations.common import NodeRangeAnnotator
+
 
 import numpy as np
 
@@ -27,9 +30,9 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
 
 
     def __init__(self, nbits, datatype='int'):
-        super(NodeFixedPointFormatAnnotator, self ).__init__()
+        super(NodeFixedPointFormatAnnotator, self).__init__()
         self.nbits = nbits
-        self.datatype=datatype
+        self.datatype = datatype
 
 
     def annotate_ast(self, ninemlcomponent):
@@ -53,21 +56,22 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         vmax = o.annotations['node-value-range'].max
 
         # Lets go symmetrical, about 0:
-        ext = max( [np.abs(vmin),np.abs(vmax) ] )
+        ext = max([np.abs(vmin), np.abs(vmax)])
         if ext != 0.0:
-            upscaling_pow = int( np.ceil( np.log2(ext ) ) )
+            upscaling_pow = int(np.ceil(np.log2(ext)))
         else:
             upscaling_pow = 0
 
         # Lets remap the limits:
-        upscaling_val = 2 ** (-upscaling_pow)
-        vmin_scaled  = vmin * upscaling_val
-        vmax_scaled  = vmax * upscaling_val
+        upscaling_val = 2 ** -upscaling_pow
+        vmin_scaled = vmin * upscaling_val
+        vmax_scaled = vmax * upscaling_val
 
         #ann.fixed_scaling_power = upscaling_pow
         o.annotations['fixed-point-format'] = FixedPointData( upscale = upscaling_pow,  datatype=self.datatype)
 
-        assert 0.1 < max( [np.fabs(vmin_scaled), np.fabs(vmax_scaled) ] ) <= 1.0 or  vmin_scaled == vmax_scaled == 0.0
+        assert 0.1 < max([np.fabs(vmin_scaled), np.fabs(vmax_scaled)]) <= 1.0 \
+               or  vmin_scaled == vmax_scaled == 0.0
 
 
 
@@ -91,13 +95,13 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
     def ActionFunctionDefBuiltInInstantiation(self, o):
         self.ActionNodeStd(o)
 
-    def ActionFunctionDefInstantiationParameter(self,o):
+    def ActionFunctionDefInstantiationParameter(self, o):
         self.ActionNodeStd(o)
 
 
 
 
-    def ActionIfThenElse(self, o ):
+    def ActionIfThenElse(self, o):
         self.ActionNodeStd(o)
 
     def ActionAssignedVariable(self, o):
@@ -122,8 +126,8 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         if o.value.magnitude == 0.0:
             upscaling_pow = 0
         else:
-            upscaling_pow = int( np.ceil( np.log2(np.fabs(v)) ) )
-        o.annotations['fixed-point-format'] = FixedPointData( upscale = upscaling_pow, const_value_as_int = self.encode_value(v, upscaling_pow),  datatype=self.datatype)
+            upscaling_pow = int(np.ceil(np.log2(np.fabs(v))))
+        o.annotations['fixed-point-format'] = FixedPointData(upscale=upscaling_pow, const_value_as_int= self.encode_value(v, upscaling_pow), datatype=self.datatype)
 
     def ActionSymbolicConstant(self, o):
         self.ActionConstant(o)
@@ -139,12 +143,13 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
     def ActionAutoRegressiveModel(self, o, **kwargs):
         self.ActionNodeStd(o)
         if o.coefficients:
-            assert min( o.coefficients) > -1 and max(o.coefficients ) < 1.0
+            assert min(o.coefficients) > -1 and max(o.coefficients) < 1.0
         co_upscale = 0
         o.annotations['fixed-point-format'].coefficient_upscale = co_upscale
-        o.annotations['fixed-point-format'].coeffs_as_consts = [ self.encode_value(p, co_upscale) for p in o.coefficients]
+        o.annotations['fixed-point-format'].coeffs_as_consts = \
+            [self.encode_value(p, co_upscale) for p in o.coefficients]
 
-    def ActionOnEventDefParameter(self, o, ):
+    def ActionOnEventDefParameter(self, o):
         self.ActionNodeStd(o)
 
     def ActionBoolAnd(self, o):
@@ -165,7 +170,7 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         pass
     def ActionTimeDerivativeByRegime(self, o):
         pass
-    def ActionRegime(self,o):
+    def ActionRegime(self, o):
         pass
     def ActionRTGraph(self, o):
         pass

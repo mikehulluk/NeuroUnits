@@ -78,7 +78,7 @@ class IfThenElse(ASTExpressionObject):
         self.if_false_ast = if_false_ast
 
         # Sanity check:
-        assert isinstance( predicate, ASTBooleanExpression)
+        assert isinstance(predicate, ASTBooleanExpression)
         assert predicate._is_allowed_in_ifthenelse()
 
 
@@ -135,7 +135,8 @@ class BoolAnd(ASTBooleanExpression):
         self.rhs = rhs
 
     def _is_allowed_in_ifthenelse(self):
-        return self.lhs._is_allowed_in_ifthenelse() and self.rhs._is_allowed_in_ifthenelse()
+        return self.lhs._is_allowed_in_ifthenelse() \
+            and self.rhs._is_allowed_in_ifthenelse()
 
 class BoolOr(ASTBooleanExpression):
 
@@ -148,7 +149,8 @@ class BoolOr(ASTBooleanExpression):
         self.rhs = rhs
 
     def _is_allowed_in_ifthenelse(self):
-        return self.lhs._is_allowed_in_ifthenelse() and self.rhs._is_allowed_in_ifthenelse()
+        return self.lhs._is_allowed_in_ifthenelse() \
+            and self.rhs._is_allowed_in_ifthenelse()
 
 class BoolNot(ASTBooleanExpression):
 
@@ -174,7 +176,7 @@ class ASTSymbolNode(ASTExpressionObject):
 
     def _summarise_node_full(self):
         return "Symbol: '%s'" % self.symbol
-    
+
     def _summarise_node_short(self, use_latex=False):
         return self.symbol
 
@@ -189,7 +191,6 @@ class ASTConstNode(ASTExpressionObject):
 
     def _summarise_node_short(self, use_latex=False):
         return self.value
-# ===============
 
 
 
@@ -204,7 +205,7 @@ class AssignedVariable(ASTSymbolNode):
     def accept_visitor(self, v, **kwargs):
         return v.VisitAssignedVariable(self, **kwargs)
 
-    def __init__(self,  **kwargs):
+    def __init__(self, **kwargs):
         super(AssignedVariable, self).__init__(**kwargs)
 
 
@@ -236,7 +237,7 @@ class Parameter(ASTSymbolNode):
     def accept_visitor(self, v, **kwargs):
         return v.VisitParameter(self, **kwargs)
 
-    def __init__(self,  **kwargs):
+    def __init__(self, **kwargs):
         super(Parameter, self).__init__(**kwargs)
 
 
@@ -245,7 +246,7 @@ class TimeVariable(ASTSymbolNode):
     def accept_visitor(self, v, **kwargs):
         return v.VisitTimeVariable(self, **kwargs)
 
-    def __init__(self,  **kwargs):
+    def __init__(self, **kwargs):
         import neurounits
         s = neurounits.units_backends.mh.MMUnit(second=1)
         super(TimeVariable, self).__init__(dimension=s, **kwargs)
@@ -258,7 +259,7 @@ class ConstValue(ASTConstNode):
     def accept_visitor(self, v, **kwargs):
         return v.VisitConstant(self, **kwargs)
 
-    def __init__(self,  **kwargs):
+    def __init__(self, **kwargs):
         super(ConstValue, self).__init__(**kwargs)
 
 
@@ -276,14 +277,12 @@ class SymbolicConstant(ASTConstNode, ASTSymbolNode):
     def accept_visitor(self, v, **kwargs):
         return v.VisitSymbolicConstant(self, **kwargs)
 
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs):
         super(SymbolicConstant, self).__init__(**kwargs)
 
     def _summarise_node_full(self):
-        return '%s %s' % (
-                ASTConstNode._summarise_node_full(self),
-                ASTSymbolNode._summarise_node_full(self)
-                )
+        return '%s %s' % (ASTConstNode._summarise_node_full(self),
+                          ASTSymbolNode._summarise_node_full(self))
 
 
 
@@ -300,13 +299,13 @@ class FunctionDefBuiltIn(ASTExpressionObject):
         return v.VisitFunctionDefBuiltIn(self, **kwargs)
 
     def __init__(self, funcname, parameters, dimension=None, **kwargs):
-        ASTExpressionObject.__init__(self,**kwargs)
+        super(FunctionDefBuiltIn, self).__init__(**kwargs)
         self.funcname = funcname
         self.parameters = parameters
         if dimension is not None:
             self.set_dimensionality(dimension)
-    def __repr__(self,):
-        return '<BuiltinFunction: %s>' % (self.funcname)
+    def __repr__(self):
+        return '<BuiltinFunction: %s>' % self.funcname
 
     def is_builtin(self):
         return True
@@ -318,13 +317,13 @@ class FunctionDefUser(ASTExpressionObject):
         return v.VisitFunctionDefUser(self, **kwargs)
 
     def __init__(self, funcname, parameters, rhs, **kwargs):
-        ASTExpressionObject.__init__(self,**kwargs)
+        super(FunctionDefUser, self).__init__(**kwargs)
         self.funcname = funcname
         self.parameters = parameters
         self.rhs = rhs
 
-    def __repr__(self,):
-        return '<FunctionDefUser: %s>' % (self.funcname)
+    def __repr__(self):
+        return '<FunctionDefUser: %s>' % self.funcname
 
     def is_builtin(self):
         return False
@@ -335,7 +334,7 @@ class FunctionDefParameter(ASTExpressionObject):
         return v.VisitFunctionDefParameter(self, **kwargs)
 
     def __init__(self, symbol=None, dimension=None, **kwargs):
-        ASTExpressionObject.__init__(self, **kwargs)
+        super(FunctionDefParameter,self).__init__(**kwargs)
         self.symbol = symbol
         if dimension is not None:
             self.set_dimensionality(dimension)
@@ -350,12 +349,13 @@ class FunctionDefUserInstantiation(ASTExpressionObject):
         return v.VisitFunctionDefUserInstantiation(self, **kwargs)
 
     def __init__(self, parameters, function_def, **kwargs):
-        ASTExpressionObject.__init__(self, **kwargs)
+        super(FunctionDefUserInstantiation,self).__init__(**kwargs)
         self.function_def = function_def
         self.parameters = parameters
         assert not function_def.is_builtin()
 
     def __repr__(self):
+        #TODO-minor
         return "<FunctionDefUserInstantiation: '%s(%s)'>" % (self.function_def.funcname, "...")
 
 
@@ -365,13 +365,14 @@ class FunctionDefBuiltInInstantiation(ASTExpressionObject):
         return v.VisitFunctionDefBuiltInInstantiation(self, **kwargs)
 
     def __init__(self, parameters, function_def, **kwargs):
-        ASTExpressionObject.__init__(self, **kwargs)
+        super(FunctionDefBuiltInInstantiation,self).__init__(**kwargs)
         self.function_def = function_def
         self.parameters = parameters
         assert function_def.is_builtin()
 
 
     def _summarise_node_full(self):
+        #TODO-minor
         print "params:", self.parameters
         return '{%s( <id:%s>)}' % (self.function_def.funcname, ','.join( ['%s:%s' % (k, id(v)) for (k,v) in self.parameters.items() ] ) )
 
@@ -385,7 +386,7 @@ class FunctionDefParameterInstantiation(ASTExpressionObject):
         return v.VisitFunctionDefInstantiationParameter(self, **kwargs)
 
     def __init__(self, rhs_ast, symbol, function_def_parameter=None, **kwargs):
-        ASTExpressionObject.__init__(self, **kwargs)
+        super(FunctionDefParameterInstantiation, self).__init__(**kwargs)
         self.symbol = symbol
         self.rhs_ast = rhs_ast
         self._function_def_parameter = function_def_parameter
@@ -405,7 +406,7 @@ class FunctionDefParameterInstantiation(ASTExpressionObject):
 class BinaryOp(ASTExpressionObject):
 
     def __init__(self, lhs, rhs, **kwargs):
-        ASTExpressionObject.__init__(self, **kwargs)
+        super(BinaryOp, self).__init__(**kwargs)
         self.lhs = lhs
         self.rhs = rhs
 
@@ -414,9 +415,9 @@ class AddOp(BinaryOp):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitAddOp(self, **kwargs)
-    def _summarise_node_short(self, ):
+    def _summarise_node_short(self):
         return '+'
-    def _summarise_node_full(self, ):
+    def _summarise_node_full(self):
         return ''
 
 
@@ -424,9 +425,9 @@ class SubOp(BinaryOp):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitSubOp(self, **kwargs)
-    def _summarise_node_short(self, ):
+    def _summarise_node_short(self):
         return '-'
-    def _summarise_node_full(self, ):
+    def _summarise_node_full(self):
         return ''
 
 
@@ -434,9 +435,9 @@ class MulOp(BinaryOp):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitMulOp(self, **kwargs)
-    def _summarise_node_short(self, ):
+    def _summarise_node_short(self):
         return '*'
-    def _summarise_node_full(self, ):
+    def _summarise_node_full(self):
         return ''
 
 
@@ -444,9 +445,9 @@ class DivOp(BinaryOp):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitDivOp(self, **kwargs)
-    def _summarise_node_short(self, ):
+    def _summarise_node_short(self):
         return '/'
-    def _summarise_node_full(self, ):
+    def _summarise_node_full(self):
         return ''
 
 

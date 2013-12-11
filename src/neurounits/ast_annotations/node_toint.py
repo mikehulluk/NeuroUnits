@@ -1,13 +1,15 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 
 from neurounits.visitors.bases.base_actioner_default import ASTActionerDefault
+
+
 class NodeToIntAnnotator(ASTActionerDefault):
-
-
     def __init__(self):
         self.node_to_int = {}
         self.int_to_node = {}
-        super(ASTActionerDefault,self).__init__()
+        super(ASTActionerDefault, self).__init__()
 
 
     def annotate_ast(self, component):

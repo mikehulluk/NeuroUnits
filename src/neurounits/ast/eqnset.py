@@ -86,7 +86,7 @@ class Block(ASTObject):
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         c = EqnsetVisitorNodeCollector()
         c.visit(self)
-        return itertools.chain( *c.nodes.values() )
+        return itertools.chain(*c.nodes.values())
 
 
 
@@ -129,7 +129,7 @@ class Library(Block):
 
     @property
     def assignments(self):
-        return list( iter(self._eqn_assignment) )
+        return list(iter(self._eqn_assignment))
 
     @property
     def assignedvalues(self):
@@ -181,11 +181,11 @@ class NineMLComponent(Block):
         if len(nodes) == 1:
             return nodes[0]
         if len(nodes) == 2:
-            return ast.AddOp( nodes[0], nodes[1] )
+            return ast.AddOp(nodes[0], nodes[1])
         else:
-            return ast.AddOp( nodes[0], cls._build_ADD_ast(nodes[1:]))
+            return ast.AddOp(nodes[0], cls._build_ADD_ast(nodes[1:]))
 
-    def close_analog_port(self, ap, ):
+    def close_analog_port(self, ap):
         from neurounits.ast_builder.builder_visitor_propogate_dimensions import PropogateDimensions
         from neurounits.visitors.common.ast_replace_node import ReplaceNode
         if len(ap.rhses) == 0:
@@ -205,7 +205,7 @@ class NineMLComponent(Block):
 
     def simulate(self, **kwargs):
         from neurounits.codegen.python_functor.simulate_component import simulate_component
-        return simulate_component( self, **kwargs)
+        return simulate_component(self, **kwargs)
 
     @classmethod
     def build_compound_component(cls, **kwargs):
@@ -220,7 +220,7 @@ class NineMLComponent(Block):
 
 
     @property
-    def ordered_assignments_by_dependancies(self,):
+    def ordered_assignments_by_dependancies(self):
         from neurounits.visitors.common.ast_symbol_dependancies_new import VisitorSymbolDependance
         ordered_assigned_values =  VisitorSymbolDependance(self).get_assignment_dependancy_ordering()
         ordered_assignments =  [LookUpDict(self.assignments).get_single_obj_by(lhs=av) for av in ordered_assigned_values]
@@ -232,11 +232,11 @@ class NineMLComponent(Block):
     # OK:
     @property
     def assignments(self):
-        return sorted( list( iter(self._eqn_assignment) ), key=lambda o: o.lhs.symbol)
+        return sorted(list(iter(self._eqn_assignment)), key=lambda o: o.lhs.symbol)
 
     @property
     def timederivatives(self):
-        return sorted( list( iter(self._eqn_time_derivatives) ), key=lambda o:o.lhs.symbol)
+        return sorted(list(iter(self._eqn_time_derivatives)), key=lambda o: o.lhs.symbol)
 
     @property
     def assignedvalues(self):
@@ -244,7 +244,7 @@ class NineMLComponent(Block):
 
     @property
     def state_variables(self):
-        return sorted(list(self._eqn_time_derivatives.get_objects_attibutes('lhs')), key=lambda a:a.symbol)
+        return sorted(list(self._eqn_time_derivatives.get_objects_attibutes('lhs')), key=lambda a: a.symbol)
 
     @property
     def functiondefs(self):
@@ -252,7 +252,7 @@ class NineMLComponent(Block):
 
     @property
     def symbolicconstants(self):
-        return sorted(list(self._symbolicconstants), key=lambda a:a.symbol)
+        return sorted(list(self._symbolicconstants), key=lambda a: a.symbol)
 
     @property
     def parameters(self):
@@ -271,7 +271,7 @@ class NineMLComponent(Block):
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         from neurounits.ast import RandomVariable
         t = EqnsetVisitorNodeCollector(obj=self)
-        return LookUpDict(t.nodes[RandomVariable] )
+        return LookUpDict(t.nodes[RandomVariable])
 
 
     @property
@@ -279,14 +279,14 @@ class NineMLComponent(Block):
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         from neurounits.ast import AutoRegressiveModel
         t = EqnsetVisitorNodeCollector(obj=self)
-        return LookUpDict(t.nodes[AutoRegressiveModel] )
+        return LookUpDict(t.nodes[AutoRegressiveModel])
 
     @property
     def conditioncrosses_nodes(self):
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         from neurounits.ast import OnConditionCrossing
         t = EqnsetVisitorNodeCollector(obj=self)
-        return LookUpDict(t.nodes[OnConditionCrossing] )
+        return LookUpDict(t.nodes[OnConditionCrossing])
 
 
 
@@ -324,12 +324,12 @@ class NineMLComponent(Block):
 
 
     def all_terminal_objs(self):
-        possible_objs = self._parameters_lut.get_objs_by() + \
-                        self._supplied_lut.get_objs_by() + \
-                        self._analog_reduce_ports_lut.get_objs_by()+ \
-                        LookUpDict(self.assignedvalues).get_objs_by()+ \
-                        LookUpDict(self.state_variables).get_objs_by()+ \
-                        LookUpDict(self.symbolicconstants).get_objs_by()
+        possible_objs = self._parameters_lut.get_objs_by() \
+            + self._supplied_lut.get_objs_by() \
+            + self._analog_reduce_ports_lut.get_objs_by() \
+            + LookUpDict(self.assignedvalues).get_objs_by() \
+            + LookUpDict(self.state_variables).get_objs_by() \
+            + LookUpDict(self.symbolicconstants).get_objs_by()
 
 
         return possible_objs
@@ -337,15 +337,16 @@ class NineMLComponent(Block):
 
 
     def get_terminal_obj_or_port(self, symbol):
-        possible_objs = self._parameters_lut.get_objs_by(symbol=symbol) + \
-                        self._supplied_lut.get_objs_by(symbol=symbol) + \
-                        self._analog_reduce_ports_lut.get_objs_by(symbol=symbol)+ \
-                        LookUpDict(self.assignedvalues).get_objs_by(symbol=symbol)+ \
-                        LookUpDict(self.state_variables).get_objs_by(symbol=symbol)+ \
-                        LookUpDict(self.symbolicconstants).get_objs_by(symbol=symbol) + \
-                        self.input_event_port_lut.get_objs_by(symbol=symbol) + \
-                        self.output_event_port_lut.get_objs_by(symbol=symbol) +\
-                        ([self._time_node] if  self._time_node.symbol==symbol else [] )
+        possible_objs = self._parameters_lut.get_objs_by(symbol=symbol) \
+            + self._supplied_lut.get_objs_by(symbol=symbol) \
+            + self._analog_reduce_ports_lut.get_objs_by(symbol=symbol) \
+            + LookUpDict(self.assignedvalues).get_objs_by(symbol=symbol) \
+            + LookUpDict(self.state_variables).get_objs_by(symbol=symbol) \
+            + LookUpDict(self.symbolicconstants).get_objs_by(symbol=symbol) \
+            + self.input_event_port_lut.get_objs_by(symbol=symbol) \
+            + self.output_event_port_lut.get_objs_by(symbol=symbol) \
+            + (([self._time_node] if self._time_node.symbol
+               == symbol else []))
 
 
 
@@ -358,13 +359,14 @@ class NineMLComponent(Block):
 
 
     def get_terminal_obj(self, symbol):
-        possible_objs = self._parameters_lut.get_objs_by(symbol=symbol) + \
-                        self._supplied_lut.get_objs_by(symbol=symbol) + \
-                        self._analog_reduce_ports_lut.get_objs_by(symbol=symbol)+ \
-                        LookUpDict(self.assignedvalues).get_objs_by(symbol=symbol)+ \
-                        LookUpDict(self.state_variables).get_objs_by(symbol=symbol)+ \
-                        LookUpDict(self.symbolicconstants).get_objs_by(symbol=symbol) +\
-                        ([self._time_node] if  self._time_node.symbol==symbol else [] )
+        possible_objs = self._parameters_lut.get_objs_by(symbol=symbol) \
+            + self._supplied_lut.get_objs_by(symbol=symbol) \
+            + self._analog_reduce_ports_lut.get_objs_by(symbol=symbol) \
+            + LookUpDict(self.assignedvalues).get_objs_by(symbol=symbol) \
+            + LookUpDict(self.state_variables).get_objs_by(symbol=symbol) \
+            + LookUpDict(self.symbolicconstants).get_objs_by(symbol=symbol) \
+            + (([self._time_node] if self._time_node.symbol
+               == symbol else []))
 
 
 
@@ -380,43 +382,42 @@ class NineMLComponent(Block):
     def _parameters_lut(self):
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         t = EqnsetVisitorNodeCollector(obj=self)
-        return LookUpDict(t.nodes[Parameter] )
+        return LookUpDict(t.nodes[Parameter])
     @property
     def _supplied_lut(self):
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         t = EqnsetVisitorNodeCollector(obj=self)
-        return LookUpDict(t.nodes[SuppliedValue] )
+        return LookUpDict(t.nodes[SuppliedValue])
     @property
     def _analog_reduce_ports_lut(self):
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         t = EqnsetVisitorNodeCollector(obj=self)
-        return LookUpDict(t.nodes[AnalogReducePort] )
+        return LookUpDict(t.nodes[AnalogReducePort])
     @property
     def input_event_port_lut(self):
         import neurounits.ast as ast
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         t = EqnsetVisitorNodeCollector(obj=self)
-        return LookUpDict(t.nodes[ast.InEventPort] )
+        return LookUpDict(t.nodes[ast.InEventPort])
     @property
     def output_event_port_lut(self):
         import neurounits.ast as ast
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         t = EqnsetVisitorNodeCollector(obj=self)
-        return LookUpDict(t.nodes[ast.OutEventPort] )
+        return LookUpDict(t.nodes[ast.OutEventPort])
 
     @property
     def get_time_node(self):
         import neurounits.ast as ast
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         t = EqnsetVisitorNodeCollector(obj=self)
-        nodes = list( t.nodes[ast.TimeVariable] )
+        nodes = list(t.nodes[ast.TimeVariable])
         if len(nodes) == 0:
             return None
         elif len(nodes) == 1:
             return nodes[0]
         else:
             assert False
-        
 
 
     @property
@@ -544,7 +545,7 @@ class NineMLComponent(Block):
 
 
     def __repr__(self):
-        return '<NineML Component: %s [Supports interfaces: %s ]>' % (self.name, ','.join([ "'%s'" % conn.interface_def.name for conn in  self._interface_connectors]))
+        return '<NineML Component: %s [Supports interfaces: %s ]>' % (self.name, ','.join([ "'%s'" % conn.interface_def.name for conn in self._interface_connectors]))
 
     @property
     def rt_graphs(self):
@@ -552,7 +553,7 @@ class NineMLComponent(Block):
 
     @property
     def transitions(self):
-        return itertools.chain( self._transitions_conditiontriggers, self._transitions_events)
+        return itertools.chain(self._transitions_conditiontriggers, self._transitions_events)
 
     @property
     def eventtransitions(self):
@@ -564,16 +565,16 @@ class NineMLComponent(Block):
 
 
     def transitions_from_regime(self, regime):
-        assert isinstance(regime,Regime)
+        assert isinstance(regime, Regime)
         return [tr for tr in self.transitions if tr.src_regime == regime]
 
     def eventtransitions_from_regime(self, regime):
-        assert isinstance(regime,Regime)
+        assert isinstance(regime, Regime)
 
         return [tr for tr in self.eventtransitions if tr.src_regime == regime]
 
     def conditiontriggertransitions_from_regime(self, regime):
-        assert isinstance(regime,Regime)
+        assert isinstance(regime, Regime)
         return [tr for tr in self.conditiontriggertransitions if tr.src_regime == regime]
 
 
@@ -637,7 +638,7 @@ class NineMLComponent(Block):
 
 
 
-    def get_initial_regimes(self,  initial_regimes=None):
+    def get_initial_regimes(self, initial_regimes=None):
         if initial_regimes is None:
             initial_regimes = {}
 
@@ -651,7 +652,7 @@ class NineMLComponent(Block):
         # Resolve initial regimes:
         # ========================
         # i. Initial, make initial regimes 'None', then lets try and work it out:
-        current_regimes = dict( [ (rt, None) for rt in rt_graphs] )
+        current_regimes = dict([(rt, None) for rt in rt_graphs])
 
         # ii. Is there just a single regime?
         for (rt_graph, regime) in current_regimes.items():
@@ -668,19 +669,19 @@ class NineMLComponent(Block):
         for (rt_name, regime_name) in initial_regimes.items():
             rt_graph = rt_graphs.get_single_obj_by(name=rt_name)
             assert current_regimes[rt_graph] is None, "Initial state for '%s' set twice " % rt_graph.name
-            current_regimes[rt_graph]  = rt_graph.get_regime( name=regime_name )
+            current_regimes[rt_graph]=rt_graph.get_regime(name=regime_name)
 
         # v. Check everything is hooked up OK:
         for rt_graph, regime in current_regimes.items():
-            assert regime is not None, " Start regime for '%s' not set! " % (rt_graph.name)
-            assert regime in rt_graph.regimes, 'regime: %s [%s]' % (repr(regime), rt_graph.regimes  )
+            assert regime is not None, " Start regime for '%s' not set! " % rt_graph.name
+            assert regime in rt_graph.regimes, 'regime: %s [%s]' % (repr(regime), rt_graph.regimes)
 
         return current_regimes
 
 
 
     def get_initial_state_values(self, initial_state_values):
-        from  neurounits import ast
+        from neurounits import ast
         # Resolve the inital values of the states:
 
         state_values = {}
@@ -743,7 +744,7 @@ class NineMLComponent(Block):
             def replace_or_visit(self, o):
                 return self.replace(o)
 
-            def replace(self, o, ):
+            def replace(self, o):
                 if o in self.mapping_dict:
                     return self.mapping_dict[o]
                 else:
@@ -764,7 +765,7 @@ class NineMLComponent(Block):
 
         no_remap = (ast.Interface, ast.InterfaceWireContinuous, ast.InterfaceWireEvent, ast.FunctionDefBuiltIn, ast.FunctionDefParameter)
         # First, lets clone each and every node:
-        old_nodes = list(set(list( EqnsetVisitorNodeCollector(self).all() )))
+        old_nodes = list(set(list(EqnsetVisitorNodeCollector(self).all())))
         old_to_new_dict = {}
         for old_node in old_nodes:
 
@@ -782,7 +783,7 @@ class NineMLComponent(Block):
         old_to_new_dict[self] = ASTClone().visit(self)
 
         # Check that all the nodes hav been replaced:
-        overlap = ( set(old_to_new_dict.keys()) & set(old_to_new_dict.values() )  )
+        overlap = (set(old_to_new_dict.keys()) & set(old_to_new_dict.values()))
         for o in overlap:
             assert isinstance(o, no_remap)
 
@@ -817,7 +818,7 @@ class NineMLComponent(Block):
         # ok, so the clone should now be all clear:
         new_obj = old_to_new_dict[self]
 
-        new_nodes = list( EqnsetVisitorNodeCollector(new_obj).all()  )
+        new_nodes = list(EqnsetVisitorNodeCollector(new_obj).all())
 
 
         # Who points to what!?
@@ -825,7 +826,7 @@ class NineMLComponent(Block):
         connections_map_conns_to_objs = defaultdict(list)
         for node in new_nodes:
 
-            conns = list( node.accept_visitor( ASTAllConnections() ) )
+            conns = list(node.accept_visitor(ASTAllConnections()))
             connections_map_obj_to_conns[node] = conns
             for c in conns:
                 connections_map_conns_to_objs[c].append(node)
@@ -841,8 +842,8 @@ class NineMLComponent(Block):
             print 'Shared Nodes:'
             print shared_nodes_invalid
             for s in shared_nodes_invalid:
-                print  ' ', s, s in old_to_new_dict
-                print  '  Referenced by:'
+                print ' ', s, s in old_to_new_dict
+                print '  Referenced by:'
                 for c in connections_map_conns_to_objs[s]:
                     print '    *', c
                 print

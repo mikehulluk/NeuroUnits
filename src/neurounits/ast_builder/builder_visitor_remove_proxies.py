@@ -153,7 +153,7 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         o.greater_than = self.followSymbolProxy(o.greater_than)
         self.visit(o.lesser_than)
         self.visit(o.greater_than)
-    
+
     def VisitOnConditionCrossing(self, o, **kwargs):
         o.crosses_lhs = self.followSymbolProxy(o.crosses_lhs)
         o.crosses_rhs = self.followSymbolProxy(o.crosses_rhs)
@@ -223,15 +223,15 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         o.parameters = LookUpDict(
                 [self.followSymbolProxy(rhs) for rhs in o.parameters],
                 accepted_obj_types=o.parameters.accepted_obj_types,
-                unique_attrs=o.parameters.unique_attrs )
+                unique_attrs=o.parameters.unique_attrs)
 
         for p in o.parameters:
             self.visit(p)
 
     def VisitEmitEventParameter(self, o, **kwargs):
         o.rhs = self.followSymbolProxy(o.rhs)
-        self.visit( o.rhs )
-        self.visit( o.port_parameter_obj )
+        self.visit(o.rhs)
+        self.visit(o.port_parameter_obj)
 
 
     def VisitOnEventDefParameter(self, o, **kwargs):

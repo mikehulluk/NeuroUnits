@@ -41,7 +41,7 @@ from os.path import join as Join
 
 
 def load_neuroml():
-	from mredoc.objects.core import Document, TableOfContents, SectionNewPage, Section, VerbatimBlock
+    from mredoc.objects.core import Document, TableOfContents, SectionNewPage, Section, VerbatimBlock
 
     redocs = []
 

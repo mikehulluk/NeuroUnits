@@ -43,13 +43,6 @@ class ASTObject(object):
         self._metadata = md
 
 
-
-
-    def get_dimension(self):
-        assert False, "We shouldn't really get here, deprecated Dec 2013"
-        return None
-
-
     # Annotations:
     @property
     def annotations(self):
@@ -91,8 +84,8 @@ class ASTObject(object):
     def __unicode__(self):
         return string.Template('<${class_name} [id:${id}] ${node_data} ${annotation_data}>').substitute(
                 class_name=type(self).__name__.split('.')[-1], id=id(self),
-                node_data = self.summarise_node_full(),
-                annotation_data = self.annotations.get_summary_str()
+                node_data=self.summarise_node_full(),
+                annotation_data=self.annotations.get_summary_str()
                 )
 
 
