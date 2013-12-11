@@ -152,17 +152,6 @@ for dIN_pop in [(pop_LHS_dIN), (pop_RHS_dIN)]:
             #ax.plot([j],[i], 'x')
 
 
-##import gp_model
-##gj = gp_model.get_gj()
-#network.add(
-#    ElectricalSynapseProjection(
-#        src_population =  dINs,
-#        dst_population =  dINs,
-#        connector=ExplicitIndicesLoop(gap_junction_indices),
-#        strength_S = 2e-9,
-#        injected_port_name = 'i_injected',
-#        name='E_Couple')
-#)
 
 GJ_comp =  neurounits.ComponentLibrary.instantiate_component('GJ')
 assert not GJ_comp.has_state()
@@ -185,7 +174,6 @@ network.add(
         connection_object=GJ_comp,
         connection_properties={
             'g': "2nS",
-            #'g': "0nS",
             },
 
         name='Ecoupling'

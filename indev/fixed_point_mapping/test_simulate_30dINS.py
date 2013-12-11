@@ -50,6 +50,44 @@ def get_results():
 
             )
 
+    GJ_comp =  neurounits.ComponentLibrary.instantiate_component('GJ')
+    assert not GJ_comp.has_state()
+
+
+
+
+    #AllToAllConnector(0.3),
+    gap_junction_indices = []
+    for i in range(30):
+        for j in range(i):
+            if random.uniform(0.,1.) < 0.2:
+                gap_junction_indices.append( (i,j) )
+
+    #gap_junction_indices = []
+
+
+
+    network.add(
+        AnalogPortConnector(
+            src_population =  dINs,
+            dst_population =  dINs,
+            port_map = [
+                ('conn.v1', 'src.V'),
+                ('conn.i1', 'src.i_injected'),
+                ('conn.v2', 'dst.V'),
+                ('conn.i2', 'dst.i_injected'),
+                ],
+            connector=ExplicitIndicesLoop(gap_junction_indices),
+            connection_object=GJ_comp,
+            connection_properties={
+                'g': "2nS",
+                },
+
+            name='Ecoupling'
+            )
+
+)
+
     network.create_eventportconnector(
                 src_population=dINs,
                 dst_population=dINs,
@@ -57,16 +95,16 @@ def get_results():
                 dst_port_name='recv_nmda_spike',
                 name="dIN_dIN_NMDA", delay='1ms',
                 connector=AllToAllConnector(0.2),
-                parameter_map= {'weight': FixedValue("200pS")}
+                parameter_map= {'weight': FixedValue("150pS")}
             )
 
-    network.create_electricalsynapseprojection(
-        src_population=dINs,
-        dst_population=dINs,
-        connector=AllToAllConnector(0.3),
-        strength_S = 0.3e-9,
-        injected_port_name='i_injected',
-        name='E_Couple')
+    #network.create_electricalsynapseprojection(
+    #    src_population=dINs,
+    #    dst_population=dINs,
+    #    connector=AllToAllConnector(0.3),
+    #    strength_S = 0.3e-9,
+    #    injected_port_name='i_injected',
+    #    name='E_Couple')
 
 
 

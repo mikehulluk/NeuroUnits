@@ -2192,10 +2192,6 @@ void run_simulation()
     NS_${pop.name}::initialise_autoregressivenodes(data_${pop.name} );
     %endfor
 
-    // Setup the electical coupling:
-    %for proj in network.electrical_synapse_projections:
-    NS_${proj.name}::setup_electrical_coupling();
-    %endfor
 
     // Setup the event connections:
     %for evt_conn in network.event_port_connectors:
@@ -2260,12 +2256,8 @@ void run_simulation()
         NS_${pop.name}::set_supplied_values_to_zero(data_${pop.name});
         %endfor
 
-        // A. Electrical coupling (deprecated):
-        %for proj in network.electrical_synapse_projections:
-        //NS_${proj.name}::calculate_electrical_coupling( data_${proj.src_population.population.name}, data_${proj.dst_population.population.name} );
-        %endfor
 
-        // A1. Electrical coupling (deprecated):
+        // A1. Analog port connectors:
         %for proj in network.analog_port_connectors:
         NS_${proj.name}::calculate_analog_ports(ann_proj_data_${proj.name}, data_${proj.src_population.population.name}, data_${proj.dst_population.population.name} );
         %endfor
@@ -2375,76 +2367,6 @@ int main()
 
 
 
-c_electrical_projection_tmpl = r"""
-
-// Electrical Coupling
-
-namespace NS_${projection.name}
-{
-
-
-    struct GapJunction
-    {
-        IntType i,j;
-        //IntType strength_S;
-
-        ScalarType<${projection.strength_S_upscale}>  strength_S_fixed;
-
-        GapJunction(IntType i, IntType j, IntType strength)
-         : i(i), j(j), strength_S_fixed(strength)
-        {
-
-
-        }
-
-    };
-
-
-
-    typedef std::vector<GapJunction>  GJList;
-    GJList gap_junctions;
-
-
-    void setup_electrical_coupling()
-    {
-
-        const IntType strength_S_int =  ${projection.strength_S_int};
-
-        ${projection.connector.build_c( src_pop_size_expr=projection.src_population.get_size(),
-                                        dst_pop_size_expr=projection.dst_population.get_size(),
-                                        add_connection_functor=lambda i,j: "gap_junctions.push_back( GapJunction(IntType(%s), IntType(%s), strength_S_int) );" % (i,j) ,
-                                        add_connection_set_functor=None
-                                        ) }
-    }
-
-    void calculate_electrical_coupling( NS_${projection.src_population.population.name}::NrnPopData& src, NS_${projection.dst_population.population.name}::NrnPopData& dst)
-    {
-        <%
-        pre_V_node = projection.src_population.component.get_terminal_obj_or_port('V')
-        post_V_node = projection.dst_population.component.get_terminal_obj_or_port('V')
-        pre_iinj_node = projection.src_population.component.get_terminal_obj_or_port(projection.injected_port_name)
-        post_iinj_node = projection.dst_population.component.get_terminal_obj_or_port(projection.injected_port_name)
-        v_upscale = max( [pre_V_node.annotations['fixed-point-format'].upscale, post_V_node.annotations['fixed-point-format'].upscale] )
-        curr_upscale = max( [pre_iinj_node.annotations['fixed-point-format'].upscale, post_iinj_node.annotations['fixed-point-format'].upscale] )
-        %>
-
-        for(GJList::iterator it = gap_junctions.begin(); it != gap_junctions.end();it++)
-        {
-            ScalarType<${curr_upscale}> curr = ScalarOp<${curr_upscale}>::mul(
-                    ScalarOp<${v_upscale}>::sub( src.V[get_value32(it->i)], dst.V[get_value32(it->j)] ),
-                    it->strength_S_fixed
-                );
-
-            src.${pre_iinj_node.symbol}[get_value32(it->i)]  = ScalarOp<${pre_iinj_node.annotations['fixed-point-format'].upscale}>::sub (src.${pre_iinj_node.symbol}[get_value32(it->i)], curr);
-            src.${post_iinj_node.symbol}[get_value32(it->j)] = ScalarOp<${post_iinj_node.annotations['fixed-point-format'].upscale}>::add (src.${post_iinj_node.symbol}[get_value32(it->j)], curr);
-
-        }
-
-    }
-}
-
-
-"""
 
 
 
@@ -2515,57 +2437,56 @@ namespace NS_${projection.name}
 
     void calculate_analog_ports(ProjData& data, NS_${projection.src_population.population.name}::NrnPopData& src, NS_${projection.dst_population.population.name}::NrnPopData& dst)
     {
-
-        // Expose constant interface, by using references to alias other arrays::
-        % for p in projection.connection_object.parameters:
-        ProjData::T_${p.symbol}& ${p.symbol} = data.${p.symbol};
-        %endfor
-
-        // Input from other arrays:
-        % for src,dst in projection.port_map:
-            <%(src_comp, src_port) = src %>\
-            <%(dst_comp, dst_port) = dst %> \
-            %if src_comp !=  projection.connection_object:
-        //Copy in data from: ${src_comp.name}.${src_port.symbol} to ${dst_port.symbol}:
-            %if dst_comp == projection.src_population.component:
-        NS_${projection.dst_population.population.name}::NrnPopData::T_${src_port.symbol}& ${dst_port.symbol} = src.${src_port.symbol};
-            %else:
-            //< %assert dst_comp == projection.dst_population.component % >
-        NS_${projection.src_population.population.name}::NrnPopData::T_${src_port.symbol}& ${dst_port.symbol} = dst.${src_port.symbol};
-            %endif
-            %endif
-        % endfor
-
-        // Intermediate calculations:
-        %for ass in projection.connection_object.ordered_assignments_by_dependancies:
-        std::vector< ScalarType<${ass.lhs.annotations['fixed-point-format'].upscale}> > ${ass.lhs.symbol}(data.size);
-        %endfor
-
-
-
         for(int i=0;i<data.size;i++)
         {
+            // Expose constant interface, by using references to alias other arrays::
+            % for p in projection.connection_object.parameters:
+            ScalarType<${p.annotations['fixed-point-format'].upscale}>& ${p.symbol} = data.${p.symbol}[i];
+            %endfor
+
+            // Input from other arrays:
+            % for src,dst in projection.port_map:
+            <%(src_comp, src_port, src_pop_str) = src %>\
+            <%(dst_comp, dst_port, dst_pop_str) = dst %> \
+            <% assert src_pop_str in ['Src','Dst','Conn'] %>
+            <% assert dst_pop_str in ['Src','Dst','Conn'] %>
+            %if dst_pop_str ==  'Conn':
+            //Copy in data from: ${src_comp.name}.${src_port.symbol} to ${dst_port.symbol}:
+                %if src_pop_str == 'Src':
+            
+            NS_${projection.src_population.population.name}::NrnPopData::T_${src_port.symbol}::DATATYPE& ${dst_port.symbol} = src.${src_port.symbol}[ data.src_indices[i] ] ;
+                %elif src_pop_str == 'Dst':
+            NS_${projection.dst_population.population.name}::NrnPopData::T_${src_port.symbol}::DATATYPE& ${dst_port.symbol} = dst.${src_port.symbol}[ data.dst_indices[i] ] ;
+                %else:
+                ** @~@~@ !!!ERRROR!!! @~@~@ **
+                %endif
+            %endif
+            % endfor
+
+
+
+
+
+
             // A. Do the calculations:
             %for ass in projection.connection_object.ordered_assignments_by_dependancies:
-            ${ass.lhs.symbol}[i] = ${writer_stdc.visit( ass.rhs_map )};
+            ScalarType<${ass.lhs.annotations['fixed-point-format'].upscale}> ${ass.lhs.symbol} = ${writer_stdc.visit( ass.rhs_map )};
             %endfor
 
 
             // B. Copy values out:
             % for src,dst in projection.port_map:
-                <%(src_comp, src_port) = src %>\
-                <%(dst_comp, dst_port) = dst %> \
-                %if src_comp ==  projection.connection_object:
-
-                    %if dst_comp == projection.src_population.component:
+                <%(src_comp, src_port, src_pop_str) = src %>\
+                <%(dst_comp, dst_port, dst_pop_str) = dst %>\
+                <% assert src_pop_str in ['Src','Dst','Conn'] %>\
+                <% assert dst_pop_str in ['Src','Dst','Conn'] %>
+                %if src_pop_str == 'Conn':
+                    %if dst_pop_str == 'Src':
             //Save to ${projection.src_population.name}.${src_port.symbol}
-            src.${dst_port.symbol}[i] = ScalarOp<${dst_port.annotations['fixed-point-format'].upscale}>::add( src.${dst_port.symbol}[i], ${src_port.symbol}[i]);
-
-
-                    %elif dst_comp == projection.dst_population.component:
-            dst.${dst_port.symbol}[i] = ScalarOp<${dst_port.annotations['fixed-point-format'].upscale}>::add( dst.${dst_port.symbol}[i], ${src_port.symbol}[i]);
+            src.${dst_port.symbol}[data.src_indices[i]] = ScalarOp<${dst_port.annotations['fixed-point-format'].upscale}>::add( src.${dst_port.symbol}[data.src_indices[i]], ${src_port.symbol});
+                    %elif dst_pop_str == 'Dst':
+            dst.${dst_port.symbol}[data.dst_indices[i]] = ScalarOp<${dst_port.annotations['fixed-point-format'].upscale}>::add( dst.${dst_port.symbol}[data.dst_indices[i]], ${src_port.symbol});
             //Save to ${projection.dst_population.name}.${src_port.symbol}
-
                     %endif
                 %endif
             % endfor
@@ -3020,7 +2941,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
         # There is an opportunity here. Sometimes, the parameters are going to be constants - so
         # we can re-run the optimiser to remove constants:
-        from neurounits.ast_annotations.common import  NodeFixedPointFormatAnnotator
+        from neurounits.ast_annotations.common import NodeFixedPointFormatAnnotator
         for pop in network.populations:
             fp_ann = NodeFixedPointFormatAnnotator(nbits=nbits)
 
@@ -3104,14 +3025,14 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
 
-        code_per_electrical_projection = []
+        #code_per_electrical_projection = []
 
-        for proj in network.electrical_synapse_projections:
-            c = Template(c_electrical_projection_tmpl).render(
-                                        projection=proj,
-                                        **std_variables
-                                            )
-            code_per_electrical_projection.append(c)
+        #for proj in network.electrical_synapse_projections:
+        #    c = Template(c_electrical_projection_tmpl).render(
+        #                                projection=proj,
+        #                                **std_variables
+        #                                    )
+        #    code_per_electrical_projection.append(c)
 
 
 
@@ -3125,7 +3046,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
         code_per_analogconnection_projection = []
         for proj in network.analog_port_connectors:
-            self.writer_stdc = CBasedFixedWriter(component=proj.connection_object, population_access_index='i', data_prefix=None)
+            self.writer_stdc = CBasedFixedWriter(component=proj.connection_object, population_access_index=None, data_prefix=None,)# is_connecting_component=True)
             self.writer_bluevec = CBasedFixedWriterBlueVecOps(component=proj.connection_object, population_access_index='i', data_prefix='d.')
             c = Template(c_analog_projection_tmpl).render(
                                         projection=proj,
@@ -3209,7 +3130,8 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
 
-        cfile = '\n'.join([c_prog_header] +  code_per_pop + code_per_analogconnection_projection +  [popl_objs] + code_per_electrical_projection +  code_per_eventport_projection  + cout_data_writers +[c_nios_plotting] + [c_main_loop])
+        #cfile = '\n'.join([c_prog_header] +  code_per_pop + code_per_analogconnection_projection +  [popl_objs] + code_per_electrical_projection +  code_per_eventport_projection  + cout_data_writers +[c_nios_plotting] + [c_main_loop])
+        cfile = '\n'.join([c_prog_header] +  code_per_pop + code_per_analogconnection_projection +  [popl_objs] +  code_per_eventport_projection  + cout_data_writers +[c_nios_plotting] + [c_main_loop])
 
         for f in ['sim1.cpp','a.out',output_filename, 'debug.log',]:
             if os.path.exists(f):

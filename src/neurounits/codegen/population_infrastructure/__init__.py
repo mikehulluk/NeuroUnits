@@ -113,18 +113,6 @@ class Projection(object):
 
 
 
-class ElectricalSynapseProjection(Projection):
-    def __init__(self,  strength_S, injected_port_name, connector, **kwargs):
-        super(ElectricalSynapseProjection, self).__init__(**kwargs)
-        self.connector = connector
-        self.injected_port_name = injected_port_name
-
-        self.strength_S = strength_S
-        self.strength_S_upscale = -21
-        assert strength_S / (2**self.strength_S_upscale) < 1
-
-        from neurounits.ast_annotations import NodeFixedPointFormatAnnotator
-        self.strength_S_int = NodeFixedPointFormatAnnotator.encode_value_cls(self.strength_S, self.strength_S_upscale, 24)
 
 
 
@@ -167,7 +155,7 @@ class EventPortConnector(object):
 class _Objs:
     Src = 'Src'
     Dst = 'Dst'
-    Connector = 'Connector'
+    Connector = 'Conn'
 
     lut = {
             'src': Src,
@@ -238,9 +226,9 @@ class AnalogPortConnector(object):
 
             # And save ((output), (input))
             if t1 == _NodeTypes.Input:
-                self.port_map.append( ( (C2,p2), (C1,p1) ) )
+                self.port_map.append( ( (C2,p2,c2), (C1,p1,c1) ) )
             else:
-                self.port_map.append( ( (C1,p1), (C2,p2) ) )
+                self.port_map.append( ( (C1,p1,c1), (C2,p2,c2) ) )
 
 
         # Store the remaining variables:
@@ -289,8 +277,6 @@ class Network(object):
         self.analog_port_connectors = []
         self.additional_events = []
 
-        # Deprecated:
-        self.electrical_synapse_projections = []
 
 
         self._record_traces = defaultdict( list )
@@ -318,11 +304,6 @@ class Network(object):
     def create_eventportconnector(self, **kwargs):
         assert not self.is_frozen
         pop = EventPortConnector(**kwargs)
-        self.add(pop)
-        return pop
-    def create_electricalsynapseprojection(self, **kwargs):
-        assert not self.is_frozen
-        pop = ElectricalSynapseProjection(**kwargs)
         self.add(pop)
         return pop
 
@@ -448,7 +429,7 @@ class Network(object):
             for src,dst in apc.port_map:
                 # Lets check that src_ports are always state-variables when then are from the populations, rather than 
                 # assigned variables. Otherwise, these will require more work to implement.
-                src_comp, src_port = src
+                src_comp, src_port, src_pop_str = src
                 print 'Checking:', src_comp.name, src_port
                 if src_comp != apc.connection_object:
                     assert isinstance(src_port, ast.StateVariable)
@@ -462,9 +443,6 @@ class Network(object):
     def add(self, obj):
         if isinstance( obj, Population):
             self.populations.append(obj)
-
-        elif isinstance( obj, ElectricalSynapseProjection):
-            self.electrical_synapse_projections.append(obj)
 
         elif isinstance( obj, EventPortConnector):
             self.event_port_connectors.append(obj)

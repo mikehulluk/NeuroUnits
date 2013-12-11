@@ -180,14 +180,14 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         return res
 
 
-    def __init__(self, component, population_access_index=None, data_prefix=None ):
+    def __init__(self, component, population_access_index=None, data_prefix=None):
         super(CBasedFixedWriter, self).__init__()
         self.population_access_index=population_access_index
         self.data_prefix=data_prefix
 
-
         self.op_scalar_type = 'ScalarType'
         self.op_scalar_op = 'ScalarOp'
+
 
     def get_var_str(self, name):
         s = name

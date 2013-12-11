@@ -14,7 +14,7 @@ def get_gj():
         <=> INPUT v1:(V)
         <=> INPUT v2:(V)
 
-        i1 = g * (v1-v2)
+        i1 = g * (v2-v1)
         i2 = -i1
     }
 
@@ -26,10 +26,10 @@ def get_gj():
 
 
     var_annots_ranges = {
-        '__t__' : NodeRange(min="0s", max = "1.1s"),
-        'v1'    : NodeRange(min="-100mV", max = "50mV"),
-        'v2'    : NodeRange(min="-100mV", max = "50mV"),
-        'g'     : NodeRange(min="0nS", max = "10nS"),
+        '__t__' : NodeRange(min="0s", max="1.1s"),
+        'v1'    : NodeRange(min="-100mV", max="50mV"),
+        'v2'    : NodeRange(min="-100mV", max="50mV"),
+        'g'     : NodeRange(min="0nS", max="10nS"),
         }
 
     var_annots_tags = {
