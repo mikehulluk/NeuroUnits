@@ -38,7 +38,8 @@ class EqnAssignmentByRegime(ASTObject):
 
     def __init__(self, lhs, rhs_map):
         super(EqnAssignmentByRegime, self).__init__()
-        assert isinstance(rhs_map, EqnRegimeDispatchMap)
+        #assert isinstance(rhs_map, EqnRegimeDispatchMap)
+        assert isinstance(rhs_map, ASTExpressionObject)
         self.lhs = lhs
         self.rhs_map = rhs_map
 
@@ -56,7 +57,8 @@ class EqnTimeDerivativeByRegime(ASTObject):
     def __init__(self, lhs, rhs_map):
         super(EqnTimeDerivativeByRegime, self).__init__()
         self.lhs = lhs
-        assert isinstance(rhs_map, EqnRegimeDispatchMap)
+        #assert isinstance(rhs_map, EqnRegimeDispatchMap)
+        assert isinstance(rhs_map, ASTExpressionObject)
         self.rhs_map = rhs_map
 
     def set_rhs_map(self, o):
