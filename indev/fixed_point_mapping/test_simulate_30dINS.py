@@ -114,22 +114,6 @@ def get_results():
     network.record_input_events(dINs, 'recv_ampa_spike' )
     network.record_output_events(dINs, 'spike' )
     network.record_traces(dINs, '*' )
-    #network.record_traces(dINs, 'V' )
-
-
-   # op_filename = 'output_float.hd5'
-   # if os.path.exists(op_filename):
-   #        os.unlink(op_filename)
-   #
-   # results1 = CBasedEqnWriterFixedNetwork(
-   #                     network,
-   #                     output_filename=op_filename,
-   #                     CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
-   #                     step_size=0.1e-3,
-   #                     run_until=1.0,
-   #                     as_float=True,
-   #                     nbits=24,
-   #                     ).results
 
 
     op_filename = 'output_fixed.hd5'
@@ -160,7 +144,6 @@ filters_traces = [
     'ALL{POPINDEX:0002,V}',
     'ALL{POPINDEX:0003,V}',
     
-    #'ALL{fixed,V}',
     ]
 
 
@@ -168,8 +151,7 @@ for symbol in sorted(dIN_comp.terminal_symbols, key=lambda o:o.symbol):
     filters_traces.append( "ALL{POPINDEX:0000} AND ANY{%s}" % symbol.symbol )
 
 
-results.plot(trace_filters=filters_traces,  legend=True )#, xlim = (0.075,0.20)  )
-#results.plot(trace_filters=filters_traces, spike_filters=filters_spikes, legend=True, xlim = (0.0851,0.08545)  )
+results.plot(trace_filters=filters_traces,  legend=True )
 
 
 

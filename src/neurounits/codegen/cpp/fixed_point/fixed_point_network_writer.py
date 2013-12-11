@@ -3025,15 +3025,6 @@ class CBasedEqnWriterFixedNetwork(object):
 
 
 
-        #code_per_electrical_projection = []
-
-        #for proj in network.electrical_synapse_projections:
-        #    c = Template(c_electrical_projection_tmpl).render(
-        #                                projection=proj,
-        #                                **std_variables
-        #                                    )
-        #    code_per_electrical_projection.append(c)
-
 
 
         code_per_eventport_projection = []
