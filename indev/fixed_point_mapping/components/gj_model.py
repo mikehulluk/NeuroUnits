@@ -29,7 +29,7 @@ def get_gj():
         '__t__' : NodeRange(min="0s", max = "1.1s"),
         'v1'    : NodeRange(min="-100mV", max = "50mV"),
         'v2'    : NodeRange(min="-100mV", max = "50mV"),
-        'g'     : NodeRange(min="-100mV", max = "50mV"),
+        'g'     : NodeRange(min="0nS", max = "10nS"),
         }
 
     var_annots_tags = {
@@ -58,6 +58,8 @@ def get_gj():
     NodeTagger(var_annots_tags).visit(comp)
 
     return comp
+
+
 
 from neurounits import ComponentLibrary
 ComponentLibrary.register_component_functor('GJ', get_gj )

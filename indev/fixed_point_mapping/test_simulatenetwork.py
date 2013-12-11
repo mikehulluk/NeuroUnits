@@ -178,8 +178,8 @@ network.add(
         port_map = [
             ('conn.v1', 'src.V'),
             ('conn.i1', 'src.i_injected'),
-            ('conn.v2', 'src.V'),
-            ('conn.i2', 'src.i_injected'),
+            ('conn.v2', 'dst.V'),
+            ('conn.i2', 'dst.i_injected'),
             ],
         connector=ExplicitIndicesLoop(gap_junction_indices),
         connection_object=GJ_comp,
@@ -187,6 +187,7 @@ network.add(
             'g': "2nS",
             },
 
+        name='Ecoupling'
         )
 
 )

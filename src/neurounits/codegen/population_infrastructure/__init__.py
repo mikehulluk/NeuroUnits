@@ -31,14 +31,7 @@ class Population(object):
             # Create a new node-id for the node:
             id_annotator = self.component.annotation_mgr._annotators['node-ids']
             id_annotator.visit(v)
-            
-            ## Sort out the ranges and upscale of the parameters:
-            #fp_annotator = self.component.annotation_mgr._annotators['fixed-point-format-ann']
-            #fp_annotator.visit(v)
 
-            #v.annotations['fixed-point-format'] = self.component.get_terminal_obj(symbol=k).annotations['fixed-point-format'] 
-            #if isinstance(v, ConstValue):
-            #    v.annotations['fixed-point-format'].const_value_as_int = NodeFixedPointFormatAnnotator.encode_value_cls(v.value.float_in_si() , v.annotations['fixed-point-format'].upscale, 24 )
 
 
     def get_subpopulation(self, start_index, end_index, subname, autotag):
@@ -125,7 +118,7 @@ class ElectricalSynapseProjection(Projection):
         super(ElectricalSynapseProjection, self).__init__(**kwargs)
         self.connector = connector
         self.injected_port_name = injected_port_name
-        
+
         self.strength_S = strength_S
         self.strength_S_upscale = -21
         assert strength_S / (2**self.strength_S_upscale) < 1
@@ -171,6 +164,101 @@ class EventPortConnector(object):
 
 
 
+class _Objs:
+    Src = 'Src'
+    Dst = 'Dst'
+    Connector = 'Connector'
+
+    lut = {
+            'src': Src,
+            'dst': Dst,
+            'conn':Connector,
+            }
+
+def _resolve_string(s):
+    cname, varname = s.split('.')
+    c = _Objs.lut[cname]
+    return c, varname
+
+
+
+class _NodeTypes:
+    Input = 'Input'
+    Output = 'Output'
+
+    @classmethod
+    def get_type(self, obj):
+        import neurounits.ast as ast
+        if isinstance(obj, ast.StateVariable):
+            return _NodeTypes.Output
+
+        if isinstance(obj, ast.AssignedVariable):
+            return _NodeTypes.Output
+
+        if isinstance(obj, ast.SuppliedValue):
+            return _NodeTypes.Input
+
+        print obj
+        print type(obj)
+        assert False
+
+
+
+
+class AnalogPortConnector(object):
+    def __init__(self, src_population, dst_population, port_map, connector, connection_object, connection_properties,name):
+        self.name = name
+        self.src_population = src_population
+        self.dst_population = dst_population
+        self.connection_object = connection_object
+
+        self.port_map = []
+
+        obj_lut = {_Objs.Src: src_population.component, _Objs.Dst: dst_population.component, _Objs.Connector: connection_object}
+        for s1, s2 in port_map:
+            print
+
+            # Resolve 'conn.i' to objects:
+            print s1
+            c1,S1 = _resolve_string(s1)
+            C1 = obj_lut[c1]
+            p1 = C1.get_terminal_obj(S1)
+
+            # Resolve 'conn.i' to objects:
+            print s2
+            c2,S2 = _resolve_string(s2)
+            C2 = obj_lut[c2]
+            p2 = C2.get_terminal_obj(S2)
+
+
+            # Check we have one input and one output:
+            t1 =  _NodeTypes.get_type(p1)
+            t2 =  _NodeTypes.get_type(p2)
+            assert t1 != t2
+
+            # And save ((output), (input))
+            if t1 == _NodeTypes.Input:
+                self.port_map.append( ( (C2,p2), (C1,p1) ) )
+            else:
+                self.port_map.append( ( (C1,p1), (C2,p2) ) )
+
+
+        # Store the remaining variables:
+        self.connector = connector
+        #self.connection_properties = connection_properties
+        
+        self.connection_properties = { k: NeuroUnitParser._string_to_expr_node(v) for (k,v) in connection_properties.items() }
+        for k,v in self.connection_properties.items():
+            # Create a new node-id for the node:
+            id_annotator = self.connection_object.annotation_mgr._annotators['node-ids']
+            id_annotator.visit(v)
+
+
+
+
+
+
+
 
 
 
@@ -198,8 +286,11 @@ class Network(object):
         self.is_frozen=False
         self.populations = []
         self.event_port_connectors = []
-        self.electrical_synapse_projections = []
+        self.analog_port_connectors = []
         self.additional_events = []
+
+        # Deprecated:
+        self.electrical_synapse_projections = []
 
 
         self._record_traces = defaultdict( list )
@@ -294,7 +385,7 @@ class Network(object):
 
     def finalise(self):
         if self.is_frozen:
-            return 
+            return
         self.is_frozen=True
         # Work out which traces to record:
         def curr_rec_offset(lst):
@@ -351,6 +442,20 @@ class Network(object):
                 src.value_scaled_for_target = anntr.encode_value(value=src.value.float_in_si(), upscaling_pow=dst_param.annotations['fixed-point-format'].upscale )
 
 
+        # Sanity check on the analog connectors:
+        for apc in self.analog_port_connectors:
+            from neurounits import ast
+            for src,dst in apc.port_map:
+                # Lets check that src_ports are always state-variables when then are from the populations, rather than 
+                # assigned variables. Otherwise, these will require more work to implement.
+                src_comp, src_port = src
+                print 'Checking:', src_comp.name, src_port
+                if src_comp != apc.connection_object:
+                    assert isinstance(src_port, ast.StateVariable)
+
+
+        # TODO: check for 'Supplied Values that are not actually supplied'
+
 
 
 
@@ -363,6 +468,9 @@ class Network(object):
 
         elif isinstance( obj, EventPortConnector):
             self.event_port_connectors.append(obj)
+
+        elif isinstance(obj, AnalogPortConnector):
+            self.analog_port_connectors.append(obj)
 
         else:
             assert False
@@ -381,6 +489,8 @@ class Network(object):
 class PopulationConnector(object):
     def build_c(self, src_pop_size_expr, dst_pop_size_expr, add_connection_functor):
         raise NotImplementedError()
+
+    
 
 
 
@@ -479,6 +589,3 @@ class ExplicitIndicesLoop(PopulationConnector):
 
 
 
-class AnalogPortConnector(object):
-    def __init__(self, src_population, dst_population, port_map, connector, connection_object, connection_properties):
-        assert False

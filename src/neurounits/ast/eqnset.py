@@ -311,6 +311,7 @@ class NineMLComponent(Block):
 
     @property
     def all_input_terminals(self):
+        #TODO - whty is state_variables in this list?
         return list( itertools.chain(
                         self._parameters_lut,
                         self._supplied_lut,
