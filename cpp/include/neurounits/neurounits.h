@@ -14,19 +14,26 @@
 
 
 
-
-
-#if SAFEINT 
-typedef SafeInt32 IntType;
-#else 
-typedef int IntType;
-#endif
-
-
-
 #include "int_float_conversion.h"
 #include "lut.h"
 #include "generic_fixed_point_operations.h"
+
+
+
+
+
+namespace neurounits {
+
+    // Helper class to centralise NBITS and types:
+    template <typename IType32_, int NBITS_>
+    class Fixed
+    {
+    public:
+        typedef IType32_ IType32;
+        typedef FixedPointOp<NBITS_, IType32_> Ops;
+        typedef mh::FixedFloatConversion<NBITS_> Conversion;
+    };
+}
 
 
 

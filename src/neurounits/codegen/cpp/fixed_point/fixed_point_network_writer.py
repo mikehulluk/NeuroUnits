@@ -37,8 +37,27 @@ Two defines control the setup:
 
 
 
-const int VAR_NBITS = ${nbits};
 #include "neurounits/neurounits.h"
+
+
+
+// Define the fixed-point format:
+const int VAR_NBITS = ${nbits};
+#if SAFEINT 
+typedef neurounits::Fixed<SafeInt, VAR_NBITS> FixedType;
+#else 
+typedef neurounits::Fixed<int, VAR_NBITS> FixedType;
+#endif
+
+
+
+// Define what classes to use in the fixed point:
+typedef FixedType::IType32 IntType;
+
+
+
+
+
 
 
 
@@ -254,7 +273,7 @@ typedef double T_hdf5_type_float;
 
 
 
-typedef mh::FixedFloatConversion<VAR_NBITS> FixedFloatConversion;
+//typedef mh::FixedFloatConversion<VAR_NBITS> FixedFloatConversion;
 
 
 
@@ -370,7 +389,7 @@ namespace IntegerFixedPoint
 
         inline double to_float() const
         {
-            return FixedFloatConversion::to_float(v, UP);
+            return FixedType::Conversion::to_float(v, UP);
         }
         inline IntType to_int() const
         {
@@ -403,41 +422,35 @@ namespace IntegerFixedPoint
         template<int U1, int U2>
         static inline ScalarType<UOUT> add( const ScalarType<U1>& a, const ScalarType<U2>& b)
         {
-            IntType res = FixedPointOp<VAR_NBITS,IntType>::do_add_op(a.v, U1, b.v, U2, UOUT, -1);
-
-            //IntType res = tmpl_fp_ops::do_add_op(a.v, U1, b.v, U2, UOUT, -1);
+            IntType res = FixedType::Ops::do_add_op(a.v, U1, b.v, U2, UOUT, -1);
             return ScalarType<UOUT> (res);
         }
 
         template<int U1, int U2>
         static inline ScalarType<UOUT> sub( const ScalarType<U1>& a, const ScalarType<U2>& b)
         {
-            //IntType res = tmpl_fp_ops::do_sub_op(a.v, U1, b.v, U2, UOUT, -1);
-            IntType res = FixedPointOp<VAR_NBITS,IntType>::do_sub_op(a.v, U1, b.v, U2, UOUT, -1);
+            IntType res = FixedType::Ops::do_sub_op(a.v, U1, b.v, U2, UOUT, -1);
             return ScalarType<UOUT> (res);
         }
 
         template<int U1, int U2>
         static inline ScalarType<UOUT> mul( const ScalarType<U1>& a, const ScalarType<U2>& b)
         {
-            //IntType res = tmpl_fp_ops::do_mul_op(a.v, U1, b.v, U2, UOUT, -1);
-            IntType res = FixedPointOp<VAR_NBITS,IntType>::do_mul_op(a.v, U1, b.v, U2, UOUT, -1);
+            IntType res = FixedType::Ops::do_mul_op(a.v, U1, b.v, U2, UOUT, -1);
             return ScalarType<UOUT> (res);
         }
 
         template<int U1, int U2>
         static inline ScalarType<UOUT> div( const ScalarType<U1>& a, const ScalarType<U2>& b)
         {
-            //IntType res = tmpl_fp_ops::do_div_op(a.v, U1, b.v, U2, UOUT, -1);
-            IntType res = FixedPointOp<VAR_NBITS,IntType>::do_div_op(a.v, U1, b.v, U2, UOUT, -1);
+            IntType res = FixedType::Ops::do_div_op(a.v, U1, b.v, U2, UOUT, -1);
             return ScalarType<UOUT> (res);
         }
 
         template<int U1>
         static inline ScalarType<UOUT> exp( const ScalarType<U1>& a)
         {
-            //return ScalarType<UOUT> ( tmpl_fp_ops::int_exp( a.v, U1, UOUT, -1, lookuptables.exponential ) );
-            return ScalarType<UOUT> ( FixedPointOp<VAR_NBITS,IntType>::int_exp( a.v, U1, UOUT, -1, lookuptables.exponential ) );
+            return ScalarType<UOUT> ( FixedType::Ops::int_exp( a.v, U1, UOUT, -1, lookuptables.exponential ) );
         }
 
     };
@@ -478,8 +491,8 @@ namespace DoubleFixedPoint
     struct ScalarType
     {
         double v_float;
-        explicit ScalarType(int v) : v_float(FixedFloatConversion::to_float(v, UPSCALE)) { }
-        explicit ScalarType(long unsigned int v) : v_float(FixedFloatConversion::to_float(v, UPSCALE)) { }
+        explicit ScalarType(int v) : v_float(FixedType::Conversion::to_float(v, UPSCALE)) { }
+        explicit ScalarType(long unsigned int v) : v_float(FixedType::Conversion::to_float(v, UPSCALE)) { }
         explicit ScalarType(double v) : v_float(v) { }
         ScalarType() {};
 
@@ -506,7 +519,7 @@ namespace DoubleFixedPoint
         }
         inline IntType to_int() const
         {
-            return (FixedFloatConversion::from_float(v_float,UPSCALE) );
+            return (FixedType::Conversion::from_float(v_float,UPSCALE) );
         }
 
 
@@ -1056,7 +1069,7 @@ namespace rnd
         static ScalarType<UP> uniform(ScalarType<U1> min, ScalarType<U2> max)
         {
             return ScalarType<UP>(
-                FixedFloatConversion::from_float(
+                FixedType::Conversion::from_float(
                     rand_in_range(
                         min.to_float(),
                         max.to_float()
@@ -1073,7 +1086,7 @@ namespace rnd
 IntType _check_in_range(IntType val, IntType upscale, double min, double max, const std::string& description, bool do_check)
 {
     if(! do_check ) return val;
-    double value_float = FixedFloatConversion::to_float(val, upscale);
+    double value_float = FixedType::Conversion::to_float(val, upscale);
 
     // Addsmall tolerance, to account for constants:
     double tolerance = 0.1;
@@ -2716,7 +2729,7 @@ struct RecordMgr
     {
 
         cout << "\n\nWriting traces to HDF5\n";
-        T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
+        T_hdf5_type_float dt_float = FixedType::Conversion::to_float(1, time_upscale);
         // New version:
         SharedTimeBufferPtr times = output->write_shared_time_buffer(n_results_written, &time_buffer[0]);
         times->get_dataset()->set_scaling_factor(dt_float);
@@ -2770,7 +2783,7 @@ struct RecordMgr
     void write_all_output_events_to_hdf(SimulationResultsPtr output)
     {
         cout << "\n\nWriting output events\n";
-        T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
+        T_hdf5_type_float dt_float = FixedType::Conversion::to_float(1, time_upscale);
         %for i,poprec in enumerate(network.all_output_event_recordings):
         for(int i=0; i< ${poprec.size};i++)
         {
@@ -2787,7 +2800,7 @@ struct RecordMgr
     void write_all_input_events_to_hdf(SimulationResultsPtr output)
     {
         cout << "\n\nWriting input events\n";
-        T_hdf5_type_float dt_float = FixedFloatConversion::to_float(1, time_upscale);
+        T_hdf5_type_float dt_float = FixedType::Conversion::to_float(1, time_upscale);
         %for i,poprec in enumerate(network.all_input_event_recordings):
         for(int i=0; i< ${poprec.size};i++)
         {
