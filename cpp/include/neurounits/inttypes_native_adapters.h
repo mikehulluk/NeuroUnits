@@ -1,5 +1,5 @@
-#ifndef __INTTYPES_NATIVE_ADAPTER_H__
-#define __INTTYPES_NATIVE_ADAPTER_H__
+#ifndef __NEUROUNITS_INTTYPES_NATIVE_ADAPTER_H__
+#define __NEUROUNITS_INTTYPES_NATIVE_ADAPTER_H__
 
 #include <assert.h>
 #include <math.h>
@@ -69,4 +69,4 @@ NativeInt64 auto_shift64(NativeInt64 n, NativeInt32 m)
 
 
 
-#endif //__INTTYPES_NATIVE_ADAPTER_H__
+#endif //__NEUROUNITS_INTTYPES_NATIVE_ADAPTER_H__

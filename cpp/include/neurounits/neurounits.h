@@ -15,7 +15,7 @@
 
 
 #include "int_float_conversion.h"
-#include "lut.h"
+#include "exp_lut.h"
 #include "generic_fixed_point_operations.h"
 
 
