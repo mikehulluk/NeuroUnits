@@ -133,8 +133,6 @@ network.add(
 
 
 # Work out the electrical coupling indices:
-#f = pylab.figure()
-#ax = f.add_subplot(111)
 gap_junction_indices =   []
 for dIN_pop in [(pop_LHS_dIN), (pop_RHS_dIN)]:
     print dIN_pop
@@ -175,10 +173,8 @@ network.add(
         connection_properties={
             'g': "2nS",
             },
-
         name='Ecoupling'
         )
-
 )
 
 
@@ -188,17 +184,18 @@ network.add(
 
 network.record_output_events( [rb_drivers] , 'spike' )
 network.record_output_events( lhs_subpops+rhs_subpops , 'spike' )
+network.record_traces( lhs_subpops+rhs_subpops , 'V' )
 
 
 
-t_stop = 1.0
+
 
 results = CBasedEqnWriterFixedNetwork(
                     network,
                     CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
                     step_size=0.1e-3 / 2.,
-                    run_until=t_stop,
-                    as_float=True,
+                    run_until=1.0,
+                    as_float=False,
                     output_filename="/local/scratch/mh735/neuronits.results-Seq-float.hdf",
                     output_c_filename='op-seq.cpp'
                     ).results

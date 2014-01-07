@@ -98,12 +98,12 @@ public:
             for(NativeInt32 i = 0; i < table_size; i++)
             {
                 //int x_value_int = index_to_int(i);
-                cout << "x_int" << i-table_size_half << "\n";
+                //cout << "x_int" << i-table_size_half << "\n";
                 double x_value_double = (double)( i - table_size_half) * pow(2.0, upscale) / table_size_half;
 
                 double res = exp(x_value_double);
 
-                cout << "func(" << x_value_double << ") -> " << res << "\n";
+                //cout << "func(" << x_value_double << ") -> " << res << "\n";
 
                 // We use a variable fixed_point format to encde the result, because the ranges with exponentials
                 // are simply too great (-8,8) -> (0.000335463, 1808.04)
@@ -111,7 +111,7 @@ public:
                 NativeInt32 res_as_int = FixedFloatConversion::from_float(res, fp_upscale);
 
                 // Save the value:
-                cout << "\nres_as_int: " << res_as_int << "\n" << flush;
+                //cout << "\nres_as_int: " << res_as_int << "\n" << flush;
                 pData.push_back( IntType(res_as_int));
 
                 if(_x_vals.size() > 0) assert( _x_vals.back() < x_value_double);
@@ -145,10 +145,10 @@ public:
         {
 
             #if DEBUG
-            cout << "\n";
-            cout << "\nget()";
-            cout << "\ntable_size: " << table_size;
-            cout << "\ntable_size_half: " << table_size_half;
+            //cout << "\n";
+            //cout << "\nget()";
+            //cout << "\ntable_size: " << table_size;
+            //cout << "\ntable_size_half: " << table_size_half;
             #endif
 
 
@@ -160,8 +160,8 @@ public:
             // For debugging:
             #if DEBUG
             const double dbg_x_as_float = FixedFloatConversion::to_float(x, up_x) ;
-            cout << "\nx: " << x;
-            cout << "\ndbg_as_float: " << dbg_x_as_float;
+            //cout << "\nx: " << x;
+            //cout << "\ndbg_as_float: " << dbg_x_as_float;
 
             // Added an additional '-1', but not yet tested!
             assert( fabs(dbg_x_as_float) < pow(2.0, this->upscale-1) );
@@ -174,7 +174,7 @@ public:
             IntType table_index = (x>>rshift) + table_size_half;
 
             #if DEBUG
-            cout << "\nTable index: " << table_index;
+            //cout << "\nTable index: " << table_index;
             assert( _x_vals[get_value32(table_index)] <= dbg_x_as_float);
             assert( _x_vals[get_value32(table_index+1)] > dbg_x_as_float);
             #endif
@@ -192,8 +192,8 @@ public:
             IntType xn1 = (((x>>rshift)+1) << rshift);
             double xn_dbl = FixedFloatConversion::to_float(get_value32(xn), up_x) ;
             double xn1_dbl = FixedFloatConversion::to_float(get_value32(xn1), up_x);
-            cout << "\nxn_dbl: " << xn_dbl;
-            cout << "\nxn1_dbl: " << xn1_dbl;
+            //cout << "\nxn_dbl: " << xn_dbl;
+            //cout << "\nxn1_dbl: " << xn1_dbl;
             assert( xn_dbl <= dbg_x_as_float);
             assert( xn1_dbl > dbg_x_as_float);
             #endif
@@ -214,17 +214,17 @@ public:
             IntType yn_upscale_old =  IntType( (NativeInt32) ceil( recip_ln_two * xn_dbl_old ) );
             IntType yn1_upscale_old = IntType( (NativeInt32) ceil( recip_ln_two * xn1_dbl_old ) );
 
-            cout << "\nyn_upscale_old/ yn_upscale: " << yn_upscale_old << "/" << yn_upscale ;
-            cout << "\nyn1_upscale_old/ yn1_upscale: " << yn1_upscale_old << "/" << yn1_upscale ;
-            cout << std::flush;
+            //cout << "\nyn_upscale_old/ yn_upscale: " << yn_upscale_old << "/" << yn_upscale ;
+            //cout << "\nyn1_upscale_old/ yn1_upscale: " << yn1_upscale_old << "/" << yn1_upscale ;
+            //cout << std::flush;
             #endif
 
 
             #if DEBUG
             double yn_dbl = FixedFloatConversion::to_float( get_value32(yn), get_value32(yn_upscale));
             double yn1_dbl = FixedFloatConversion::to_float( get_value32(yn1), get_value32(yn1_upscale));
-            cout << "\nyn_dbl: " << yn_dbl;
-            cout << "\nyn1_dbl: " << yn1_dbl;
+            //cout << "\nyn_dbl: " << yn_dbl;
+            //cout << "\nyn1_dbl: " << yn1_dbl;
             assert( yn_dbl <= exp(dbg_x_as_float) );
             assert( yn1_dbl > exp(dbg_x_as_float) );
             //assert(0); // Debugging disabled!?

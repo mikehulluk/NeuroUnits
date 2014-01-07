@@ -1,20 +1,12 @@
 
 #include <boost/python.hpp>
+#include "basic_types.h"
 #include "float_utils.h"
 
 
 #include <lut.h>
 
-/*
-char const* greet()
-{
-   return "hello, world";
-}
-*/
 
-//static void MyExceptionTranslator(const MyException &err) {
-//        PyErr_SetString(PyExc_UserWarning, err.GetMessage().c_str());
-//}
 
 class MyCPPException //: public std::exception
 {
