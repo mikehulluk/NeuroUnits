@@ -27,18 +27,39 @@ using mh::auto_shift64;
 
 
 
+#include "safe_int_utils.h"
+
 
 
 
 double pow(double a, NativeInt64 b)
 {
     return pow(a, (double)b);
-
 }
 
 
 
 
+
+
+
+NativeInt32 get_value32( mh_int32::SafeInt32 v)
+{
+    return v.get_value32();
+}
+
+NativeInt64 get_value64( mh_int32::SafeInt32 v)
+{
+    return v.get_value64();
+}
+
+
+
+
+//NativeInt32 auto_shift(NativeInt32 m, NativeInt32 n)
+//{
+//    return mh::auto_shift(NativeInt32 n, NativeInt32 m)
+//}
 
 
 
