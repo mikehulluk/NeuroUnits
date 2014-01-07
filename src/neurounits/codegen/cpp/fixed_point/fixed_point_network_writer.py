@@ -4,7 +4,6 @@
 from mako.template import Template
 import numpy as np
 import os
-from neurounits.ast_annotations.common import NodeFixedPointFormatAnnotator
 
 
 
@@ -38,7 +37,8 @@ Two defines control the setup:
 
 
 
-#include "basic_types.h"
+const int VAR_NBITS = ${nbits};
+#include "neurounits/neurounits.h"
 
 
 
@@ -213,7 +213,7 @@ using namespace std;
 #include <system.h>
 #include <io.h>
 #include "HAL/inc/sys/alt_cache.h"
-#include "mh_buffer.h"
+#include "nios_tools/mh_buffer.h"
 using mhbuffer::array;
 
 
@@ -254,8 +254,6 @@ typedef double T_hdf5_type_float;
 
 
 
-#include "float_utils.h"
-const int VAR_NBITS = ${nbits};
 typedef mh::FixedFloatConversion<VAR_NBITS> FixedFloatConversion;
 using mh::auto_shift;
 using mh::auto_shift64;
@@ -269,14 +267,6 @@ using mh::auto_shift64;
 
 
 
-#if SAFEINT
-#include "safe_int.h"
-#include "safe_int_utils.h"
-#endif
-
-
-#include "safe_int_proxying.h"
-#include "lut.h"
 
 
 
@@ -342,7 +332,6 @@ LookUpTables lookuptables;
 
 
 
-#include "fixed_point_operations.h"
 
 
 
@@ -416,35 +405,41 @@ namespace IntegerFixedPoint
         template<int U1, int U2>
         static inline ScalarType<UOUT> add( const ScalarType<U1>& a, const ScalarType<U2>& b)
         {
-            IntType res = tmpl_fp_ops::do_add_op(a.v, U1, b.v, U2, UOUT, -1);
+            IntType res = FixedPointOp<VAR_NBITS,IntType>::do_add_op(a.v, U1, b.v, U2, UOUT, -1);
+
+            //IntType res = tmpl_fp_ops::do_add_op(a.v, U1, b.v, U2, UOUT, -1);
             return ScalarType<UOUT> (res);
         }
 
         template<int U1, int U2>
         static inline ScalarType<UOUT> sub( const ScalarType<U1>& a, const ScalarType<U2>& b)
         {
-            IntType res = tmpl_fp_ops::do_sub_op(a.v, U1, b.v, U2, UOUT, -1);
+            //IntType res = tmpl_fp_ops::do_sub_op(a.v, U1, b.v, U2, UOUT, -1);
+            IntType res = FixedPointOp<VAR_NBITS,IntType>::do_sub_op(a.v, U1, b.v, U2, UOUT, -1);
             return ScalarType<UOUT> (res);
         }
 
         template<int U1, int U2>
         static inline ScalarType<UOUT> mul( const ScalarType<U1>& a, const ScalarType<U2>& b)
         {
-            IntType res = tmpl_fp_ops::do_mul_op(a.v, U1, b.v, U2, UOUT, -1);
+            //IntType res = tmpl_fp_ops::do_mul_op(a.v, U1, b.v, U2, UOUT, -1);
+            IntType res = FixedPointOp<VAR_NBITS,IntType>::do_mul_op(a.v, U1, b.v, U2, UOUT, -1);
             return ScalarType<UOUT> (res);
         }
 
         template<int U1, int U2>
         static inline ScalarType<UOUT> div( const ScalarType<U1>& a, const ScalarType<U2>& b)
         {
-            IntType res = tmpl_fp_ops::do_div_op(a.v, U1, b.v, U2, UOUT, -1);
+            //IntType res = tmpl_fp_ops::do_div_op(a.v, U1, b.v, U2, UOUT, -1);
+            IntType res = FixedPointOp<VAR_NBITS,IntType>::do_div_op(a.v, U1, b.v, U2, UOUT, -1);
             return ScalarType<UOUT> (res);
         }
 
         template<int U1>
         static inline ScalarType<UOUT> exp( const ScalarType<U1>& a)
         {
-            return ScalarType<UOUT> ( tmpl_fp_ops::int_exp( a.v, U1, UOUT, -1, lookuptables.exponential ) );
+            //return ScalarType<UOUT> ( tmpl_fp_ops::int_exp( a.v, U1, UOUT, -1, lookuptables.exponential ) );
+            return ScalarType<UOUT> ( FixedPointOp<VAR_NBITS,IntType>::int_exp( a.v, U1, UOUT, -1, lookuptables.exponential ) );
         }
 
     };
