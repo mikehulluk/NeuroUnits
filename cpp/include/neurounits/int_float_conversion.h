@@ -117,42 +117,6 @@ namespace mh
 
 
 
-
-        inline
-        NativeInt32 auto_shift(NativeInt32 n, NativeInt32 m)
-        {
-                if(m==0)
-                {
-                        return n;
-                }
-                else if( m>0)
-                {
-                        return n << m;
-                }
-                else
-                {
-                   return n >> -m;
-                }
-        }
-
-
-        inline
-        NativeInt64 auto_shift64(NativeInt64 n, NativeInt32 m)
-        {
-                if(m==0)
-                {
-                        return n;
-                }
-                else if( m>0)
-                {
-                        return n << m;
-                }
-                else
-                {
-                   return n >> -m;
-                }
-        }
-
 }
 
 

@@ -10,16 +10,6 @@
 
 
 
-//#if SAFEINT
-NativeInt32 get_value32(SafeInt32 i)
-{
-    return i.get_value32();
-}
-
-NativeInt64 get_value64(SafeInt32 i)
-{
-    return i.get_value32();
-}
 
 
 
@@ -38,7 +28,6 @@ SafeInt32 auto_shift(SafeInt32 n, SafeInt32 m)
     {
        return n >> -m;
     }
-
 }
 
 std::ostream& operator<<(std::ostream& o, SafeInt32 v)

@@ -26,13 +26,6 @@ const double recip_ln_two = 1.44269504;
 
 
 
-using mh::auto_shift;
-using mh::auto_shift64;
-
-
-
-
-
 
 
 

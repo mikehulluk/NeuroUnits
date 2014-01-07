@@ -186,18 +186,6 @@ namespace mh_int32
             this->_value = new_val._value;
             return temp;
         }
-
-
-//#SafeInt operator+=(const SafeInt32& rhs)
-//        {
-//            
-//            assert(this->is_valid && rhs.is_valid);
-//            SafeInt32 s = *this + rhs;
-//            this->_value = s._value;
-//
-//            return *this;
-//        }
-
     };
 
 

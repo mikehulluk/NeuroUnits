@@ -255,8 +255,6 @@ typedef double T_hdf5_type_float;
 
 
 typedef mh::FixedFloatConversion<VAR_NBITS> FixedFloatConversion;
-using mh::auto_shift;
-using mh::auto_shift64;
 
 
 
