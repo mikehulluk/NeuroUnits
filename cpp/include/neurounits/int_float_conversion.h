@@ -59,13 +59,13 @@ public:
     static const NativeInt64 cl_range_max = (1 << (cl_nbits - 1));
 
     inline
-    static double to_float(NativeInt32 val, NativeInt32 upscale) {
+    static double _to_float(NativeInt32 val, NativeInt32 upscale) {
         double res = (double(val) * pow(2.0, upscale) / double(cl_range_max));
         return res;
     }
 
     inline
-    static NativeInt32 from_float(double val, NativeInt32 upscale) {
+    static NativeInt32 _from_float(double val, NativeInt32 upscale) {
 
 #ifdef DBG_RANGE
         if(fabs(val) > pow(2.0, upscale)) {
@@ -91,6 +91,14 @@ public:
     }
 
 
+    inline
+    static NativeInt32 from_float(double val, NativeInt32 upscale) {
+        return _from_float(val, upscale);
+    }
+    inline
+    static double to_float(NativeInt32 val, NativeInt32 upscale) {
+        return _to_float( val,  upscale);
+    }
 
 
 
@@ -109,9 +117,34 @@ public:
     }
 
     inline
-    static int from_float(double val, SafeInt32 upscale) {
-        return from_float(val, get_value32(upscale));
+    static SafeInt32 from_float(double val, SafeInt32 upscale) {
+        return SafeInt32(from_float(val, get_value32(upscale)));
     }
+
+
+
+    // Explicitly named versions of the overlaoded functions - these are only
+    // provided to avoid overloaded function problems in the boost::python 
+    // wrapper
+    inline
+    static NativeInt32 n32_from_float(double val, NativeInt32 upscale) {
+        return from_float(val, upscale);
+    }
+    inline
+    static double n32_to_float(NativeInt32 val, NativeInt32 upscale) {
+        return to_float(val,  upscale);
+    }
+
+
+    inline
+    static SafeInt32 s32_from_float(double val, SafeInt32 upscale) {
+        return from_float(val, upscale);
+    }
+    inline
+    static double s32_to_float(SafeInt32 val, SafeInt32 upscale) {
+        return to_float(val,  upscale);
+    }
+
 };
 
 

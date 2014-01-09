@@ -1,4 +1,4 @@
-/* 
+/*
 Copyright (c) 2014, Michael Hull
 All rights reserved.
 

@@ -78,15 +78,16 @@ void throw_exception()
 BOOST_PYTHON_MODULE(fplib)
 {
     using namespace boost::python;
-    //def("greet", greet);
-
 
     typedef mh::FixedFloatConversion<24> FixedFloatConversion24;
-    def("to_float24", FixedFloatConversion24::to_float);
-    def("from_float24", FixedFloatConversion24::from_float);
+    def("n32_to_float24", FixedFloatConversion24::n32_to_float);
+    def("n32_from_float24", FixedFloatConversion24::n32_from_float);
+    def("s32_to_float24", FixedFloatConversion24::s32_to_float);
+    def("s32_from_float24", FixedFloatConversion24::s32_from_float);
 
 
-    typedef LookUpTableExpPower2<24, SafeInt32> LUTExp24;
+
+    typedef LookUpTableExpPower2<24, NativeInt32> LUTExp24;
     class_<LUTExp24>("LUTExp24", init<int, int>())
         .def("get", &LUTExp24::get)
     ;

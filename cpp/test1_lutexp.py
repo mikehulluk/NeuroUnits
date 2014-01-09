@@ -22,10 +22,10 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
                 return lut.get( int(a),int(b), int(c) )
 
         def _from_float(x,scale):
-                return fplib.from_float24(double(x), int(scale))
+                return fplib.n32_from_float24(float(x), int(scale))
                 
         def _to_float(x,scale):
-                return fplib.to_float24(int(x), int(scale))
+                return fplib.n32_to_float24(int(x), int(scale))
                 
         getexp = np.vectorize( _getexp )
         to_float = np.vectorize( _to_float )
@@ -56,7 +56,7 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
         ax3.plot(x,err_diff_int,'x', label='Absolute error (int)')
 
         for ax in [ax1,ax2,ax3]: ax.legend()
-
+        
 
 
 
@@ -74,7 +74,7 @@ test_lut(lut_address_size=10, lut_input_range_upscale=3, input_range=(-6,-2), ex
 #
 #test_lut(lut_address_size=7, lut_input_range_upscale=4, input_range=(10,14), exp_out_scale=21)
 
-#pylab.show()
+pylab.show()
 
 
 
