@@ -97,7 +97,7 @@ public:
     }
     inline
     static double to_float(NativeInt32 val, NativeInt32 upscale) {
-        return _to_float( val,  upscale);
+        return _to_float(val,  upscale);
     }
 
 
@@ -124,7 +124,7 @@ public:
 
 
     // Explicitly named versions of the overlaoded functions - these are only
-    // provided to avoid overloaded function problems in the boost::python 
+    // provided to avoid overloaded function problems in the boost::python
     // wrapper
     inline
     static NativeInt32 n32_from_float(double val, NativeInt32 upscale) {

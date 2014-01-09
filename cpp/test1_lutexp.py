@@ -44,7 +44,7 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
         err_diff_int = np.fabs(from_float(np.exp(x), exp_out_scale) - exp_x_int) 
 
 
-        f = pylab.figure()
+        f = pylab.figure(figsize=(180./25.4, 4.))
         f.suptitle('Results from lookup table:' )
         ax1 = f.add_subplot(311)
         ax2 = f.add_subplot(312)
