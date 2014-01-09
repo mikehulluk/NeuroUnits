@@ -1,4 +1,4 @@
-/* 
+/*
 Copyright (c) 2014, Michael Hull
 All rights reserved.
 
@@ -32,20 +32,17 @@ const int nbits = 24;
 int main()
 {
     //LookUpTableExpPower2 exp_table( 12, 3);
-    LookUpTableExpPower2<24, SafeInt32> exp_table( 5, 3);
+    LookUpTableExpPower2<24, SafeInt32> exp_table(5, 3);
 
-	typedef mh::FixedFloatConversion<24> FixedFloatConversion;
-	
-	
+    typedef mh::FixedFloatConversion<24> FixedFloatConversion;
     ofstream output("exp_out.txt");
 
     int in_upscale = 3;
     int out_upscale = 9;
     const int NPOINTS = 1000;
-    for(int i=-700;i< 750;i++)
-    {
-        double x = (float)i/100.;
-        int x_int = FixedFloatConversion::from_float( x, in_upscale);
+    for(int i = -700; i < 750; i++) {
+        double x = (float)i / 100.;
+        int x_int = FixedFloatConversion::from_float(x, in_upscale);
 
         int exp_x = exp_table.get(x_int, in_upscale, out_upscale);
 

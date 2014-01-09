@@ -36,17 +36,18 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 
 
-namespace neurounits {
+namespace neurounits
+{
 
-    // Helper class to centralise NBITS and types:
-    template <typename IType32_, int NBITS_>
-    class Fixed
-    {
-    public:
-        typedef IType32_ IType32;
-        typedef FixedPointOp<NBITS_, IType32_> Ops;
-        typedef mh::FixedFloatConversion<NBITS_> Conversion;
-    };
+// Helper class to centralise NBITS and types:
+template <typename IType32_, int NBITS_>
+class Fixed
+{
+public:
+    typedef IType32_ IType32;
+    typedef FixedPointOp<NBITS_, IType32_> Ops;
+    typedef mh::FixedFloatConversion<NBITS_> Conversion;
+};
 }
 
 

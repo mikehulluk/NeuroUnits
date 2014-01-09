@@ -1,4 +1,4 @@
-/* 
+/*
 Copyright (c) 2014, Michael Hull
 All rights reserved.
 
@@ -24,22 +24,22 @@ using namespace std;
 #include <boost/test/unit_test.hpp>
 
 
-BOOST_AUTO_TEST_CASE( my_test )
+BOOST_AUTO_TEST_CASE(my_test)
 {
-    SafeUInt32 t1( 4 );
-    SafeUInt32 t2( 7 );
+    SafeUInt32 t1(4);
+    SafeUInt32 t2(7);
 
 
     // Overflow on addition
-    BOOST_CHECK_THROW( SafeUInt32(1<<31) + SafeUInt32(1<<31),  SafeIntException  );
+    BOOST_CHECK_THROW(SafeUInt32(1 << 31) + SafeUInt32(1 << 31),  SafeIntException);
 
     // Underflow on subtraction
-    BOOST_CHECK_THROW( SafeUInt32(4) - SafeUInt32(7),  SafeIntException  );
-    
-    // Overflow on multiply: 
-    BOOST_CHECK_THROW( SafeUInt32(1<<31) *SafeUInt32(2),  SafeIntException  );
+    BOOST_CHECK_THROW(SafeUInt32(4) - SafeUInt32(7),  SafeIntException);
 
-    BOOST_CHECK( SafeUInt32(3) << SafeUInt32(2) == SafeUInt32(12) ) ;
+    // Overflow on multiply:
+    BOOST_CHECK_THROW(SafeUInt32(1 << 31) *SafeUInt32(2),  SafeIntException);
+
+    BOOST_CHECK(SafeUInt32(3) << SafeUInt32(2) == SafeUInt32(12)) ;
 
     SafeInt32 myval = 34;
 }

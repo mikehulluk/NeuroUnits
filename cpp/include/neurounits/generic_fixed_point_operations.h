@@ -295,30 +295,24 @@ public:
 
 
 
-    static inline IType32 do_add_op(IType32 v1, IType32 up1, IType32 v2, IType32 up2, IType32 up_local, IType32 expr_id)
-    {
-        return deprecated_to_inline_tmpl_fp_ops::do_add_op<NBITS,IType32>(v1, up1, v2, up2, up_local, expr_id);
+    static inline IType32 do_add_op(IType32 v1, IType32 up1, IType32 v2, IType32 up2, IType32 up_local, IType32 expr_id) {
+        return deprecated_to_inline_tmpl_fp_ops::do_add_op<NBITS, IType32>(v1, up1, v2, up2, up_local, expr_id);
     }
 
-    static inline IType32 do_sub_op(IType32 v1, IType32 up1, IType32 v2, IType32 up2, IType32 up_local, IType32 expr_id)
-    {
-        return deprecated_to_inline_tmpl_fp_ops::do_sub_op<NBITS,IType32>(v1, up1, v2, up2, up_local, expr_id);
+    static inline IType32 do_sub_op(IType32 v1, IType32 up1, IType32 v2, IType32 up2, IType32 up_local, IType32 expr_id) {
+        return deprecated_to_inline_tmpl_fp_ops::do_sub_op<NBITS, IType32>(v1, up1, v2, up2, up_local, expr_id);
     }
 
-    static inline IType32 do_mul_op(IType32 v1, IType32 up1, IType32 v2, IType32 up2, IType32 up_local, IType32 expr_id)
-    {
-        return deprecated_to_inline_tmpl_fp_ops::do_mul_op<NBITS,IType32>(v1, up1, v2, up2, up_local, expr_id);
+    static inline IType32 do_mul_op(IType32 v1, IType32 up1, IType32 v2, IType32 up2, IType32 up_local, IType32 expr_id) {
+        return deprecated_to_inline_tmpl_fp_ops::do_mul_op<NBITS, IType32>(v1, up1, v2, up2, up_local, expr_id);
     }
 
-    static inline IType32 do_div_op(IType32 v1, IType32 up1, IType32 v2, IType32 up2, IType32 up_local, IType32 expr_id)
-    {
-        return deprecated_to_inline_tmpl_fp_ops::do_div_op<NBITS,IType32>(v1, up1, v2, up2, up_local, expr_id);
+    static inline IType32 do_div_op(IType32 v1, IType32 up1, IType32 v2, IType32 up2, IType32 up_local, IType32 expr_id) {
+        return deprecated_to_inline_tmpl_fp_ops::do_div_op<NBITS, IType32>(v1, up1, v2, up2, up_local, expr_id);
     }
-    
     template<typename EXPLUT_TYPE>
-    static inline IType32 int_exp(IType32 v1, IType32 up1, IType32 up_local, IType32 expr_id, const EXPLUT_TYPE& exponential_lut)
-    {
-        return deprecated_to_inline_tmpl_fp_ops::int_exp<NBITS,IType32,EXPLUT_TYPE>(v1, up1, up_local, expr_id, exponential_lut);
+    static inline IType32 int_exp(IType32 v1, IType32 up1, IType32 up_local, IType32 expr_id, const EXPLUT_TYPE& exponential_lut) {
+        return deprecated_to_inline_tmpl_fp_ops::int_exp<NBITS, IType32, EXPLUT_TYPE>(v1, up1, up_local, expr_id, exponential_lut);
     }
 };
 

@@ -1,4 +1,4 @@
-/* 
+/*
 Copyright (c) 2014, Michael Hull
 All rights reserved.
 
@@ -22,14 +22,29 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 
 // Deprecated:
-NativeInt32 get_value32(NativeInt32 i) { return i; }
-NativeInt64 get_value64(NativeInt32 i){  return i; }
+NativeInt32 get_value32(NativeInt32 i)
+{
+    return i;
+}
+NativeInt64 get_value64(NativeInt32 i)
+{
+    return i;
+}
 
 
 // Templates for allowing return types to change based on IntType
-template<typename T>T inttype32_from_inttype64(NativeInt64 value){ assert(0); }
-template<> int inttype32_from_inttype64(NativeInt64 value){ return value;}
-template<> long long inttype32_from_inttype64(NativeInt64 value){ return value;}
+template<typename T>T inttype32_from_inttype64(NativeInt64 value)
+{
+    assert(0);
+}
+template<> int inttype32_from_inttype64(NativeInt64 value)
+{
+    return value;
+}
+template<> long long inttype32_from_inttype64(NativeInt64 value)
+{
+    return value;
+}
 
 
 
@@ -47,35 +62,25 @@ double pow(double a, NativeInt64 b)
 inline
 NativeInt32 auto_shift(NativeInt32 n, NativeInt32 m)
 {
-        if(m==0)
-        {
-                return n;
-        }
-        else if( m>0)
-        {
-                return n << m;
-        }
-        else
-        {
-           return n >> -m;
-        }
+    if(m == 0) {
+        return n;
+    } else if(m > 0) {
+        return n << m;
+    } else {
+        return n >> -m;
+    }
 }
 
 inline
 NativeInt64 auto_shift64(NativeInt64 n, NativeInt32 m)
 {
-        if(m==0)
-        {
-                return n;
-        }
-        else if( m>0)
-        {
-                return n << m;
-        }
-        else
-        {
-           return n >> -m;
-        }
+    if(m == 0) {
+        return n;
+    } else if(m > 0) {
+        return n << m;
+    } else {
+        return n >> -m;
+    }
 }
 
 

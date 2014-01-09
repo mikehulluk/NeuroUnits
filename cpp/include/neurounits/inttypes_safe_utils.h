@@ -1,4 +1,4 @@
-/* 
+/*
 Copyright (c) 2014, Michael Hull
 All rights reserved.
 
@@ -29,17 +29,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 SafeInt32 auto_shift(SafeInt32 n, SafeInt32 m)
 {
-    if(m.get_value32()==0)
-    {
-            return n;
+    if(m.get_value32() == 0) {
+        return n;
     }
-    if(m.get_value32()>0)
-    {
-            return n << m;
-    }
-    else
-    {
-       return n >> -m;
+    if(m.get_value32() > 0) {
+        return n << m;
+    } else {
+        return n >> -m;
     }
 }
 
@@ -52,7 +48,7 @@ std::ostream& operator<<(std::ostream& o, SafeInt32 v)
 
 double pow(double x, SafeInt32 rhs)
 {
-    return pow(x, (double) rhs.get_value32() );
+    return pow(x, (double) rhs.get_value32());
 }
 
 
