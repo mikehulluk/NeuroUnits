@@ -1,0 +1,49 @@
+import sys
+import os
+
+
+Import('env')
+
+
+
+# neurounits-cpp
+# ===============
+# (neurounits has no source-files to compile, its all in headers)
+libs_neurounits = []
+# Header-files
+headers_neurounits = Glob("include/neurounits/*.h")
+
+
+# neurounits-cpp-boostpython:
+# ===========================
+libs_neurounits_cpp_boostpy = env.SharedLibrary('neurounits_cpp_boostpython', ['boost_python_wrappers/py_fplib.cpp'])
+
+
+# neurounits-cpptesting
+# =======================
+testx_lut = env.Program('test-build/lut_test.x', ["test/lut_test.cpp"])
+
+
+# Install them into the prefix-path:
+# ===================================
+prefix = os.path.expanduser("~/.local/")
+env.Alias("install", env.Install(os.path.join(prefix, "lib"), libs_neurounits))
+env.Alias("install", env.Install(os.path.join(prefix, "lib"), libs_neurounits_cpp_boostpy))
+env.Alias("install", env.Install(os.path.join(prefix, "include/neurounits/"), headers_neurounits))
+
+
+# Run the test-scripts:
+# =====================
+
+test_cpp_programs = [testx_lut]
+for test_cpp_program in test_cpp_programs:
+    test_cpp_program = str(test_cpp_program[0])
+    print test_cpp_program
+    env.Alias("test",
+              env.Command(
+                target = test_cpp_program+'.out',
+                source = test_cpp_program,
+                action = 'cd ${TARGET.dir}/.. && %s > %s.out' %(test_cpp_program,test_cpp_program),
+                )
+              )
+

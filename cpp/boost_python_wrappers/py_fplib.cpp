@@ -19,7 +19,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 
 
-class MyCPPException //: public std::exception
+class MyCPPException 
 {
 public:
     const char* what() const {
