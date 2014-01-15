@@ -16,6 +16,7 @@ from neurounits.visualisation.mredoc import MRedocWriterVisitor
 from neurounits.codegen.population_infrastructure import *
 
 
+import neurounitscontrib.components.tadpole
 
 
 
@@ -23,8 +24,7 @@ from neurounits.codegen.population_infrastructure import *
 
 
 
-
-import components
+#import components
 
 def _build_sim(nbits):
     HH_comp = neurounits.ComponentLibrary.instantiate_component('HH')
@@ -34,15 +34,15 @@ def _build_sim(nbits):
             component=HH_comp,
             size=1,
             parameters={
-                'nmda_multiplier': 1.0, 
+                'nmda_multiplier': 1.0,
                 'ampa_multiplier': 1.0,
                 'inj_current': "50pA",
-                
+
                 },
             )
     network.record_output_events(dINs, 'spike' )
     network.record_traces(dINs, 'V' )
-    
+
     results = CBasedEqnWriterFixedNetwork(
                     network,
                     CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
@@ -58,8 +58,8 @@ def build_sim(nbits):
         return _build_sim(nbits=nbits)
     except subprocess.CalledProcessError:
         return None
-        
-    
+
+
 
 import hdfjive
 #results = [ build_sim(nbits=nbits) for nbits in [None, 12, 14, 16, 18, 24, 30, 32, 34 ] ]

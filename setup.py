@@ -59,7 +59,6 @@ setup(
     entry_points = {
         'console_scripts': [
             'neurounits.nine = neurounits.frontend.cmdline.nineml_fe:main',
-            'neurounits = neurounits.frontend.cmdline.neurounits:main',
         ],
     },
 
@@ -73,12 +72,6 @@ setup(
             
             ]
         },
-
-
-    #data_files=[('mreorg/etc', ['etc/configspec.ini']),
-    #            #('config', ['cfg/data.cfg']),
-    #            #('/etc/init.d', ['init-script'])
-    #            ],
 
 
     install_requires=['matplotlib','quantities', 'straight.plugin','networkx'],
