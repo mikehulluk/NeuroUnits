@@ -3124,10 +3124,6 @@ class CBasedEqnWriterFixedNetwork(object):
                         ** std_variables
                         )
 
-
-
-
-        #cfile = '\n'.join([c_prog_header] +  code_per_pop + code_per_analogconnection_projection +  [popl_objs] + code_per_electrical_projection +  code_per_eventport_projection  + cout_data_writers +[c_nios_plotting] + [c_main_loop])
         cfile = '\n'.join([c_prog_header] +  code_per_pop + code_per_analogconnection_projection +  [popl_objs] +  code_per_eventport_projection  + cout_data_writers +[c_nios_plotting] + [c_main_loop])
 
         for f in ['sim1.cpp','a.out',output_filename, 'debug.log',]:
@@ -3159,7 +3155,7 @@ class CBasedEqnWriterFixedNetwork(object):
         # The executable:
         CCompiler.build_executable( src_text=cfile,
                                     compilation_settings = CCompilationSettings(
-                                        additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.abspath('../../cpp/include/'), ],
+                                        additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.expanduser('~/hw/NeuroUnits/cpp/include/'), ],
                                         additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/"), os.path.expanduser("~/hw/BlueVec/lib/")],
                                         libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl'],
                                         compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O2  -g -D_GLIBCXX_DEBUG ' + (CPPFLAGS if CPPFLAGS else '') ]

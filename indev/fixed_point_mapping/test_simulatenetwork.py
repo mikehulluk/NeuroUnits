@@ -1,7 +1,7 @@
 
 
 import mreorg
-mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG]
+mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.SVG]
 
 import os
 import neurounits
@@ -24,6 +24,8 @@ import components
 dIN_comp = neurounits.ComponentLibrary.instantiate_component('dIN')
 MN_comp =  neurounits.ComponentLibrary.instantiate_component('MN')
 RB_input = neurounits.ComponentLibrary.instantiate_component('RBInput')
+
+
 
 
 #nbits=24
@@ -184,8 +186,8 @@ network.add(
 
 network.record_output_events( [rb_drivers] , 'spike' )
 network.record_output_events( lhs_subpops+rhs_subpops , 'spike' )
-network.record_traces( lhs_subpops+rhs_subpops , 'V' )
-
+network.record_traces(lhs_subpops+rhs_subpops , 'V' )
+network.record_traces([pop_LHS_dIN,pop_RHS_dIN], 'nmda_vdep')
 
 
 
@@ -194,7 +196,7 @@ results = CBasedEqnWriterFixedNetwork(
                     network,
                     CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
                     step_size=0.1e-3 / 2.,
-                    run_until=1.0,
+                    run_until=0.4,
                     as_float=False,
                     output_filename="/local/scratch/mh735/neuronits.results-Seq-float.hdf",
                     output_c_filename='op-seq.cpp'
@@ -203,7 +205,146 @@ results = CBasedEqnWriterFixedNetwork(
 
 
 
-import test_simulatenetwork_plot
+#import test_simulatenetwork_plot
+
+
+
+from hdfjive import HDF5SimulationResultFile, RasterGroup, RasterSubgroup
+
+#results = HDF5SimulationResultFile("/local/scratch/mh735/neuronits.results-Seq-float.hdf")
+
+import mreorg
+#mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG] # , mreorg.FigFormat.SVG]
+
+def build_raster_plot_obj(name, side):
+        alpha=0.3
+        size = 0.5
+        return RasterGroup('%s\n%s' % (name, side), [
+            RasterSubgroup("OUT:Spike", "ALL{spike,%s,%s}"%(name,side), {'color':'black', 'marker':'x', 's':2}),
+            RasterSubgroup("IN: AMPA", "ALL{recv_ampa_spike,%s,%s}"%(name,side), {'color':'blue', 'marker':'.', 's':size }),
+            #RasterSubgroup("IN: NMDA", "ALL{recv_nmda_spike,%s,%s}"%(name,side), {'color':'green', 'marker':'.', 's':size }),
+            #RasterSubgroup("IN: Inhib", "ALL{recv_inh_spike,%s,%s} "%(name,side), {'color':'red', 'marker':'.', 's':size }),
+            ] )
+
+
+
+
+#xlim=(95e-3,750e-3)
+#xlim=(95e-3,300e-3)
+xlim=(50e-3,400e-3)
+#xlim=(30e-3,1000e-3)
+
+
+fig=results.raster_plot([
+        RasterGroup('RB', [
+            RasterSubgroup('Spike', "ALL{spike,RBINPUT}", {'color':'red'})
+            ] ),
+        build_raster_plot_obj('RB', 'RHS'),
+        #build_raster_plot_obj('RB', 'LHS'),
+
+        build_raster_plot_obj('dla', 'RHS'),
+        #build_raster_plot_obj('dla', 'LHS'),
+
+        build_raster_plot_obj('dlc', 'RHS'),
+        #build_raster_plot_obj('dlc', 'LHS'),
+
+        build_raster_plot_obj('dIN', 'RHS'),
+        build_raster_plot_obj('dIN', 'LHS'),
+
+        build_raster_plot_obj('aIN', 'RHS'),
+        build_raster_plot_obj('aIN', 'LHS'),
+
+        build_raster_plot_obj('cIN', 'RHS'),
+        build_raster_plot_obj('cIN', 'LHS'),
+
+        build_raster_plot_obj('MN', 'RHS'),
+        build_raster_plot_obj('MN', 'LHS'),
+
+
+        RasterGroup('MN', [
+            RasterSubgroup("MN:LHS", "ALL{spike,MN,LHS}", {'color':'blue', 'marker':'x', 's':2}),
+            RasterSubgroup("MN:RHS", "ALL{spike,MN,RHS}", {'color':'green', 'marker':'x', 's':2}),
+            ] )
+
+        ],
+
+        xlim=xlim,
+        fig_kwargs=dict(figsize=(185/25.4, 5) ),
+        
+        )
+
+fig.savefig("_build/fig_res_tadpole1.svg")
+
+
+filters_traces = [
+   "ALL{V,dIN,LHS} AND ANY{POPINDEX:0000,POPINDEX:0001,POPINDEX:0002}",
+   "ALL{nmda_vdep,dIN,LHS} AND ANY{POPINDEX:0000,POPINDEX:0001,POPINDEX:0002}",
+   #~ "ALL{V,RB,LHS}",
+   #~ "ALL{V,dla,RHS}",
+   #~ "ALL{V,dla,LHS}",
+   #~ "ALL{V,dlc,RHS}",
+   #~ "ALL{V,dlc,LHS}",
+   #~ "ALL{V,aIN,RHS}",
+   #~ "ALL{V,aIN,LHS}",
+   #~ "ALL{V,cIN,RHS}",
+   #~ "ALL{V,cIN,LHS}",
+   #~ "ALL{V,dIN,RHS}",
+   #~ "ALL{V,dIN,LHS}",
+   #~ "ALL{V,MN,RHS}",
+   #~ "ALL{V,MN,LHS}",
+#~ 
+   #~ "ALL{dIN,V_vnoisy,RHS}",
+   #~ "ALL{dIN,V_vnoisy,LHS}",
+   #~ "ALL{dIN,noise,RHS}",
+   #~ "ALL{dIN,noise,LHS}",
+   #~ "ALL{dIN,noise_raw,RHS}",
+   #~ "ALL{dIN,noise_raw,LHS}",
+   #~ "ALL{V,MN,LHS}",
+]
+
+
+
+def plot_graph(filt, xlabel=None, legend=False):
+        fig = pylab.figure(figsize=(85/25.4, 3.))
+        trs = results.filter_traces(filt)
+
+
+        print 'Plotting:', filt, len(trs)
+        for res in trs:
+            if xlim:
+                time_mask = np.logical_and(
+                                res.raw_data.time_pts>xlim[0],
+                                res.raw_data.time_pts<xlim[1],
+                        )
+                time, data = res.raw_data.time_pts[time_mask], res.raw_data.data_pts[time_mask]
+            else:
+                time, data = res.raw_data.time_pts, res.raw_data.data_pts
+
+            if xscale is not None:
+                time = time * xscale
+            pylab.plot(time, data,'x-', label=','.join(res.tags), ms=2 )
+
+
+        pylab.ylabel(filt)
+        if legend:
+            pylab.legend()
+
+        pylab.autoscale(axis='y')
+        if xlabel is not None:
+            pylab.xlabel(xlabel)
+
+
+        return fig
+
+
+f1 = plot_graph( "ALL{V,dIN,LHS} AND ANY{POPINDEX:0000,POPINDEX:0001,POPINDEX:0002}", xlabel='Voltage' )
+f1 = plot_graph( "ALL{nmda_vdep,dIN,LHS} AND ANY{POPINDEX:0000,POPINDEX:0001,POPINDEX:0002}",xlabel='NMDA-vdep' )
+
+
+                
+f1.savefig("_build/fig_res_tadpole2a.svg")
+f2.savefig("_build/fig_res_tadpole2b.svg")
+
 
 
 

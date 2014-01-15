@@ -1,7 +1,7 @@
 
 
 import mreorg
-mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG]
+mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.SVG]
 
 import os
 import pylab
@@ -62,15 +62,13 @@ def build_sim(nbits):
     
 
 import hdfjive
-results = [ build_sim(nbits=nbits) for nbits in [None, 12, 14, 16, 18, 24, 30, 32, 34 ] ]
+#results = [ build_sim(nbits=nbits) for nbits in [None, 12, 14, 16, 18, 24, 30, 32, 34 ] ]
+results = [ build_sim(nbits=nbits) for nbits in [28 ] ]
 results = [r for r in results if r is not None]
 results = hdfjive.HDF5SimulationResultFileSet(results)
 
-results1 = build_sim(nbits=8)
-results1 = build_sim(nbits=8)
-results1 = build_sim(nbits=8)
-
-results2 = build_sim(nbits=20)
+#results1 = build_sim(nbits=8)
+#results2 = build_sim(nbits=20)
 
 
 
@@ -89,8 +87,16 @@ filters_spikes = [
 
 
 
-results.plot(trace_filters=filters_traces, spike_filters=filters_spikes, legend=True, xlim = (0.0,0.7)  )
+f1,f2 = results.plot(trace_filters=filters_traces,
+             spike_filters=filters_spikes,
+             legend=True,
+             xlim = (0.0,0.7),
+             fig_trace_kwargs= dict(figsize=(85/25.4, 2) ),
+             fig_event_kwargs= dict(figsize=(85/25.4, 1) ),
+               )
 
 
+f1[0].savefig('_build/res_hh1_newA.svg')
+f2[0].savefig('_build/res_hh1_newB.svg')
 
 pylab.show()
