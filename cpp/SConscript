@@ -16,12 +16,19 @@ headers_neurounits = Glob("include/neurounits/*.h")
 
 # neurounits-cpp-boostpython:
 # ===========================
-libs_neurounits_cpp_boostpy = env.SharedLibrary('neurounits_cpp_boostpython', ['boost_python_wrappers/py_fplib.cpp'])
+libs_neurounits_cpp_boostpy = env.SharedLibrary('pyneurounits', ['src/neurounits_boostpython/neurounits_cpp_boostpython.cpp'])
 
 
 # neurounits-cpptesting
 # =======================
 testx_lut = env.Program('test-build/lut_test.x', ["test/lut_test.cpp"])
+
+
+
+
+
+
+
 
 
 # Install them into the prefix-path:
@@ -38,7 +45,6 @@ env.Alias("install", env.Install(os.path.join(prefix, "include/neurounits/"), he
 test_cpp_programs = [testx_lut]
 for test_cpp_program in test_cpp_programs:
     test_cpp_program = str(test_cpp_program[0])
-    print test_cpp_program
     env.Alias("test",
               env.Command(
                 target = test_cpp_program+'.out',
