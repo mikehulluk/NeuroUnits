@@ -39,8 +39,9 @@ doc_cmd = env.Command(
     action = 'cd ${TARGET.dir} && doxygen doxygen.config')
 doc_alias = env.Alias("docs", doc_cmd)
 
-Depends(doc_cmd, headers_neurounits)
-Depends(doc_alias, headers_neurounits)
+# FIX-ME: THIS DEPENDANCY IS NOT WORKING
+# Depends(doc_cmd, headers_neurounits)
+# Depends(doc_alias, headers_neurounits)
 
               
 
