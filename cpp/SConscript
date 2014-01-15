@@ -51,7 +51,7 @@ installs = list(itertools.chain(*[
 # Run the test-scripts:
 # =====================
 
-# from .cpp
+# i) from .cpp
 test_cpp_programs = [testx_lut]
 for test_cpp_program in test_cpp_programs:
     test_cpp_program = str(test_cpp_program[0])
@@ -63,7 +63,7 @@ for test_cpp_program in test_cpp_programs:
                 )
               )
 
-# from .py
+# ii) from .py
 for python_test_src in python_test_srcs:
     python_test_src = str(python_test_src)
     cmd = env.Command(
@@ -75,5 +75,27 @@ for python_test_src in python_test_srcs:
     env.Alias("test", cmd)
     
 
-            
 
+
+# Clean-up:
+# Some hacks to remove files during a clean:
+# ===========================================
+Clean('.', Glob("_output") )
+Clean('.', Glob("_output/*") )
+Clean('.', Glob("_output/*/*") )
+Clean('.', Glob("_output/*/*/*") )
+Clean('.', Glob("_output/*/*/*/*") )
+
+Clean('.', Glob("test-build") )
+Clean('.', Glob("test-build/*") )
+Clean('.', Glob("test-build/*/*") )
+Clean('.', Glob("test-build/*/*/*") )
+Clean('.', Glob("test-build/*/*/*/*") )
+
+Clean('.', Glob("libs") )
+Clean('.', Glob("libs/*") )
+Clean('.', Glob("libs/*/*") )
+Clean('.', Glob("libs/*/*/*") )
+Clean('.', Glob("libs/*/*/*/*") )
+
+Clean('.', 'exp_out.txt' )
