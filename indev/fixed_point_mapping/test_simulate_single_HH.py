@@ -11,7 +11,7 @@ import shutil
 import subprocess
 
 import neurounits
-from neurounits.codegen.cpp.fixed_point import CBasedEqnWriterFixedNetwork
+from neurounits.codegen.cpp.fixed_point import CBasedEqnWriterFixedNetwork, NumberFormat
 from neurounits.visualisation.mredoc import MRedocWriterVisitor
 from neurounits.codegen.population_infrastructure import *
 
@@ -26,11 +26,11 @@ import neurounitscontrib.components.tadpole
 
 #import components
 
-def _build_sim(nbits):
+def _build_sim(number_format):
     HH_comp = neurounits.ComponentLibrary.instantiate_component('HH')
     network = Network()
     dINs = network.create_population(
-            name=('HH%03d'%nbits) if nbits is not None else 'HHfloat',
+            name=('HH_%s'%number_format),
             component=HH_comp,
             size=1,
             parameters={
@@ -48,27 +48,28 @@ def _build_sim(nbits):
                     CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
                     step_size=0.01e-3,
                     run_until=1.0,
-                    nbits=nbits or 24,
-                    as_float = nbits is not None
+                    number_format = number_format,
                     ).results
     return results
 
-def build_sim(nbits):
+def build_sim(number_format):
     try:
-        return _build_sim(nbits=nbits)
+        return _build_sim(number_format=number_format)
     except subprocess.CalledProcessError:
         return None
 
 
 
 import hdfjive
-#results = [ build_sim(nbits=nbits) for nbits in [None, 12, 14, 16, 18, 24, 30, 32, 34 ] ]
-results = [ build_sim(nbits=nbits) for nbits in [28 ] ]
+number_formats = [
+        #NumberFormat.Int28,
+        NumberFormat.GMP,
+        #NumberFormat.Double,
+        ]
+results = [ build_sim(number_format=number_format) for number_format in number_formats ]
 results = [r for r in results if r is not None]
 results = hdfjive.HDF5SimulationResultFileSet(results)
 
-#results1 = build_sim(nbits=8)
-#results2 = build_sim(nbits=20)
 
 
 

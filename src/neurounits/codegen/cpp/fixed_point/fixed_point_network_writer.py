@@ -43,9 +43,9 @@ Two defines control the setup:
 
 // Define the fixed-point format:
 const int VAR_NBITS = ${nbits};
-#if SAFEINT 
+#if SAFEINT
 typedef neurounits::Fixed<SafeInt, VAR_NBITS> FixedType;
-#else 
+#else
 typedef neurounits::Fixed<int, VAR_NBITS> FixedType;
 #endif
 
@@ -110,7 +110,7 @@ typedef FixedType::IType32 IntType;
 
 /* Runtime logging: */
 #define RUNTIME_LOGGING_ON false
-#define RUNTIME_LOGGING_STARTTIME 61.2998e-3
+#define RUNTIME_LOGGING_STARTTIME -0.1e-3 //#61.2998e-3
 // #define RUNTIME_LOGGING_STARTTIME 100e-3
 
 
@@ -222,7 +222,6 @@ using namespace std;
 
 
 
-## #include <BlueVecProxy.h>
 
 // Headers to use when we are not on the NIOS:
 #if ON_NIOS
@@ -478,14 +477,11 @@ namespace IntegerFixedPoint
 
 
 
-
-namespace DoubleFixedPoint
-{
+namespace DoubleFixedPoint {
 
     // New fixed point classes:
     template<int UPSCALE>
-    struct ScalarType
-    {
+    struct ScalarType {
         double v_float;
         explicit ScalarType(int v) : v_float(FixedType::Conversion::to_float(v, UPSCALE)) { }
         explicit ScalarType(long unsigned int v) : v_float(FixedType::Conversion::to_float(v, UPSCALE)) { }
@@ -496,41 +492,32 @@ namespace DoubleFixedPoint
 
         // Automatic rescaling during assignments:
         template<int OTHER_UP>
-        ScalarType<UPSCALE>& operator=(const ScalarType<OTHER_UP>& rhs)
-        {
+        ScalarType<UPSCALE>& operator=(const ScalarType<OTHER_UP>& rhs) {
             v_float = rhs.v_float;
             return *this;
         }
 
         // Explicit rescaling between different scaling factors:
         template<int NEW_UPSCALE>
-        ScalarType<NEW_UPSCALE> rescale_to( ) const
-        {
+        ScalarType<NEW_UPSCALE> rescale_to( ) const {
             return ScalarType<NEW_UPSCALE>( v_float );
         }
 
-        inline double to_float() const
-        {
+        inline double to_float() const {
             return v_float;
         }
-        inline IntType to_int() const
-        {
+        inline IntType to_int() const {
             return (FixedType::Conversion::from_float(v_float,UPSCALE) );
         }
 
-
-
         // No implicit scaling-conversion:
-        bool operator<=( const ScalarType<UPSCALE>& rhs) const
-        {
+        bool operator<=( const ScalarType<UPSCALE>& rhs) const {
             return v_float <= rhs.v_float;
         }
 
-
         template<int RHS_UPSCALE>
         inline
-        bool operator<( const ScalarType<RHS_UPSCALE>& rhs) const
-        {
+        bool operator<( const ScalarType<RHS_UPSCALE>& rhs) const {
             return v_float < rhs.v_float;
         }
 
@@ -541,37 +528,188 @@ namespace DoubleFixedPoint
     struct ScalarOp
     {
         template<int U1, int U2>
-        static inline ScalarType<UOUT> add( const ScalarType<U1>& a, const ScalarType<U2>& b)
-        {
+        static inline ScalarType<UOUT> add( const ScalarType<U1>& a, const ScalarType<U2>& b) {
             return ScalarType<UOUT> ( a.v_float + b.v_float );
         }
 
         template<int U1, int U2>
-        static inline ScalarType<UOUT> sub( const ScalarType<U1>& a, const ScalarType<U2>& b)
-        {
+        static inline ScalarType<UOUT> sub( const ScalarType<U1>& a, const ScalarType<U2>& b) {
             return ScalarType<UOUT> ( a.v_float - b.v_float );
         }
 
         template<int U1, int U2>
-        static inline ScalarType<UOUT> mul( const ScalarType<U1>& a, const ScalarType<U2>& b)
-        {
+        static inline ScalarType<UOUT> mul( const ScalarType<U1>& a, const ScalarType<U2>& b) {
             return ScalarType<UOUT> ( a.v_float * b.v_float );
         }
 
         template<int U1, int U2>
-        static inline ScalarType<UOUT> div( const ScalarType<U1>& a, const ScalarType<U2>& b)
-        {
+        static inline ScalarType<UOUT> div( const ScalarType<U1>& a, const ScalarType<U2>& b) {
             return ScalarType<UOUT> ( a.v_float / b.v_float );
         }
 
         template<int U1>
-        static inline ScalarType<UOUT> exp( const ScalarType<U1>& a)
-        {
+        static inline ScalarType<UOUT> exp( const ScalarType<U1>& a) {
             return ScalarType<UOUT>( std::exp(a.to_float()) );
         }
 
     };
 };
+
+
+
+
+
+
+#define MPFR_REAL_ENABLE_CONV_OPS
+#include "/home/mh735/mpfr_real/mpfr_real_v0.0.9-alpha/real.hpp"
+
+
+
+namespace GMPFixedPoint {
+
+    // New fixed point classes:
+    template<int UPSCALE>
+    struct ScalarType {
+
+        typedef mpfr::real<4096> InternalDataType;
+        InternalDataType v_float;
+
+
+        explicit ScalarType(int v) : v_float(FixedType::Conversion::to_float(v, UPSCALE)) { }
+        explicit ScalarType(long unsigned int v) : v_float(FixedType::Conversion::to_float(v, UPSCALE)) { }
+
+
+        template<int RHS_UPSCALE>
+        explicit ScalarType(const ScalarType<RHS_UPSCALE>& rhs) : v_float(rhs.v_float) {}
+        explicit ScalarType(const InternalDataType&  v) : v_float(v) { }
+
+        ScalarType() {};
+
+        const static int UP = UPSCALE;
+
+        // Automatic rescaling during assignments:
+        template<int OTHER_UP>
+        ScalarType<UPSCALE>& operator=(const ScalarType<OTHER_UP>& rhs) {
+            //cout << rhs.v_float << "\n" << flush;
+            //InternalDataType t = rhs.v_float;
+            //cout << "\nt: " << "\n" << flush;
+
+
+
+            v_float = rhs.v_float;
+            return *this;
+        }
+
+        // Explicit rescaling between different scaling factors:
+        template<int NEW_UPSCALE>
+        ScalarType<NEW_UPSCALE> rescale_to( ) const {
+            return ScalarType<NEW_UPSCALE>( v_float );
+        }
+
+        inline double to_float() const {
+            return double(v_float);
+        }
+        inline IntType to_int() const {
+
+            double v = double(v_float);
+            return (FixedType::Conversion::from_float(v,UPSCALE) );
+        }
+
+        // No implicit scaling-conversion:
+        bool operator<=( const ScalarType<UPSCALE>& rhs) const {
+            return double(v_float) <= double(rhs.v_float);
+        }
+
+        template<int RHS_UPSCALE>
+        inline
+        bool operator<( const ScalarType<RHS_UPSCALE>& rhs) const {
+            return v_float < rhs.v_float;
+        }
+
+    };
+
+
+    template<int UOUT>
+    struct ScalarOp
+    {
+        template<int U1, int U2>
+        static inline ScalarType<UOUT> add( const ScalarType<U1>& a, const ScalarType<U2>& b) {
+            return ScalarType<UOUT> ( a.v_float + b.v_float );
+        }
+
+        template<int U1, int U2>
+        static inline ScalarType<UOUT> sub( const ScalarType<U1>& a, const ScalarType<U2>& b) {
+            return ScalarType<UOUT> ( a.v_float - b.v_float );
+        }
+
+        template<int U1, int U2>
+        static inline ScalarType<UOUT> mul( const ScalarType<U1>& a, const ScalarType<U2>& b) {
+            return ScalarType<UOUT> ( a.v_float * b.v_float );
+        }
+
+        template<int U1, int U2>
+        static inline ScalarType<UOUT> div( const ScalarType<U1>& a, const ScalarType<U2>& b) {
+            return ScalarType<UOUT> ( a.v_float / b.v_float );
+        }
+
+        template<int U1>
+        static inline ScalarType<UOUT> exp( const ScalarType<U1>& a) {
+
+            typename ScalarType<UOUT>::InternalDataType d = mpfr::exp(a.v_float);
+            return ScalarType<UOUT>( d ) ;
+        }
+
+    };
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -583,27 +721,29 @@ namespace StdCVectorType
     struct DataVector
     {
         typedef DATATYPE_ DATATYPE;
-        DATATYPE* _data; //[SIZE];
+        DATATYPE* _data; 
 
         // Default Constructor - initialise everything to zero
         DataVector()
         {
-            assert(sizeof(int)==sizeof(DATATYPE));
             #if USE_BLUEVEC
+            assert(sizeof(int)==sizeof(DATATYPE));
             _data = (DATATYPE*) bvMalloc(sizeof(DATATYPE) * SIZE);
             #else
-            _data = (DATATYPE*) malloc(sizeof(DATATYPE) * SIZE);
+            //_data = (DATATYPE*) malloc(sizeof(DATATYPE) * SIZE);
+            _data = new DATATYPE[SIZE];
             #endif
             for(int i=0;i<SIZE;i++) _data[i] = DATATYPE(0);
         }
 
         DataVector( int t )
         {
-            assert(sizeof(int)==sizeof(DATATYPE));
             #if USE_BLUEVEC
+            assert(sizeof(int)==sizeof(DATATYPE));
             _data = (DATATYPE*) bvMalloc(sizeof(DATATYPE) * SIZE);
             #else
-            _data = (DATATYPE*) malloc(sizeof(DATATYPE) * SIZE);
+            //_data = (DATATYPE*) malloc(sizeof(DATATYPE) * SIZE);
+            _data = new DATATYPE[SIZE];
             #endif
             for(int i=0;i<SIZE;i++) _data[i] = DATATYPE(t);
         }
@@ -638,15 +778,30 @@ namespace StdCVectorType
 
 
 
-
-
-
-
-
+%if number_format in NumberFormat.Ints:
 using IntegerFixedPoint::ScalarType;
 using IntegerFixedPoint::ScalarOp;
 
+%elif number_format == NumberFormat.Double:
+using DoubleFixedPoint::ScalarType;
+using DoubleFixedPoint::ScalarOp;
 
+%elif number_format == NumberFormat.GMP:
+using GMPFixedPoint::ScalarType;
+using GMPFixedPoint::ScalarOp;
+
+%else:
+<%assert(0)%>
+
+%endif
+
+
+
+
+
+
+
+// Always use these, since they
 using StdCVectorType::DataVector;
 using StdCVectorType::BoolVector;
 
@@ -2288,6 +2443,7 @@ int main()
     // Enable floating point exception trapping:
     #if !ON_NIOS
     //feenableexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW | FE_INVALID);
+    
     feenableexcept(FE_DIVBYZERO |  FE_OVERFLOW | FE_INVALID);
     #endif //!ON_NIOS
 
@@ -2409,7 +2565,7 @@ namespace NS_${projection.name}
             %if dst_pop_str ==  'Conn':
             //Copy in data from: ${src_comp.name}.${src_port.symbol} to ${dst_port.symbol}:
                 %if src_pop_str == 'Src':
-            
+
             NS_${projection.src_population.population.name}::NrnPopData::T_${src_port.symbol}::DATATYPE& ${dst_port.symbol} = src.${src_port.symbol}[ data.src_indices[i] ] ;
                 %elif src_pop_str == 'Dst':
             NS_${projection.dst_population.population.name}::NrnPopData::T_${src_port.symbol}::DATATYPE& ${dst_port.symbol} = dst.${src_port.symbol}[ data.dst_indices[i] ] ;
@@ -2876,6 +3032,33 @@ class NIOSOptions(object):
 
 
 
+class NumberFormat:
+    Float = "Float"
+    Double = "Double"
+    GMP = "GMP"
+    Int20 = 'Int20'
+    Int24 = 'Int24'
+    Int28 = 'Int28'
+
+    SafeInt20 = 'SafeInt20'
+    SafeInt24 = 'SafeInt24'
+    SafeInt28 = 'SafeInt28'
+
+    Ints = [Int20,Int24,Int28]
+
+    @classmethod
+    def get_nbits(cls, fmt):
+        return {
+                NumberFormat.Int20: 20,
+                NumberFormat.Int24: 24,
+                NumberFormat.Int28: 28,
+                NumberFormat.Double:None,
+                NumberFormat.GMP: None,
+                }[fmt]
+
+
+
+
 class CBasedEqnWriterFixedNetwork(object):
     op_file_cnt = 0
 
@@ -2891,8 +3074,16 @@ class CBasedEqnWriterFixedNetwork(object):
             run_until=0.3,
             as_float=False,
             nios_options=None,
-            nbits=24
+            number_format = None
             ):
+
+        assert number_format
+
+        nbits = NumberFormat.get_nbits(number_format)
+
+        # Temp hack:
+        if nbits is None:
+            nbits = 28
 
 
         # There is an opportunity here. Sometimes, the parameters are going to be constants - so
@@ -2976,7 +3167,8 @@ class CBasedEqnWriterFixedNetwork(object):
             'output_filename' : output_filename,
             'network':network,
             'evt_src_to_evtportconns': evt_src_to_evtportconns,
-            #'as_float':as_float
+            'number_format':number_format,
+            'NumberFormat':NumberFormat,
                          }
 
 
@@ -3107,7 +3299,7 @@ class CBasedEqnWriterFixedNetwork(object):
                                     compilation_settings = CCompilationSettings(
                                         additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.expanduser('~/hw/NeuroUnits/cpp/include/'), ],
                                         additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/"), os.path.expanduser("~/hw/BlueVec/lib/")],
-                                        libraries = ['gmpxx', 'gmp','hdfjive','hdf5','hdf5_hl'],
+                                        libraries = ['mpfr','hdfjive','hdf5','hdf5_hl'],
                                         compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O2  -g -D_GLIBCXX_DEBUG ' + (CPPFLAGS if CPPFLAGS else '') ]
                                         ),
                                     run=run,
