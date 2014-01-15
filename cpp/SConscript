@@ -1,5 +1,6 @@
 import sys
 import os
+import itertools
 
 
 Import('env')
@@ -16,12 +17,16 @@ headers_neurounits = Glob("include/neurounits/*.h")
 
 # neurounits-cpp-boostpython:
 # ===========================
-libs_neurounits_cpp_boostpy = env.SharedLibrary('pyneurounits', ['src/neurounits_boostpython/neurounits_cpp_boostpython.cpp'])
+libs_neurounits_cpp_boostpy = env.SharedLibrary('libs/pyneurounits', ['src/neurounits_boostpython/pyneurounits.cpp'])
 
 
-# neurounits-cpptesting
-# =======================
+# neurounits-testing (cpp)
+# ========================
 testx_lut = env.Program('test-build/lut_test.x', ["test/lut_test.cpp"])
+
+# neurounits-testing (python)
+# ===========================
+python_test_srcs = Glob("test/test*.py")
 
 
 
@@ -34,14 +39,19 @@ testx_lut = env.Program('test-build/lut_test.x', ["test/lut_test.cpp"])
 # Install them into the prefix-path:
 # ===================================
 prefix = os.path.expanduser("~/.local/")
-env.Alias("install", env.Install(os.path.join(prefix, "lib"), libs_neurounits))
-env.Alias("install", env.Install(os.path.join(prefix, "lib"), libs_neurounits_cpp_boostpy))
-env.Alias("install", env.Install(os.path.join(prefix, "include/neurounits/"), headers_neurounits))
+python_module_dir = os.path.join(prefix, "lib/python2.7/site-packages/")
+
+installs = list(itertools.chain(*[
+    env.Alias("install", env.Install(os.path.join(prefix, "lib"), libs_neurounits)),
+    env.Alias("install", env.InstallAs(os.path.join(prefix, python_module_dir, "pyneurounits.so"), libs_neurounits_cpp_boostpy)),
+    env.Alias("install", env.Install(os.path.join(prefix, "include/neurounits/"), headers_neurounits))
+    ]))
 
 
 # Run the test-scripts:
 # =====================
 
+# from .cpp
 test_cpp_programs = [testx_lut]
 for test_cpp_program in test_cpp_programs:
     test_cpp_program = str(test_cpp_program[0])
@@ -52,4 +62,18 @@ for test_cpp_program in test_cpp_programs:
                 action = 'cd ${TARGET.dir}/.. && %s > %s.out' %(test_cpp_program,test_cpp_program),
                 )
               )
+
+# from .py
+for python_test_src in python_test_srcs:
+    python_test_src = str(python_test_src)
+    cmd = env.Command(
+                target = python_test_src+'.out',
+                source = python_test_src,
+                action = 'cd ${TARGET.dir}/.. && python %s > %s.out' %(python_test_src,python_test_src),
+                )
+    Depends(cmd, installs)
+    env.Alias("test", cmd)
+    
+
+            
 

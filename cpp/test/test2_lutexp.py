@@ -4,10 +4,12 @@ os.environ['MREORG_CONFIG'] = 'SAVEALL;NOSHOW'
 import mreorg
 
 
-import fplib
+#import pyneurounits
 import pylab
 import numpy as np
 
+
+import pyneurounits
 
 
 from matplotlib.patches import Rectangle
@@ -15,17 +17,17 @@ from matplotlib.patches import Rectangle
 
 
 def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_scale, exp_in_scale=None, ):
-        lut = fplib.LUTExp24(lut_address_size, lut_input_range_upscale)
+        lut = pyneurounits.LUTExp24(lut_address_size, lut_input_range_upscale)
 
         # Create a vectorized 'get' function:
         def _getexp(a,b,c):
                 return lut.get( int(a),int(b), int(c) )
 
         def _from_float(x,scale):
-                return fplib.n32_from_float24(float(x), int(scale))
+                return pyneurounits.n32_from_float24(float(x), int(scale))
                 
         def _to_float(x,scale):
-                return fplib.n32_to_float24(int(x), int(scale))
+                return pyneurounits.n32_to_float24(int(x), int(scale))
                 
         getexp = np.vectorize( _getexp )
         to_float = np.vectorize( _to_float )

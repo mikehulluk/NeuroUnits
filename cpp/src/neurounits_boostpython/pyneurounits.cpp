@@ -75,7 +75,7 @@ void throw_exception()
 
 
 
-BOOST_PYTHON_MODULE(fplib)
+BOOST_PYTHON_MODULE(pyneurounits)
 {
     using namespace boost::python;
 
@@ -95,9 +95,7 @@ BOOST_PYTHON_MODULE(fplib)
     bp::register_exception_translator<MyCPPException>(translator);
     bp::class_<MyCPPException>("MyCPPException")
         .def("what", &MyCPPException::what);
-    exceptionType = createExceptionClass("fplib.MyCPPExceptionType");
-
-
+    exceptionType = createExceptionClass("pyneurounits.MyCPPException");
 
     def("throw_exception", throw_exception);
 
