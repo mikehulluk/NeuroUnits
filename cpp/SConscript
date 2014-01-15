@@ -31,6 +31,20 @@ python_test_srcs = Glob("test/test*.py")
 
 
 
+# Build the documentation
+# =======================
+doc_cmd = env.Command(
+    target = 'doxygen-docs/',
+    source = headers_neurounits,
+    action = 'cd ${TARGET.dir} && doxygen doxygen.config')
+doc_alias = env.Alias("docs", doc_cmd)
+
+Depends(doc_cmd, headers_neurounits)
+Depends(doc_alias, headers_neurounits)
+
+              
+
+
 
 
 
@@ -99,3 +113,10 @@ Clean('.', Glob("libs/*/*/*") )
 Clean('.', Glob("libs/*/*/*/*") )
 
 Clean('.', 'exp_out.txt' )
+
+Clean('.', Glob("doxygen-docs") )
+Clean('.', Glob("doxygen-docs/*") )
+Clean('.', Glob("doxygen-docs/*/*") )
+Clean('.', Glob("doxygen-docs/*/*/*") )
+Clean('.', Glob("doxygen-docs/*/*/*/*") )
+

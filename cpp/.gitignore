@@ -1,7 +1,6 @@
-html/
-latex/
 
 libs/
 test-build/
 test/*.py.out
 src/neurounits_boostpython/pyneurounits.os
+doxygen-docs/
