@@ -200,7 +200,10 @@ const int ACCEPTABLE_DIFF_BETWEEN_FLOAT_AND_INT_FOR_EXP = 300;
 // Define how often to record values:
 //const int record_rate = int( 1.e-3 /  ${dt_float} ) + 1;
 //const int record_rate = 10;
-const int record_rate = 10;
+
+
+
+const int record_rate = ${record_rate};
 
 
 
@@ -3036,6 +3039,8 @@ class NumberFormat:
     Float = "Float"
     Double = "Double"
     GMP = "GMP"
+    Int16 = 'Int16'
+    Int18 = 'Int18'
     Int20 = 'Int20'
     Int24 = 'Int24'
     Int28 = 'Int28'
@@ -3044,11 +3049,13 @@ class NumberFormat:
     SafeInt24 = 'SafeInt24'
     SafeInt28 = 'SafeInt28'
 
-    Ints = [Int20,Int24,Int28]
+    Ints = [Int16, Int18, Int20,Int24,Int28]
 
     @classmethod
     def get_nbits(cls, fmt):
         return {
+                NumberFormat.Int16: 16,
+                NumberFormat.Int18: 18,
                 NumberFormat.Int20: 20,
                 NumberFormat.Int24: 24,
                 NumberFormat.Int28: 28,
@@ -3074,7 +3081,8 @@ class CBasedEqnWriterFixedNetwork(object):
             run_until=0.3,
             as_float=False,
             nios_options=None,
-            number_format = None
+            number_format = None,
+            record_rate=10
             ):
 
         assert number_format
@@ -3169,6 +3177,7 @@ class CBasedEqnWriterFixedNetwork(object):
             'evt_src_to_evtportconns': evt_src_to_evtportconns,
             'number_format':number_format,
             'NumberFormat':NumberFormat,
+            'record_rate':record_rate
                          }
 
 
@@ -3300,7 +3309,8 @@ class CBasedEqnWriterFixedNetwork(object):
                                         additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.expanduser('~/hw/NeuroUnits/cpp/include/'), ],
                                         additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/"), os.path.expanduser("~/hw/BlueVec/lib/")],
                                         libraries = ['mpfr','hdfjive','hdf5','hdf5_hl'],
-                                        compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O2  -g -D_GLIBCXX_DEBUG ' + (CPPFLAGS if CPPFLAGS else '') ]
+                                        compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O2  -g ' + (CPPFLAGS if CPPFLAGS else '') ]
+                                        #compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O2  -g -D_GLIBCXX_DEBUG ' + (CPPFLAGS if CPPFLAGS else '') ]
                                         ),
                                     run=run,
                                     output_filename=output_exec_filename or None,

@@ -10,7 +10,7 @@ import numpy as np
 import random
 import pylab
 
-from neurounits.codegen.cpp.fixed_point import CBasedEqnWriterFixedNetwork
+from neurounits.codegen.cpp.fixed_point import CBasedEqnWriterFixedNetwork, NumberFormat
 from hdfjive import HDF5SimulationResultFile
 from neurounits.visualisation.mredoc import MRedocWriterVisitor
 from neurounits.codegen.population_infrastructure import *
@@ -20,7 +20,7 @@ import cPickle as pickle
 from mreorg import PM
 
 
-import components
+import neurounitscontrib.components.tadpole
 dIN_comp = neurounits.ComponentLibrary.instantiate_component('dIN')
 MN_comp =  neurounits.ComponentLibrary.instantiate_component('MN')
 RB_input = neurounits.ComponentLibrary.instantiate_component('RBInput')
@@ -197,9 +197,11 @@ results = CBasedEqnWriterFixedNetwork(
                     CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
                     step_size=0.1e-3 / 2.,
                     run_until=0.4,
-                    as_float=False,
+                    number_format = NumberFormat.Int28,
+                    #as_float=False,
                     output_filename="/local/scratch/mh735/neuronits.results-Seq-float.hdf",
-                    output_c_filename='op-seq.cpp'
+                    output_c_filename='op-seq.cpp',
+                    record_rate=1
                     ).results
 
 
@@ -231,7 +233,7 @@ def build_raster_plot_obj(name, side):
 
 #xlim=(95e-3,750e-3)
 #xlim=(95e-3,300e-3)
-xlim=(50e-3,400e-3)
+xlim=(45e-3,300e-3)
 #xlim=(30e-3,1000e-3)
 
 
@@ -257,22 +259,34 @@ fig=results.raster_plot([
         build_raster_plot_obj('cIN', 'RHS'),
         build_raster_plot_obj('cIN', 'LHS'),
 
-        build_raster_plot_obj('MN', 'RHS'),
-        build_raster_plot_obj('MN', 'LHS'),
+        #build_raster_plot_obj('MN', 'RHS'),
+        #build_raster_plot_obj('MN', 'LHS'),
 
-
-        RasterGroup('MN', [
+        RasterGroup('MN\nLHS', [
             RasterSubgroup("MN:LHS", "ALL{spike,MN,LHS}", {'color':'blue', 'marker':'x', 's':2}),
+            ] ),
+        RasterGroup('MN\nRHS', [
             RasterSubgroup("MN:RHS", "ALL{spike,MN,RHS}", {'color':'green', 'marker':'x', 's':2}),
-            ] )
+            ] ),
+
+        #RasterGroup('MN', [
+        #    RasterSubgroup("MN:LHS", "ALL{spike,MN,LHS}", {'color':'blue', 'marker':'x', 's':2}),
+        #    RasterSubgroup("MN:RHS", "ALL{spike,MN,RHS}", {'color':'green', 'marker':'x', 's':2}),
+        #    ] )
 
         ],
 
         xlim=xlim,
-        fig_kwargs=dict(figsize=(185/25.4, 5) ),
+        fig_kwargs=dict(figsize=(185/25.4, 4) ),
         
         )
+fig.subplots_adjust(left=0.1,top=0.95)        
 
+from matplotlib.ticker import MaxNLocator
+
+for ax in fig.get_axes():
+    ax.yaxis.set_major_locator(MaxNLocator(3))
+    
 fig.savefig("_build/fig_res_tadpole1.svg")
 
 
@@ -304,11 +318,12 @@ filters_traces = [
 
 
 
-def plot_graph(filt, xlabel=None, legend=False):
-        fig = pylab.figure(figsize=(85/25.4, 3.))
+def plot_graph(filt, xlabel=None, ylabel=None, legend=False):
+        fig = pylab.figure(figsize=(85/25.4, 2.5))
+        fig.subplots_adjust(left=0.15)
         trs = results.filter_traces(filt)
 
-
+        xlim = (0.25,0.35)
         print 'Plotting:', filt, len(trs)
         for res in trs:
             if xlim:
@@ -320,12 +335,12 @@ def plot_graph(filt, xlabel=None, legend=False):
             else:
                 time, data = res.raw_data.time_pts, res.raw_data.data_pts
 
-            if xscale is not None:
-                time = time * xscale
+            #if xscale is not None:
+            #    time = time * xscale
             pylab.plot(time, data,'x-', label=','.join(res.tags), ms=2 )
 
 
-        pylab.ylabel(filt)
+        pylab.ylabel(ylabel)
         if legend:
             pylab.legend()
 
@@ -337,9 +352,12 @@ def plot_graph(filt, xlabel=None, legend=False):
         return fig
 
 
-f1 = plot_graph( "ALL{V,dIN,LHS} AND ANY{POPINDEX:0000,POPINDEX:0001,POPINDEX:0002}", xlabel='Voltage' )
-f1 = plot_graph( "ALL{nmda_vdep,dIN,LHS} AND ANY{POPINDEX:0000,POPINDEX:0001,POPINDEX:0002}",xlabel='NMDA-vdep' )
+f1 = plot_graph( "ALL{V,dIN,LHS} AND ANY{POPINDEX:0000,POPINDEX:0001,POPINDEX:0002}", ylabel='Voltage (V)' )
+f2 = plot_graph( "ALL{nmda_vdep,dIN,LHS} AND ANY{POPINDEX:0000,POPINDEX:0001,POPINDEX:0002}",ylabel='NMDA-vdep' )
 
+
+f1.get_axes()[0].set_yticks([-60e-3, -30e-3, 0e-3, 30e-3])
+f1.get_axes()[0].set_yticklabels(['-60','-30','0','30'])
 
                 
 f1.savefig("_build/fig_res_tadpole2a.svg")

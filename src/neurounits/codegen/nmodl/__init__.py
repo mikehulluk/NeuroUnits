@@ -43,6 +43,7 @@ from .section_writers import OnEventWriter
 from .neuron_constants import NeuronSuppliedValues, NEURONMappings, MechanismType
 from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
 from neurounits.ast import ConstValue, InEquality, EqnTimeDerivativeByRegime, EqnAssignmentByRegime, NineMLComponent
+from neurounits.ast import OnEventTransition,Regime, InEventPort, RTBlock
 
 
 
@@ -267,7 +268,9 @@ class MODLBuildParameters(object):
                     assert False
             else:
 
-                if isinstance(s,(EqnTimeDerivativeByRegime, EqnAssignmentByRegime, NineMLComponent, ConstValue)):
+                if isinstance(s,(EqnTimeDerivativeByRegime, EqnAssignmentByRegime, NineMLComponent, ConstValue, OnEventTransition,Regime, InEventPort)):
+                    continue
+                if isinstance(s,(RTBlock)):
                     continue
                 if isinstance(s,(InEquality,)):
                     continue

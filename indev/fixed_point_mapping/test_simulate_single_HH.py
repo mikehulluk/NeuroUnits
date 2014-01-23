@@ -26,7 +26,7 @@ import neurounitscontrib.components.tadpole
 
 #import components
 
-def _build_sim(number_format):
+def _build_sim(number_format, inj_current):
     HH_comp = neurounits.ComponentLibrary.instantiate_component('HH')
     network = Network()
     dINs = network.create_population(
@@ -34,9 +34,7 @@ def _build_sim(number_format):
             component=HH_comp,
             size=1,
             parameters={
-                'nmda_multiplier': 1.0,
-                'ampa_multiplier': 1.0,
-                'inj_current': "50pA",
+                'inj_current': inj_current,
 
                 },
             )
@@ -47,14 +45,15 @@ def _build_sim(number_format):
                     network,
                     CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
                     step_size=0.01e-3,
-                    run_until=1.0,
+                    run_until=0.55,
                     number_format = number_format,
+                    record_rate=1,
                     ).results
     return results
 
-def build_sim(number_format):
+def build_sim(number_format, inj_current):
     try:
-        return _build_sim(number_format=number_format)
+        return _build_sim(number_format=number_format, inj_current=inj_current)
     except subprocess.CalledProcessError:
         return None
 
@@ -62,12 +61,17 @@ def build_sim(number_format):
 
 import hdfjive
 number_formats = [
-        #NumberFormat.Int28,
-        NumberFormat.GMP,
-        #NumberFormat.Double,
+        (NumberFormat.GMP,"50pA"),
+        (NumberFormat.GMP,"49.5pA"),
+        (NumberFormat.Double,"50pA"),
+        (NumberFormat.Int28,"50pA"),
+        (NumberFormat.Int24,"50pA"),
+        (NumberFormat.Int20,"50pA"),
         ]
-results = [ build_sim(number_format=number_format) for number_format in number_formats ]
-results = [r for r in results if r is not None]
+results = [ build_sim(number_format=number_format,inj_current=inj_current) for (number_format,inj_current) in number_formats ]
+for r in results:
+    assert r
+#results = [r for r in results if r is not None]
 results = hdfjive.HDF5SimulationResultFileSet(results)
 
 
@@ -85,19 +89,72 @@ filters_spikes = [
 ]
 
 
+left=0.25
+text_kwargs = dict( weight='bold', fontweight='bold' )
+
+f1,f2 = results.plot(trace_filters=filters_traces,
+             spike_filters=filters_spikes,
+             legend=False,
+             xlim = (0.0,0.7),
+             fig_trace_kwargs= dict(figsize=(85/25.4, 1) ),
+             fig_event_kwargs= dict(figsize=(85/25.4, 1) ),
+               )
+
+f1[0].get_axes()[0].set_ylabel("Voltage (V)")
+
+f1[0].text(0.05, 0.92, 'A', **text_kwargs)
+f2[0].text(0.05, 0.92, 'B', **text_kwargs)
+
+
+f1[0].subplots_adjust(top=0.9, left=left)
+
+f1[0].get_axes()[0].axvspan( 0.4, 0.45, color='grey', alpha=0.2)
+
+
+f1[0].savefig('_build/res_hh1_newA_i.svg')
+f2[0].savefig('_build/res_hh1_newB_i.svg')
 
 
 
 f1,f2 = results.plot(trace_filters=filters_traces,
              spike_filters=filters_spikes,
-             legend=True,
-             xlim = (0.0,0.7),
-             fig_trace_kwargs= dict(figsize=(85/25.4, 2) ),
+             xlim = (0.4,0.45),
+             fig_trace_kwargs= dict(figsize=(85/25.4, 1.5) ),
              fig_event_kwargs= dict(figsize=(85/25.4, 1) ),
                )
 
 
-f1[0].savefig('_build/res_hh1_newA.svg')
-f2[0].savefig('_build/res_hh1_newB.svg')
+
+f1[0].text(0.05, 0.92, 'B', **text_kwargs )
+f2[0].text(0.05, 0.92, 'C', **text_kwargs)
+
+f1[0].get_axes()[0].set_ylabel("Voltage (V)")
+
+f2[0].get_axes()[0].set_ylabel("")
+f2[0].get_axes()[0].set_yticks([0,1,2,3,4,5])
+f2[0].get_axes()[0].set_yticklabels([
+                            'MPFR - 50.0pA',
+                            'MPFR - 49.5pA',
+                            'F64 - 50.0pA',
+                            'I28 - 50.0pA',
+                            'I24 - 50.0pA',
+                            'I20 - 50.0pA',
+                                    ])
+for label in f2[0].get_axes()[0].get_yticklabels(): 
+    label.set_horizontalalignment('right') 
+                                    
+f2[0].get_axes()[0].set_ylim(-0.5, 5.5)
+
+f1[0].get_axes()[0].set_xticklabels('')
+
+
+f1[0].subplots_adjust(top=0.90, bottom=0.05, left=left)
+f2[0].subplots_adjust(top=0.85,left=left)
+
+
+f1[0].savefig('_build/res_hh1_newA_ii.svg')
+f2[0].savefig('_build/res_hh1_newB_ii.svg')
+
+
 
 pylab.show()

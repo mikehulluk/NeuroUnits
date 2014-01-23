@@ -16,7 +16,7 @@ from matplotlib.patches import Rectangle
 
 
 
-def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_scale, exp_in_scale=None, ):
+def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_scale, exp_in_scale=None):
         lut = pyneurounits.LUTExp24(lut_address_size, lut_input_range_upscale)
 
         # Create a vectorized 'get' function:
@@ -51,22 +51,31 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
         
         x1 = (2**(lut_input_range_upscale))
         x0 = -x1
-        x_points = np.linspace(x0,x1, num=2**lut_address_size)
+        x_points = np.linspace(x0,x1, num=(2**lut_address_size))
         
 
 
-        f = pylab.figure(figsize=(180./25.4, 4.))
-        f.subplots_adjust(bottom=0.05, top=0.95, hspace=0.1, left=0.1, right=0.95)
+        f = pylab.figure(figsize=(180./25.4, 3.))
+        f.subplots_adjust(bottom=0.05, top=0.95, hspace=0.125, left=0.15, right=0.95)
+
+        import matplotlib.gridspec as gridspec
+        gs = gridspec.GridSpec(3, 1, height_ratios=[2,1,1])
+
+        ax1 = f.add_subplot(gs[0])
+        ax2 = f.add_subplot(gs[2])
+        ax3 = f.add_subplot(gs[1])
+
         
         #f.suptitle('Results from lookup table:' )
-        ax1 = f.add_subplot(311)
-        ax2 = f.add_subplot(312)
-        ax3 = f.add_subplot(313)
+        #ax1 = f.add_subplot(311)
+        #ax2 = f.add_subplot(313)
+        #ax3 = f.add_subplot(312)
        
 
         ax1.plot(x,exp_x,'x', label='LUT', ms=1)
         ax1.plot(x,np.exp(x), lw=5, alpha=0.4, label='Builtin exp()')
         ax1.plot( x_points, np.exp(x_points), '.', color='red', ms=5)
+        ax2.plot( x_points, np.zeros_like(x_points), '.', color='red', ms=5)
         ax2.plot(x,err_diff_float_prop * 100,'x', label='Proportional error (double) in %' )
         ax3.plot(x,err_diff_float,'x', label='Absolute error (float)')
 
@@ -100,34 +109,34 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
 
 
 
-
-
-
-        #ax1.add_patch(Rectangle((za_xrange[0], za_yrange[0]), za_xrange[1]-za_xrange[0], za_yrange[1]-za_yrange[0], facecolor="grey"))
-        #ax1.add_patch(Rectangle((zb_xrange[0], zb_yrange[0]), zb_xrange[1]-zb_xrange[0], zb_yrange[1]-zb_yrange[0], facecolor="grey"))
-
         ax1.axvspan( *za_xrange, color='grey', alpha=0.4)
         ax1.axvspan( *zb_xrange, color='grey', alpha=0.4)
 
 
         ax1.set_ylim(-50,550)
         ax1.set_ylabel("exp(x)")
-        ax2.set_ylabel("Proportional error \n using LUT \n(in %) ")
-        ax3.set_ylabel("Absolute error \n using LUT ( ")
+        ax2.set_ylabel("Proportional\nerror from\n using LUT \n(in %) ")
+        ax3.set_ylabel("Absolute\nerror from\n using LUT ")
 
+
+        
         ax1.set_xticklabels("")
-        ax2.set_xticklabels("")
+        ax3.set_xticklabels("")
 
         ax1.set_xlim(*input_range)
         ax2.set_xlim(*input_range)
         ax3.set_xlim(*input_range)
 
+        for ax in [ax1,ax2,ax3]:
+            ax.get_yaxis().set_label_coords(-0.075,0.5)
 
 
 
+
+#test_lut(lut_address_size=6, lut_input_range_upscale=4, input_range=(-8,8), exp_out_scale=9)
 test_lut(lut_address_size=5, lut_input_range_upscale=3, input_range=(-6,6), exp_out_scale=10)
 
-pylab.savefig( os.path.expanduser( "~/hw/Cambridge2013/paper/generated/src_imgs/fig_newLUT.svg") )
+pylab.savefig("/home/mh735/hw/Cambridge2013/paper/generated/build/fig_newLUT.svg") 
 pylab.show()
 
 
