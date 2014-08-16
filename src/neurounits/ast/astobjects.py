@@ -309,6 +309,156 @@ class FunctionDefBuiltIn(ASTExpressionObject):
 
     def is_builtin(self):
         return True
+    
+    def accept_func_visitor(self, v, **kwargs):
+        print "Missing 'accept_func_visitor' for type: %s (%s)" % (type(self), self.funcname)
+        assert False
+        
+
+
+class FunctionDefBuiltInSingleArg(FunctionDefBuiltIn):
+    def __init__(self, backend, funcname, **kwargs):
+        super(FunctionDefBuiltInSingleArg, self).__init__(
+                funcname=funcname, 
+                parameters={'x': FunctionDefParameter(symbol='x' , dimension=backend.Unit())}, 
+                dimension=backend.Unit(), **kwargs)
+
+        
+        
+        
+class FunctionDefBuiltInXX(FunctionDefBuiltInSingleArg):
+    def __init__(self, backend, **kwargs):
+        super(FunctionDefBuiltInXX, self).__init__(funcname='__XX__', backend=backend, **kwargs)
+                
+    def accept_func_visitor(self, v, **kwargs):
+        return v.VisitBIFXX(self, **kwargs)
+    def __repr__(self):
+        return '<BuiltinFunction: XX()>' 
+        
+
+class FunctionDefBuiltInSin(FunctionDefBuiltInSingleArg):
+    def __init__(self, backend, **kwargs):
+        super(FunctionDefBuiltInSin, self).__init__(funcname='__sin__', backend=backend, **kwargs)
+    def accept_func_visitor(self, v, **kwargs):
+        return v.VisitBIFsin(self, **kwargs)
+    def __repr__(self):
+        return '<BuiltinFunction: sin()>' 
+      
+class FunctionDefBuiltInCos(FunctionDefBuiltInSingleArg):
+    def __init__(self, backend, **kwargs):
+        super(FunctionDefBuiltInCos, self).__init__(funcname='__cos__', backend=backend, **kwargs)
+    def accept_func_visitor(self, v, **kwargs):
+        return v.VisitBIFcos(self, **kwargs)
+    def __repr__(self):
+        return '<BuiltinFunction: cos()>' 
+        
+class FunctionDefBuiltInTan(FunctionDefBuiltInSingleArg):
+    def __init__(self, backend, **kwargs):
+        super(FunctionDefBuiltInTan, self).__init__(funcname='__tan__', backend=backend, **kwargs)
+    def accept_func_visitor(self, v, **kwargs):
+        return v.VisitBIFtan(self, **kwargs)
+    def __repr__(self):
+        return '<BuiltinFunction: tan()>' 
+        
+        
+class FunctionDefBuiltInSinh(FunctionDefBuiltInSingleArg):
+    def __init__(self, backend, **kwargs):
+        super(FunctionDefBuiltInSinh, self).__init__(funcname='__sinh__', backend=backend, **kwargs)
+    def accept_func_visitor(self, v, **kwargs):
+        return v.VisitBIFsinh(self, **kwargs)
+    def __repr__(self):
+        return '<BuiltinFunction: sinh()>' 
+      
+class FunctionDefBuiltInCosh(FunctionDefBuiltInSingleArg):
+    def __init__(self, backend, **kwargs):
+        super(FunctionDefBuiltInCosh, self).__init__(funcname='__cosh__', backend=backend, **kwargs)
+    def accept_func_visitor(self, v, **kwargs):
+        return v.VisitBIFcosh(self, **kwargs)
+    def __repr__(self):
+        return '<BuiltinFunction: cos()>' 
+        
+class FunctionDefBuiltInTanh(FunctionDefBuiltInSingleArg):
+    def __init__(self, backend, **kwargs):
+        super(FunctionDefBuiltInTanh, self).__init__(funcname='__tanh__', backend=backend, **kwargs)
+    def accept_func_visitor(self, v, **kwargs):
+        return v.VisitBIFtanh(self, **kwargs)
+    def __repr__(self):
+        return '<BuiltinFunction: tanh()>' 
+
+
+
+class FunctionDefBuiltInASin(FunctionDefBuiltInSingleArg):
+    def __init__(self, backend, **kwargs):
+        super(FunctionDefBuiltInASin, self).__init__(funcname='__asin__', backend=backend, **kwargs)
+    def accept_func_visitor(self, v, **kwargs):
+        return v.VisitBIFasin(self, **kwargs)
+    def __repr__(self):
+        return '<BuiltinFunction: asin()>' 
+      
+class FunctionDefBuiltInACos(FunctionDefBuiltInSingleArg):
+    def __init__(self, backend, **kwargs):
+        super(FunctionDefBuiltInACos, self).__init__(funcname='__acos__', backend=backend, **kwargs)
+    def accept_func_visitor(self, v, **kwargs):
+        return v.VisitBIFacos(self, **kwargs)
+    def __repr__(self):
+        return '<BuiltinFunction: acos()>' 
+        
+class FunctionDefBuiltInATan(FunctionDefBuiltInSingleArg):
+    def __init__(self, backend, **kwargs):
+        super(FunctionDefBuiltInATan, self).__init__(funcname='__atan__', backend=backend, **kwargs)
+    def accept_func_visitor(self, v, **kwargs):
+        return v.VisitBIFatan(self, **kwargs)
+    def __repr__(self):
+        return '<BuiltinFunction: atan()>' 
+
+
+
+  
+class FunctionDefBuiltInLn(FunctionDefBuiltInSingleArg):
+    def __init__(self, backend, **kwargs):
+        super(FunctionDefBuiltInLn, self).__init__(funcname='__ln__', backend=backend, **kwargs)
+    def accept_func_visitor(self, v, **kwargs):
+        return v.VisitBIFln(self, **kwargs)
+    def __repr__(self):
+        return '<BuiltinFunction: ln()>' 
+        
+  
+class FunctionDefBuiltInLog2(FunctionDefBuiltInSingleArg):
+    def __init__(self, backend, **kwargs):
+        super(FunctionDefBuiltInLog2, self).__init__(funcname='__log2__', backend=backend, **kwargs)
+    def accept_func_visitor(self, v, **kwargs):
+        return v.VisitBIFlog2(self, **kwargs)
+    def __repr__(self):
+        return '<BuiltinFunction: log2()>' 
+        
+  
+class FunctionDefBuiltInLog10(FunctionDefBuiltInSingleArg):
+    def __init__(self, backend, **kwargs):
+        super(FunctionDefBuiltInLog10, self).__init__(funcname='__log10__', backend=backend, **kwargs)
+    def accept_func_visitor(self, v, **kwargs):
+        return v.VisitBIFlog10(self, **kwargs)
+    def __repr__(self):
+        return '<BuiltinFunction: log10()>' 
+
+
+class FunctionDefBuiltInExp(FunctionDefBuiltInSingleArg):
+    def __init__(self, backend, **kwargs):
+        super(FunctionDefBuiltInExp, self).__init__(funcname='__exp__', backend=backend, **kwargs)
+    def accept_func_visitor(self, v, **kwargs):
+        return v.VisitBIFexp(self, **kwargs)
+    def __repr__(self):
+        return '<BuiltinFunction: exp()>' 
+        
+        
+        
+        
+        
+        
+        
+        
+            
+
+
 
 
 class FunctionDefUser(ASTExpressionObject):

@@ -20,6 +20,17 @@ class RandomVariable(ASTExpressionObject):
         return v.VisitRandomVariable(self, **kwargs)
 
 
+class RandomVariableUniform(RandomVariable):
+    def __init__(self, parameters, modes):
+        super(RandomVariable, self).__init__(parameters=parameters, modes=modes)
+        
+    def accept_RVvisitor(self, v, **kwargs):
+        return v.VisitRVUniform(self, **kwargs)
+
+            
+        
+        
+
 
 class RandomVariableParameter(ASTExpressionObject):
     def __init__(self, name, rhs_ast):
@@ -27,7 +38,7 @@ class RandomVariableParameter(ASTExpressionObject):
         self.name = name
         self.rhs_ast = rhs_ast
 
-        # Assume that the parameters and radnom variables are dimensionless
+        # Assume that the parameters and random variables are dimensionless
         self.set_dimensionality(MMUnit())
 
     def accept_visitor(self, v, **kwargs):

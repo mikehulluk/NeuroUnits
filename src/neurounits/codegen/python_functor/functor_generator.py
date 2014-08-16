@@ -246,6 +246,10 @@ class FunctorGenerator(ASTVisitorBase):
         return f
 
     def VisitFunctionDefBuiltIn(self, o, **kwargs):
+        # New function-visitor style:
+        #if o.funcname in ('__sin__', '__cos__'):
+        return o.accept_func_visitor(self, **kwargs)
+
         if not self.as_float_in_si:
 
             def eFunc(state_data, func_params, **kw):
@@ -253,14 +257,14 @@ class FunctorGenerator(ASTVisitorBase):
                     ParsingBackend = MHUnitBackend
                     assert len(func_params) == 1
                     return ParsingBackend.Quantity( float( np.abs( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
-                if o.funcname == '__exp__':
-                    ParsingBackend = MHUnitBackend
-                    assert len(func_params) == 1
-                    return ParsingBackend.Quantity( float( np.exp( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
-                if o.funcname == '__sin__':
-                    assert len(func_params) == 1
-                    ParsingBackend = MHUnitBackend
-                    return ParsingBackend.Quantity( float( np.sin( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
+                #if o.funcname == '__exp__':
+                #    ParsingBackend = MHUnitBackend
+                #    assert len(func_params) == 1
+                #    return ParsingBackend.Quantity( float( np.exp( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
+                #if o.funcname == '__sin__':
+                #    assert len(func_params) == 1
+                #    ParsingBackend = MHUnitBackend
+                #    return ParsingBackend.Quantity( float( np.sin( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
                 if o.funcname == '__pow__':
                     assert len(func_params) == 2
                     ParsingBackend = MHUnitBackend
@@ -269,12 +273,12 @@ class FunctorGenerator(ASTVisitorBase):
                     assert False, "Sim can't handle function: %s" % o.funcname
         else:
             def eFunc(state_data, func_params, **kw):
-                if o.funcname == '__exp__':
-                    assert len(func_params) == 1
-                    return float(np.exp(func_params.values()[0]))
-                if o.funcname == '__sin__':
-                    assert len(kw) == 1
-                    return float(np.sin(kw.values()[0]))
+                #if o.funcname == '__exp__':
+                #    assert len(func_params) == 1
+                #    return float(np.exp(func_params.values()[0]))
+                #if o.funcname == '__sin__':
+                #    assert len(kw) == 1
+                #    return float(np.sin(kw.values()[0]))
                 if o.funcname == '__pow__':
                     assert len(kw) == 2
                     return float(np.power(kw['base'], kw['exp']))
@@ -282,6 +286,50 @@ class FunctorGenerator(ASTVisitorBase):
                     assert False
 
         return eFunc
+
+
+
+    def VisitBIFSingleArg(self, o, functor):
+        if not self.as_float_in_si:
+            def eFunc(state_data, func_params, **kw):
+                assert len(func_params) == 1
+                ParsingBackend = MHUnitBackend
+                return ParsingBackend.Quantity( float( functor( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
+        else:
+            def eFunc(state_data, func_params, **kw):
+                assert len(kw) == 1
+                return float(functor(kw.values()[0]))
+        return eFunc
+
+    # ============
+    def VisitBIFsin(self, o):
+        return self.VisitBIFSingleArg(o=o,functor=np.sin)
+    def VisitBIFcos(self, o):
+        return self.VisitBIFSingleArg(o=o,functor=np.cos)
+    def VisitBIFtan(self, o):
+        return self.VisitBIFSingleArg(o=o,functor=np.tan)
+    
+    def VisitBIFsinh(self, o):
+        return self.VisitBIFSingleArg(o=o,functor=np.sinh)
+    def VisitBIFcosh(self, o):
+        return self.VisitBIFSingleArg(o=o,functor=np.cosh)
+    def VisitBIFtanh(self, o):
+        return self.VisitBIFSingleArg(o=o,functor=np.tanh)
+
+    def VisitBIFasin(self, o):
+        return self.VisitBIFSingleArg(o=o,functor=np.arcsin)
+    def VisitBIFacos(self, o):
+        return self.VisitBIFSingleArg(o=o,functor=np.arccos)
+    def VisitBIFatan(self, o):
+        return self.VisitBIFSingleArg(o=o,functor=np.arctan)
+
+    def VisitBIFexp(self, o):
+        return self.VisitBIFSingleArg(o=o,functor=np.exp)
+    # ==================
+
+
+
+
 
     def VisitSymbolicConstant(self, o, **kwargs):
         if not self.as_float_in_si:

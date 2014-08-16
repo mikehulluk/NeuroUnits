@@ -16,7 +16,7 @@ library std.math {
     asin(x) = __asin__(x)
     acos(x) = __acos__(x)
     atan(x) = __atan__(x)
-    atan2(x,y) = __atan2__(x=x,y=y)
+    #atan2(x,y) = __atan2__(x=x,y=y)
 
     exp(x) = __exp__(x)
     ln(x) = __ln__(x)
