@@ -38,12 +38,12 @@ class IOType(object):
     Time = 'Time'
 
     LUT = {
-        'INPUT': Input,
-        'OUTPUT': Output,
-        'PARAMETER': Parameter,
+        'input': Input,
+        'output': Output,
+        'parameter': Parameter,
         'STATE': State,
-        'SUMMED_INPUT': AnalogReducePort,
-        'TIME': Time,
+        'summed_input': AnalogReducePort,
+        'time': Time,
         }
 
 

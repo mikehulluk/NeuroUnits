@@ -10,9 +10,9 @@ from neurounits.ast_annotations.node_rangeexpander import RangeExpander
 def get_gj():
     src_text = """
     define_component simple_gj {
-        <=> PARAMETER g:(S)
-        <=> INPUT v1:(V)
-        <=> INPUT v2:(V)
+        <=> parameter g:(S)
+        <=> input v1:(V)
+        <=> input v2:(V)
 
         i1 = g * (v2-v1)
         i2 = -i1

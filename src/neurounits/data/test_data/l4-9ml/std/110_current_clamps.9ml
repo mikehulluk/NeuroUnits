@@ -35,10 +35,10 @@
             f= 2m
         }
 
-        <=> PARAMETER t_on, t_off
-        <=> OUTPUT i:(A)
-        <=> PARAMETER i_amp:(A)
-        <=> TIME t:(ms)
+        <=> parameter t_on, t_off
+        <=> output i:(A)
+        <=> parameter i_amp:(A)
+        <=> time t:(ms)
 
         }
         

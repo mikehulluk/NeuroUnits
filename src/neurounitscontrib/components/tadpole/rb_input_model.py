@@ -27,7 +27,7 @@ def get_rb_input():
 
 
 
-    <=> TIME t
+    <=> time t
     }
 
 

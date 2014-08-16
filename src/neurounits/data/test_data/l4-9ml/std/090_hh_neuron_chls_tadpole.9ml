@@ -4,9 +4,9 @@
 define_component chl_dIN_na {
     
 
-    <=> PARAMETER g:(S), erev
-    <=> OUTPUT    i:(mA)
-    <=> INPUT     V: mV    
+    <=> parameter g:(S), erev
+    <=> output    i:(mA)
+    <=> input     V: mV    
     
     from std.math import exp
 
@@ -46,9 +46,9 @@ define_component chl_dIN_na {
 
 define_component chl_dIN_kf {
 
-    <=> PARAMETER g:(S), erev
-    <=> OUTPUT    i:(mA)
-    <=> INPUT     V: mV    
+    <=> parameter g:(S), erev
+    <=> output    i:(mA)
+    <=> input     V: mV    
 
     from std.math import exp
 
@@ -77,9 +77,9 @@ define_component chl_dIN_kf {
 
 define_component chl_dIN_ks {
 
-    <=> PARAMETER g:(S), erev
-    <=> OUTPUT    i:(mA)
-    <=> INPUT     V: mV    
+    <=> parameter g:(S), erev
+    <=> output    i:(mA)
+    <=> input     V: mV    
 
     from std.math import exp
 

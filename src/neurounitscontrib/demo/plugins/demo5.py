@@ -43,7 +43,7 @@ def test5():
                     x=1.0
                     y=6.0
                 }
-             <=> PARAMETER mu
+             <=> parameter mu
             }
             """)
 

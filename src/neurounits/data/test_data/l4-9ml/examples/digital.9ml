@@ -12,14 +12,14 @@ define_multiport_type  asdf {
 define_component sine_gen {
 from std.math import sin
 
-    <=> OUTPUT vout:mV
-    <=> TIME t:s
+    <=> output vout:mV
+    <=> time t:s
 
     vout = sin( t * 2 * std.math.pi / {1s} ) * {2V}
 }
 
 define_component clk_gen {
-    <=> TIME t:s
+    <=> time t:s
 
     #t_last' = 0
     on(t > t_last + 50ms){
@@ -34,8 +34,8 @@ define_component clk_gen {
 
 define_component ff {
 
-    <=> INPUT D:V
-    <=> OUTPUT Q:mV
+    <=> input D:V
+    <=> output Q:mV
 
     on clk() {
         Q = D
@@ -95,8 +95,8 @@ define_compound_component simple_circuit1 {
 
 define_component ff_h {
 
-    <=> INPUT D:V
-    <=> OUTPUT Q:mV
+    <=> input D:V
+    <=> output Q:mV
 
     on clk() {
         Q = D
@@ -108,8 +108,8 @@ define_component ff_h {
 }
 define_component ff_l {
 
-    <=> INPUT D:V
-    <=> OUTPUT Q:mV
+    <=> input D:V
+    <=> output Q:mV
 
     on clk() {
         Q = D
@@ -124,8 +124,8 @@ define_component ff_l {
 
 
 define_component xor{
-    <=> INPUT x1:V, x2:V
-    <=> OUTPUT Q:mV
+    <=> input x1:V, x2:V
+    <=> output Q:mV
 
     T = 2.5V
 
@@ -138,8 +138,8 @@ define_component xor{
 
 define_component binary_to_dec{
 
-  <=> OUTPUT val:()
-  <=> INPUT x0,x1,x2,x3
+  <=> output val:()
+  <=> input x0,x1,x2,x3
 
   val = (x0 + 2* x1 + 4*x2 + 8*x3) / {1V}
 }

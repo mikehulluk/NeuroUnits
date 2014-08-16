@@ -15,9 +15,9 @@ define_component exp2syn {
         B = 0
     }
     
-    <=> PARAMETER g_max:S, Erev, t_open, t_close
-    <=> INPUT V:V
-    <=> OUTPUT i:A
+    <=> parameter g_max:S, Erev, t_open, t_close
+    <=> input V:V
+    <=> output i:A
     
     <=> multiport neuron_membrane_point_process[in] as process_mount_in {
         # Local <==> Compound-port name
@@ -51,7 +51,7 @@ define_component syn_trig {
         regime sub
     }
     
-    <=> INPUT V:V
+    <=> input V:V
 
    <=> multiport neuron_membrane_point_process[in] as process_mount_in {
         # Local <==> Compound-port name

@@ -12,11 +12,11 @@ def get_dIN():
     define_component simple_hh {
         from std.math import exp, ln
 
-        <=> TIME t:(ms)
-        <=> INPUT i_injected:(mA)
-        <=> PARAMETER nmda_multiplier:()
-        <=> PARAMETER ampa_multiplier:()
-        <=> PARAMETER inj_current:(pA)
+        <=> time t:(ms)
+        <=> input i_injected:(mA)
+        <=> parameter nmda_multiplier:()
+        <=> parameter ampa_multiplier:()
+        <=> parameter inj_current:(pA)
 
         iInj_local = [inj_current] if [ 50ms < t < 100ms] else [0pA]
         #iInj_local = 0pA

@@ -59,9 +59,9 @@ test_text = """
         }
 
 
-        <=> OUTPUT i:(A)
-        <=> PARAMETER i_amp:(A), t_start
-        <=> TIME t:(ms)
+        <=> output i:(A)
+        <=> parameter i_amp:(A), t_start
+        <=> time t:(ms)
     }
 
     define_component simple_syn{
@@ -92,9 +92,9 @@ test_text = """
                 regime sub
         }
 
-        <=> OUTPUT i:(A)
-        <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
-        <=> INPUT V_pre:(V), V_post:(V)
+        <=> output i:(A)
+        <=> parameter g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
+        <=> input V_pre:(V), V_post:(V)
     }
 
 
@@ -124,10 +124,10 @@ test_text = """
             regime OFF
         }
 
-        <=> PARAMETER t_on, t_off
-        <=> OUTPUT i:(A)
-        <=> PARAMETER i_amp:(A)
-        <=> TIME t:(ms)
+        <=> parameter t_on, t_off
+        <=> output i:(A)
+        <=> parameter i_amp:(A)
+        <=> time t:(ms)
 
         }
 
@@ -137,9 +137,9 @@ test_text = """
 
         V' = i_sum / C
 
-        <=> SUMMED_INPUT i_sum
-        <=> PARAMETER C:(uF)
-        <=> OUTPUT     V: mV
+        <=> summed_input i_sum
+        <=> parameter C:(uF)
+        <=> output     V: mV
 
     }
 
@@ -148,9 +148,9 @@ test_text = """
 
         i = g * (erev-V) *a
         a = 1000 um2
-        <=> PARAMETER g:(S/m2), erev
-        <=> OUTPUT    i:(mA)
-        <=> INPUT     V: mV
+        <=> parameter g:(S/m2), erev
+        <=> output    i:(mA)
+        <=> input     V: mV
 
     }
 
@@ -171,7 +171,7 @@ test_text = """
             regime std
             }
 
-        <=> TIME t:(ms)
+        <=> time t:(ms)
     }
 
 
@@ -188,9 +188,9 @@ test_text = """
             B = B + 1 + amp/{1mS}
         }
 
-        <=> OUTPUT i:(A)
-        <=> PARAMETER g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
-        <=> INPUT  V_post:(V)
+        <=> output i:(A)
+        <=> parameter g_bar:(uS), t_open:(ms), t_close:(ms), e_syn:(V)
+        <=> input  V_post:(V)
     }
 
 

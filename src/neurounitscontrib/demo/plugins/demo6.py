@@ -98,8 +98,8 @@ define_component my_din {
     # Simulated equation:
     V' = (i_lk + i_na + i_kf + i_ks +  i_ca + i_Inj) / C
 
-    <=> OUTPUT    V
-    <=> INPUT    t
+    <=> output    V
+    <=> input    t
     
     initial {
         V = -80mV

@@ -194,6 +194,7 @@ class MODLBuildParameters(object):
             if role == "MEMBRANEVOLTAGE":
                 supplied_values[obj] = NeuronSuppliedValues.MembraneVoltage
             elif role == "TIME":
+                assert(0) # Removed June 2014
                 supplied_values[obj] = NeuronSuppliedValues.Time
             elif role == "TEMPERATURE":
                 supplied_values[obj] = NeuronSuppliedValues.Temperature

@@ -6,8 +6,8 @@ namespace spike_gen {
 
 
     define_component fixed_time {
-        <=> PARAMETER t_spike
-        <=> INPUT t:s
+        <=> parameter t_spike
+        <=> input t:s
         
         
         regime pre {
@@ -22,8 +22,8 @@ namespace spike_gen {
     
     define_component fixed_period {
         
-        <=> PARAMETER t_period
-        <=> TIME t:s
+        <=> parameter t_period
+        <=> time t:s
         
         initial {
             t_last = 0s

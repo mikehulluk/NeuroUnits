@@ -298,11 +298,11 @@ def build_component( chlmlinfo, componentname=None ):
 
 
     io_string = Template( """
-    <=> PARAMETER    $OpenConductance : (S/m2)
-    <=> PARAMETER    $ReversalPotential : (mV)
-    <=> OUTPUT       $MembraneCurrent :(A/m2)    METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
-    <=> INPUT        V:(V)       METADATA {"mf":{"role":"MEMBRANEVOLTAGE"} }
-    <=> INPUT        $Temperature :(K) METADATA {"mf":{"role":"TEMPERATURE"} } """).substitute(**Name.__dict__)
+    <=> parameter    $OpenConductance : (S/m2)
+    <=> parameter    $ReversalPotential : (mV)
+    <=> output       $MembraneCurrent :(A/m2)    METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
+    <=> input        V:(V)       METADATA {"mf":{"role":"MEMBRANEVOLTAGE"} }
+    <=> input        $Temperature :(K) METADATA {"mf":{"role":"TEMPERATURE"} } """).substitute(**Name.__dict__)
 
 
     import_string = """

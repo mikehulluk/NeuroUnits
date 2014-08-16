@@ -13,8 +13,8 @@ define_component gating_particle_hh_k {
 
     s4 = s*s*s*s
     
-    <=> OUTPUT    s:()
-    <=> INPUT     V:mV
+    <=> output    s:()
+    <=> input     V:mV
     
     initial {
         s = 0
@@ -57,8 +57,8 @@ define_component gating_particle_hh_na {
     }
     
     
-    <=> OUTPUT    s_out:()
-    <=> INPUT     V:mV
+    <=> output    s_out:()
+    <=> input     V:mV
 }
 
 
@@ -78,10 +78,10 @@ define_component chl_base {
 
     i = g * (erev-V) * s_in *area
 
-    <=> PARAMETER g:(S/m2), erev, area:(m2)
-    <=> OUTPUT    i:(mA)
-    <=> INPUT     V: mV    
-    <=> SUMMED_INPUT s_in:()
+    <=> parameter g:(S/m2), erev, area:(m2)
+    <=> output    i:(mA)
+    <=> input     V: mV    
+    <=> summed_input s_in:()
 
 }
 
@@ -157,9 +157,9 @@ define_compound_component chl_na {
 
 define_component chl_lk {
 
-        <=> PARAMETER g:(S/m2), erev, area:(m2)
-        <=> OUTPUT    i:(mA)
-        <=> INPUT     V: mV
+        <=> parameter g:(S/m2), erev, area:(m2)
+        <=> output    i:(mA)
+        <=> input     V: mV
 
         i = g * (erev-V) * area
         

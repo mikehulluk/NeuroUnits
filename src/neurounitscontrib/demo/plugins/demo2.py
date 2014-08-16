@@ -98,7 +98,7 @@ ball_arena_text = """
             emit collision(x=(B1X+B2X)/2, y=(B1Y+B2Y)/2)
         }
 
-        <=> INPUT t:s
+        <=> input t:s
 
 }
 

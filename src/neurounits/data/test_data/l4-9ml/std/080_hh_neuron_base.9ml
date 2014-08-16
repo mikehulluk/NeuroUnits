@@ -4,9 +4,9 @@ namespace hh_neuron {
 
 
     define_component hh_neuron_base {
-        <=> SUMMED_INPUT i_sum
-        <=> PARAMETER C:(uF)
-        <=> OUTPUT     V: mV
+        <=> summed_input i_sum
+        <=> parameter C:(uF)
+        <=> output     V: mV
         
         V' = i_sum / C
 

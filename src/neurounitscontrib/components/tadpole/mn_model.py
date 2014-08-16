@@ -12,8 +12,8 @@ def get_MN():
     define_component simple_hh_MN {
         from std.math import exp, ln
 
-        <=> TIME t:(ms)
-        # <=> INPUT i_injected:(mA)
+        <=> time t:(ms)
+        # <=> input i_injected:(mA)
 
         iInj_local = {0pA/ms} * t
 

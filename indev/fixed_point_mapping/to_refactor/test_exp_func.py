@@ -43,7 +43,7 @@ src_text = """
 define_component simple_hh {
     from std.math import exp, ln
 
-    <=> TIME t:(ms)
+    <=> time t:(ms)
 
     x = exp( t/{1s} / 10. )
     }

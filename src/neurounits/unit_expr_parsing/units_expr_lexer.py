@@ -76,11 +76,11 @@ class UnitExprLexer(object):
         'ar_model': 'AR_MODEL',
 
 
-        'TIME': 'TIME',
-        'INPUT': 'INPUT',
-        'OUTPUT':'OUTPUT',
-        'PARAMETER':'PARAMETER',
-        'SUMMED_INPUT':'SUMMED_INPUT',
+        'time': 'TIME',
+        'input': 'INPUT',
+        'output':'OUTPUT',
+        'parameter':'PARAMETER',
+        'summed_input':'SUMMED_INPUT',
 
         'in': 'IN',
         'out': 'OUT',
