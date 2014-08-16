@@ -859,8 +859,8 @@ class AbstractBlockBuilder(object):
 
 
         # Resolve the compound-connectors:
-        for compoundport in self._interface_data:
-            local_name, porttype, direction, wire_mapping_txts = compoundport
+        for multiport in self._interface_data:
+            local_name, porttype, direction, wire_mapping_txts = multiport
             self._astobject.build_interface_connector(local_name=local_name, porttype=porttype, direction=direction, wire_mapping_txts=wire_mapping_txts)
             #print conn
             #assert False
