@@ -120,11 +120,11 @@ class DefaultNodeColors(ASTActionerDefault):
             ast.OutEventPortParameter: 'blue',
             ast.EventPortConnection: 'blue',
             ast.Library: 'blue',
-            ast.InterfaceWire: 'blue',
+            ast.MultiportInterfaceDefWire: 'blue',
             ast.NineMLComponent: 'blue',
-            ast.InterfaceWireContinuous: 'blue',
-            ast.InterfaceWireEvent: 'blue',
-            ast.Interface: 'blue',
+            ast.MultiportInterfaceDefWireContinuous: 'blue',
+            ast.MultiportInterfaceDefWireEvent: 'blue',
+            ast.MultiportInterfaceDef: 'blue',
             ast.CompoundPortConnectorWireMapping: 'blue',
             ast.CompoundPortConnector: 'blue',
             ast.RandomVariable: 'blue',
@@ -418,7 +418,7 @@ class ActionerGetConnections(ASTActionerDefault):
         self.connections[o].extend([o.src_port, o.dst_port])
 
 
-    def ActionInterface(self, o, **kwargs):
+    def ActionMultiportInterfaceDef(self, o, **kwargs):
         self.connections[o].extend(list(o.connections))
 
     def ActionCompoundPortConnectorWireMapping(self, o, **kwargs):

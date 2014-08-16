@@ -279,17 +279,17 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
 
 
 
-    def VisitInterfaceWireContinuous(self, o):
+    def VisitMultiportInterfaceDefWireContinuous(self, o):
         pass
 
-    def VisitInterfaceWireEvent(self, o):
+    def VisitMultiportInterfaceDefWireEvent(self, o):
         pass
 
 
 
     def VisitCompoundPortConnectorWireMapping(self, o):
         pass
-    def VisitInterface(self, o):
+    def VisitMultiportInterfaceDef(self, o):
         pass
     def VisitCompoundPortConnector(self, o):
         pass
@@ -695,14 +695,14 @@ class DimensionResolver(ASTVisitorBase):
     def VisitEventPortConnection(self, o):
         pass
 
-    def VisitInterfaceWireContinuous(self, o):
+    def VisitMultiportInterfaceDefWireContinuous(self, o):
         pass
 
 
 
     def VisitCompoundPortConnectorWireMapping(self, o):
         pass
-    def VisitInterface(self, o):
+    def VisitMultiportInterfaceDef(self, o):
         pass
     def VisitCompoundPortConnector(self, o):
         pass

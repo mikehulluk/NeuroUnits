@@ -61,7 +61,8 @@ class UnitExprLexer(object):
         'rename':'RENAME',
         'to':'TO',
 
-        'interface': 'INTERFACE',
+        'define_multiport_type': 'DEFINE_MULTIPORT_TYPE',
+        #'interface': 'INTERFACE',
         'compoundport': 'COMPOUNDPORT',
         'of_type': 'OFTYPE',
         'set':'SET',

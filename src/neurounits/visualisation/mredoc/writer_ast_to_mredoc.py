@@ -390,7 +390,7 @@ class MRedocWriterVisitor(ASTVisitorBase):
         return d
 
 
-    def VisitInterface(self, interface, **kwargs):
+    def VisitMultiportInterfaceDef(self, interface, **kwargs):
         connections = VerticalColTable("Symbol  | Type    | Value  | Dimensions | Dependancies | Metadata",
                                       ["$%s$    | -       | -      | -          | -            | -       " % (p.symbol,) for p in interface.connections]  
                                       )

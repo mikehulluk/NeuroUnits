@@ -75,7 +75,7 @@ def test4():
     library_manager = neurounits.NeuroUnitParser.Parse9MLFiles( src_files)
 
     print
-    print 'Available Interfaces:'
+    print 'Available MultiportInterfaceDefs:'
     for comp in library_manager.interfaces:
         print '  ',  repr(comp)
     print

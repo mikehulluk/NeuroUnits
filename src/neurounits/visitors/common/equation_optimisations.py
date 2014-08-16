@@ -178,7 +178,7 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
     def ActionEmitEventParameter(self, o, **kwargs):
         pass # TODO: Optimisation here?
 
-    def ActionInterface(self, o, **kwargs):
+    def ActionMultiportInterfaceDef(self, o, **kwargs):
         pass # TODO: Optimisation here?
 
     def ActionOutEventPort(self, o, **kwargs):
@@ -199,10 +199,10 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
     def ActionEventPortConnection(self, o, **kwargs):
         pass # TODO: Optimisation here?
 
-    def ActionInterfaceWireContinuous(self, o, **kwargs):
+    def ActionMultiportInterfaceDefWireContinuous(self, o, **kwargs):
         pass # TODO: Optimisation here?
 
-    def ActionInterfaceWireEvent(self, o, **kwargs):
+    def ActionMultiportInterfaceDefWireEvent(self, o, **kwargs):
         pass # TODO: Optimisation here?
 
     def ActionCompoundPortConnector(self, o,**kwargs):

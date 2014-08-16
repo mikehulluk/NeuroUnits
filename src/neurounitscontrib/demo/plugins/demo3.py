@@ -190,7 +190,7 @@ def test3():
 
 
 
-            interface std_pt_process {
+            define_multiport_type std_pt_process {
                     ==>> V : (V)
                     <<== I : (A)
                     #==?> events_in (V:S)
@@ -251,7 +251,7 @@ def test3():
                     instantiate synwrap as synin
             
                     # New way!:
-                    multiconnect nrn/IO_pt_proc <==> synin/IO_post
+                    multiconnect nrn/IO_pt_proc to synin/IO_post
                     
                     # Old way:
                     #connect synin/psm/V_post to nrn/V
@@ -330,3 +330,21 @@ if __name__ == '__main__':
     test3()
     pylab.show()
     
+    
+    
+"""
+define_multiport std_pt_process {
+    ==>> V
+    <<== I
+}
+
+
+define_component {
+
+    <=> multiport std_pt_process<in> as IO {
+        IO/V is V
+        IO/I is I_in
+    }
+    
+}
+"""

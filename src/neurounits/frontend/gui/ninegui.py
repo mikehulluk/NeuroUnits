@@ -221,7 +221,7 @@ class TreeByModule(TabPanel1):
             img = {
                 ast.NineMLComponent: self.im_component,
                 ast.Library: self.im_library,
-                ast.Interface: self.im_interface,
+                ast.MultiportInterfaceDef: self.im_interface,
             }[type(obj)]
 
             self.tree.SetItemImage(itm, img, wx.TreeItemIcon_Normal)
@@ -356,7 +356,7 @@ class RHSPanelComponent(wx.Panel):
 
         self.list_ctrl_interfaces = wx.ListCtrl(self, size=(-1,100), style=wx.LC_REPORT|wx.BORDER_SUNKEN)
         self.list_ctrl_interfaces.InsertColumn(0, 'Connector Name')
-        self.list_ctrl_interfaces.InsertColumn(1, 'InterfaceType')
+        self.list_ctrl_interfaces.InsertColumn(1, 'MultiportInterfaceDefType')
         self.list_ctrl_interfaces.InsertColumn(2, 'Direction', width=125)
 
         vbox.Add(self.objlabel, 1, wx.EXPAND)
@@ -422,7 +422,7 @@ class RHSToolbookDemo(wx.Toolbook):
         imgs = StdImages()
         page_types = (
             (neurounits.ast.NineMLComponent, RHSPanelComponent, "Component", imgs.im_component),
-            (neurounits.ast.Interface, RHSPanelInterface, "Interface", imgs.im_interface),
+            (neurounits.ast.MultiportInterfaceDef, RHSPanelInterface, "Interface", imgs.im_interface),
             (neurounits.ast.Library, RHSPanelInterface, "Library", imgs.im_library),
             (None, RHSPanelModule, "Module", imgs.im_namespace),
         )

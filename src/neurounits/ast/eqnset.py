@@ -763,7 +763,7 @@ class NineMLComponent(Block):
         # CONCEPTUALLY THIS IS VERY SIMPLE< BUT THE CODE
         # IS A HORRIBLE HACK!
 
-        no_remap = (ast.Interface, ast.InterfaceWireContinuous, ast.InterfaceWireEvent, ast.FunctionDefBuiltIn, ast.FunctionDefParameter)
+        no_remap = (ast.MultiportInterfaceDef, ast.MultiportInterfaceDefWireContinuous, ast.MultiportInterfaceDefWireEvent, ast.FunctionDefBuiltIn, ast.FunctionDefParameter)
         # First, lets clone each and every node:
         old_nodes = list(set(list(EqnsetVisitorNodeCollector(self).all())))
         old_to_new_dict = {}

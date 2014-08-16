@@ -10,55 +10,55 @@ class PortDirection(object):
     Out = 'Out'
 
 
-class InterfaceWire(base.ASTObject):
+class MultiportInterfaceDefWire(base.ASTObject):
     DirRight = 'DirRight'
     DirLeft = 'DirLeft'
 
     DirCute = {DirRight:'==>>', DirLeft:'<<=='}
 
     def __init__(self, symbol, direction, optional=False):
-        assert direction in [InterfaceWire.DirRight, InterfaceWire.DirLeft]
+        assert direction in [MultiportInterfaceDefWire.DirRight, MultiportInterfaceDefWire.DirLeft]
         self.symbol = symbol
         self.direction = direction
         self.optional = optional
 
-class InterfaceWireContinuous(InterfaceWire):
+class MultiportInterfaceDefWireContinuous(MultiportInterfaceDefWire):
     def __init__(self, symbol, direction, unit, optional=False):
-        super(InterfaceWireContinuous, self).__init__( symbol=symbol, direction=direction, optional=optional)
+        super(MultiportInterfaceDefWireContinuous, self).__init__( symbol=symbol, direction=direction, optional=optional)
         self.unit = unit
 
     def _summarise(self):
         print '  ', self.DirCute[self.direction],self.symbol.ljust(5),  'Analog', self.unit, 'Optional:', self.optional
 
     def accept_visitor(self, visitor, **kwargs):
-        return visitor.VisitInterfaceWireContinuous(self, **kwargs)
+        return visitor.VisitMultiportInterfaceDefWireContinuous(self, **kwargs)
 
-class InterfaceWireEvent(InterfaceWire):
+class MultiportInterfaceDefWireEvent(MultiportInterfaceDefWire):
     def __init__(self, symbol, direction, parameters, optional=False):
-        super(InterfaceWireEvent, self).__init__( symbol=symbol, direction=direction, optional=optional)
+        super(MultiportInterfaceDefWireEvent, self).__init__( symbol=symbol, direction=direction, optional=optional)
         self.parameters = parameters
     def _summarise(self):
         print '  ', self.DirCute[self.direction],self.symbol.ljust(5),  'Event', ['%s:%s'%p for p in self.parameters ], 'Optional:', self.optional
 
     def accept_visitor(self, visitor, **kwargs):
-        return visitor.VisitInterfaceWireEvent(self, **kwargs)
+        return visitor.VisitMultiportInterfaceDefWireEvent(self, **kwargs)
 
     def __repr__(self,):
-        return '<InterfaceWireEvent: %s (Optional:%s, Direction:%s)>' %( self.symbol, self.optional, self.direction)
+        return '<MultiportInterfaceDefWireEvent: %s (Optional:%s, Direction:%s)>' %( self.symbol, self.optional, self.direction)
 
 
 
-class Interface(base.ASTObject):
+class MultiportInterfaceDef(base.ASTObject):
 
     def accept_visitor(self, visitor, **kwargs):
-        return visitor.VisitInterface(self, **kwargs)
+        return visitor.VisitMultiportInterfaceDef(self, **kwargs)
 
 
     def __init__(self, symbol, connections):
-        super(Interface, self).__init__()
+        super(MultiportInterfaceDef, self).__init__()
 
         self.symbol = symbol
-        self.connections = LookUpDict(connections, accepted_obj_types=(InterfaceWire,))
+        self.connections = LookUpDict(connections, accepted_obj_types=(MultiportInterfaceDefWire,))
 
     @property
     def name(self):
@@ -75,7 +75,7 @@ class Interface(base.ASTObject):
         return self.connections.get_single_obj_by(symbol=wire_name)
 
     def __repr__(self, ):
-        return '<Interface: %s (%s)>' % (self.symbol, id(self))
+        return '<MultiportInterfaceDef: %s (%s)>' % (self.symbol, id(self))
 
 
     def to_redoc(self):
@@ -94,7 +94,7 @@ class CompoundPortConnectorWireMapping(base.ASTObject):
 
 
         assert isinstance(component_port, (ast.SuppliedValue, ast.AssignedVariable, ast.StateVariable, ast.AnalogReducePort, ast.SymbolicConstant) )
-        assert isinstance(interface_port, (InterfaceWireContinuous, InterfaceWireEvent) )
+        assert isinstance(interface_port, (MultiportInterfaceDefWireContinuous, MultiportInterfaceDefWireEvent) )
 
     def accept_visitor(self, visitor, **kwargs):
         return visitor.VisitCompoundPortConnectorWireMapping(self, **kwargs)

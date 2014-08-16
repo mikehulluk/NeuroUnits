@@ -54,8 +54,8 @@ class ASTActionerDepthFirst(ASTVisitorBase):
             self.visit(c)
         return self._ActionLibraryManager( o, **kwargs)
 
-    def VisitInterface(self, o, **kwargs):
-        return self._ActionInterface( o, **kwargs)
+    def VisitMultiportInterfaceDef(self, o, **kwargs):
+        return self._ActionMultiportInterfaceDef( o, **kwargs)
 
     def VisitCompoundPortConnector(self, o, **kwargs):
         self.visit(o.interface_def)
@@ -68,9 +68,9 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         self.visit(o.interface_port)
         return self._ActionCompoundPortConnectorWireMapping(o, **kwargs)
 
-    def VisitInterfaceWireContinuous(self, o, **kwargs):
+    def VisitMultiportInterfaceDefWireContinuous(self, o, **kwargs):
         pass
-    def VisitInterfaceWireEvent(self, o, **kwargs):
+    def VisitMultiportInterfaceDefWireEvent(self, o, **kwargs):
         pass
 
 
@@ -507,9 +507,9 @@ class ASTActionerDepthFirst(ASTVisitorBase):
 
 
 
-    def _ActionInterface(self, o, **kwargs):
+    def _ActionMultiportInterfaceDef(self, o, **kwargs):
         if self._ActionPredicate(o, **kwargs):
-            return self.ActionInterface(o, **kwargs)
+            return self.ActionMultiportInterfaceDef(o, **kwargs)
 
 
     def _ActionCompoundPortConnectorWireMapping(self, o, **kwargs):
