@@ -564,7 +564,8 @@ namespace DoubleFixedPoint {
 
 
 #define MPFR_REAL_ENABLE_CONV_OPS
-#include "/home/mh735/mpfr_real/mpfr_real_v0.0.9-alpha/real.hpp"
+//#include "/home/mh735/mpfr_real/mpfr_real_v0.0.9-alpha/real.hpp"
+#include "/home/michael/Desktop/mpfr_real/mpfr_real_v0.0.9-alpha/real.hpp"
 
 
 
@@ -3306,11 +3307,11 @@ class CBasedEqnWriterFixedNetwork(object):
         # The executable:
         CCompiler.build_executable( src_text=cfile,
                                     compilation_settings = CCompilationSettings(
-                                        additional_include_paths=[os.path.expanduser("~/hw/hdf-jive/include"), os.path.expanduser('~/hw/NeuroUnits/cpp/include/'), ],
-                                        additional_library_paths=[os.path.expanduser("~/hw/hdf-jive/lib/"), os.path.expanduser("~/hw/BlueVec/lib/")],
+                                        additional_include_paths=["~/dev/hdf-jive/include",'~/dev/NeuroUnits/cpp/include/', ],
+                                        additional_library_paths=["~/dev/hdf-jive/lib/","~/hw/BlueVec/lib/"],
                                         libraries = ['mpfr','hdfjive','hdf5','hdf5_hl'],
                                         compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O2  -g ' + (CPPFLAGS if CPPFLAGS else '') ]
-                                        #compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O2  -g -D_GLIBCXX_DEBUG ' + (CPPFLAGS if CPPFLAGS else '') ]
+                                        
                                         ),
                                     run=run,
                                     output_filename=output_exec_filename or None,

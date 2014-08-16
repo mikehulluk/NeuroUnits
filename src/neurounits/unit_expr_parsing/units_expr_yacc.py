@@ -816,7 +816,10 @@ def p_rhs_term4(p):
 # ==========================
 def p_rv_expr(p):
     """ rhs_term : random_variable """
+    
     print  "ERROR! THE RANDOM NODE IS NOT REALLY GENERATING RANDOM NUMBERS!!"
+    assert False
+    
     backend = p.parser.library_manager.backend
     p[0] = ast.RandomVariable(
             function_name='uniform',

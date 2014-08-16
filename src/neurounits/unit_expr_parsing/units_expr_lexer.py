@@ -88,10 +88,6 @@ class UnitExprLexer(object):
         }
 
     tokens = [
-
-
-        #'MULTIPORT_IN',
-        #'MULTIPORT_OUT',
         'COMPOUNDPORT_IN',
         'COMPOUNDPORT_OUT',
         'COMPOUNDPORT_IN_OPT',
@@ -99,8 +95,6 @@ class UnitExprLexer(object):
 
         'CONNECTION_SYMBOL',
         'IO_MARKER',
-
-        #'IO_LINE',
         'INTEGER',
         'FLOAT',
         'SLASH',
@@ -160,14 +154,8 @@ class UnitExprLexer(object):
     t_COMPOUNDPORT_IN_OPT = r"""==\?>""" + WS
     t_COMPOUNDPORT_OUT_OPT = r"""<\?==""" + WS
 
-    #t_MULTIPORT_IN =  r'<in>' + WS
-    #t_MULTIPORT_OUT =  r'<out>' + WS
-
-
-    #t_IO_LINE = r"""<=> [^;]*"""  + WS
     t_METADATA = r"""METADATA [^;]*"""  + WS
     t_IO_MARKER = r"""<=>""" + WS
-
 
     t_MINUS = r"""-""" + WS
     t_CONNECTION_SYMBOL = r"""<==>""" + WS
@@ -215,11 +203,7 @@ class UnitExprLexer(object):
 
     def token(self, *args, **kwargs):
         t = self.lexer.token(*args, **kwargs)
-
-
-
         #print 'TOKEN:',t
-
         return t
 
 
