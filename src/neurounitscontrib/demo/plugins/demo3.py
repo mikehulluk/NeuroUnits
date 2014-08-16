@@ -206,11 +206,11 @@ def test3():
                     instantiate i_squarewave  as i_square1
                     instantiate i_squarewave  as i_square2
 
-                    connect i_inj/i <==> nrn/i_sum
-                    connect lk/i <==> nrn/i_sum
-                    connect i_square1/i  <==> nrn/i_sum
-                    connect i_square2/i  <==> nrn/i_sum
-                    connect nrn/V <==> lk/V
+                    connect i_inj/i to nrn/i_sum
+                    connect lk/i to nrn/i_sum
+                    connect i_square1/i  to nrn/i_sum
+                    connect i_square2/i  to nrn/i_sum
+                    connect nrn/V to lk/V
 
                     rename nrn/V to V
                     rename nrn/i_sum to I_in
@@ -231,7 +231,7 @@ def test3():
                     instantiate evt_gen as evts
                     instantiate evt_syn as psm
 
-                    connect evts/myevent <==> psm/myevent
+                    connect evts/myevent to psm/myevent
 
 
                     
@@ -254,8 +254,8 @@ def test3():
                     multiconnect nrn/IO_pt_proc <==> synin/IO_post
                     
                     # Old way:
-                    #connect synin/psm/V_post <==> nrn/V
-                    #connect synin/psm/i <==> nrn/I_in
+                    #connect synin/psm/V_post to nrn/V
+                    #connect synin/psm/i to  nrn/I_in
                     
                     
 

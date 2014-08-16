@@ -236,11 +236,11 @@ def p_compound_component3(p):
     p[0] = {'action': 'INSTANTIATE' , 'what':p[2], 'as':p[4] }
 
 def p_compound_component4(p):
-    """compound_line : CONNECT ns_name CONNECTION_SYMBOL ns_name"""
+    """compound_line : CONNECT ns_name TO ns_name"""
     p[0] = {'action': 'CONNECT', 'what':(p[2],p[4])}
 
 def p_compound_component4b(p):
-    """compound_line : MULTICONNECT ns_name CONNECTION_SYMBOL ns_name"""
+    """compound_line : MULTICONNECT ns_name TO ns_name"""
     p[0] = {'action': 'MULTICONNECT', 'what':(p[2],p[4])}
 
 def p_compound_component5(p):
