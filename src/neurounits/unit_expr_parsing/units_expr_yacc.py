@@ -68,7 +68,7 @@ def p_major_blocks(p):
                        | compound_component_def
                        | namespace_def
                        | library_def
-                       | compound_port_def"""
+                       | multiport_def"""
 
 
 
@@ -106,13 +106,13 @@ def p_namespace_def2(p):
 # ==============
 
 def p_compoundport_1(p):
-    """ compound_port_def : DEFINE_MULTIPORT_TYPE alphanumtoken LCURLYBRACKET compound_port_def_contents RCURLYBRACKET SEMICOLON"""
-    compound_port = ast.MultiportInterfaceDef( symbol=p[2], connections = p[4] )
-    p.parser.library_manager.add_compoundportdef(compound_port)
+    """ multiport_def : DEFINE_MULTIPORT_TYPE alphanumtoken LCURLYBRACKET multiport_def_contents RCURLYBRACKET SEMICOLON"""
+    multiport = ast.MultiportInterfaceDef( symbol=p[2], connections = p[4] )
+    p.parser.library_manager.add_compoundportdef(multiport)
 
 def p_compoundport_2(p):
-    """ compound_port_def_contents : empty
-                                   | compound_port_def_contents compound_port_def_line SEMICOLON """
+    """ multiport_def_contents : empty
+                                   | multiport_def_contents multiport_def_line SEMICOLON """
     if len(p) == 2:
         p[0] = []
     else:
@@ -120,31 +120,31 @@ def p_compoundport_2(p):
 
 
 def p_compoundport_3a(p):
-    """ compound_port_def_direction_arrow : COMPOUNDPORT_IN"""
+    """ multiport_def_direction_arrow : COMPOUNDPORT_IN"""
     p[0] = (ast.MultiportInterfaceDefWire.DirRight, False)
 
 def p_compoundport_3b(p):
-    """ compound_port_def_direction_arrow : COMPOUNDPORT_IN_OPT"""
+    """ multiport_def_direction_arrow : COMPOUNDPORT_IN_OPT"""
     p[0] = (ast.MultiportInterfaceDefWire.DirRight, True)
 
 def p_compoundport_3c(p):
-    """ compound_port_def_direction_arrow : COMPOUNDPORT_OUT"""
+    """ multiport_def_direction_arrow : COMPOUNDPORT_OUT"""
     p[0] = (ast.MultiportInterfaceDefWire.DirLeft, False)
 
 def p_compoundport_3d(p):
-    """ compound_port_def_direction_arrow : COMPOUNDPORT_OUT_OPT"""
+    """ multiport_def_direction_arrow : COMPOUNDPORT_OUT_OPT"""
     p[0] = (ast.MultiportInterfaceDefWire.DirLeft, True)
 
 
 # Analog port:
 def p_compoundport_7(p):
-    """compound_port_def_line : compound_port_def_direction_arrow alphanumtoken COLON LBRACKET unit_expr RBRACKET """
+    """multiport_def_line : multiport_def_direction_arrow alphanumtoken COLON LBRACKET unit_expr RBRACKET """
     direction, optional = p[1]
     p[0] = ast.MultiportInterfaceDefWireContinuous( symbol=p[2], direction=direction, unit=5, optional=optional)
 
 # Events:
 def p_compoundport_8(p):
-    """compound_port_def_line : compound_port_def_direction_arrow alphanumtoken LBRACKET compoundport_event_param_list RBRACKET"""
+    """multiport_def_line : multiport_def_direction_arrow alphanumtoken LBRACKET compoundport_event_param_list RBRACKET"""
     direction, optional = p[1]
     p[0] = ast.MultiportInterfaceDefWireEvent( symbol=p[2], direction=direction, parameters=p[4], optional=optional)
 
@@ -259,7 +259,7 @@ def p_compound_component8(p):
     p[0] = p[1] + [p[3]]
 
 def p_compound_component9(p):
-    """compound_line : compound_port_inst"""
+    """compound_line : multiport_inst"""
     p[0] = {'action':'COMPOUNDPORT', 'port_instance':p[1] }
 
 def p_compound_component10(p):
@@ -275,32 +275,32 @@ def p_compound_component10(p):
 # Compound Component Port Instantiation
 # =======================================
 
-def p_compound_port_inst_1(p):
-    """compound_port_inst : IO_MARKER MULTIPORT alphanumtoken OFTYPE alphanumtoken multiport_direction LCURLYBRACKET compound_port_inst_constents RCURLYBRACKET """
+def p_multiport_inst_1(p):
+    """multiport_inst : IO_MARKER MULTIPORT alphanumtoken OFTYPE alphanumtoken multiport_direction LCURLYBRACKET multiport_inst_constents RCURLYBRACKET """
     type_ = p[5]
     name  = p[3]
     direction = p[6]
     contents = p[8]
     p[0] = (name,type_,direction, contents)
 
-def p_compound_port_inst_1a(p):
+def p_multiport_inst_1a(p):
     """multiport_direction : MULTIPORT_IN """
     p[0] = 'in'
 
-def p_compound_port_inst_1b(p):
+def p_multiport_inst_1b(p):
     """multiport_direction : MULTIPORT_OUT """
     p[0] = 'out'
 
 
-def p_compound_port_inst_2(p):
-    """compound_port_inst_constents : empty"""
+def p_multiport_inst_2(p):
+    """multiport_inst_constents : empty"""
     p[0] = []
 
-def p_compound_port_inst_3(p):
-    """compound_port_inst_constents : compound_port_inst_constents compondport_inst_line SEMICOLON"""
+def p_multiport_inst_3(p):
+    """multiport_inst_constents : multiport_inst_constents multiport_inst_line SEMICOLON"""
     p[0] = p[1]  + [p[2]]
-def p_compound_port_inst_4(p):
-    """compondport_inst_line : ns_name CONNECTION_SYMBOL ns_name"""
+def p_multiport_inst_4(p):
+    """multiport_inst_line : ns_name CONNECTION_SYMBOL ns_name"""
     p[0] = (p[1], p[3])
 
 
@@ -342,7 +342,7 @@ def p_parse_componentline2(p):
     p.parser.library_manager.get_current_block_builder().add_io_data(p[1])
 
 def p_parse_componentline3(p):
-    """componentlinecontents : compound_port_inst"""
+    """componentlinecontents : multiport_inst"""
     p.parser.library_manager.get_current_block_builder().add_compoundport_def_data(p[1])
 
 def p_parse_componentline5(p):
