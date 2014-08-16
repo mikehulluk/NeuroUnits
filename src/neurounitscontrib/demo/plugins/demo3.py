@@ -306,7 +306,6 @@ def test3():
         'nrn/V':'0mV', 
         'nrn/i_square1/t_last':'0ms', 
         'nrn/i_square2/t_last':'0ms', 
-        #'synin/evts/t_last':'0ms', 
         'synin/psm/A':'0', 
         'synin/psm/B':'0'
         }
@@ -329,4 +328,5 @@ def test3():
 
 if __name__ == '__main__':
     test3()
+    pylab.show()
     
