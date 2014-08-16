@@ -22,12 +22,15 @@ def boost_python_tool(env):
 
 
 env = Environment(
-	CCFLAGS = " -std=c++0x -Werror -Wall -Wno-unused-variable  -I/usr/include/python2.7  -lpython2.7 -lboost_python -p -g -Wfatal-errors -Werror -Wno-unused-but-set-variable -Wno-write-strings " ,
+	CCFLAGS = " -std=c++0x -Werror -Wall -Wno-unused-variable -Wno-unused-local-typedefs -I/usr/include/python2.7  -lpython2.7 -lboost_python -p -g -Wfatal-errors -Werror -Wno-unused-but-set-variable -Wno-write-strings " ,
 	CPPPATH = ['include/'],
 	tools=['default', python_tool, boost_python_tool]
 	)
 
-
+#conf = Configure(env)
+#if not conf.CheckCHeader('boost/python.hpp'):
+#        print 'boost/python.hpp must be installed!'
+#        Exit(1)
 
 
 
