@@ -4,7 +4,7 @@ library testlib {
 
 }
 
-interface  asdf {
+define_multiport_type  asdf {
 
 
 }

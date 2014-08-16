@@ -1,13 +1,13 @@
 
 
 
-interface neuron_membrane_point_process {
+define_multiport_type neuron_membrane_point_process {
     ==>> V:(V)
     <<== I:(A)
 }
 
 
-interface synapse_input_event {
+define_multiport_type synapse_input_event {
 
 
 

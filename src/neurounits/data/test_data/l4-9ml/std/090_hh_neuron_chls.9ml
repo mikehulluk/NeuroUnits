@@ -81,7 +81,7 @@ define_component chl_base {
     <=> PARAMETER g:(S/m2), erev, area:(m2)
     <=> OUTPUT    i:(mA)
     <=> INPUT     V: mV    
-    <=> ANALOG_REDUCE_PORT s_in:()
+    <=> SUMMED_INPUT s_in:()
 
 }
 
@@ -106,7 +106,7 @@ define_compound chl_kf {
 
     
     
-    compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+    <=> multiport process_mount_in of_type neuron_membrane_point_process <in> {
             # Local <==> Compound-port name
             V <==> V
             X/i <==> I
@@ -129,7 +129,7 @@ define_compound chl_na {
 
     
     
-    compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+    <=> multiport process_mount_in of_type neuron_membrane_point_process <in> {
             # Local <==> Compound-port name
             V <==> V
             X/i <==> I

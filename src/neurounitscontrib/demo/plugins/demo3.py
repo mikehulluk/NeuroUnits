@@ -219,7 +219,7 @@ def test3():
 
 
 
-                    <=> multiport IO_pt_proc of_type std_pt_process  <out> {
+                    <=> multiport std_pt_process[out] as IO_pt_proc  {
                            V <==> V
                            I_in <==> I
                     }
@@ -236,7 +236,7 @@ def test3():
 
 
                     
-                    <=> multiport IO_post of_type std_pt_process <in> {
+                    <=> multiport std_pt_process[in] as IO_post {
                            # Local <==> Coumpound-Port name
                            psm/V_post <==> V
                            psm/i <==> I
@@ -342,7 +342,7 @@ define_multiport std_pt_process {
 
 define_component {
 
-    <=> multiport std_pt_process<in> as IO {
+    <=> multiport std_pt_process[in] as IO {
         IO/V is V
         IO/I is I_in
     }

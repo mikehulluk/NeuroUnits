@@ -275,20 +275,22 @@ def p_compound_component10(p):
 # Compound Component Port Instantiation
 # =======================================
 
+
 def p_multiport_inst_1(p):
-    """multiport_inst : IO_MARKER MULTIPORT alphanumtoken OFTYPE alphanumtoken multiport_direction LCURLYBRACKET multiport_inst_constents RCURLYBRACKET """
-    type_ = p[5]
-    name  = p[3]
-    direction = p[6]
-    contents = p[8]
-    p[0] = (name,type_,direction, contents)
+    """multiport_inst : IO_MARKER MULTIPORT alphanumtoken LSQUAREBRACKET multiport_direction RSQUAREBRACKET  AS alphanumtoken  LCURLYBRACKET multiport_inst_constents RCURLYBRACKET """
+    type_ = p[3]
+    name  = p[8]
+    direction = p[5]
+    contents = p[10]
+    p[0] = (name, type_,direction, contents)
+
 
 def p_multiport_inst_1a(p):
-    """multiport_direction : MULTIPORT_IN """
+    """multiport_direction : IN """
     p[0] = 'in'
 
 def p_multiport_inst_1b(p):
-    """multiport_direction : MULTIPORT_OUT """
+    """multiport_direction : OUT """
     p[0] = 'out'
 
 

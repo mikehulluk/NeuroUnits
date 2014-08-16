@@ -26,7 +26,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-import re
 from neurounits.ast_builder.io_types import IOType
 from neurounits.units_misc import read_json
 
@@ -55,7 +54,7 @@ class IODataInitialCondition(IOData):
 def parse_io_line(line):
     #from neurounits import NeuroUnitParser
     from neurounits.unit_errors import ParsingError
-    print 'Received:', line
+    #print 'Received:', line
 
     # Unpack the line:
     mode, params, metadata = line
@@ -63,7 +62,7 @@ def parse_io_line(line):
     metadata = read_json(metadata)
 
 
-    if mode not in ('SUMMED_INPUT', 'INPUT', 'OUTPUT', 'PARAMETER', 'ANALOG_REDUCE_PORT', 'TIME'):
+    if mode not in ('SUMMED_INPUT', 'INPUT', 'OUTPUT', 'PARAMETER', 'TIME'):
         raise ParsingError('Unexpected Mode: %s' % mode)
 
 
