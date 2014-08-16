@@ -506,8 +506,8 @@ class NineMLComponent(Block):
 
 
 
-    def add_interface_connector(self, compoundportconnector ):
-        self._interface_connectors._add_item(compoundportconnector)
+    def add_interface_connector(self, multiportconnector ):
+        self._interface_connectors._add_item(multiportconnector)
 
 
 

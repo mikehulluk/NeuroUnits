@@ -97,7 +97,7 @@ define_compound chl_kf {
     instantiate gating_particle_hh_k as kf
     instantiate chl_base as X
 
-    connect kf/s4 <==> X/s_in
+    connect kf/s4 to X/s_in
 
     merge [X/V, kf/V] as V 
     
@@ -106,7 +106,7 @@ define_compound chl_kf {
 
     
     
-    <=> multiport process_mount_in of_type neuron_membrane_point_process <in> {
+    <=> multiport neuron_membrane_point_process[in] as process_mount_in {
             # Local <==> Compound-port name
             V <==> V
             X/i <==> I
@@ -120,7 +120,7 @@ define_compound chl_na {
     
     instantiate chl_base as X
 
-    connect na/s_out <==> X/s_in
+    connect na/s_out to X/s_in
 
     merge [X/V, na/V] as V 
     
@@ -129,7 +129,7 @@ define_compound chl_na {
 
     
     
-    <=> multiport process_mount_in of_type neuron_membrane_point_process <in> {
+    <=> multiport neuron_membrane_point_process[in] as process_mount_in {
             # Local <==> Compound-port name
             V <==> V
             X/i <==> I
@@ -163,7 +163,7 @@ define_component chl_lk {
 
         i = g * (erev-V) * area
         
-        compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+        <=> multiport neuron_membrane_point_process[in] as process_mount_in  {
             # Local <==> Compound-port name
             V <==> V
             i <==> I

@@ -266,8 +266,8 @@ class LibraryManager(ast.ASTObject):
     def add_component(self, component):
         self.namespace.add(component)
 
-    def add_compoundportdef(self, compoundportdef):
-        self.namespace.add(compoundportdef)
+    def add_multiportdef(self, multiportdef):
+        self.namespace.add(multiportdef)
 
     def add_library(self, library):
         self.namespace.add(library)

@@ -105,12 +105,12 @@ def p_namespace_def2(p):
 # CompoundPort Defintions:
 # ==============
 
-def p_compoundport_1(p):
+def p_multiport_1(p):
     """ multiport_def : DEFINE_MULTIPORT_TYPE alphanumtoken LCURLYBRACKET multiport_def_contents RCURLYBRACKET SEMICOLON"""
     multiport = ast.MultiportInterfaceDef( symbol=p[2], connections = p[4] )
-    p.parser.library_manager.add_compoundportdef(multiport)
+    p.parser.library_manager.add_multiportdef(multiport)
 
-def p_compoundport_2(p):
+def p_multiport_2(p):
     """ multiport_def_contents : empty
                                    | multiport_def_contents multiport_def_line SEMICOLON """
     if len(p) == 2:
@@ -119,48 +119,48 @@ def p_compoundport_2(p):
         p[0] = p[1] + [p[2]]
 
 
-def p_compoundport_3a(p):
+def p_multiport_3a(p):
     """ multiport_def_direction_arrow : COMPOUNDPORT_IN"""
     p[0] = (ast.MultiportInterfaceDefWire.DirRight, False)
 
-def p_compoundport_3b(p):
+def p_multiport_3b(p):
     """ multiport_def_direction_arrow : COMPOUNDPORT_IN_OPT"""
     p[0] = (ast.MultiportInterfaceDefWire.DirRight, True)
 
-def p_compoundport_3c(p):
+def p_multiport_3c(p):
     """ multiport_def_direction_arrow : COMPOUNDPORT_OUT"""
     p[0] = (ast.MultiportInterfaceDefWire.DirLeft, False)
 
-def p_compoundport_3d(p):
+def p_multiport_3d(p):
     """ multiport_def_direction_arrow : COMPOUNDPORT_OUT_OPT"""
     p[0] = (ast.MultiportInterfaceDefWire.DirLeft, True)
 
 
 # Analog port:
-def p_compoundport_7(p):
+def p_multiport_7(p):
     """multiport_def_line : multiport_def_direction_arrow alphanumtoken COLON LBRACKET unit_expr RBRACKET """
     direction, optional = p[1]
     p[0] = ast.MultiportInterfaceDefWireContinuous( symbol=p[2], direction=direction, unit=5, optional=optional)
 
 # Events:
-def p_compoundport_8(p):
-    """multiport_def_line : multiport_def_direction_arrow alphanumtoken LBRACKET compoundport_event_param_list RBRACKET"""
+def p_multiport_8(p):
+    """multiport_def_line : multiport_def_direction_arrow alphanumtoken LBRACKET multiport_event_param_list RBRACKET"""
     direction, optional = p[1]
     p[0] = ast.MultiportInterfaceDefWireEvent( symbol=p[2], direction=direction, parameters=p[4], optional=optional)
 
 
-def p_compoundport_event_param_list_1(p):
-    """compoundport_event_param_list : empty"""
+def p_multiport_event_param_list_1(p):
+    """multiport_event_param_list : empty"""
     p[0] = []
-def p_compoundport_event_param_list_2(p):
-    """compoundport_event_param_list : compoundport_event_param"""
+def p_multiport_event_param_list_2(p):
+    """multiport_event_param_list : multiport_event_param"""
     p[0] = [p[1]]
-def p_compoundport_event_param_list_3(p):
-    """compoundport_event_param_list : compoundport_event_param_list COMMA compoundport_event_param   """
+def p_multiport_event_param_list_3(p):
+    """multiport_event_param_list : multiport_event_param_list COMMA multiport_event_param   """
     p[0] = p[1] + [p[3]]
 
-def p_compoundport_event_param_2(p):
-    """compoundport_event_param : alphanumtoken COLON unit_expr  """
+def p_multiport_event_param_2(p):
+    """multiport_event_param : alphanumtoken COLON unit_expr  """
     p[0] = ( p[1], p[3] )
 
 
@@ -345,7 +345,7 @@ def p_parse_componentline2(p):
 
 def p_parse_componentline3(p):
     """componentlinecontents : multiport_inst"""
-    p.parser.library_manager.get_current_block_builder().add_compoundport_def_data(p[1])
+    p.parser.library_manager.get_current_block_builder().add_multiport_def_data(p[1])
 
 def p_parse_componentline5(p):
     """ initial_block : INITIAL LCURLYBRACKET initial_expr_block RCURLYBRACKET"""

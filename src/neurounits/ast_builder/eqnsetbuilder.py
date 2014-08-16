@@ -930,7 +930,7 @@ class EqnSetBuilder(AbstractBlockBuilder):
         a = ast.EqnTimeDerivativePerRegime(lhs=lhs_state_name, rhs=rhs_ast, regime=self.get_current_regime())
         self.builddata._time_derivatives_per_regime.append(a)
 
-    def add_compoundport_def_data(self, connector):
+    def add_multiport_def_data(self, connector):
         self._interface_data.append(connector)
 
 

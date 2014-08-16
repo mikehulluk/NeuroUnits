@@ -15,7 +15,7 @@ namespace hh_neuron {
             V = -65mV
         }
         
-        <=> multiport process_mount of_type neuron_membrane_point_process <out> {
+        <=> multiport neuron_membrane_point_process[out] as process_mount  {
             # Local <==> Compound-port name
             V <==> V
             i_sum <==> I

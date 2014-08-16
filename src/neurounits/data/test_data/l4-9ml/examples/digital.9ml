@@ -57,9 +57,9 @@ define_compound shift_reg {
 
     merge [ff0/clk, ff1/clk, ff2/clk, ff3/clk] as clk
 
-    connect ff0/Q <==> ff1/D
-    connect ff1/Q <==> ff2/D
-    connect ff2/Q <==> ff3/D
+     connect ff0/Q  to  ff1/D
+     connect ff1/Q  to  ff2/D
+     connect ff2/Q  to  ff3/D
 
 }
 
@@ -73,11 +73,11 @@ define_compound simple_circuit1 {
 
     instantiate shift_reg as reg
 
-    connect stim/vout <==> ff_single/D
-    connect clk/my_clk <==> ff_single/clk
+     connect stim/vout  to  ff_single/D
+     connect clk/my_clk  to  ff_single/clk
     
-    connect clk/my_clk <==> reg/clk
-    connect stim/vout <==> reg/ff0/D
+     connect clk/my_clk  to  reg/clk
+     connect stim/vout  to  reg/ff0/D
 
 
     

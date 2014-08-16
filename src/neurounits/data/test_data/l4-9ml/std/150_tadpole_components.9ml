@@ -19,7 +19,7 @@ define_component exp2syn {
     <=> INPUT V:V
     <=> OUTPUT i:A
     
-    compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+    <=> multiport neuron_membrane_point_process[in] as process_mount_in {
         # Local <==> Compound-port name
         V <==> V
         i <==> I
@@ -53,7 +53,7 @@ define_component syn_trig {
     
     <=> INPUT V:V
 
-   compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+   <=> multiport neuron_membrane_point_process[in] as process_mount_in {
         # Local <==> Compound-port name
         V <==> V
         i <==> I
@@ -78,9 +78,9 @@ define_compound general_neuron {
     
     
     
-    multiconnect nrn/process_mount <==> chl_lk/process_mount_in
-    multiconnect nrn/process_mount <==> chl_kf/process_mount_in
-    multiconnect nrn/process_mount <==> chl_na/process_mount_in
+    multiconnect nrn/process_mount  to  chl_lk/process_mount_in
+    multiconnect nrn/process_mount  to  chl_kf/process_mount_in
+    multiconnect nrn/process_mount  to  chl_na/process_mount_in
     
     
      
@@ -109,8 +109,8 @@ define_compound general_neuron {
     
     instantiate exp2syn as syn_excit
     instantiate exp2syn as syn_inhib
-    multiconnect nrn/process_mount <==> syn_excit/process_mount_in
-    multiconnect nrn/process_mount <==> syn_inhib/process_mount_in
+    multiconnect nrn/process_mount  to  syn_excit/process_mount_in
+    multiconnect nrn/process_mount  to  syn_inhib/process_mount_in
     set syn_excit/g_max = 200pS
     set syn_inhib/g_max = 200pS
     set syn_excit/Erev = 0mV
@@ -146,11 +146,11 @@ define_compound dIN {
     
     
     
-    multiconnect nrn/process_mount <==> chl_lk/process_mount_in
-    multiconnect nrn/process_mount <==> chl_kf/process_mount_in
-    multiconnect nrn/process_mount <==> chl_na/process_mount_in
-    #multiconnect nrn/process_mount <==> chl_ca/process_mount_in
-    multiconnect nrn/process_mount <==> chl_ks/process_mount_in
+    multiconnect nrn/process_mount  to  chl_lk/process_mount_in
+    multiconnect nrn/process_mount  to  chl_kf/process_mount_in
+    multiconnect nrn/process_mount  to  chl_na/process_mount_in
+    #multiconnect nrn/process_mount  to  chl_ca/process_mount_in
+    multiconnect nrn/process_mount  to  chl_ks/process_mount_in
     
     
     
@@ -187,9 +187,9 @@ define_compound general_neuron_with_step_inj {
     instantiate i_squarewave as stim 
     
     instantiate syn_trig as syntrigger
-    multiconnect nrn/nrn/process_mount <==> syntrigger/process_mount_in
+    multiconnect nrn/nrn/process_mount  to  syntrigger/process_mount_in
     
-    connect nrn/i_sum <==> stim/i
+     connect nrn/i_sum  to  stim/i
     
     set stim/t_on = 100ms
     set stim/t_off = 30ms        
@@ -205,7 +205,7 @@ define_compound general_neuron_with_step_inj {
 #    instantiate general_neuron as nrn
 #    instantiate i_squarewave as stim 
 #    
-#    connect nrn/i_sum <==> stim/i
+#     connect nrn/i_sum  to  stim/i
 #    
 #    set stim/t_on = 100ms
 #    set stim/t_off = 30ms        

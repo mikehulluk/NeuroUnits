@@ -62,9 +62,8 @@ class UnitExprLexer(object):
         'to':'TO',
 
         'define_multiport_type': 'DEFINE_MULTIPORT_TYPE',
-        
+
         'multiport': 'MULTIPORT',
-        #'of_type': 'OFTYPE',
         'set':'SET',
 
         'multiconnect':'MULTICONNECT',
@@ -75,14 +74,14 @@ class UnitExprLexer(object):
         'not':'NOT_KW',
 
         'ar_model': 'AR_MODEL',
-        
-        
+
+
         'TIME': 'TIME',
         'INPUT': 'INPUT',
         'OUTPUT':'OUTPUT',
         'PARAMETER':'PARAMETER',
         'SUMMED_INPUT':'SUMMED_INPUT',
-        
+
         'in': 'IN',
         'out': 'OUT',
 
@@ -100,7 +99,7 @@ class UnitExprLexer(object):
 
         'CONNECTION_SYMBOL',
         'IO_MARKER',
-         
+
         #'IO_LINE',
         'INTEGER',
         'FLOAT',
@@ -129,8 +128,8 @@ class UnitExprLexer(object):
         'NOT_SYM',
 
         'TILDE',
-       
-        
+
+
         'METADATA',
 
         ] + list(reserved.values())
@@ -168,8 +167,8 @@ class UnitExprLexer(object):
     #t_IO_LINE = r"""<=> [^;]*"""  + WS
     t_METADATA = r"""METADATA [^;]*"""  + WS
     t_IO_MARKER = r"""<=>""" + WS
-    
-    
+
+
     t_MINUS = r"""-""" + WS
     t_CONNECTION_SYMBOL = r"""<==>""" + WS
 

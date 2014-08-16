@@ -33,8 +33,8 @@ define_component chl_dIN_na {
 
     
     
+    <=> multiport neuron_membrane_point_process[in] as process_mount_in   {
     
-    compoundport process_mount_in of_type neuron_membrane_point_process <in> {
         # Local <==> Compound-port name
         V <==> V
         i <==> I
@@ -65,7 +65,7 @@ define_component chl_dIN_kf {
    
     n' = (inf_n - n) / tau_n
     
-    compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+    <=> multiport neuron_membrane_point_process[in] as process_mount_in   {
         # Local <==> Compound-port name
         V <==> V
         i <==> I
@@ -96,8 +96,7 @@ define_component chl_dIN_ks {
    
     n' = (inf_n - n) / tau_n
     
-    
-    compoundport process_mount_in of_type neuron_membrane_point_process <in> {
+    <=> multiport neuron_membrane_point_process[in] as process_mount_in   {
         # Local <==> Compound-port name
         V <==> V
         i <==> I
