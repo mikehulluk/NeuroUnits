@@ -276,8 +276,12 @@ def p_compound_component10(p):
 # =======================================
 
 def p_compound_port_inst_1(p):
-    """compound_port_inst : COMPOUNDPORT alphanumtoken OFTYPE alphanumtoken  multiport_direction LCURLYBRACKET compound_port_inst_constents RCURLYBRACKET """
-    p[0] = (p[2],p[4],p[5], p[7])
+    """compound_port_inst : IO_MARKER MULTIPORT alphanumtoken OFTYPE alphanumtoken multiport_direction LCURLYBRACKET compound_port_inst_constents RCURLYBRACKET """
+    type_ = p[5]
+    name  = p[3]
+    direction = p[6]
+    contents = p[8]
+    p[0] = (name,type_,direction, contents)
 
 def p_compound_port_inst_1a(p):
     """multiport_direction : MULTIPORT_IN """

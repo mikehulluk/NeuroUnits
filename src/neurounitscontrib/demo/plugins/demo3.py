@@ -218,7 +218,8 @@ def test3():
                     merge [ i_square1/t_on, i_square1/t_off, i_square2/t_on, i_square2/t_off] as t_in
 
 
-                    compoundport IO_pt_proc of_type std_pt_process  <out> {
+
+                    <=> multiport IO_pt_proc of_type std_pt_process  <out> {
                            V <==> V
                            I_in <==> I
                     }
@@ -235,7 +236,7 @@ def test3():
 
 
                     
-                    compoundport IO_post of_type std_pt_process <in> {
+                    <=> multiport IO_post of_type std_pt_process <in> {
                            # Local <==> Coumpound-Port name
                            psm/V_post <==> V
                            psm/i <==> I
