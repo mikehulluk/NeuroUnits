@@ -93,7 +93,7 @@ define_component chl_base {
 
 
 
-define_compound chl_kf {
+define_compound_component chl_kf {
     instantiate gating_particle_hh_k as kf
     instantiate chl_base as X
 
@@ -115,7 +115,7 @@ define_compound chl_kf {
     
 }
 
-define_compound chl_na {
+define_compound_component chl_na {
     instantiate gating_particle_hh_na as na
     
     instantiate chl_base as X

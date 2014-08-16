@@ -69,7 +69,7 @@ define_component syn_trig {
 
 
 
-define_compound general_neuron {
+define_compound_component general_neuron {
     instantiate hh_neuron.hh_neuron_base as nrn
     instantiate chl_lk as chl_lk
     instantiate chl_kf as chl_kf
@@ -136,7 +136,7 @@ define_compound general_neuron {
 
 
 
-define_compound dIN {
+define_compound_component dIN {
     instantiate hh_neuron.hh_neuron_base as nrn
     #instantiate chl_dIN_ca as chl_ca
     instantiate chl_dIN_na as chl_na
@@ -181,7 +181,7 @@ define_compound dIN {
 
 
 
-define_compound general_neuron_with_step_inj {
+define_compound_component general_neuron_with_step_inj {
 
     instantiate general_neuron as nrn
     instantiate i_squarewave as stim 
@@ -200,7 +200,7 @@ define_compound general_neuron_with_step_inj {
 
 
 
-#define_compound dIN_with_step_inj {
+#define_compound_component dIN_with_step_inj {
 #
 #    instantiate general_neuron as nrn
 #    instantiate i_squarewave as stim 

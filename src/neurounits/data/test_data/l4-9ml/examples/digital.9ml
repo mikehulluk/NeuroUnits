@@ -47,7 +47,7 @@ define_component ff {
 }
 
 
-define_compound shift_reg {
+define_compound_component shift_reg {
 
     instantiate ff as ff0
     instantiate ff as ff1
@@ -66,7 +66,7 @@ define_compound shift_reg {
 
 
 
-define_compound simple_circuit1 {
+define_compound_component simple_circuit1 {
     instantiate ff as ff_single
     instantiate sine_gen as stim
     instantiate clk_gen as clk
@@ -144,7 +144,7 @@ define_component binary_to_dec{
   val = (x0 + 2* x1 + 4*x2 + 8*x3) / {1V}
 }
 
-define_compound simple_circuit2 {
+define_compound_component simple_circuit2 {
     instantiate ff_h as ff0
     instantiate ff_l as ff1
     instantiate ff_h as ff2

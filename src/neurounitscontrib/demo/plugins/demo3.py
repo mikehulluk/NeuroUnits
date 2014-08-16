@@ -199,7 +199,7 @@ def test3():
 
 
 
-            define_compound mymeganeuron {
+            define_compound_component mymeganeuron {
                     instantiate chlstd_leak as lk
                     instantiate std_neuron as nrn 
                     instantiate step_current as i_inj
@@ -227,7 +227,7 @@ def test3():
 
 
 
-            define_compound synwrap {
+            define_compound_component synwrap {
 
                     instantiate evt_gen as evts
                     instantiate evt_syn as psm
@@ -247,7 +247,7 @@ def test3():
             }
             
 
-            define_compound mymeganeuron_hubby {
+            define_compound_component mymeganeuron_hubby {
                     instantiate mymeganeuron as nrn
                     instantiate synwrap as synin
             

@@ -54,7 +54,7 @@ class UnitExprLexer(object):
         'emit': 'EMIT',
         'rtgraph': 'RTGRAPH',
 
-        'define_compound': 'DEFINE_COMPOUND',
+        'define_compound_component': 'DEFINE_COMPOUND',
         'instantiate' : 'INSTANTIATE',
         'connect' : 'CONNECT',
         'merge':'MERGE',
