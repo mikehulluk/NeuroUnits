@@ -42,7 +42,7 @@ class IOType(object):
         'OUTPUT': Output,
         'PARAMETER': Parameter,
         'STATE': State,
-        'ANALOG_REDUCE_PORT': AnalogReducePort,
+        'SUMMED_INPUT': AnalogReducePort,
         'TIME': Time,
         }
 

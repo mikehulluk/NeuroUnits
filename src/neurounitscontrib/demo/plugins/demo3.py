@@ -128,7 +128,7 @@ def test3():
 
             V' = i_sum / C
 
-            <=> ANALOG_REDUCE_PORT i_sum
+            <=> SUMMED_INPUT i_sum
             <=> PARAMETER C:(uF)
             <=> OUTPUT     V: mV
 

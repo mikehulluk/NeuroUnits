@@ -334,7 +334,7 @@ def p_parse_componentline4(p):
                                | initial_block """
     pass
 def p_parse_componentline2(p):
-    """componentlinecontents : IO_LINE"""
+    """componentlinecontents : io_line"""
     p.parser.library_manager.get_current_block_builder().add_io_data(p[1])
 
 def p_parse_componentline3(p):
@@ -356,6 +356,44 @@ def p_parse_intial_block2(p):
     """ initial_expr_block : initial_expr_block REGIME ns_name SEMICOLON """
     p.parser.library_manager.get_current_block_builder().set_initial_regime(p[3])
 
+
+
+
+#IO Lines
+def p_parse_ioline0(p):
+    """io_line : IO_MARKER io_type io_list io_metadata_info"""
+    p[0] = ( p[2], p[3], p[4] )
+def p_parse_ioline1(p):
+    """io_type : TIME
+               | INPUT
+               | OUTPUT
+               | PARAMETER
+               | SUMMED_INPUT"""
+    p[0] = p[1]
+def p_parse_ioline3(p):
+    """io_list : io_param"""
+    p[0] = [p[1]]
+def p_parse_ioline4(p):
+    """io_list : io_list COMMA io_param"""
+    p[0] = p[1] + [p[3]]
+
+def p_parse_ioline5(p):
+    """io_metadata_info : empty"""
+    p[0] = "{}"
+def p_parse_ioline6(p):
+    """io_metadata_info : METADATA"""
+    p[0] = p[1]
+
+def p_parse_ioline7(p):
+    """io_param : alphanumtoken"""
+    p[0] = (p[1],None)
+def p_parse_ioline8(p):
+    """io_param : alphanumtoken COLON unit_expr"""
+    p[0] = (p[1],p[3])
+    
+
+    
+    
 
 
 

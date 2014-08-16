@@ -75,6 +75,15 @@ class UnitExprLexer(object):
         'not':'NOT_KW',
 
         'ar_model': 'AR_MODEL',
+        
+        
+        'TIME': 'TIME',
+        'INPUT': 'INPUT',
+        'OUTPUT':'OUTPUT',
+        'PARAMETER':'PARAMETER',
+        'SUMMED_INPUT':'SUMMED_INPUT',
+        
+
         }
 
     tokens = [
@@ -88,7 +97,9 @@ class UnitExprLexer(object):
         'COMPOUNDPORT_OUT_OPT',
 
         'CONNECTION_SYMBOL',
-        'IO_LINE',
+        'IO_MARKER',
+         
+        #'IO_LINE',
         'INTEGER',
         'FLOAT',
         'SLASH',
@@ -116,6 +127,9 @@ class UnitExprLexer(object):
         'NOT_SYM',
 
         'TILDE',
+       
+        
+        'METADATA',
 
         ] + list(reserved.values())
 
@@ -149,9 +163,12 @@ class UnitExprLexer(object):
     t_MULTIPORT_OUT =  r'<out>' + WS
 
 
-    t_IO_LINE = r"""<=> [^;]*"""  + WS
+    #t_IO_LINE = r"""<=> [^;]*"""  + WS
+    t_METADATA = r"""METADATA [^;]*"""  + WS
+    t_IO_MARKER = r"""<=>""" + WS
+    
+    
     t_MINUS = r"""-""" + WS
-
     t_CONNECTION_SYMBOL = r"""<==>""" + WS
 
     t_LESSTHAN = r"""<""" + WS
