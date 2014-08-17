@@ -649,7 +649,7 @@ class DimensionResolver(ASTVisitorBase):
                 '__asin__','__acos__','__atan__','__atan2__',
                 '__exp__','__ln__','__log2__','__log10__',
                 '__pow__','__ceil__','__fabs__','__floor__',
-                '__abs__','__sqrt__',
+                '__abs__','__sqrt__', '__max__','__min__',
                 ]
         if o.funcname in dimensionless_functions:
             return
@@ -743,7 +743,6 @@ class PropogateDimensions(object):
                 nUnresolvedPre = len([s for s in obj_with_dimension if not s.is_dimension_known()])
 
                 for s in all_symbols:
-                    # print s
                     uR.visit(s)
                 nUnresolvedPost = len([s for s in obj_with_dimension if not s.is_dimension_known()])
 

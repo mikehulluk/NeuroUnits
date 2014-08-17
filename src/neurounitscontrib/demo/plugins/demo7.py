@@ -50,7 +50,7 @@ def test7():
                 w = 1/{10ms}
                 y1 = std.math.sin(2*pi*w*t)
                 y2 = std.math.cos(2*pi*w*t)
-                y3 = std.math.tan(2*pi*w*t)
+                #y3 = std.math.tan(2*pi*w*t)
 
                 #ya1 = std.math.sinh(2*pi*w*t)
                 #ya2 = std.math.cosh(2*pi*w*t)
@@ -59,6 +59,7 @@ def test7():
                 yb1 =std.math.sin( std.math.asin(2*pi*w*t) ) 
                 yb2 =std.math.cos( std.math.acos(2*pi*w*t) )
                 yb3 =std.math.tan( std.math.atan(2*pi*w*t) )
+                yb4 =std.math.tan( std.math.atan2(y=2*pi*w*t, x=1) )
                 
 
                 s = std.math.sin(w*t)
@@ -67,7 +68,14 @@ def test7():
                 yc3 = std.math.floor(3*s)
                 yc4 = std.math.fabs(3*s)
 
-                y4 = std.math.exp(-t* w )
+                yd1 =std.math.ln(s)
+                yd2 =std.math.log2(s)
+                yd3 =std.math.log10(s)
+                yd4 = std.math.exp(-t* w )
+
+                ye1 = std.math.max( x=std.math.sin(2*pi*w*t), y=-0.5 )
+                ye2 = std.math.min( x=std.math.sin(2*pi*w*t), y=0.5 )
+
             }
             """)
 

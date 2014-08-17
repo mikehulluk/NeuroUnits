@@ -488,18 +488,55 @@ class FunctionDefBuiltInSqrt(FunctionDefBuiltInSingleArg):
         return '<BuiltinFunction: sqrt()>'
 
 
-class FunctionDefBuiltInXX(FunctionDefBuiltInSingleArg):
+
+class FunctionDefBuiltInMin(FunctionDefBuiltIn):
     def __init__(self, backend, **kwargs):
-        super(FunctionDefBuiltInXX, self).__init__(funcname='__XX__', backend=backend, **kwargs)
-
+        super(FunctionDefBuiltInMin, self).__init__(
+                funcname='__min__',
+                parameters={
+                    'x': FunctionDefParameter(symbol='x' , dimension=backend.Unit()),
+                    'y': FunctionDefParameter(symbol='y' , dimension=backend.Unit())
+                    },
+                dimension=backend.Unit(), **kwargs)
     def accept_func_visitor(self, v, **kwargs):
-        return v.VisitBIFXX(self, **kwargs)
-    def __repr__(self):
-        return '<BuiltinFunction: XX()>'
+        return v.VisitBIFmin(self, **kwargs)
+
+class FunctionDefBuiltInMax(FunctionDefBuiltIn):
+    def __init__(self, backend, **kwargs):
+        super(FunctionDefBuiltInMax, self).__init__(
+                funcname='__max__',
+                parameters={
+                    'x': FunctionDefParameter(symbol='x' , dimension=backend.Unit()),
+                    'y': FunctionDefParameter(symbol='y' , dimension=backend.Unit())
+                    },
+                dimension=backend.Unit(), **kwargs)
+    def accept_func_visitor(self, v, **kwargs):
+        return v.VisitBIFmax(self, **kwargs)
 
 
+class FunctionDefBuiltInPow(FunctionDefBuiltIn):
+    def __init__(self, backend, **kwargs):
+        super(FunctionDefBuiltInPow, self).__init__(
+                funcname='__pow__',
+                parameters={
+                    'base': FunctionDefParameter(symbol='base' , dimension=backend.Unit()),
+                    'exp': FunctionDefParameter(symbol='exp' , dimension=backend.Unit())
+                    },
+                dimension=backend.Unit(), **kwargs)
+    def accept_func_visitor(self, v, **kwargs):
+        return v.VisitBIFpow(self, **kwargs)
 
-
+class FunctionDefBuiltInAtan2(FunctionDefBuiltIn):
+    def __init__(self, backend, **kwargs):
+        super(FunctionDefBuiltInAtan2, self).__init__(
+                funcname='__atan2__',
+                parameters={
+                    'x': FunctionDefParameter(symbol='x' , dimension=backend.Unit()),
+                    'y': FunctionDefParameter(symbol='y' , dimension=backend.Unit())
+                    },
+                dimension=backend.Unit(), **kwargs)
+    def accept_func_visitor(self, v, **kwargs):
+        return v.VisitBIFatan2(self, **kwargs)
 
 
 

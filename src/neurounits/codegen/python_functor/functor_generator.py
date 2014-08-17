@@ -246,46 +246,44 @@ class FunctorGenerator(ASTVisitorBase):
         return f
 
     def VisitFunctionDefBuiltIn(self, o, **kwargs):
-        # New function-visitor style:
-        #if o.funcname in ('__sin__', '__cos__'):
         return o.accept_func_visitor(self, **kwargs)
 
-        if not self.as_float_in_si:
+        #if not self.as_float_in_si:
 
-            def eFunc(state_data, func_params, **kw):
-                if o.funcname == '__abs__':
-                    ParsingBackend = MHUnitBackend
-                    assert len(func_params) == 1
-                    return ParsingBackend.Quantity( float( np.abs( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
-                #if o.funcname == '__exp__':
-                #    ParsingBackend = MHUnitBackend
-                #    assert len(func_params) == 1
-                #    return ParsingBackend.Quantity( float( np.exp( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
-                #if o.funcname == '__sin__':
-                #    assert len(func_params) == 1
-                #    ParsingBackend = MHUnitBackend
-                #    return ParsingBackend.Quantity( float( np.sin( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
-                if o.funcname == '__pow__':
-                    assert len(func_params) == 2
-                    ParsingBackend = MHUnitBackend
-                    return ParsingBackend.Quantity( float( np.power( ( func_params['base'] ).dimensionless() ,( func_params['exp'] ).dimensionless() )  ), ParsingBackend.Unit() )
-                else:
-                    assert False, "Sim can't handle function: %s" % o.funcname
-        else:
-            def eFunc(state_data, func_params, **kw):
-                #if o.funcname == '__exp__':
-                #    assert len(func_params) == 1
-                #    return float(np.exp(func_params.values()[0]))
-                #if o.funcname == '__sin__':
-                #    assert len(kw) == 1
-                #    return float(np.sin(kw.values()[0]))
-                if o.funcname == '__pow__':
-                    assert len(kw) == 2
-                    return float(np.power(kw['base'], kw['exp']))
-                else:
-                    assert False
+        #    def eFunc(state_data, func_params, **kw):
+        #        if o.funcname == '__abs__':
+        #            ParsingBackend = MHUnitBackend
+        #            assert len(func_params) == 1
+        #            return ParsingBackend.Quantity( float( np.abs( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
+        #        #if o.funcname == '__exp__':
+        #        #    ParsingBackend = MHUnitBackend
+        #        #    assert len(func_params) == 1
+        #        #    return ParsingBackend.Quantity( float( np.exp( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
+        #        #if o.funcname == '__sin__':
+        #        #    assert len(func_params) == 1
+        #        #    ParsingBackend = MHUnitBackend
+        #        #    return ParsingBackend.Quantity( float( np.sin( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
+        #        if o.funcname == '__pow__':
+        #            assert len(func_params) == 2
+        #            ParsingBackend = MHUnitBackend
+        #            return ParsingBackend.Quantity( float( np.power( ( func_params['base'] ).dimensionless() ,( func_params['exp'] ).dimensionless() )  ), ParsingBackend.Unit() )
+        #        else:
+        #            assert False, "Sim can't handle function: %s" % o.funcname
+        #else:
+        #    def eFunc(state_data, func_params, **kw):
+        #        #if o.funcname == '__exp__':
+        #        #    assert len(func_params) == 1
+        #        #    return float(np.exp(func_params.values()[0]))
+        #        #if o.funcname == '__sin__':
+        #        #    assert len(kw) == 1
+        #        #    return float(np.sin(kw.values()[0]))
+        #        if o.funcname == '__pow__':
+        #            assert len(kw) == 2
+        #            return float(np.power(kw['base'], kw['exp']))
+        #        else:
+        #            assert False
 
-        return eFunc
+        #return eFunc
 
 
 
@@ -334,7 +332,42 @@ class FunctorGenerator(ASTVisitorBase):
         return self.VisitBIFSingleArg(o=o,functor=np.sqrt)
     def VisitBIFfabs(self, o):
         return self.VisitBIFSingleArg(o=o,functor=np.fabs)
+    
+    def VisitBIFln(self, o):
+        return self.VisitBIFSingleArg(o=o,functor=np.log)
+    def VisitBIFlog2(self, o):
+        return self.VisitBIFSingleArg(o=o,functor=np.log2)
+    def VisitBIFlog10(self, o):
+        return self.VisitBIFSingleArg(o=o,functor=np.log10)
     # ==================
+
+
+    def _VisitBIF2arg(self, o, functor, arg_names):
+        if not self.as_float_in_si:
+            def eFunc(state_data, func_params, **kw):
+                assert len(func_params) == 2
+                ParsingBackend = MHUnitBackend
+                return ParsingBackend.Quantity( float( functor( 
+                        ( func_params[arg_names[0]] ).dimensionless() ,
+                        ( func_params[arg_names[1]] ).dimensionless() )  ), ParsingBackend.Unit() )
+        else:
+            def eFunc(state_data, func_params, **kw):
+                assert len(kw) == 2
+                return float(functor(kw[arg_names[0]], kw[ arg_names[1] ]))
+
+        return eFunc
+
+    def VisitBIFpow(self, o, ):
+        return self._VisitBIF2arg(o=o, arg_names=('base','exp'), functor=np.power )
+    def VisitBIFmin(self, o, ):
+        return self._VisitBIF2arg(o=o, arg_names=('x','y'), functor=np.min )
+    def VisitBIFmax(self, o, ):
+        return self._VisitBIF2arg(o=o, arg_names=('x','y'), functor=np.max )
+    def VisitBIFatan2(self, o, ):
+        return self._VisitBIF2arg(o=o, arg_names=('y','x'), functor=np.arctan2 )
+
+
+
 
 
 

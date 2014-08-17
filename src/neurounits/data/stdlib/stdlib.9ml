@@ -16,7 +16,7 @@ library std.math {
     asin(x) = __asin__(x)
     acos(x) = __acos__(x)
     atan(x) = __atan__(x)
-    #atan2(x,y) = __atan2__(x=x,y=y)
+    atan2(x,y) = __atan2__(x=x,y=y)
 
     exp(x) = __exp__(x)
     ln(x) = __ln__(x)
@@ -24,22 +24,18 @@ library std.math {
     log10(x) = __log10__(x)
 
     sqrt(x) = __sqrt__(x)
-
-    # Expected to be dimensionless:
     pow(base,exp) = __pow__(base=base,exp=exp)
-
-    # Allow integer numerator and 
-    # denominator:
-    #powint(x,n,d) = __powint__(x=x,n=n,d=d)
 
     ceil(x) = __ceil__(x)
     fabs(x) = __fabs__(x)
     floor(x) = __floor__(x)
-    
-    #min(x,y) = __min__(x=x,y=y)
-    #max(x,y) = __max__(x=x,y=y)
-    #fabs(x,y) = __fabs__(x=x)
-    
+
+    min(x,y) = __min__(x=x,y=y)
+    max(x,y) = __max__(x=x,y=y)
+
+    # Aliases:
+    abs(x) = fabs(x=x)
+
 }
 
 
@@ -55,11 +51,11 @@ library std.geom {
 
 library std.neuro {
     from std.math import pi,pow
-    
-	
+
+
 	# Linear Cable Theory (Koch Pg.32):
     r_a(R_i:{ohm m}, d:{m}) = (4*R_i)/(pi*d*d)
-    
+
     # Nasty hack to get around exponents and dimensions problem:
     #space_constant(Rm:{ohm m2},Ri:{ohm m},d:{m}) = powint(base=(Rm/Ri)*(d/4),n=1,d=2)
     #space_constant(Rm:{ohm m2},Ri:{ohm m},d:{m}) = sqrt(base= (Rm/Ri)*(d/4) )
@@ -75,7 +71,7 @@ library std.neuro {
 
 
 library std.physics {
-    
+
     F = 96485.3365 coulomb mole-1
     Na = 6.02214129e23 mole-1
     k = 1.380648e-23 joule kelvin-1
@@ -84,4 +80,4 @@ library std.physics {
     #R = 8.3144621 J/(mole kelvin)
 }
 
- 
+
