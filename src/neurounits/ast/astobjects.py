@@ -300,7 +300,7 @@ class FunctionDefBuiltIn(ASTExpressionObject):
 
     def __init__(self, funcname, parameters, dimension=None, **kwargs):
         super(FunctionDefBuiltIn, self).__init__(**kwargs)
-        self._funcname = funcname
+        self.funcname = funcname
         self.parameters = parameters
         if dimension is not None:
             self.set_dimensionality(dimension)

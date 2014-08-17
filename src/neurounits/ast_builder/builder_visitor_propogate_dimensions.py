@@ -570,18 +570,21 @@ class DimensionResolver(ASTVisitorBase):
                                    reason='Parameter Instantiation')
 
     def VisitFunctionDefBuiltIn(self, o, **kwargs):
-        dimensionless_functions = [
-                '__sin__','__cos__','__tan__',
-                '__sinh__','__cosh__','__tanh__',
-                '__asin__','__acos__','__atan__','__atan2__',
-                '__exp__','__ln__','__log2__','__log10__',
-                '__pow__','__ceil__','__fabs__','__floor__',
-                '__abs__','__sqrt__', '__max__','__min__',
-                ]
-        if o.funcname in dimensionless_functions:
-            return
+        # A couple of sanity checks:
+        assert o.get_dimension() is not None
+        assert o.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False) 
+        #dimensionless_functions = [
+        #        '__sin__','__cos__','__tan__',
+        #        '__sinh__','__cosh__','__tanh__',
+        #        '__asin__','__acos__','__atan__','__atan2__',
+        #        '__exp__','__ln__','__log2__','__log10__',
+        #        '__pow__','__ceil__','__fabs__','__floor__',
+        #        '__abs__','__sqrt__', '__max__','__min__',
+        #        ]
+        #if o.funcname in dimensionless_functions:
+        #    return
 
-        assert False, 'Unexpected function: %s'% o.funcname
+        #assert False, 'Unexpected function: %s'% o.funcname
 
 
     def VisitOnConditionTriggerTransition(self, o, **kwargs):
