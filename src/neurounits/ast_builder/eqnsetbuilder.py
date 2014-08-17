@@ -48,117 +48,31 @@ from neurounits.units_misc import LookUpDict
 class StdFuncs(object):
 
     @classmethod
-    def get_sin(cls, backend):
-        return ast.FunctionDefBuiltInSin(backend=backend)
-    @classmethod
-    def get_cos(cls, backend):
-        return ast.FunctionDefBuiltInCos(backend=backend)
-    @classmethod
-    def get_tan(cls, backend):
-        return ast.FunctionDefBuiltInTan(backend=backend)
-
-    @classmethod
-    def get_sinh(cls, backend):
-        return ast.FunctionDefBuiltInSinh(backend=backend)
-    @classmethod
-    def get_cosh(cls, backend):
-        return ast.FunctionDefBuiltInCosh(backend=backend)
-    @classmethod
-    def get_tanh(cls, backend):
-        return ast.FunctionDefBuiltInTanh(backend=backend)
-
-    @classmethod
-    def get_asin(cls, backend):
-        return ast.FunctionDefBuiltInASin(backend=backend)
-    @classmethod
-    def get_acos(cls, backend):
-        return ast.FunctionDefBuiltInACos(backend=backend)
-    @classmethod
-    def get_atan(cls, backend):
-        return ast.FunctionDefBuiltInATan(backend=backend)
-
-
-    @classmethod
-    def get_exp(cls, backend):
-        return ast.FunctionDefBuiltInExp(backend=backend)
-
-    @classmethod
-    def get_ln(cls, backend):
-        return ast.FunctionDefBuiltInLn(backend=backend)
-
-    @classmethod
-    def get_log2(cls, backend):
-        return ast.FunctionDefBuiltInLog2(backend=backend)
-    @classmethod
-    def get_log10(cls, backend):
-        return ast.FunctionDefBuiltInLog10(backend=backend)
-
-    @classmethod
-    def get_sqrt(cls, backend):
-        return ast.FunctionDefBuiltInSqrt(backend=backend)
-
-    @classmethod
-    def get_fabs(cls, backend):
-        return ast.FunctionDefBuiltInFabs(backend=backend)
-    @classmethod
-    def get_ceil(cls, backend):
-        return ast.FunctionDefBuiltInCeil(backend=backend)
-    @classmethod
-    def get_floor(cls, backend):
-        return ast.FunctionDefBuiltInFloor(backend=backend)
-
-    @classmethod
-    def get_min(cls, backend):
-        return ast.FunctionDefBuiltInMin(backend=backend)
-
-    @classmethod
-    def get_max(cls, backend):
-        return ast.FunctionDefBuiltInMax(backend=backend)
-
-    @classmethod
-    def get_pow(cls, backend):
-        return ast.FunctionDefBuiltInPow(backend=backend)
-
-
-    @classmethod
-    def get_atan2(cls, backend):
-        return ast.FunctionDefBuiltInAtan2(backend=backend)
-
-
-
-
-
-
-
-
-
-
-    @classmethod
     def get_builtin_function(cls, name, backend):
         lut = {
-            '__sin__': cls.get_sin,
-            '__cos__': cls.get_cos,
-            '__tan__': cls.get_tan,
-            '__sinh__': cls.get_sinh,
-            '__cosh__': cls.get_cosh,
-            '__tanh__': cls.get_tanh,
-            '__asin__': cls.get_asin,
-            '__acos__': cls.get_acos,
-            '__atan__': cls.get_atan,
-            '__exp__': cls.get_exp,
-            '__ln__': cls.get_ln,
-            '__log2__': cls.get_log2,
-            '__log10__': cls.get_log10,
-            '__sqrt__': cls.get_sqrt,
-            '__ceil__': cls.get_ceil,
-            '__fabs__': cls.get_fabs,
-            '__floor__': cls.get_floor,
+            '__sin__': ast.FunctionDefBuiltInSin,
+            '__cos__': ast.FunctionDefBuiltInCos,
+            '__tan__': ast.FunctionDefBuiltInTan,
+            '__sinh__': ast.FunctionDefBuiltInSinh,
+            '__cosh__': ast.FunctionDefBuiltInCosh,
+            '__tanh__': ast.FunctionDefBuiltInTanh,
+            '__asin__': ast.FunctionDefBuiltInASin,
+            '__acos__': ast.FunctionDefBuiltInACos,
+            '__atan__': ast.FunctionDefBuiltInATan,
+            '__exp__': ast.FunctionDefBuiltInExp,
+            '__ln__': ast.FunctionDefBuiltInLn,
+            '__log2__': ast.FunctionDefBuiltInLog2,
+            '__log10__': ast.FunctionDefBuiltInLog10,
+            '__sqrt__': ast.FunctionDefBuiltInSqrt,
+            '__ceil__': ast.FunctionDefBuiltInCeil,
+            '__fabs__': ast.FunctionDefBuiltInFabs,
+            '__floor__': ast.FunctionDefBuiltInFloor,
 
-            '__min__': cls.get_min,
-            '__max__': cls.get_max,
+            '__min__': ast.FunctionDefBuiltInMin,
+            '__max__': ast.FunctionDefBuiltInMax,
 
-            '__atan2__': cls.get_atan2,
-            '__pow__': cls.get_pow,
+            '__atan2__': ast.FunctionDefBuiltInAtan2,
+            '__pow__': ast.FunctionDefBuiltInPow,
             }
         return lut[name](backend=backend)
 

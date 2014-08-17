@@ -300,7 +300,7 @@ class FunctionDefBuiltIn(ASTExpressionObject):
 
     def __init__(self, funcname, parameters, dimension=None, **kwargs):
         super(FunctionDefBuiltIn, self).__init__(**kwargs)
-        self.funcname = funcname
+        self._funcname = funcname
         self.parameters = parameters
         if dimension is not None:
             self.set_dimensionality(dimension)
@@ -326,14 +326,14 @@ class FunctionDefBuiltInSingleArg(FunctionDefBuiltIn):
 
 
 
-class FunctionDefBuiltInXX(FunctionDefBuiltInSingleArg):
-    def __init__(self, backend, **kwargs):
-        super(FunctionDefBuiltInXX, self).__init__(funcname='__XX__', backend=backend, **kwargs)
-
-    def accept_func_visitor(self, v, **kwargs):
-        return v.VisitBIFXX(self, **kwargs)
-    def __repr__(self):
-        return '<BuiltinFunction: XX()>'
+#class FunctionDefBuiltInXX(FunctionDefBuiltInSingleArg):
+#    def __init__(self, backend, **kwargs):
+#        super(FunctionDefBuiltInXX, self).__init__(funcname='__XX__', backend=backend, **kwargs)
+#
+#    def accept_func_visitor(self, v, **kwargs):
+#        return v.VisitBIFXX(self, **kwargs)
+#    def __repr__(self):
+#        return '<BuiltinFunction: XX()>'
 
 
 class FunctionDefBuiltInSin(FunctionDefBuiltInSingleArg):
