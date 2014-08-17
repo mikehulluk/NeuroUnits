@@ -912,7 +912,6 @@ def p_ar_model_2(p):
 
 def p_lhs(p):
     """rhs_generic : rhs_term"""
-    #print 'p_lhs!', p[1]
     p[0] = p[1]
 
 

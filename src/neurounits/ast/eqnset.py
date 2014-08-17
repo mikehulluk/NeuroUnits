@@ -110,9 +110,6 @@ class Library(Block):
                         LookUpDict(self.functiondefs).get_objs_by(funcname=symbol)
 
 
-
-
-
         if not len(possible_objs) == 1:
             raise KeyError("Can't find terminal: %s" % symbol)
 
