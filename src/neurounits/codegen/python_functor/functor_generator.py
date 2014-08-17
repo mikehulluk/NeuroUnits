@@ -325,6 +325,15 @@ class FunctorGenerator(ASTVisitorBase):
 
     def VisitBIFexp(self, o):
         return self.VisitBIFSingleArg(o=o,functor=np.exp)
+
+    def VisitBIFceil(self, o):
+        return self.VisitBIFSingleArg(o=o,functor=np.ceil)
+    def VisitBIFfloor(self, o):
+        return self.VisitBIFSingleArg(o=o,functor=np.ceil)
+    def VisitBIFsqrt(self, o):
+        return self.VisitBIFSingleArg(o=o,functor=np.sqrt)
+    def VisitBIFfabs(self, o):
+        return self.VisitBIFSingleArg(o=o,functor=np.fabs)
     # ==================
 
 

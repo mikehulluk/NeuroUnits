@@ -23,9 +23,7 @@ library std.math {
     log2(x) = __log2__(x)
     log10(x) = __log10__(x)
 
-    abs(x) = __abs__(x)
-    #sqrt(x) = __sqrt__(x)
-
+    sqrt(x) = __sqrt__(x)
 
     # Expected to be dimensionless:
     pow(base,exp) = __pow__(base=base,exp=exp)
@@ -33,7 +31,6 @@ library std.math {
     # Allow integer numerator and 
     # denominator:
     #powint(x,n,d) = __powint__(x=x,n=n,d=d)
-    #sqrt(x) = __sqrt__(x)
 
     ceil(x) = __ceil__(x)
     fabs(x) = __fabs__(x)

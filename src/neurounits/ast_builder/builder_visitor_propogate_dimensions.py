@@ -648,7 +648,8 @@ class DimensionResolver(ASTVisitorBase):
                 '__sinh__','__cosh__','__tanh__',
                 '__asin__','__acos__','__atan__','__atan2__',
                 '__exp__','__ln__','__log2__','__log10__',
-                '__pow__','__ceil__','__fabs__','__floor__', '__abs__'
+                '__pow__','__ceil__','__fabs__','__floor__',
+                '__abs__','__sqrt__',
                 ]
         if o.funcname in dimensionless_functions:
             return

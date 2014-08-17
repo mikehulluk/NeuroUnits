@@ -93,6 +93,19 @@ class StdFuncs(object):
     def get_log10(cls, backend):
         return ast.FunctionDefBuiltInLog10(backend=backend)
 
+    @classmethod
+    def get_sqrt(cls, backend):
+        return ast.FunctionDefBuiltInSqrt(backend=backend)
+    
+    @classmethod
+    def get_fabs(cls, backend):
+        return ast.FunctionDefBuiltInFabs(backend=backend)
+    @classmethod
+    def get_ceil(cls, backend):
+        return ast.FunctionDefBuiltInCeil(backend=backend)
+    @classmethod
+    def get_floor(cls, backend):
+        return ast.FunctionDefBuiltInFloor(backend=backend)
 
     #@classmethod
     #def get_tan(cls, backend):
@@ -196,12 +209,12 @@ class StdFuncs(object):
                                    , dimension=backend.Unit())},
                                    dimension=backend.Unit())
 
-    @classmethod
-    def get_sqrt(cls, backend):
-        assert False
-        return ast.FunctionDefBuiltIn(funcname='__sqrt__',
-                                   parameters={'x': ast.FunctionDefParameter(symbol='x'
-                                   , dimension=None)}, dimension=None)
+    #@classmethod
+    #def get_sqrt(cls, backend):
+    #    assert False
+    #    return ast.FunctionDefBuiltIn(funcname='__sqrt__',
+    #                               parameters={'x': ast.FunctionDefParameter(symbol='x'
+    #                               , dimension=None)}, dimension=None)
 
     @classmethod
     def get_powint(cls, backend):
@@ -214,32 +227,32 @@ class StdFuncs(object):
                                    , dimension=backend.Unit())},
                                    dimension=None)
 
-    @classmethod
-    def get_fabs(cls, backend):
-        return ast.FunctionDefBuiltIn(funcname='__fabs__',
-                                   parameters={'x': ast.FunctionDefParameter(symbol='x'
-                                   , dimension=backend.Unit())},
-                                   dimension=backend.Unit())
+    #@classmethod
+    #def get_fabs(cls, backend):
+    #    return ast.FunctionDefBuiltIn(funcname='__fabs__',
+    #                               parameters={'x': ast.FunctionDefParameter(symbol='x'
+    #                               , dimension=backend.Unit())},
+    #                               dimension=backend.Unit())
 
-    @classmethod
-    def get_ceil(cls, backend):
-        return ast.FunctionDefBuiltIn(funcname='__ceil__',
-                                   parameters={'x': ast.FunctionDefParameter(symbol='x'
-                                   , dimension=backend.Unit())},
-                                   dimension=backend.Unit())
+    #@classmethod
+    #def get_ceil(cls, backend):
+    #    return ast.FunctionDefBuiltIn(funcname='__ceil__',
+    #                               parameters={'x': ast.FunctionDefParameter(symbol='x'
+    #                               , dimension=backend.Unit())},
+    #                               dimension=backend.Unit())
 
-    @classmethod
-    def get_floor(cls, backend):
-        return ast.FunctionDefBuiltIn(funcname='__floor__',
-                                   parameters={'x': ast.FunctionDefParameter(symbol='x'
-                                   , dimension=backend.Unit())},
-                                   dimension=backend.Unit())
-    @classmethod
-    def get_abs(cls, backend):
-        return ast.FunctionDefBuiltIn(funcname='__abs__',
-                                   parameters={'x': ast.FunctionDefParameter(symbol='x'
-                                   , dimension=backend.Unit())},
-                                   dimension=backend.Unit())
+    #@classmethod
+    #def get_floor(cls, backend):
+    #    return ast.FunctionDefBuiltIn(funcname='__floor__',
+    #                               parameters={'x': ast.FunctionDefParameter(symbol='x'
+    #                               , dimension=backend.Unit())},
+    #                               dimension=backend.Unit())
+    #@classmethod
+    #def get_abs(cls, backend):
+    #    return ast.FunctionDefBuiltIn(funcname='__abs__',
+    #                               parameters={'x': ast.FunctionDefParameter(symbol='x'
+    #                               , dimension=backend.Unit())},
+    #                               dimension=backend.Unit())
 
 
 
@@ -258,7 +271,6 @@ class StdFuncs(object):
             '__sinh__': cls.get_sinh,
             '__cosh__': cls.get_cosh,
             '__tanh__': cls.get_tanh,
-            
             '__asin__': cls.get_asin,
             '__acos__': cls.get_acos,
             '__atan__': cls.get_atan,
@@ -273,7 +285,7 @@ class StdFuncs(object):
             '__ceil__': cls.get_ceil,
             '__fabs__': cls.get_fabs,
             '__floor__': cls.get_floor,
-            '__abs__': cls.get_abs,
+            #'__abs__': cls.get_abs,
             }
         return lut[name](backend=backend)
 
