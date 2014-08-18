@@ -147,7 +147,7 @@ def p_unitsdefinition8(p):
 
 
 
-# CompoundPort Defintions:
+# MultiPort Defintions:
 # ==============
 
 def p_multiport_1(p):
@@ -165,19 +165,19 @@ def p_multiport_2(p):
 
 
 def p_multiport_3a(p):
-    """ multiport_def_direction_arrow : COMPOUNDPORT_IN"""
+    """ multiport_def_direction_arrow : MULTIPORT_IN"""
     p[0] = (ast.MultiportInterfaceDefWire.DirRight, False)
 
 def p_multiport_3b(p):
-    """ multiport_def_direction_arrow : COMPOUNDPORT_IN_OPT"""
+    """ multiport_def_direction_arrow : MULTIPORT_IN_OPT"""
     p[0] = (ast.MultiportInterfaceDefWire.DirRight, True)
 
 def p_multiport_3c(p):
-    """ multiport_def_direction_arrow : COMPOUNDPORT_OUT"""
+    """ multiport_def_direction_arrow : MULTIPORT_OUT"""
     p[0] = (ast.MultiportInterfaceDefWire.DirLeft, False)
 
 def p_multiport_3d(p):
-    """ multiport_def_direction_arrow : COMPOUNDPORT_OUT_OPT"""
+    """ multiport_def_direction_arrow : MULTIPORT_OUT_OPT"""
     p[0] = (ast.MultiportInterfaceDefWire.DirLeft, True)
 
 
@@ -878,15 +878,40 @@ def p_rv_expr(p):
             )
 
 
+#def p_rv_expr1(p):
+#    """ random_variable : TILDE ALPHATOKEN LBRACKET rv_params RBRACKET LSQUAREBRACKET rv_modes RSQUAREBRACKET"""
+#
+#    print 'Parsed RANDOM NODE'
+#    p[0] = ast.RandomVariable(
+#            function_name=p[2],
+#            parameters = p[4],
+#            modes = dict(p[7])
+#            )
+
+from neurounits.ast.ast_randomvariables import RandomVariableUniform
+
 def p_rv_expr1(p):
     """ random_variable : TILDE ALPHATOKEN LBRACKET rv_params RBRACKET LSQUAREBRACKET rv_modes RSQUAREBRACKET"""
+    function_name=p[2]
+    parameters = p[4]
+    modes = dict(p[7])
 
-    print 'Parsed RANDOM NODE'
-    p[0] = ast.RandomVariable(
-            function_name=p[2],
-            parameters = p[4],
-            modes = dict(p[7])
-            )
+    rndfunc = {
+            'uniform': RandomVariableUniform,
+
+            }[function_name] 
+    rndfunc( parameters = parameters, modes=modes)
+
+
+    #print 'Parsed RANDOM NODE'
+    #p[0] = ast.RandomVariable(
+    #        function_name=p[2],
+    #        parameters = p[4],
+    #        modes = dict(p[7])
+    #        )
+
+
+
 
 def p_rv_expr_params0(p):
     'rv_params : empty'

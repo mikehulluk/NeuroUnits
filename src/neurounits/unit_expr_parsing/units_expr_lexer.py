@@ -92,10 +92,10 @@ class UnitExprLexer(object):
         }
 
     tokens = [
-        'COMPOUNDPORT_IN',
-        'COMPOUNDPORT_OUT',
-        'COMPOUNDPORT_IN_OPT',
-        'COMPOUNDPORT_OUT_OPT',
+        'MULTIPORT_IN',
+        'MULTIPORT_OUT',
+        'MULTIPORT_IN_OPT',
+        'MULTIPORT_OUT_OPT',
 
         'CONNECTION_SYMBOL',
         'IO_MARKER',
@@ -153,10 +153,10 @@ class UnitExprLexer(object):
 
     # Automatically slurp up trailing whitespace:
 
-    t_COMPOUNDPORT_IN = r"""==>>""" + WS
-    t_COMPOUNDPORT_OUT = r"""<<==""" + WS
-    t_COMPOUNDPORT_IN_OPT = r"""==\?>""" + WS
-    t_COMPOUNDPORT_OUT_OPT = r"""<\?==""" + WS
+    t_MULTIPORT_IN = r"""==>>""" + WS
+    t_MULTIPORT_OUT = r"""<<==""" + WS
+    t_MULTIPORT_IN_OPT = r"""==\?>""" + WS
+    t_MULTIPORT_OUT_OPT = r"""<\?==""" + WS
 
     t_METADATA = r"""METADATA [^;]*"""  + WS
     t_IO_MARKER = r"""<=>""" + WS
