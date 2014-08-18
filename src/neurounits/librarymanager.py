@@ -223,13 +223,6 @@ class LibraryManager(ast.ASTObject):
                 file_contents = pkg_resources.resource_string('neurounits',f)
                 parse_expr(file_contents, parse_type=ParseTypes.N6_9MLFile, library_manager=self)
 
-            # Old version:
-            #for f in glob.glob(self._stdlibdir + '/*.eqn'):
-            #    with open(f) as l:
-            #        print 'Loading StdLib file:', f
-            #        parse_expr(l.read(), parse_type=ParseTypes.N6_9MLFile, library_manager=self)
-
-
             LibraryManager._stdlib_cache_loading = False
             # Copy the old namespace object accross
             LibraryManager._stdlib_cache = self.namespace
