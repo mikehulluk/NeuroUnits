@@ -68,7 +68,8 @@ def p_major_blocks(p):
                        | compound_component_def
                        | namespace_def
                        | library_def
-                       | multiport_def"""
+                       | multiport_def
+                       | unitsblock_def"""
 
 
 
@@ -94,9 +95,53 @@ def p_namespace_def2(p):
 
 
 
+def p_unitsdefinition0(p):
+    """unitsblock_def : DEFINE_UNITS LCURLYBRACKET defineunitscontents RCURLYBRACKET SEMICOLON"""
+    pass
+def p_unitsdefinition1(p):
+    """defineunitscontents : empty"""
+    pass
+def p_unitsdefinition2(p):
+    """defineunitscontents : defineunitscontents defineunitscontentsline SEMICOLON"""
+    pass
 
 
+def p_unitsdefinition3(p):
+    """defineunitscontentsline : UNIT COLON magnitude alphatokenlist alphatokenlist EQUALS quantity_expr"""
+    mag = p[3]
+    longnames = p[4]
+    shortnames = p[5]
+    equivalent_dim = p[7]
+    # Fairly major initial limitations:
+    assert mag == 1.0
+    #assert equivalent_dim.float_in_si() == 1.0
+    p.parser.library_manager.add_unit_def(longforms=longnames, shortforms = shortnames, equivalent_dim = equivalent_dim)
 
+def p_unitsdefinition3b(p):
+    """defineunitscontentsline : PREFIX COLON alphatokenlist alphatokenlist EQUALS quantity_expr"""
+    longnames = p[3]
+    shortnames = p[4]
+    equivalent_dim = p[6]
+
+    import numpy 
+    pot = numpy.log10(equivalent_dim.float_in_si())
+    # Fairly major initial limitations:
+    assert equivalent_dim.float_in_si() / 10**pot == 1.0
+    p.parser.library_manager.add_unitprefix_def(longforms=longnames, shortforms = shortnames, pot = pot)
+
+
+def p_unitsdefinition5(p):
+    """alphatokenlist : LSQUAREBRACKET alphatokenlistcontents RSQUAREBRACKET"""
+    p[0] = p[2]
+def p_unitsdefinition6(p):
+    """alphatokenlist : empty"""
+    p[0] = []
+def p_unitsdefinition7(p):
+    """alphatokenlistcontents : ALPHATOKEN"""
+    p[0] = [p[1]]
+def p_unitsdefinition8(p):
+    """alphatokenlistcontents : alphatokenlistcontents COMMA ALPHATOKEN"""
+    p[0] = p[1] + [p[3]]
 
 
 
@@ -1213,8 +1258,7 @@ def p_unit_term_2(p):
 ########################
 def p_unit_term_unpowered_token(p):
     """unit_term_unpowered : ALPHATOKEN """
-    import neurounits.unit_term_parsing as unit_term_parsing
-    p[0] = unit_term_parsing.parse_term(p[1], backend=p.parser.library_manager.backend)
+    p[0] = p.parser.library_manager.parse_unit_term(p[1])
 
 
 
@@ -1313,7 +1357,7 @@ def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=No
 
 
     # Are a parsing a complex expression? Then we need a library manager:
-    if library_manager is None and ParseTypes is not ParseTypes.L1_Unit:
+    if library_manager is None: # and ParseTypes is not ParseTypes.L1_Unit:
         logging.log_neurounits.info('Creating library manager')
         library_manager = LibraryManager(backend=backend, working_dir=working_dir, options=options, name=name, src_text=orig_text )
 

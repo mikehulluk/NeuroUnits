@@ -85,6 +85,10 @@ class UnitExprLexer(object):
         'in': 'IN',
         'out': 'OUT',
 
+        #'unit': 'UNIT',
+        'define_units': 'DEFINE_UNITS',
+        'prefix': 'PREFIX',
+        'unit': 'UNIT',
         }
 
     tokens = [

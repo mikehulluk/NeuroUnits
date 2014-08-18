@@ -89,10 +89,6 @@ class ComponentNamespace(object):
             return ns
         else:
             return ns.get_subnamespace(sub_namespace_name_tokens[1:])
-
-
-
-
         assert False
 
     def add(self, obj):
@@ -171,6 +167,9 @@ class LibraryManager(ast.ASTObject):
     _stdlib_cache = None
     _stdlib_cache_loading = False
 
+
+    unit_term_parser = None
+
     # Find the location of the standard library, relative to this directory
     _stdlibdir = os.path.join(os.path.dirname(__file__), '../stdlib/')
 
@@ -199,7 +198,11 @@ class LibraryManager(ast.ASTObject):
 
         self.backend = backend
 
-     
+        from neurounits.unit_term_parsing.unit_parser_new import UnitTermParser
+        if LibraryManager.unit_term_parser is None:
+            LibraryManager.unit_term_parser = UnitTermParser(backend=backend)
+
+
 
         self._parsing_namespace_stack = []
 
@@ -219,7 +222,7 @@ class LibraryManager(ast.ASTObject):
             for f in fnames:
                 file_contents = pkg_resources.resource_string('neurounits',f)
                 parse_expr(file_contents, parse_type=ParseTypes.N6_9MLFile, library_manager=self)
-                
+
             # Old version:
             #for f in glob.glob(self._stdlibdir + '/*.eqn'):
             #    with open(f) as l:
@@ -284,9 +287,9 @@ class LibraryManager(ast.ASTObject):
         if include_stdlibs:
             srcs_1 = self.namespace.get_all()
             srcs_2 = LibraryManager._stdlib_cache.get_all()
-            srcs =  srcs_1 + srcs_2 
+            srcs =  srcs_1 + srcs_2
         else:
-            
+
             srcs = self.namespace.get_all()
 
         srcs = list(srcs)
@@ -352,4 +355,18 @@ class LibraryManager(ast.ASTObject):
     def _summarise_node_short(self,):
             return 'LibraryManager'
 
+
+    # Units & Dimensions:
+    def parse_unit_term(self, term):
+        return self.unit_term_parser.parse(term)
+
+
+    # Units & Dimensions:
+    def add_unit_def(self, longforms, shortforms, equivalent_dim):
+        self.unit_term_parser.add_unit_def(longforms=longforms,
+                shortforms=shortforms, equivalent_dim=equivalent_dim)
+
+    def add_unitprefix_def(self, longforms, shortforms, pot):
+        self.unit_term_parser.add_unitprefix_def(longforms=longforms,
+                shortforms=shortforms, pot=pot)
 

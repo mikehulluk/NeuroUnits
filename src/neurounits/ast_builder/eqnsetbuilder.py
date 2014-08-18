@@ -67,10 +67,8 @@ class StdFuncs(object):
             '__ceil__': ast.FunctionDefBuiltInCeil,
             '__fabs__': ast.FunctionDefBuiltInFabs,
             '__floor__': ast.FunctionDefBuiltInFloor,
-
             '__min__': ast.FunctionDefBuiltInMin,
             '__max__': ast.FunctionDefBuiltInMax,
-
             '__atan2__': ast.FunctionDefBuiltInAtan2,
             '__pow__': ast.FunctionDefBuiltInPow,
             }

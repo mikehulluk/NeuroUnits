@@ -1,4 +1,39 @@
 
+
+define_units {
+
+    prefix: [tera] [T] = 1e12
+    prefix: [giga] [G] = 1e9
+    prefix: [mega] [M] = 1e6
+    prefix: [kilo] [k] = 1e3
+    prefix: [centi] [c] = 1e-2
+    prefix: [milli] [m] = 1e-3
+    prefix: [micro] [u] = 1e-6
+    prefix: [nano] [n] = 1e-9
+    prefix: [pico] [p] = 1e-12
+
+
+    unit: 1 [watt] [W] = 1 kg m2/s3
+    unit: 1 [joule] [J]  = 1 W s
+
+    unit: 1 [volt] [V]    = 1 m2 kg1 s-3 A-1
+    unit: 1 [siemen] [S]  = 1 m-2 kg-1 s3 A2
+    unit: 1 [farad] [F]   = 1 m-2 kg-1 s4 A2
+    unit: 1 [ohm] [Ohm]   = 1 m2 kg1 s-3 A-2
+    unit: 1 [coulomb] [C] = 1 s1 A1
+    unit: 1 [hertz] [Hz]  = 1 s-1
+    unit: 1 [newton] [N]  = 1 kg1 m1 s-2
+
+
+    unit: 1 [liter] [L]   = 1e-3  m3
+    unit: 1 [molar] [M]   = 1e3 mol1 m-3
+    #unit: [liter] [L]   = 0.001  m3
+    #unit: [molar] [M]   = 1000 mol1 m-3
+
+
+}
+
+
 library std.math {
 
     pi = 3.141592653
@@ -53,7 +88,7 @@ library std.neuro {
     from std.math import pi,pow
 
 
-	# Linear Cable Theory (Koch Pg.32):
+    # Linear Cable Theory (Koch Pg.32):
     r_a(R_i:{ohm m}, d:{m}) = (4*R_i)/(pi*d*d)
 
     # Nasty hack to get around exponents and dimensions problem:
