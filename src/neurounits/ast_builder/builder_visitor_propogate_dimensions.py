@@ -29,7 +29,7 @@
 from neurounits.visitors import ASTVisitorBase,ASTActionerDefault
 from neurounits.visitors.bases.base_actioner import SingleVisitPredicate, ASTActionerDepthFirst
 from neurounits import ast
-from neurounits.unit_errors import UnitMismatchError
+from neurounits.errors import UnitMismatchError
 import pylab
 
 

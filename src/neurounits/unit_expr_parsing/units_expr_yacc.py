@@ -37,8 +37,8 @@ from neurounits.librarymanager import LibraryManager
 
 import neurounits.ast as ast
 
-from neurounits.unit_errors import NeuroUnitParsingErrorEOF
-from neurounits.unit_errors import NeuroUnitParsingErrorUnexpectedToken
+from neurounits.errors import NeuroUnitParsingErrorEOF
+from neurounits.errors import NeuroUnitParsingErrorUnexpectedToken
 
 #from neurounits.unit_data.units_data_unitterms import UnitTermData
 

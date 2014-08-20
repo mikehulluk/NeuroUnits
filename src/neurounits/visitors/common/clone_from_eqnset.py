@@ -28,7 +28,7 @@
 from neurounits.visitors import ASTVisitorBase
 
 from neurounits import ast
-from neurounits.unit_errors import panic
+from neurounits.errors import panic
 
 
 class CloneObject(object):

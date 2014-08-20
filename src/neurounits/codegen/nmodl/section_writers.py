@@ -1,4 +1,7 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -21,13 +24,13 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 
 from neurounits.visitors.bases.base_actioner_default_ignoremissing import ASTActionerDefaultIgnoreMissing
 from neurounits.visitors.bases.base_actioner import SingleVisitPredicate
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase
-from neurounits.unit_errors import panic
+from neurounits.errors import panic
 from neurounits.codegen.nmodl.neuron_constants import NeuronSuppliedValues
 #from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
 #from neurounits.visitors.common.ast_symbol_dependancies import VisitorSymbolDependance

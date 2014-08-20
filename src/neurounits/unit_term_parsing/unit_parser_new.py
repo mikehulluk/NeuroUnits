@@ -1,6 +1,6 @@
 
 
-from ..unit_errors import UnitError#, InvalidUnitTermError
+from neurounits.errors import UnitError
 
 import numpy as np
 
@@ -45,7 +45,6 @@ class UnitTermParser(object):
 
 
     def _resolve_unitterm(self, unitterm):
-        #from ..unit_errors import UnitError
 
         lf = self._try_find_longform(unitterm)
         sf = self._try_find_shortform(unitterm)

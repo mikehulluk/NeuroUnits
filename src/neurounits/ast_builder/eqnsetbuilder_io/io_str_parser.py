@@ -28,7 +28,7 @@
 
 from neurounits.ast_builder.io_types import IOType
 from neurounits.units_misc import read_json
-from neurounits.unit_errors import ParsingError
+from neurounits.errors import ParsingError
 
 class IOData(object):
 

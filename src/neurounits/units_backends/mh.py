@@ -27,7 +27,7 @@
 # -------------------------------------------------------------------------------
 
 from bases import ParsingBackendBase
-from neurounits.unit_errors import UnitMismatchError
+from neurounits.errors import UnitMismatchError
 
 
 class MHUnitBackend(ParsingBackendBase):

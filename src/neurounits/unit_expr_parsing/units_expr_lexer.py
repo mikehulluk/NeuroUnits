@@ -27,7 +27,7 @@
 
 
 import ply.lex
-from neurounits.unit_errors import UnitError
+from neurounits.errors import UnitError
 
 
 
