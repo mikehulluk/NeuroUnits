@@ -25,7 +25,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
-#from ast.astobjects import FunctionDefBuiltIn
+
 from .astobjects import FunctionDefBuiltIn, FunctionDefParameter
 
 
@@ -39,14 +39,6 @@ class FunctionDefBuiltInSingleArg(FunctionDefBuiltIn):
 
 
 
-#class FunctionDefBuiltInXX(FunctionDefBuiltInSingleArg):
-#    def __init__(self, backend, **kwargs):
-#        super(FunctionDefBuiltInXX, self).__init__(funcname='__XX__', backend=backend, **kwargs)
-#
-#    def accept_func_visitor(self, v, **kwargs):
-#        return v.VisitBIFXX(self, **kwargs)
-#    def __repr__(self):
-#        return '<BuiltinFunction: XX()>'
 
 
 class FunctionDefBuiltInSin(FunctionDefBuiltInSingleArg):

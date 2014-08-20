@@ -26,16 +26,15 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-
 from neurounits.visitors.bases.base_actioner_default import ASTActionerDefault
 
 
 class NodeToIntAnnotator(ASTActionerDefault):
+
     def __init__(self):
         self.node_to_int = {}
         self.int_to_node = {}
         super(ASTActionerDefault, self).__init__()
-
 
     def annotate_ast(self, component):
         assert self.node_to_int == {}
@@ -49,3 +48,5 @@ class NodeToIntAnnotator(ASTActionerDefault):
         self.node_to_int[n] = val
         self.int_to_node[val] = n
         n.annotations['node-id'] = val
+
+

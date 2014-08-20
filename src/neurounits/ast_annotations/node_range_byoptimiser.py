@@ -26,10 +26,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-
-
-
-
 from neurounits.ast_annotations.bases import ASTTreeAnnotator
 import numpy as np
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase
@@ -43,7 +39,6 @@ import scipy.optimize
 
 from collections import defaultdict
 
-
 import random
 import sys
 import math
@@ -51,6 +46,7 @@ import math
 
 
 class CriticalPointFinder(ASTActionerDefault):
+
     def __init__(self, component):
         self.critical_points = defaultdict(set)
         super(CriticalPointFinder, self).__init__()
@@ -216,17 +212,15 @@ class CFloatEval(ASTVisitorBase):
 
 
 class NodeEvaluatorCCode(ASTActionerDefault):
+
     def __init__(self, component):
         self.node_code = {}
         self.component = component
         super(NodeEvaluatorCCode, self).__init__(component=component)
 
-
     def ActionNode(self, n, **kwargs):
         print 'Skipping;', n
         pass
-
-    #    assert False
 
     def BuildEvalFunc(self, n):
         if n in self.node_code:
@@ -341,10 +335,6 @@ typedef struct  {
 """)
 
 
-
-
-
-
 class NodeRangeCCodeNodeNamer(ASTTreeAnnotator, ASTActionerDefault):
 
     def annotate_ast(self, component):
@@ -353,9 +343,9 @@ class NodeRangeCCodeNodeNamer(ASTTreeAnnotator, ASTActionerDefault):
     def ActionNode(self, n):
         pass
 
-
     def set_var_name(self, n, name):
         n.annotations['_range-finding-c-var-name'] = name
+
     def set_func_name(self, n, name=None):
         if name is None:
             name = 'eval_node_%s_%s' % (type(n).__name__, id(n))
@@ -369,66 +359,78 @@ class NodeRangeCCodeNodeNamer(ASTTreeAnnotator, ASTActionerDefault):
         self.set_var_name(o, name='rv_%s' % str(id(o)))
         self.set_func_name(o)
 
-
     def _ActionSymbolTerminal(self, o):
         self.set_var_name(o, name=o.symbol)
         self.set_func_name(o)
 
     def ActionStateVariable(self, o):
         self._ActionSymbolTerminal(o)
-    def ActionAssignedVariable(self,o):
+
+    def ActionAssignedVariable(self, o):
         self._ActionSymbolTerminal(o)
+
     def ActionSuppliedValue(self, o):
         self._ActionSymbolTerminal(o)
+
     def ActionTimeVariable(self, o):
         self._ActionSymbolTerminal(o)
+
     def ActionParameter(self, o):
         self._ActionSymbolTerminal(o)
 
     def ActionInEquality(self, n, **kwargs):
         self.set_func_name(n)
+
     def ActionIfThenElse(self, n, **kwargs):
         self.set_func_name(n)
 
     def ActionAddOp(self, o, **kwargs):
         self.set_func_name(o)
+
     def ActionSubOp(self, o, **kwargs):
         self.set_func_name(o)
+
     def ActionMulOp(self, o, **kwargs):
         self.set_func_name(o)
+
     def ActionDivOp(self, o, **kwargs):
         self.set_func_name(o)
 
     def ActionFunctionDefInstantiationParameter(self, o, **kwargs):
         self.set_func_name(o)
+
     def ActionFunctionDefBuiltInInstantiation(self, o, **kwargs):
         self.set_func_name(o)
+
     def ActionRegimeDispatchMap(self, o, **kwargs):
         self.set_func_name(o)
 
     def ActionTimeDerivativeByRegime(self, o):
         self.set_func_name(o)
-    def ActionEqnAssignmentByRegime (self, o):
-        self.set_func_name(o)
-    def ActionRandomVariableParameter (self, o):
-        self.set_func_name(o)
-    def ActionOnEventDefParameter(self, o):
-        self.set_var_name(o, name=o.symbol + '_%s' % str(id(o)) )
-        self.set_func_name(o)
-    def ActionInEventPortParameter(self, o):
-        self.set_var_name(o, name=o.symbol + '_%s' % str(id(o)) )
+
+    def ActionEqnAssignmentByRegime(self, o):
         self.set_func_name(o)
 
+    def ActionRandomVariableParameter(self, o):
+        self.set_func_name(o)
+
+    def ActionOnEventDefParameter(self, o):
+        self.set_var_name(o, name=o.symbol + '_%s' % str(id(o)))
+        self.set_func_name(o)
+
+    def ActionInEventPortParameter(self, o):
+        self.set_var_name(o, name=o.symbol + '_%s' % str(id(o)))
+        self.set_func_name(o)
 
     # Types we can skip:
     def ActionSymbolicConstant(self, o):
         pass
+
     def ActionConstant(self, o):
         pass
+
     def ActionRegime(self, o):
         pass
-
-
 
 
 class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):

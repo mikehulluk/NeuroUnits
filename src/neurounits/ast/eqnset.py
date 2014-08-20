@@ -36,10 +36,8 @@ from neurounits.ast.astobjects_nineml import Regime
 #from neurounits.io_types import IOType
 from neurounits.units_misc import LookUpDict
 
-
 import itertools
 import neurounits
-
 
 
 class Block(ASTObject):
@@ -54,14 +52,11 @@ class Block(ASTObject):
         from neurounits.ast_annotations import ASTTreeAnnotationManager, ASTNodeAnnotationData
         self.annotation_mgr = ASTTreeAnnotationManager()
 
-
     def annotate_ast(self, annotator, ast_label=None):
         annotator.annotate_ast(self)
 
         if ast_label is not None:
             self.annotation_mgr.add_annotator(ast_label, annotator)
-
-
 
     @property
     def terminal_symbols(self):
@@ -81,13 +76,11 @@ class Block(ASTObject):
     def short_name(self):
         return self.name.split('.')[-1]
 
-
     def all_ast_nodes(self):
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         c = EqnsetVisitorNodeCollector()
         c.visit(self)
         return itertools.chain(*c.nodes.values())
-
 
 
 class Library(Block):
@@ -114,7 +107,6 @@ class Library(Block):
             raise KeyError("Can't find terminal: %s" % symbol)
 
         return possible_objs[0]
-
 
     @property
     def functiondefs(self):
@@ -143,21 +135,7 @@ class Library(Block):
         return ordered_assignments
 
 
-
-
-
-
-
-
-
-
-
-
 class NineMLComponent(Block):
-
-
-
-
 
     def run_sanity_checks(self):
         from neurounits.ast_builder.builder_visitor_propogate_dimensions import VerifyUnitsInTree
@@ -168,8 +146,6 @@ class NineMLComponent(Block):
                 assert rt_graph.default_regime in rt_graph.regimes
 
         VerifyUnitsInTree(self, unknown_ok=False)
-
-
 
     @classmethod
     def _build_ADD_ast(cls, nodes):
@@ -199,7 +175,6 @@ class NineMLComponent(Block):
         for ap in self.analog_reduce_ports:
             self.close_analog_port(ap)
 
-
     def simulate(self, **kwargs):
         from neurounits.codegen.python_functor.simulate_component import simulate_component
         return simulate_component(self, **kwargs)
@@ -209,12 +184,9 @@ class NineMLComponent(Block):
         from neurounits.ast_operations.merge_components import build_compound_component
         return build_compound_component(**kwargs)
 
-
-
     def expand_all_function_calls(self):
         from neurounits.visitors.common import FunctionExpander
         FunctionExpander(self)
-
 
     @property
     def ordered_assignments_by_dependancies(self):
@@ -224,7 +196,6 @@ class NineMLComponent(Block):
         assert len(ordered_assignments) == len(self.assignments)
         assert set(ordered_assignments) == set(self.assignments)
         return ordered_assignments
-
 
     # OK:
     @property
@@ -270,7 +241,6 @@ class NineMLComponent(Block):
         t = EqnsetVisitorNodeCollector(obj=self)
         return LookUpDict(t.nodes[RandomVariable])
 
-
     @property
     def autoregressive_model_nodes(self):
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
@@ -285,26 +255,22 @@ class NineMLComponent(Block):
         t = EqnsetVisitorNodeCollector(obj=self)
         return LookUpDict(t.nodes[OnConditionCrossing])
 
-
-
-
     @property
     def terminal_symbols(self):
         possible_objs = itertools.chain(
-                        self._parameters_lut,
-                        self._supplied_lut,
-                        self._analog_reduce_ports_lut,
-                        self.assignedvalues,
-                        self.state_variables,
-                        self.symbolicconstants,
-                        [self._time_node]
-                        )
+            self._parameters_lut,
+            self._supplied_lut,
+            self._analog_reduce_ports_lut,
+            self.assignedvalues,
+            self.state_variables,
+            self.symbolicconstants,
+            [self._time_node],
+            )
 
         possible_objs = list(possible_objs)
         for t in possible_objs:
             assert isinstance(t, ASTObject)
         return possible_objs
-
 
     @property
     def all_input_terminals(self):
@@ -328,10 +294,7 @@ class NineMLComponent(Block):
             + LookUpDict(self.state_variables).get_objs_by() \
             + LookUpDict(self.symbolicconstants).get_objs_by()
 
-
         return possible_objs
-
-
 
     def get_terminal_obj_or_port(self, symbol):
         possible_objs = self._parameters_lut.get_objs_by(symbol=symbol) \
@@ -345,15 +308,11 @@ class NineMLComponent(Block):
             + (([self._time_node] if self._time_node.symbol
                == symbol else []))
 
-
-
         if not len(possible_objs) == 1:
             all_syms = [ p.symbol for p in self.all_terminal_objs() ] + self.input_event_port_lut.get_objects_attibutes(attr='symbol')
             raise KeyError("Can't find terminal/EventPort: '%s' \n (Terminals/EntPorts found: %s)" % (symbol, ','.join(all_syms) ) )
 
         return possible_objs[0]
-
-
 
     def get_terminal_obj(self, symbol):
         possible_objs = self._parameters_lut.get_objs_by(symbol=symbol) \
@@ -365,14 +324,11 @@ class NineMLComponent(Block):
             + (([self._time_node] if self._time_node.symbol
                == symbol else []))
 
-
-
         if not len(possible_objs) == 1:
             all_syms = [ p.symbol for p in self.all_terminal_objs()]
             raise KeyError("Can't find terminal: '%s' \n (Terminals found: %s)" % (symbol, ','.join(sorted(all_syms)) ) )
 
         return possible_objs[0]
-
 
     # Recreate each time - this is not! efficient!!
     @property
@@ -380,22 +336,26 @@ class NineMLComponent(Block):
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         t = EqnsetVisitorNodeCollector(obj=self)
         return LookUpDict(t.nodes[Parameter])
+
     @property
     def _supplied_lut(self):
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         t = EqnsetVisitorNodeCollector(obj=self)
         return LookUpDict(t.nodes[SuppliedValue])
+
     @property
     def _analog_reduce_ports_lut(self):
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         t = EqnsetVisitorNodeCollector(obj=self)
         return LookUpDict(t.nodes[AnalogReducePort])
+
     @property
     def input_event_port_lut(self):
         import neurounits.ast as ast
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
         t = EqnsetVisitorNodeCollector(obj=self)
         return LookUpDict(t.nodes[ast.InEventPort])
+
     @property
     def output_event_port_lut(self):
         import neurounits.ast as ast
@@ -416,11 +376,9 @@ class NineMLComponent(Block):
         else:
             assert False
 
-
     @property
     def time_node(self):
         return self.get_time_node
-
 
     def has_terminal_obj(self, symbol):
         try:
@@ -430,8 +388,6 @@ class NineMLComponent(Block):
             return False
         except:
             raise
-
-
 
     # These should be tidied up:
     def getSymbolDependancicesDirect(self, sym, include_constants=False, include_parameters=True):
@@ -450,16 +406,12 @@ class NineMLComponent(Block):
             return sym._metadata
         return sym._metadata.metadata
 
-
     def propagate_and_check_dimensions(self):
         from neurounits.ast_builder.builder_visitor_propogate_dimensions import PropogateDimensions
         PropogateDimensions.propogate_dimensions(self)
 
-
     def accept_visitor(self, visitor, **kwargs):
         return visitor.VisitNineMLComponent(self, **kwargs)
-
-
 
     def assignedvariable_to_assignment(self, assignedvariable):
         from neurounits import ast
@@ -486,7 +438,6 @@ class NineMLComponent(Block):
         self._rt_graphs = LookUpDict( builddata.rt_graphs)
 
         self._time_node = builddata.time_node
-
 
         # This is a list of internal event port connections:
         self._event_port_connections = LookUpDict()
@@ -516,7 +467,6 @@ class NineMLComponent(Block):
             assert isinstance(src, basestring)
             assert isinstance(dst, basestring)
 
-
         import neurounits.ast as ast
         interface_def = self.library_manager.get(porttype)
         wire_mappings = []
@@ -530,16 +480,10 @@ class NineMLComponent(Block):
         conn = ast.CompoundPortConnector(symbol=local_name, interface_def = interface_def, wire_mappings=wire_mappings, direction=direction)
         self.add_interface_connector(conn)
 
-
-
-
-
-
     def add_event_port_connection(self, conn):
         assert conn.dst_port in self.input_event_port_lut
         assert conn.src_port in self.output_event_port_lut
         self._event_port_connections._add_item(conn)
-
 
     def __repr__(self):
         return '<NineML Component: %s [Supports interfaces: %s ]>' % (self.name, ','.join([ "'%s'" % conn.interface_def.name for conn in self._interface_connectors]))
@@ -559,7 +503,6 @@ class NineMLComponent(Block):
     @property
     def conditiontriggertransitions(self):
         return self._transitions_conditiontriggers
-
 
     def transitions_from_regime(self, regime):
         assert isinstance(regime, Regime)
@@ -661,7 +604,6 @@ class NineMLComponent(Block):
             if rt_graph.default_regime is not None:
                 current_regimes[rt_graph] = rt_graph.default_regime
 
-
         # iv. Explicitly provided:
         for (rt_name, regime_name) in initial_regimes.items():
             rt_graph = rt_graphs.get_single_obj_by(name=rt_name)
@@ -675,8 +617,6 @@ class NineMLComponent(Block):
 
         return current_regimes
 
-
-
     def get_initial_state_values(self, initial_state_values):
         from neurounits import ast
         # Resolve the inital values of the states:
@@ -685,7 +625,6 @@ class NineMLComponent(Block):
         # Check initial state_values defined in the 'initial {...}' block: :
         for td in self.timederivatives:
             sv = td.lhs
-            #print repr(sv), sv.initial_value
             if sv.initial_value:
                 assert isinstance(sv.initial_value, ast.ConstValue)
                 state_values[sv.symbol] = sv.initial_value.value

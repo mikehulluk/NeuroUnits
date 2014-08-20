@@ -30,14 +30,13 @@ from neurounits.visitors.bases.base_actioner_default import ASTActionerDefault
 from neurounits import ast
 
 
-
-
 class NodeTagger(ASTActionerDefault):
+
     def __init__(self, manual_tags, **kwargs):
         self.manual_tags = manual_tags
         super(NodeTagger, self).__init__(**kwargs)
 
-    def ActionNode(self,o):
+    def ActionNode(self, o):
         if not 'tags' in o.annotations:
             o.annotations['tags'] = set()
 

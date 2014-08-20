@@ -82,9 +82,8 @@ class IfThenElse(ASTExpressionObject):
         assert predicate._is_allowed_in_ifthenelse()
 
 
-
-
 class ASTBooleanExpression(ASTObject):
+
     def _is_allowed_in_ifthenelse(self):
         raise NotImplementedError()
 
@@ -121,9 +120,6 @@ class OnConditionCrossing(ASTBooleanExpression):
         return 'crosses'
 
 
-
-
-
 class BoolAnd(ASTBooleanExpression):
 
     def accept_visitor(self, v, **kwargs):
@@ -137,6 +133,7 @@ class BoolAnd(ASTBooleanExpression):
     def _is_allowed_in_ifthenelse(self):
         return self.lhs._is_allowed_in_ifthenelse() \
             and self.rhs._is_allowed_in_ifthenelse()
+
 
 class BoolOr(ASTBooleanExpression):
 
@@ -152,6 +149,7 @@ class BoolOr(ASTBooleanExpression):
         return self.lhs._is_allowed_in_ifthenelse() \
             and self.rhs._is_allowed_in_ifthenelse()
 
+
 class BoolNot(ASTBooleanExpression):
 
     def accept_visitor(self, v, **kwargs):
@@ -165,11 +163,11 @@ class BoolNot(ASTBooleanExpression):
         return self.lhs._is_allowed_in_ifthenelse()
 
 
-
-
 # Base class:
 # ===============
+
 class ASTSymbolNode(ASTExpressionObject):
+
     def __init__(self, symbol, **kwargs):
         super(ASTSymbolNode, self).__init__(**kwargs)
         self.symbol = symbol
@@ -180,7 +178,9 @@ class ASTSymbolNode(ASTExpressionObject):
     def _summarise_node_short(self, use_latex=False):
         return self.symbol
 
+
 class ASTConstNode(ASTExpressionObject):
+
     def __init__(self, value, **kwargs):
         super(ASTConstNode, self).__init__(**kwargs)
         self.value = value
@@ -191,13 +191,6 @@ class ASTConstNode(ASTExpressionObject):
 
     def _summarise_node_short(self, use_latex=False):
         return self.value
-
-
-
-
-
-
-
 
 
 class AssignedVariable(ASTSymbolNode):
@@ -264,12 +257,12 @@ class ConstValue(ASTConstNode):
 
 
 class ConstValueZero(ASTExpressionObject):
+
     def __init__(self, **kwargs):
         super(ConstValueZero, self).__init__(**kwargs)
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitConstantZero(self, **kwargs)
-
 
 
 class SymbolicConstant(ASTConstNode, ASTSymbolNode):
@@ -283,14 +276,6 @@ class SymbolicConstant(ASTConstNode, ASTSymbolNode):
     def _summarise_node_full(self):
         return '%s %s' % (ASTConstNode._summarise_node_full(self),
                           ASTSymbolNode._summarise_node_full(self))
-
-
-
-
-
-
-
-
 
 
 class FunctionDefBuiltIn(ASTExpressionObject):
@@ -336,13 +321,14 @@ class FunctionDefUser(ASTExpressionObject):
     def is_builtin(self):
         return False
 
+
 class FunctionDefParameter(ASTExpressionObject):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitFunctionDefParameter(self, **kwargs)
 
     def __init__(self, symbol=None, dimension=None, **kwargs):
-        super(FunctionDefParameter,self).__init__(**kwargs)
+        super(FunctionDefParameter, self).__init__(**kwargs)
         self.symbol = symbol
         if dimension is not None:
             self.set_dimensionality(dimension)
@@ -357,7 +343,7 @@ class FunctionDefUserInstantiation(ASTExpressionObject):
         return v.VisitFunctionDefUserInstantiation(self, **kwargs)
 
     def __init__(self, parameters, function_def, **kwargs):
-        super(FunctionDefUserInstantiation,self).__init__(**kwargs)
+        super(FunctionDefUserInstantiation, self).__init__(**kwargs)
         self.function_def = function_def
         self.parameters = parameters
         assert not function_def.is_builtin()
@@ -373,11 +359,10 @@ class FunctionDefBuiltInInstantiation(ASTExpressionObject):
         return v.VisitFunctionDefBuiltInInstantiation(self, **kwargs)
 
     def __init__(self, parameters, function_def, **kwargs):
-        super(FunctionDefBuiltInInstantiation,self).__init__(**kwargs)
+        super(FunctionDefBuiltInInstantiation, self).__init__(**kwargs)
         self.function_def = function_def
         self.parameters = parameters
         assert function_def.is_builtin()
-
 
     def _summarise_node_full(self):
         #TODO-minor
@@ -423,8 +408,10 @@ class AddOp(BinaryOp):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitAddOp(self, **kwargs)
+
     def _summarise_node_short(self):
         return '+'
+
     def _summarise_node_full(self):
         return ''
 
@@ -433,8 +420,10 @@ class SubOp(BinaryOp):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitSubOp(self, **kwargs)
+
     def _summarise_node_short(self):
         return '-'
+
     def _summarise_node_full(self):
         return ''
 
@@ -443,8 +432,10 @@ class MulOp(BinaryOp):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitMulOp(self, **kwargs)
+
     def _summarise_node_short(self):
         return '*'
+
     def _summarise_node_full(self):
         return ''
 
@@ -453,8 +444,10 @@ class DivOp(BinaryOp):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitDivOp(self, **kwargs)
+
     def _summarise_node_short(self):
         return '/'
+
     def _summarise_node_full(self):
         return ''
 

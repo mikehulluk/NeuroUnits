@@ -26,28 +26,30 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-
 import base
 from neurounits.units_misc import LookUpDict
 
 
-
 class PortDirection(object):
+
     In = 'In'
     Out = 'Out'
 
 
 class MultiportInterfaceDefWire(base.ASTObject):
+
     DirRight = 'DirRight'
     DirLeft = 'DirLeft'
 
-    DirCute = {DirRight:'==>>', DirLeft:'<<=='}
+    DirCute = {DirRight: '==>>', DirLeft: '<<=='}
 
     def __init__(self, symbol, direction, optional=False):
-        assert direction in [MultiportInterfaceDefWire.DirRight, MultiportInterfaceDefWire.DirLeft]
+        assert direction in [MultiportInterfaceDefWire.DirRight,
+                             MultiportInterfaceDefWire.DirLeft]
         self.symbol = symbol
         self.direction = direction
         self.optional = optional
+
 
 class MultiportInterfaceDefWireContinuous(MultiportInterfaceDefWire):
     def __init__(self, symbol, direction, unit, optional=False):
@@ -70,7 +72,7 @@ class MultiportInterfaceDefWireEvent(MultiportInterfaceDefWire):
     def accept_visitor(self, visitor, **kwargs):
         return visitor.VisitMultiportInterfaceDefWireEvent(self, **kwargs)
 
-    def __repr__(self,):
+    def __repr__(self):
         return '<MultiportInterfaceDefWireEvent: %s (Optional:%s, Direction:%s)>' %( self.symbol, self.optional, self.direction)
 
 
@@ -79,7 +81,6 @@ class MultiportInterfaceDef(base.ASTObject):
 
     def accept_visitor(self, visitor, **kwargs):
         return visitor.VisitMultiportInterfaceDef(self, **kwargs)
-
 
     def __init__(self, symbol, connections):
         super(MultiportInterfaceDef, self).__init__()
@@ -101,7 +102,7 @@ class MultiportInterfaceDef(base.ASTObject):
     def get_wire(self, wire_name):
         return self.connections.get_single_obj_by(symbol=wire_name)
 
-    def __repr__(self, ):
+    def __repr__(self):
         return '<MultiportInterfaceDef: %s (%s)>' % (self.symbol, id(self))
 
 
@@ -111,8 +112,9 @@ class MultiportInterfaceDef(base.ASTObject):
 
 
 class CompoundPortConnectorWireMapping(base.ASTObject):
+
     def __init__(self, component_port, interface_port):
-        super(CompoundPortConnectorWireMapping,self).__init__()
+        super(CompoundPortConnectorWireMapping, self).__init__()
         self.component_port = component_port
         self.interface_port = interface_port
 
@@ -126,8 +128,7 @@ class CompoundPortConnectorWireMapping(base.ASTObject):
     def accept_visitor(self, visitor, **kwargs):
         return visitor.VisitCompoundPortConnectorWireMapping(self, **kwargs)
 
-
-    def __repr__(self,):
+    def __repr__(self):
         try:
             # This might fail when we close reduce ports with AddOps
             return "<CompoundPortConnectorWireMapping: Component: %s to Compound: %s>" % (self.component_port.symbol, self.interface_port.symbol)

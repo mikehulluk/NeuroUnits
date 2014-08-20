@@ -37,7 +37,7 @@ class RangeExpander(ASTActionerDefault):
         super(RangeExpander, self).__init__(action_predicates=[SingleVisitPredicate()])
         self.expand_by = expand_by
 
-    def ActionNode(self,o):
+    def ActionNode(self, o):
         if not 'node-value-range' in o.annotations:
             return
 

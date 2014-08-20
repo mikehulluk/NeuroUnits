@@ -44,19 +44,6 @@ class ASTVisitorCollectorAll(ASTActionerDefault):
         self.objects.add(o)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 class VerifyUnitsInTree(ASTActionerDepthFirst):
 
     def __init__(self, obj, unknown_ok):
@@ -65,7 +52,6 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
 
         if unknown_ok:
             return
-
 
         try:
             self.visit(obj)
@@ -133,6 +119,7 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
 
     def ActionInEquality(self, o, **kwargs):
         self.verify_equal_units([o.lesser_than, o.greater_than])
+
     def ActionOnConditionCrossing(self, o, **kwargs):
         self.verify_equal_units([o.crosses_lhs, o.crosses_rhs])
 
@@ -166,6 +153,7 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
 
     def ActionConstant(self, o, **kwargs):
         pass
+
     def ActionConstantZero(self, o, **kwargs):
         pass
 
@@ -246,15 +234,19 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
 
     def ActionEmitEventParameter(self, o, **kwargs):
         self.verify_equal_units([o, o.rhs, o.port_parameter_obj])
+
     def VisitInEventPort(self, o):
         pass
+
     def VisitInEventPortParameter(self, o):
         pass
+
     def VisitOutEventPort(self, o):
         pass
 
     def VisitRegime(self, o):
         pass
+
     def VisitRTGraph(self, o):
         pass
 
@@ -289,14 +281,17 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
 
     def VisitCompoundPortConnectorWireMapping(self, o):
         pass
+
     def VisitMultiportInterfaceDef(self, o):
         pass
+
     def VisitCompoundPortConnector(self, o):
         pass
 
 
     def VisitRandomVariable(self, o):
         pass
+
     def VisitRandomVariableParameter(self, o):
         pass
 
@@ -397,6 +392,7 @@ class DimensionResolver(ASTVisitorBase):
 
     def VisitRTGraph(self, o, **kwargs):
         return
+
     def VisitRegime(self, o, **kwargs):
         return
 
@@ -408,6 +404,7 @@ class DimensionResolver(ASTVisitorBase):
 
     def VisitInEquality(self, o, **kwargs):
         self.EnsureEqualDimensions([o.lesser_than, o.greater_than])
+
     def VisitOnConditionCrossing(self, o, **kwargs):
         self.EnsureEqualDimensions([o.crosses_lhs, o.crosses_rhs])
 
@@ -430,6 +427,7 @@ class DimensionResolver(ASTVisitorBase):
 
     def VisitConstant(self, o, **kwargs):
         return []
+
     def VisitConstantZero(self, o, **kwargs):
         return []
 
@@ -438,6 +436,7 @@ class DimensionResolver(ASTVisitorBase):
 
     def VisitSuppliedValue(self, o, **kwargs):
         return []
+
     def VisitTimeVariable(self, o, **kwargs):
         return []
 

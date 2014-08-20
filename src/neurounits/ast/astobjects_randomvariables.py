@@ -32,7 +32,9 @@ from neurounits.units_backends.mh import MMUnit
 
 from neurounits.errors import InvalidParametersError
 
+
 class RandomVariable(ASTExpressionObject):
+
     def __init__(self, parameters, modes):
         super(RandomVariable, self).__init__()
 
@@ -47,15 +49,14 @@ class RandomVariable(ASTExpressionObject):
         p_found = set([p.name for p in parameters])
         p_expected = set(self.Meta.expected_parameters)
         if p_found != p_expected:
-            raise InvalidParametersError('Bad parameters for RandomVariable: %s [Expected: %s, Found:%s]' %(self.functionname, p_expected, p_found) )
+            raise InvalidParametersError('For RandomVariable: %s [Expected: %s, Found:%s]' %(self.functionname, p_expected, p_found) )
 
     def accept_visitor(self, v, XX_mhchecked=False, **kwargs):
         return v.VisitRandomVariable(self, **kwargs)
 
 
-
-
 class RandomVariableParameter(ASTExpressionObject):
+
     def __init__(self, name, rhs_ast):
         super(RandomVariableParameter, self).__init__()
         self.name = name
@@ -68,8 +69,8 @@ class RandomVariableParameter(ASTExpressionObject):
         return v.VisitRandomVariableParameter(self, **kwargs)
 
 
-
 class AutoRegressiveModel(ASTExpressionObject):
+
     def __init__(self, coefficients):
         super(AutoRegressiveModel, self).__init__()
         self.coefficients = coefficients
@@ -79,3 +80,5 @@ class AutoRegressiveModel(ASTExpressionObject):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitAutoRegressiveModel(self, **kwargs)
+
+

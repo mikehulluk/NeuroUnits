@@ -26,9 +26,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-
-
-
 from neurounits.ast_annotations.bases import ASTTreeAnnotator
 
 import numpy as np
@@ -42,6 +39,7 @@ from node_fixedpointannotator import NodeFixedPointFormatAnnotator
 
 
 class _NodeRangeFloat(object):
+
     def __init__(self, min_, max_):
         self.min_ = min_
         self.max_ = max_
@@ -52,11 +50,14 @@ class _NodeRangeFloat(object):
     @property
     def min(self):
         return self.min_
+
     @property
     def max(self):
         return self.max_
 
+
 class NodeRange(object):
+
     def __init__(self, min=None, max=None):
 
         from neurounits import NeuroUnitParser
@@ -67,7 +68,6 @@ class NodeRange(object):
 
         if min is not None and max is not None:
             assert min.is_compatible(max.unit)
-
 
         self._min = min
         self._max = max
@@ -90,4 +90,5 @@ class NodeRange(object):
     @max.setter
     def max(self, value):
         self._max = value
+
 

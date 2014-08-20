@@ -29,12 +29,7 @@
 from neurounits.ast_annotations.bases import ASTTreeAnnotator
 from neurounits.visitors.bases.base_actioner_default import ASTActionerDefault
 
-
 import numpy as np
-
-
-
-
 
 
 class FixedPointData(object):
@@ -66,10 +61,9 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
 
     @classmethod
     def encode_value_cls(self, value, upscaling_pow, nbits):
-        value_scaled = value * ( 2**(-upscaling_pow))
-        res = int( round( value_scaled * (2**(nbits-1) ) ) )
+        value_scaled = value * 2 ** -upscaling_pow
+        res = int(round(value_scaled * 2 ** (nbits - 1)))
         return res
-
 
     def encode_value(self, value, upscaling_pow):
         return self.encode_value_cls(value, upscaling_pow, nbits=self.nbits)
@@ -107,10 +101,13 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
 
     def ActionAddOp(self, o):
         self.ActionNodeStd(o)
+
     def ActionSubOp(self, o):
         self.ActionNodeStd(o)
+
     def ActionMulOp(self, o):
         self.ActionNodeStd(o)
+
     def ActionDivOp(self, o):
         self.ActionNodeStd(o)
 
@@ -122,9 +119,6 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
 
     def ActionFunctionDefInstantiationParameter(self, o):
         self.ActionNodeStd(o)
-
-
-
 
     def ActionIfThenElse(self, o):
         self.ActionNodeStd(o)
@@ -156,12 +150,16 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
 
     def ActionSymbolicConstant(self, o):
         self.ActionConstant(o)
+
     def ActionRegimeDispatchMap(self, o):
         self.ActionNodeStd(o)
+
     def ActionConstantZero(self, o):
         self.ActionNodeStd(o)
+
     def ActionRandomVariable(self, o, **kwargs):
         self.ActionNodeStd(o)
+
     def ActionRandomVariableParameter(self, o, **kwargs):
         self.ActionNodeStd(o)
 
@@ -179,43 +177,65 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
 
     def ActionBoolAnd(self, o):
         pass
+
     def ActionBoolOr(self, o):
         pass
+
     def ActionBoolNot(self, o):
         pass
+
     def ActionInEquality(self, o):
         pass
+
     def ActionOnConditionCrossing(self, o):
         pass
+
     def ActionFunctionDefParameter(self, o):
         pass
+
     def ActionFunctionDefBuiltIn(self, o):
         pass
+
     def ActionEqnAssignmentByRegime(self, o):
         pass
+
     def ActionTimeDerivativeByRegime(self, o):
         pass
+
     def ActionRegime(self, o):
         pass
+
     def ActionRTGraph(self, o):
         pass
+
     def ActionNineMLComponent(self, o):
         pass
+
     def ActionOnConditionTriggerTransition(self, o):
         pass
+
     def ActionOnTransitionEvent(self, o):
         pass
+
     def ActionOnEventStateAssignment(self, o):
         pass
+
     def ActionInEventPortParameter(self, o):
         pass
+
     def VisitInEventPortParameter(self, o):
         self.ActionNodeStd(o)
+
     def VisitOnEventDefParameter(self, o):
         self.ActionNodeStd(o)
+
     def ActionOutEventPort(self, o):
         pass
+
     def ActionInEventPort(self, o):
         pass
+
     def ActionEmitEvent(self, o):
         pass
+
+

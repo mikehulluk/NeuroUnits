@@ -66,7 +66,6 @@ setup(
         'neurounits':[
             
             'data/stdlib/*.9ml',
-            #'data/test_data/*.9ml',
             'data/test_data/l4-9ml/std/*.9ml',
             'data/test_data/l4-9ml/examples/*.9ml'
             

@@ -29,7 +29,7 @@
 from .astobjects import ASTObject, ASTExpressionObject
 
 from neurounits.misc import SeqUtils
-
+from neurounits.units_misc import LookUpDict
 
 class EqnAssignmentByRegime(ASTObject):
 
@@ -45,6 +45,7 @@ class EqnAssignmentByRegime(ASTObject):
 
     def _summarise_node_full(self):
         return 'Symbol: %s' % self.lhs.symbol
+
     def _summarise_node_short(self):
         return '%s=' % self.lhs.symbol
 
@@ -71,6 +72,7 @@ class EqnTimeDerivativeByRegime(ASTObject):
 
     def _summarise_node_full(self):
         return 'Derivative: d%s/dt' % self.lhs.symbol
+
     def _summarise_node_short(self):
         return 'd%s/dt=' % self.lhs.symbol
 
@@ -106,7 +108,6 @@ class EqnRegimeDispatchMap(ASTExpressionObject):
             return self.rhs_map[regime]
         return self.rhs_map[None]
 
-
     def _summarise_node_short(self):
         return 'DispatchMap'
 
@@ -117,6 +118,7 @@ class Transition(ASTObject):
         self.target_regime = target_regime
         self.src_regime = src_regime
         self.actions = actions
+
     @property
     def rt_graph(self):
         rt_graphs = set([self.src_regime.parent_rt_graph, self.target_regime.parent_rt_graph])
@@ -149,15 +151,9 @@ class OnConditionTriggerTransition(Transition):
 
     def _summarise_node_short(self):
         return 'Trigger'
+
     def _summarise_node_full(self):
         return 'Trigger'
-
-
-
-
-
-
-
 
 
 class OnEventTransition(Transition):
@@ -169,7 +165,6 @@ class OnEventTransition(Transition):
 
         assert isinstance(self.parameters, LookUpDict)
 
-
     def accept_visitor(self, v, **kwargs):
         return v.VisitOnTransitionEvent(self, **kwargs)
 
@@ -179,6 +174,7 @@ class OnEventTransition(Transition):
 
     def _summarise_node_short(self):
         return 'On: %s' % self.port.symbol
+
     def _summarise_node_full(self):
         return 'Event-Transition: %s' % self.port.symbol
 
@@ -211,11 +207,13 @@ class EmitEvent(ASTObject):
 
     def _summarise_node_short(self):
         return 'Emit: %s' % self.port.symbol
+
     def _summarise_node_full(self):
         return 'Emit: %s' % self.port.symbol
 
 
 class EmitEventParameter(ASTExpressionObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitEmitEventParameter(self, **kwargs)
     def __init__(self, _symbol, rhs, port_parameter_obj=None, **kwargs):
@@ -225,6 +223,7 @@ class EmitEventParameter(ASTExpressionObject):
         if port_parameter_obj:
             self.set_port_parameter_obj(port_parameter_obj)
         self.rhs = rhs
+
     def set_port_parameter_obj(self, p_obj):
         assert isinstance(p_obj, OutEventPortParameter)
         self.port_parameter_obj = p_obj
@@ -244,8 +243,10 @@ class OnEventStateAssignment(ASTExpressionObject):
 
     def _summarise_node_short(self):
         return '%s=' % self.lhs.symbol
+
     def _summarise_node_full(self):
         return 'StateAssignment'
+
 
 class Regime(ASTObject):
 
@@ -259,6 +260,7 @@ class Regime(ASTObject):
 
     def _summarise_node_full(self):
         return 'Name: %s' % self.ns_string()
+
     def _summarise_node_short(self):
         return 'Regime: %s' % self.ns_string()
 
@@ -266,12 +268,13 @@ class Regime(ASTObject):
         return '%s.%s' % (self.parent_rt_graph.ns_string(), self.name)
 
 
-from neurounits.units_misc import LookUpDict
+
+
+
 class RTBlock(ASTObject):
 
     def accept_visitor(self, v, **kwargs):
         return v.VisitRTGraph(self)
-
 
     def __init__(self, name=None):
         super(RTBlock, self).__init__()
@@ -308,7 +311,7 @@ class EqnTimeDerivativePerRegime(ASTObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitEqnTimeDerivativePerRegime(self, **kwargs)
 
-    def __init__(self,lhs,rhs, regime, **kwargs):
+    def __init__(self, lhs, rhs, regime, **kwargs):
         super(EqnTimeDerivativePerRegime, self).__init__()
         self.lhs = lhs
         self.rhs = rhs
@@ -320,7 +323,7 @@ class EqnAssignmentPerRegime(ASTObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitEqnAssignmentPerRegime(self, **kwargs)
 
-    def __init__(self,lhs,rhs, regime, **kwargs):
+    def __init__(self, lhs, rhs, regime, **kwargs):
         super(EqnAssignmentPerRegime, self).__init__()
         self.lhs = lhs
         self.rhs = rhs
@@ -341,8 +344,8 @@ class AnalogReducePort(ASTExpressionObject):
             self.rhses = LookUpDict(rhses)
 
 
-
 class InEventPort(ASTObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitInEventPort(self, **kwargs)
 
@@ -352,10 +355,10 @@ class InEventPort(ASTObject):
         self.parameters = parameters
         assert isinstance(self.symbol, basestring)
         assert isinstance(self.parameters, LookUpDict)
+
     @property
     def alphabetic_params(self):
         return sorted(self.parameters, key=lambda o: o.symbol)
-
 
     def _summarise_node_full(self):
         return 'Symbol: %s' % self.symbol
@@ -365,6 +368,7 @@ class InEventPort(ASTObject):
 
 
 class InEventPortParameter(ASTExpressionObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitInEventPortParameter(self, **kwargs)
 
@@ -373,10 +377,8 @@ class InEventPortParameter(ASTExpressionObject):
         self.symbol = symbol
 
 
-
-
-
 class OutEventPort(ASTObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitOutEventPort(self, **kwargs)
 
@@ -395,6 +397,7 @@ class OutEventPort(ASTObject):
 
 
 class OutEventPortParameter(ASTExpressionObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitOutEventPortParameter(self, **kwargs)
 
@@ -404,8 +407,10 @@ class OutEventPortParameter(ASTExpressionObject):
 
 
 class EventPortConnection(ASTObject):
+
     def accept_visitor(self, v, **kwargs):
         return v.VisitEventPortConnection(self, **kwargs)
+
     def __init__(self, src_port, dst_port, delay=None):
         super(EventPortConnection, self).__init__()
         self.dst_port = dst_port
@@ -413,7 +418,6 @@ class EventPortConnection(ASTObject):
         self.delay = delay
         assert isinstance(dst_port, InEventPort)
         assert isinstance(src_port, OutEventPort)
-
 
         assert len(src_port.parameters) == len(dst_port.parameters)
         if len(src_port.parameters) > 1:

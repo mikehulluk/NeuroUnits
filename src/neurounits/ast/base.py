@@ -28,6 +28,7 @@
 
 import string
 
+
 class ASTObject(object):
 
     def is_resolved(self):
@@ -42,21 +43,19 @@ class ASTObject(object):
     def set_metadata(self, md):
         self._metadata = md
 
-
     # Annotations:
     @property
     def annotations(self):
         assert self._annotations is not None
         return self._annotations
 
-
     # These should be implemented to allow nodes to be printed in different
     # situations:
     def _summarise_node_full(self):
         raise NotImplementedError()
+
     def _summarise_node_short(self, use_latex=False):
         raise NotImplementedError()
-
 
     def summarise_node_full(self):
         try:
@@ -64,6 +63,7 @@ class ASTObject(object):
             return self._summarise_node_full()
         except NotImplementedError:
             return '[??]'
+
     def summarise_node_short(self):
         try:
             return self._summarise_node_short()
@@ -72,12 +72,9 @@ class ASTObject(object):
             assert False
             return '[??]'
 
-
-
-
-
     def __str__(self):
         return unicode(self)
+
     def __repr__(self):
         return unicode(self)
 

@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 # -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
 #
@@ -40,12 +41,13 @@ def EnsureDir(l):
 
 class TestLocations(object):
 
-    _package_root_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), '../../'))
+    _package_root_dir = os.path.normpath(
+						  Join(os.path.dirname(__file__), '../../')
+						)
 
     @classmethod
     def getPackageRoot(cls):
         return cls._package_root_dir
-
 
     @classmethod
     def getEqnSetFiles(cls):
