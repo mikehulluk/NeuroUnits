@@ -93,12 +93,7 @@ def do_transition_change(tr, evt, state_data, functor_gen):
 import bisect
 from collections import defaultdict
 
-#def find_lt(a, x):
-#    'Find rightmost value less than x'
-#    i = bisect.bisect_left(a, x)
-#    if i:
-#        return a[i-1]
-#    raise ValueError
+
 
 
 
