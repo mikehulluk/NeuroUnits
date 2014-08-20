@@ -31,7 +31,7 @@ def handle_demo(args):
 
 
 def handle_coverage(args):
-    from neurounits.frontend.cmdline.nineml_fe_coverage import do_coverage
+    from .nineml_fe_coverage import do_coverage
     do_coverage(args)
 
 

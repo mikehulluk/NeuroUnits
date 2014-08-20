@@ -25,11 +25,9 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-import re
 import os
 
 import ply.yacc as yacc
-import ply
 
 
 from . import units_expr_lexer
@@ -1405,10 +1403,16 @@ def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=No
 
 
 
+def parse_eqn_block(text_eqn, **kwargs):
+    try:
+        return _parse_eqn_block(text_eqn=text_eqn, **kwargs)
+    except:
+        print 'Parsing:', text_eqn
+        raise
 
 
 
-def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
+def _parse_eqn_block(text_eqn, parse_type, debug, library_manager):
     start_symbol = ParseDetails.start_symbols[parse_type]
 
 
@@ -1417,7 +1421,6 @@ def parse_eqn_block(text_eqn, parse_type, debug, library_manager):
     parser = ParserMgr.get_parser(start_symbol=start_symbol, debug=debug)
     parser.library_manager = library_manager
 
-    print 'Parsing:', text_eqn
 
     # TODO: I think this can be removed.
     parser.src_text = text_eqn

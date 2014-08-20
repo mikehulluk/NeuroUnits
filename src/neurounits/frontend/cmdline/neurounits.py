@@ -3,15 +3,18 @@
 
 
 
-import os
+#import os
 
 
 
 
+#from neurounits.neurounitparser import NeuroUnitParser#, MQ1
+#from neurounits.nuts_io import NutsIO
 
 import argparse
-from neurounits import NeuroUnitParser, NutsIO
+#from neurounits import NeuroUnitParser, NutsIO
 from itertools import chain
+import StringIO
 
 
 def build_parser():
@@ -29,15 +32,16 @@ def build_parser():
 
 
 def validate_eqn(filename):
+    from neurounits import NeuroUnitParser, NutsIO
     print 'Validating:', filename
     f = NeuroUnitParser.File(open(filename).read())
     print '  ', f.summary()
 
 def validate_nuts(filename):
+    from neurounits import NeuroUnitParser, NutsIO
     NutsIO.validate(filename)
     print 'Validating:', filename
 
-import StringIO
 
 def extract(filenames, level,output_file):
 
