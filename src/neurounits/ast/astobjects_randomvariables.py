@@ -2,34 +2,44 @@
 
 from .astobjects import ASTExpressionObject
 from neurounits.units_misc import LookUpDict
-from neurounits.units_backends.mh import MMQuantity, MMUnit
+from neurounits.units_backends.mh import MMUnit
 
+
+class InvalidParametersError(RuntimeError):
+    pass
 
 class RandomVariable(ASTExpressionObject):
-    def __init__(self, function_name, parameters, modes):
+    def __init__(self, parameters, modes):
         super(RandomVariable, self).__init__()
 
-        self.functionname = function_name
+        self.functionname = self.Meta._name
         self.parameters = LookUpDict(parameters)
         self.modes = modes
 
         # Assume that the parameters and radnom variables are dimensionless
         self.set_dimensionality(MMUnit())
 
-    def accept_visitor(self, v, **kwargs):
+        # Check that the parameter-names match the expected names:
+        p_found = set([p.name for p in parameters])
+        p_expected = set(self.Meta.expected_parameters)
+        if p_found != p_expected:
+            raise InvalidParametersError('Bad parameters for RandomVariable: %s [Expected: %s, Found:%s]' %(self.functionname, p_expected, p_found) )
+
+    def accept_visitor(self, v, XX_mhchecked=False, **kwargs):
         return v.VisitRandomVariable(self, **kwargs)
 
 
-class RandomVariableUniform(RandomVariable):
-    def __init__(self, parameters, modes):
-        super(RandomVariable, self).__init__(parameters=parameters, modes=modes)
-        
-    def accept_RVvisitor(self, v, **kwargs):
-        return v.VisitRVUniform(self, **kwargs)
 
-            
-        
-        
+
+
+
+
+
+
+
+
+
+
 
 
 class RandomVariableParameter(ASTExpressionObject):

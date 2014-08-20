@@ -36,6 +36,8 @@ from neurounits.units_backends.mh import MHUnitBackend
 from collections import defaultdict
 #from neurounits.units_misc import DebugScope
 
+from neurounits.units_backends.mh import MMQuantity, MMUnit
+
 
 
 
@@ -103,15 +105,9 @@ class FunctorGenerator(ASTVisitorBase):
         rhs = self.visit(o.rhs)
 
         def f1(state_data, **kw):
-            # print 'Making State assingment!'
             sv_name = o.lhs.symbol
-            # print kw.keys()
             new_value = rhs(state_data=state_data, **kw)
-            # print 'Old Value',state_data.states_in[sv_name]
-            # print 'New Value',new_value
             state_data.states_out[sv_name] = new_value
-
-
         return f1
 
 
@@ -428,7 +424,6 @@ class FunctorGenerator(ASTVisitorBase):
         if not self.as_float_in_si:
 
             def eFunc(**kw):
-                from neurounits.units_backends.mh import MMQuantity
                 return MMQuantity( 0 , o.get_dimension() )
             return eFunc
         else:
@@ -519,8 +514,6 @@ class FunctorGenerator(ASTVisitorBase):
             param_functors[p] = self.visit(o.parameters[p])
         func_call_functor = self.visit(o.function_def)
         def eFunc(**kw):
-            #print 'kw', kw
-            #print o
             func_params_new = dict([(p, func( **kw)) for (p, func) in param_functors.iteritems()])
             if 'func_params' in kw:
                 del kw['func_params']
@@ -551,15 +544,51 @@ class FunctorGenerator(ASTVisitorBase):
 
     def VisitFunctionDefParameter(self, o, **kwargs):
         def eFunc(func_params,**kw):
-            #print 'Param:', kw
             if not o.symbol in func_params:
                 print "Couldn't find %s in %s" % (o.symbol, func_params.keys())
             return func_params[o.symbol]
         return eFunc
 
+
+    # Map to Numpy:
+    def VisitRVUniform(self, o, **kwargs):
+        return self._VisitRV(o, functor=np.random.uniform, arg_names=['min','max'] )
+
+    def VisitRVNormal(self, o, **kwargs):
+        return self._VisitRV(o, functor=np.random.normal, arg_names=['loc','scale'] )
+
+    def _VisitRV(self, o, functor, arg_names, **kwargs):
+        if not self.as_float_in_si:
+            def func(**kwargs):
+                args = [kwargs[a].float_in_si() for a in arg_names]
+                return MMQuantity( functor(*args), MMUnit())
+        else:
+            def func(**kwargs):
+                args = [kwargs[a] for a in arg_names]
+                return float(functor(*args) )
+        return func
+
+
+
+    def VisitRandomVariable(self, o, **kwargs):
+        # Param Functors:
+        param_functors = {}
+        for p in o.parameters:
+            param_functors[p] = self.visit(p.rhs_ast)
+        func_call_functor = o.accept_RVvisitor(self)
+        def eFunc(**kw):
+            func_params_new = dict([(p.name, func( **kw)) for (p, func) in param_functors.iteritems()])
+            if 'func_params' in kw:
+                del kw['func_params']
+            res = func_call_functor(**func_params_new)
+            return res
+
+        return eFunc
+
+
+
+
     def VisitEmitEvent(self, o, **kwargs):
-
-
         param_evals = {}
         for param in o.parameters:
             param_evals[param] = self.visit(param.rhs)

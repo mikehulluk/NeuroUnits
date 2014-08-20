@@ -861,54 +861,24 @@ def p_rhs_term4(p):
 # ==========================
 def p_rv_expr(p):
     """ rhs_term : random_variable """
-    
-    print  "ERROR! THE RANDOM NODE IS NOT REALLY GENERATING RANDOM NUMBERS!!"
-    assert False
-    
-    backend = p.parser.library_manager.backend
-    p[0] = ast.RandomVariable(
-            function_name='uniform',
-            parameters = [
-                ast.RandomVariableParameter(name='min',rhs_ast= ast.ConstValue( value=backend.Quantity(0.8, backend.Unit()) ) ),
-                ast.RandomVariableParameter(name='max',rhs_ast= ast.ConstValue( value=backend.Quantity(1.2, backend.Unit()) ) ),
-                ],
-            modes = {
-                'when':'SIM_INIT', 'share':'PER_NEURON'
-                }
-            )
+    p[0] = p[1]
 
 
-#def p_rv_expr1(p):
-#    """ random_variable : TILDE ALPHATOKEN LBRACKET rv_params RBRACKET LSQUAREBRACKET rv_modes RSQUAREBRACKET"""
-#
-#    print 'Parsed RANDOM NODE'
-#    p[0] = ast.RandomVariable(
-#            function_name=p[2],
-#            parameters = p[4],
-#            modes = dict(p[7])
-#            )
 
-from neurounits.ast.ast_randomvariables import RandomVariableUniform
-
+from neurounits.ast import RandomVariable
 def p_rv_expr1(p):
     """ random_variable : TILDE ALPHATOKEN LBRACKET rv_params RBRACKET LSQUAREBRACKET rv_modes RSQUAREBRACKET"""
     function_name=p[2]
     parameters = p[4]
     modes = dict(p[7])
 
-    rndfunc = {
-            'uniform': RandomVariableUniform,
+    rndfuncdict = dict([(cls.Meta._name, cls) for cls in RandomVariable.__subclasses__()])
+    rndfunc = rndfuncdict[function_name]
 
-            }[function_name] 
-    rndfunc( parameters = parameters, modes=modes)
+    p[0] = rndfunc( parameters = parameters, modes=modes)
 
 
-    #print 'Parsed RANDOM NODE'
-    #p[0] = ast.RandomVariable(
-    #        function_name=p[2],
-    #        parameters = p[4],
-    #        modes = dict(p[7])
-    #        )
+
 
 
 
