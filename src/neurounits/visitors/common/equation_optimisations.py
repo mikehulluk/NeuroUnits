@@ -145,14 +145,13 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
 
     def ActionOnTransitionEvent(self, o, **kwargs):
         pass # TODO: Optimisiations possible
-        #assert False
 
     def ActionOnEventDefParameter(self, o, **kwargs):
         self.const_value[o] = None
-        #assert False
+        
 
     def ActionEmitEvent(self, o, **kwargs):
-        pass #assert False
+        pass 
 
 
     def ActionOnEvent(self, o, **kwargs):
@@ -319,10 +318,8 @@ class ReplaceWithOptimisedNodes(ASTVisitorBase):
 
     def VisitNineMLComponent(self, o):
         for td in o.timederivatives:
-            #print 'Searching in: ', td.lhs
             td.rhs_map = self.replace_or_visit(td.rhs_map)
         for ass in o.assignments:
-            #print 'Searching in: ', ass.lhs
             ass.rhs_map = self.replace_or_visit(ass.rhs_map)
 
         o._time_node = self.replace_or_visit(o._time_node)
@@ -370,7 +367,6 @@ class ReplaceWithOptimisedNodes(ASTVisitorBase):
             self.visit(p)
 
     def VisitFunctionDefInstantiationParameter(self, o):
-        #print 'Checking Param' print o.rhs_ast
         o.rhs_ast = self.replace_or_visit(o.rhs_ast)
 
 

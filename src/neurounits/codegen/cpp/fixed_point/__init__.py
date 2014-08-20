@@ -27,8 +27,6 @@
 # -------------------------------------------------------------------------------
 
 
-
-#from .fixed_point_component_writer import CBasedEqnWriterFixedComponent
 from .fixed_point_network_writer import CBasedEqnWriterFixedNetwork, NumberFormat
 from .fixed_point_network_writer import NIOSOptions
-#from .float_comparison import CBasedEqnWriterFloat
+

@@ -34,7 +34,7 @@ import numpy as np
 from neurounits import ast
 from neurounits.units_backends.mh import MHUnitBackend
 from collections import defaultdict
-#from neurounits.units_misc import DebugScope
+
 
 from neurounits.units_backends.mh import MMQuantity, MMUnit
 
@@ -47,10 +47,8 @@ from neurounits.units_backends.mh import MMQuantity, MMUnit
 def with_number_check(func, src_obj):
     return func
 
-
     def my_func(*args, **kwargs):
-        #print 'Evaluating Node', src_obj
-        #with DebugScope(''):
+
         res = func(*args, **kwargs)
         print 'Value of node:', repr(src_obj), res
         return res
@@ -155,13 +153,11 @@ class FunctorGenerator(ASTVisitorBase):
         self.assignment_evaluators[o.lhs.symbol] = self.visit(o.rhs_map)
 
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
-        #with DebugScope('VisitTimeDerivativeByRegime (%s)' % o.lhs.symbol):
         self.timederivative_evaluators[o.lhs.symbol] = self.visit(o.rhs_map)
 
 
 
     def VisitRegimeDispatchMap(self,o,**kwargs):
-
 
         rt_graph = o.get_rt_graph()
 
@@ -175,13 +171,9 @@ class FunctorGenerator(ASTVisitorBase):
             pass
 
 
-
-
-
         def f3(state_data, **kw):
             regime_states = state_data.rt_regimes
-            #print 'Getting regime_state for RT graph:', repr(rt_graph)
-
+            
             curr_state = regime_states[rt_graph]
             if curr_state in rhs_functors:
                 rhs_functor = rhs_functors[curr_state]
@@ -192,8 +184,7 @@ class FunctorGenerator(ASTVisitorBase):
 
         return f3
 
-        assert len(o.rhs_map) == 1
-        return self.visit(o.rhs_map.values()[0])
+
 
     def VisitIfThenElse(self, o, **kwargs):
         fpred = self.visit(o.predicate)
@@ -243,43 +234,6 @@ class FunctorGenerator(ASTVisitorBase):
 
     def VisitFunctionDefBuiltIn(self, o, **kwargs):
         return o.accept_func_visitor(self, **kwargs)
-
-        #if not self.as_float_in_si:
-
-        #    def eFunc(state_data, func_params, **kw):
-        #        if o.funcname == '__abs__':
-        #            ParsingBackend = MHUnitBackend
-        #            assert len(func_params) == 1
-        #            return ParsingBackend.Quantity( float( np.abs( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
-        #        #if o.funcname == '__exp__':
-        #        #    ParsingBackend = MHUnitBackend
-        #        #    assert len(func_params) == 1
-        #        #    return ParsingBackend.Quantity( float( np.exp( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
-        #        #if o.funcname == '__sin__':
-        #        #    assert len(func_params) == 1
-        #        #    ParsingBackend = MHUnitBackend
-        #        #    return ParsingBackend.Quantity( float( np.sin( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
-        #        if o.funcname == '__pow__':
-        #            assert len(func_params) == 2
-        #            ParsingBackend = MHUnitBackend
-        #            return ParsingBackend.Quantity( float( np.power( ( func_params['base'] ).dimensionless() ,( func_params['exp'] ).dimensionless() )  ), ParsingBackend.Unit() )
-        #        else:
-        #            assert False, "Sim can't handle function: %s" % o.funcname
-        #else:
-        #    def eFunc(state_data, func_params, **kw):
-        #        #if o.funcname == '__exp__':
-        #        #    assert len(func_params) == 1
-        #        #    return float(np.exp(func_params.values()[0]))
-        #        #if o.funcname == '__sin__':
-        #        #    assert len(kw) == 1
-        #        #    return float(np.sin(kw.values()[0]))
-        #        if o.funcname == '__pow__':
-        #            assert len(kw) == 2
-        #            return float(np.power(kw['base'], kw['exp']))
-        #        else:
-        #            assert False
-
-        #return eFunc
 
 
 
@@ -401,7 +355,7 @@ class FunctorGenerator(ASTVisitorBase):
 
     def VisitParameter(self, o, **kwargs):
         def eFunc(state_data,**kw):
-            #v = kw[o.symbol]
+            
             v= state_data.parameters[o.symbol]
             assert o.get_dimension().is_compatible(v.get_units()), 'Param Units Err: %s [Expected:%s Found:%s]'%(o.symbol, o.get_dimension(), v.get_units())
             return v
@@ -416,18 +370,15 @@ class FunctorGenerator(ASTVisitorBase):
             return eFunc
         else:
             def eFunc(**kw):
-                #print 'Getting value of constant', o.value
                 return o.value.float_in_si()
             return eFunc
 
     def VisitConstantZero(self, o, **kwargs):
         if not self.as_float_in_si:
-
             def eFunc(**kw):
                 return MMQuantity( 0 , o.get_dimension() )
             return eFunc
         else:
-            #assert False,'TODO: Need to multiply next lines by unit...'
             def eFunc(**kw):
                 return 0
             return eFunc
@@ -450,13 +401,10 @@ class FunctorGenerator(ASTVisitorBase):
     def VisitAssignedVariable(self, o, **kwargs):
         # We are at an assignment. We resolve this by looking up the
         # Right hand side of the assigned variable:
-        #print self.assignment_evaluators.keys()
-        #print 'Assigned Var:', o, o.symbol
         if self.fully_calculate_assignments:
             assignment_rhs = self.assignment_evaluators[o.symbol]
             def eFunc(**kw):
                 res = assignment_rhs(**kw)
-                #print 'Value of: %s is %s' %( o.symbol, res)
                 return res
             return with_number_check(eFunc, o)
 

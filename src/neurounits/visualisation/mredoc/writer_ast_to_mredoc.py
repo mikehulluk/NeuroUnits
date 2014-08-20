@@ -31,7 +31,6 @@ from neurounits.visitors import ASTVisitorBase
 from neurounits.ast.astobjects import SuppliedValue
 from neurounits.ast.astobjects import Parameter, StateVariable, TimeVariable
 from neurounits.ast import AnalogReducePort
-#from neurounits.writers.writer_ast_to_simulatable_object import FunctorGenerator
 
 import quantities as pq
 import numpy as np
@@ -140,7 +139,7 @@ class LatexEqnWriterN(ASTVisitorBase):
         ev_name = o.symbol.replace('_', '\\_')
 
         tr = '%s(%s) \\rightarrow ' % (ev_name,
-                ','.join(o.parameters.keys()))  #
+                ','.join(o.parameters.keys()))
         evts = '\\begin{cases}' + '\\\\'.join([self.visit(a) for a in
                 o.actions]) + '\\end{cases}'
         return Equation(tr + evts)
@@ -298,7 +297,7 @@ def build_figures(component):
 
             try:
                 vVals = [-80, -70, -60, -40, -20, 0, 20, 40]
-                vVals = np.linspace(-80, 50, 22) #* pq.milli * pq.volt
+                vVals = np.linspace(-80, 50, 22) 
                 oUnit = None
                 fOut = []
                 for v in vVals:
@@ -410,7 +409,7 @@ class MRedocWriterVisitor(ASTVisitorBase):
                                 % FormatDimensionality(o.get_dimension()) if not o.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False) else '-'
                                 )
 
-        f = LatexEqnWriterN()  # FormatTerminalSymbol(self, symbol):
+        f = LatexEqnWriterN()  
         symbol_format = lambda s: f.FormatTerminalSymbol(s)
 
         dep_string_indir = lambda s: ','.join([symbol_format(o.symbol)

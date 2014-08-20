@@ -75,7 +75,7 @@ class CCompiler(object):
                            src_files=None,
                            compilation_settings = None,
                            run=False,
-                           intermediate_filename=None, #'/tmp/nu/compilation/compile1.cpp',
+                           intermediate_filename=None,
                            output_filename = None,
                            compiler=None
                         ):

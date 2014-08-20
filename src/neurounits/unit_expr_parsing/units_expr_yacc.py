@@ -26,6 +26,8 @@
 # -------------------------------------------------------------------------------
 
 import re
+import os
+
 import ply.yacc as yacc
 import ply
 
@@ -36,13 +38,10 @@ from neurounits.units_misc import safe_dict_merge, EnsureExisits
 from neurounits.librarymanager import LibraryManager
 
 import neurounits.ast as ast
-
 from neurounits.errors import NeuroUnitParsingErrorEOF
 from neurounits.errors import NeuroUnitParsingErrorUnexpectedToken
 
-#from neurounits.unit_data.units_data_unitterms import UnitTermData
 
-import os
 
 from neurounits.units_misc import LookUpDict
 
@@ -115,7 +114,6 @@ def p_unitsdefinition3(p):
     equivalent_dim = p[7]
     # Fairly major initial limitations:
     assert mag == 1.0
-    #assert equivalent_dim.float_in_si() == 1.0
     p.parser.library_manager.add_unit_def(longforms=longnames, shortforms = shortnames, equivalent_dim = equivalent_dim)
 
 def p_unitsdefinition3b(p):

@@ -37,24 +37,10 @@ class RemoveUnusedRT(object):
         if not isinstance(component, ast.NineMLComponent):
             return 
 
-
-        ## Lets look at each RT graph:
-        #for rt_graph in component.rt_graphs:
-        #    print rt_graph
-
-        #    for regime in rt_graph.regimes:
-        #        print '  - ', regime 
-        #        print '    ', regime.name
-
-        #    print
-
-
         # Lets look for any RT-graphs with a single Regime:
         for rt_graph in component.rt_graphs:
-            #print rt_graph
             if len(rt_graph.regimes) == 1:
                 assert list(rt_graph.regimes)[0].name == None, 'This might not nessesarily be true...'
-                #print 'Contender for removal'
 
                 # Does the assignment do lookups, based on this rt-graph?
                 for ass in component.assignments + component.timederivatives:
@@ -67,8 +53,5 @@ class RemoveUnusedRT(object):
                                 dstObj = direct_target,
                                 root=component
                                 )
-
-                        
-                    print ass
 
 

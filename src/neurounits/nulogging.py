@@ -28,7 +28,6 @@
 
 
 import logging
-#print logging
 log_neurounits = logging.getLogger('neurounits')
 
 #h = logging.StreamHandler()

@@ -115,8 +115,8 @@ def test4():
 
 
 
-    #general_neuron = library_manager.get('general_neuron')
-    #general_neuron.summarise()
+    
+    
 
     general_neuron_with_step_inj = library_manager.get('general_neuron_with_step_inj')
 
@@ -133,11 +133,11 @@ def main():
     warnings.simplefilter('error', UserWarning)
     warnings.simplefilter('error', Warning)
 
-    #level='WARNING'
-    #from logbook import FileHandler, StreamHandler
+    
+    
 
-    #log_handler1 = FileHandler('application.log')
-    #log_handler1.push_application()
+    
+    
 
     test4()
     pylab.show()

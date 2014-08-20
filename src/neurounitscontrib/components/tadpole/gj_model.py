@@ -78,7 +78,6 @@ def get_gj():
     comp.annotate_ast( NodeRangeByOptimiser(var_annots_ranges))
     RangeExpander().visit(comp)
 
-    #comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
     comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 
     from neurounits.ast_annotations.common import NodeTagger

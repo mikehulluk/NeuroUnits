@@ -1,12 +1,5 @@
 
 
-
-
-
-#class AnnotatorTypes(object):
-    
-
-
 class AnnotatorLibrary(object):
 
     _annotator_functors = {}

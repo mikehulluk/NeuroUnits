@@ -49,9 +49,6 @@ class Population(object):
             print 'Given:', given_params
             assert False
 
-        #from neurounits.ast import ConstValue
-        #from neurounits.ast_annotations import NodeFixedPointFormatAnnotator
-
         # Remap all the parameters to nodes, and copy accross range/fixed-point information from the component:
         self.parameters = { k: NeuroUnitParser._string_to_expr_node(v) for (k,v) in parameters.items() }
         for k,v in self.parameters.items():
@@ -172,7 +169,7 @@ class EventPortConnector(object):
         self.delay_int = NodeFixedPointFormatAnnotator.encode_value_cls(self.delay, self.delay_upscale, nbits=24)
 
         self.parameter_map = parameter_map
-        # Some error checking
+        
 
 
 
@@ -260,7 +257,6 @@ class AnalogPortConnector(object):
 
         # Store the remaining variables:
         self.connector = connector
-        #self.connection_properties = connection_properties
         
         self.connection_properties = { k: NeuroUnitParser._string_to_expr_node(v) for (k,v) in connection_properties.items() }
         for k,v in self.connection_properties.items():

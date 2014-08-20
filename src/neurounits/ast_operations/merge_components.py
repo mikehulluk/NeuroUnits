@@ -26,6 +26,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
+import itertools
 
 import neurounits.ast as ast
 
@@ -54,9 +55,6 @@ def _is_node_analog(n):
 
 
 def build_compound_component(component_name, instantiate,  analog_connections=None, event_connections=None,  renames=None, connections=None, prefix='/', auto_remap_time=True, merge_nodes=None, interfaces_in=None, multiconnections=None, set_parameters=None):
-    #print 'Building Compund Componet:', component_name
-
-
 
     lib_mgrs = list(set( [comp.library_manager for comp in instantiate.values()]) )
 
@@ -66,7 +64,6 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
 
     # 1. Lets cloning all the subcomponents:
     instantiate = dict([(name, component.clone()) for (name, component) in instantiate.items()])
-
 
     symbols_not_to_rename = []
     if auto_remap_time:
@@ -94,7 +91,6 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
             rt_graph.name = ns_prefix + (rt_graph.name if rt_graph.name else '')
 
         #Event Ports:
-        import itertools
         for port in itertools.chain( component.output_event_port_lut,  component.input_event_port_lut):
             port.symbol = ns_prefix + port.symbol
 
@@ -117,10 +113,9 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
     builddata.symbolicconstants = []
 
     for c in instantiate.values():
-        #print 'merging component:', repr(c)
         for td in c.timederivatives:
-            #print 'Merging in ', repr(td)
             builddata.timederivatives.append( td )
+
         for ass in c.assignments:
             builddata.assignments.append(ass)
 
@@ -171,7 +166,6 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
             io1_name, io2_name = m
             conn1 = comp._interface_connectors.get_single_obj_by(symbol=io1_name)
             conn2 = comp._interface_connectors.get_single_obj_by(symbol=io2_name)
-            #print 'Connecting connectors:,', conn1, conn2
 
             # sort out the direction:
             if  (conn1.get_direction()=='in' and conn2.get_direction()=='out'):
@@ -317,12 +311,10 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
     #8. Set parameters:
     if set_parameters:
         for lhs, rhs in set_parameters:
-            #print 'Set', lhs, rhs
             old_node = comp._parameters_lut.get_single_obj_by(symbol=lhs)
             assert isinstance(rhs, ast.ASTExpressionObject)
 
-            new_node = rhs #ast.ConstValue(value=rhs)
-
+            new_node = rhs
             ReplaceNode.replace_and_check( srcObj=old_node, dstObj=new_node, root=comp)
 
 

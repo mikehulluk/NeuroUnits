@@ -15,7 +15,7 @@ def do_coverage(args):
     
     
     do_test(None)
-    #do_demo(None)
+    do_demo(None)
     
     
     cov.stop()

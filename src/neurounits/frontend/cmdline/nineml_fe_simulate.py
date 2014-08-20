@@ -3,8 +3,8 @@ import os
 import sys
 import glob
 
-#from neurounits.nineml import build_compound_component, auto_plot
-#from neurounits.nineml import simulate_component
+
+
 
 import numpy as np
 import pylab

@@ -131,8 +131,6 @@ class UnitTermParser(object):
 
 
     def add_unitprefix_def(self, longforms, shortforms, pot):
-        #thevars = (longforms, shortforms, pot)
-        #print 'Adding new unit definition:', thevars
 
         for l in longforms:
             assert not l in self._long_power_of_ten_prefixes

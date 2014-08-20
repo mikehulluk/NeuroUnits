@@ -60,9 +60,6 @@ class _CloneFuncDef(ASTVisitorBase):
     def __init__(self):
         self.func_param_map = {}
 
-    #def VisitEqnSet(self, o, **kwargs):
-    #    panic()
-
     def VisitOnEvent(self, o, **kwargs):
         panic()
 
@@ -90,7 +87,7 @@ class _CloneFuncDef(ASTVisitorBase):
     def VisitFunctionDefUser(self, o, **kwargs):
         params = {}
         for pName,pObj in o.parameters.iteritems():
-             p = ast.FunctionDefParameter(symbol=pObj.symbol, dimension = pObj.get_dimension() ) #unitMH=pObj._unitMH)
+             p = ast.FunctionDefParameter(symbol=pObj.symbol, dimension = pObj.get_dimension() ) 
              params[pName] = p
              self.func_param_map[pObj] = p
         fDef = ast.FunctionDefUser(funcname=o.funcname, parameters=params, rhs=self.visit(o.rhs))

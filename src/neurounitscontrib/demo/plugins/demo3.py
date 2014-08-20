@@ -34,8 +34,7 @@ import numpy as np
 import itertools
 
 import pylab
-#from neurounits.nineml import build_compound_component
-#from neurounits.nineml import simulate_component, auto_plot
+
 
 
 
@@ -312,22 +311,22 @@ def test3():
 
     c.summarise()
 
-    #assert False
+    
 
 
     parameters = {
-            'synin/psm/t_close':'80ms',      #(<MMUnit: (10e0) s 1>)',
-            'nrn/i_square2/i_amp':'5pA',    #(<MMUnit: (10e0) A 1>)', 
-            'nrn/nrn/C':'0.5pF',               #(<MMUnit: (10e0) m -2 kg -1 s 4 A 2>)',
-            'synin/psm/e_syn':'0mV',        #(<MMUnit: (10e0) m 2 kg 1 s -3 A -1>)',
-            'nrn/lk/g':'0.1pS/um2',               #(<MMUnit: (10e0) m -4 kg -1 s 3 A 2>)', 
-            'synin/psm/t_open':'4ms',       #(<MMUnit: (10e0) s 1>)',
-            'nrn/i_square1/i_amp':'5pA',    #(<MMUnit: (10e0) A 1>)',
-            'nrn/i_inj/i_amp':'5pA',        #(<MMUnit: (10e0) A 1>)', 
-            'nrn/t_in':'300ms',               #(<MMUnit: (10e0) s 1>)', 
-            'nrn/lk/erev':'-60mV',            #(<MMUnit: (10e0) m 2 kg 1 s -3 A -1>)',
-            'nrn/i_inj/t_start':'5ms',      #(<MMUnit: (10e0) s 1>)',
-            'synin/psm/g_bar':'100pS',        #(<MMUnit: (10e0) m -2 kg -1 s 3 A 2>)'
+            'synin/psm/t_close':'80ms',      
+            'nrn/i_square2/i_amp':'5pA',    
+            'nrn/nrn/C':'0.5pF',               
+            'synin/psm/e_syn':'0mV',        
+            'nrn/lk/g':'0.1pS/um2',               
+            'synin/psm/t_open':'4ms',       
+            'nrn/i_square1/i_amp':'5pA',    
+            'nrn/i_inj/i_amp':'5pA',        
+            'nrn/t_in':'300ms',               
+            'nrn/lk/erev':'-60mV',            
+            'nrn/i_inj/t_start':'5ms',      
+            'synin/psm/g_bar':'100pS',        
                }
                
     initial_states = {

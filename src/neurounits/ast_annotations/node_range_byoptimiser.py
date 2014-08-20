@@ -458,15 +458,8 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
                                                             )
 
             inputdata = cffi_top.new('InputData*')
-
-
-
-
-            #depnames = [depname_map[dep] for dep in deps]
-            #print deps
+                        
             depnames = [dep.annotations['_range-finding-c-var-name'] for dep in deps]
-            #ass_var_fun_name = node_evaluator_c_code.node_code[node][0]
-            #print node
             ass_var_fun_name = node.annotations['_range-finding-c-func-name']
             func = getattr(cffi_code_obj, ass_var_fun_name)
 
@@ -512,7 +505,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
             for i in range(n_trials):
 
 
-                #x0 = (lower_bounds+upper_bounds) * 0.5
+                
 
                 x0 = [ random.choice(s) for s in samples]
 
@@ -532,8 +525,8 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
 
 
 
-            #func_min = #eval_func_min( res_min)
-            #func_max = eval_func_min( res_max)
+            
+            
             int(res_min)
             int(res_max)
 
@@ -555,7 +548,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
                 lookup_name = "%s::%s" % (tr.port.symbol, p.symbol)
                 ann_in = self.var_annots_ranges[lookup_name]
                 p.annotations['node-value-range'] = _NodeRangeFloat(min_=ann_in.min.float_in_si(), max_=ann_in.max.float_in_si() )
-                #print 'Setting event transition node-range', p, tr
+                
 
         # ... which allows us to work out the mins and maxs for the event port:
         for in_evt_port in component.input_event_port_lut:
@@ -632,7 +625,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
         ffi = FFI()
 
         ffi.cdef(input_ds)
-        #ffi.cdef("InputData* create_data(void);")
+        
         for func_proto in func_prototypes:
             ffi.cdef(func_proto)
 
@@ -642,7 +635,6 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
         C = ffi.verify(code)
         print 'OK'
 
-        #print '\n\n\n'
         # 2. Evaluate for each node:
 
 
@@ -650,10 +642,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
 
         # Find the critical points of the equations:
         critical_points = CriticalPointFinder(component).critical_points
-        #print 'Critical Points:'
-        #for cp, values in critical_points.items():
-        #    print cp.symbol, values
-
+        
 
         print 'Evaluating all nodes in AST tree to find limits:'
 
@@ -673,22 +662,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
         print 'Internal nodes:',
         ranges_nodes = [n for n in component.all_ast_nodes() if isinstance(n, required_nodes_types) ]
         for node in ranges_nodes:
-            #print 'Evaluating: ', node
+            
             func_min,func_max = NodeRangeByOptimiser.find_minmax_for_node(node=node, component=component, cffi_top=ffi, cffi_code_obj=C,critical_points=critical_points)
             node.annotations['node-value-range'] = _NodeRangeFloat(min_=func_min, max_=func_max)
-
-
-
-
-
-
-
-
-        #print
-        #print 'Limits found'
-        #print '------------'
-        #for ass_var in component.assignedvalues:
-        #    print ass_var.symbol, ass_var.annotations['node-value-range']
-        #for node in ranges_nodes:
-        #    print node, node.annotations['node-value-range']
 

@@ -60,9 +60,7 @@ class RangeExpander(ASTActionerDefault):
             min_=min_,
             max_=max_
         )
-        #print o, o.annotations
-        #print 'Min:',  o.annotations['node-value-range'].min
-        #print 'Max:',  o.annotations['node-value-range'].max
+        
         assert (o.annotations['node-value-range'].min < o.annotations['node-value-range'].max) or ( o.annotations['node-value-range'].min == o.annotations['node-value-range'].max == 0)
 
 

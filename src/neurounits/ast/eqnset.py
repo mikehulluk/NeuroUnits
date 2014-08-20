@@ -33,7 +33,7 @@ from neurounits.ast.astobjects_nineml import AnalogReducePort
 from neurounits.ast.astobjects_nineml import Regime
 
 
-#from neurounits.io_types import IOType
+
 from neurounits.units_misc import LookUpDict
 
 import itertools
@@ -197,7 +197,6 @@ class NineMLComponent(Block):
         assert set(ordered_assignments) == set(self.assignments)
         return ordered_assignments
 
-    # OK:
     @property
     def assignments(self):
         return sorted(list(iter(self._eqn_assignment)), key=lambda o: o.lhs.symbol)
@@ -710,8 +709,6 @@ class NineMLComponent(Block):
             else:
                 new_node = old_node
 
-
-            #print old_node, '-->', new_node
             assert type(old_node) == type(new_node)
             old_to_new_dict[old_node] = new_node
 
@@ -724,15 +721,10 @@ class NineMLComponent(Block):
             assert isinstance(o, no_remap)
 
         # Now, lets visit each of the new nodes, and replace (old->new) on it:
-        #print
-        #print 'Replacing Nodes:'
-
+        
         # Build the mapping dictionary:
         mapping_dict = {}
         for old_repl, new_repl in old_to_new_dict.items():
-            #if new_repl == new_node:
-            #    continue
-            #print ' -- Replacing:',old_repl, new_repl
 
             if isinstance(old_repl, no_remap):
                 continue
@@ -741,7 +733,6 @@ class NineMLComponent(Block):
 
         # Remap all the nodes:
         for new_node in old_to_new_dict.values():
-            #print 'Replacing nodes on:', new_node
 
             node_mapping_dict = mapping_dict.copy()
             if new_node in node_mapping_dict:

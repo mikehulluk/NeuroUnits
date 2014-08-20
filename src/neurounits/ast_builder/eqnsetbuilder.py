@@ -108,8 +108,6 @@ class Scope(object):
         self.symbol_dict[symbol] = value
 
     def get_proxy_targetname(self, symproxy):
-        #print 'Finding:', symproxy, symproxy.target
-        #print self.symbol_dict
         posses = [ (k,v) for (k,v) in self.symbol_dict.items() if v==symproxy]
         assert len(posses) == 1
         return posses[0][0]
@@ -127,7 +125,6 @@ class BuildData(object):
         self.io_data_lines = []
 
         self.transitions_conditiontriggers = []
-        #self.transitions_crossestriggers = []
         self.transitions_events = []
 
         self.timederivatives = None
@@ -401,13 +398,6 @@ class AbstractBlockBuilder(object):
 
 
     def close_scope_and_create_transition_conditiontrigger(self, trigger, actions, target_regime):
-        ##assert self.active_scope is not None
-        #scope = self.active_scope
-        ##self.active_scope = None
-
-        ## Resolve all symbols from the global namespace:
-        #for (sym, obj) in scope.iteritems():
-        #    obj.set_target(self.global_scope.getSymbolOrProxy(sym))
 
         src_regime = self.get_current_regime()
         if target_regime is None:
@@ -511,11 +501,11 @@ class AbstractBlockBuilder(object):
 
 
 
-        ## Resolve the Assignments into a single object:
+        # Resolve the Assignments into a single object:
         assignments = SingleSetDict()
         maps_asses = defaultdict(SingleSetDict)
         for reg_ass in self.builddata._assigments_per_regime:
-            #print 'Processing:', reg_ass.lhs
+            
             maps_asses[reg_ass.lhs][reg_ass.regime] = reg_ass.rhs
 
         for (ass_var, tds) in maps_asses.items():
@@ -543,14 +533,14 @@ class AbstractBlockBuilder(object):
             if not symbol.startswith('std.'):
                 continue
             (lib, token) = symbol.rsplit('.', 1)
-            #print 'Automatically importing: %s' % symbol
+            
             self.do_import(srclibrary=lib, tokens=[(token, symbol)])
 
 
 
 
-        ## Finish off resolving StateVariables:
-        ## They might be defined on the left hand side on StateAssignments in transitions,
+        # Finish off resolving StateVariables:
+        # They might be defined on the left hand side on StateAssignments in transitions,
         def ensure_state_variable(symbol):
 
             sv = ast.StateVariable(symbol=symbol)
@@ -564,8 +554,6 @@ class AbstractBlockBuilder(object):
                     )
             self.builddata.timederivatives.append(td)
 
-
-            #assert False
 
         # Ok, so if we have state variables with no explcity state time derivatives, then
         # lets create them:
@@ -678,10 +666,6 @@ class AbstractBlockBuilder(object):
         # Lets build the Block Object!
         # ################################
 
-
-
-
-
         self._astobject = self.block_type(
                     library_manager=self.library_manager,
                     builder=self,
@@ -701,8 +685,6 @@ class AbstractBlockBuilder(object):
         for multiport in self._interface_data:
             local_name, porttype, direction, wire_mapping_txts = multiport
             self._astobject.build_interface_connector(local_name=local_name, porttype=porttype, direction=direction, wire_mapping_txts=wire_mapping_txts)
-            #print conn
-            #assert False
 
 
 
@@ -720,7 +702,7 @@ class AbstractBlockBuilder(object):
 
         # 2. Setup the meta-data in each node from IO lines
         for io_data in io_data:
-            #print io_data.iotype
+            
             allow_missing = ( io_data.iotype==IOType.Input and options.allow_unused_suppliedvalue_declarations ) or \
                             ( io_data.iotype==IOType.Parameter and options.allow_unused_parameter_declarations )
 
@@ -738,18 +720,7 @@ class AbstractBlockBuilder(object):
         # 4. Reduce simple assignments to symbolic constants:
         ReduceConstants().visit(ast_object)
 
-
-        # 5. Add the annotation infrastructure:
-        #from neurounits.ast_annotations import ASTTreeAnnotationManager, ASTNodeAnnotationData
-        #ast_object.annotation_mgr = ASTTreeAnnotationManager()
-        #print 'Finalising library:', ast_object
-        #for node in set(ast_object.all_ast_nodes() ):
-        #    print 'Adding annotation to node', node
-        #    if node._annotations is None:
-        #        print ' ** Actually doing it!', node
-        #        node.annotations = ASTNodeAnnotationData(mgr=ast_object.annotation_mgr, node=node)
-
-        # 6. Remove unnessesary regime transition-grpahs
+        # 5. Remove unnessesary regime transition-grpahs
         RemoveUnusedRT().visit(ast_object)
 
 
@@ -758,7 +729,8 @@ class AbstractBlockBuilder(object):
 class EqnSetBuilder(AbstractBlockBuilder):
 
     def __init__(self, library_manager, name, block_type=ast.NineMLComponent):
-        AbstractBlockBuilder.__init__(self,block_type=block_type, library_manager=library_manager,name=name)
+		assert False        
+		AbstractBlockBuilder.__init__(self,block_type=block_type, library_manager=library_manager,name=name)
 
     def add_io_data(self, l):
         self.builddata.io_data_lines.append(l)

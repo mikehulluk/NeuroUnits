@@ -110,7 +110,7 @@ class ChannelML_GateEqn(object):
 
             return self.expr
 
-        scale = '{%f}' % float(self.scale)  # self.getSubString('scale')
+        scale = '{%f}' % float(self.scale)  
         rate = self.getSubString('rate')
         midpoint = self.getSubString('midpoint')
 
@@ -267,8 +267,8 @@ class ChannelMLInfo(object):
         self.gates = []
         self.units = units
 
-        # self.iv_conc_dep_name = None
-        # self.iv_conc_dep_ion = None
+        
+        
 
         self.unsupported_tags = None
 

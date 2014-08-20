@@ -5,17 +5,14 @@ import hashlib
 import pickle
 import trace
 
-#class TraceInfo():
-#
-#    def has_changed(self):
-#        return True
 
 
-def f2(a):
-    return a*a
-def my_func():
-    print 'Hello'
-    f2(3)
+
+#def f2(a):
+#    return a*a
+#def my_func():
+#    print 'Hello'
+#    f2(3)
 
 
 
@@ -164,9 +161,7 @@ class ComponentLibrary(object):
             if filename == '<string>':
                 print 'Unexpected filename=<string> found. Lines: (%s)' % ','.join(str(l) for l in linenumbers)
                 continue
-                #assert False
-                #assert False
-            #else:
+ 
             cd = _CachedFileAccessData(filename=filename, linenumbers=linenumbers)
             cache_data.append(cd)
 

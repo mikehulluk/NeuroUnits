@@ -233,9 +233,9 @@ class ActionerPlotNetworkX(object):
             plt.figure()
         nx.draw_graphviz(graph, font_size=8, iteration=200, node_color=colors, penwidth=0.001, scale=1, labels=label_dict )
 
-        #ax = plt.gca()
+        
 
-        #plt.show()
+        
 
 
 

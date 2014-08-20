@@ -171,10 +171,9 @@ def _build_gate_alphabetainftau(g, q10tempadjustmentName, neuroml_dt):
 
         # Set the initial value of the state-variable to be the same
         # as the steady-state value:
-        #initial_cond = "<=> INITIAL %s:%s" % (state_name,term_name_inf)
-
+        
         return [ e1,e2,tc_eqn,ss_eqn, state_eqn], [(state_name,term_name_inf), ]
-        #initial_cond]
+        
 
 
 

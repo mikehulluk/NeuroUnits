@@ -23,9 +23,6 @@ import neurounitscontrib.components.tadpole
 
 
 
-
-#import components
-
 def _build_sim(number_format, inj_current):
     HH_comp = neurounits.ComponentLibrary.instantiate_component('HH')
     network = Network()
@@ -71,7 +68,7 @@ number_formats = [
 results = [ build_sim(number_format=number_format,inj_current=inj_current) for (number_format,inj_current) in number_formats ]
 for r in results:
     assert r
-#results = [r for r in results if r is not None]
+
 results = hdfjive.HDF5SimulationResultFileSet(results)
 
 

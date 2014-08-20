@@ -43,9 +43,8 @@ class ReduceConstants(ASTVisitorBase):
         for assignment in o.ordered_assignments_by_dependancies:
             fixed_value = self.visit(assignment.rhs_map)
 
-            #print 'Is fixed? :', assignment.lhs.symbol, fixed_value
+            
             if fixed_value is not None:
-
 
                 removed.extend([assignment, assignment.lhs])
 
@@ -60,7 +59,6 @@ class ReduceConstants(ASTVisitorBase):
 
 
         for a in removed:
-            #print 'Simplified:', a
             nc = EqnsetVisitorNodeCollector(o)
             assert not a in nc.all(), 'Did not fully remove: %s' % a
 
@@ -86,7 +84,6 @@ class ReduceConstants(ASTVisitorBase):
     def VisitIfThenElse(self, o, **kwargs):
         # Optimisation's possible here
         return None
-        raise NotImplementedError()
 
     def VisitInEquality(self, o, **kwargs):
         raise NotImplementedError()
@@ -197,9 +194,6 @@ class ReduceConstants(ASTVisitorBase):
 
     def VisitFunctionDefUserInstantiation(self, o, **kwargs):
         # Check if the parameters are constant
-        #self.visit(o.rhs_ast)
-
-        #assert False
         params = {}
         for p in o.parameters.values():
             pres = self.visit(p.rhs_ast)
@@ -225,9 +219,7 @@ class ReduceConstants(ASTVisitorBase):
         # Not Implmented how to calculate it yet!
         print 'We can evalute function:' , o.function_def.funcname
         print 'BUT THE LOGIC IS MISSING :)'
-        #assert False
         return None
-        raise NotImplementedError()
 
 
     def VisitFunctionDefInstantiationParameter(self, o, **kwargs):
@@ -239,7 +231,6 @@ class ReduceConstants(ASTVisitorBase):
         # Check that the parameters are all constants for the moment:
         for p in rv.parameters:
             assert self.visit(p) != None, 'Random Variable parameters must all be compile time resolves'
-
 
         # Don't reduce random variables:
         return None

@@ -148,9 +148,10 @@ class UnitExprLexer(object):
         t.type = UnitExprLexer.reserved.get(t.value, t.type)
         return t
 
-    WS = '\s*'
+    
 
     # Automatically slurp up trailing whitespace:
+	WS = '\s*'
 
     t_MULTIPORT_IN = r"""==>>""" + WS
     t_MULTIPORT_OUT = r"""<<==""" + WS
@@ -206,7 +207,6 @@ class UnitExprLexer(object):
 
     def token(self, *args, **kwargs):
         t = self.lexer.token(*args, **kwargs)
-        #print 'TOKEN:',t
         return t
 
 

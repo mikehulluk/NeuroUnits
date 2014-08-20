@@ -159,8 +159,8 @@ def test6():
     import neurounits
     import numpy as np
     import pylab
-    #from neurounits.writers.writer_ast_to_simulatable_object import EqnSimulator
-    #from neurounits.nineml import simulate_component
+    
+    
 
     lm = neurounits.NeuroUnitParser.Parse9MLFile(neuron_def)
 

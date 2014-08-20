@@ -286,7 +286,6 @@ class LibraryManager(ast.ASTObject):
 
 
         # Testing: make sure all nodes accounted for:
-        #from neurounits.visitors.common.ast_node_connections import ASTAllConnections
         from neurounits.visitors.common.ast_node_connections import ASTAllConnectionsCheck
         ASTAllConnectionsCheck().visit(ls[0])
         return ls[0]

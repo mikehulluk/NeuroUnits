@@ -33,8 +33,6 @@ import numpy as np
 
 
 import pylab
-#from neurounits.nineml import build_compound_component
-#from neurounits.nineml import simulate_component
 from neurounits import NineMLComponent
 
 

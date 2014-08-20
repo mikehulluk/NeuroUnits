@@ -204,41 +204,6 @@ class MODLBuildParameters(object):
 
 
 
-        #for io_info in [io_info for io_info in component.io_data if io_info.iotype in (IOType.Output, IOType.Input)]:
-        #    if not io_info.metadata or not 'mf' in io_info.metadata:
-        #        continue
-        #    role = io_info.metadata['mf'].get('role', None)
-
-        #    if role:
-
-        #        if not component.has_terminal_obj(io_info.symbol):
-        #            continue
-
-        #        obj = component.get_terminal_obj(io_info.symbol)
-
-        #        # Outputs:
-        #        if role == "TRANSMEMBRANECURRENT":
-        #            assert io_info.iotype== IOType.Output
-
-        #            currents[obj] = NeuronMembraneCurrent( obj=obj,  symbol=obj.symbol)
-
-        #        # Inputs (Supplied Values):
-        #        elif role == "MEMBRANEVOLTAGE":
-        #            assert io_info.iotype== IOType.Input
-        #            supplied_values[obj] = NeuronSuppliedValues.MembraneVoltage
-        #        elif role == "TIME":
-        #            assert io_info.iotype== IOType.Input
-        #            supplied_values[obj] = NeuronSuppliedValues.Time
-        #        elif role == "TEMPERATURE":
-        #            assert io_info.iotype== IOType.Input
-        #            supplied_values[obj] = NeuronSuppliedValues.Temperature
-        #        else:
-        #            assert False
-
-
-
-
-
         if not currents:
             raise ValueError('Mechanism does not expose any currents! %s'% component.name)
 
@@ -283,7 +248,6 @@ class MODLBuildParameters(object):
 
 
         # Event Handling:
-        #assert False, 'Deprecated, needs rewrite'
         zero_arg_events = [evport for evport in component.input_event_port_lut if len(evport.parameters) == 0]
         if len(zero_arg_events) == 0:
             event_function = None
@@ -323,8 +287,6 @@ def WriteToNMODL(component, buildparameters=None, initial_values=None, neuron_su
     ConstantWriter().visit(component,modfilecontents=m, build_parameters=buildparameters, )
 
     OnEventWriter().visit(component,modfilecontents=m, build_parameters=buildparameters)
-
-    #print len(component.onevents)
 
     txt = m.to_text()
 

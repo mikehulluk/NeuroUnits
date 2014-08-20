@@ -363,7 +363,6 @@ class _DependancyFinder(ASTVisitorBase):
         return self.visit(o.rhs)
 
     def VisitOnEventDefParameter(self,o):
-        #assert False
         return [o]
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):

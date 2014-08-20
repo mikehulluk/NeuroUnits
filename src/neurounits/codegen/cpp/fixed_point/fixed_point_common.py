@@ -281,7 +281,7 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         node_name = 'RV%s' % o.annotations['node-id']
 
         if o.modes['share'] =='PER_NEURON':
-            res = self.get_var_str( name=node_name) #'d.%s[i]' % node_name
+            res = self.get_var_str( name=node_name) 
         elif o.modes['share'] == 'PER_POPULATION':
             res = 'd.%s' % node_name
         else:
@@ -320,8 +320,6 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         # Lets add the random bit:
         # USE uniform random numbers (hack!) should be gaussian:
 
-        #ScalarType<0>( rnd::rand_kiss()-((1>>7)*2 >> 8)),
-        #//- (1<<24)
         res = """%s<%d>::add(
                     %s<0>( ((int) rnd::rand_kiss() ) - (1<<23) ),
                     %s )  """ % (
@@ -480,7 +478,7 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
         node_name = 'RV%s' % o.annotations['node-id']
 
         if o.modes['share'] =='PER_NEURON':
-            res = self.get_var_str( name=node_name) #'d.%s[i]' % node_name
+            res = self.get_var_str( name=node_name) 
         elif o.modes['share'] == 'PER_POPULATION':
             res = 'd.%s' % node_name
         else:

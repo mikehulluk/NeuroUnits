@@ -32,8 +32,8 @@ from neurounits.visitors.bases.base_actioner import SingleVisitPredicate
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 from neurounits.errors import panic
 from neurounits.codegen.nmodl.neuron_constants import NeuronSuppliedValues
-#from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance
-#from neurounits.visitors.common.ast_symbol_dependancies import VisitorSymbolDependance
+
+
 from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance_OLD
 from neurounits.ast.astobjects import AssignedVariable, StateVariable, SymbolicConstant, SuppliedValue, InEquality, Parameter
 from neurounits.ast import EqnAssignmentByRegime
@@ -69,18 +69,18 @@ class StateWriter(ASTActionerDefaultIgnoreMissing):
         s = CStringWriter.Build(n, build_parameters=build_parameters, expand_assignments=False)
         modfilecontents.section_DERIVATIVE.append( s )
 
-    #def ActionEqnSet(self, n, modfilecontents,  build_parameters, **kwargs):
-#
-#        # A slightly hacky way of writing out the initial conditions:
-#        # TODO: FIX THIS!
-#
-#        for ic in n.initial_conditions:
-#            o1 = n.get_terminal_obj(ic.symbol)
-#            o2 = n.get_terminal_obj(ic.value)
-#            assert build_parameters.symbol_units[o1] == build_parameters.symbol_units[o2]
-#
-#            s = '%s = %s' % (ic.symbol, ic.value)
-            #modfilecontents.section_INITIAL.append(s)
+    
+
+
+
+
+
+
+
+
+
+
+            
 
 
 class SuppliedValuesWriter(ASTActionerDefaultIgnoreMissing):
@@ -138,7 +138,6 @@ class AssignmentWriter(ASTActionerDefaultIgnoreMissing):
 
         # Lets build a 'rates() function, as is done by NEURON hh.mod.
         # We include all the 'state-variables and supplied values in the parameters:'
-        #print
         symbol_map = {
             'V':'v'
         }
@@ -156,7 +155,6 @@ class AssignmentWriter(ASTActionerDefaultIgnoreMissing):
             print 'Writing assignment for: ', ass
             # Check dependancies:
             for dep in component.getSymbolDependancicesDirect(ass, include_parameters=False):
-                #print '  - Checking deps:', dep, resolved_deps
                 assert dep in resolved_deps
             if isinstance(ass, (EqnAssignmentByRegime) ):
                 resolved_deps.add(ass.lhs)
@@ -238,9 +236,6 @@ class OnEventWriter(ASTActionerDefaultIgnoreMissing):
         ASTActionerDefaultIgnoreMissing.__init__(self, action_predicates=[ SingleVisitPredicate() ] )
 
     def ActionInEventPort(self, o, modfilecontents, build_parameters,  **kwargs):
-        #print o
-        #print build_parameters.event_function
-        #assert False
         if o != build_parameters.event_function:
             return
 
@@ -273,7 +268,7 @@ class OnEventWriter(ASTActionerDefaultIgnoreMissing):
 
 class NeuronBlockWriter(object):
     def __init__(self,  component,  build_parameters,  modfilecontents):
-        from .neuron_constants import MechanismType#,NEURONMappings
+        from .neuron_constants import MechanismType
         # Heading
         if build_parameters.mechanismtype == MechanismType.Point:
             modfilecontents.section_NEURON.append("POINT_PROCESS %s" %build_parameters.suffix )
@@ -283,11 +278,10 @@ class NeuronBlockWriter(object):
             assert False
 
 
-        #current_unit_in_nrn = NEURONMappings.current_units[build_parameters.mechanismtype]
-        # Currents:
+       	# Currents:
         for currentSymbol, neuronCurrentObj in build_parameters.currents.iteritems():
             modfilecontents.section_NEURON.append("NONSPECIFIC_CURRENT %s" %currentSymbol.symbol )
-            #modfilecontents.section_ASSIGNED.append("%s (%s)"%(currentSymbol.symbol, current_unit_in_nrn ) )
+            
 
 
 
@@ -370,7 +364,6 @@ class CStringWriter(ASTVisitorBase):
 
         # Term should be in base SI units:
         print n.symbol, type(n)
-        #print "Symbols:", [ s.symbol for s in self.build_parameters.symbol_units.keys() ]
 
         if n.get_dimensionality() == self.build_parameters.symbol_units[n]:
             return symbol
@@ -484,8 +477,6 @@ class CStringWriter(ASTVisitorBase):
 
 
         elif type(o.function_def) == neurounits.ast.astobjects.FunctionDefUser:
-            #params = ",".join( self.visit(p.rhs_ast,varnames=varnames, varunits=varunits,**kwargs) for p in o.parameters.values()  )
-            #func_call = "%s(%s)"%( varnames[o.function_def].raw_name, params)
             print 'T',  [ type(p.rhs_ast) for p in o.parameters.values()]
             params = ",".join( self.visit(p.rhs_ast) for p in o.parameters.values()  )
             func_call = "%s(%s)"%( o.function_def.funcname.replace(".","__"), params)

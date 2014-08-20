@@ -15,11 +15,7 @@ class _FunctionCloner(ASTVisitorBase):
 
     def __init__(self, functiondef_instantiation):
 
-        #print '\n\n'
         self.functiondef_instantiation = functiondef_instantiation
-        #print 'Cloning function-def rhs:', repr(self.functiondef_instantiation)
-
-        #print 'Copying parameters:'
         self.params_old_to_new = {}
         for sym, param_obj in functiondef_instantiation.parameters.items():
             self.params_old_to_new[param_obj.get_function_def_parameter()] = param_obj.rhs_ast
@@ -30,7 +26,7 @@ class _FunctionCloner(ASTVisitorBase):
 
     def VisitFunctionDefBuiltInInstantiation(self, o):
 
-        #if o.function_def.is_builtin():
+        
 
         params_new = {}
         # Clone the parameter objects:
@@ -46,18 +42,13 @@ class _FunctionCloner(ASTVisitorBase):
                     function_def = o.function_def,
                     parameters = params_new )
 
-    def VisitFunctionDefUserInstantiation(self, o):
-        #print 'Function call:', repr(o)
-        assert False, 'We shoudl not get here! we are doing depth first search'
-
+ 
 
 
 
     def VisitFunctionDefParameter(self, o ):
-        #print 'Searching:', o, 'in', self.params_old_to_new
         assert o in self.params_old_to_new
         return self.params_old_to_new[o]
-        assert False
 
     def VisitAddOp(self, o):
         return ast.AddOp(
@@ -102,13 +93,9 @@ class FunctionExpander(ASTActionerDefaultIgnoreMissing):
         self.component = component
         super(FunctionExpander,self).__init__()
         
-        # Lets go:
         self.visit(component)
-        #print component._function_defs
         
-        # And so no more attached functions:
-        #from neurounits.units_misc import LookUpDict
-        
+        # And so no more attached functions:        
         # Remove the functions from the body:
         component._function_defs.clear()
         
@@ -116,15 +103,13 @@ class FunctionExpander(ASTActionerDefaultIgnoreMissing):
     
 
     def ActionNode(self, n, **kwargs):
-        #print 'Skipping', n
+
         pass
 
     def ActionFunctionDefBuiltInInstantiation(self,n):
         return
-    def ActionFunctionDefUserInstantiation(self,n):
-#        if n.function_def.is_builtin():
-#            return
 
+    def ActionFunctionDefUserInstantiation(self,n):
 
         new_node = _FunctionCloner(n).new_node
         
