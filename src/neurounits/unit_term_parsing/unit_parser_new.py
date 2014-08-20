@@ -73,7 +73,7 @@ class UnitTermParser(object):
                 units_dict=self._shortforms)
 
     def _try_find_form(self, unitterm, prefix_dict, units_dict):
-        print 'units_dict:', units_dict
+        #print 'units_dict:', units_dict
         # Simple case, its an unprefixed type
         if unitterm in units_dict:
             return units_dict[unitterm]
@@ -89,7 +89,7 @@ class UnitTermParser(object):
 
         potential_units = []
         for prefix, suffix, suffix_functor in potential_suffixes:
-            print 'Prefix:', prefix
+            #print 'Prefix:', prefix
             if not prefix in prefix_dict:
                 continue
             potential_units.append((prefix_dict[prefix], suffix_functor ))
@@ -105,7 +105,7 @@ class UnitTermParser(object):
 
     def add_unit_def(self, longforms, shortforms, equivalent_dim):
         thevars=(longforms, shortforms, equivalent_dim)
-        print 'Adding new unit definition:', thevars
+        #print 'Adding new unit definition:', thevars
         e = equivalent_dim
         pot = 0
         if equivalent_dim.float_in_si() != 1.0:
@@ -136,7 +136,7 @@ class UnitTermParser(object):
             assert not l in self._long_power_of_ten_prefixes
             self._long_power_of_ten_prefixes[l] = lambda backend: backend.Unit(powerTen=pot)
         for l in shortforms:
-            print l
+            #print l
             assert not l in self._short_power_of_ten_prefixes
             self._short_power_of_ten_prefixes[l] = lambda backend: backend.Unit(powerTen=pot)
 

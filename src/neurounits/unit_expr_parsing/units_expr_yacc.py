@@ -1371,7 +1371,6 @@ def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=No
         # Catch the exception, so that we can add more error handling to it:
         e.original_text = orig_text
         e.parsed_text = text
-        #print str(e)
         raise
 
     # If its a level-3 expression, we need to evaluate it:

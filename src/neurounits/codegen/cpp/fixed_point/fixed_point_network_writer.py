@@ -3175,7 +3175,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
         #ENCODING OF TIME:
         time_upscale = set([pop.component._time_node.annotations['fixed-point-format'].upscale for pop in network.populations])
-        print time_upscale
+        #print time_upscale
         assert len(time_upscale) == 1
         self.time_upscale = list(time_upscale)[0]
 

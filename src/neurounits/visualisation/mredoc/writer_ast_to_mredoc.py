@@ -279,7 +279,7 @@ def build_figures(component):
             if not meta:
                 continue
 
-            print meta
+            #print meta
 
 
             if not 'mf' in meta or not 'role' in meta['mf']:

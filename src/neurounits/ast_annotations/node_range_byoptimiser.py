@@ -190,6 +190,7 @@ class CFloatEval(ASTVisitorBase):
 
     def VisitRandomVariableParameter(self, o, **kwargs):
         print self, o
+        assert False, 'Added August 2014'
 
     def VisitOnEventDefParameter(self, o):
         return 'input_data->%s' %  o.annotations['_range-finding-c-var-name']
@@ -219,7 +220,7 @@ class NodeEvaluatorCCode(ASTActionerDefault):
         super(NodeEvaluatorCCode, self).__init__(component=component)
 
     def ActionNode(self, n, **kwargs):
-        print 'Skipping;', n
+        #print 'Skipping;', n
         pass
 
     def BuildEvalFunc(self, n):

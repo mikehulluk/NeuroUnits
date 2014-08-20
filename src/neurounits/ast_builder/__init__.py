@@ -26,5 +26,5 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-from .eqnsetbuilder import EqnSetBuilder
+from .eqnsetbuilder import NineMLComponentBuilder, LibraryBuilder
 

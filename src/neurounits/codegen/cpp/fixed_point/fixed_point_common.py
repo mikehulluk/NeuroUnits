@@ -291,7 +291,7 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
 
 
     def VisitAutoRegressiveModelUpdate(self, o, **kwargs):
-        print 'AR upscale: ', o.annotations['fixed-point-format'].upscale
+        #print 'AR upscale: ', o.annotations['fixed-point-format'].upscale
 
         # Upscaling of the coefficients, (by default probably between zero and 1
 

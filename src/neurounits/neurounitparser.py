@@ -131,7 +131,7 @@ class NeuroUnitParser(object):
     def _string_to_expr_node(cls, s, working_dir=None, debug=False, backend=None, options=None, ):
         import neurounits
 
-        print 'Converting ', s, 'to nodes:'
+        #print 'Converting ', s, 'to nodes:'
 
         if isinstance(s, basestring):
             backend = backend or cls.get_defaultBackend()
@@ -141,7 +141,7 @@ class NeuroUnitParser(object):
             from neurounits.units_backends.mh import MMUnit,MMQuantity
             s = neurounits.ast.ConstValue( value=MMQuantity(s, MMUnit() ) )
         
-        print s, type(s)
+        #print s, type(s)
         assert isinstance( s, neurounits.ast.ASTExpressionObject) 
         return s
 

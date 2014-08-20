@@ -299,7 +299,6 @@ def _parse_channelml_file(xmlfile):
     if root.tag != 'channelml':
         return {}
 
-    # print xmlfile
     chls = {}
     for ch in root.iter('channel_type'):
         chl = ChannelMLInfo(ch, units=root.attrib['units'])

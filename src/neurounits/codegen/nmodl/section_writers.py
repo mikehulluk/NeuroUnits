@@ -278,7 +278,7 @@ class NeuronBlockWriter(object):
             assert False
 
 
-       	# Currents:
+           # Currents:
         for currentSymbol, neuronCurrentObj in build_parameters.currents.iteritems():
             modfilecontents.section_NEURON.append("NONSPECIFIC_CURRENT %s" %currentSymbol.symbol )
             

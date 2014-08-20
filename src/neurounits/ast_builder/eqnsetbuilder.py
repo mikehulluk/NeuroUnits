@@ -725,24 +725,13 @@ class AbstractBlockBuilder(object):
 
 
 
-# TODO: REMVOE HERE
-class EqnSetBuilder(AbstractBlockBuilder):
+## TODO: REMVOE HERE
+#class EqnSetBuilder(AbstractBlockBuilder):
+#
+#    def __init__(self, library_manager, name, block_type=ast.NineMLComponent):
+#        assert False        
+#        AbstractBlockBuilder.__init__(self,block_type=block_type, library_manager=library_manager,name=name)
 
-    def __init__(self, library_manager, name, block_type=ast.NineMLComponent):
-		assert False        
-		AbstractBlockBuilder.__init__(self,block_type=block_type, library_manager=library_manager,name=name)
-
-    def add_io_data(self, l):
-        self.builddata.io_data_lines.append(l)
-
-
-    def add_timederivative(self, lhs_state_name, rhs_ast):
-        # Create the assignment object:
-        a = ast.EqnTimeDerivativePerRegime(lhs=lhs_state_name, rhs=rhs_ast, regime=self.get_current_regime())
-        self.builddata._time_derivatives_per_regime.append(a)
-
-    def add_multiport_def_data(self, connector):
-        self._interface_data.append(connector)
 
 
 
@@ -758,9 +747,20 @@ class LibraryBuilder(AbstractBlockBuilder):
 
 
 
-class NineMLComponentBuilder(EqnSetBuilder):
+class NineMLComponentBuilder(AbstractBlockBuilder):
 
     def __init__(self, library_manager, name):
-        EqnSetBuilder.__init__(self,block_type=ast.NineMLComponent, library_manager=library_manager,name=name)
+        super(NineMLComponentBuilder,self).__init__(block_type=ast.NineMLComponent, library_manager=library_manager,name=name)
+    def add_io_data(self, l):
+        self.builddata.io_data_lines.append(l)
+
+
+    def add_timederivative(self, lhs_state_name, rhs_ast):
+        # Create the assignment object:
+        a = ast.EqnTimeDerivativePerRegime(lhs=lhs_state_name, rhs=rhs_ast, regime=self.get_current_regime())
+        self.builddata._time_derivatives_per_regime.append(a)
+
+    def add_multiport_def_data(self, connector):
+        self._interface_data.append(connector)
 
 

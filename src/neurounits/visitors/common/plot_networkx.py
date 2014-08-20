@@ -27,7 +27,7 @@ def inheritors(klass):
     return subclasses
 
 
-pastels = [	
+pastels = [    
     "#F7977A",
     "#F9AD81",
     "#FDC68A",

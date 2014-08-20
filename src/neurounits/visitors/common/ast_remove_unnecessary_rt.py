@@ -45,7 +45,7 @@ class RemoveUnusedRT(object):
                 # Does the assignment do lookups, based on this rt-graph?
                 for ass in component.assignments + component.timederivatives:
                     if isinstance(ass.rhs_map, ast.EqnRegimeDispatchMap) and ass.rhs_map.get_rt_graph()==rt_graph:
-                        print 'Remapping RHS-Map to equation'
+                        #print 'Remapping RHS-Map to equation'
                         assert len(ass.rhs_map.rhs_map) == 1
                         direct_target = list(ass.rhs_map.rhs_map.values())[0]
                         ReplaceNode.replace_and_check(

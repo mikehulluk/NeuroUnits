@@ -782,6 +782,7 @@ class NineMLComponent(Block):
 
 
     def has_state(self):
+        assert False, 'Removed August 2014'
         #TODO - what about RT graphs.
         return len(self.timederivatives)
 

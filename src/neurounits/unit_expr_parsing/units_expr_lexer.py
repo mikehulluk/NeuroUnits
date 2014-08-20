@@ -151,7 +151,7 @@ class UnitExprLexer(object):
     
 
     # Automatically slurp up trailing whitespace:
-	WS = '\s*'
+    WS = '\s*'
 
     t_MULTIPORT_IN = r"""==>>""" + WS
     t_MULTIPORT_OUT = r"""<<==""" + WS

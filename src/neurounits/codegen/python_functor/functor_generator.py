@@ -494,6 +494,7 @@ class FunctorGenerator(ASTVisitorBase):
         def eFunc(func_params,**kw):
             if not o.symbol in func_params:
                 print "Couldn't find %s in %s" % (o.symbol, func_params.keys())
+                assert False
             return func_params[o.symbol]
         return eFunc
 

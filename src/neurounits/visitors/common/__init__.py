@@ -26,7 +26,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-from .ast_symbol_dependancies import VisitorFindDirectSymbolDependance_OLD
+#from .ast_symbol_dependancies import VisitorFindDirectSymbolDependance_OLD
 from .ast_symbol_dependancies_new import VisitorSymbolDependance
 
 

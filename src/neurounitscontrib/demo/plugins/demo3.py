@@ -343,7 +343,7 @@ def test3():
                     parameters=parameters,
                     initial_state_values=initial_states,
                     initial_regimes={
-                    	'nrn/i_inj/':'OFF',
+                        'nrn/i_inj/':'OFF',
                     
                     }
                     
