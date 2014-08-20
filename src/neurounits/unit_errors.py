@@ -166,3 +166,27 @@ class ASTMissingAnnotationError(RuntimeError):
         return "Annotation: '%s' not found for  %s (type: %s)" % (self.annotation, self.node, type(self.node) )
     def __str__(self, ):
         return repr(self)
+        
+        
+        
+
+
+
+
+class DuplicateNameError(RuntimeError):
+    pass
+
+class NoSuchObjectError(RuntimeError):
+    pass
+        
+        
+        
+class InvalidParametersError(RuntimeError):
+    pass
+    
+
+
+
+class NutsIOValidationError(Exception):
+
+    pass

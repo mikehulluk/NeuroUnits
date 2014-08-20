@@ -335,7 +335,7 @@ class CStringWriter(ASTVisitorBase):
                 self.visit(o.predicate.greater_than),
                 self.visit(o.if_true_ast),
                 self.visit(o.if_false_ast) )
-        #raise NotImplementedError()
+
     def VisitInEquality(self, o,**kwargs):
         return "%s < %s"%( self.visit(o.lesser_than), self.visit(o.greater_than))
 

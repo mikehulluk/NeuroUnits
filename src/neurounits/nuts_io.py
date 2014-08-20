@@ -5,9 +5,7 @@ import copy
 import math
 
 
-class NutsIOValidationError(Exception):
 
-    pass
 
 
 class NutsIO(object):

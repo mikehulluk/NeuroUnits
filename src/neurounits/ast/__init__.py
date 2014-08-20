@@ -31,6 +31,8 @@ from .eqnset import Library, NineMLComponent
 
 
 from astobjects_nineml import *
-from compoundports import *
+from multiports import *
 from astobjects_randomvariables import *
-from randomvariable_types import *
+
+from randomvariable_biftypes import *
+from function_biftypes import *

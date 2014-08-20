@@ -1,5 +1,5 @@
 
-#kljasdkfj "WORK HERE!!"
+
 from ..unit_errors import UnitError#, InvalidUnitTermError
 
 import numpy as np
@@ -45,8 +45,7 @@ class UnitTermParser(object):
 
 
     def _resolve_unitterm(self, unitterm):
-        #from ..unit_errors import UnitError#, InvalidUnitTermError
-        print 'Resolving: ', unitterm
+        #from ..unit_errors import UnitError
 
         lf = self._try_find_longform(unitterm)
         sf = self._try_find_shortform(unitterm)

@@ -28,7 +28,7 @@
 
 from neurounits.ast_builder.io_types import IOType
 from neurounits.units_misc import read_json
-
+from neurounits.unit_errors import ParsingError
 
 class IOData(object):
 
@@ -52,7 +52,7 @@ class IODataInitialCondition(IOData):
 
 
 def parse_io_line(line):
-    from neurounits.unit_errors import ParsingError
+    
 
     # Unpack the line:
     mode, params, metadata = line

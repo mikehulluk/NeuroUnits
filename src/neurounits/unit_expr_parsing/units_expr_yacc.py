@@ -31,13 +31,14 @@ import ply
 
 
 from . import units_expr_lexer
-#from neurounits.unit_errors import UnitError
 from .units_expr_lexer import UnitExprLexer
 from neurounits.units_misc import safe_dict_merge, EnsureExisits
-#from neurounits.misc import SeqUtils
 from neurounits.librarymanager import LibraryManager
 
 import neurounits.ast as ast
+
+from neurounits.unit_errors import NeuroUnitParsingErrorEOF
+from neurounits.unit_errors import NeuroUnitParsingErrorUnexpectedToken
 
 #from neurounits.unit_data.units_data_unitterms import UnitTermData
 
@@ -1256,9 +1257,6 @@ def p_unit_term_unpowered_token(p):
     p[0] = p.parser.library_manager.parse_unit_term(p[1])
 
 
-
-from neurounits.unit_errors import NeuroUnitParsingErrorEOF
-from neurounits.unit_errors import NeuroUnitParsingErrorUnexpectedToken
 
 
 

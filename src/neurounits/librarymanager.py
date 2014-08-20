@@ -42,14 +42,6 @@ import neurounits.ast as ast
 
 
 
-
-
-class DuplicateNameError(RuntimeError):
-    pass
-
-class NoSuchObjectError(RuntimeError):
-    pass
-
 class ComponentNamespace(object):
 
     def is_root(self):

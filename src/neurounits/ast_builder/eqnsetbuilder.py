@@ -90,7 +90,7 @@ class Scope(object):
     def getSymbol(self, symbol):
         assert isinstance(symbol, basestring)
         if not symbol in self.symbol_dict:
-            raise ValueError('Symbol not in scope: %s' % symbol)
+            raise KeyError('Symbol not in scope: %s' % symbol)
         return self.symbol_dict[symbol]
 
     def hasSymbol(self, symbol):
@@ -288,7 +288,7 @@ class AbstractBlockBuilder(object):
 
     def _resolve_global_symbol(self,symbol,target, expect_is_unresolved=False):
         if expect_is_unresolved and not self.global_scope.hasSymbol(symbol):
-                raise ValueError("I was expecting to resolve a symbol in globalnamespace that is not there %s" % symbol)
+                raise KeyError("I was expecting to resolve a symbol in globalnamespace that is not there %s" % symbol)
 
         if not self.global_scope.hasSymbol(symbol):
             self.global_scope[symbol] = target
@@ -666,7 +666,7 @@ class AbstractBlockBuilder(object):
         unresolved_symbols = [(k,v) for (k,v) in self.global_scope.iteritems() if not v.is_resolved()]
         # We shouldn't get here!
         if len(unresolved_symbols) != 0:
-            raise ValueError('Unresolved Symbols:%s' % ([s[0] for s in unresolved_symbols]))
+            raise KeyError('Unresolved Symbols:%s' % ([s[0] for s in unresolved_symbols]))
 
 
         # Temporary Hack:
