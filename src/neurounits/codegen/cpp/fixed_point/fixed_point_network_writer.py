@@ -3117,8 +3117,8 @@ class CBasedEqnWriterFixedNetwork(object):
         nbits = NumberFormat.get_nbits(number_format)
 
         ## Temp hack:
-        #if nbits is None:
-        #    nbits = 28
+        if nbits is None:
+            nbits = 28
 
 
         # There is an opportunity here. Sometimes, the parameters are going to be constants - so

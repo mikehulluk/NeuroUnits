@@ -1,3 +1,31 @@
+/src/neurounitscontrib/demo/plugins/_build/fig_res_tadpole1.svg
+/src/neurounitscontrib/demo/plugins/_build/fig_res_tadpole2a.svg
+/src/neurounitscontrib/demo/plugins/_build/fig_res_tadpole2b.svg
+/src/neurounitscontrib/demo/plugins/_build/res_hh1_newA_i.svg
+/src/neurounitscontrib/demo/plugins/_build/res_hh1_newA_ii.svg
+/src/neurounitscontrib/demo/plugins/_build/res_hh1_newB_i.svg
+/src/neurounitscontrib/demo/plugins/_build/res_hh1_newB_ii.svg
+/src/neurounitscontrib/demo/plugins/_output/figures/neurounits/png/fig000_ALL{V}.png
+/src/neurounitscontrib/demo/plugins/_output/figures/neurounits/png/fig001_Autosave_figure_1.png
+/src/neurounitscontrib/demo/plugins/_output/figures/neurounits/png/fig002_Autosave_figure_2.png
+/src/neurounitscontrib/demo/plugins/_output/figures/neurounits/png/fig003_Autosave_figure_3.png
+/src/neurounitscontrib/demo/plugins/_output/figures/neurounits/png/fig004_Autosave_figure_5.png
+/src/neurounitscontrib/demo/plugins/_output/figures/neurounits/png/fig005_ALL{V}.png
+/src/neurounitscontrib/demo/plugins/_output/figures/neurounits/png/fig006_Autosave_figure_7.png
+/src/neurounitscontrib/demo/plugins/_output/figures/neurounits/png/fig007_ALL{V}.png
+/src/neurounitscontrib/demo/plugins/_output/figures/neurounits/png/fig008_ALL{POPINDEX=0000} AND ANY{iLk,iInj_local}.png
+/src/neurounitscontrib/demo/plugins/_output/figures/neurounits/png/fig009_ALL{POPINDEX=0000} AND ANY{ks_n,kf_n,na_m,na_h}.png
+/src/neurounitscontrib/demo/plugins/_output/figures/test_simulate_single_dIN/png/fig000_ALL{V}.png
+/src/neurounitscontrib/demo/plugins/_output/figures/test_simulate_single_dIN/png/fig001_ALL{POPINDEX=0000} AND ANY{iLk,iInj_local}.png
+/src/neurounitscontrib/demo/plugins/_output/figures/test_simulate_single_dIN/png/fig002_ALL{POPINDEX=0000} AND ANY{ks_n,kf_n,na_m,na_h}.png
+/src/neurounitscontrib/demo/plugins/_output/figures/test_simulate_single_dIN/png/fig003_Autosave_figure_4.png
+/src/neurounitscontrib/demo/plugins/neuronits000.results.hdf
+/src/neurounitscontrib/demo/plugins/neuronits002.results.hdf
+/src/neurounitscontrib/demo/plugins/neuronits003.results.hdf
+/src/neurounitscontrib/demo/plugins/neuronits004.results.hdf
+/src/neurounitscontrib/demo/plugins/neuronits005.results.hdf
+/src/neurounitscontrib/demo/plugins/neuronits006.results.hdf
+/src/neurounitscontrib/demo/plugins/op-seq.cpp
 htmlcov/
 /.directory
 /.sconf_temp/conftest_0.c
