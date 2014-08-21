@@ -5,7 +5,7 @@ import itertools
 
 
 def _auto_plot(res):
-    
+
 
     si_base_units = defaultdict(list)
     plot_objs = sorted( list( itertools.chain( res.state_variables.keys(), res.assignments.keys(),) ) )

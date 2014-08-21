@@ -26,7 +26,7 @@ class _FunctionCloner(ASTVisitorBase):
 
     def VisitFunctionDefBuiltInInstantiation(self, o):
 
-        
+
 
         params_new = {}
         # Clone the parameter objects:
@@ -38,11 +38,11 @@ class _FunctionCloner(ASTVisitorBase):
                                         )
             params_new[param_name] = pnew
 
-        return ast.FunctionDefBuiltInInstantiation( 
+        return ast.FunctionDefBuiltInInstantiation(
                     function_def = o.function_def,
                     parameters = params_new )
 
- 
+
 
 
 
@@ -92,15 +92,15 @@ class FunctionExpander(ASTActionerDefaultIgnoreMissing):
     def __init__(self, component):
         self.component = component
         super(FunctionExpander,self).__init__()
-        
+
         self.visit(component)
-        
-        # And so no more attached functions:        
+
+        # And so no more attached functions:
         # Remove the functions from the body:
         component._function_defs.clear()
-        
-        
-    
+
+
+
 
     def ActionNode(self, n, **kwargs):
 
@@ -112,7 +112,7 @@ class FunctionExpander(ASTActionerDefaultIgnoreMissing):
     def ActionFunctionDefUserInstantiation(self,n):
 
         new_node = _FunctionCloner(n).new_node
-        
+
         # Replace the node:
         from neurounits.visitors.common.ast_replace_node import ReplaceNode
         ReplaceNode.replace_and_check(n, new_node, root=self.component)

@@ -4,7 +4,7 @@ define_component exp2syn {
     A' = -A/t_open
     B' = -B/t_close
     i = g_max * (B-A) * (Erev-V) + {20pA}
-    
+
     on event(){
         A = A + 1
         B = B + 1
@@ -14,11 +14,11 @@ define_component exp2syn {
         A = 0
         B = 0
     }
-    
+
     <=> parameter g_max:S, Erev, t_open, t_close
     <=> input V:V
     <=> output i:A
-    
+
     <=> multiport neuron_membrane_point_process[in] as process_mount_in {
         # Local <==> Compound-port name
         V <==> V
@@ -32,25 +32,25 @@ define_component syn_trig {
 
     i=0A
     v_thres = 0mV
-    
+
     regime super {
         on(V<v_thres){
             transition_to sub
-        }    
+        }
     }
-    
+
     regime sub {
         on(V>v_thres){
             emit spike()
             transition_to super
         }
-    
+
     }
-    
+
     initial {
         regime sub
     }
-    
+
     <=> input V:V
 
    <=> multiport neuron_membrane_point_process[in] as process_mount_in {
@@ -59,7 +59,7 @@ define_component syn_trig {
         i <==> I
     }
 
-    
+
 
 
 
@@ -74,39 +74,39 @@ define_compound_component general_neuron {
     instantiate chl_lk as chl_lk
     instantiate chl_kf as chl_kf
     instantiate chl_na as chl_na
-    
-    
-    
-    
+
+
+
+
     multiconnect nrn/process_mount  to  chl_lk/process_mount_in
     multiconnect nrn/process_mount  to  chl_kf/process_mount_in
     multiconnect nrn/process_mount  to  chl_na/process_mount_in
-    
-    
-     
-    
+
+
+
+
     set chl_lk/area =  3.141 * {30um} * {30um}
     set chl_na/X/area =  3.141 * {30um} * {30um}
     set chl_kf/X/area =  3.141 * {30um} * {30um}
-    
-    
-    
+
+
+
     # Conductance densities and reversal potentials:
     set chl_lk/erev = -65mV
     set chl_lk/g =  0.3 mS/cm2
-    
+
     set chl_kf/erev = -77mV
     set chl_kf/g = 36mS/cm2
-    
+
     set chl_na/erev =  50mV
     set chl_na/g = 120mS/cm2
-     
+
     set nrn/C = {1uF/cm2} * 3.141 * {30um} * {30um}
 
     rename nrn/i_sum to i_sum
 
-    
-    
+
+
     instantiate exp2syn as syn_excit
     instantiate exp2syn as syn_inhib
     multiconnect nrn/process_mount  to  syn_excit/process_mount_in
@@ -115,13 +115,13 @@ define_compound_component general_neuron {
     set syn_inhib/g_max = 200pS
     set syn_excit/Erev = 0mV
     set syn_inhib/Erev = -60mV
-    
+
     set syn_inhib/t_open = 14ms
     set syn_excit/t_open = 14ms
     set syn_inhib/t_close = 84ms
     set syn_excit/t_close = 40ms
-    
-    
+
+
 }
 
 
@@ -143,34 +143,34 @@ define_compound_component dIN {
     instantiate chl_lk as chl_lk
     instantiate chl_dIN_kf as chl_kf
     instantiate chl_dIN_ks as chl_ks
-    
-    
-    
+
+
+
     multiconnect nrn/process_mount  to  chl_lk/process_mount_in
     multiconnect nrn/process_mount  to  chl_kf/process_mount_in
     multiconnect nrn/process_mount  to  chl_na/process_mount_in
     #multiconnect nrn/process_mount  to  chl_ca/process_mount_in
     multiconnect nrn/process_mount  to  chl_ks/process_mount_in
-    
-    
-    
-    
-    
+
+
+
+
+
     # Conductance densities and reversal potentials:
     set chl_kf/erev = -81mV
     set chl_kf/g = 12nS
-    
-    
+
+
     set chl_lk/erev = -65mV
     set chl_lk/g =  {1.4nS }/ {1000um2}
     set chl_lk/area= 1000um2
-    
+
     set chl_na/erev =  50mV
-    set chl_na/g = 250nS 
-    
-    
-    
-    
+    set chl_na/g = 250nS
+
+
+
+
     set nrn/C = 10 pF
 
     rename nrn/i_sum to i_sum
@@ -184,34 +184,21 @@ define_compound_component dIN {
 define_compound_component general_neuron_with_step_inj {
 
     instantiate general_neuron as nrn
-    instantiate i_squarewave as stim 
-    
+    instantiate i_squarewave as stim
+
     instantiate syn_trig as syntrigger
     multiconnect nrn/nrn/process_mount  to  syntrigger/process_mount_in
-    
+
      connect nrn/i_sum  to  stim/i
-    
+
     set stim/t_on = 100ms
-    set stim/t_off = 30ms        
+    set stim/t_off = 30ms
     set stim/i_amp = 100pA
     #set stim/i_amp = 88.888888pA
 
 }
 
 
-
-#define_compound_component dIN_with_step_inj {
-#
-#    instantiate general_neuron as nrn
-#    instantiate i_squarewave as stim 
-#    
-#     connect nrn/i_sum  to  stim/i
-#    
-#    set stim/t_on = 100ms
-#    set stim/t_off = 30ms        
-#    set stim/i_amp = 100pA
-#
-#}
 
 
 

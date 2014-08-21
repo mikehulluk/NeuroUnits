@@ -114,12 +114,12 @@ class CCompiler(object):
         # OK, lets compile!
         compilation_dict = {
             'CC': compiler,
-            'INPUT_FILES' : ' '.join(src_files),
-            'CXX_FLAGS' :   ' '.join(compilation_settings.compile_flags),
-            'CXX_INCL_PATHS' : ' '.join(['-I'+ a for a in compilation_settings.additional_include_paths]),
-            'CXX_LIB_PATHS' : ' '.join(['-L'+ a for a in compilation_settings.additional_library_paths]),
-            'CXX_LIBS' : ' '.join(['-l'+ a for a in compilation_settings.libraries]),
-            'OUTPUT_FILE' : output_filename,
+            'INPUT_FILES': ' '.join(src_files),
+            'CXX_FLAGS':   ' '.join(compilation_settings.compile_flags),
+            'CXX_INCL_PATHS': ' '.join(['-I'+ a for a in compilation_settings.additional_include_paths]),
+            'CXX_LIB_PATHS': ' '.join(['-L'+ a for a in compilation_settings.additional_library_paths]),
+            'CXX_LIBS': ' '.join(['-l'+ a for a in compilation_settings.libraries]),
+            'OUTPUT_FILE': output_filename,
         }
 
 
@@ -130,10 +130,10 @@ class CCompiler(object):
         if os.path.exists(output_filename):
             os.unlink(output_filename)
         subprocess.check_call(compilation_string, shell=True)
-        
+
         if not os.path.exists(output_filename):
             assert False, 'Could not file supposedly compiled file'
-        
+
         print 'Compilation sucessful'
 
         LD_LIB_PATH = 'export LD_LIBRARY_PATH="%s:$LD_LIBRARY_PATH"' % ':'.join(compilation_settings.additional_library_paths)

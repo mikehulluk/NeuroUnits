@@ -36,8 +36,8 @@ class SeqUtils(object):
 
     @classmethod
     def filter_expect_single(cls, seq, filter_func):
-        """ Filters a sequence according to the predicate filter_func, then 
-        expects a single item to remain, which it returns.  If 0 or more than 
+        """ Filters a sequence according to the predicate filter_func, then
+        expects a single item to remain, which it returns.  If 0 or more than
         1 objects are found, it raises an error.
         """
 

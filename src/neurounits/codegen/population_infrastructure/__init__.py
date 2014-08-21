@@ -30,7 +30,7 @@ from neurounits import NeuroUnitParser
 import numpy as np
 
 from neurounits.ast_annotations import NodeFixedPointFormatAnnotator
-from neurounits import ast   
+from neurounits import ast
 
 
 
@@ -170,7 +170,7 @@ class EventPortConnector(object):
         self.delay_int = NodeFixedPointFormatAnnotator.encode_value_cls(self.delay, self.delay_upscale, nbits=24)
 
         self.parameter_map = parameter_map
-        
+
 
 
 
@@ -258,7 +258,7 @@ class AnalogPortConnector(object):
 
         # Store the remaining variables:
         self.connector = connector
-        
+
         self.connection_properties = { k: NeuroUnitParser._string_to_expr_node(v) for (k,v) in connection_properties.items() }
         for k,v in self.connection_properties.items():
             # Create a new node-id for the node:
@@ -440,7 +440,7 @@ class Network(object):
                 assert isinstance(src, FixedValue)
                 # Lets encode it:
                 anntr = p.dst_population.component.annotation_mgr._annotators['fixed-point-format-ann']
-                
+
                 assert isinstance(anntr, NodeFixedPointFormatAnnotator )
 
 
@@ -451,7 +451,7 @@ class Network(object):
         for apc in self.analog_port_connectors:
             #from neurounits import ast
             for src,dst in apc.port_map:
-                # Lets check that src_ports are always state-variables when then are from the populations, rather than 
+                # Lets check that src_ports are always state-variables when then are from the populations, rather than
                 # assigned variables. Otherwise, these will require more work to implement.
                 src_comp, src_port, src_pop_str = src
                 print 'Checking:', src_comp.name, src_port
@@ -492,7 +492,7 @@ class PopulationConnector(object):
     def build_c(self, src_pop_size_expr, dst_pop_size_expr, add_connection_functor):
         raise NotImplementedError()
 
-    
+
 
 
 

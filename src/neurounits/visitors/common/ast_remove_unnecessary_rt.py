@@ -35,7 +35,7 @@ class RemoveUnusedRT(object):
         from neurounits.visitors.common.ast_replace_node import ReplaceNode
 
         if not isinstance(component, ast.NineMLComponent):
-            return 
+            return
 
         # Lets look for any RT-graphs with a single Regime:
         for rt_graph in component.rt_graphs:

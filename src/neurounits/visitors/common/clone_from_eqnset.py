@@ -65,7 +65,7 @@ class _CloneFuncDef(ASTVisitorBase):
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
         panic()
-            
+
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         panic()
 
@@ -87,7 +87,7 @@ class _CloneFuncDef(ASTVisitorBase):
     def VisitFunctionDefUser(self, o, **kwargs):
         params = {}
         for pName,pObj in o.parameters.iteritems():
-             p = ast.FunctionDefParameter(symbol=pObj.symbol, dimension = pObj.get_dimension() ) 
+             p = ast.FunctionDefParameter(symbol=pObj.symbol, dimension = pObj.get_dimension() )
              params[pName] = p
              self.func_param_map[pObj] = p
         fDef = ast.FunctionDefUser(funcname=o.funcname, parameters=params, rhs=self.visit(o.rhs))
@@ -96,14 +96,14 @@ class _CloneFuncDef(ASTVisitorBase):
     def VisitIfThenElse(self, o, **kwargs):
         return ast.IfThenElse(
              predicate=self.visit(o.predicate,**kwargs),
-             if_true_ast=self.visit(o.if_true_ast, **kwargs), 
+             if_true_ast=self.visit(o.if_true_ast, **kwargs),
              if_false_ast=self.visit(o.if_false_ast, **kwargs)
                 )
 
     def VisitInEquality(self, o, **kwargs):
         return ast.InEquality(
              lesser_than=self.visit(o.lesser_than,**kwargs),
-             greater_than=self.visit(o.greater_than, **kwargs), 
+             greater_than=self.visit(o.greater_than, **kwargs),
                 )
     def VisitBoolAnd(self, o, **kwargs):
         raise NotImplementedError()

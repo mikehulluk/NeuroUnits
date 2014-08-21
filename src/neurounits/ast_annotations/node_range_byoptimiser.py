@@ -623,7 +623,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
 
 
         # C. Prototype and compile...
-        
+
         ffi = FFI()
 
         ffi.cdef(input_ds)

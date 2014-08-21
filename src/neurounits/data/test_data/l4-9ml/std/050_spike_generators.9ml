@@ -8,37 +8,37 @@ namespace spike_gen {
     define_component fixed_time {
         <=> parameter t_spike
         <=> input t:s
-        
-        
+
+
         regime pre {
             on( t> t_spike){
                 emit spike()
                 transition_to post
             }
         }
-        
+
     }
-    
-    
+
+
     define_component fixed_period {
-        
+
         <=> parameter t_period
         <=> time t:s
-        
+
         initial {
             t_last = 0s
         }
-        
+
         on(t > t_last + t_period ){
             t_last = t
             emit spike();
         }
     }
-    
-    
-    
-    
-    
+
+
+
+
+
 }
 
 

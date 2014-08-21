@@ -56,10 +56,10 @@ class DemoTadpole4(DemoPluginBase):
 
 
 def _build_sim(number_format, inj_current):
-    
+
     #import neurounitscontrib.components.
     import neurounitscontrib.components.tadpole
-    
+
     HH_comp = neurounits.ComponentLibrary.instantiate_component('HH')
     network = Network()
     dINs = network.create_population(
@@ -175,9 +175,9 @@ def test_simulate_single_hh():
                                 'I24 - 50.0pA',
                                 'I20 - 50.0pA',
                                         ])
-    for label in f2[0].get_axes()[0].get_yticklabels(): 
-        label.set_horizontalalignment('right') 
-                                        
+    for label in f2[0].get_axes()[0].get_yticklabels():
+        label.set_horizontalalignment('right')
+
     f2[0].get_axes()[0].set_ylim(-0.5, 5.5)
 
     f1[0].get_axes()[0].set_xticklabels('')
@@ -186,7 +186,7 @@ def test_simulate_single_hh():
     f1[0].subplots_adjust(top=0.90, bottom=0.05, left=left)
     f2[0].subplots_adjust(top=0.85,left=left)
 
-    
+
 
     f1[0].savefig('_build/res_hh1_newA_ii.svg')
     f2[0].savefig('_build/res_hh1_newB_ii.svg')

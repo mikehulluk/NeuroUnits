@@ -43,14 +43,14 @@ import pylab
 
 from neurounitscontrib.demo import DemoPluginBase
 class Demo5(DemoPluginBase):
-    
-    
+
+
     def get_name(self, ):
         return '5'
-                
+
     def run(self, args):
         test5()
-        
+
 
 
 
@@ -64,10 +64,10 @@ def test5():
         define_component van_de_pol {
                 x' = mu * (x-(x*x*x)/3 - y)  * {10ms-1}
                 #x' = mu * (x-(x**3)/3 - y)  * {10ms-1}
-                
+
                 y' = x/mu * {10ms-1}
                 #mu = 6.0
-                
+
                 initial {
                     x=1.0
                     y=6.0
@@ -90,6 +90,6 @@ def test5():
 
 if __name__ == '__main__':
     test5()
-    
+
     pylab.show()
 

@@ -87,9 +87,9 @@ class ChannelML_GateEqn(object):
 
     def getSubString(self, what):
 
-        LUT = {'rate': lambda : '{%f}' % float(self.rate),
-               'scale': lambda : '{%f}' % float(self.scale),
-               'midpoint': lambda : '{%f}' % float(self.midpoint)}
+        LUT = {'rate': lambda: '{%f}' % float(self.rate),
+               'scale': lambda: '{%f}' % float(self.scale),
+               'midpoint': lambda: '{%f}' % float(self.midpoint)}
 
         return LUT[what]()
 
@@ -110,7 +110,7 @@ class ChannelML_GateEqn(object):
 
             return self.expr
 
-        scale = '{%f}' % float(self.scale)  
+        scale = '{%f}' % float(self.scale)
         rate = self.getSubString('rate')
         midpoint = self.getSubString('midpoint')
 
@@ -267,8 +267,8 @@ class ChannelMLInfo(object):
         self.gates = []
         self.units = units
 
-        
-        
+
+
 
         self.unsupported_tags = None
 

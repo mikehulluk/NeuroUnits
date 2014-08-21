@@ -162,7 +162,7 @@ class FunctorGenerator(ASTVisitorBase):
         rt_graph = o.get_rt_graph()
 
         rhs_functors = dict([(regime, self.visit(rhs)) for (regime,rhs) in o.rhs_map.items()])
-        
+
         try:
             default = SeqUtils.filter_expect_single(rhs_functors.keys(), lambda r:r.name == None)
             assert not None in rhs_functors
@@ -173,7 +173,7 @@ class FunctorGenerator(ASTVisitorBase):
 
         def f3(state_data, **kw):
             regime_states = state_data.rt_regimes
-            
+
             curr_state = regime_states[rt_graph]
             if curr_state in rhs_functors:
                 rhs_functor = rhs_functors[curr_state]
@@ -256,7 +256,7 @@ class FunctorGenerator(ASTVisitorBase):
         return self.VisitBIFSingleArg(o=o,functor=np.cos)
     def VisitBIFtan(self, o):
         return self.VisitBIFSingleArg(o=o,functor=np.tan)
-    
+
     def VisitBIFsinh(self, o):
         return self.VisitBIFSingleArg(o=o,functor=np.sinh)
     def VisitBIFcosh(self, o):
@@ -282,7 +282,7 @@ class FunctorGenerator(ASTVisitorBase):
         return self.VisitBIFSingleArg(o=o,functor=np.sqrt)
     def VisitBIFfabs(self, o):
         return self.VisitBIFSingleArg(o=o,functor=np.fabs)
-    
+
     def VisitBIFln(self, o):
         return self.VisitBIFSingleArg(o=o,functor=np.log)
     def VisitBIFlog2(self, o):
@@ -297,7 +297,7 @@ class FunctorGenerator(ASTVisitorBase):
             def eFunc(state_data, func_params, **kw):
                 assert len(func_params) == 2
                 ParsingBackend = MHUnitBackend
-                return ParsingBackend.Quantity( float( functor( 
+                return ParsingBackend.Quantity( float( functor(
                         ( func_params[arg_names[0]] ).dimensionless() ,
                         ( func_params[arg_names[1]] ).dimensionless() )  ), ParsingBackend.Unit() )
         else:
@@ -355,7 +355,7 @@ class FunctorGenerator(ASTVisitorBase):
 
     def VisitParameter(self, o, **kwargs):
         def eFunc(state_data,**kw):
-            
+
             v= state_data.parameters[o.symbol]
             assert o.get_dimension().is_compatible(v.get_units()), 'Param Units Err: %s [Expected:%s Found:%s]'%(o.symbol, o.get_dimension(), v.get_units())
             return v
@@ -390,7 +390,7 @@ class FunctorGenerator(ASTVisitorBase):
             v = state_data.suppliedvalues[o.symbol]
             return v
         return eFunc
-    
+
     def VisitTimeVariable(self, o, **kwargs):
         def eFunc(state_data, **kw):
             v = state_data.suppliedvalues[o.symbol]

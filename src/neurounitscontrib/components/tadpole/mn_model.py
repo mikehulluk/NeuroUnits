@@ -255,7 +255,7 @@ def get_MN():
         'syn_ampa_B'    : NodeRange(min='0', max ='50'),
         'syn_inhib_A'    : NodeRange(min='0', max ='50'),
         'syn_inhib_B'    : NodeRange(min='0', max ='50'),
-        
+
         'recv_ampa_spike::weight': NodeRange(min='0nS',max='10nS'),
         'recv_nmda_spike::weight': NodeRange(min='0nS',max='10nS'),
         'recv_inh_spike::weight': NodeRange(min='0nS',max='10nS'),
@@ -264,11 +264,11 @@ def get_MN():
     var_annots_tags = {
         'V': 'Voltage',
         'syn_nmda_A':'',
-        'syn_nmda_B' : '',
-        'i_nmda' : '',
-        'nmda_vdep' :'',
-        'iLk' : '',
-        'iKf' : '',
+        'syn_nmda_B': '',
+        'i_nmda': '',
+        'nmda_vdep':'',
+        'iLk': '',
+        'iKf': '',
         'kf_n': '',
         'iInj_local': '',
     }
@@ -281,7 +281,7 @@ def get_MN():
 
 
     # Optimise the equations, to turn constant-divisions into multiplications:
-    
+
     OptimiseEquations(comp)
 
     comp.annotate_ast( NodeRangeByOptimiser(var_annots_ranges))
@@ -290,7 +290,7 @@ def get_MN():
     #comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
     comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 
-    
+
     NodeTagger(var_annots_tags).visit(comp)
 
     return comp

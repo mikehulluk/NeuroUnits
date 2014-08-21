@@ -161,7 +161,7 @@ class ComponentLibrary(object):
             if filename == '<string>':
                 print 'Unexpected filename=<string> found. Lines: (%s)' % ','.join(str(l) for l in linenumbers)
                 continue
- 
+
             cd = _CachedFileAccessData(filename=filename, linenumbers=linenumbers)
             cache_data.append(cd)
 

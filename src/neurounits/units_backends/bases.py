@@ -31,7 +31,7 @@ class ParsingBackendBase(object):
 
     def __init__(self):
         pass
-        
+
 
     @classmethod
     def Quantity(cls, *args, **kwargs):

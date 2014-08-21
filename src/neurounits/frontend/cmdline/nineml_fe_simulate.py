@@ -29,7 +29,7 @@ def cmdline_simulate(args):
 
     src_files =  [pkg_resources.resource_stream('neurounits',f) for f in neurounits.Locations.get_default_9ml_locations()]
     library_manager = neurounits.NeuroUnitParser.Parse9MLFiles( src_files)
-    
+
     # Get the component:
     component = library_manager.get(args.component)
 
@@ -50,7 +50,7 @@ def cmdline_simulate(args):
     print 'Simulating'
     for arg, arg_value in vars(args).items():
         print arg, arg_value
-    
+
     # and plot:
     res.auto_plot()
 
@@ -65,4 +65,4 @@ def cmdline_simulate(args):
     for arg, arg_value in vars(args).items():
         print arg, arg_value
 
-    
+

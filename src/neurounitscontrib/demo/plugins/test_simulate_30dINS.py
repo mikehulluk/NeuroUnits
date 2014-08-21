@@ -174,6 +174,9 @@ def test_simulate30dINs():
     get_results()
     results = HDF5SimulationResultFileSet(['output_fixed.hd5'])
 
+    import neurounitscontrib.components.tadpole
+    dIN_comp = neurounits.ComponentLibrary.instantiate_component('dIN')
+
     pylab.margins(0.1)
 
     filters_traces = [

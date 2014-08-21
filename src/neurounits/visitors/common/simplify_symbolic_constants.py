@@ -45,7 +45,7 @@ class ReduceConstants(ASTVisitorBase):
         for assignment in o.ordered_assignments_by_dependancies:
             fixed_value = self.visit(assignment.rhs_map)
 
-            
+
             if fixed_value is not None:
 
                 removed.extend([assignment, assignment.lhs])
@@ -118,7 +118,7 @@ class ReduceConstants(ASTVisitorBase):
 
     def VisitConstant(self, o, **kwargs):
         return o.value
-    
+
     def VisitConstantZero(self, o, **kwargs):
         assert False
         return o.value
@@ -205,7 +205,7 @@ class ReduceConstants(ASTVisitorBase):
 
 		#TODO - generalise this:
         if o.function_def.funcname== 'ln':
-           
+
             assert len(params) == 1
             p = params.values()[0].float_in_si()
             return MMQuantity( numpy.log(p), MMUnit() )

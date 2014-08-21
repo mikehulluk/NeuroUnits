@@ -290,7 +290,7 @@ def test_simulateNetwork():
             )
     fig.subplots_adjust(left=0.1,top=0.95)
 
-    
+
 
     for ax in fig.get_axes():
         ax.yaxis.set_major_locator(MaxNLocator(3))

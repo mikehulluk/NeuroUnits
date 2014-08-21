@@ -113,7 +113,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         self.visit(o.crosses_rhs, **kwargs)
         return self._ActionOnConditionCrossing(o, **kwargs)
 
-    
+
     def VisitOnConditionTriggerTransition(self, o, **kwargs):
         self.visit(o.trigger, **kwargs)
         for a in o.actions:

@@ -77,13 +77,13 @@ def FormatDimensionality(dim):
 def include_id_in_overbrace(func):
     def new_func(self, o, *args,**kwargs):
         res = func(self, o, *args, **kwargs)
-        return r'\overbrace{%s}^{ID:%s/%s, US:%s (M/M:%s/%s)}' % (res, 
-                id(o), 
-                o.annotations.get('node-id','??'), 
+        return r'\overbrace{%s}^{ID:%s/%s, US:%s (M/M:%s/%s)}' % (res,
+                id(o),
+                o.annotations.get('node-id','??'),
                 o.annotations['fixed-point-format'].upscale if 'fixed-point-format' in o.annotations else '??',
                 o.annotations['node-value-range'].min if 'node-value-range' in o.annotations else '??',
                 o.annotations['node-value-range'].max if 'node-value-range' in o.annotations else '??',
-                ) 
+                )
     return new_func
 
 class LatexEqnWriterN(ASTVisitorBase):
@@ -171,7 +171,7 @@ class LatexEqnWriterN(ASTVisitorBase):
         return self.FormatInlineConstant(o.value)
 
     def VisitConstantZero(self, o, **kwargs):
-        
+
         return self.FormatInlineConstant( MMQuantity(0, o.get_dimension()) )
 
     def VisitAssignedVariable(self, o, **kwargs):
@@ -299,11 +299,11 @@ def build_figures(component):
 
             try:
                 vVals = [-80, -70, -60, -40, -20, 0, 20, 40]
-                vVals = np.linspace(-80, 50, 22) 
+                vVals = np.linspace(-80, 50, 22)
                 oUnit = None
                 fOut = []
                 for v in vVals:
-                    
+
                     vUnit = NeuroUnitParser.QuantitySimple('%f mV' % v)
                     vRes = f(V=vUnit, v=vUnit)
                     if oUnit is None:
@@ -393,12 +393,12 @@ class MRedocWriterVisitor(ASTVisitorBase):
 
     def VisitMultiportInterfaceDef(self, interface, **kwargs):
         connections = VerticalColTable("Symbol  | Type    | Value  | Dimensions | Dependancies | Metadata",
-                                      ["$%s$    | -       | -      | -          | -            | -       " % (p.symbol,) for p in interface.connections]  
+                                      ["$%s$    | -       | -      | -          | -            | -       " % (p.symbol,) for p in interface.connections]
                                       )
-        
+
         return HierachyScope(
             "Summary of '%s'" % interface.name,
-            Section('Connections', 
+            Section('Connections',
                 connections
                 )
             )
@@ -411,7 +411,7 @@ class MRedocWriterVisitor(ASTVisitorBase):
                                 % FormatDimensionality(o.get_dimension()) if not o.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False) else '-'
                                 )
 
-        f = LatexEqnWriterN()  
+        f = LatexEqnWriterN()
         symbol_format = lambda s: f.FormatTerminalSymbol(s)
 
         dep_string_indir = lambda s: ','.join([symbol_format(o.symbol)

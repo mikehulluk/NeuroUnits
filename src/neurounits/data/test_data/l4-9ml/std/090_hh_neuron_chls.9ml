@@ -5,20 +5,20 @@ define_component gating_particle_hh_k {
     vrel = V - -60mV
     s_alpha = ( ({10mV} - vrel) / ( 100*( exp( ({10mV}-vrel)/{10mV})  -{1.}) ) ) *(1/{1 ms mV})
     s_beta = 0.125 * exp(-vrel/{80mV}) * (1/{1ms})
-    
+
     s_inf = s_alpha / (s_alpha + s_beta)
-    s_tau = 1. / (s_alpha + s_beta) 
+    s_tau = 1. / (s_alpha + s_beta)
 
     s' = (s_inf - s)/s_tau
 
     s4 = s*s*s*s
-    
+
     <=> output    s:()
     <=> input     V:mV
-    
+
     initial {
         s = 0
-        
+
     }
 }
 
@@ -26,37 +26,37 @@ define_component gating_particle_hh_k {
 define_component gating_particle_hh_na {
 
     from std.math import exp, abs
-   
+
     vrel = V - {-65mV}
-    
+
     SF = (1/{1 ms})
-    
+
     s_alpha_m = ( ({25mV} - vrel)/(10 * ( exp( ({25mV}-vrel)/{10mV}) -{1.} )  ) ) *               (1/{1mV}) * SF
     s_beta_m =  4 * exp( -vrel/{18mV} ) * SF
-    
+
     s_alpha_h = 0.07 * exp(vrel/{-20mV}) * SF
     s_beta_h = (1/ (exp(({30mV}-vrel)/{10mV}) + 1) ) *SF
-    
-    
+
+
     s_inf_m = s_alpha_m / (s_alpha_m + s_beta_m)
-    s_tau_m = 1. / (s_alpha_m + s_beta_m) 
-    
+    s_tau_m = 1. / (s_alpha_m + s_beta_m)
+
     s_inf_h = s_alpha_h / (s_alpha_h + s_beta_h)
-    s_tau_h = 1. / (s_alpha_h + s_beta_h) 
-    
+    s_tau_h = 1. / (s_alpha_h + s_beta_h)
+
 
     s_m' = (s_inf_m - s_m)/s_tau_m
     s_h' = (s_inf_h - s_h)/s_tau_h
 
     s_out = s_m * s_m * s_m * s_h
-    
-    
+
+
     initial {
         s_m = 0
         s_h = 1.0
     }
-    
-    
+
+
     <=> output    s_out:()
     <=> input     V:mV
 }
@@ -80,7 +80,7 @@ define_component chl_base {
 
     <=> parameter g:(S/m2), erev, area:(m2)
     <=> output    i:(mA)
-    <=> input     V: mV    
+    <=> input     V: mV
     <=> summed_input s_in:()
 
 }
@@ -99,43 +99,43 @@ define_compound_component chl_kf {
 
     connect kf/s4 to X/s_in
 
-    merge [X/V, kf/V] as V 
-    
-    rename X/g to g 
+    merge [X/V, kf/V] as V
+
+    rename X/g to g
     rename X/erev to erev
 
-    
-    
+
+
     <=> multiport neuron_membrane_point_process[in] as process_mount_in {
             # Local <==> Compound-port name
             V <==> V
             X/i <==> I
             }
-    
-    
+
+
 }
 
 define_compound_component chl_na {
     instantiate gating_particle_hh_na as na
-    
+
     instantiate chl_base as X
 
     connect na/s_out to X/s_in
 
-    merge [X/V, na/V] as V 
-    
-    rename X/g to g 
+    merge [X/V, na/V] as V
+
+    rename X/g to g
     rename X/erev to erev
 
-    
-    
+
+
     <=> multiport neuron_membrane_point_process[in] as process_mount_in {
             # Local <==> Compound-port name
             V <==> V
             X/i <==> I
             }
-    
-    
+
+
 }
 
 
@@ -162,11 +162,11 @@ define_component chl_lk {
         <=> input     V: mV
 
         i = g * (erev-V) * area
-        
+
         <=> multiport neuron_membrane_point_process[in] as process_mount_in  {
             # Local <==> Compound-port name
             V <==> V
             i <==> I
-            } 
+            }
 
 }

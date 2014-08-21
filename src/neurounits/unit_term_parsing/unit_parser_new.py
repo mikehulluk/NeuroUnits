@@ -9,7 +9,7 @@ class UnitTermParser(object):
         self.backend=backend
 
         self.LUT = {}
-        
+
         self._short_power_of_ten_prefixes = {}
         self._long_power_of_ten_prefixes = {}
         self._shortforms = {}
@@ -48,7 +48,7 @@ class UnitTermParser(object):
 
         lf = self._try_find_longform(unitterm)
         sf = self._try_find_shortform(unitterm)
-    
+
         if lf and sf:
             raise UnitError('Unable to decipher %s (Can be interpretted as long and shortforms!)' % unitterm)
         if not lf and not sf:
@@ -84,7 +84,7 @@ class UnitTermParser(object):
             if unitterm.endswith(u):
                 potential_suffixes.append( (unitterm[:len(unitterm)-len(u)], u,uv) )
         if not potential_suffixes:
-            return 
+            return
 
 
         potential_units = []
@@ -109,10 +109,10 @@ class UnitTermParser(object):
         e = equivalent_dim
         pot = 0
         if equivalent_dim.float_in_si() != 1.0:
-            pot = int( np.log10(equivalent_dim.float_in_si())) 
+            pot = int( np.log10(equivalent_dim.float_in_si()))
             assert equivalent_dim.float_in_si() / 10**pot == 1.0
 
-        func = lambda backend : backend.Unit(
+        func = lambda backend: backend.Unit(
                 meter=e.unit.meter,
                 kilogram = e.unit.kilogram,
                 second = e.unit.second,

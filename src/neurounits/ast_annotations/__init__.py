@@ -26,7 +26,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-""" 
+"""
 Annotations can be attached to each node, which is handled through the ASTNodeAnnotationData
 
 

@@ -3,7 +3,7 @@ define_component gap_junction {
     <=> parameter r:ohm
     <=> input V1:V, V2:V
     <=> output I1:A, I2:A
-    
+
     #v=ir => i = v/r
     I1 = (V1-V2) / r
     I2 = -I1

@@ -75,12 +75,9 @@ define_compound_component simple_circuit1 {
 
      connect stim/vout  to  ff_single/D
      connect clk/my_clk  to  ff_single/clk
-    
+
      connect clk/my_clk  to  reg/clk
      connect stim/vout  to  reg/ff0/D
-
-
-    
 
 }
 
@@ -180,9 +177,9 @@ define_compound_component simple_circuit2 {
 
 namespace myDigiNS {
     library libOne{
-    
+
     }
     library libTwo{
-    
+
     }
 }

@@ -10,10 +10,10 @@ def cmdline_summarise(args):
     import mredoc
     print 'Summarise'
 
-    
+
     from neurounits import NeuroUnitParser
     from neurounits.nineml_fe.nineml_fe_utils import get_src_9ml_files
-    
+
     src_files = get_src_9ml_files(args)
 
     # Read all the input files:

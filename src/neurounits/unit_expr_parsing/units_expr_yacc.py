@@ -120,7 +120,7 @@ def p_unitsdefinition3b(p):
     shortnames = p[4]
     equivalent_dim = p[6]
 
-    import numpy 
+    import numpy
     pot = numpy.log10(equivalent_dim.float_in_si())
     # Fairly major initial limitations:
     assert equivalent_dim.float_in_si() / 10**pot == 1.0
@@ -438,10 +438,10 @@ def p_parse_ioline7(p):
 def p_parse_ioline8(p):
     """io_param : alphanumtoken COLON unit_expr"""
     p[0] = (p[1],p[3])
-    
 
-    
-    
+
+
+
 
 
 
@@ -1310,7 +1310,7 @@ class ParserMgr(object):
         debug=True
         #debug=False
 
-        
+
         log_neurounits.info('Building Parser for: %s' % start_symbol)
 
 

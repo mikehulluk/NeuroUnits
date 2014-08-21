@@ -132,7 +132,7 @@ class MMUnit(object):
         basisCounts = dict([(b, getattr(self, b)) for b in MMUnit.Bases])
 
         counts_per_base = [  (basis_short_LUT[b], basisCounts[b]) for b in MMUnit.Bases if basisCounts[b]]
-        terms = ['%s %s' % (base, str(count) if count > 1 else "" ) for (base,count) in counts_per_base] 
+        terms = ['%s %s' % (base, str(count) if count > 1 else "" ) for (base,count) in counts_per_base]
         s2 = ' '.join(terms)
         return '%s %s' % (s1, s2)
 

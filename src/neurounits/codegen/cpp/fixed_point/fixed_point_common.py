@@ -272,7 +272,7 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         node_name = 'RV%s' % o.annotations['node-id']
 
         if o.modes['share'] =='PER_NEURON':
-            res = self.get_var_str( name=node_name) 
+            res = self.get_var_str( name=node_name)
         elif o.modes['share'] == 'PER_POPULATION':
             res = 'd.%s' % node_name
         else:
@@ -446,7 +446,7 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
         res = "%s<0>(0)" %(self.op_scalar_type)
         return self.add_range_check(o, res)
 
-    
+
     def VisitParameter(self, o, **kwargs):
         res = self.get_var_str(o.symbol)
         return self.add_range_check(o, res)
@@ -469,7 +469,7 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
         node_name = 'RV%s' % o.annotations['node-id']
 
         if o.modes['share'] =='PER_NEURON':
-            res = self.get_var_str( name=node_name) 
+            res = self.get_var_str( name=node_name)
         elif o.modes['share'] == 'PER_POPULATION':
             res = 'd.%s' % node_name
         else:
@@ -482,9 +482,9 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
 
         param = o.parameters.values()[0]
         param_term = self.visit(param.rhs_ast, **kwargs)
-        res = """ %s<%d>::exp( %s )""" %( 
+        res = """ %s<%d>::exp( %s )""" %(
                 self.op_scalar_op,
-                o.annotations['fixed-point-format'].upscale, 
+                o.annotations['fixed-point-format'].upscale,
                 param_term)
         return res
 

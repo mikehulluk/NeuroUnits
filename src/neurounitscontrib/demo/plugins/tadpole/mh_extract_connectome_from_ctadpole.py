@@ -146,7 +146,7 @@ def merge_populations(pop_sizes, projections, pop_merge_details, projection_merg
         new_population_positions[new_pop_name] = []
         for incl_pop in included_pops:
             new_population_positions[new_pop_name].extend( population_positions[incl_pop] )
-        
+
 
 
     return new_popsizes, new_projections, old_population_locations, new_population_positions
@@ -178,42 +178,42 @@ pop_merge_details = {
 }
 projection_merge_details = [
 
- { "between" : "RB->dlc",	 "syn_type"	: "ampa",	"g" : 8.0, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "RB->dla",	 "syn_type"	: "ampa",	"g" : 8.0, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "dlc->dIN",	 "syn_type"	: "nmda",	"g"	: 1.0, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "dla->dIN",	 "syn_type"	: "nmda", 	"g"	: 0.29, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "dIN->dIN",	 "syn_type"	: "nmda", 	"g"	: 0.15, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "dIN->dIN",	 "syn_type"	: "ampa", 	"g"	: 0.593, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "dIN->cIN",	 "syn_type"	: "ampa", 	"g"	: 0.593, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "cIN->dIN",	 "syn_type"	: "inh", 	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "cIN->cIN",	 "syn_type"	: "inh",	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "RB->dIN",	 "syn_type"	: "ampa",	"g" : 0.593, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "dlc->dlc",	 "syn_type"	: "nmda",	"g" : 0.29, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "dlc->aIN",	 "syn_type"	: "nmda", 	"g"	: 0.29, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "dlc->cIN",	 "syn_type"	: "nmda",	"g" : 0.29, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "dlc->MN",	 "syn_type"	: "nmda", 	"g"	: 0.29, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "aIN->dlc",	 "syn_type"	: "inh", 	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "aIN->aIN",	 "syn_type"	: "inh", 	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "aIN->cIN",	 "syn_type"	: "inh", 	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "aIN->dIN",	 "syn_type"	: "inh", 	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "aIN->MN",	 "syn_type"	: "inh", 	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "aIN->dla",	 "syn_type"	: "inh", 	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "cIN->dlc",	 "syn_type"	: "inh",	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "cIN->aIN",	 "syn_type"	: "inh", 	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "cIN->MN",	 "syn_type"	: "inh", 	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "dIN->dlc",	 "syn_type"	: "ampa", 	"g"	: 0.593, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "dIN->aIN",	 "syn_type"	: "ampa", 	"g"	: 0.1, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "dIN->MN",	 "syn_type"	: "ampa", 	"g"	: 0.593, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "dIN->dla",	 "syn_type"	: "ampa", 	"g"	: 0.593, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "dla->dlc",	 "syn_type"	: "nmda", 	"g"	: 0.29, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "dla->aIN",	 "syn_type"	: "nmda", 	"g"	: 0.29, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "dla->cIN",	 "syn_type"	: "nmda", 	"g"	: 0.29, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "dla->MN",	 "syn_type"	: "nmda", 	"g"	: 0.29, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "dla->dla",	 "syn_type"	: "nmda", 	"g"	: 0.29, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "MN->aIN",	 "syn_type"	: "ampa", 	"g"	: 0.593, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "MN->cIN",	 "syn_type"	: "ampa", 	"g"	: 0.593, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "MN->dIN",	 "syn_type"	: "ampa", 	"g"	: 0.593, "fixed_delay": 1.0, "dist_delay":  0.0035 },
- { "between" : "MN->MN",	 "syn_type"	: "ampa", 	"g"	: 0.593, "fixed_delay": 1.0, "dist_delay":  0.0035 }
+ { "between": "RB->dlc",	 "syn_type": "ampa",	"g":  8.0, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "RB->dla",	 "syn_type": "ampa",	"g":  8.0, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "dlc->dIN",	 "syn_type"	: "nmda",	"g"	: 1.0, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "dla->dIN",	 "syn_type"	: "nmda", 	"g"	: 0.29, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "dIN->dIN",	 "syn_type"	: "nmda", 	"g"	: 0.15, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "dIN->dIN",	 "syn_type"	: "ampa", 	"g"	: 0.593, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "dIN->cIN",	 "syn_type"	: "ampa", 	"g"	: 0.593, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "cIN->dIN",	 "syn_type"	: "inh", 	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "cIN->cIN",	 "syn_type"	: "inh",	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "RB->dIN",	 "syn_type"	: "ampa",	"g":  0.593, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "dlc->dlc",	 "syn_type"	: "nmda",	"g":  0.29, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "dlc->aIN",	 "syn_type"	: "nmda", 	"g"	: 0.29, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "dlc->cIN",	 "syn_type"	: "nmda",	"g":  0.29, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "dlc->MN",	 "syn_type"	: "nmda", 	"g"	: 0.29, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "aIN->dlc",	 "syn_type"	: "inh", 	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "aIN->aIN",	 "syn_type"	: "inh", 	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "aIN->cIN",	 "syn_type"	: "inh", 	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "aIN->dIN",	 "syn_type"	: "inh", 	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "aIN->MN",	 "syn_type"	: "inh", 	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "aIN->dla",	 "syn_type"	: "inh", 	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "cIN->dlc",	 "syn_type"	: "inh",	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "cIN->aIN",	 "syn_type"	: "inh", 	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "cIN->MN",	 "syn_type"	: "inh", 	"g"	: 0.435, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "dIN->dlc",	 "syn_type"	: "ampa", 	"g"	: 0.593, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "dIN->aIN",	 "syn_type"	: "ampa", 	"g"	: 0.1, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "dIN->MN",	 "syn_type"	: "ampa", 	"g"	: 0.593, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "dIN->dla",	 "syn_type"	: "ampa", 	"g"	: 0.593, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "dla->dlc",	 "syn_type"	: "nmda", 	"g"	: 0.29, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "dla->aIN",	 "syn_type"	: "nmda", 	"g"	: 0.29, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "dla->cIN",	 "syn_type"	: "nmda", 	"g"	: 0.29, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "dla->MN",	 "syn_type"	: "nmda", 	"g"	: 0.29, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "dla->dla",	 "syn_type"	: "nmda", 	"g"	: 0.29, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "MN->aIN",	 "syn_type"	: "ampa", 	"g"	: 0.593, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "MN->cIN",	 "syn_type"	: "ampa", 	"g"	: 0.593, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "MN->dIN",	 "syn_type"	: "ampa", 	"g"	: 0.593, "fixed_delay": 1.0, "dist_delay":  0.0035 },
+ { "between": "MN->MN",	 "syn_type"	: "ampa", 	"g"	: 0.593, "fixed_delay": 1.0, "dist_delay":  0.0035 }
 ]
 
 

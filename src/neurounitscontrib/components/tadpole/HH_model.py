@@ -25,7 +25,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
- 
+
 
 
 import neurounits
@@ -124,7 +124,7 @@ def get_HH():
         iNa = gNa * (eNa-V) * na_m * na_m * na_m * na_h * glk_noise1
 
 
-      
+
 
         on (V crosses (rising) 0V) and (t>3ms)  {
             emit spike()
@@ -173,27 +173,27 @@ def get_HH():
         'na_h'          : NodeRange(min="-0.01", max = "1.3"),
         'na_m'          : NodeRange(min="-0.01", max = "1.3"),
 
-        'inj_current' : NodeRange(min='0pA',max='300pA'),
+        'inj_current': NodeRange(min='0pA',max='300pA'),
         }
 
     var_annots_tags = {
         'V': 'Voltage',
-        'i_nmda' : '',
-        'iLk' : '',
-        'iKf' : '',
+        'i_nmda': '',
+        'iLk': '',
+        'iKf': '',
         'kf_n': '',
         'iInj_local': '',
     }
 
 
-    
+
     library_manager = neurounits.NeuroUnitParser.Parse9MLFile( src_text)
     comp = library_manager['simple_hh']
     comp.expand_all_function_calls()
 
 
     # Optimise the equations, to turn constant-divisions into multiplications:
-    
+
     OptimiseEquations(comp)
     comp.annotate_ast( NodeRangeByOptimiser(var_annots_ranges))
     RangeExpander().visit(comp)

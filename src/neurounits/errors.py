@@ -107,7 +107,7 @@ class NeuroUnitParsingErrorUnexpectedToken(NeuroUnitParsingError):
 
 
         pre_parsed_lines = lines[ max(bad_line_no-lines_context,0): bad_line_no ]
-        post_parsed_lines = lines[ bad_line_no : min(bad_line_no+lines_context,len(lines)-1) ]
+        post_parsed_lines = lines[ bad_line_no: min(bad_line_no+lines_context,len(lines)-1) ]
         parsed_line = lines[bad_line_no]
 
 
@@ -135,7 +135,7 @@ class NeuroUnitParsingErrorUnexpectedToken(NeuroUnitParsingError):
         E2 = 'Chars: %d' % col_pos
         E3 = pre_str + char_str[col_pos] + post_str
         E4 = ' ' * len(pre_str) + '^' + ' ' * len(post_str)
-        
+
 
 
         print self.bad_token.__dict__
@@ -166,9 +166,9 @@ class ASTMissingAnnotationError(RuntimeError):
         return "Annotation: '%s' not found for  %s (type: %s)" % (self.annotation, self.node, type(self.node) )
     def __str__(self, ):
         return repr(self)
-        
-        
-        
+
+
+
 
 
 
@@ -178,12 +178,12 @@ class DuplicateNameError(RuntimeError):
 
 class NoSuchObjectError(RuntimeError):
     pass
-        
-        
-        
+
+
+
 class InvalidParametersError(RuntimeError):
     pass
-    
+
 
 
 

@@ -66,7 +66,7 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
         self.const_value[o] = o.value
 
     def ActionParameter(self, o, **kwargs):
-        # Parameters are not 'constants' becase they can be different for 
+        # Parameters are not 'constants' becase they can be different for
         # each neuron in a population
         self.const_value[o] = None
 
@@ -144,7 +144,7 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
     def ActionOnConditionTriggerTransition(self, o, **kwargs):
         pass # TODO: Optimisiations possible
         #assert False
-    
+
 
 
     def ActionOnTransitionEvent(self, o, **kwargs):
@@ -152,10 +152,10 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
 
     def ActionOnEventDefParameter(self, o, **kwargs):
         self.const_value[o] = None
-        
+
 
     def ActionEmitEvent(self, o, **kwargs):
-        pass 
+        pass
 
 
     def ActionOnEvent(self, o, **kwargs):
@@ -253,7 +253,7 @@ class ReplaceWithOptimisedNodes(ASTVisitorBase):
         return False
 
     def do_replace_div_by_mul(self, o):
-        
+
         val = self.constants[o.rhs]
         new_node = ast.MulOp(
                 lhs = o.lhs,

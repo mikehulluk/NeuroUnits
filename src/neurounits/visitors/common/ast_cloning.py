@@ -76,7 +76,7 @@ class ASTClone(object):
         builddata.transitions_conditiontriggers = o._transitions_conditiontriggers.copy()
         builddata.transitions_events =  o._transitions_events.copy()
         builddata.rt_graphs = o.rt_graphs.copy()
-        
+
         # Top-level objects:
         builddata.assignments = o._eqn_assignment.copy()
         builddata.funcdefs = o._function_defs.copy()
@@ -226,7 +226,7 @@ class ASTClone(object):
     def VisitConstant(self, o, **kwargs):
         new = ast.ConstValue(value = o.value)
         return copy_std(o, new, )
-    
+
     def VisitConstantZero(self, o, **kwargs):
         new = ast.ConstValueZero()
         return copy_std(o, new, )
@@ -296,17 +296,17 @@ class ASTClone(object):
 
 
     def VisitAnalogReducePort(self, o, **kwagrs):
-        return ast.AnalogReducePort( 
-                symbol = o.symbol, 
+        return ast.AnalogReducePort(
+                symbol = o.symbol,
                 rhses = list(o.rhses)
                 )
 
     def VisitEmitEventParameter(self, o, **kwargs):
         return ast.EmitEventParameter(
-                _symbol='(from_clone)', 
+                _symbol='(from_clone)',
                 rhs= o.rhs,
                 port_parameter_obj=o.port_parameter_obj)
-        
+
     def VisitOutEventPortParameter(self, o, **kwargs):
         return ast.OutEventPortParameter(symbol = o.symbol)
 
@@ -326,7 +326,7 @@ class ASTClone(object):
                 symbol = o.symbol,
                 parameters = o.parameters.copy()
                 )
-        
+
     def VisitInEventPortParameter(self, o, **kwargs):
         return ast.InEventPortParameter(
                 symbol = o.symbol
@@ -334,14 +334,14 @@ class ASTClone(object):
 
     def VisitOnEventDefParameter(self, o, **kwargs):
         return ast.OnEventDefParameter(
-                symbol = o.symbol, 
-                dimension = o.get_dimension() 
+                symbol = o.symbol,
+                dimension = o.get_dimension()
                 )
 
 
     def VisitCompoundPortConnector(self, o, **kwaargs):
         return ast.CompoundPortConnector(
-                symbol = o.symbol, 
+                symbol = o.symbol,
                 interface_def = o.interface_def,
                 wire_mappings = o.wire_mappings.copy(),
                 direction = o.direction

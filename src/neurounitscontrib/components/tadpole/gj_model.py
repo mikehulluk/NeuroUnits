@@ -72,7 +72,7 @@ def get_gj():
 
 
     # Optimise the equations, to turn constant-divisions into multiplications:
-    
+
     OptimiseEquations(comp)
 
     comp.annotate_ast( NodeRangeByOptimiser(var_annots_ranges))
@@ -80,7 +80,7 @@ def get_gj():
 
     comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 
-    #from neurounits.ast_annotations.common import 
+    #from neurounits.ast_annotations.common import
     NodeTagger(var_annots_tags).visit(comp)
 
     return comp

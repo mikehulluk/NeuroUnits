@@ -505,7 +505,6 @@ class AbstractBlockBuilder(object):
         assignments = SingleSetDict()
         maps_asses = defaultdict(SingleSetDict)
         for reg_ass in self.builddata._assigments_per_regime:
-            
             maps_asses[reg_ass.lhs][reg_ass.regime] = reg_ass.rhs
 
         for (ass_var, tds) in maps_asses.items():
@@ -533,7 +532,7 @@ class AbstractBlockBuilder(object):
             if not symbol.startswith('std.'):
                 continue
             (lib, token) = symbol.rsplit('.', 1)
-            
+
             self.do_import(srclibrary=lib, tokens=[(token, symbol)])
 
 
@@ -561,7 +560,7 @@ class AbstractBlockBuilder(object):
             for action in tr.actions:
                 if isinstance( action, ast.OnEventStateAssignment ):
 
-                    if isinstance( action.lhs, SymbolProxy) :
+                    if isinstance( action.lhs, SymbolProxy):
 
                         # Follow the proxy:
                         n = action.lhs
@@ -702,7 +701,7 @@ class AbstractBlockBuilder(object):
 
         # 2. Setup the meta-data in each node from IO lines
         for io_data in io_data:
-            
+
             allow_missing = ( io_data.iotype==IOType.Input and options.allow_unused_suppliedvalue_declarations ) or \
                             ( io_data.iotype==IOType.Parameter and options.allow_unused_parameter_declarations )
 
@@ -722,15 +721,6 @@ class AbstractBlockBuilder(object):
 
         # 5. Remove unnessesary regime transition-grpahs
         RemoveUnusedRT().visit(ast_object)
-
-
-
-## TODO: REMVOE HERE
-#class EqnSetBuilder(AbstractBlockBuilder):
-#
-#    def __init__(self, library_manager, name, block_type=ast.NineMLComponent):
-#        assert False        
-#        AbstractBlockBuilder.__init__(self,block_type=block_type, library_manager=library_manager,name=name)
 
 
 

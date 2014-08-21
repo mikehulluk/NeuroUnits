@@ -59,7 +59,7 @@ def build_argparser():
 
     subparsers = parser.add_subparsers()
 
-    # Simulation: 
+    # Simulation:
     # ===========
     simulate_subparser = subparsers.add_parser('simulate', parents=[parent_parser])
     simulate_subparser.set_defaults(func=handle_simulate)
@@ -75,7 +75,7 @@ def build_argparser():
     simulate_subparser.add_argument('-p', '--plot-what', type=str, )
     simulate_subparser.add_argument('--phase-plot',  type=str, action='append' )
 
-    
+
     # Save to CSV file:
     simulate_subparser.add_argument('--write-csv', type=str, dest='csv_filename', )
     simulate_subparser.add_argument('--csv-cols', type=str, dest='csv_columns', default='*')

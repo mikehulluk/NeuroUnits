@@ -7,21 +7,21 @@ namespace hh_neuron {
         <=> summed_input i_sum
         <=> parameter C:(uF)
         <=> output     V: mV
-        
+
         V' = i_sum / C
 
 
         initial {
             V = -65mV
         }
-        
+
         <=> multiport neuron_membrane_point_process[out] as process_mount  {
             # Local <==> Compound-port name
             V <==> V
             i_sum <==> I
             }
     }
-    
-    
+
+
 }
 

@@ -29,7 +29,7 @@
 #from neurounits.ast_builder.builder_visitor_propogate_dimensions import PropogateDimensions
 from neurounits.ast_builder.builder_visitor_propogate_dimensions import VerifyUnitsInTree
 import neurounits.ast as ast
-from neurounits.simulation_io.results import SimulationResultsData 
+from neurounits.simulation_io.results import SimulationResultsData
 
 
 
@@ -136,14 +136,14 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
     # Sanity Check:
     # =============
     component.run_sanity_checks()
-    
-    
+
+
 
     # Resolve initial regimes & state-variables:
     # ==========================================
     current_regimes = component.get_initial_regimes(initial_regimes=initial_regimes)
     state_values = component.get_initial_state_values(initial_state_values)
-    
+
 
 
 
@@ -170,7 +170,7 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
         print '\rTime: %s' % str('%2.3f' % t).ljust(5),
         sys.stdout.flush()
 
-        
+
 
 
         t_unit = t * one_second
@@ -324,7 +324,7 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
 
 
     # Hook it all up:
-    
+
     res = SimulationResultsData(times=times,
                                 state_variables=state_data_dict,
                                 rt_regimes=rt_graph_data,

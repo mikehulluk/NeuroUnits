@@ -753,7 +753,7 @@ namespace StdCVectorType
     struct DataVector
     {
         typedef DATATYPE_ DATATYPE;
-        DATATYPE* _data; 
+        DATATYPE* _data;
 
         // Default Constructor - initialise everything to zero
         DataVector()
@@ -2475,7 +2475,7 @@ int main()
     // Enable floating point exception trapping:
     #if !ON_NIOS
     //feenableexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW | FE_INVALID);
-    
+
     feenableexcept(FE_DIVBYZERO |  FE_OVERFLOW | FE_INVALID);
     #endif //!ON_NIOS
 
@@ -3125,7 +3125,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
         # There is an opportunity here. Sometimes, the parameters are going to be constants - so
         # we can re-run the optimiser to remove constants:
-        
+
         for pop in network.populations:
             fp_ann = NodeFixedPointFormatAnnotator(nbits=nbits)
 
@@ -3328,7 +3328,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
     def compile_and_run(self, cfile, output_c_filename, run, CPPFLAGS,  output_exec_filename):
 
-        
+
 
 
         # The executable:
@@ -3338,7 +3338,7 @@ class CBasedEqnWriterFixedNetwork(object):
                                         additional_library_paths=["~/dev/hdf-jive/lib/","~/hw/BlueVec/lib/"],
                                         libraries = ['mpfr','hdfjive','hdf5','hdf5_hl'],
                                         compile_flags=['-Wall  -Wfatal-errors -Wno-unused-local-typedefs -std=gnu++0x  -O2  -g ' + (CPPFLAGS if CPPFLAGS else '') ]
-                                        
+
                                         ),
                                     run=run,
                                     output_filename=output_exec_filename or None,

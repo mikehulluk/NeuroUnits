@@ -44,20 +44,20 @@ class NeuronSuppliedValues(object):
 
 
 class NEURONMappings(object):
-    
+
     current_units = {
             MechanismType.Distributed: NeuroUnitParser.Unit("mA/cm2"),
             MechanismType.Point: NeuroUnitParser.Unit("nA"),
             }
 
     supplied_value_names = {
-                NeuronSuppliedValues.MembraneVoltage : 'v',
+                NeuronSuppliedValues.MembraneVoltage: 'v',
                 NeuronSuppliedValues.Time: 't',
                 NeuronSuppliedValues.Temperature: 'celsius'
     }
 
     supplied_value_units = {
-                NeuronSuppliedValues.MembraneVoltage : NeuroUnitParser.Unit("mV"),
+                NeuronSuppliedValues.MembraneVoltage: NeuroUnitParser.Unit("mV"),
                 NeuronSuppliedValues.Time: NeuroUnitParser.Unit("ms"),
                 NeuronSuppliedValues.Temperature: NeuroUnitParser.Unit("K")
                 }

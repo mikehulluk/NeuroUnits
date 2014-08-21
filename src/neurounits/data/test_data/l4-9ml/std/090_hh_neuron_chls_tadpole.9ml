@@ -2,25 +2,25 @@
 
 
 define_component chl_dIN_na {
-    
+
 
     <=> parameter g:(S), erev
     <=> output    i:(mA)
-    <=> input     V: mV    
-    
+    <=> input     V: mV
+
     from std.math import exp
 
     i = g * (erev-V) * m*m*m*h
-    
-    
+
+
     AlphaBetaFunc(V, A,B,C,D,E) = (A+B*V) / (C + exp( (D+V)/E))
-    
+
     alpha_m = AlphaBetaFunc(V=V, A=8.67ms-1, B=0ms-1 mV-1, C=1.0, D=-1.01mV,E=-12.65mV)
     beta_m =  AlphaBetaFunc(V=V, A=3.82ms-1, B=0ms-1 mV-1, C=1.0, D=9.01mV, E=9.69mV)
     alpha_h = AlphaBetaFunc(V=V, A=0.08ms-1, B=0ms-1 mV-1, C=0.0, D=38.88mV,E=26.0mV)
     beta_h =  AlphaBetaFunc(V=V, A=4.08ms-1, B=0ms-1 mV-1, C=1.0, D=-5.09mV,E=-10.21mV)
-    
-    
+
+
     inf_m = alpha_m / (alpha_m + beta_m)
     inf_h = alpha_h/ (alpha_h + beta_h)
 
@@ -31,10 +31,10 @@ define_component chl_dIN_na {
     m' = (inf_m - m) / tau_m
     h' = (inf_h - h) / tau_h
 
-    
-    
+
+
     <=> multiport neuron_membrane_point_process[in] as process_mount_in   {
-    
+
         # Local <==> Compound-port name
         V <==> V
         i <==> I
@@ -48,13 +48,13 @@ define_component chl_dIN_kf {
 
     <=> parameter g:(S), erev
     <=> output    i:(mA)
-    <=> input     V: mV    
+    <=> input     V: mV
 
     from std.math import exp
 
     i = g * (erev-V) * n*n*n*n
-    
-    
+
+
     AlphaBetaFunc(V, A,B,C,D,E) = (A+B*V) / (C + exp( (D+V)/E))
 
     alpha_n = AlphaBetaFunc(V=V, A=5.06ms-1, B=0.0666ms-1 mV-1, C=5.12, D=-18.396mV,E=-25.42mV)
@@ -62,15 +62,15 @@ define_component chl_dIN_kf {
 
     inf_n = alpha_n / (alpha_n + beta_n)
     tau_n = 1.0 / (alpha_n + beta_n)
-   
+
     n' = (inf_n - n) / tau_n
-    
+
     <=> multiport neuron_membrane_point_process[in] as process_mount_in   {
         # Local <==> Compound-port name
         V <==> V
         i <==> I
     }
-    
+
 }
 
 
@@ -79,13 +79,13 @@ define_component chl_dIN_ks {
 
     <=> parameter g:(S), erev
     <=> output    i:(mA)
-    <=> input     V: mV    
+    <=> input     V: mV
 
     from std.math import exp
 
     i = g * (erev-V) * n*n
-    
-    
+
+
     AlphaBetaFunc(V, A,B,C,D,E) = (A+B*V) / (C + exp( (D+V)/E))
 
     alpha_n = AlphaBetaFunc(V=V, A=0.462ms-1, B=8.2e-3ms-1 mV-1, C=4.59, D=-4.21mV,E=-11.97mV)
@@ -93,14 +93,14 @@ define_component chl_dIN_ks {
 
     inf_n = alpha_n / (alpha_n + beta_n)
     tau_n = 1.0 / (alpha_n + beta_n)
-   
+
     n' = (inf_n - n) / tau_n
-    
+
     <=> multiport neuron_membrane_point_process[in] as process_mount_in   {
         # Local <==> Compound-port name
         V <==> V
         i <==> I
     }
-    
+
 }
 

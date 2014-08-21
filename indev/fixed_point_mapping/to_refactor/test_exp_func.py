@@ -39,7 +39,7 @@ define_component simple_hh {
 """
 
 var_annots_ranges = {
-        't'             : NodeRange(min="0ms", max = "1.1s"),
+        't': NodeRange(min="0ms", max = "1.1s"),
         }
 
 
@@ -79,18 +79,18 @@ dINs = network.create_population(name='dINs', component=comp, size=1)
 network.record_traces(dINs, 'x')
 
 results1 = CBasedEqnWriterFixedNetwork(network,
-                                      output_filename='text_exp-Seq.hdf', 
-                                      CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ', 
+                                      output_filename='text_exp-Seq.hdf',
+                                      CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
                                       step_size=0.05e-3, run_until=15.).results
 
 results2 = CBasedEqnWriterFixedNetwork(network,
-                                      output_filename='text_exp-BV.hdf', 
-                                      CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=true ', 
+                                      output_filename='text_exp-BV.hdf',
+                                      CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=true ',
                                       step_size=0.05e-3, run_until=15.).results
 
 
 import hdfjive
-results = hdfjive.HDF5SimulationResultFileSet(['text_exp-Seq.hdf', 'text_exp-BV.hdf']) 
+results = hdfjive.HDF5SimulationResultFileSet(['text_exp-Seq.hdf', 'text_exp-BV.hdf'])
 filters_traces = [
    "ALL{x}",
 ]

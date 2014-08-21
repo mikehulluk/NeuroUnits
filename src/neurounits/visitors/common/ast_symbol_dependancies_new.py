@@ -264,7 +264,7 @@ class _DependancyFinder(ASTVisitorBase):
         d1 = self.visit(o.predicate, **kwargs)
         d2 = self.visit(o.if_true_ast, **kwargs)
         d3 = self.visit(o.if_false_ast, **kwargs)
-        return d1 + d2 + d3 
+        return d1 + d2 + d3
 
     @save_deps_for_node
     def VisitInEquality(self, o, **kwargs):
@@ -321,7 +321,7 @@ class _DependancyFinder(ASTVisitorBase):
         return [o]
     def VisitTimeVariable(self, o, **kwargs):
         return [o]
-    
+
 
     # AST Objects:
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
@@ -350,7 +350,7 @@ class _DependancyFinder(ASTVisitorBase):
         return [o.rt_graph] + self.visit_trans(o) + self.visit(o.trigger)
 
     def VisitOnTransitionEvent(self, o, **kwargs):
-        return [o.rt_graph] + self.visit_trans(o) 
+        return [o.rt_graph] + self.visit_trans(o)
 
     @save_deps_for_node
     def VisitOnEventStateAssignment(self, o, **kwargs):

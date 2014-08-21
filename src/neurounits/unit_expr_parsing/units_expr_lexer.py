@@ -55,8 +55,8 @@ class UnitExprLexer(object):
         'rtgraph': 'RTGRAPH',
 
         'define_compound_component': 'DEFINE_COMPOUND',
-        'instantiate' : 'INSTANTIATE',
-        'connect' : 'CONNECT',
+        'instantiate': 'INSTANTIATE',
+        'connect': 'CONNECT',
         'merge':'MERGE',
         'rename':'RENAME',
         'to':'TO',
@@ -148,7 +148,7 @@ class UnitExprLexer(object):
         t.type = UnitExprLexer.reserved.get(t.value, t.type)
         return t
 
-    
+
 
     # Automatically slurp up trailing whitespace:
     WS = '\s*'

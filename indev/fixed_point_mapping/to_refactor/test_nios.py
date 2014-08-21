@@ -69,7 +69,7 @@ for pop_name, pop_size in pop_sizes.items():
             component=pop_components[pop_name],
             size=pop_size,
             parameters={'nmda_multiplier': 1.0} )
-            
+
     network.add(p)
     assert not pop_name in pops_by_name
     pops_by_name[pop_name] = p
@@ -219,7 +219,7 @@ class NIOSPlotTrace(object):
                            int( 2**23 * ( float(yrange[1]) / 2**self.node_upscale ))
 
         self.yrange =  self.ylimits_int[1] - self.ylimits_int[0]
-        
+
 
         self._global_rec_indices = _global_rec_indices
         print self.node
@@ -250,8 +250,8 @@ results = CBasedEqnWriterFixedNetwork(
                     nios_options=NIOSOptions( plots=[
                         NIOSPlotTrace( pop_LHS_dIN, 'V', yrange=(30.e-3, -60.e-3), colors=['brown'], _global_rec_indices=[0,1,2,3,4,5]),
                         NIOSPlotTrace( pop_LHS_MN, 'V',  yrange=(30.e-3, -60e-3), _global_rec_indices=[118,119,120,121,122,123] ),
-                      
-                        
+
+
                         ])
 
 

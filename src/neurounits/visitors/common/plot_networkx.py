@@ -27,7 +27,7 @@ def inheritors(klass):
     return subclasses
 
 
-pastels = [    
+pastels = [
     "#F7977A",
     "#F9AD81",
     "#FDC68A",
@@ -63,11 +63,11 @@ class TypeBasedLookupDict(object):
 
 
         parents = inspect.getmro(k)
-        
+
         for p in parents:
             if p in self._data:
                 return self._data[p]
-        
+
         assert False, 'Unable to find suitable entry for: %s'%k
 
 
@@ -134,7 +134,7 @@ class DefaultNodeColors(ASTActionerDefault):
             })
 
         return class_colors[type(o)]
-        
+
 
 
 
@@ -158,7 +158,7 @@ class ActionerPlotNetworkX(object):
         if not exclude_connections:
             exclude_connections=set()
         for ex in exclude_connections:
-            assert isinstance(ex, set) 
+            assert isinstance(ex, set)
             assert len(ex) == 2
             assert (list(ex)[0]) in ast_types
             assert (list(ex)[1]) in ast_types
@@ -233,9 +233,9 @@ class ActionerPlotNetworkX(object):
             plt.figure()
         nx.draw_graphviz(graph, font_size=8, iteration=200, node_color=colors, penwidth=0.001, scale=1, labels=label_dict )
 
-        
 
-        
+
+
 
 
 

@@ -235,7 +235,7 @@ class TreeByModule(TabPanel1):
         root_ns = lib_mgr.get_root_namespace()
         self.plot_namespace(ns=root_ns, parent_tree_node=root_node)
 
-        
+
         self.tree.ExpandAll()
 
 

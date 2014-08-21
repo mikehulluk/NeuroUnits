@@ -69,7 +69,6 @@ class StateWriter(ASTActionerDefaultIgnoreMissing):
         s = CStringWriter.Build(n, build_parameters=build_parameters, expand_assignments=False)
         modfilecontents.section_DERIVATIVE.append( s )
 
-    
 
 
 
@@ -80,7 +79,8 @@ class StateWriter(ASTActionerDefaultIgnoreMissing):
 
 
 
-            
+
+
 
 
 class SuppliedValuesWriter(ASTActionerDefaultIgnoreMissing):
@@ -143,7 +143,7 @@ class AssignmentWriter(ASTActionerDefaultIgnoreMissing):
         }
 
         args = list(component.suppliedvalues) + list(component.state_variables)
-        arg_symbols = [ symbol_map.get(a.symbol,a.symbol) for a in args] 
+        arg_symbols = [ symbol_map.get(a.symbol,a.symbol) for a in args]
         func_arg_string = ','.join( arg_symbols )
 
 
@@ -223,10 +223,10 @@ class FunctionWriter(ASTActionerDefaultIgnoreMissing):
                 $func_name = $result_string
             }"""
 
-        func_def = string.Template(func_def_tmpl).substitute( {'func_name' :  o.funcname.replace(".","__"),
-                                                               'func_params' : ",".join( [ p.symbol for p in o.parameters.values()] ),
-                                                               'result_string' : CStringWriter.Build(o.rhs, build_parameters=build_parameters, expand_assignments=False  ),
-                                                               'func_unit' : "",
+        func_def = string.Template(func_def_tmpl).substitute( {'func_name':  o.funcname.replace(".","__"),
+                                                               'func_params': ",".join( [ p.symbol for p in o.parameters.values()] ),
+                                                               'result_string': CStringWriter.Build(o.rhs, build_parameters=build_parameters, expand_assignments=False  ),
+                                                               'func_unit': "",
                                                                 }  )
         modfilecontents.section_FUNCTIONS.append(func_def)
 
@@ -281,7 +281,7 @@ class NeuronBlockWriter(object):
            # Currents:
         for currentSymbol, neuronCurrentObj in build_parameters.currents.iteritems():
             modfilecontents.section_NEURON.append("NONSPECIFIC_CURRENT %s" %currentSymbol.symbol )
-            
+
 
 
 
@@ -467,7 +467,7 @@ class CStringWriter(ASTVisitorBase):
                 p1_rhs = self.visit(o.parameters['exp'].rhs_ast)
                 r = "pow(%s,%s)"%( o.function_def.funcname, p0_rhs, p1_rhs  )
                 return r
-            
+
 
             else:
                 assert len(o.parameters) == 1

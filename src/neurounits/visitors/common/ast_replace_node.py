@@ -88,8 +88,8 @@ class ReplaceNode(ASTVisitorBase):
         return o
 
 
-    
-    
+
+
 
 
 
@@ -175,7 +175,7 @@ class ReplaceNode(ASTVisitorBase):
 
     def VisitRegime(self, o, **kwargs):
         # This is not a parent, so lets prevenmt recursion:
-       o.parent_rt_graph  = self.replace(o.parent_rt_graph) 
+       o.parent_rt_graph  = self.replace(o.parent_rt_graph)
        return o
 
 
@@ -205,7 +205,7 @@ class ReplaceNode(ASTVisitorBase):
         o.lesser_than = self.replace_or_visit(o.lesser_than)
         o.greater_than = self.replace_or_visit(o.greater_than)
         return o
-    
+
     def VisitOnConditionCrossing(self, o, **kwargs):
         o.crosses_lhs = self.replace_or_visit(o.crosses_lhs)
         o.crosses_rhs = self.replace_or_visit(o.crosses_rhs)

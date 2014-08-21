@@ -215,8 +215,8 @@ def test3():
 
 
             define_multiport_type std_pt_process {
-                    ==>> V : (V)
-                    <<== I : (A)
+                    ==>> V: (V)
+                    <<== I: (A)
                     #==?> events_in (V:S)
                     #<?== events_out( a:(),b:() )
             }

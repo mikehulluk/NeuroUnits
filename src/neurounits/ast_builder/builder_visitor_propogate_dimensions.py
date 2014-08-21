@@ -171,7 +171,6 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
         self.verify_equal_units([o] + list(o.rhses))
 
     def ActionTimeDerivativeByRegime(self, o, **kwargs):
-        
         (o.lhs.get_dimension()).check_compatible(o.rhs_map.get_dimension() * MMUnit(second=1))
 
     def ActionEqnAssignmentByRegime(self, o, **kwargs):

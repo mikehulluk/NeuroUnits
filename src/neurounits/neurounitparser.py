@@ -140,9 +140,9 @@ class NeuroUnitParser(object):
         if isinstance(s, (float,int)):
             from neurounits.units_backends.mh import MMUnit,MMQuantity
             s = neurounits.ast.ConstValue( value=MMQuantity(s, MMUnit() ) )
-        
+
         #print s, type(s)
-        assert isinstance( s, neurounits.ast.ASTExpressionObject) 
+        assert isinstance( s, neurounits.ast.ASTExpressionObject)
         return s
 
 

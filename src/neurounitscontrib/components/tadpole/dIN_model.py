@@ -145,7 +145,7 @@ def get_dIN():
         noise_min = 0.5
         noise_max = 1.5
 
-        
+
         glk_noise1 = 1
         glk_noise2 = 1
         glk_noise3 = 1
@@ -324,11 +324,11 @@ def get_dIN():
     var_annots_tags = {
         'V': 'Voltage',
         'syn_nmda_A':'',
-        'syn_nmda_B' : '',
-        'i_nmda' : '',
-        'nmda_vdep' :'',
-        'iLk' : '',
-        'iKf' : '',
+        'syn_nmda_B': '',
+        'i_nmda': '',
+        'nmda_vdep':'',
+        'iLk': '',
+        'iKf': '',
         'kf_n': '',
         'iInj_local': '',
     }
@@ -341,7 +341,7 @@ def get_dIN():
 
 
     # Optimise the equations, to turn constant-divisions into multiplications:
-    
+
     OptimiseEquations(comp)
     comp.annotate_ast( NodeRangeByOptimiser(var_annots_ranges))
     RangeExpander().visit(comp)
@@ -349,7 +349,7 @@ def get_dIN():
 
 
 
-    
+
     NodeTagger(var_annots_tags).visit(comp)
 
     #comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )

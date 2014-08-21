@@ -33,16 +33,16 @@ from neurounits.test import TestingPluginBase
 
 
 class TestRunLorenz(TestingPluginBase):
-    
+
     def __init__(self,):
         self.results = None
-    
+
     def get_name(self, ):
         return 'Test van de Pol'
-        
+
     def print_results(self,):
         print 'Results:'
-        
-        
+
+
     def run(self, args):
-        print 'Running Van de pol system'    
+        print 'Running Van de pol system'

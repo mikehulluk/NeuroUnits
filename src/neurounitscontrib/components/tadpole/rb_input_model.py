@@ -66,8 +66,8 @@ def get_rb_input():
 
 
     var_annots_ranges = {
-        't'             : NodeRange(min="0ms", max = "1.1s"),
-        't_next'             : NodeRange(min="0ms", max = "1s"),
+        't': NodeRange(min="0ms", max = "1.1s"),
+        't_next': NodeRange(min="0ms", max = "1s"),
         }
 
 

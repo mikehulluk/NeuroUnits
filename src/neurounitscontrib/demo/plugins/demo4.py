@@ -39,19 +39,19 @@ import pylab
 
 
 
- 
+
 class Proxy(object):
     def __init__(self, target_object):
         self._count = {}
         self._obj = target_object
- 
+
     def __getattr__(self, attr):
-        if attr in self._count: 
+        if attr in self._count:
             self._count[attr]+=1
-        else: 
+        else:
             self._count[attr]=1
         return getattr(self._obj, attr)
- 
+
     def write(self, *args, **kwargs):
         rv = self._obj.write(*args, **kwargs)
         for filename, lineno, function, line in traceback.extract_stack():
@@ -61,7 +61,7 @@ class Proxy(object):
                 else:
                     sys.stderr.write("%s:%d (%s): %s\n" % (filename, lineno, function, line))
                 break
- 
+
 if os.environ.get('TRACE_PRINT', None):
     sys.stdout = Proxy(sys.stdout)
 #sys.stdout = Proxy(sys.stdout)
@@ -77,14 +77,14 @@ if os.environ.get('TRACE_PRINT', None):
 
 from neurounitscontrib.demo import DemoPluginBase
 class Demo4(DemoPluginBase):
-    
-    
+
+
     def get_name(self, ):
         return '4'
-                
+
     def run(self, args):
         test4()
-        
+
 
 
 
@@ -113,8 +113,8 @@ def test4():
 
 
 
-    
-    
+
+
 
     general_neuron_with_step_inj = library_manager.get('general_neuron_with_step_inj')
 
@@ -131,11 +131,11 @@ def main():
     warnings.simplefilter('error', UserWarning)
     warnings.simplefilter('error', Warning)
 
-    
-    
 
-    
-    
+
+
+
+
 
     test4()
     pylab.show()

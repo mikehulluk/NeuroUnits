@@ -35,6 +35,6 @@ def preprocess_string(src_text, parse_type):
         text= join_lines_and_add_semicolons(text)
     else:
         text = text.strip()
-    
+
     return text
 

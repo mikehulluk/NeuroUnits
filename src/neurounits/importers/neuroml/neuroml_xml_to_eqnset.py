@@ -171,9 +171,9 @@ def _build_gate_alphabetainftau(g, q10tempadjustmentName, neuroml_dt):
 
         # Set the initial value of the state-variable to be the same
         # as the steady-state value:
-        
+
         return [ e1,e2,tc_eqn,ss_eqn, state_eqn], [(state_name,term_name_inf), ]
-        
+
 
 
 
@@ -297,11 +297,11 @@ def build_component( chlmlinfo, componentname=None ):
 
 
     io_string = Template( """
-    <=> parameter    $OpenConductance : (S/m2)
-    <=> parameter    $ReversalPotential : (mV)
-    <=> output       $MembraneCurrent :(A/m2)    METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
+    <=> parameter    $OpenConductance: (S/m2)
+    <=> parameter    $ReversalPotential: (mV)
+    <=> output       $MembraneCurrent:(A/m2)    METADATA {"mf":{"role":"TRANSMEMBRANECURRENT"} }
     <=> input        V:(V)       METADATA {"mf":{"role":"MEMBRANEVOLTAGE"} }
-    <=> input        $Temperature :(K) METADATA {"mf":{"role":"TEMPERATURE"} } """).substitute(**Name.__dict__)
+    <=> input        $Temperature:(K) METADATA {"mf":{"role":"TEMPERATURE"} } """).substitute(**Name.__dict__)
 
 
     import_string = """

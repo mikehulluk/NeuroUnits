@@ -62,7 +62,7 @@ def test_simulate_single_din():
     network = Network()
 
     dINs = network.create_population(
-            name='dINs', 
+            name='dINs',
             component=dIN_comp,
             parameters= { 'inj_current': '30pA', 'ampa_multiplier':'1', 'nmda_multiplier':'1'},
             size=1)
@@ -96,9 +96,9 @@ def test_simulate_single_din():
 
 
     results = CBasedEqnWriterFixedNetwork(
-            network, 
-            CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ', 
-            number_format = NumberFormat.Int28, 
+            network,
+            CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
+            number_format = NumberFormat.Int28,
             step_size=0.01e-3,
             run_until=1.0,
             ).results
@@ -123,11 +123,11 @@ def test_simulate_single_din():
 
 
 
-    
+
 
 
 if __name__=='__main__':
     test_simulate_single_din()
     pylab.show()
-    
-    
+
+

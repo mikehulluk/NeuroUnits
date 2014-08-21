@@ -52,8 +52,6 @@ class IODataInitialCondition(IOData):
 
 
 def parse_io_line(line):
-    
-
     # Unpack the line:
     mode, params, metadata = line
 
