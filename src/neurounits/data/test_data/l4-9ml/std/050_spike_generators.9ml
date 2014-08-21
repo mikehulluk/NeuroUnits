@@ -29,7 +29,7 @@ namespace spike_gen {
             t_last = 0s
         }
 
-        on(t > t_last + t_period ){
+        on(t > t_last + t_period){
             t_last = t
             emit spike();
         }

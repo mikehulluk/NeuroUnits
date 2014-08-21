@@ -5,7 +5,7 @@ from neurounits.errors import UnitError
 import numpy as np
 
 class UnitTermParser(object):
-    def __init__(self, backend, ):
+    def __init__(self, backend):
         self.backend=backend
 
         self.LUT = {}
@@ -82,7 +82,7 @@ class UnitTermParser(object):
         potential_suffixes = []
         for u,uv in units_dict.items():
             if unitterm.endswith(u):
-                potential_suffixes.append((unitterm[:len(unitterm)-len(u)], u,uv) )
+                potential_suffixes.append((unitterm[:len(unitterm)-len(u)], u,uv))
         if not potential_suffixes:
             return
 
@@ -92,7 +92,7 @@ class UnitTermParser(object):
             #print 'Prefix:', prefix
             if not prefix in prefix_dict:
                 continue
-            potential_units.append((prefix_dict[prefix], suffix_functor ))
+            potential_units.append((prefix_dict[prefix], suffix_functor))
 
         if len(potential_units) == 0:
             return None

@@ -36,7 +36,7 @@ from .bases import ParsingBackendBase
 
 class PQParsingBackend(ParsingBackendBase):
     @classmethod
-    def Quantity(cls, magnitude, unit ):
+    def Quantity(cls, magnitude, unit):
         return magnitude * unit
 
     @classmethod

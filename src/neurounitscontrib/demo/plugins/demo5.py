@@ -45,7 +45,7 @@ from neurounitscontrib.demo import DemoPluginBase
 class Demo5(DemoPluginBase):
 
 
-    def get_name(self, ):
+    def get_name(self):
         return '5'
 
     def run(self, args):

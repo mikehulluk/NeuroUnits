@@ -42,7 +42,7 @@ from neurounitscontrib.demo import DemoPluginBase
 class Demo1(DemoPluginBase):
 
 
-    def get_name(self, ):
+    def get_name(self):
         return '1'
 
     def run(self, args):
@@ -281,7 +281,7 @@ def test1():
           component_name = 'driven_synapse',
           instantiate = { 'spike_gen': evt_gen, 'syn': evt_syn,},
           event_connections = [
-            ('spike_gen/myevent', 'syn/myevent' ),
+            ('spike_gen/myevent', 'syn/myevent'),
             ],
           analog_connections = [
           ],
@@ -350,13 +350,13 @@ def test1():
     ax2 = f.add_subplot(3,1,2)
     ax3 = f.add_subplot(3,1,3)
     ax1.set_ylim((-70e-3,50e-3))
-    ax1.plot(res.get_time(), res.state_variables['nrn1/nrn/V'] )
-    ax1.plot(res.get_time(), res.state_variables['nrn2/nrn/V'] )
+    ax1.plot(res.get_time(), res.state_variables['nrn1/nrn/V'])
+    ax1.plot(res.get_time(), res.state_variables['nrn2/nrn/V'])
     ax1.set_ylabel('nrn1/nrn/V %s' %('??'))
-    ax2.plot(res.get_time(), res.state_variables['nrn1/i_square/t_last'] )
+    ax2.plot(res.get_time(), res.state_variables['nrn1/i_square/t_last'])
     ax3.plot(res.get_time(), res.rt_regimes['nrn1/nrn/']+0.0 , label='nrn1/nrn')
     ax3.plot(res.get_time(), res.rt_regimes['nrn1/i_inj/']+0.1, label='nrn1/i_inj')
-    ax3.plot(res.get_time(), res.rt_regimes['nrn1/i_square/']+0.2, label='nrn1/i_square' )
+    ax3.plot(res.get_time(), res.rt_regimes['nrn1/i_square/']+0.2, label='nrn1/i_square')
     ax3.legend()
 
 

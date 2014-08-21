@@ -79,7 +79,7 @@ from neurounitscontrib.demo import DemoPluginBase
 class Demo4(DemoPluginBase):
 
 
-    def get_name(self, ):
+    def get_name(self):
         return '4'
 
     def run(self, args):

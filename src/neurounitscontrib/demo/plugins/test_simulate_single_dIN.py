@@ -46,7 +46,7 @@ from neurounitscontrib.demo import DemoPluginBase
 class DemoTadpole3(DemoPluginBase):
 
 
-    def get_name(self, ):
+    def get_name(self):
         return 'Tadpole-single-dIN'
 
     def run(self, args):
@@ -87,12 +87,12 @@ def test_simulate_single_din():
 
 
 
-    network.record_output_events(dINs, 'spike' )
-    network.record_traces(dINs, 'V' )
-    network.record_traces(dINs, 'iCa iNa iKf iKs iLk syn_nmda_i iInj_local' )
-    network.record_traces(dINs, 'ks_n kf_n na_m na_h ca_m' )
-    network.record_traces(dINs, '' )
-    network.record_traces(dINs, 'nmda_vdep' )
+    network.record_output_events(dINs, 'spike')
+    network.record_traces(dINs, 'V')
+    network.record_traces(dINs, 'iCa iNa iKf iKs iLk syn_nmda_i iInj_local')
+    network.record_traces(dINs, 'ks_n kf_n na_m na_h ca_m')
+    network.record_traces(dINs, '')
+    network.record_traces(dINs, 'nmda_vdep')
 
 
     results = CBasedEqnWriterFixedNetwork(
@@ -101,8 +101,8 @@ def test_simulate_single_din():
             number_format = NumberFormat.Int28,
             step_size=0.01e-3,
             run_until=1.0,
-            ).results
-    #shutil.copy(hdffile, os.path.expanduser("~/debugging/") )
+           ).results
+    #shutil.copy(hdffile, os.path.expanduser("~/debugging/"))
 
 
     filters_traces = [
@@ -119,7 +119,7 @@ def test_simulate_single_din():
     ]
 
 
-    results.plot(trace_filters=filters_traces, spike_filters=filters_spikes, legend=True, xlim = (0.0,0.3)  )
+    results.plot(trace_filters=filters_traces, spike_filters=filters_spikes, legend=True, xlim = (0.0,0.3) )
 
 
 

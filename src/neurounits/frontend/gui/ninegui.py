@@ -110,7 +110,7 @@ class RunDialog(wx.Dialog):
 
     def DoRun(self, evt):
         print 'RUNNNIGN!', self.component
-        res = component.simulate(times=numpy.arange(0,1.1,0.0001) )
+        res = component.simulate(times=numpy.arange(0,1.1,0.0001))
         neurounits.nineml.auto_plot(res)
         import pylab
         pylab.show()
@@ -173,7 +173,7 @@ class TabPanel1(wx.Panel):
         position = self.ScreenToClient(wx.GetMousePosition())
 
 
-        obj = self.tree.GetPyData(self.tree.GetSelection() )
+        obj = self.tree.GetPyData(self.tree.GetSelection())
         print obj
 
         menu = wx.Menu()
@@ -213,7 +213,7 @@ class TreeByModule(TabPanel1):
 
         # Local object:
         for obj in ns.get_blocks():
-            itm = self.tree.AppendItem(br, 'Obj:  %s %s' % (type(obj).__name__.split('.')[-1], obj.name) )
+            itm = self.tree.AppendItem(br, 'Obj:  %s %s' % (type(obj).__name__.split('.')[-1], obj.name))
             self.tree.SetPyData(itm, obj)
 
             img = {
@@ -379,17 +379,17 @@ class RHSPanelComponent(wx.Panel):
         self.objlabel.SetLabel('Details for component:' + component.name)
 
 
-        for index, obj in enumerate(component.all_terminal_objs() ):
+        for index, obj in enumerate(component.all_terminal_objs()):
 
             self.list_ctrl_terminals.InsertStringItem(index, obj.symbol)
-            self.list_ctrl_terminals.SetStringItem(index, 1, type(obj).__name__.split('.')[-1] )
-            self.list_ctrl_terminals.SetStringItem(index, 2, str(obj.get_dimension()) )
+            self.list_ctrl_terminals.SetStringItem(index, 1, type(obj).__name__.split('.')[-1])
+            self.list_ctrl_terminals.SetStringItem(index, 2, str(obj.get_dimension()))
 
 
-        for index, obj in enumerate(component._interface_connectors ):
+        for index, obj in enumerate(component._interface_connectors):
             self.list_ctrl_interfaces.InsertStringItem(index, obj.symbol)
-            self.list_ctrl_interfaces.SetStringItem(index, 1, type(obj).__name__.split('.')[-1] )
-            self.list_ctrl_interfaces.SetStringItem(index, 2, '' )
+            self.list_ctrl_interfaces.SetStringItem(index, 1, type(obj).__name__.split('.')[-1])
+            self.list_ctrl_interfaces.SetStringItem(index, 2, '')
 
 
 
@@ -412,7 +412,7 @@ class RHSToolbookDemo(wx.Toolbook):
     #----------------------------------------------------------------------
     def __init__(self, parent, style):
         """Constructor"""
-        wx.Toolbook.__init__(self, parent, wx.ID_ANY, )
+        wx.Toolbook.__init__(self, parent, wx.ID_ANY,)
 
         il = wx.ImageList(24, 24)
 
@@ -423,7 +423,7 @@ class RHSToolbookDemo(wx.Toolbook):
             (neurounits.ast.MultiportInterfaceDef, RHSPanelInterface, "Interface", imgs.im_interface),
             (neurounits.ast.Library, RHSPanelInterface, "Library", imgs.im_library),
             (None, RHSPanelModule, "Module", imgs.im_namespace),
-        )
+       )
 
         self.page_map = {}
 
@@ -469,7 +469,7 @@ class MyFrame(wx.Frame):
         print 'Section Changed (parent)'
 
         tree = self.lhs.tabs[self.lhs.GetSelection()].tree
-        obj = tree.GetPyData(tree.GetSelection() )
+        obj = tree.GetPyData(tree.GetSelection())
 
 
         obj_type = type(obj)

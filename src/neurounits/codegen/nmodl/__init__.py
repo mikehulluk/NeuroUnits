@@ -70,7 +70,7 @@ class ModFileContents(object):
 
         ifthenelse = """FUNCTION ifthenelse (a,b,c,d)
             {
-                if(a < b ) { ifthenelse = c }
+                if(a < b) { ifthenelse = c }
                 else{ ifthenelse  =d }
             }
 

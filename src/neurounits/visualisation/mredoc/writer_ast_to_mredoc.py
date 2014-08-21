@@ -119,7 +119,7 @@ class LatexEqnWriterN(ASTVisitorBase):
                         self.visit(o.rhs_map)))
 
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
-        return Equation(r"""\frac{d}{dt}%s &= %s""" % (self.visit(o.lhs), self.visit(o.rhs_map)) )
+        return Equation(r"""\frac{d}{dt}%s &= %s""" % (self.visit(o.lhs), self.visit(o.rhs_map)))
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
         if len(o.rhs_map) == 1:
@@ -172,7 +172,7 @@ class LatexEqnWriterN(ASTVisitorBase):
 
     def VisitConstantZero(self, o, **kwargs):
 
-        return self.FormatInlineConstant(MMQuantity(0, o.get_dimension()) )
+        return self.FormatInlineConstant(MMQuantity(0, o.get_dimension()))
 
     def VisitAssignedVariable(self, o, **kwargs):
         return self.FormatTerminalSymbol(o.symbol)
@@ -316,7 +316,7 @@ def build_figures(component):
                 f = pylab.figure(figsize=(2, 2))
                 ax = f.add_subplot(1, 1, 1)
                 ax.plot(vVals, vVals, color=color)
-                f.suptitle('ERROR PLOTTING: Graph of %s against %s ' % (a.symbol, 'V' ))
+                f.suptitle('ERROR PLOTTING: Graph of %s against %s ' % (a.symbol, 'V'))
                 ax.set_xlabel('Membrane Voltage (mV)')
                 ax.set_ylabel('%s (%s)' % (a.symbol, oUnit))
                 ax.grid('on')

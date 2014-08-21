@@ -14,7 +14,7 @@ def build_raster_plot_obj(name, side):
             RasterSubgroup("IN: AMPA", "ALL{recv_ampa_spike,%s,%s}"%(name,side), {'color':'blue', 'marker':'.', 's':size }),
             #RasterSubgroup("IN: NMDA", "ALL{recv_nmda_spike,%s,%s}"%(name,side), {'color':'green', 'marker':'.', 's':size }),
             #RasterSubgroup("IN: Inhib", "ALL{recv_inh_spike,%s,%s} "%(name,side), {'color':'red', 'marker':'.', 's':size }),
-            ] )
+            ])
 
 
 xlim=(30e-3, 1000e-3)
@@ -23,7 +23,7 @@ xlim=(30e-3, 1000e-3)
 results.raster_plot([
         RasterGroup('RB', [
             RasterSubgroup('Spike', "ALL{spike, RBINPUT}", {'color':'red'})
-            ] ),
+            ]),
         build_raster_plot_obj('RB', 'RHS'),
         build_raster_plot_obj('RB', 'LHS'),
 
@@ -49,7 +49,7 @@ results.raster_plot([
         RasterGroup('MN', [
             RasterSubgroup("MN:LHS", "ALL{spike,MN,LHS}", {'color':'blue', 'marker':'x', 's':2}),
             RasterSubgroup("MN:RHS", "ALL{spike,MN,RHS}", {'color':'green', 'marker':'x', 's':2}),
-            ] )
+            ])
 
         ],
 
@@ -83,5 +83,5 @@ filters_traces = [
    ]
 
 
-results.plot(trace_filters=filters_traces, legend=False, xlim=xlim )
+results.plot(trace_filters=filters_traces, legend=False, xlim=xlim)
 

@@ -213,7 +213,7 @@ class RemoveAllSymbolProxy(ASTVisitorBase):
         o.parameters = LookUpDict(
                 [self.followSymbolProxy(rhs) for rhs in o.parameters],
                 accepted_obj_types=o.parameters.accepted_obj_types,
-                unique_attrs=o.parameters.unique_attrs )
+                unique_attrs=o.parameters.unique_attrs)
         for p in o.parameters:
             self.visit(p)
         for a in o.actions:

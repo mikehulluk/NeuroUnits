@@ -88,7 +88,7 @@ class Library(Block):
         super(Library, self).__init__(library_manager=library_manager, builder=builder, name=name)
         import neurounits.ast as ast
 
-        self._function_defs = LookUpDict(builddata.funcdefs, accepted_obj_types=(ast.FunctionDefUser, ast.FunctionDefBuiltIn) )
+        self._function_defs = LookUpDict(builddata.funcdefs, accepted_obj_types=(ast.FunctionDefUser, ast.FunctionDefBuiltIn))
         self._symbolicconstants = LookUpDict(builddata.symbolicconstants, accepted_obj_types=(ast.SymbolicConstant,))
         self._eqn_assignment = LookUpDict(builddata.assignments, accepted_obj_types=(ast.EqnAssignmentByRegime,))
 
@@ -421,15 +421,15 @@ class NineMLComponent(Block):
         import neurounits.ast as ast
 
         # Top-level objects:
-        self._function_defs = LookUpDict(builddata.funcdefs, accepted_obj_types=(ast.FunctionDefUser) )
+        self._function_defs = LookUpDict(builddata.funcdefs, accepted_obj_types=(ast.FunctionDefUser))
         self._symbolicconstants = LookUpDict(builddata.symbolicconstants, accepted_obj_types=(ast.SymbolicConstant,))
 
         self._eqn_assignment = LookUpDict(builddata.assignments, accepted_obj_types=(ast.EqnAssignmentByRegime,))
         self._eqn_time_derivatives = LookUpDict(builddata.timederivatives, accepted_obj_types=(ast.EqnTimeDerivativeByRegime,))
 
 
-        self._transitions_conditiontriggers = LookUpDict(builddata.transitions_conditiontriggers )
-        self._transitions_events = LookUpDict(builddata.transitions_events )
+        self._transitions_conditiontriggers = LookUpDict(builddata.transitions_conditiontriggers)
+        self._transitions_events = LookUpDict(builddata.transitions_events)
         self._rt_graphs = LookUpDict(builddata.rt_graphs)
 
         self._time_node = builddata.time_node
@@ -439,7 +439,7 @@ class NineMLComponent(Block):
 
         from neurounits.ast import CompoundPortConnector
         # This is a list of the available connectors from this component
-        self._interface_connectors = LookUpDict(accepted_obj_types=(CompoundPortConnector, ), unique_attrs=('symbol', ))
+        self._interface_connectors = LookUpDict(accepted_obj_types=(CompoundPortConnector,), unique_attrs=('symbol',))
 
 
 
@@ -449,7 +449,7 @@ class NineMLComponent(Block):
 
 
 
-    def add_interface_connector(self, multiportconnector ):
+    def add_interface_connector(self, multiportconnector):
         self._interface_connectors._add_item(multiportconnector)
 
 

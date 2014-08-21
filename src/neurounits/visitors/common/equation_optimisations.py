@@ -106,7 +106,7 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
         if self.const_value[o.lhs] is None or self.const_value[o.rhs] is None:
             self.const_value[o] = None
         else:
-            self.const_value[o] = op(self.const_value[o.lhs] , self.const_value[o.rhs] )
+            self.const_value[o] = op(self.const_value[o.lhs] , self.const_value[o.rhs])
 
     def ActionAddOp(self, o, **kwargs):
         self._ActionBinOp(o, operator.add)
@@ -124,8 +124,8 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
         assert False
 
     def ActionFunctionDefBuiltInInstantiation(self, o, **kwargs):
-		#TODO -generalise here        
-		assert o.function_def.funcname in ['__exp__', '__ln__']
+        #TODO -generalise here        
+        assert o.function_def.funcname in ['__exp__', '__ln__']
 
         # Are all of the parameters constants:
         for p in o.parameters.values():
@@ -258,9 +258,9 @@ class ReplaceWithOptimisedNodes(ASTVisitorBase):
         val = self.constants[o.rhs]
         new_node = ast.MulOp(
                 lhs = o.lhs,
-                rhs = ast.ConstValue(value = MMQuantity(1, MMUnit())/val )
-                )
-        new_node.set_dimension(o.get_dimension() )
+                rhs = ast.ConstValue(value = MMQuantity(1, MMUnit())/val)
+               )
+        new_node.set_dimension(o.get_dimension())
         return new_node
 
 
@@ -274,7 +274,7 @@ class ReplaceWithOptimisedNodes(ASTVisitorBase):
         if br_rhs is not None and br_rhs.magnitude == 0:
             return True
 
-        if not isinstance(o, (ast.AddOp) ):
+        if not isinstance(o, (ast.AddOp)):
             return
 
         if br_lhs is not None and br_lhs.magnitude == 0:
@@ -312,9 +312,9 @@ class ReplaceWithOptimisedNodes(ASTVisitorBase):
 
     def replace_or_visit(self, node):
         if self.should_replace_div_by_mul(node):
-            return self.replace_or_visit(self.do_replace_div_by_mul(node) )
+            return self.replace_or_visit(self.do_replace_div_by_mul(node))
         if self.should_replace_addsub_zero(node):
-            return self.replace_or_visit(self.do_replace_addsub_zero(node) )
+            return self.replace_or_visit(self.do_replace_addsub_zero(node))
 
         # No change?
         self.visit(node)
@@ -350,17 +350,17 @@ class ReplaceWithOptimisedNodes(ASTVisitorBase):
 
     def VisitAssignedVariable(self, o):
         pass
-    def VisitStateVariable(self,o ):
+    def VisitStateVariable(self,o):
         pass
     def VisitConstant(self, o):
         pass
     def VisitConstantZero(self, o):
         pass
-    def VisitSymbolicConstant(self, o ):
+    def VisitSymbolicConstant(self, o):
         pass
-    def VisitSuppliedValue(self, o ):
+    def VisitSuppliedValue(self, o):
         pass
-    def VisitTimeVariable(self, o ):
+    def VisitTimeVariable(self, o):
         pass
     def VisitRandomVariable(self, o):
         pass

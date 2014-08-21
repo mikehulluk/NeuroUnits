@@ -38,7 +38,7 @@ class TestNutsFiles(TestingPluginBase):
     def __init__(self,):
         self.results = None
 
-    def get_name(self, ):
+    def get_name(self):
         return 'Test NUTS'
 
     def print_results(self):

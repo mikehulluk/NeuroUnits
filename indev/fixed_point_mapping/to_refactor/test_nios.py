@@ -68,14 +68,14 @@ for pop_name, pop_size in pop_sizes.items():
             name=pop_name,
             component=pop_components[pop_name],
             size=pop_size,
-            parameters={'nmda_multiplier': 1.0} )
+            parameters={'nmda_multiplier': 1.0})
 
     network.add(p)
     assert not pop_name in pops_by_name
     pops_by_name[pop_name] = p
 
 
-for syn_index, ((pop1_name, pop2_name, (syn_type, strength) ), conns) in enumerate(connections.items()):
+for syn_index, ((pop1_name, pop2_name, (syn_type, strength)), conns) in enumerate(connections.items()):
     print 'Adding connection: %s -> %s [type:%s strength:%s, num:%d]' % (pop1_name, pop2_name, syn_type, strength, len(conns))
 
     #if syn_type != 'ampa':
@@ -91,8 +91,8 @@ for syn_index, ((pop1_name, pop2_name, (syn_type, strength) ), conns) in enumera
                 name=synpop_name,
                 delay='1ms',
                 connector=ExplicitIndicesSet(conns),
-                parameter_map= {'weight': FixedValue(weight)} )
-        )
+                parameter_map= {'weight': FixedValue(weight)})
+       )
 #assert False
 
 
@@ -104,7 +104,7 @@ for syn_index, ((pop1_name, pop2_name, (syn_type, strength) ), conns) in enumera
 
 
 
-#network.provide_events(pops_by_name['pop1'], event_port='recv_ampa_spike', evt_details = [50,60,70] )
+#network.provide_events(pops_by_name['pop1'], event_port='recv_ampa_spike', evt_details = [50,60,70])
 non_dINs = pops_by_name['NondINs']
 pop_LHS_MN  = non_dINs.get_subpopulation(start_index=0,   end_index=169, subname='LHS_MN',  autotag=['LHS','MN'])
 pop_LHS_RB  = non_dINs.get_subpopulation(start_index=169, end_index=232, subname='LHS_RB',  autotag=['LHS','RB'])
@@ -123,8 +123,8 @@ pop_RHS_dlc = non_dINs.get_subpopulation(start_index=1094, end_index=1146, subna
 
 
 dINs = pops_by_name['dINs']
-pop_LHS_dIN = dINs.get_subpopulation(start_index=0,   end_index=118,  subname='LHS_dIN',  autotag=['LHS','dIN'] )
-pop_RHS_dIN = dINs.get_subpopulation(start_index=118, end_index=236,  subname='RHS_dIN',  autotag=['RHS','dIN'] )
+pop_LHS_dIN = dINs.get_subpopulation(start_index=0,   end_index=118,  subname='LHS_dIN',  autotag=['LHS','dIN'])
+pop_RHS_dIN = dINs.get_subpopulation(start_index=118, end_index=236,  subname='RHS_dIN',  autotag=['RHS','dIN'])
 
 
 rhs_subpops = [pop_RHS_MN, pop_RHS_RB, pop_RHS_aIN, pop_RHS_cIN, pop_RHS_dla, pop_RHS_dlc, pop_RHS_dIN]
@@ -144,8 +144,8 @@ network.add(
             connector=AllToAllConnector(connection_probability=1.0),
             delay='0ms',
             parameter_map= {'weight': FixedValue('1nS')}
-            )
-        )
+           )
+       )
 
 
 
@@ -162,7 +162,7 @@ for dIN_pop in [(pop_LHS_dIN), (pop_RHS_dIN)]:
                 continue
             if random.uniform(0, 1) > 0.2:
                 continue
-            gap_junction_indices.append((i, j) )
+            gap_junction_indices.append((i, j))
 
             #ax.plot([i], [j], 'x')
             #ax.plot([j], [i], 'x')
@@ -182,12 +182,12 @@ network.add(
 
 
 
-network.record_output_events([rb_drivers] , 'spike' )
-network.record_output_events(lhs_subpops+rhs_subpops , 'spike' )
+network.record_output_events([rb_drivers] , 'spike')
+network.record_output_events(lhs_subpops+rhs_subpops , 'spike')
 
 
-trs = network.record_traces(pop_RHS_dIN, 'V' )
-trs = network.record_traces(pop_LHS_dIN, 'V' )
+trs = network.record_traces(pop_RHS_dIN, 'V')
+trs = network.record_traces(pop_LHS_dIN, 'V')
 
 
 
@@ -215,8 +215,8 @@ class NIOSPlotTrace(object):
         self.node = population.population.component.get_terminal_obj(what)
         self.node_upscale = self.node.annotations['fixed-point-format'].upscale
 
-        self.ylimits_int = int(2**23 * (float(yrange[0]) / 2**self.node_upscale )), \
-                           int(2**23 * (float(yrange[1]) / 2**self.node_upscale ))
+        self.ylimits_int = int(2**23 * (float(yrange[0]) / 2**self.node_upscale)), \
+                           int(2**23 * (float(yrange[1]) / 2**self.node_upscale))
 
         self.yrange =  self.ylimits_int[1] - self.ylimits_int[0]
 
@@ -249,7 +249,7 @@ results = CBasedEqnWriterFixedNetwork(
 
                     nios_options=NIOSOptions(plots=[
                         NIOSPlotTrace(pop_LHS_dIN, 'V', yrange=(30.e-3, -60.e-3), colors=['brown'], _global_rec_indices=[0,1,2,3,4,5]),
-                        NIOSPlotTrace(pop_LHS_MN, 'V',  yrange=(30.e-3, -60e-3), _global_rec_indices=[118,119,120,121,122,123] ),
+                        NIOSPlotTrace(pop_LHS_MN, 'V',  yrange=(30.e-3, -60e-3), _global_rec_indices=[118,119,120,121,122,123]),
 
 
                         ])

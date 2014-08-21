@@ -47,7 +47,7 @@ class VisitorSymbolDependance(object):
     def get_assignment_dependancy_ordering(self):
         return self.get_assignment_ordering()
 
-    def get_assignment_ordering(self, ):
+    def get_assignment_ordering(self):
 
         graph = nx.DiGraph()
         for assignment in self.component.assignments:
@@ -357,7 +357,7 @@ class _DependancyFinder(ASTVisitorBase):
         return self.visit(o.rhs)
 
     def VisitEmitEvent(self, o,):
-        return list(chain(*[self.visit(p) for p in o.parameters]) )
+        return list(chain(*[self.visit(p) for p in o.parameters]))
 
     def VisitEmitEventParameter(self, o):
         return self.visit(o.rhs)

@@ -287,8 +287,8 @@ def get_MN():
     comp.annotate_ast( NodeRangeByOptimiser(var_annots_ranges))
     RangeExpander().visit(comp)
 
-    #comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
-    comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
+    #comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann')
+    comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids')
 
 
     NodeTagger(var_annots_tags).visit(comp)
@@ -296,4 +296,4 @@ def get_MN():
     return comp
 
 from neurounits import ComponentLibrary
-ComponentLibrary.register_component_functor('MN', get_MN )
+ComponentLibrary.register_component_functor('MN', get_MN)

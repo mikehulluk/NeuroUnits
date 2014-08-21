@@ -202,7 +202,7 @@ class ASTAllConnections(ASTActionerDepthFirst):
         return o.rhses
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
-        return list(o.rhs_map.keys()) + list(o.rhs_map.values() )
+        return list(o.rhs_map.keys()) + list(o.rhs_map.values())
 
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         return [o.lhs, o.rhs_map]
@@ -226,14 +226,14 @@ class ASTAllConnections(ASTActionerDepthFirst):
 
 
     def VisitExpOp(self, o, **kwargs):
-        assert isinstance(o.rhs, (float, int) )
+        assert isinstance(o.rhs, (float, int))
         return [o.lhs]
 
 
     def VisitFunctionDefUserInstantiation(self, o, **kwargs):
-        return list(chain([o.function_def], o.parameters.values() ))
+        return list(chain([o.function_def], o.parameters.values()))
     def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
-        return list(chain([o.function_def], o.parameters.values() ))
+        return list(chain([o.function_def], o.parameters.values()))
 
     def VisitFunctionDefInstantiationParameter(self, o, **kwargs):
         return [o.rhs_ast, o._function_def_parameter]

@@ -81,18 +81,18 @@ def get_rb_input():
 
 
 
-    #comp.annotate_ast( NodeRangeAnnotator(var_annots_ranges) )
+    #comp.annotate_ast( NodeRangeAnnotator(var_annots_ranges))
     RangeExpander().visit(comp)
 
     # New range optimiser:
     comp.annotate_ast( NodeRangeByOptimiser(var_annots_ranges))
 
 
-    #comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
-    comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
+    #comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann')
+    comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids')
 
     return comp
 
 
 from neurounits import ComponentLibrary
-ComponentLibrary.register_component_functor('RBInput', get_rb_input )
+ComponentLibrary.register_component_functor('RBInput', get_rb_input)

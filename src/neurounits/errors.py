@@ -82,12 +82,12 @@ class NeuroUnitParsingError(ValueError):
 
 class NeuroUnitParsingErrorEOF(NeuroUnitParsingError):
 
-    def __repr__(self, ):
+    def __repr__(self):
         return '<NeuroUnitParsingErrorEOF: ** Unexpected end-of-file found>'
 
 
 class NeuroUnitParsingErrorUnexpectedToken(NeuroUnitParsingError):
-    def __init__(self, bad_token ):
+    def __init__(self, bad_token):
         self.bad_token = bad_token
 
         # These get set after construction, higher up the exception stack:
@@ -125,8 +125,8 @@ class NeuroUnitParsingErrorUnexpectedToken(NeuroUnitParsingError):
         def clip_to_str(k):
             return min(max(k,0), len(char_str)-1)
         line_char_context = 30
-        col_pos_pre_start = clip_to_str(col_pos-line_char_context )
-        col_pos_post_end = clip_to_str(col_pos+line_char_context )
+        col_pos_pre_start = clip_to_str(col_pos-line_char_context)
+        col_pos_post_end = clip_to_str(col_pos+line_char_context)
 
         pre_str = '...' + char_str[col_pos_pre_start:col_pos]
         post_str = char_str[col_pos+1:col_pos_post_end] + '...'
@@ -162,9 +162,9 @@ class ASTMissingAnnotationError(RuntimeError):
         super(ASTMissingAnnotationError, self).__init__()
         self.node = node
         self.annotation = annotation
-    def __repr__(self, ):
-        return "Annotation: '%s' not found for  %s (type: %s)" % (self.annotation, self.node, type(self.node) )
-    def __str__(self, ):
+    def __repr__(self):
+        return "Annotation: '%s' not found for  %s (type: %s)" % (self.annotation, self.node, type(self.node))
+    def __str__(self):
         return repr(self)
 
 

@@ -39,7 +39,7 @@ class CCompilationSettings(object):
 
 
 
-    def __init__(self, additional_include_paths=None, additional_library_paths=None, libraries=[], compile_flags=None ):
+    def __init__(self, additional_include_paths=None, additional_library_paths=None, libraries=[], compile_flags=None):
 
         self.additional_include_paths = [os.path.expanduser(p) for p in additional_include_paths]
         self.additional_library_paths = [os.path.expanduser(p) for p in additional_library_paths]
@@ -137,7 +137,7 @@ class CCompiler(object):
         print 'Compilation sucessful'
 
         LD_LIB_PATH = 'export LD_LIBRARY_PATH="%s:$LD_LIBRARY_PATH"' % ':'.join(compilation_settings.additional_library_paths)
-        exec_cmd = LD_LIB_PATH + "; " + os.path.abspath(output_filename )
+        exec_cmd = LD_LIB_PATH + "; " + os.path.abspath(output_filename)
         if run:
             print 'Running:', exec_cmd
             subprocess.check_call(exec_cmd, shell=True)

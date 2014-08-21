@@ -46,7 +46,7 @@ from neurounitscontrib.demo import DemoPluginBase
 class DemoTadpole4(DemoPluginBase):
 
 
-    def get_name(self, ):
+    def get_name(self):
         return 'Tadpole-single-dIN'
 
     def run(self, args):
@@ -70,9 +70,9 @@ def _build_sim(number_format, inj_current):
                 'inj_current': inj_current,
 
                 },
-            )
-    network.record_output_events(dINs, 'spike' )
-    network.record_traces(dINs, 'V' )
+           )
+    network.record_output_events(dINs, 'spike')
+    network.record_traces(dINs, 'V')
 
     results = CBasedEqnWriterFixedNetwork(
                     network,
@@ -124,15 +124,15 @@ def test_simulate_single_hh():
 
 
     left=0.25
-    text_kwargs = dict(weight='bold', fontweight='bold' )
+    text_kwargs = dict(weight='bold', fontweight='bold')
 
     f1,f2 = results.plot(trace_filters=filters_traces,
                  spike_filters=filters_spikes,
                  legend=False,
                  xlim = (0.0,0.7),
-                 fig_trace_kwargs= dict(figsize=(85/25.4, 1) ),
-                 fig_event_kwargs= dict(figsize=(85/25.4, 1) ),
-                   )
+                 fig_trace_kwargs= dict(figsize=(85/25.4, 1)),
+                 fig_event_kwargs= dict(figsize=(85/25.4, 1)),
+                  )
 
     f1[0].get_axes()[0].set_ylabel("Voltage (V)")
 
@@ -154,13 +154,13 @@ def test_simulate_single_hh():
     f1,f2 = results.plot(trace_filters=filters_traces,
                  spike_filters=filters_spikes,
                  xlim = (0.4,0.45),
-                 fig_trace_kwargs= dict(figsize=(85/25.4, 1.5) ),
-                 fig_event_kwargs= dict(figsize=(85/25.4, 1) ),
-                   )
+                 fig_trace_kwargs= dict(figsize=(85/25.4, 1.5)),
+                 fig_event_kwargs= dict(figsize=(85/25.4, 1)),
+                  )
 
 
 
-    f1[0].text(0.05, 0.92, 'B', **text_kwargs )
+    f1[0].text(0.05, 0.92, 'B', **text_kwargs)
     f2[0].text(0.05, 0.92, 'C', **text_kwargs)
 
     f1[0].get_axes()[0].set_ylabel("Voltage (V)")

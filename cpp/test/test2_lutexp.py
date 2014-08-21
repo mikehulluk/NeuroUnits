@@ -16,7 +16,7 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
 
     # Create a vectorized 'get' function:
     def _getexp(a, b, c):
-            return lut.get(int(a), int(b), int(c) )
+            return lut.get(int(a), int(b), int(c))
 
     def _from_float(x, scale):
             return pyneurounits.n32_from_float24(float(x), int(scale))
@@ -24,9 +24,9 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
     def _to_float(x, scale):
             return pyneurounits.n32_to_float24(int(x), int(scale))
 
-    getexp = np.vectorize(_getexp )
-    to_float = np.vectorize(_to_float )
-    from_float = np.vectorize(_from_float )
+    getexp = np.vectorize(_getexp)
+    to_float = np.vectorize(_to_float)
+    from_float = np.vectorize(_from_float)
 
 
 
@@ -35,7 +35,7 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
 
     x = np.linspace(input_range[0], input_range[1], num=1000)
     exp_x_int = getexp(from_float(x, exp_in_scale), exp_in_scale, exp_out_scale)
-    exp_x = to_float(exp_x_int, exp_out_scale )
+    exp_x = to_float(exp_x_int, exp_out_scale)
 
 
     err_diff_float_prop = np.fabs(np.exp(x) - exp_x) / np.exp(x)
@@ -65,7 +65,7 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
     ax1.plot(x, np.exp(x), lw=5, alpha=0.4, label='Builtin exp()')
     ax1.plot(x_points, np.exp(x_points), '.', color='red', ms=5)
     ax2.plot(x_points, np.zeros_like(x_points), '.', color='red', ms=5)
-    ax2.plot(x, err_diff_float_prop * 100, 'x', label='Proportional error (double) in %' )
+    ax2.plot(x, err_diff_float_prop * 100, 'x', label='Proportional error (double) in %')
     ax3.plot(x, err_diff_float, 'x', label='Absolute error (float)')
 
 

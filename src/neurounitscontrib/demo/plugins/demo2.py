@@ -41,7 +41,7 @@ import numpy as np
 class Demo2(DemoPluginBase):
 
 
-    def get_name(self, ):
+    def get_name(self):
         return '2'
 
     def run(self, args):
@@ -116,7 +116,7 @@ ball_arena_text = """
 
 
         t_last'=0
-        on( dist_sq < rad*rad and t-t_last > 0.3s ) {
+        on( dist_sq < rad*rad and t-t_last > 0.3s) {
             t_last=t
 
             # Simply add the two components, but flip the sign of the
@@ -176,7 +176,7 @@ def simData():
     c_x_hat = res.assignments['C12_x_hat']
     c_y_hat = res.assignments['C12_y_hat']
 
-    for i in range( len(res.get_time() ) ):
+    for i in range( len(res.get_time())):
         print 'Getting i:',i
         yield times[i],x1s[i], y1s[i] , x2s[i], y2s[i], V1_t_x[i], V1_t_y[i], V1_c_x[i], V1_c_y[i], c_x_hat[i], c_y_hat[i]
 
@@ -201,9 +201,9 @@ def simPoints(simData):
     V1_c_mag = numpy.sqrt( float(V1_c_x**2 + V1_c_y**2))
 
 
-    line_v1_join.set_data( [x1, x1+c_x_hat], [y1, y1+c_y_hat] )
-    line_v1_t.set_data( [x1, x1+V1_t_x/V1_t_mag], [y1, y1+V1_t_y/V1_t_mag] )
-    line_v1_c.set_data( [x1, x1+V1_c_x/V1_c_mag], [y1, y1+V1_c_y/V1_c_mag] )
+    line_v1_join.set_data( [x1, x1+c_x_hat], [y1, y1+c_y_hat])
+    line_v1_t.set_data( [x1, x1+V1_t_x/V1_t_mag], [y1, y1+V1_t_y/V1_t_mag])
+    line_v1_c.set_data( [x1, x1+V1_c_x/V1_c_mag], [y1, y1+V1_c_y/V1_c_mag])
     return line1, line2, time_text, line_v1_t, line_v1_c
 
 
@@ -276,8 +276,8 @@ def test2():
     line2, = ax.plot([], [], 'go', ms=10)
     line_v1_join, = ax.plot([], [], 'm-')
 
-    line_v1_t, = ax.plot([], [], 'r-', )
-    line_v1_c, = ax.plot([], [], 'c-', )
+    line_v1_t, = ax.plot([], [], 'r-',)
+    line_v1_c, = ax.plot([], [], 'c-',)
 
     ax.set_ylim(-2, 12)
     ax.set_xlim(-2, 12)
@@ -293,9 +293,9 @@ def test2():
     ## serving as the argument for simPoints):
     ani = animation.FuncAnimation(fig, simPoints, simData, blit=False, interval=1, repeat=True, save_count=1000)
 
-    #ani.save('myoutput.avi', writer='ffmpeg', bitrate=200, fps=20, codec='ffv1' )#extra_args=['-vcodec huffyuv']) # codec='ffv1')
+    #ani.save('myoutput.avi', writer='ffmpeg', bitrate=200, fps=20, codec='ffv1')#extra_args=['-vcodec huffyuv']) # codec='ffv1')
     try:
-        ani.save('myoutput.avi', fps=40, codec='ffv1' )#extra_args=['-vcodec huffyuv']) # codec='ffv1')
+        ani.save('myoutput.avi', fps=40, codec='ffv1')#extra_args=['-vcodec huffyuv']) # codec='ffv1')
     except:
         print 'Unable to save video (issue with matplotlib)'
     #writer='ffmpeg',

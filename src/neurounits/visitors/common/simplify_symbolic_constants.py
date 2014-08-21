@@ -208,13 +208,13 @@ class ReduceConstants(ASTVisitorBase):
 
             assert len(params) == 1
             p = params.values()[0].float_in_si()
-            return MMQuantity(numpy.log(p), MMUnit() )
+            return MMQuantity(numpy.log(p), MMUnit())
 
 
         if o.function_def.funcname== 'exp':
             assert len(params) == 1
             p = params.values()[0].float_in_si()
-            return MMQuantity(numpy.exp(p), MMUnit() )
+            return MMQuantity(numpy.exp(p), MMUnit())
 
 
         # Not Implmented how to calculate it yet!

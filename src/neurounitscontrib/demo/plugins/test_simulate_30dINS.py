@@ -50,7 +50,7 @@ from neurounitscontrib.demo import DemoPluginBase
 class DemoTadpole1(DemoPluginBase):
 
 
-    def get_name(self, ):
+    def get_name(self):
         return 'Tadpole-30'
 
     def run(self, args):
@@ -97,7 +97,7 @@ def get_results():
     for i in range(30):
         for j in range(i):
             if random.uniform(0.,1.) < 0.2:
-                gap_junction_indices.append((i,j) )
+                gap_junction_indices.append((i,j))
 
 
 
@@ -144,11 +144,11 @@ def get_results():
 
 
 
-    network.record_input_events(dINs, 'recv_nmda_spike' )
-    network.record_input_events(dINs, 'recv_inh_spike' )
-    network.record_input_events(dINs, 'recv_ampa_spike' )
-    network.record_output_events(dINs, 'spike' )
-    network.record_traces(dINs, '*' )
+    network.record_input_events(dINs, 'recv_nmda_spike')
+    network.record_input_events(dINs, 'recv_inh_spike')
+    network.record_input_events(dINs, 'recv_ampa_spike')
+    network.record_output_events(dINs, 'spike')
+    network.record_traces(dINs, '*')
 
 
     op_filename = 'output_fixed.hd5'
@@ -188,9 +188,9 @@ def test_simulate30dINs():
         ]
 
     for symbol in sorted(dIN_comp.terminal_symbols, key=lambda o:o.symbol):
-        filters_traces.append("ALL{POPINDEX:0000} AND ANY{%s}" % symbol.symbol )
+        filters_traces.append("ALL{POPINDEX:0000} AND ANY{%s}" % symbol.symbol)
 
-    results.plot(trace_filters=filters_traces, legend=True )
+    results.plot(trace_filters=filters_traces, legend=True)
 
 
 

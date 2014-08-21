@@ -40,7 +40,7 @@ from neurounitscontrib.demo import DemoPluginBase
 class Demo3(DemoPluginBase):
 
 
-    def get_name(self, ):
+    def get_name(self):
         return '3'
 
     def run(self, args):

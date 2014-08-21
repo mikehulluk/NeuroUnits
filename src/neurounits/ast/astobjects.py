@@ -296,7 +296,7 @@ class FunctionDefBuiltIn(ASTExpressionObject):
 
     def accept_func_visitor(self, v, **kwargs):
 
-        raise InternalError("Missing 'accept_func_visitor' for type: %s (%s)" % (type(self), self.funcname) )
+        raise InternalError("Missing 'accept_func_visitor' for type: %s (%s)" % (type(self), self.funcname))
 
 
 class FunctionDefUser(ASTExpressionObject):

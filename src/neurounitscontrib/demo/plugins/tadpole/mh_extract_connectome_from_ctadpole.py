@@ -7,11 +7,11 @@ cells = ctadpole.load_cells('CellList-EvenFull.txt', 'Connectome-EvenFull.txt')
 n_cells = len(cells)
 
 
-cell_pops = defaultdict(list )
+cell_pops = defaultdict(list)
 for index, cell in enumerate(cells):
     is_lhs = index < n_cells/2
     key =  (is_lhs, cell_types[cell.type_id+1])
-    cell_pops[ key ].append(cell )
+    cell_pops[ key ].append(cell)
 
 
 # Quick-check the ID's tie up:
@@ -39,7 +39,7 @@ pop_sizes = {popkey: len(cell_pop) for (popkey, cell_pop) in cell_pops.items()}
 
 
 # Create a dictionary of '(popkey),(popkey)' -> [(src_index,tgt_index),(src_index,tgt_index)]
-projections = defaultdict( set )
+projections = defaultdict( set)
 # OK, so now lets sort out the connection matrices between the different populations:
 for (is_lhs,cell_type), cell_list in cell_pops.items():
     for index,tgt_cell in enumerate(cell_list):
@@ -50,7 +50,7 @@ for (is_lhs,cell_type), cell_list in cell_pops.items():
             src_index = src_cell.relative_id
             tgt_index = tgt_cell.relative_id
 
-            projections[(src_pop, tgt_pop)].add( (src_index, tgt_index) )
+            projections[(src_pop, tgt_pop)].add( (src_index, tgt_index))
 
 
 # Extract the position of each cell:
@@ -73,9 +73,9 @@ for pop,values in cell_positions.items():
 
 def print_pop_info(pops, pop_sizes, projections):
     # Populations:
-    tbl = prettytable.PrettyTable( ['Population', 'Count'] )
+    tbl = prettytable.PrettyTable( ['Population', 'Count'])
     for pop in pops:
-        tbl.add_row( [str(pop), pop_sizes[pop] ] )
+        tbl.add_row( [str(pop), pop_sizes[pop] ])
     print 'Population sizes:'
     print '-----------------'
     print tbl
@@ -85,7 +85,7 @@ def print_pop_info(pops, pop_sizes, projections):
     # Synapses:
     tbl = prettytable.PrettyTable( [''] + [str(p) for p in pops])
     for src_pop in pops:
-        tbl.add_row( [str(src_pop)] + [ len(projections[(src_pop, tgt_pop)]) for tgt_pop in pops] )
+        tbl.add_row( [str(src_pop)] + [ len(projections[(src_pop, tgt_pop)]) for tgt_pop in pops])
     print 'Synaptic Projections:'
     print '---------------------'
     print 'Top->Bottom => src-populations'
@@ -117,12 +117,12 @@ def merge_populations(pop_sizes, projections, pop_merge_details, projection_merg
 
 
     # Build the projection-merge-details into something a bit neater:
-    projection_types = defaultdict( list )
+    projection_types = defaultdict( list)
     for projection_detail in projection_merge_details:
         src,tgt = projection_detail['between'].split("->")
         projection_types[ (src, tgt) ].append( (projection_detail['syn_type'], projection_detail['g']))
 
-    new_projections = defaultdict( list )
+    new_projections = defaultdict( list)
     # OK, now remap each of the existing projections:
     for (src_pop, tgt_pop), indices in projections.items():
         if not indices:
@@ -131,21 +131,21 @@ def merge_populations(pop_sizes, projections, pop_merge_details, projection_merg
         tgt_pop_new, tgt_index_offset, tgt_pop_size = old_population_locations[tgt_pop]
 
 
-        #print (src_pop[1], tgt_pop[1] )
-        pop_to_pop_projections = projection_types[ (src_pop[1], tgt_pop[1] )]
+        #print (src_pop[1], tgt_pop[1])
+        pop_to_pop_projections = projection_types[ (src_pop[1], tgt_pop[1])]
         assert pop_to_pop_projections
 
         for proj in pop_to_pop_projections:
             new_key = (src_pop_new, tgt_pop_new, proj)
             for (i,j) in indices:
-                new_projections[new_key].append( (i+src_index_offset, j+tgt_index_offset) )
+                new_projections[new_key].append( (i+src_index_offset, j+tgt_index_offset))
 
     # And remap the positions:
     new_population_positions = dict()
     for new_pop_name, included_pops in sorted(pop_merge_details.items()):
         new_population_positions[new_pop_name] = []
         for incl_pop in included_pops:
-            new_population_positions[new_pop_name].extend( population_positions[incl_pop] )
+            new_population_positions[new_pop_name].extend( population_positions[incl_pop])
 
 
 
@@ -225,20 +225,20 @@ new_popsizes, new_projections, old_population_locations, new_population_position
 
 
 print 'Reduced Populations:'
-tbl = prettytable.PrettyTable( ['Old Population', 'New location'] )
+tbl = prettytable.PrettyTable( ['Old Population', 'New location'])
 for old_pop, (new_pop, offset,size) in sorted(old_population_locations.items()):
-    tbl.add_row( [old_pop,  str( (new_pop, offset,size) )] )
+    tbl.add_row( [old_pop,  str( (new_pop, offset,size))])
 print tbl
 
 
 
-tbl = prettytable.PrettyTable( ['Population', 'Count'] )
+tbl = prettytable.PrettyTable( ['Population', 'Count'])
 for k,v in  sorted(new_popsizes.items()):
     tbl.add_row([k, v])
 print tbl
 
 
-tbl = prettytable.PrettyTable( ['Synapse-Type', 'Count'] )
+tbl = prettytable.PrettyTable( ['Synapse-Type', 'Count'])
 for k,v in  sorted(new_projections.items()):
     tbl.add_row([k, len(v)])
 

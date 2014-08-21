@@ -24,7 +24,7 @@ from neurounitscontrib.demo import DemoPluginBase
 class DemoTadpole2(DemoPluginBase):
 
 
-    def get_name(self, ):
+    def get_name(self):
         return 'Tadpole-Network'
 
     def run(self, args):
@@ -70,13 +70,13 @@ def test_simulateNetwork():
     network = Network()
     pops_by_name = {}
     for pop_name, pop_size in pop_sizes.items():
-        p = Population(name=pop_name, component=pop_components[pop_name], size=pop_size, parameters=pop_params[pop_name] )
+        p = Population(name=pop_name, component=pop_components[pop_name], size=pop_size, parameters=pop_params[pop_name])
         network.add(p)
         assert not pop_name in pops_by_name
         pops_by_name[pop_name] = p
 
 
-    for syn_index, ((pop1_name, pop2_name, (syn_type, strength) ), conns) in enumerate(connections.items()):
+    for syn_index, ((pop1_name, pop2_name, (syn_type, strength)), conns) in enumerate(connections.items()):
         print 'Adding connection: %s -> %s [type:%s strength:%s, num:%d]' % (pop1_name, pop2_name, syn_type, strength, len(conns))
         p1 = pops_by_name[pop1_name]
         p2 = pops_by_name[pop2_name]
@@ -89,8 +89,8 @@ def test_simulateNetwork():
                     name=synpop_name,
                     delay='1ms',
                     connector=ExplicitIndicesSet(conns),
-                    parameter_map= {'weight': FixedValue(weight)} )
-            )
+                    parameter_map= {'weight': FixedValue(weight)})
+           )
 
 
 
@@ -102,7 +102,7 @@ def test_simulateNetwork():
 
 
 
-    #network.provide_events(pops_by_name['pop1'], event_port='recv_ampa_spike', evt_details = [50,60,70] )
+    #network.provide_events(pops_by_name['pop1'], event_port='recv_ampa_spike', evt_details = [50,60,70])
     non_dINs = pops_by_name['NondINs']
     pop_LHS_MN  = non_dINs.get_subpopulation(start_index=0,   end_index=169, subname='LHS_MN',  autotag=['LHS','MN'])
     pop_LHS_RB  = non_dINs.get_subpopulation(start_index=169, end_index=232, subname='LHS_RB',  autotag=['LHS','RB'])
@@ -121,8 +121,8 @@ def test_simulateNetwork():
 
 
     dINs = pops_by_name['dINs']
-    pop_LHS_dIN = dINs.get_subpopulation(start_index=0,   end_index=118,  subname='LHS_dIN',  autotag=['LHS','dIN'] )
-    pop_RHS_dIN = dINs.get_subpopulation(start_index=118, end_index=236,  subname='RHS_dIN',  autotag=['RHS','dIN'] )
+    pop_LHS_dIN = dINs.get_subpopulation(start_index=0,   end_index=118,  subname='LHS_dIN',  autotag=['LHS','dIN'])
+    pop_RHS_dIN = dINs.get_subpopulation(start_index=118, end_index=236,  subname='RHS_dIN',  autotag=['RHS','dIN'])
 
 
     rhs_subpops = [pop_RHS_MN, pop_RHS_RB, pop_RHS_aIN, pop_RHS_cIN, pop_RHS_dla, pop_RHS_dlc, pop_RHS_dIN]
@@ -160,7 +160,7 @@ def test_simulateNetwork():
                     continue
                 if random.uniform(0,1) > 0.2:
                     continue
-                gap_junction_indices.append((i,j) )
+                gap_junction_indices.append((i,j))
 
                 #ax.plot([i],[j], 'x')
                 #ax.plot([j],[i], 'x')
@@ -198,9 +198,9 @@ def test_simulateNetwork():
 
 
 
-    network.record_output_events([rb_drivers] , 'spike' )
-    network.record_output_events(lhs_subpops+rhs_subpops , 'spike' )
-    network.record_traces(lhs_subpops+rhs_subpops , 'V' )
+    network.record_output_events([rb_drivers] , 'spike')
+    network.record_output_events(lhs_subpops+rhs_subpops , 'spike')
+    network.record_traces(lhs_subpops+rhs_subpops , 'V')
     network.record_traces([pop_LHS_dIN,pop_RHS_dIN], 'nmda_vdep')
 
 
@@ -234,7 +234,7 @@ def test_simulateNetwork():
                 RasterSubgroup("IN: AMPA", "ALL{recv_ampa_spike,%s,%s}"%(name,side), {'color':'blue', 'marker':'.', 's':size }),
                 #RasterSubgroup("IN: NMDA", "ALL{recv_nmda_spike,%s,%s}"%(name,side), {'color':'green', 'marker':'.', 's':size }),
                 #RasterSubgroup("IN: Inhib", "ALL{recv_inh_spike,%s,%s} "%(name,side), {'color':'red', 'marker':'.', 's':size }),
-                ] )
+                ])
 
 
 
@@ -248,7 +248,7 @@ def test_simulateNetwork():
     fig=results.raster_plot([
             RasterGroup('RB', [
                 RasterSubgroup('Spike', "ALL{spike,RBINPUT}", {'color':'red'})
-                ] ),
+                ]),
             build_raster_plot_obj('RB', 'RHS'),
             #build_raster_plot_obj('RB', 'LHS'),
 
@@ -272,10 +272,10 @@ def test_simulateNetwork():
 
             RasterGroup('MN\nLHS', [
                 RasterSubgroup("MN:LHS", "ALL{spike,MN,LHS}", {'color':'blue', 'marker':'x', 's':2}),
-                ] ),
+                ]),
             RasterGroup('MN\nRHS', [
                 RasterSubgroup("MN:RHS", "ALL{spike,MN,RHS}", {'color':'green', 'marker':'x', 's':2}),
-                ] ),
+                ]),
 
             #RasterGroup('MN', [
             #    RasterSubgroup("MN:LHS", "ALL{spike,MN,LHS}", {'color':'blue', 'marker':'x', 's':2}),
@@ -285,7 +285,7 @@ def test_simulateNetwork():
             ],
 
             xlim=xlim,
-            fig_kwargs=dict(figsize=(185/25.4, 4) ),
+            fig_kwargs=dict(figsize=(185/25.4, 4)),
 
             )
     fig.subplots_adjust(left=0.1,top=0.95)
@@ -347,7 +347,7 @@ def test_simulateNetwork():
 
                 #if xscale is not None:
                 #    time = time * xscale
-                pylab.plot(time, data,'x-', label=','.join(res.tags), ms=2 )
+                pylab.plot(time, data,'x-', label=','.join(res.tags), ms=2)
 
 
             pylab.ylabel(ylabel)
@@ -362,8 +362,8 @@ def test_simulateNetwork():
             return fig
 
 
-    f1 = plot_graph("ALL{V,dIN,LHS} AND ANY{POPINDEX:0000,POPINDEX:0001,POPINDEX:0002}", ylabel='Voltage (V)' )
-    f2 = plot_graph("ALL{nmda_vdep,dIN,LHS} AND ANY{POPINDEX:0000,POPINDEX:0001,POPINDEX:0002}",ylabel='NMDA-vdep' )
+    f1 = plot_graph("ALL{V,dIN,LHS} AND ANY{POPINDEX:0000,POPINDEX:0001,POPINDEX:0002}", ylabel='Voltage (V)')
+    f2 = plot_graph("ALL{nmda_vdep,dIN,LHS} AND ANY{POPINDEX:0000,POPINDEX:0001,POPINDEX:0002}",ylabel='NMDA-vdep')
 
 
     f1.get_axes()[0].set_yticks([-60e-3, -30e-3, 0e-3, 30e-3])

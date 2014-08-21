@@ -30,7 +30,7 @@
 
 
 class DemoPluginBase(object):
-    def get_name(self, ):
+    def get_name(self):
         raise NotImplementedError()
 
     def run(self, args):

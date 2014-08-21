@@ -70,8 +70,8 @@ class ReplaceNode(ASTVisitorBase):
         self.dstObj = dstObj
 
     def replace_or_visit(self, o):
-        assert isinstance(o, (ASTObject,Block)), 'Not replacing with an ASTObject!: [%s] %s' % (o, type(o) )
-        assert isinstance(self.srcObj, (ASTObject, Block)), 'Not replacing with an existing ASTObject!: [%s] %s' % (self.srcObj, type(self.srcObj) )
+        assert isinstance(o, (ASTObject,Block)), 'Not replacing with an ASTObject!: [%s] %s' % (o, type(o))
+        assert isinstance(self.srcObj, (ASTObject, Block)), 'Not replacing with an existing ASTObject!: [%s] %s' % (self.srcObj, type(self.srcObj))
 
         if o == self.srcObj:
             return self.dstObj
@@ -82,7 +82,7 @@ class ReplaceNode(ASTVisitorBase):
             return self.visit(o)
 
 
-    def replace(self, o, ):
+    def replace(self, o):
         if o == self.srcObj:
             return self.dstObj
         return o
@@ -105,7 +105,7 @@ class ReplaceNode(ASTVisitorBase):
         new_lut.unique_attrs =  lut.unique_attrs
         new_lut.accepted_obj_types =  lut.accepted_obj_types
         for o in lut:
-            new_lut._add_item(self.replace_or_visit(o)  )
+            new_lut._add_item(self.replace_or_visit(o))
         return new_lut
 
 

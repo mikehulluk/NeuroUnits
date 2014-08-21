@@ -78,7 +78,7 @@ def get_gj():
     comp.annotate_ast(NodeRangeByOptimiser(var_annots_ranges))
     RangeExpander().visit(comp)
 
-    comp.annotate_ast(NodeToIntAnnotator(), ast_label='node-ids' )
+    comp.annotate_ast(NodeToIntAnnotator(), ast_label='node-ids')
 
     #from neurounits.ast_annotations.common import
     NodeTagger(var_annots_tags).visit(comp)
@@ -88,4 +88,4 @@ def get_gj():
 
 
 from neurounits import ComponentLibrary
-ComponentLibrary.register_component_functor('GJ', get_gj )
+ComponentLibrary.register_component_functor('GJ', get_gj)

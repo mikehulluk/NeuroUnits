@@ -55,7 +55,7 @@ def build_argparser():
     parent_parser = argparse.ArgumentParser(add_help=False)
     parent_parser.add_argument('-I','--include',type=str, action='append', help='Either a filename or a direcotry')
     parent_parser.add_argument('--safety-mode', action='store', choices=('cowboy','normal','safe'), default='normal')
-    parent_parser.add_argument('--verbose', action='store_true', )
+    parent_parser.add_argument('--verbose', action='store_true')
 
     subparsers = parser.add_subparsers()
 
@@ -63,17 +63,17 @@ def build_argparser():
     # ===========
     simulate_subparser = subparsers.add_parser('simulate', parents=[parent_parser])
     simulate_subparser.set_defaults(func=handle_simulate)
-    simulate_subparser.add_argument('component', type=str, )
+    simulate_subparser.add_argument('component', type=str)
 
    # Time steps:
-    simulate_subparser.add_argument('--dt', type=str, required=True )
-    simulate_subparser.add_argument('--endt', type=str, required=True )
+    simulate_subparser.add_argument('--dt', type=str, required=True)
+    simulate_subparser.add_argument('--endt', type=str, required=True)
 
     # Plotting Options:
-    simulate_subparser.add_argument('--no-show-plot', action='store_false', default=True, dest='show_plot' )
-    simulate_subparser.add_argument('--save_plot-file', action='append', type=str )
-    simulate_subparser.add_argument('-p', '--plot-what', type=str, )
-    simulate_subparser.add_argument('--phase-plot',  type=str, action='append' )
+    simulate_subparser.add_argument('--no-show-plot', action='store_false', default=True, dest='show_plot')
+    simulate_subparser.add_argument('--save_plot-file', action='append', type=str)
+    simulate_subparser.add_argument('-p', '--plot-what', type=str,)
+    simulate_subparser.add_argument('--phase-plot',  type=str, action='append')
 
 
     # Save to CSV file:
@@ -103,17 +103,17 @@ def build_argparser():
 
     # Demo interface
     demo_subparser = subparsers.add_parser('demo', parents=[parent_parser])
-    demo_subparser.add_argument('what', nargs='*',  )
+    demo_subparser.add_argument('what', nargs='*', )
     demo_subparser.set_defaults(func=handle_demo)
 
     # test interface
     test_subparser = subparsers.add_parser('test', parents=[parent_parser])
-    test_subparser.add_argument('what', nargs='*',  )
+    test_subparser.add_argument('what', nargs='*', )
     test_subparser.set_defaults(func=handle_test)
 
     # Summarise
     summarise_subparser = subparsers.add_parser('summarise', parents=[parent_parser])
-    summarise_subparser.add_argument('what', nargs='*',  )
+    summarise_subparser.add_argument('what', nargs='*', )
     summarise_subparser.set_defaults(func=handle_summarise)
 
     coverage_subparser = subparsers.add_parser('coverage', parents=[parent_parser])

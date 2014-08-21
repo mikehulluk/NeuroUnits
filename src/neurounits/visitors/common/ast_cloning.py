@@ -94,7 +94,7 @@ class ASTClone(object):
 
         new._event_port_connections = o._event_port_connections.copy()
         new._interface_connectors = o._interface_connectors.copy()
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
 
 
@@ -104,7 +104,7 @@ class ASTClone(object):
         new = ast.SymbolicConstant(
                 symbol = o.symbol,
                 value = o.value)
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
 
     def VisitFunctionDefUser(self, o, **kwargs):
@@ -113,47 +113,47 @@ class ASTClone(object):
                 parameters=o.parameters.copy(),
                 rhs = o.rhs
                 )
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
     def VisitFunctionDefBuiltIn(self, o, **kwargs):
         new = ast.FunctionDefBuiltIn(
                 funcname = o.funcname,
                 parameters= o.parameters,
                 )
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
     def VisitFunctionDefParameter(self, o, **kwargs):
         new = ast.FunctionDefParameter(
                 symbol=o.symbol
                 )
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
     def VisitStateVariable(self, o, **kwargs):
         new = ast.StateVariable(
                 symbol=o.symbol
                 )
         new.initial_value = o.initial_value
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         new = ast.EqnTimeDerivativeByRegime(
                 lhs = o.lhs,
                 rhs_map = o.rhs_map,
                 )
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
         new = ast.EqnRegimeDispatchMap(
                 rhs_map = o.rhs_map.copy()
                 )
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         new = ast.EqnAssignmentByRegime(
                 lhs = o.lhs,
                 rhs_map = o.rhs_map,
                 )
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
 
     def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
@@ -161,14 +161,14 @@ class ASTClone(object):
                 function_def = o.function_def,
                 parameters = o.parameters.copy()
                 )
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
     def VisitFunctionDefUserInstantiation(self, o, **kwargs):
         new =  ast.FunctionDefUserInstantiation(
                 function_def = o.function_def,
                 parameters = o.parameters.copy()
                 )
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
 
     def VisitFunctionDefInstantiationParameter(self, o, **kwargs):
@@ -178,7 +178,7 @@ class ASTClone(object):
                     function_def_parameter = o._function_def_parameter
 
                 )
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
 
     def VisitOnEvent(self, o, **kwargs):
@@ -187,7 +187,7 @@ class ASTClone(object):
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
         new = ast.OnEventStateAssignment(lhs = o.lhs, rhs=o.rhs)
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
     def VisitIfThenElse(self, o, **kwargs):
         new = ast.IfThenElse(
@@ -206,73 +206,73 @@ class ASTClone(object):
     def VisitBoolAnd(self, o, **kwargs):
         new = ast.BoolAnd(
                 lhs = o.lhs,
-                rhs = o.rhs, )
-        return copy_std(o, new, )
+                rhs = o.rhs,)
+        return copy_std(o, new)
 
     def VisitBoolOr(self, o, **kwargs):
         new = ast.BoolOr(
                 lhs = o.lhs,
-                rhs = o.rhs, )
-        return copy_std(o, new, )
+                rhs = o.rhs,)
+        return copy_std(o, new)
 
     def VisitBoolNot(self, o, **kwargs):
         new = ast.BoolOr(lhs = o.lhs)
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
     def VisitParameter(self, o, **kwargs):
         new = ast.Parameter(symbol = o.symbol)
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
     def VisitConstant(self, o, **kwargs):
         new = ast.ConstValue(value = o.value)
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
     def VisitConstantZero(self, o, **kwargs):
         new = ast.ConstValueZero()
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
     def VisitAssignedVariable(self, o, **kwargs):
         new = ast.AssignedVariable(symbol = o.symbol)
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
     def VisitSuppliedValue(self, o, **kwargs):
         new = ast.SuppliedValue(symbol = o.symbol)
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
     def VisitTimeVariable(self, o, **kwargs):
         new = ast.TimeVariable(symbol = o.symbol)
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
 
     def VisitAddOp(self, o, **kwargs):
         new = ast.AddOp(
                 lhs = o.lhs,
-                rhs = o.rhs, )
-        return copy_std(o, new, )
+                rhs = o.rhs,)
+        return copy_std(o, new)
 
     def VisitSubOp(self, o, **kwargs):
         new = ast.SubOp(
                 lhs = o.lhs,
-                rhs = o.rhs, )
-        return copy_std(o, new, )
+                rhs = o.rhs,)
+        return copy_std(o, new)
 
     def VisitMulOp(self, o, **kwargs):
         new = ast.MulOp(
                 lhs = o.lhs,
-                rhs = o.rhs, )
-        return copy_std(o, new, )
+                rhs = o.rhs,)
+        return copy_std(o, new)
 
     def VisitDivOp(self, o, **kwargs):
         new = ast.DivOp(
                 lhs = o.lhs,
-                rhs = o.rhs, )
-        return copy_std(o, new, )
+                rhs = o.rhs)
+        return copy_std(o, new)
 
     def VisitExpOp(self, o, **kwargs):
         new = ast.ExpOp(
                 lhs = o.lhs,
-                rhs = o.rhs, )
-        return copy_std(o, new, )
+                rhs = o.rhs)
+        return copy_std(o, new)
 
 
 
@@ -283,7 +283,7 @@ class ASTClone(object):
                 actions = o.actions[:],
                 trigger = o.trigger
                 )
-        return copy_std(o, new, )
+        return copy_std(o, new)
     def VisitOnTransitionEvent(self, o, **kwargs):
         new = ast.OnEventTransition(
                 src_regime = o.src_regime,
@@ -292,7 +292,7 @@ class ASTClone(object):
                 port = o.port,
                 parameters = o.parameters.copy()
                 )
-        return copy_std(o, new, )
+        return copy_std(o, new)
 
 
     def VisitAnalogReducePort(self, o, **kwagrs):
@@ -353,7 +353,7 @@ class ASTClone(object):
                 interface_port =  o.interface_port,
                 )
 
-    def VisitEventPortConnection(self, o, **kwargs ):
+    def VisitEventPortConnection(self, o, **kwargs):
         assert o.delay is None
         return ast.EventPortConnection(
             dst_port = o.dst_port,

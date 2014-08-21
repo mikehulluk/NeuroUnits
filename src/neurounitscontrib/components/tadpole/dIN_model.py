@@ -352,8 +352,8 @@ def get_dIN():
 
     NodeTagger(var_annots_tags).visit(comp)
 
-    #comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
-    comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
+    #comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann')
+    comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids')
 
 
     return comp
@@ -361,4 +361,4 @@ def get_dIN():
 
 
 from neurounits import ComponentLibrary
-ComponentLibrary.register_component_functor('dIN', get_dIN )
+ComponentLibrary.register_component_functor('dIN', get_dIN)

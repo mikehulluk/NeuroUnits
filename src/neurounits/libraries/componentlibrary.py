@@ -42,7 +42,7 @@ class _CachedFileAccessData(object):
         lines = self.get_file_lines()
         if lines is not None:
             hashobj = hashlib.new('sha1')
-            hashobj.update('\n'.join(lines ))
+            hashobj.update('\n'.join(lines))
             return hashobj.hexdigest()
         else:
             return None
@@ -112,7 +112,7 @@ class ComponentLibrary(object):
         kw_hash = m.hexdigest()
 
         # 2. Is there a file cached with that name?
-        expected_filename = os.path.join(cls._cache_dir, '%s_%s.pickle' % (component_name, kw_hash) )
+        expected_filename = os.path.join(cls._cache_dir, '%s_%s.pickle' % (component_name, kw_hash))
         print expected_filename
 
         if os.path.exists(expected_filename):

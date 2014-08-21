@@ -355,7 +355,7 @@ class DimensionResolver(ASTVisitorBase):
             try:
                 obj_dim = obj.get_dimension() if obj.is_dimension_known() else "<Dimension Unknown>"
                 obj_unit = None
-                self.history.append(' %s - %s - %s %s' % (name, obj.symbol, obj_dim, obj_unit) )
+                self.history.append(' %s - %s - %s %s' % (name, obj.symbol, obj_dim, obj_unit))
             except:
                 pass
 

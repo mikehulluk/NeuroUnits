@@ -51,7 +51,7 @@ class ComponentNamespace(object):
     def __repr__(self):
         return '<Component namespace: %s>' % self.full_name
 
-    def __init__(self, name, parent ):
+    def __init__(self, name, parent):
         # name is local, not fully qualified:
         self.name = name
         self.parent = parent
@@ -147,7 +147,7 @@ class ComponentNamespace(object):
             objs.extend(self.interfaces)
 
         for ns in self.subnamespaces:
-            objs.extend(ns.get_all(components=components, libraries=libraries, interfaces=interfaces) )
+            objs.extend(ns.get_all(components=components, libraries=libraries, interfaces=interfaces))
         return objs
 
 
@@ -227,7 +227,7 @@ class LibraryManager(ast.ASTObject):
             LibraryManager(backend=backend, is_stdlib_cache=True)
 
 
-    def get_root_namespace(self, ):
+    def get_root_namespace(self):
         return self.namespace
 
 

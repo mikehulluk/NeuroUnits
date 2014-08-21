@@ -40,35 +40,35 @@ class _FunctionCloner(ASTVisitorBase):
 
         return ast.FunctionDefBuiltInInstantiation(
                     function_def = o.function_def,
-                    parameters = params_new )
+                    parameters = params_new)
 
 
 
 
 
-    def VisitFunctionDefParameter(self, o ):
+    def VisitFunctionDefParameter(self, o):
         assert o in self.params_old_to_new
         return self.params_old_to_new[o]
 
     def VisitAddOp(self, o):
         return ast.AddOp(
                 self.visit(o.lhs),
-                self.visit(o.rhs) )
+                self.visit(o.rhs))
 
     def VisitSubOp(self, o):
         return ast.SubOp(
                 self.visit(o.lhs),
-                self.visit(o.rhs) )
+                self.visit(o.rhs))
 
     def VisitMulOp(self, o):
         return ast.MulOp(
                 self.visit(o.lhs),
-                self.visit(o.rhs) )
+                self.visit(o.rhs))
 
     def VisitDivOp(self, o):
         return ast.DivOp(
                 self.visit(o.lhs),
-                self.visit(o.rhs) )
+                self.visit(o.rhs))
 
     def VisitConstant(self, o):
         return ast.ConstValue(value=o.value)
@@ -77,7 +77,7 @@ class _FunctionCloner(ASTVisitorBase):
         return ast.IfThenElse(
                 predicate = self.visit(o.predicate),
                 if_true_ast = self.visit(o.if_true_ast),
-                if_false_ast = self.visit(o.if_false_ast) )
+                if_false_ast = self.visit(o.if_false_ast))
 
     def VisitInEquality(self, o):
         return ast.InEquality(

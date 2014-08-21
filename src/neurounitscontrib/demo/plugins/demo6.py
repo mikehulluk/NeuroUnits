@@ -148,7 +148,7 @@ from neurounitscontrib.demo import DemoPluginBase
 class Demo6(DemoPluginBase):
 
 
-    def get_name(self, ):
+    def get_name(self):
         return '6'
 
     def run(self, args):
@@ -165,7 +165,7 @@ def test6():
     nrn = lm.get('my_din')
 
 
-    res = nrn.simulate(times=np.linspace(0.0, 0.100, 10000) )
+    res = nrn.simulate(times=np.linspace(0.0, 0.100, 10000))
     res.auto_plot()
 
 

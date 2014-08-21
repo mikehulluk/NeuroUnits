@@ -270,8 +270,8 @@ class ActionerGetConnections(ASTActionerDefault):
         self.connections[o].extend(o.functiondefs)
         self.connections[o].extend(o.symbolicconstants)
         self.connections[o].extend(o.transitions)
-        self.connections[o].extend(list(o._event_port_connections) )
-        self.connections[o].extend(list(o._interface_connectors) )
+        self.connections[o].extend(list(o._event_port_connections))
+        self.connections[o].extend(list(o._interface_connectors))
 
 
     def ActionRegime(self, o, **kwargs):

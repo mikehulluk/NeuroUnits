@@ -162,8 +162,8 @@ class AbstractBlockBuilder(object):
         self._interface_data = []
 
         # Event ports:
-        self._output_event_ports = LookUpDict(accepted_obj_types=(ast.OutEventPort) )
-        self._input_event_ports = LookUpDict(accepted_obj_types=(ast.InEventPort) )
+        self._output_event_ports = LookUpDict(accepted_obj_types=(ast.OutEventPort))
+        self._input_event_ports = LookUpDict(accepted_obj_types=(ast.InEventPort))
 
 
 
@@ -512,7 +512,7 @@ class AbstractBlockBuilder(object):
             assvar_obj = ast.AssignedVariable(symbol=ass_var)
             self._resolve_global_symbol(ass_var, assvar_obj)
 
-            mapping = dict([ (reg, rhs) for (reg, rhs) in tds.items()] )
+            mapping = dict([ (reg, rhs) for (reg, rhs) in tds.items()])
             rhs = ast.EqnAssignmentByRegime(
                     lhs=assvar_obj,
                     rhs_map=ast.EqnRegimeDispatchMap(mapping)
@@ -558,7 +558,7 @@ class AbstractBlockBuilder(object):
         # lets create them:
         for tr in self.builddata.transitions_conditiontriggers +  self.builddata.transitions_events:
             for action in tr.actions:
-                if isinstance(action, ast.OnEventStateAssignment ):
+                if isinstance(action, ast.OnEventStateAssignment):
 
                     if isinstance(action.lhs, SymbolProxy):
 
@@ -703,7 +703,7 @@ class AbstractBlockBuilder(object):
         for io_data in io_data:
 
             allow_missing = (io_data.iotype==IOType.Input and options.allow_unused_suppliedvalue_declarations)or \
-                            (io_data.iotype==IOType.Parameter and options.allow_unused_parameter_declarations )
+                            (io_data.iotype==IOType.Parameter and options.allow_unused_parameter_declarations)
 
             if allow_missing and not ast_object.has_terminal_obj(io_data.symbol):
                 continue

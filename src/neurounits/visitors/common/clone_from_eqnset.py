@@ -149,7 +149,7 @@ class _CloneFuncDef(ASTVisitorBase):
         params = {}
         for (pName, pObj) in o.parameters.iteritems():
             p = ast.FunctionDefParameterInstantiation(rhs_ast=self.visit(pObj.rhs_ast), symbol=pObj.symbol )
-            p.set_function_def_parameter(newDef.parameters[pName]  )
+            p.set_function_def_parameter(newDef.parameters[pName])
             params[pName] = p
             self.func_param_map[pObj] = p
 
@@ -163,7 +163,7 @@ class _CloneFuncDef(ASTVisitorBase):
         params = {}
         for (pName, pObj) in o.parameters.iteritems():
             p = ast.FunctionDefParameterInstantiation(rhs_ast=self.visit(pObj.rhs_ast), symbol=pObj.symbol )
-            p.set_function_def_parameter(newDef.parameters[pName]  )
+            p.set_function_def_parameter(newDef.parameters[pName])
             params[pName] = p
             self.func_param_map[pObj] = p
 

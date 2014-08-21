@@ -65,7 +65,7 @@ class Population(object):
                              start_index=start_index,
                              end_index=end_index,
                              subname=subname,
-                             autotag=autotag )
+                             autotag=autotag)
     @property
     def population(self):
         return self
@@ -288,13 +288,13 @@ class PopRec(object):
 
     def __str__(self):
         return "<PopRec [global_offset: %s , size: %s] from [src_pop: %s recording: %s local_offset: %s ] {Tags:%s}>" % (
-                        self.global_offset, self.size, self.src_population.name, self.src_pop_start_index, self.node.symbol, self.tags )
+                        self.global_offset, self.size, self.src_population.name, self.src_pop_start_index, self.node.symbol, self.tags)
 
 
 
 
 class Network(object):
-    def __init__(self, ):
+    def __init__(self):
         self.is_frozen=False
         self.populations = []
         self.event_port_connectors = []
@@ -303,9 +303,9 @@ class Network(object):
 
 
 
-        self._record_traces = defaultdict(list )
-        self._record_output_events = defaultdict(list )
-        self._record_input_events = defaultdict(list )
+        self._record_traces = defaultdict(list)
+        self._record_output_events = defaultdict(list)
+        self._record_input_events = defaultdict(list)
 
         # Setup properly by finalise:
         self.all_trace_recordings = None
@@ -374,17 +374,17 @@ class Network(object):
 
         for terminal_node_name in terminal_node_names:
             terminal_node = population.component.get_terminal_obj(terminal_node_name)
-            self._record_traces[(population, terminal_node)].append((subpop.indices, subpop.autotag) )
+            self._record_traces[(population, terminal_node)].append((subpop.indices, subpop.autotag))
 
     def _record_output_events_for_population(self, subpop, terminal_node_name):
         population = subpop.population
         terminal_node = population.component.output_event_port_lut.get_single_obj_by(symbol=terminal_node_name)
-        self._record_output_events[(population, terminal_node)].append((subpop.indices, subpop.autotag) )
+        self._record_output_events[(population, terminal_node)].append((subpop.indices, subpop.autotag))
 
     def _record_input_events_for_population(self, subpop, terminal_node_name):
         population = subpop.population
         terminal_node = population.component.input_event_port_lut.get_single_obj_by(symbol=terminal_node_name)
-        self._record_input_events[(population, terminal_node)].append((subpop.indices, subpop.autotag) )
+        self._record_input_events[(population, terminal_node)].append((subpop.indices, subpop.autotag))
 
 
 
@@ -394,7 +394,7 @@ class Network(object):
         self.is_frozen=True
         # Work out which traces to record:
         def curr_rec_offset(lst):
-            return 0 if lst == [] else (lst[-1].global_offset + lst[-1].size )
+            return 0 if lst == [] else (lst[-1].global_offset + lst[-1].size)
 
         # Traces:
         assert self.all_trace_recordings is None
@@ -441,10 +441,10 @@ class Network(object):
                 # Lets encode it:
                 anntr = p.dst_population.component.annotation_mgr._annotators['fixed-point-format-ann']
 
-                assert isinstance(anntr, NodeFixedPointFormatAnnotator )
+                assert isinstance(anntr, NodeFixedPointFormatAnnotator)
 
 
-                src.value_scaled_for_target = anntr.encode_value(value=src.value.float_in_si(), upscaling_pow=dst_param.annotations['fixed-point-format'].upscale )
+                src.value_scaled_for_target = anntr.encode_value(value=src.value.float_in_si(), upscaling_pow=dst_param.annotations['fixed-point-format'].upscale)
 
 
         # Sanity check on the analog connectors:
@@ -478,12 +478,12 @@ class Network(object):
             assert False
 
 
-    def provide_events(self, population, event_port, evt_details ):
+    def provide_events(self, population, event_port, evt_details):
         event_port = population.component.input_event_port_lut.get_single_obj_by(symbol=event_port)
 
         self.additional_events.append(
-            (population, event_port, evt_details )
-                )
+            (population, event_port, evt_details)
+               )
 
 
 
@@ -544,12 +544,12 @@ class ExplicitIndicesSet(PopulationConnector):
         tmpl = Template('''
 
         %for src, tgts in src_tgt_map.items():
-            <%tgt_str = ','.join(['IntType(%s)'%t for t in tgts ] ) %>
+            <%tgt_str = ','.join(['IntType(%s)'%t for t in tgts ]) %>
             IntType tgts_from_${src}[] = { ${tgt_str} };
-            IntType tgts_from_${src}_len = IntType(${len(tgts)} ) ;
+            IntType tgts_from_${src}_len = IntType(${len(tgts)}) ;
 
             // # TODO: refactor this out properly:
-            projections[${src}].assign(tgts_from_${src}, tgts_from_${src} + get_value32(tgts_from_${src}_len) );
+            projections[${src}].assign(tgts_from_${src}, tgts_from_${src} + get_value32(tgts_from_${src}_len));
         %endfor
 
         ''')

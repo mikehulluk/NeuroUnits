@@ -200,7 +200,7 @@ def get_HH():
 
     NodeTagger(var_annots_tags).visit(comp)
 
-    comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
+    comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids')
 
 
     return comp
@@ -208,4 +208,4 @@ def get_HH():
 
 
 from neurounits import ComponentLibrary
-ComponentLibrary.register_component_functor('HH', get_HH )
+ComponentLibrary.register_component_functor('HH', get_HH)

@@ -149,7 +149,7 @@ def p_unitsdefinition8(p):
 
 def p_multiport_1(p):
     """ multiport_def : DEFINE_MULTIPORT_TYPE alphanumtoken LCURLYBRACKET multiport_def_contents RCURLYBRACKET SEMICOLON"""
-    multiport = ast.MultiportInterfaceDef(symbol=p[2], connections = p[4] )
+    multiport = ast.MultiportInterfaceDef(symbol=p[2], connections = p[4])
     p.parser.library_manager.add_multiportdef(multiport)
 
 def p_multiport_2(p):
@@ -203,7 +203,7 @@ def p_multiport_event_param_list_3(p):
 
 def p_multiport_event_param_2(p):
     """multiport_event_param : alphanumtoken COLON unit_expr  """
-    p[0] = (p[1], p[3] )
+    p[0] = (p[1], p[3])
 
 
 # Compound component:
@@ -247,7 +247,7 @@ def p_compound_component(p):
 
     component = NineMLComponent.build_compound_component(
             component_name=name,
-            instantiate = dict(instantiations ),
+            instantiate = dict(instantiations),
             connections = connections,
             renames = renames,
             merge_nodes = merge_nodes,
@@ -410,7 +410,7 @@ def p_parse_intial_block2(p):
 #IO Lines
 def p_parse_ioline0(p):
     """io_line : IO_MARKER io_type io_list io_metadata_info"""
-    p[0] = (p[2], p[3], p[4] )
+    p[0] = (p[2], p[3], p[4])
 def p_parse_ioline1(p):
     """io_type : TIME
                | INPUT
@@ -505,7 +505,7 @@ def p_parse_on_transition_trigger(p):
 def p_parse_on_transition_event(p):
     """on_transition : ON ALPHATOKEN  open_transition_scope LBRACKET on_event_def_params RBRACKET   LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
     event_name = p[2]
-    event_params = LookUpDict(p[5], accepted_obj_types=(ast.OnEventDefParameter) )
+    event_params = LookUpDict(p[5], accepted_obj_types=(ast.OnEventDefParameter))
     actions = p[8]
     target_regime = p[9]
     p.parser.library_manager.get_current_block_builder().close_scope_and_create_transition_event(event_name=event_name, event_params=event_params, actions=actions, target_regime=target_regime)
@@ -717,7 +717,7 @@ def p_time_derivative(p):
     """time_derivative : lhs_symbol PRIME EQUALS rhs_generic"""
     p.parser.library_manager.get_current_block_builder().add_timederivative(
            lhs_state_name = p[1],
-           rhs_ast = p[4] )
+           rhs_ast = p[4])
 
 
 
@@ -800,7 +800,7 @@ def p_function_def_params1(p):
 
 def p_function_def_params2(p):
     """function_def_params : function_def_params COMMA  function_def_param """
-    p[0] = safe_dict_merge(p[1], p[3] )
+    p[0] = safe_dict_merge(p[1], p[3])
 
 
 
@@ -838,7 +838,7 @@ def p_quantity_func_params_l3c(p):
 
 def p_quantity_func_params_term_l3(p):
     """func_call_param_l3 : alphanumtoken EQUALS rhs_term"""
-    p[0] = ast.FunctionDefParameterInstantiation(symbol = p[1], rhs_ast=p[3] )
+    p[0] = ast.FunctionDefParameterInstantiation(symbol = p[1], rhs_ast=p[3])
 
 
 
@@ -927,15 +927,15 @@ def p_ar_model(p):
 
 def p_ar_model_0(p):
     """ar_model : TILDE AR_MODEL LBRACKET RBRACKET"""
-    p[0] = ast.AutoRegressiveModel(coefficients=tuple() )
+    p[0] = ast.AutoRegressiveModel(coefficients=tuple())
 
 def p_ar_model_1(p):
     """ar_model : TILDE AR_MODEL LBRACKET magnitude RBRACKET"""
-    p[0] = ast.AutoRegressiveModel(coefficients=tuple([ p[4] ]) )
+    p[0] = ast.AutoRegressiveModel(coefficients=tuple([ p[4] ]))
 
 def p_ar_model_2(p):
     """ar_model : TILDE AR_MODEL LBRACKET alphanumtoken EQUALS magnitude COMMA alphanumtoken EQUALS magnitude RBRACKET"""
-    p[0] = ast.AutoRegressiveModel(coefficients=tuple() )
+    p[0] = ast.AutoRegressiveModel(coefficients=tuple())
 
 
 

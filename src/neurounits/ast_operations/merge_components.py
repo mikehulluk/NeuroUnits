@@ -56,7 +56,7 @@ def _is_node_analog(n):
 
 def build_compound_component(component_name, instantiate,  analog_connections=None, event_connections=None,  renames=None, connections=None, prefix='/', auto_remap_time=True, merge_nodes=None, interfaces_in=None, multiconnections=None, set_parameters=None):
 
-    lib_mgrs = list(set([comp.library_manager for comp in instantiate.values()]) )
+    lib_mgrs = list(set([comp.library_manager for comp in instantiate.values()]))
 
     assert len(lib_mgrs)== 1 and lib_mgrs[0] is not None
     lib_mgr = lib_mgrs[0]
@@ -114,7 +114,7 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
 
     for c in instantiate.values():
         for td in c.timederivatives:
-            builddata.timederivatives.append(td )
+            builddata.timederivatives.append(td)
 
         for ass in c.assignments:
             builddata.assignments.append(ass)
@@ -231,7 +231,7 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
 
 
 
-    mergeable_node_types = (ast.SuppliedValue, ast.Parameter, ast.InEventPort, )
+    mergeable_node_types = (ast.SuppliedValue, ast.Parameter, ast.InEventPort,)
     if merge_nodes:
         for srcs, new_name in merge_nodes:
             if not srcs:

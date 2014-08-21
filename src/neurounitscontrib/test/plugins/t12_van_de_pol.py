@@ -37,7 +37,7 @@ class TestRunLorenz(TestingPluginBase):
     def __init__(self,):
         self.results = None
 
-    def get_name(self, ):
+    def get_name(self):
         return 'Test van de Pol'
 
     def print_results(self):

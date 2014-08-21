@@ -126,7 +126,7 @@ define_component xor{
 
     T = 2.5V
 
-    Q = [5V] if [ ((x1>T) and (x2<T) ) or ( (x1<T) and (x2>T)) ] else [0V]
+    Q = [5V] if [ ((x1>T) and (x2<T)) or ( (x1<T) and (x2>T)) ] else [0V]
     #Q = [0mV] if [ (x1<T and x2>T) ] else [0mV]
 
 

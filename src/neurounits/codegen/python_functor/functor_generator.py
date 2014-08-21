@@ -127,14 +127,14 @@ class FunctorGenerator(ASTVisitorBase):
         self.transitions_actions[o] = self._visit_trans(o, **kwargs)
 
     def VisitOnTransitionEvent(self, o, **kwargs):
-        self.transition_port_handlers[o.port].append(o )
+        self.transition_port_handlers[o.port].append(o)
         self.transitions_actions[o] = self._visit_trans(o, **kwargs)
 
     def VisitOnEventDefParameter(self, o):
         def f(evt, **kw):
             # Single parameter:
             if len(evt.parameter_values)==1:
-                return list(evt.parameter_values.values() )[0]
+                return list(evt.parameter_values.values())[0]
             # Resolve from among many parameters:
             else:
                 return evt.parameter_values[o.port_parameter_obj.symbol]
@@ -200,8 +200,8 @@ class FunctorGenerator(ASTVisitorBase):
 
 
     def VisitInEquality(self, o , **kwargs):
-        lt = self.visit(o.lesser_than )
-        gt = self.visit(o.greater_than )
+        lt = self.visit(o.lesser_than)
+        gt = self.visit(o.greater_than)
         def f5(**kw):
             lhs = lt(**kw)
             rhs = gt(**kw)
@@ -242,7 +242,7 @@ class FunctorGenerator(ASTVisitorBase):
             def eFunc(state_data, func_params, **kw):
                 assert len(func_params) == 1
                 ParsingBackend = MHUnitBackend
-                return ParsingBackend.Quantity(float(functor((func_params.values()[0] ).dimensionless())), ParsingBackend.Unit() )
+                return ParsingBackend.Quantity(float(functor((func_params.values()[0]).dimensionless())), ParsingBackend.Unit())
         else:
             def eFunc(state_data, func_params, **kw):
                 assert len(kw) == 1
@@ -298,8 +298,8 @@ class FunctorGenerator(ASTVisitorBase):
                 assert len(func_params) == 2
                 ParsingBackend = MHUnitBackend
                 return ParsingBackend.Quantity(float(functor(
-                        (func_params[arg_names[0]] ).dimensionless() ,
-                        (func_params[arg_names[1]] ).dimensionless()) ), ParsingBackend.Unit() )
+                        (func_params[arg_names[0]]).dimensionless() ,
+                        (func_params[arg_names[1]]).dimensionless())), ParsingBackend.Unit())
         else:
             def eFunc(state_data, func_params, **kw):
                 assert len(kw) == 2
@@ -307,14 +307,14 @@ class FunctorGenerator(ASTVisitorBase):
 
         return eFunc
 
-    def VisitBIFpow(self, o, ):
-        return self._VisitBIF2arg(o=o, arg_names=('base','exp'), functor=np.power )
-    def VisitBIFmin(self, o, ):
-        return self._VisitBIF2arg(o=o, arg_names=('x','y'), functor=np.min )
-    def VisitBIFmax(self, o, ):
-        return self._VisitBIF2arg(o=o, arg_names=('x','y'), functor=np.max )
-    def VisitBIFatan2(self, o, ):
-        return self._VisitBIF2arg(o=o, arg_names=('y', 'x'), functor=np.arctan2 )
+    def VisitBIFpow(self, o,):
+        return self._VisitBIF2arg(o=o, arg_names=('base','exp'), functor=np.power)
+    def VisitBIFmin(self, o,):
+        return self._VisitBIF2arg(o=o, arg_names=('x','y'), functor=np.min)
+    def VisitBIFmax(self, o,):
+        return self._VisitBIF2arg(o=o, arg_names=('x','y'), functor=np.max)
+    def VisitBIFatan2(self, o,):
+        return self._VisitBIF2arg(o=o, arg_names=('y', 'x'), functor=np.arctan2)
 
 
 
@@ -351,7 +351,7 @@ class FunctorGenerator(ASTVisitorBase):
                 return v
 
 
-        return with_number_check(eFunc2, o )
+        return with_number_check(eFunc2, o)
 
     def VisitParameter(self, o, **kwargs):
         def eFunc(state_data, **kw):
@@ -376,7 +376,7 @@ class FunctorGenerator(ASTVisitorBase):
     def VisitConstantZero(self, o, **kwargs):
         if not self.as_float_in_si:
             def eFunc(**kw):
-                return MMQuantity(0 , o.get_dimension() )
+                return MMQuantity(0 , o.get_dimension())
             return eFunc
         else:
             def eFunc(**kw):
@@ -501,10 +501,10 @@ class FunctorGenerator(ASTVisitorBase):
 
     # Map to Numpy:
     def VisitRVUniform(self, o, **kwargs):
-        return self._VisitRV(o, functor=np.random.uniform, arg_names=['min','max'] )
+        return self._VisitRV(o, functor=np.random.uniform, arg_names=['min','max'])
 
     def VisitRVNormal(self, o, **kwargs):
-        return self._VisitRV(o, functor=np.random.normal, arg_names=['loc', 'scale'] )
+        return self._VisitRV(o, functor=np.random.normal, arg_names=['loc', 'scale'])
 
     def _VisitRV(self, o, functor, arg_names, **kwargs):
         if not self.as_float_in_si:
@@ -514,7 +514,7 @@ class FunctorGenerator(ASTVisitorBase):
         else:
             def func(**kwargs):
                 args = [kwargs[a] for a in arg_names]
-                return float(functor(*args) )
+                return float(functor(*args))
         return func
 
 

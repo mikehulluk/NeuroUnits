@@ -71,7 +71,7 @@ class Event(object):
 
 
 class EventManager(object):
-    def __init__(self, ):
+    def __init__(self):
         self.previous_time = None
         self.current_time = None
 
@@ -85,7 +85,7 @@ class EventManager(object):
     def emit_event(self, port, parameter_values):
 
         submit_time = self.current_time +  self.dummy_delay
-        self.outstanding_event_list.append(Event(port=port, parameter_values=parameter_values, time=submit_time) )
+        self.outstanding_event_list.append(Event(port=port, parameter_values=parameter_values, time=submit_time))
 
     def set_time(self, t):
         self.previous_time = self.current_time
@@ -122,8 +122,8 @@ def simulate_component(component, times, parameters=None, initial_state_values=N
     # Sort out the parameters and initial_state_variables:
     # =====================================================
     neurounits.Q1 = neurounits.NeuroUnitParser.QuantitySimple
-    parameters = dict((k, neurounits.Q1(v)) for (k,v) in parameters.items() )
-    initial_state_values = dict((k, neurounits.Q1(v)) for (k, v) in initial_state_values.items() )
+    parameters = dict((k, neurounits.Q1(v)) for (k,v) in parameters.items())
+    initial_state_values = dict((k, neurounits.Q1(v)) for (k, v) in initial_state_values.items())
 
     # Sanity check, are the parameters and initial state_variable values in the right units:
     for (k, v) in parameters.items() + initial_state_values.items():
@@ -201,7 +201,7 @@ def simulate_component(component, times, parameters=None, initial_state_values=N
 
         # Update the states:
         for (d, dS) in deltas.items():
-            assert d in state_values, "Found unexpected delta: %s " %(d )
+            assert d in state_values, "Found unexpected delta: %s " %(d)
             state_values[d] += dS * (times[i+1] - times[i])* one_second
 
 
@@ -245,7 +245,7 @@ def simulate_component(component, times, parameters=None, initial_state_values=N
             rt_graphs = set([ rt_graph for (tr, evt, rt_graph) in triggered_transitions ])
             for rt_graph in rt_graphs:
                 rt_trig_trans = ([ tr for (tr, evt, rt_graph_) in triggered_transitions if rt_graph_ == rt_graph ])
-                target_regimes = set([tr.target_regime for tr in rt_trig_trans] )
+                target_regimes = set([tr.target_regime for tr in rt_trig_trans])
                 assert len(target_regimes) == 1
 
             updated_states = set()
@@ -275,7 +275,7 @@ def simulate_component(component, times, parameters=None, initial_state_values=N
 
 
     # A. Times:
-    times = np.array([time_pt_data.suppliedvalues['t'].float_in_si() for time_pt_data in reses_new] )
+    times = np.array([time_pt_data.suppliedvalues['t'].float_in_si() for time_pt_data in reses_new])
 
     # B. State variables:
     state_names = [s.symbol for s in component.state_variables]
@@ -308,7 +308,7 @@ def simulate_component(component, times, parameters=None, initial_state_values=N
     # Build a dictionary mapping regimes -> Regimes, to make plotting easier:
     regimes_to_ints_map = {}
     for rt_graph in component.rt_graphs:
-        regimes_to_ints_map[rt_graph] = dict(zip( iter(rt_graph.regimes),range(len(rt_graph.regimes)),) )
+        regimes_to_ints_map[rt_graph] = dict(zip( iter(rt_graph.regimes),range(len(rt_graph.regimes)),))
 
     rt_graph_data = {}
     for rt_graph in component.rt_graphs:

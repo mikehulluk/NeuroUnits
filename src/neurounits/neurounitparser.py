@@ -54,12 +54,12 @@ class NeuroUnitParser(object):
     @classmethod
     def Unit(cls, text, debug=False, backend=None):
         backend = backend or cls.get_defaultBackend()
-        return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L1_Unit, backend=backend )
+        return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L1_Unit, backend=backend)
 
     @classmethod
     def QuantitySimple(cls, text, debug=False, backend=None):
         backend = backend or cls.get_defaultBackend()
-        return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L2_QuantitySimple, backend=backend )
+        return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L2_QuantitySimple, backend=backend)
 
     @classmethod
     def QuantityExpr(cls, text, debug=False, backend=None):
@@ -67,7 +67,7 @@ class NeuroUnitParser(object):
         return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L3_QuantityExpr, backend=backend)
 
     @classmethod
-    def File(cls, text, working_dir=None, debug=False, backend=None, options=None, name=None ):
+    def File(cls, text, working_dir=None, debug=False, backend=None, options=None, name=None):
         backend = backend or cls.get_defaultBackend()
         return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L6_TextBlock, working_dir=working_dir, backend=backend, options=options, name=name)
 
@@ -128,7 +128,7 @@ class NeuroUnitParser(object):
 
 
     @classmethod
-    def _string_to_expr_node(cls, s, working_dir=None, debug=False, backend=None, options=None, ):
+    def _string_to_expr_node(cls, s, working_dir=None, debug=False, backend=None, options=None,):
         import neurounits
 
         #print 'Converting ', s, 'to nodes:'

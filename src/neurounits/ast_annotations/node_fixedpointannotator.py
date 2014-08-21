@@ -33,14 +33,14 @@ import numpy as np
 
 
 class FixedPointData(object):
-    def __init__(self, datatype, upscale, const_value_as_int=None, delta_upscale=None, ):
+    def __init__(self, datatype, upscale, const_value_as_int=None, delta_upscale=None,):
         self.datatype = datatype
         self.upscale = upscale
         self.const_value_as_int = const_value_as_int
         self.delta_upscale = delta_upscale
 
     def __repr__(self):
-        return "<FixedPointData: upscale=%s, const_value_as_int=%s>" % (self.upscale, self.const_value_as_int )
+        return "<FixedPointData: upscale=%s, const_value_as_int=%s>" % (self.upscale, self.const_value_as_int)
 
 
 

@@ -3,7 +3,7 @@
 define_component gating_particle_hh_k {
     from std.math import exp
     vrel = V - -60mV
-    s_alpha = ( ({10mV} - vrel) / ( 100*( exp( ({10mV}-vrel)/{10mV})  -{1.}) ) ) *(1/{1 ms mV})
+    s_alpha = ( ({10mV} - vrel) / ( 100*( exp( ({10mV}-vrel)/{10mV})  -{1.}))) *(1/{1 ms mV})
     s_beta = 0.125 * exp(-vrel/{80mV}) * (1/{1ms})
 
     s_inf = s_alpha / (s_alpha + s_beta)

@@ -101,7 +101,7 @@ class LookUpDict(object):
         self._objs.add(obj)
 
     def get_objs_by(self, **kwargs):
-        possible_objs = list(self._objs )
+        possible_objs = list(self._objs)
         for attr, value in kwargs.items():
             possible_objs = [ p for p in possible_objs if self.get_attr_value(p, attr) == value]
         return possible_objs

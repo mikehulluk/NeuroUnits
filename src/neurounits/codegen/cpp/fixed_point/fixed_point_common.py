@@ -58,14 +58,14 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
         assert len (o.rhs_map) == 1
-        return self.add_range_check(o, self.visit(o.rhs_map.values()[0], **kwargs) )
+        return self.add_range_check(o, self.visit(o.rhs_map.values()[0], **kwargs))
 
 
     def DoOpOpComplex(self, o, op, **kwargs):
 
         expr_lhs = self.visit(o.lhs, **kwargs)
         expr_rhs = self.visit(o.rhs, **kwargs)
-        res = "%s<%d>::%s(%s, %s )" % (   self.op_scalar_op,
+        res = "%s<%d>::%s(%s, %s)" % (   self.op_scalar_op,
                                             o.annotations['fixed-point-format'].upscale,
                                             op,
                                             expr_lhs,
@@ -92,7 +92,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 
     def VisitIfThenElse(self, o, **kwargs):
-        L = " ((%s) ? (%s).rescale_to<%d>() : (%s).rescale_to<%d>() )" % (
+        L = " ((%s) ? (%s).rescale_to<%d>() : (%s).rescale_to<%d>())" % (
                     self.visit(o.predicate,  **kwargs),
                     self.visit(o.if_true_ast,  **kwargs),
                     o.annotations['fixed-point-format'].upscale,
@@ -106,7 +106,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 
     def _VisitOnConditionCrossing(self, o, **kwargs):
-        return " ((%s) < (%s) )" % (
+        return " ((%s) < (%s))" % (
                 self.visit(o.crosses_lhs, **kwargs),
                 self.visit(o.crosses_rhs, **kwargs),
                 )
@@ -115,7 +115,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 
     def VisitInEquality(self, o, **kwargs):
-        return " ((%s) < (%s) )" % (
+        return " ((%s) < (%s))" % (
                 self.visit(o.lesser_than, **kwargs),
                 self.visit(o.greater_than, **kwargs),
                 )
@@ -157,7 +157,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
         param = o.parameters.values()[0]
         param_term = self.visit(param.rhs_ast, **kwargs)
-        res = """ScalarOp<%d>::exp(%s )""" %(o.annotations['fixed-point-format'].upscale, param_term)
+        res = """ScalarOp<%d>::exp(%s)""" %(o.annotations['fixed-point-format'].upscale, param_term)
         return res
 
 
@@ -194,7 +194,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 class CBasedFixedWriter(CBasedFixedWriterStd):
 
-    def add_range_check(self, o, res ):
+    def add_range_check(self, o, res):
         return res
 
 
@@ -233,7 +233,7 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         res = "%s<%d>(%d)" % (
                 self.op_scalar_type,
                 o.annotations['fixed-point-format'].upscale,
-                o.annotations['fixed-point-format'].const_value_as_int )
+                o.annotations['fixed-point-format'].const_value_as_int)
         return self.add_range_check(o, res)
 
     def VisitAssignedVariable(self, o, **kwargs):
@@ -244,7 +244,7 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         res = "%s<%d>(%d)" % (
                 self.op_scalar_type,
                 o.annotations['fixed-point-format'].upscale,
-                o.annotations['fixed-point-format'].const_value_as_int )
+                o.annotations['fixed-point-format'].const_value_as_int)
         return self.add_range_check(o, res)
 
     def VisitConstantZero(self, o, **kwargs):
@@ -294,7 +294,7 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         for i,coeff_as_int in enumerate(o.annotations['fixed-point-format'].coeffs_as_consts):
             i_prev_value_name = "d._%s_t%d[i]" % (node_name, i)
 
-            rhs_term = "%s<%d>::mul(%s, ScalarType<%d>(%d) )" %(
+            rhs_term = "%s<%d>::mul(%s, ScalarType<%d>(%d))" %(
                         self.op_scalar_op,
                         node_upscale,
                         i_prev_value_name,
@@ -312,8 +312,8 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         # USE uniform random numbers (hack!) should be gaussian:
 
         res = """%s<%d>::add(
-                    %s<0>(((int) rnd::rand_kiss() ) - (1<<23) ),
-                    %s )  """ % (
+                    %s<0>(((int) rnd::rand_kiss()) - (1<<23)),
+                    %s)  """ % (
                     self.op_scalar_op,
                     node_upscale,
                     self.op_scalar_type,
@@ -325,7 +325,7 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
 
     def VisitAutoRegressiveModel(self, o, **kwargs):
         node_name = 'AR%s' % o.annotations['node-id']
-        return self.get_var_str(node_name )
+        return self.get_var_str(node_name)
 
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
@@ -363,7 +363,7 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
     def add_range_check(self, o, res):
         return res
 
-    def __init__(self, component, population_access_index=None, data_prefix='bv_' ):
+    def __init__(self, component, population_access_index=None, data_prefix='bv_'):
         super(CBasedFixedWriterBlueVecOps, self).__init__()
         self.population_access_index=population_access_index
         self.data_prefix=data_prefix
@@ -373,7 +373,7 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
         self.op_scalar_op = 'FixedPointStreamOp'
 
 
-    def to_c(self, obj, population_access_index=None, data_prefix='bv_', ):
+    def to_c(self, obj, population_access_index=None, data_prefix='bv_',):
         population_access_index_prev = self.population_access_index
         self.population_access_index = population_access_index
         data_prefix_prev = self.data_prefix
@@ -390,7 +390,7 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
     def VisitEqnAssignmentByRegime(self, o):
         return "(%s)" % (
                     self.visit(o.rhs_map),
-                    )
+                   )
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
         assert len (o.rhs_map) == 1
@@ -402,7 +402,7 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
 
         expr_lhs = self.visit(o.lhs, **kwargs)
         expr_rhs = self.visit(o.rhs, **kwargs)
-        res = "%s<%d>::%s(%s, %s )" % (   self.op_scalar_op,
+        res = "%s<%d>::%s(%s, %s)" % (   self.op_scalar_op,
                                             o.annotations['fixed-point-format'].upscale,
                                             op,
                                             expr_lhs,
@@ -428,7 +428,7 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
         res = "%s<%d>(%d)" % (
                 self.op_scalar_type,
                 o.annotations['fixed-point-format'].upscale,
-                o.annotations['fixed-point-format'].const_value_as_int )
+                o.annotations['fixed-point-format'].const_value_as_int)
         return self.add_range_check(o, res)
 
     def VisitAssignedVariable(self, o, **kwargs):
@@ -439,7 +439,7 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
         res = "%s<%d>(%d)" % (
                 self.op_scalar_type,
                 o.annotations['fixed-point-format'].upscale,
-                o.annotations['fixed-point-format'].const_value_as_int )
+                o.annotations['fixed-point-format'].const_value_as_int)
         return self.add_range_check(o, res)
 
     def VisitConstantZero(self, o, **kwargs):
@@ -482,7 +482,7 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
 
         param = o.parameters.values()[0]
         param_term = self.visit(param.rhs_ast, **kwargs)
-        res = """ %s<%d>::exp(%s )""" %(
+        res = """ %s<%d>::exp(%s)""" %(
                 self.op_scalar_op,
                 o.annotations['fixed-point-format'].upscale,
                 param_term)
@@ -511,7 +511,7 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
 
 
     def VisitInEquality(self, o, **kwargs):
-        return " ((%s) < (%s) )" % (
+        return " ((%s) < (%s))" % (
                 self.visit(o.lesser_than, **kwargs),
                 self.visit(o.greater_than, **kwargs),
                 )
@@ -547,7 +547,7 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
 
     def VisitAutoRegressiveModel(self, o, **kwargs):
         node_name = 'AR%s' % o.annotations['node-id']
-        return self.get_var_str(node_name )
+        return self.get_var_str(node_name)
 
 
 

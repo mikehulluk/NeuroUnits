@@ -87,7 +87,7 @@ class MultiportInterfaceDef(base.ASTObject):
         super(MultiportInterfaceDef, self).__init__()
 
         self.symbol = symbol
-        self.connections = LookUpDict(connections, accepted_obj_types=(MultiportInterfaceDefWire, ))
+        self.connections = LookUpDict(connections, accepted_obj_types=(MultiportInterfaceDefWire,))
 
     @property
     def name(self):
@@ -123,8 +123,8 @@ class CompoundPortConnectorWireMapping(base.ASTObject):
 
 
 
-        assert isinstance(component_port, (ast.SuppliedValue, ast.AssignedVariable, ast.StateVariable, ast.AnalogReducePort, ast.SymbolicConstant) )
-        assert isinstance(interface_port, (MultiportInterfaceDefWireContinuous, MultiportInterfaceDefWireEvent) )
+        assert isinstance(component_port, (ast.SuppliedValue, ast.AssignedVariable, ast.StateVariable, ast.AnalogReducePort, ast.SymbolicConstant))
+        assert isinstance(interface_port, (MultiportInterfaceDefWireContinuous, MultiportInterfaceDefWireEvent))
 
     def accept_visitor(self, visitor, **kwargs):
         return visitor.VisitCompoundPortConnectorWireMapping(self, **kwargs)
