@@ -27,8 +27,6 @@
 # -------------------------------------------------------------------------------
 
 from .astobjects import ASTObject, ASTExpressionObject
-
-from neurounits.misc import SeqUtils
 from neurounits.units_misc import LookUpDict
 
 

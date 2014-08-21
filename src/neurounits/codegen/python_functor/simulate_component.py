@@ -26,14 +26,14 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-from neurounits.ast_builder.builder_visitor_propogate_dimensions import PropogateDimensions
+#from neurounits.ast_builder.builder_visitor_propogate_dimensions import PropogateDimensions
 from neurounits.ast_builder.builder_visitor_propogate_dimensions import VerifyUnitsInTree
 import neurounits.ast as ast
 
 
 
 
-from neurounits.visitors.common.ast_replace_node import ReplaceNode
+#from neurounits.visitors.common.ast_replace_node import ReplaceNode
 
 from neurounits.codegen.python_functor.functor_generator import FunctorGenerator
 from neurounits.simulation_io.simulationstatedata import SimulationStateData
@@ -42,10 +42,10 @@ import neurounits
 import sys
 import numpy as np
 
-from collections import defaultdict
+#from collections import defaultdict
 
-import itertools
-import pylab
+#import itertools
+#import pylab
 
 
 

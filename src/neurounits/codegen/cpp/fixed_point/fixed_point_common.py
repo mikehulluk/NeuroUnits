@@ -27,15 +27,15 @@
 # -------------------------------------------------------------------------------
 
 
-import mako
-from mako.template import Template
+#import mako
+#from mako.template import Template
 
-from neurounits.visitors.bases.base_actioner_default_ignoremissing import ASTActionerDefaultIgnoreMissing
+#from neurounits.visitors.bases.base_actioner_default_ignoremissing import ASTActionerDefaultIgnoreMissing
 
 
-import numpy as np
+#import numpy as np
 
-import os
+#import os
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 
 

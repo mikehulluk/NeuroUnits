@@ -55,12 +55,12 @@ class RangeExpander(ASTActionerDefault):
             assert rng_width > 0
             min_ = rng.min - rng_width * self.expand_by
             max_ = rng.max + rng_width * self.expand_by
-        
+
         o.annotations['node-value-range'] = _NodeRangeFloat(
             min_=min_,
             max_=max_
         )
-        
+
         assert (o.annotations['node-value-range'].min < o.annotations['node-value-range'].max) or ( o.annotations['node-value-range'].min == o.annotations['node-value-range'].max == 0)
 
 

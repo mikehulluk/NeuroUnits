@@ -27,7 +27,7 @@
 # -------------------------------------------------------------------------------
 
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase
-
+assert False
 
 
 class CFFIEqnEvaluator(ASTVisitorBase):

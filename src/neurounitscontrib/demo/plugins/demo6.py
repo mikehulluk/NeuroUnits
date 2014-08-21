@@ -105,8 +105,8 @@ define_component my_din {
     e_na = 50 mV
     g_ks = {1.0 mS/cm2}
     e_k = -81 mV
-    g_kf = {1.25 mS/cm2} 
-    g_lk = {0.00025 S/cm2} 
+    g_kf = {1.25 mS/cm2}
+    g_lk = {0.00025 S/cm2}
     e_lk = -52mV
 
 
@@ -128,7 +128,7 @@ define_component my_din {
 
     <=> output    V
     <=> input    t
-    
+
     initial {
         V = -80mV
         ks = 0
@@ -137,8 +137,8 @@ define_component my_din {
         kf=0
         ca_m=0
     }
-    
-    
+
+
     }
 '''
 
@@ -146,21 +146,19 @@ define_component my_din {
 
 from neurounitscontrib.demo import DemoPluginBase
 class Demo6(DemoPluginBase):
-    
-    
+
+
     def get_name(self, ):
         return '6'
-                
+
     def run(self, args):
         test6()
-        
+
 
 def test6():
     import neurounits
     import numpy as np
-    import pylab
-    
-    
+
 
     lm = neurounits.NeuroUnitParser.Parse9MLFile(neuron_def)
 

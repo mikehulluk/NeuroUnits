@@ -29,24 +29,30 @@
 
 import mreorg
 from neurounitscontrib.demo import DemoPluginBase
+
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import numpy
+import neurounits
+import numpy as np
+
+
+
 class Demo2(DemoPluginBase):
-    
-    
+
+
     def get_name(self, ):
         return '2'
-                
+
     def run(self, args):
         test2()
 
-            
 
 
 
 
 
 
-import neurounits
-import numpy as np
 
 
 
@@ -92,14 +98,14 @@ ball_arena_text = """
         c12_mag = L(x=C12_x,y=C12_y)
         C12_x_hat = C12_x/c12_mag; C12_y_hat = C12_y/c12_mag
 
-        # Take the dot product of C and velocity, to resolve 
+        # Take the dot product of C and velocity, to resolve
         # tangential and perpendicilar velocities of Ball 1:
         dot_c12_v1 = C12_x_hat * B1VX  +  C12_y_hat * B1VY
         V1_c_x = dot_c12_v1 * C12_x_hat;
         V1_c_y = dot_c12_v1 * C12_y_hat
         V1_t_x = B1VX - V1_c_x
         V1_t_y = B1VY - V1_c_y
-        
+
         # Add for ball 2: ....
         C21_x_hat = -C12_x_hat; C21_y_hat = -C12_y_hat;
         dot_c21_v2 = C21_x_hat * B2VX  +  C21_y_hat * B2VY
@@ -113,12 +119,12 @@ ball_arena_text = """
         on( dist_sq < rad*rad and t-t_last > 0.3s ) {
             t_last=t
 
-            # Simply add the two components, but flip the sign of the 
+            # Simply add the two components, but flip the sign of the
             # perpendicular velocity:
 
             B1VX = V1_t_x - V1_c_x
             B1VY = V1_t_y - V1_c_y
-            
+
             B2VX = V2_t_x - V2_c_x
             B2VY = V2_t_y - V2_c_y
 
@@ -146,11 +152,6 @@ matplotlib 1.1.0; it's the shortest snippet that I know of that can
 produce an animated plot in python. I'm still hoping that the
 animate package's syntax can be simplified further.
 """
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-import numpy
-import math
 
 def simData():
 # this function is called as the argument for
@@ -176,7 +177,7 @@ def simData():
     c_y_hat = res.assignments['C12_y_hat']
 
     for i in range( len(res.get_time() ) ):
-        print 'Getting i:',i 
+        print 'Getting i:',i
         yield times[i],x1s[i], y1s[i] , x2s[i], y2s[i], V1_t_x[i], V1_t_y[i], V1_c_x[i], V1_c_y[i], c_x_hat[i], c_y_hat[i]
 
 def simPoints(simData):
@@ -229,9 +230,9 @@ def test2():
     global line_v1_t
     global line_v1_join
     global line_v1_c
-    
-    
-    
+
+
+
     lm = neurounits.NeuroUnitParser.Parse9MLFile(ball_arena_text)
     ball_arena = lm.get('ball_arena')
 

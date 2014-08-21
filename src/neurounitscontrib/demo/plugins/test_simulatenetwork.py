@@ -3,7 +3,6 @@
 import mreorg
 mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.SVG]
 
-import os
 import neurounits
 
 import numpy as np
@@ -11,13 +10,10 @@ import random
 import pylab
 
 from neurounits.codegen.cpp.fixed_point import CBasedEqnWriterFixedNetwork, NumberFormat
-from hdfjive import HDF5SimulationResultFile
-from neurounits.visualisation.mredoc import MRedocWriterVisitor
 from neurounits.codegen.population_infrastructure import *
 
 import cPickle as pickle
 
-from mreorg import PM
 
 
 
@@ -35,7 +31,7 @@ class DemoTadpole2(DemoPluginBase):
 
 #nbits=24
 def test_simulateNetwork():
-    
+
     import neurounitscontrib.components.tadpole
     dIN_comp = neurounits.ComponentLibrary.instantiate_component('dIN')
     MN_comp =  neurounits.ComponentLibrary.instantiate_component('MN')
@@ -291,9 +287,9 @@ def test_simulateNetwork():
 
             xlim=xlim,
             fig_kwargs=dict(figsize=(185/25.4, 4) ),
-            
+
             )
-    fig.subplots_adjust(left=0.1,top=0.95)        
+    fig.subplots_adjust(left=0.1,top=0.95)
 
     from matplotlib.ticker import MaxNLocator
 
@@ -321,7 +317,7 @@ def test_simulateNetwork():
        #~ "ALL{V,dIN,LHS}",
        #~ "ALL{V,MN,RHS}",
        #~ "ALL{V,MN,LHS}",
-    #~ 
+    #~
        #~ "ALL{dIN,V_vnoisy,RHS}",
        #~ "ALL{dIN,V_vnoisy,LHS}",
        #~ "ALL{dIN,noise,RHS}",
@@ -374,15 +370,15 @@ def test_simulateNetwork():
     f1.get_axes()[0].set_yticks([-60e-3, -30e-3, 0e-3, 30e-3])
     f1.get_axes()[0].set_yticklabels(['-60','-30','0','30'])
 
-                    
+
     f1.savefig("_build/fig_res_tadpole2a.svg")
     f2.savefig("_build/fig_res_tadpole2b.svg")
 
 
 
-    
-    
-    
+
+
+
 if __name__=='__main__':
     test_simulateNetwork()
     pylab.show()

@@ -28,7 +28,6 @@
 
 import mreorg
 import neurounits
-import sys
 import numpy as np
 
 
@@ -40,23 +39,16 @@ from neurounits import NineMLComponent
 from neurounitscontrib.demo import DemoPluginBase
 
 
-from neurounits import NutsIO
-import glob
-
-
-
-
-from neurounitscontrib.demo import DemoPluginBase
 class Demo1(DemoPluginBase):
-    
-    
+
+
     def get_name(self, ):
         return '1'
-                
+
     def run(self, args):
         test1()
-        
-            
+
+
 
 
 

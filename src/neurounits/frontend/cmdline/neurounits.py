@@ -32,26 +32,27 @@ def build_parser():
 
 
 def validate_eqn(filename):
-    from neurounits import NeuroUnitParser, NutsIO
+    from neurounits import NeuroUnitParser
     print 'Validating:', filename
     f = NeuroUnitParser.File(open(filename).read())
     print '  ', f.summary()
 
 def validate_nuts(filename):
-    from neurounits import NeuroUnitParser, NutsIO
+    from neurounits import  NutsIO
     NutsIO.validate(filename)
     print 'Validating:', filename
 
 
 def extract(filenames, level,output_file):
+    from neurounits import  NutsIO
 
     lines = list( chain(* [NutsIO.load(fname) for fname in filenames]))
 
-    # Extract the relevant lines: 
+    # Extract the relevant lines:
     if level:
         level = level[0]
         lines = [l for l in lines if l.options.type.startswith(level)]
-    
+
     # Open the output file:
     if output_file:
         output_file = output_file[0]

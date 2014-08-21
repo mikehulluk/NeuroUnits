@@ -26,7 +26,6 @@
 # -------------------------------------------------------------------------------
 
 from neurounits.visitors import ASTActionerDefault
-from neurounits.ast_builder.io_types import IOType
 from .section_writers import NeuronBlockWriter
 from .section_writers import NeuronInterfaceWriter
 

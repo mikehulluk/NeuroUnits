@@ -28,19 +28,17 @@
 
 
 import mreorg
-import neurounits
+
 import sys
-import numpy as np
-import itertools
-
-import pylab
-
-import glob
+import os, traceback
 import warnings
 
+import numpy as np
+import pylab
 
 
-import os, sys, traceback
+
+
  
 class Proxy(object):
     def __init__(self, target_object):

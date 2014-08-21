@@ -32,8 +32,8 @@ import os
 
 from neurounits.misc import SeqUtils
 #from neurounits.ast_builder import EqnSetBuilder
-from neurounits.ast_builder import LibraryBuilder
-from neurounits.ast_builder import NineMLComponentBuilder
+from neurounits.ast_builder.eqnsetbuilder import LibraryBuilder
+from neurounits.ast_builder.eqnsetbuilder import NineMLComponentBuilder
 
 from itertools import chain
 

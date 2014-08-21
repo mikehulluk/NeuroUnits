@@ -41,7 +41,7 @@ class TestingPluginBase(object):
 
 def do_test(args):
     from straight.plugin import load
-    from straight.plugin.loaders import ClassLoader
+    #from straight.plugin.loaders import ClassLoader
     plugin_classes = load('neurounitscontrib.test.plugins', subclasses=TestingPluginBase)
     plugins = plugin_classes.produce()
 

@@ -34,8 +34,8 @@ from neurounits.errors import panic
 from neurounits.codegen.nmodl.neuron_constants import NeuronSuppliedValues
 
 
-from neurounits.visitors.common.ast_symbol_dependancies import VisitorFindDirectSymbolDependance_OLD
-from neurounits.ast.astobjects import AssignedVariable, StateVariable, SymbolicConstant, SuppliedValue, InEquality, Parameter
+#from neurounits.ast.astobjects import AssignedVariable, StateVariable, SymbolicConstant, SuppliedValue, InEquality, Parameter
+from neurounits.ast.astobjects import InEquality
 from neurounits.ast import EqnAssignmentByRegime
 import string
 

@@ -30,7 +30,7 @@
 
 
 import neurounits
-from neurounits.ast_annotations.common import NodeFixedPointFormatAnnotator,NodeRange, NodeToIntAnnotator
+from neurounits.ast_annotations.common import NodeRange, NodeToIntAnnotator
 from neurounits.ast_annotations.node_range_byoptimiser import NodeRangeByOptimiser
 from neurounits.ast_annotations.node_rangeexpander import RangeExpander
 
@@ -89,9 +89,6 @@ def get_rb_input():
 
     #comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
     comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
-
-    from neurounits.ast_annotations.common import NodeTagger
-    #NodeTagger(var_annots_tags).visit(comp)
 
     return comp
 

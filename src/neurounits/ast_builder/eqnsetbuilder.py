@@ -30,7 +30,7 @@ import itertools
 from neurounits import ast
 from .io_types import IOType
 from neurounits.units_misc import SingleSetDict
-from .eqnsetbuilder_io import parse_io_line
+from .eqnsetbuilder_io.io_str_parser import parse_io_line
 from .builder_visitor_propogate_dimensions import PropogateDimensions
 from .builder_visitor_remove_proxies import RemoveAllSymbolProxy
 from .eqnsetbuilder_symbol_proxy import SymbolProxy

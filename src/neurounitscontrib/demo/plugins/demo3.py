@@ -29,9 +29,7 @@
 
 import mreorg
 import neurounits
-import sys
 import numpy as np
-import itertools
 
 import pylab
 
@@ -40,15 +38,15 @@ import pylab
 
 from neurounitscontrib.demo import DemoPluginBase
 class Demo3(DemoPluginBase):
-    
-    
+
+
     def get_name(self, ):
         return '3'
-                
+
     def run(self, args):
         test3()
-        
-            
+
+
 
 
 
@@ -83,8 +81,8 @@ def test3():
             B' = -B/t_close
 
             g = g_bar * (B-A)
-            i = g * (e_syn-V_post) 
-            
+            i = g * (e_syn-V_post)
+
 
 
             regime sub{
@@ -103,7 +101,7 @@ def test3():
             }
             initial{
                 regime sub
-                
+
             }
 
             <=> output i:(A)
@@ -116,8 +114,8 @@ def test3():
 
         define_component i_squarewave{
             t_last'=0
-            
-            
+
+
 
             regime OFF{
                 i=0A
@@ -136,9 +134,9 @@ def test3():
             }
 
     initial{
-                
+
                 regime OFF
-                    
+
             }
 
             <=> parameter t_on, t_off
@@ -174,7 +172,7 @@ def test3():
         define_component evt_gen {
             t_last'=0
 
-            
+
 
             regime std{
                 t_last'=0
@@ -185,14 +183,14 @@ def test3():
                 }
             }
             <=> time t:(ms)
-            
-            
+
+
             initial{
                 t_last=0ms
                 regime std
-                
+
             }
-            
+
         }
 
 
@@ -201,7 +199,7 @@ def test3():
             B' = -B/t_close
 
             g = g_bar * (B-A)
-            i = g * (e_syn-V_post) 
+            i = g * (e_syn-V_post)
 
 
             on myevent(amp:(S)){
@@ -227,7 +225,7 @@ def test3():
 
             define_compound_component mymeganeuron {
                     instantiate chlstd_leak as lk
-                    instantiate std_neuron as nrn 
+                    instantiate std_neuron as nrn
                     instantiate step_current as i_inj
                     instantiate i_squarewave  as i_square1
                     instantiate i_squarewave  as i_square2
@@ -261,30 +259,30 @@ def test3():
                     connect evts/myevent to psm/myevent
 
 
-                    
+
                     <=> multiport std_pt_process[in] as IO_post {
                            # Local <==> Coumpound-Port name
                            psm/V_post <==> V
                            psm/i <==> I
                     }
 
-                    
+
 
             }
-            
+
 
             define_compound_component mymeganeuron_hubby {
                     instantiate mymeganeuron as nrn
                     instantiate synwrap as synin
-            
+
                     # New way!:
                     multiconnect nrn/IO_pt_proc to synin/IO_post
-                    
+
                     # Old way:
                     #connect synin/psm/V_post to nrn/V
                     #connect synin/psm/i to  nrn/I_in
-                    
-                    
+
+
 
             }
 
@@ -311,29 +309,29 @@ def test3():
 
     c.summarise()
 
-    
+
 
 
     parameters = {
-            'synin/psm/t_close':'80ms',      
-            'nrn/i_square2/i_amp':'5pA',    
-            'nrn/nrn/C':'0.5pF',               
-            'synin/psm/e_syn':'0mV',        
-            'nrn/lk/g':'0.1pS/um2',               
-            'synin/psm/t_open':'4ms',       
-            'nrn/i_square1/i_amp':'5pA',    
-            'nrn/i_inj/i_amp':'5pA',        
-            'nrn/t_in':'300ms',               
-            'nrn/lk/erev':'-60mV',            
-            'nrn/i_inj/t_start':'5ms',      
-            'synin/psm/g_bar':'100pS',        
+            'synin/psm/t_close':'80ms',
+            'nrn/i_square2/i_amp':'5pA',
+            'nrn/nrn/C':'0.5pF',
+            'synin/psm/e_syn':'0mV',
+            'nrn/lk/g':'0.1pS/um2',
+            'synin/psm/t_open':'4ms',
+            'nrn/i_square1/i_amp':'5pA',
+            'nrn/i_inj/i_amp':'5pA',
+            'nrn/t_in':'300ms',
+            'nrn/lk/erev':'-60mV',
+            'nrn/i_inj/t_start':'5ms',
+            'synin/psm/g_bar':'100pS',
                }
-               
+
     initial_states = {
-        'nrn/V':'0mV', 
-        'nrn/i_square1/t_last':'0ms', 
-        'nrn/i_square2/t_last':'0ms', 
-        'synin/psm/A':'0', 
+        'nrn/V':'0mV',
+        'nrn/i_square1/t_last':'0ms',
+        'nrn/i_square2/t_last':'0ms',
+        'synin/psm/A':'0',
         'synin/psm/B':'0'
         }
 
@@ -344,9 +342,9 @@ def test3():
                     initial_state_values=initial_states,
                     initial_regimes={
                         'nrn/i_inj/':'OFF',
-                    
+
                     }
-                    
+
                     )
 
     res.auto_plot()
@@ -356,9 +354,9 @@ def test3():
 if __name__ == '__main__':
     test3()
     pylab.show()
-    
-    
-    
+
+
+
 """
 define_multiport std_pt_process {
     ==>> V
@@ -372,6 +370,6 @@ define_component {
         IO/V is V
         IO/I is I_in
     }
-    
+
 }
 """

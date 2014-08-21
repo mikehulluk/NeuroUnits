@@ -29,8 +29,8 @@
 
 
 import neurounits
-from neurounits.ast_annotations.common import  NodeFixedPointFormatAnnotator,\
-    NodeRange, NodeToIntAnnotator
+from neurounits.ast_annotations.common import NodeRange, NodeToIntAnnotator
+#NodeFixedPointFormatAnnotator,\
 from neurounits.ast_annotations.node_range_byoptimiser import NodeRangeByOptimiser
 from neurounits.ast_annotations.node_rangeexpander import RangeExpander
 

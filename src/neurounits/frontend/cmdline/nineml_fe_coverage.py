@@ -1,5 +1,4 @@
 
-#import neurounits
 
 import coverage
 import os

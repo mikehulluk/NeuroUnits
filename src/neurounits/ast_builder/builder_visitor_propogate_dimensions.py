@@ -57,7 +57,7 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
             self.visit(obj)
         except UnitMismatchError, e:
             print e
-            
+
 
             def get_str(node):
                 if isinstance(node, ast.ASTExpressionObject):
@@ -91,7 +91,6 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
 
 
     def verify_equal_units(self, objs):
-        from neurounits.units_backends.mh import MMUnit
         from neurounits.ast import ASTExpressionObject
 
         if len(objs) == 0:
@@ -319,7 +318,7 @@ class DimensionResolver(ASTVisitorBase):
             try:
                 u.get_dimension().check_compatible(au.get_dimension())
                 u.get_dimension() == au.get_dimension()
-            except UnitMismatchError, e:
+            except UnitMismatchError:
                 raise UnitMismatchError(unitA=u.get_dimension(), unitB=au.get_dimension(), objA=u, objB=au)
 
 
@@ -571,8 +570,8 @@ class DimensionResolver(ASTVisitorBase):
     def VisitFunctionDefBuiltIn(self, o, **kwargs):
         # A couple of sanity checks:
         assert o.get_dimension() is not None
-        assert o.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False) 
-        
+        assert o.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False)
+
 
     def VisitOnConditionTriggerTransition(self, o, **kwargs):
         for a in o.actions:
@@ -665,7 +664,7 @@ class PropogateDimensions(object):
 
                 if nUnresolvedPre == nUnresolvedPost:
                     break
-        except UnitMismatchError, e:
+        except UnitMismatchError:
             raise
 
         # Look for unresolved symbols:

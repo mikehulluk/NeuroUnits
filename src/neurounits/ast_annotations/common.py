@@ -26,16 +26,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-from neurounits.ast_annotations.bases import ASTTreeAnnotator
 
-import numpy as np
-
-from neurounits.visitors.bases.base_visitor import ASTVisitorBase
-from neurounits import ast
-
-from node_toint import NodeToIntAnnotator
-from node_tagger import NodeTagger
-from node_fixedpointannotator import NodeFixedPointFormatAnnotator
 
 
 class _NodeRangeFloat(object):

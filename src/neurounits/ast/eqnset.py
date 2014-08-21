@@ -27,14 +27,13 @@
 # -------------------------------------------------------------------------------
 
 from base import ASTObject
-from neurounits.ast.astobjects import Parameter, SuppliedValue, AssignedVariable, StateVariable
+from neurounits.ast.astobjects import Parameter, SuppliedValue
 from neurounits.ast.astobjects_nineml import AnalogReducePort
 from neurounits.ast.astobjects_nineml import Regime
 
 from neurounits.units_misc import LookUpDict
 
 import itertools
-import neurounits
 
 
 class Block(ASTObject):
@@ -46,7 +45,7 @@ class Block(ASTObject):
         self._builder = builder
 
         # Annotations:
-        from neurounits.ast_annotations import ASTTreeAnnotationManager, ASTNodeAnnotationData
+        from neurounits.ast_annotations import ASTTreeAnnotationManager
         self.annotation_mgr = ASTTreeAnnotationManager()
 
     def annotate_ast(self, annotator, ast_label=None):

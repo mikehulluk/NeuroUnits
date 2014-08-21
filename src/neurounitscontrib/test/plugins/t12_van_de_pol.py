@@ -30,8 +30,6 @@
 from neurounits.test import TestingPluginBase
 
 
-from neurounits import NutsIO
-import glob
 
 
 class TestRunLorenz(TestingPluginBase):

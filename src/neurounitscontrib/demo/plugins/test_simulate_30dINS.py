@@ -37,12 +37,8 @@ import pylab
 
 from neurounits.codegen.cpp.fixed_point import CBasedEqnWriterFixedNetwork, NumberFormat
 from hdfjive import HDF5SimulationResultFileSet
+
 from neurounits.codegen.population_infrastructure import *
-
-
-
-from mreorg import PM
-
 
 
 
@@ -68,8 +64,6 @@ def get_results():
 
     import neurounitscontrib.components.tadpole
     dIN_comp = neurounits.ComponentLibrary.instantiate_component('dIN')
-    MN_comp =  neurounits.ComponentLibrary.instantiate_component('MN')
-    RB_input = neurounits.ComponentLibrary.instantiate_component('RBInput')
 
     #import components
     #dIN_comp = neurounits.ComponentLibrary.instantiate_component('dIN')
@@ -79,14 +73,14 @@ def get_results():
 
     network = Network()
 
-    
+
     dINs = network.create_population(
             name='dINs',
             component=dIN_comp,
             size=30,
             parameters= {
-                'nmda_multiplier': 1.0, 
-                'ampa_multiplier': 1.0, 
+                'nmda_multiplier': 1.0,
+                'ampa_multiplier': 1.0,
                 'inj_current':'20pA',
             },
 
@@ -161,7 +155,7 @@ def get_results():
     if os.path.exists(op_filename):
         os.unlink(op_filename)
 
-    results2 = CBasedEqnWriterFixedNetwork(
+    CBasedEqnWriterFixedNetwork(
                         network,
                         output_filename=op_filename,
                         CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
@@ -195,7 +189,7 @@ def test_simulate30dINs():
 
     results.plot(trace_filters=filters_traces, legend=True )
 
-    
+
 
 
 if __name__=='__main__':
