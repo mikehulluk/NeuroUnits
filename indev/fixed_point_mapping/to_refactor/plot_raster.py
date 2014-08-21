@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import pylab
 import numpy as np
 from hdfjive import HDF5SimulationResultFile, RasterGroup, RasterSubgroup
-results = HDF5SimulationResultFile("/local/scratch/mh735/neuronits.results-Seq-float.hdf")
+results = HDF5SimulationResultFile("/tmp/neuronits.results-Seq-float.hdf")
 
 import pickle
 with open('mh_reduced_connectome.pickle') as f:

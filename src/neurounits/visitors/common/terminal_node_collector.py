@@ -30,6 +30,7 @@ from neurounits.visitors.bases.base_actioner_default import ASTActionerDefault
 from collections import defaultdict
 import itertools
 
+import neurounits
 
 class EqnsetVisitorNodeCollector(ASTActionerDefault):
 
@@ -45,6 +46,14 @@ class EqnsetVisitorNodeCollector(ASTActionerDefault):
         return itertools.chain(*self.nodes.values())
 
     def ActionNode(self, n):
-        self.nodes[type(n)].add(n)
+        N = type(n)
+
+        # Special cases for builtin things, that might be subclasses:
+        if isinstance(n, neurounits.ast.RandomVariable):
+            N = neurounits.ast.RandomVariable
+        #if isinstance(n, neurounits.ast.BuiltinFunction):
+        #    N = neurounits.ast.BuiltinFunction
+
+        self.nodes[N].add(n)
 
 

@@ -143,11 +143,7 @@ def get_dIN():
         noise_min = 0.5
         noise_max = 1.5
 
-        #glk_noise1 =  ~uniform(min=noise_min, max=noise_max)[when=SIM_INIT, share=PER_NEURON]
-        #glk_noise2 =  ~uniform(min=noise_min, max=noise_max + eK/{1V})[when=SIM_INIT, share=PER_POPULATION]
-        #glk_noise3 =  ~uniform(min=noise_min, max=noise_max)[when=SIM_INIT, share=PER_POPULATION]
-        #glk_noise4 =  ~uniform(min=noise_min, max=noise_max)[when=SIM_INIT, share=PER_NEURON]
-
+        
         glk_noise1 = 1
         glk_noise2 = 1
         glk_noise3 = 1

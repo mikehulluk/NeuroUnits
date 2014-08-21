@@ -63,7 +63,6 @@ def get_results():
             if random.uniform(0.,1.) < 0.2:
                 gap_junction_indices.append( (i,j) )
 
-    #gap_junction_indices = []
 
 
 

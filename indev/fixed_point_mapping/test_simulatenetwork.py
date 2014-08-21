@@ -41,7 +41,6 @@ pop_components = {
 pop_params = {
     'dINs': {
             'nmda_multiplier': 1.0,
-            #'ampa_multiplier': '~uniform(min=0.5,max=1.5)[]'
             'ampa_multiplier': 1.0,
             'inj_current':'0pA',
             },
@@ -199,7 +198,7 @@ results = CBasedEqnWriterFixedNetwork(
                     run_until=0.4,
                     number_format = NumberFormat.Int28,
                     #as_float=False,
-                    output_filename="/local/scratch/mh735/neuronits.results-Seq-float.hdf",
+                    output_filename="/tmp/neuronits.results-Seq-float.hdf",
                     output_c_filename='op-seq.cpp',
                     record_rate=1
                     ).results
@@ -207,13 +206,11 @@ results = CBasedEqnWriterFixedNetwork(
 
 
 
-#import test_simulatenetwork_plot
 
 
 
 from hdfjive import HDF5SimulationResultFile, RasterGroup, RasterSubgroup
 
-#results = HDF5SimulationResultFile("/local/scratch/mh735/neuronits.results-Seq-float.hdf")
 
 import mreorg
 #mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG] # , mreorg.FigFormat.SVG]

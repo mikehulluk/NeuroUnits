@@ -302,8 +302,8 @@ results = CBasedEqnWriterFixedNetwork(
                     step_size=0.1e-3 / 2.,
                     run_until=t_stop,
                     as_float=False,
-                    output_filename="/local/scratch/mh735/neuronits.results-BV.hdf",
-                    output_c_filename='/local/scratch/mh735/TadpoleDemoNov/BlueVecPlusFrameBuffer/Quartus/SingleCoreLCD/software/mtllcd/tadpole.cpp',
+                    output_filename="/tmp/neuronits.results-BV.hdf",
+                    #output_c_filename='/local/scratch/mh735/TadpoleDemoNov/BlueVecPlusFrameBuffer/Quartus/SingleCoreLCD/software/mtllcd/tadpole.cpp',
                     compile=False,
 
                     nios_options=NIOSOptions( plots=[

@@ -220,7 +220,6 @@ class NodeEvaluatorCCode(ASTActionerDefault):
         super(NodeEvaluatorCCode, self).__init__(component=component)
 
     def ActionNode(self, n, **kwargs):
-        #print 'Skipping;', n
         pass
 
     def BuildEvalFunc(self, n):
@@ -571,6 +570,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
             assert rv.functionname == 'uniform'
             min_param = rv.parameters.get_single_obj_by(name='min')
             max_param = rv.parameters.get_single_obj_by(name='max')
+            print 'Params', min_param.rhs_ast, max_param.rhs_ast
             min_val = min_param.rhs_ast.value.float_in_si()
             max_val = max_param.rhs_ast.value.float_in_si()
             rv.annotations['node-value-range'] = _NodeRangeFloat(
@@ -633,6 +633,9 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
         code =  '\n'.join( [input_ds] + func_defs)
 
         print 'Compiling C-Code to find intermediate nodes:'
+        with open('cffi_debug.c.log','w') as f:
+            f.write(code)
+
         C = ffi.verify(code)
         print 'OK'
 

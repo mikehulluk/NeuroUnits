@@ -252,7 +252,7 @@ print new_population_positions
 
 
 import cPickle as pickle
-op_filename = '/auto/homes/mh735/hw/NeuroUnits/indev/fixed_point_mapping/mh_reduced_connectome.pickle'
+op_filename = 'mh_reduced_connectome.pickle'
 print 'Writing to pickle file:', op_filename
 with open(op_filename,'w') as f:
     pickle.dump([new_popsizes, new_projections, old_population_locations, new_population_positions], f)

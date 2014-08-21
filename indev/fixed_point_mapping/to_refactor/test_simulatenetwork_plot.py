@@ -1,7 +1,7 @@
 
 from hdfjive import HDF5SimulationResultFile, RasterGroup, RasterSubgroup
 
-results = HDF5SimulationResultFile("/local/scratch/mh735/neuronits.results-Seq-float.hdf")
+results = HDF5SimulationResultFile("/tmp/neuronits.results-Seq-float.hdf")
 
 import mreorg
 mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG] # , mreorg.FigFormat.SVG]
