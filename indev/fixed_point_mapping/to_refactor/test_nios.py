@@ -1,7 +1,8 @@
-
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 import mreorg
-mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG]#, mreorg.FigFormat.SVG]
+mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG]
 
 import os
 import neurounits
@@ -15,7 +16,6 @@ from hdfjive import HDF5SimulationResultFile
 from neurounits.visualisation.mredoc import MRedocWriterVisitor
 from neurounits.codegen.population_infrastructure import *
 
-
 import dIN_model
 import mn_model
 import rb_input_model
@@ -24,13 +24,11 @@ import cPickle as pickle
 from mreorg import PM
 import hashlib
 
-
 src_string = open('dIN_model.py').read() + open('mn_model.py').read()
 md5_str = hashlib.md5(src_string).hexdigest()
 
 
 use_cache=True
-#use_cache=False
 cache_file = 'caches/.din_model_cache_%s'%(md5_str)
 if not os.path.exists('caches/'):
     os.makedirs('caches')
@@ -43,12 +41,12 @@ if not os.path.exists(cache_file):
     dIN_comp = dIN_model.get_dIN(nbits=24)
     MN_comp = mn_model.get_MN(nbits=24)
     RB_input = rb_input_model.get_rb_input(nbits=24)
-    with open(cache_file,'w') as f:
-        pickle.dump([dIN_comp, MN_comp, RB_input], f, )
+    with open(cache_file, 'w') as f:
+        pickle.dump([dIN_comp, MN_comp, RB_input], f)
 
     # For debugging:
-    MRedocWriterVisitor().visit(dIN_comp).to_pdf("op_dIN.pdf")
-    MRedocWriterVisitor().visit(MN_comp).to_pdf("op_MN.pdf")
+    MRedocWriterVisitor().visit(dIN_comp).to_pdf('op_dIN.pdf')
+    MRedocWriterVisitor().visit(MN_comp).to_pdf('op_MN.pdf')
 
     del dIN_comp
     del MN_comp
@@ -56,19 +54,6 @@ if not os.path.exists(cache_file):
 
 with open(cache_file) as f:
     dIN_comp,MN_comp,RB_input = pickle.load(f)
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 network = Network()
 pop_components = {
@@ -172,8 +157,6 @@ network.add(
 
 
 # Work out the electrical coupling indices:
-#f = pylab.figure()
-#ax = f.add_subplot(111)
 gap_junction_indices =   []
 for dIN_pop in [(pop_LHS_dIN), (pop_RHS_dIN)]:
     print dIN_pop
@@ -209,52 +192,14 @@ network.record_output_events( [rb_drivers] , 'spike' )
 network.record_output_events( lhs_subpops+rhs_subpops , 'spike' )
 
 
-#trs = network.record_traces( lhs_subpops+rhs_subpops, 'V' )
 trs = network.record_traces( pop_RHS_dIN, 'V' )
 trs = network.record_traces( pop_LHS_dIN, 'V' )
 
 
-#print trs
-#
-#assert False
 
 
 
-#network.record_traces([pop_LHS_dIN,pop_RHS_dIN], 'iInj_local itot' )
-#network.record_traces([pop_LHS_dIN,pop_RHS_dIN], '*' )
-#network.record_traces(lhs_subpops+rhs_subpops, 'V' )
-#network.record_traces(lhs_subpops+rhs_subpops, 'iLk' )
-#network.record_traces(lhs_subpops+rhs_subpops, 'alpha_ks_n' )
-#network.record_traces(lhs_subpops+rhs_subpops, 'syn_nmda_A' )
-
-#network.record_traces(lhs_subpops+rhs_subpops, '*' )
-#network.record_traces(lhs_subpops+rhs_subpops, 'V' )
-#
-#
-#non_dINs = [pop_LHS_MN, pop_LHS_RB, pop_LHS_aIN, pop_LHS_cIN, pop_LHS_dla, pop_LHS_dlc, pop_RHS_MN, pop_RHS_RB, pop_RHS_aIN, pop_RHS_cIN, pop_RHS_dla, pop_RHS_dlc]
-#network.record_traces(non_dINs, 'alpha_denom_x alpha_denom_exp alpha_denom' )
-#
-#
-#
-#
-##network.record_traces(lhs_subpops+rhs_subpops, '*' )
-##network.record_traces([pop_LHS_dIN,pop_RHS_dIN], 'noise V_vnoisy noise_raw' )
-#network.record_input_events( rhs_subpops+lhs_subpops , 'recv_ampa_spike' )
-#network.record_input_events( rhs_subpops+lhs_subpops , 'recv_nmda_spike' )
-#network.record_input_events( rhs_subpops+lhs_subpops , 'recv_inh_spike' )
-
-
-
-#results = CBasedEqnWriterFixedNetwork(
-#                    network,
-#                    CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
-#                    step_size=0.1e-3 / 2.,
-#                    run_until=0.95,
-#                    as_float=True,
-#                    ).results
-#
-
-t_stop = 0.5 #1.0
+t_stop = 0.5
 
 
 
@@ -284,16 +229,18 @@ class NIOSPlotTrace(object):
 
         self._global_rec_indices = _global_rec_indices
         print self.node
-        
 
 
 class NIOSPlotRaster(object):
+
     def __init__(self, population, what, colors=None):
         self.population = population
         self.what = what
         self.colors = colors
 
+
 class NIOSPlotActivityVideo(object):
+
     pass
 
 results = CBasedEqnWriterFixedNetwork(
@@ -309,7 +256,7 @@ results = CBasedEqnWriterFixedNetwork(
                     nios_options=NIOSOptions( plots=[
                         NIOSPlotTrace( pop_LHS_dIN, 'V', yrange=(30.e-3, -60.e-3), colors=['brown'], _global_rec_indices=[0,1,2,3,4,5]),
                         NIOSPlotTrace( pop_LHS_MN, 'V',  yrange=(30.e-3, -60e-3), _global_rec_indices=[118,119,120,121,122,123] ),
-                        #NIOSPlotRaster( pop_LHS_MN, 'spike' ),
+                      
                         
                         ])
 

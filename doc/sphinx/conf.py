@@ -28,12 +28,12 @@ import os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.todo', 'sphinx.ext.viewcode', 'sphinx.ext.autodoc', 'sphinx.ext.autosummary']
+extensions = ['sphinx.ext.todo', 'sphinx.ext.viewcode',
+              'sphinx.ext.autodoc', 'sphinx.ext.autosummary']
 autosummary_generate = True
 
-
-autodoc_default_flags = ['members', 'undoc-members', 'inherited-members', 'show-inheritance']
-
+autodoc_default_flags = ['members', 'undoc-members', 'inherited-members'
+                         , 'show-inheritance']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -188,10 +188,8 @@ latex_elements = {}
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
-latex_documents = [
-  ('index', 'NeuroUnits.tex', u'NeuroUnits Documentation',
-   u'Mike Hull', 'manual'),
-]
+latex_documents = [('index', 'NeuroUnits.tex',
+                   u'NeuroUnits Documentation', u'Mike Hull', 'manual')]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.

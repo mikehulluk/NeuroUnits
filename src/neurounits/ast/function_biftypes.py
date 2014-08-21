@@ -26,10 +26,11 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-from .astobjects import FunctionDefBuiltIn, FunctionDefParameter
+from astobjects import FunctionDefBuiltIn, FunctionDefParameter
 
 
 class FunctionDefBuiltInSingleArg(FunctionDefBuiltIn):
+
     def __init__(self, backend, funcname, **kwargs):
         super(FunctionDefBuiltInSingleArg, self).__init__(
                 funcname=funcname,

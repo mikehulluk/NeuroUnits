@@ -66,6 +66,7 @@ class MultiportInterfaceDefWireEvent(MultiportInterfaceDefWire):
     def __init__(self, symbol, direction, parameters, optional=False):
         super(MultiportInterfaceDefWireEvent, self).__init__( symbol=symbol, direction=direction, optional=optional)
         self.parameters = parameters
+
     def _summarise(self):
         print '  ', self.DirCute[self.direction],self.symbol.ljust(5),  'Event', ['%s:%s'%p for p in self.parameters ], 'Optional:', self.optional
 

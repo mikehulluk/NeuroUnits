@@ -26,13 +26,10 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-
-from .base import ASTObject
+from base import ASTObject
 from neurounits.ast.astobjects import Parameter, SuppliedValue, AssignedVariable, StateVariable
 from neurounits.ast.astobjects_nineml import AnalogReducePort
 from neurounits.ast.astobjects_nineml import Regime
-
-
 
 from neurounits.units_misc import LookUpDict
 
@@ -516,14 +513,11 @@ class NineMLComponent(Block):
         assert isinstance(regime, Regime)
         return [tr for tr in self.conditiontriggertransitions if tr.src_regime == regime]
 
-
-
-
     def _summarise_node_full(self):
         return self.summarise()
+
     def _summarise_node_short(self):
         return 'NineML Component: %s' % self.name
-
 
     def summarise(self):
         print
@@ -557,25 +551,6 @@ class NineMLComponent(Block):
 
                 for tr in self.transitions_from_regime(regime):
                     print '          Transition:', tr
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def get_initial_regimes(self, initial_regimes=None):
         if initial_regimes is None:
@@ -635,46 +610,17 @@ class NineMLComponent(Block):
 
         return state_values
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    def clone(self, ):
-
-
+    def clone(self):
 
         from neurounits.visitors.common.ast_replace_node import ReplaceNode
         from neurounits.visitors.common.ast_node_connections import ASTAllConnections
         from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
-
 
         class ReplaceNodeHack(ReplaceNode):
 
             def __init__(self, mapping_dict):
                 assert isinstance(mapping_dict, dict)
                 self.mapping_dict = mapping_dict
-
 
             def replace_or_visit(self, o):
                 return self.replace(o)
@@ -685,18 +631,14 @@ class NineMLComponent(Block):
                 else:
                     return o
 
-
-
-
-
         from neurounits.visitors.common.ast_cloning import ASTClone
         from collections import defaultdict
 
         import neurounits.ast as ast
 
-
         # CONCEPTUALLY THIS IS VERY SIMPLE< BUT THE CODE
         # IS A HORRIBLE HACK!
+		#TODO!
 
         no_remap = (ast.MultiportInterfaceDef, ast.MultiportInterfaceDefWireContinuous, ast.MultiportInterfaceDefWireEvent, ast.FunctionDefBuiltIn, ast.FunctionDefParameter)
         # First, lets clone each and every node:
@@ -721,10 +663,9 @@ class NineMLComponent(Block):
             assert isinstance(o, no_remap)
 
         # Now, lets visit each of the new nodes, and replace (old->new) on it:
-        
         # Build the mapping dictionary:
         mapping_dict = {}
-        for old_repl, new_repl in old_to_new_dict.items():
+        for (old_repl, new_repl) in old_to_new_dict.items():
 
             if isinstance(old_repl, no_remap):
                 continue
@@ -741,12 +682,10 @@ class NineMLComponent(Block):
             replacer = ReplaceNodeHack(mapping_dict=node_mapping_dict)
             new_node.accept_visitor(replacer)
 
-
         # ok, so the clone should now be all clear:
         new_obj = old_to_new_dict[self]
 
         new_nodes = list(EqnsetVisitorNodeCollector(new_obj).all())
-
 
         # Who points to what!?
         connections_map_obj_to_conns = {}

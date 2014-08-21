@@ -31,6 +31,7 @@ from .astobjects import ASTObject, ASTExpressionObject
 from neurounits.misc import SeqUtils
 from neurounits.units_misc import LookUpDict
 
+
 class EqnAssignmentByRegime(ASTObject):
 
     def accept_visitor(self, v, **kwargs):
@@ -266,9 +267,6 @@ class Regime(ASTObject):
 
     def ns_string(self):
         return '%s.%s' % (self.parent_rt_graph.ns_string(), self.name)
-
-
-
 
 
 class RTBlock(ASTObject):

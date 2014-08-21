@@ -58,7 +58,12 @@ def test_simulateNetwork():
         'NondINs': {}
     }
 
-    with open('tadpole/mh_reduced_connectome.pickle') as f:
+    import os.path
+    fname=os.path.join(
+        os.path.split(os.path.abspath(__file__))[0],
+        'tadpole/mh_reduced_connectome.pickle'
+        )
+    with open(fname) as f:
         pop_sizes, connections, pop_breakdowns, cell_positions = pickle.load(f)
 
 

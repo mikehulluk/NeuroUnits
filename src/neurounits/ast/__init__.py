@@ -26,9 +26,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-from .astobjects import *
-from .eqnset import Library, NineMLComponent
-
+from astobjects import *
+from eqnset import Library, NineMLComponent
 
 from astobjects_nineml import *
 from multiports import *

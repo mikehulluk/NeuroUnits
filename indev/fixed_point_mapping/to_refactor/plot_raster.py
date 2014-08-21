@@ -26,14 +26,7 @@ pop_info = {
     'MN' : ('green',  1.),
 }
 
-
-
-
-plotting_info = {
-    
-}
-
-
+plotting_info = {}
 
 f = pylab.figure()
 ax = f.add_subplot(111)
@@ -53,39 +46,20 @@ for (is_lhs,cell_type), (saved_pop_name, start_index, ncells) in pop_breakdowns.
 
 
     cmap = matplotlib.colors.ListedColormap(colors=['white', pop_color, pop_color], name='from_list')
-    #cmap = matplotlib.cm.ScalarMappable(norm= lambda x: (x-(-70,))/(50+70), cmap=cmap)
-
-    #cmap = matplotlib.cm.jet
-
+    
     
     colors = np.random.random(ncells)
     colors = colors * colors
-    #p = PatchCollection(patches, cmap=cmap, alpha=0.4)
     p = PatchCollection(patches, cmap=cmap, alpha=1.0)
     
     p.set_array(colors)
     ax.add_collection(p)
 
 
-    #~ # Store Key: -> (pts, color, start_index, stop_index)
-    #~ plotting_info[ (is_lhs,cell_type) ] = (p, pop_color, start_index, start_index+ncells)
-    #~ plt.colorbar(p)
-
-
-
-ax.set_ylim(-1000,1000)
-ax.set_xlim(400,2000)
-
-
-
+ax.set_ylim(-1000, 1000)
+ax.set_xlim(400, 2000)
 
 pylab.show()
 
-
-
 print 'Done'
-
-
-
-
 

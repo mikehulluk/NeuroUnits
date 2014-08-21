@@ -26,7 +26,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-from .base import ASTObject
+from base import ASTObject
 
 
 class ASTExpressionObject(ASTObject):
@@ -72,7 +72,7 @@ class IfThenElse(ASTExpressionObject):
         return v.VisitIfThenElse(self, **kwargs)
 
     def __init__(self, predicate, if_true_ast, if_false_ast,**kwargs):
-        ASTExpressionObject.__init__(self,**kwargs)
+        ASTExpressionObject.__init__(self, **kwargs)
         self.predicate = predicate
         self.if_true_ast = if_true_ast
         self.if_false_ast = if_false_ast
@@ -245,8 +245,6 @@ class TimeVariable(ASTSymbolNode):
         super(TimeVariable, self).__init__(dimension=s, **kwargs)
 
 
-
-
 class ConstValue(ASTConstNode):
 
     def accept_visitor(self, v, **kwargs):
@@ -289,6 +287,7 @@ class FunctionDefBuiltIn(ASTExpressionObject):
         self.parameters = parameters
         if dimension is not None:
             self.set_dimensionality(dimension)
+
     def __repr__(self):
         return '<BuiltinFunction: %s>' % self.funcname
 
@@ -297,10 +296,6 @@ class FunctionDefBuiltIn(ASTExpressionObject):
 
     def accept_func_visitor(self, v, **kwargs):
         raise InternalError("Missing 'accept_func_visitor' for type: %s (%s)" % (type(self), self.funcname) )
-
-
-
-
 
 
 class FunctionDefUser(ASTExpressionObject):
@@ -364,12 +359,7 @@ class FunctionDefBuiltInInstantiation(ASTExpressionObject):
         assert function_def.is_builtin()
 
     def _summarise_node_full(self):
-        #TODO-minor
-        print "params:", self.parameters
-        return '{%s( <id:%s>)}' % (self.function_def.funcname, ','.join( ['%s:%s' % (k, id(v)) for (k,v) in self.parameters.items() ] ) )
-
-
-
+        return '{%s( <id:%s>)}' % (self.function_def.funcname, ','.join(['%s:%s' % (k, id(v)) for (k,v) in self.parameters.items()]))
 
 
 class FunctionDefParameterInstantiation(ASTExpressionObject):

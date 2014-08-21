@@ -17,11 +17,6 @@ def build_raster_plot_obj(name, side):
             ] )
 
 
-
-
-#xlim=(95e-3,750e-3)
-#xlim=(95e-3,300e-3)
-xlim=(50e-3,70e-3)
 xlim=(30e-3,1000e-3)
 
 
@@ -87,13 +82,6 @@ filters_traces = [
    "ALL{V,MN,LHS}",
    ]
 
-
-#filters_traces = [
-#   "ALL{V,dIN}",
-#   "ALL{iInj_local,dIN}",
-#   "ALL{itot,dIN}",
-#   "ALL{iLk,dIN}",
-#   ]
 
 results.plot(trace_filters=filters_traces, legend=False, xlim=xlim )
 
