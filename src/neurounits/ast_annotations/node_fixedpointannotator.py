@@ -145,8 +145,8 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
             upscaling_pow = 0
         else:
             upscaling_pow = int(np.ceil(np.log2(np.fabs(v))))
-        
-		o.annotations['fixed-point-format'] = \
+
+        o.annotations['fixed-point-format'] = \
             FixedPointData(upscale=upscaling_pow,
                            const_value_as_int=self.encode_value(v,
                            upscaling_pow), datatype=self.datatype)
