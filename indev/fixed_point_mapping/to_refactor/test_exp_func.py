@@ -1,4 +1,5 @@
-
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 import mreorg
 mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG]
@@ -38,15 +39,11 @@ define_component simple_hh {
     }
 """
 
-var_annots_ranges = {
-        't': NodeRange(min="0ms", max = "1.1s"),
-        }
-
+var_annots_ranges = {'t': NodeRange(min='0ms', max='1.1s')}
 
 library_manager = neurounits.NeuroUnitParser.Parse9MLFile(src_text)
 comp = library_manager['simple_hh']
 comp.expand_all_function_calls()
-
 
 # Optimise the equations, to turn constant-divisions into multiplications:
 from neurounits.visitors.common.equation_optimisations import OptimiseEquations
@@ -62,15 +59,6 @@ comp.annotate_ast(NodeToIntAnnotator(), ast_label='node-ids' )
 
 from neurounits.ast_annotations import NodeTagger
 NodeTagger(var_annots_tags).visit(comp)
-
-
-
-
-
-
-
-
-
 
 network = Network()
 

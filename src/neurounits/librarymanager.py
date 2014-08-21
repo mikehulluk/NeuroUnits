@@ -26,12 +26,9 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 import pkg_resources
-#import glob
 import os
 
-
 from neurounits.misc import SeqUtils
-#from neurounits.ast_builder import EqnSetBuilder
 from neurounits.ast_builder.eqnsetbuilder import LibraryBuilder
 from neurounits.ast_builder.eqnsetbuilder import NineMLComponentBuilder
 
@@ -61,7 +58,7 @@ class ComponentNamespace(object):
         self.components = LookUpDict(accepted_obj_types=ast.NineMLComponent)
         self.interfaces = LookUpDict(accepted_obj_types=ast.MultiportInterfaceDef)
 
-    def get_blocks(self,):
+    def get_blocks(self):
         return list(self.libraries) + list(self.components) + list(self.interfaces)
 
     @property
@@ -90,7 +87,7 @@ class ComponentNamespace(object):
 
         n_more_obj_tokens = len(obj_toks) - len(ns_toks)
         assert n_more_obj_tokens > 0 or self.is_root()
-        assert len(obj_toks) >=0
+        assert len(obj_toks) >= 0
 
         # Both '<root>' and 'std' will have a single token:
 
@@ -114,11 +111,6 @@ class ComponentNamespace(object):
 
         return
 
-
-
-
-
-
     def add_here(self, obj):
         ns_toks = self.full_name.split('.')
         obj_toks = obj.name.split('.')
@@ -135,10 +127,9 @@ class ComponentNamespace(object):
         if isinstance(obj, ast.MultiportInterfaceDef):
             self.interfaces._add_item(obj)
 
-
     def get_all(self, components=True, libraries=True, interfaces=True):
 
-        objs =  []
+        objs = []
         if components:
             objs.extend(self.components)
         if libraries:
@@ -151,15 +142,12 @@ class ComponentNamespace(object):
         return objs
 
 
-
-
-
-
 class LibraryManager(ast.ASTObject):
+
     """LibMan class docstring"""
+
     _stdlib_cache = None
     _stdlib_cache_loading = False
-
 
     unit_term_parser = None
 
@@ -221,15 +209,12 @@ class LibraryManager(ast.ASTObject):
             LibraryManager._stdlib_cache = self.namespace
             self.namespace = ComponentNamespace(name=None, parent=None)
 
-
         # Ensure the cache is setup:
         if not LibraryManager._stdlib_cache and not is_stdlib_cache:
             LibraryManager(backend=backend, is_stdlib_cache=True)
 
-
     def get_root_namespace(self):
         return self.namespace
-
 
     # Syntactic sugar:
     @property
@@ -246,11 +231,9 @@ class LibraryManager(ast.ASTObject):
     def objects(self):
         return self.get_root_namespace().get_all()
 
-
     def get_component(self):
         assert len(self.components) == 1
         return self.components[0]
-
 
     def add_component(self, component):
         self.namespace.add(component)
@@ -260,7 +243,6 @@ class LibraryManager(ast.ASTObject):
 
     def add_library(self, library):
         self.namespace.add(library)
-
 
     def __getitem__(self, key):
         return self.get(name=key)
@@ -273,7 +255,7 @@ class LibraryManager(ast.ASTObject):
         if include_stdlibs:
             srcs_1 = self.namespace.get_all()
             srcs_2 = LibraryManager._stdlib_cache.get_all()
-            srcs =  srcs_1 + srcs_2
+            srcs = srcs_1 + srcs_2
         else:
 
             srcs = self.namespace.get_all()
@@ -313,7 +295,6 @@ class LibraryManager(ast.ASTObject):
 
         self.add_library(lib._astobject)
 
-
     def get_current_block_builder(self):
         return self.currentblock
 
@@ -331,20 +312,17 @@ class LibraryManager(ast.ASTObject):
         component.finalise()
         self.add_component(component._astobject)
 
-
     def summary(self, details=True):
         name = self.name if self.name else ''
         simple = '<LibraryManager: %s Components: %d Libraries:%d>' % (name, len(self.components), len(self.libraries))
         return simple
 
-    def _summarise_node_short(self,):
-            return 'LibraryManager'
-
+    def _summarise_node_short(self):
+        return 'LibraryManager'
 
     # Units & Dimensions:
     def parse_unit_term(self, term):
         return self.unit_term_parser.parse(term)
-
 
     # Units & Dimensions:
     def add_unit_def(self, longforms, shortforms, equivalent_dim):
@@ -354,4 +332,5 @@ class LibraryManager(ast.ASTObject):
     def add_unitprefix_def(self, longforms, shortforms, pot):
         self.unit_term_parser.add_unitprefix_def(longforms=longforms,
                 shortforms=shortforms, pot=pot)
+
 

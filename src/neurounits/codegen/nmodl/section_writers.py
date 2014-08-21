@@ -26,7 +26,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-
 from neurounits.visitors.bases.base_actioner_default_ignoremissing import ASTActionerDefaultIgnoreMissing
 from neurounits.visitors.bases.base_actioner import SingleVisitPredicate
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase
@@ -34,7 +33,6 @@ from neurounits.errors import panic
 from neurounits.codegen.nmodl.neuron_constants import NeuronSuppliedValues
 
 
-#from neurounits.ast.astobjects import AssignedVariable, StateVariable, SymbolicConstant, SuppliedValue, InEquality, Parameter
 from neurounits.ast.astobjects import InEquality
 from neurounits.ast import EqnAssignmentByRegime
 import string

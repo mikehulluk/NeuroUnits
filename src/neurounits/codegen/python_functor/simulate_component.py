@@ -58,8 +58,8 @@ def do_transition_change(tr, evt, state_data, functor_gen):
     return (state_data.states_out, tr.target_regime)
 
 
-
 class Event(object):
+
     def __init__(self, port, parameter_values, time):
         self.port = port
         self.parameter_values = parameter_values
@@ -71,6 +71,7 @@ class Event(object):
 
 
 class EventManager(object):
+
     def __init__(self):
         self.previous_time = None
         self.current_time = None
@@ -90,7 +91,6 @@ class EventManager(object):
     def set_time(self, t):
         self.previous_time = self.current_time
         self.current_time = t
-
 
     def get_events_for_delivery(self):
         events = [ evt for evt in self.outstanding_event_list if evt.time > self.previous_time and evt.time <= self.current_time ]
@@ -118,7 +118,6 @@ def simulate_component(component, times, parameters=None, initial_state_values=N
     if close_reduce_ports:
         component.close_all_analog_reduce_ports()
 
-
     # Sort out the parameters and initial_state_variables:
     # =====================================================
     neurounits.Q1 = neurounits.NeuroUnitParser.QuantitySimple
@@ -131,13 +130,9 @@ def simulate_component(component, times, parameters=None, initial_state_values=N
         assert terminal_obj.get_dimension().is_compatible(v.get_units())
     # =======================================================
 
-
-
     # Sanity Check:
     # =============
     component.run_sanity_checks()
-
-
 
     # Resolve initial regimes & state-variables:
     # ==========================================
@@ -170,9 +165,6 @@ def simulate_component(component, times, parameters=None, initial_state_values=N
         print '\rTime: %s' % str('%2.3f' % t).ljust(5),
         sys.stdout.flush()
 
-
-
-
         t_unit = t * one_second
         supplied_values = {'t': t_unit}
         evt_manager.set_time(t_unit)
@@ -185,9 +177,8 @@ def simulate_component(component, times, parameters=None, initial_state_values=N
             states_out={},
             rt_regimes=current_regimes,
             assignedvalues={},
-            event_manager = evt_manager,
-
-        )
+            event_manager=evt_manager,
+            )
 
         # Save the state data:
         reses_new.append(state_data.copy())
@@ -213,9 +204,6 @@ def simulate_component(component, times, parameters=None, initial_state_values=N
                 for input_port in f.transition_event_forwarding[evt.port]:
                     ports_with_events[input_port] = evt
 
-
-
-
         # Check for transitions:
         triggered_transitions = []
         for rt_graph in component.rt_graphs:
@@ -234,9 +222,6 @@ def simulate_component(component, times, parameters=None, initial_state_values=N
                 else:
                     assert False
 
-
-
-
         # Resolve the transitions:
         # =========================
 
@@ -254,25 +239,18 @@ def simulate_component(component, times, parameters=None, initial_state_values=N
                 (state_changes, new_regime) = do_transition_change(tr=tr, evt=evt, state_data=state_data, functor_gen = f)
                 current_regimes[rt_graph] = new_regime
 
-
                 # Make sure that we are not changing a single state in two different transitions:
                 for sv in state_changes:
                     assert not sv in updated_states, 'Multiple changes detected for: %s' % sv
                     updated_states.add(sv)
                 state_values.update(state_changes)
 
-
-
         # Mark the events as done
         for evt in active_events:
             evt_manager.marked_event_as_processed(evt)
 
-
-
-
     # Build the results:
     # ------------------
-
 
     # A. Times:
     times = np.array([time_pt_data.suppliedvalues['t'].float_in_si() for time_pt_data in reses_new])
@@ -291,7 +269,7 @@ def simulate_component(component, times, parameters=None, initial_state_values=N
     # C. Assigned Values:
 
     # TODO:
-    assignments ={}
+    assignments = {}
     for ass in component.assignedvalues:
         ass_res = []
         for time_pt_data in reses_new:
@@ -312,26 +290,27 @@ def simulate_component(component, times, parameters=None, initial_state_values=N
 
     rt_graph_data = {}
     for rt_graph in component.rt_graphs:
-        regimes = [ time_pt_data.rt_regimes[rt_graph] for time_pt_data in reses_new]
-        regimes_ints = np.array([ regimes_to_ints_map[rt_graph][r] for r in regimes])
-        rt_graph_data[rt_graph.name] = (regimes_ints)
+        regimes = [time_pt_data.rt_regimes[rt_graph] for time_pt_data in reses_new]
+        regimes_ints = np.array([regimes_to_ints_map[rt_graph][r] for r in regimes])
+        rt_graph_data[rt_graph.name] = regimes_ints
 
 
     # Print the events:
     for evt in evt_manager.processed_event_list:
         print evt
 
-
-
     # Hook it all up:
 
-    res = SimulationResultsData(times=times,
-                                state_variables=state_data_dict,
-                                rt_regimes=rt_graph_data,
-                                assignments=assignments, transitions=[],
-                                events = evt_manager.processed_event_list[:],
-                                component = component
-                                )
+    res = SimulationResultsData(
+        times=times,
+        state_variables=state_data_dict,
+        rt_regimes=rt_graph_data,
+        assignments=assignments,
+        transitions=[],
+        events=evt_manager.processed_event_list[:],
+        component=component,
+        )
 
     return res
+
 

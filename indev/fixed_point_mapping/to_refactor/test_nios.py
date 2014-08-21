@@ -21,9 +21,8 @@ import hashlib
 src_string = open('dIN_model.py').read() + open('mn_model.py').read()
 md5_str = hashlib.md5(src_string).hexdigest()
 
-
-use_cache=True
-cache_file = 'caches/.din_model_cache_%s'%(md5_str)
+use_cache = True
+cache_file = 'caches/.din_model_cache_%s' % md5_str
 if not os.path.exists('caches/'):
     os.makedirs('caches')
 # Delete the cache-file if we are not using it:
@@ -47,7 +46,7 @@ if not os.path.exists(cache_file):
     del RB_input
 
 with open(cache_file) as f:
-    dIN_comp, MN_comp, RB_input = pickle.load(f)
+    (dIN_comp, MN_comp, RB_input) = pickle.load(f)
 
 network = Network()
 pop_components = {
@@ -151,21 +150,19 @@ network.add(
 
 
 # Work out the electrical coupling indices:
-gap_junction_indices =   []
-for dIN_pop in [(pop_LHS_dIN), (pop_RHS_dIN)]:
+gap_junction_indices = []
+for dIN_pop in [pop_LHS_dIN, pop_RHS_dIN]:
     print dIN_pop
     for i in range(dIN_pop.start_index, dIN_pop.end_index):
         for j in range(dIN_pop.start_index, i):
             i_x = cell_positions['dINs'][i]
             j_x = cell_positions['dINs'][j]
-            if abs(i_x -j_x) > 200:
+            if abs(i_x - j_x) > 200:
                 continue
             if random.uniform(0, 1) > 0.2:
                 continue
             gap_junction_indices.append((i, j))
 
-            #ax.plot([i], [j], 'x')
-            #ax.plot([j], [i], 'x')
 
 
 network.add(
@@ -210,7 +207,7 @@ class NIOSPlotTrace(object):
         self.population = population
         self.what = what
         self.colors = colors
-        self.yrange=yrange
+        self.yrange = yrange
 
         self.node = population.population.component.get_terminal_obj(what)
         self.node_upscale = self.node.annotations['fixed-point-format'].upscale
@@ -218,8 +215,7 @@ class NIOSPlotTrace(object):
         self.ylimits_int = int(2**23 * (float(yrange[0]) / 2**self.node_upscale)), \
                            int(2**23 * (float(yrange[1]) / 2**self.node_upscale))
 
-        self.yrange =  self.ylimits_int[1] - self.ylimits_int[0]
-
+        self.yrange = self.ylimits_int[1] - self.ylimits_int[0]
 
         self._global_rec_indices = _global_rec_indices
         print self.node

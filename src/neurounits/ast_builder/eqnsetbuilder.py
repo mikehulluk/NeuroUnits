@@ -108,7 +108,7 @@ class Scope(object):
         self.symbol_dict[symbol] = value
 
     def get_proxy_targetname(self, symproxy):
-        posses = [ (k, v) for (k, v) in self.symbol_dict.items() if v==symproxy]
+        posses = [(k, v) for (k, v) in self.symbol_dict.items() if v==symproxy]
         assert len(posses) == 1
         return posses[0][0]
 
@@ -202,12 +202,10 @@ class AbstractBlockBuilder(object):
 
             self._input_event_ports._add_item(port)
 
-
         # Get the event port, and check that the parameters match up:
         p = self._input_event_ports.get_single_obj_by(symbol=port_name)
         assert len(p.parameters) == len(expected_parameter_names), 'Parameter length mismatch'
         assert set(p.parameters.get_objects_attibutes(attr='symbol'))==set(expected_parameter_names)
-
         return p
 
 
@@ -227,7 +225,6 @@ class AbstractBlockBuilder(object):
 
             self._output_event_ports._add_item(port)
 
-
         # Get the event port, and check that the parameters match up:
         p = self._output_event_ports.get_single_obj_by(symbol=port_name)
         assert len(p.parameters) == len(expected_parameter_names), 'Parameter length mismatch'
@@ -235,9 +232,6 @@ class AbstractBlockBuilder(object):
         assert set(p.parameters.get_objects_attibutes(attr='symbol'))==set(expected_parameter_names)
 
         return p
-
-
-
 
     def create_emit_event(self, port_name, parameters):
         port = self.get_output_event_port(port_name=port_name, expected_parameter_names=parameters.get_objects_attibutes('_symbol'))
@@ -249,11 +243,6 @@ class AbstractBlockBuilder(object):
         emit_event = ast.EmitEvent(port=port, parameters=parameters )
 
         return emit_event
-
-
-
-
-
 
     def open_regime(self, regime_name):
         self._current_regime = self._current_rt_graph.get_or_create_regime(regime_name)
@@ -306,7 +295,6 @@ class AbstractBlockBuilder(object):
                    ast.SymbolicConstant: self.do_import_constant}
             exc[type(sym)](sym, alias=alias)
 
-
     def do_import_constant(self, srcObjConstant, alias=None):
         new_obj = CloneObject.SymbolicConstant(srcObj=srcObjConstant, dst_symbol=alias)
         self._resolve_global_symbol(new_obj.symbol, new_obj)
@@ -358,11 +346,6 @@ class AbstractBlockBuilder(object):
 
         # Close the scope
         self.active_scope = None
-
-
-
-
-
 
 
     def close_scope_and_create_transition_event(self, event_name, event_params, actions, target_regime):
@@ -485,8 +468,6 @@ class AbstractBlockBuilder(object):
             statevar_obj = ast.StateVariable(symbol=sv)
             self._resolve_global_symbol(sv, statevar_obj)
 
-
-
             mapping = dict([(reg, rhs) for (reg, rhs) in tds.items()])
             rhs = ast.EqnTimeDerivativeByRegime(
                     lhs=statevar_obj,
@@ -496,10 +477,6 @@ class AbstractBlockBuilder(object):
 
         self.builddata.timederivatives = time_derivatives.values()
         del self.builddata._time_derivatives_per_regime
-
-
-
-
 
         # Resolve the Assignments into a single object:
         assignments = SingleSetDict()
@@ -544,7 +521,7 @@ class AbstractBlockBuilder(object):
 
             sv = ast.StateVariable(symbol=symbol)
             self._resolve_global_symbol(symbol=sv.symbol, target=sv)
-            deriv_value =  ast.ConstValueZero()
+            deriv_value = ast.ConstValueZero()
 
             td = ast.EqnTimeDerivativeByRegime(
                     lhs = sv,
@@ -620,7 +597,7 @@ class AbstractBlockBuilder(object):
 
         # Lets deal with time:
         time_symbols = [p for p in io_data if p.iotype is IOType.Time]
-        if len(time_symbols)==0:
+        if len(time_symbols) == 0:
             time_node = ast.TimeVariable(symbol='__t__')
         else:
             assert len(time_symbols) == 1
@@ -690,9 +667,7 @@ class AbstractBlockBuilder(object):
 
     @classmethod
     def post_construction_finalisation(cls, ast_object, io_data, options):
-        #from neurounits.visitors.common.plot_networkx import ActionerPlotNetworkX
-        # ActionerPlotNetworkX(self._astobject)
-
+      
         # 1. Resolve the SymbolProxies:
         RemoveAllSymbolProxy().visit(ast_object)
 
@@ -710,7 +685,6 @@ class AbstractBlockBuilder(object):
 
             ast_object.get_terminal_obj(io_data.symbol).set_metadata(io_data.metadata)
 
-
         # 3. Sort out the connections between paramters for emit/recv events
 
         # 3. Propagate the dimensionalities accross the system:
@@ -721,10 +695,6 @@ class AbstractBlockBuilder(object):
 
         # 5. Remove unnessesary regime transition-grpahs
         RemoveUnusedRT().visit(ast_object)
-
-
-
-
 
 
 class LibraryBuilder(AbstractBlockBuilder):
@@ -743,7 +713,6 @@ class NineMLComponentBuilder(AbstractBlockBuilder):
         super(NineMLComponentBuilder, self).__init__(block_type=ast.NineMLComponent, library_manager=library_manager, name=name)
     def add_io_data(self, l):
         self.builddata.io_data_lines.append(l)
-
 
     def add_timederivative(self, lhs_state_name, rhs_ast):
         # Create the assignment object:

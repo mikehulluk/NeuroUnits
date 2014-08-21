@@ -1,9 +1,5 @@
-
-#import os
-#import sys
-#import glob
-
-
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 
 import numpy as np
@@ -20,7 +16,7 @@ def resolve_filename_interpolation(src_name, output):
 def cmdline_simulate(args):
 
     print 'Simulating'
-    for arg, arg_value in vars(args).items():
+    for (arg, arg_value) in vars(args).items():
         print arg, arg_value
 
     from neurounits import NeuroUnitParser, MQ1
@@ -35,7 +31,6 @@ def cmdline_simulate(args):
 
     component.summarise()
 
-
     # Get the start and end times:
     t_end = NeuroUnitParser.QuantitySimple(args.endt)
     assert t_end.is_compatible(MQ1('1s').units)
@@ -45,24 +40,21 @@ def cmdline_simulate(args):
     dt = dt.float_in_si()
 
     # OK lets simulate!
-    res = component.simulate(times = np.arange(0, t_end,dt))
+    res = component.simulate(times=np.arange(0, t_end, dt))
 
     print 'Simulating'
-    for arg, arg_value in vars(args).items():
+    for (arg, arg_value) in vars(args).items():
         print arg, arg_value
 
     # and plot:
     res.auto_plot()
 
-
     # Shall we pop up?
     if args.show_plot:
         pylab.show()
 
-
-
     print 'Simulating'
-    for arg, arg_value in vars(args).items():
+    for (arg, arg_value) in vars(args).items():
         print arg, arg_value
 
 

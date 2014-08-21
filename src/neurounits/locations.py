@@ -26,10 +26,9 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-
-
 import os
 import pkg_resources
+
 
 class Locations(object):
 
@@ -43,9 +42,8 @@ class Locations(object):
             raise RuntimeError("Can't find any 9ml test files, perhaps the something in wring in packaging")
         return fnames
 
-
-
     class Test(object):
+
         @classmethod
         def get_nuts_fileobjs(cls):
 

@@ -31,9 +31,7 @@ import neurounits
 import copy
 import math
 
-
 from neurounits.errors import NutsIOValidationError
-
 
 
 class NutsIO(object):
@@ -49,7 +47,6 @@ class NutsIO(object):
         else:
             with open(filename) as f:
                 src_lines = f.readlines()
-
 
         for (lineno, line) in enumerate(src_lines):
             line = line.strip()
@@ -143,6 +140,7 @@ comp_func_lut = {
 
 
 class NutsIOLine(object):
+
     def __init__(self, line, lineno, options):
 
         line = line.strip()
@@ -185,10 +183,8 @@ class NutsIOLine(object):
             toks = self.line.split('!=')
             assert len(toks) == 2
             print ' -- Checking: %s != %s' % tuple(toks)
-            are_equal = comp_func(
-                    parse_func(toks[0]),
-                    parse_func(toks[1])
-                    )
+            are_equal = comp_func(parse_func(toks[0]),
+                                  parse_func(toks[1]))
             if are_equal:
                 return False
             return True

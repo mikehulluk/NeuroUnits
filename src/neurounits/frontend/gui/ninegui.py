@@ -6,21 +6,11 @@ import numpy
 
 import wx
 
-
-
 import neurounits
 import neurounits.ast as ast
 
-
-
 # Global variable for the GUI:
 lib_mgr = None
-
-
-
-
-
-
 
 
 class RunDialog(wx.Dialog):
@@ -32,19 +22,14 @@ class RunDialog(wx.Dialog):
 
         super(RunDialog, self).__init__(*args, **kw)
 
-
         self.InitUI()
         self.SetSize((250, 300))
-        self.SetTitle("Run component")
-
+        self.SetTitle('Run component')
 
     def InitUI(self):
 
         pnl = wx.Panel(self)
         vbox = wx.BoxSizer(wx.VERTICAL)
-
-
-
 
         hbox3 = wx.BoxSizer(wx.VERTICAL)
 

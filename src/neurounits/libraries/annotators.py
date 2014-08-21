@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 
 class AnnotatorLibrary(object):
@@ -14,4 +16,5 @@ class AnnotatorLibrary(object):
         annotator_functor = cls.annotator_functors[annotator_name]
         annotator = annotator_functor()
         annotator.annotate_ast(component)
+
 

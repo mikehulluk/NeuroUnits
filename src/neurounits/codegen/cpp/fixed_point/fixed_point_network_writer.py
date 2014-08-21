@@ -26,8 +26,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-
-
 from mako.template import Template
 import numpy as np
 import os

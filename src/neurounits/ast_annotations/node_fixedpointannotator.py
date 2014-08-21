@@ -54,10 +54,8 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         self.nbits = nbits
         self.datatype = datatype
 
-
     def annotate_ast(self, ninemlcomponent):
         self.visit(ninemlcomponent)
-
 
     @classmethod
     def encode_value_cls(self, value, upscaling_pow, nbits):
@@ -129,7 +127,8 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
     def ActionStateVariable(self, o, **kwargs):
         self.ActionNodeStd(o)
         # Assume that the delta needs the same range as the original data (safer, but maybe not optimal!)
-        o.annotations['fixed-point-format'].delta_upscale = o.annotations['fixed-point-format'].upscale
+        o.annotations['fixed-point-format'].delta_upscale = \
+            o.annotations['fixed-point-format'].upscale
 
     def ActionParameter(self, o):
         self.ActionNodeStd(o)
@@ -146,7 +145,11 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
             upscaling_pow = 0
         else:
             upscaling_pow = int(np.ceil(np.log2(np.fabs(v))))
-        o.annotations['fixed-point-format'] = FixedPointData(upscale=upscaling_pow, const_value_as_int= self.encode_value(v, upscaling_pow), datatype=self.datatype)
+        
+		o.annotations['fixed-point-format'] = \
+            FixedPointData(upscale=upscaling_pow,
+                           const_value_as_int=self.encode_value(v,
+                           upscaling_pow), datatype=self.datatype)
 
     def ActionSymbolicConstant(self, o):
         self.ActionConstant(o)

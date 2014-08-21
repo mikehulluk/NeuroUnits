@@ -28,7 +28,6 @@
 
 from neurounits.unit_expr_parsing import units_expr_yacc
 
-
 import pkg_resources
 import neurounits.nulogging as logging
 
@@ -54,17 +53,23 @@ class NeuroUnitParser(object):
     @classmethod
     def Unit(cls, text, debug=False, backend=None):
         backend = backend or cls.get_defaultBackend()
-        return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L1_Unit, backend=backend)
+        return units_expr_yacc.parse_expr(text,
+                parse_type=units_expr_yacc.ParseTypes.L1_Unit,
+                backend=backend)
 
     @classmethod
     def QuantitySimple(cls, text, debug=False, backend=None):
         backend = backend or cls.get_defaultBackend()
-        return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L2_QuantitySimple, backend=backend)
+        return units_expr_yacc.parse_expr(text,
+                parse_type=units_expr_yacc.ParseTypes.L2_QuantitySimple,
+                backend=backend)
 
     @classmethod
     def QuantityExpr(cls, text, debug=False, backend=None):
         backend = backend or cls.get_defaultBackend()
-        return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.L3_QuantityExpr, backend=backend)
+        return units_expr_yacc.parse_expr(text,
+                parse_type=units_expr_yacc.ParseTypes.L3_QuantityExpr,
+                backend=backend)
 
     @classmethod
     def File(cls, text, working_dir=None, debug=False, backend=None, options=None, name=None):
@@ -79,7 +84,6 @@ class NeuroUnitParser(object):
 
         if hasattr(input_, 'read'):
             text = input_.read()
-
         elif isinstance(input_, basestring):
 
             # 1. Lets try and open the file (normal):
@@ -104,14 +108,13 @@ class NeuroUnitParser(object):
             # 3. Let assume that string is the contents:
             if not text:
                 text = input_
-
         else:
             assert False, 'Unexpected input: %s %s' % (type(input_), input_)
 
 
 
         logging.log_neurounits.info('Parse9MLFile:')
-        logging.log_neurounits.info('Options: %s'%options)
+        logging.log_neurounits.info('Options: %s' % options)
         logging.log_neurounits.info('Text: \n%s' % text)
         backend = backend or cls.get_defaultBackend()
         return units_expr_yacc.parse_expr(text, parse_type=units_expr_yacc.ParseTypes.N6_9MLFile, working_dir=working_dir, backend=backend, options=options, **kwargs)
@@ -124,32 +127,24 @@ class NeuroUnitParser(object):
             library_manager = cls.Parse9MLFile(input_ = input_, library_manager=library_manager, debug=debug, backend=backend, working_dir=working_dir, options=options)
         return library_manager
 
-
-
-
     @classmethod
     def _string_to_expr_node(cls, s, working_dir=None, debug=False, backend=None, options=None,):
         import neurounits
 
-        #print 'Converting ', s, 'to nodes:'
 
         if isinstance(s, basestring):
             backend = backend or cls.get_defaultBackend()
             s = units_expr_yacc.parse_expr(s, parse_type=units_expr_yacc.ParseTypes.L6_ExprNode, working_dir=working_dir, backend=backend, options=options,)
             return s
-        if isinstance(s, (float,int)):
+        if isinstance(s, (float, int)):
             from neurounits.units_backends.mh import MMUnit, MMQuantity
             s = neurounits.ast.ConstValue(value=MMQuantity(s, MMUnit()))
 
-        #print s, type(s)
         assert isinstance(s, neurounits.ast.ASTExpressionObject)
         return s
 
 
-
-
-
-
 def MQ1(s):
     return NeuroUnitParser.QuantitySimple(s)
+
 

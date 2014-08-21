@@ -1,40 +1,40 @@
-#! /usr/bin/python
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 # vim: set filetype=python :
 
 
 import argparse
 
 
-
-
-
 def handle_simulate(args):
     from neurounits.nineml_fe.nineml_fe_simulate import cmdline_simulate
     cmdline_simulate(args)
 
+
 def handle_test(args):
     from neurounitscontrib.test import do_test
     do_test(args)
+
 
 def handle_summarise(args):
     from neurounits.nineml_fe.nineml_fe_summarise import cmdline_summarise
     cmdline_summarise(args)
 
 
-
 def handle_gui(args):
     from neurounits.gui.ninegui import run_gui
     run_gui()
+
+
 def handle_demo(args):
     from neurounitscontrib.demo import do_demo
     do_demo(args)
 
 
 def handle_coverage(args):
-    from .nineml_fe_coverage import do_coverage
+    from nineml_fe_coverage import do_coverage
     do_coverage(args)
-
-
 
 
 # TODO:
@@ -44,9 +44,6 @@ def handle_codegen(args):
     print 'Code-generating'
 def handle_validating(args):
     print 'Code-validate'
-
-
-
 
 
 def build_argparser():
@@ -94,7 +91,6 @@ def build_argparser():
     validate_subparser = subparsers.add_parser('visualise', parents=[parent_parser])
     validate_subparser.set_defaults(func=handle_validating)
 
-
     # GUI interface:
     # ===============
     gui_subparser = subparsers.add_parser('gui', parents=[parent_parser])
@@ -126,7 +122,6 @@ def main():
     parser = build_argparser()
     args = parser.parse_args()
     args.func(args)
-
 
 
 if __name__ == '__main__':

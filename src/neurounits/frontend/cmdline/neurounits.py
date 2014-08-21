@@ -20,23 +20,21 @@ def build_parser():
     return parser
 
 
-
-
-
 def validate_eqn(filename):
     from neurounits import NeuroUnitParser
     print 'Validating:', filename
     f = NeuroUnitParser.File(open(filename).read())
     print '  ', f.summary()
 
+
 def validate_nuts(filename):
-    from neurounits import  NutsIO
+    from neurounits import NutsIO
     NutsIO.validate(filename)
     print 'Validating:', filename
 
 
 def extract(filenames, level, output_file):
-    from neurounits import  NutsIO
+    from neurounits import NutsIO
 
     lines = list(chain(*[NutsIO.load(fname) for fname in filenames]))
 
@@ -63,10 +61,9 @@ def extract(filenames, level, output_file):
     print 'Extracting:'
 
 
-
 def main():
     parser = build_parser()
-    args= parser.parse_args()
+    args = parser.parse_args()
 
     print args.files
     print 'validate', args.validate
@@ -83,11 +80,9 @@ def main():
 
     # Extraction:
     if args.extract:
-        tgts = [f for f in args.files if f.endswith('nuts') ]
+        tgts = [f for f in args.files if f.endswith('nuts')]
         extract(tgts, args.extract_level, args.extract_to)
 
 
-
-
-if __name__=='__main__':
+if __name__ == '__main__':
     main()

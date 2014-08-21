@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+# -*- coding: utf-8 -*-
 
 # -------------------------------------------------------------------------------
 # Copyright (c) 2012 Michael Hull.  All rights reserved.
@@ -34,7 +34,9 @@ Annotations can be attached to each node, which is handled through the ASTNodeAn
 """
 
 
-from neurounits.ast_annotations.bases import ASTNodeAnnotationData, ASTTreeAnnotationManager, ASTTreeAnnotator
+from neurounits.ast_annotations.bases import ASTNodeAnnotationData
+from neurounits.ast_annotations.bases import ASTTreeAnnotationManager
+from neurounits.ast_annotations.bases import ASTTreeAnnotator
 from neurounits.ast_annotations.common import NodeRange
 from neurounits.ast_annotations.node_toint import NodeToIntAnnotator
 
@@ -42,8 +44,4 @@ from neurounits.ast_annotations.node_fixedpointannotator import NodeFixedPointFo
 from neurounits.ast_annotations.node_range_byoptimiser import NodeRangeByOptimiser
 from neurounits.ast_annotations.node_rangeexpander import RangeExpander
 from neurounits.ast_annotations.node_tagger import NodeTagger
-
-
-
-
 

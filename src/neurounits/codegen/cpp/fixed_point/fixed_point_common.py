@@ -26,18 +26,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase
-
-
-
-
-
-
-
-
-
-
 
 
 class CBasedFixedWriterStd(ASTVisitorBase):
@@ -48,8 +37,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
         data_prefix_prev = self.data_prefix
         self.data_prefix = data_prefix
 
-        res =  self.visit(obj)
-
+        res = self.visit(obj)
 
         self.population_access_index = population_access_index_prev
         self.data_prefix = data_prefix_prev
@@ -57,7 +45,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
         return res
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
-        assert len (o.rhs_map) == 1
+        assert len(o.rhs_map) == 1
         return self.add_range_check(o, self.visit(o.rhs_map.values()[0], **kwargs))
 
 
@@ -73,7 +61,6 @@ class CBasedFixedWriterStd(ASTVisitorBase):
                                                      )
         return self.add_range_check(o, res)
 
-
     def VisitAddOp(self, o, **kwargs):
         return self.DoOpOpComplex(o, 'add', **kwargs)
 
@@ -86,18 +73,13 @@ class CBasedFixedWriterStd(ASTVisitorBase):
     def VisitDivOp(self, o, **kwargs):
         return self.DoOpOpComplex(o, 'div', **kwargs)
 
-
-
-
-
-
     def VisitIfThenElse(self, o, **kwargs):
         L = " ((%s) ? (%s).rescale_to<%d>() : (%s).rescale_to<%d>())" % (
-                    self.visit(o.predicate,  **kwargs),
-                    self.visit(o.if_true_ast,  **kwargs),
+                    self.visit(o.predicate, **kwargs),
+                    self.visit(o.if_true_ast, **kwargs),
                     o.annotations['fixed-point-format'].upscale,
                     self.visit(o.if_false_ast, **kwargs),
-                    o.annotations['fixed-point-format'].upscale,
+                    o.annotations['fixed-point-format'].upscale
                     )
         return self.add_range_check(o, L)
 
@@ -108,7 +90,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
     def _VisitOnConditionCrossing(self, o, **kwargs):
         return " ((%s) < (%s))" % (
                 self.visit(o.crosses_lhs, **kwargs),
-                self.visit(o.crosses_rhs, **kwargs),
+                self.visit(o.crosses_rhs, **kwargs)
                 )
 
 
@@ -117,7 +99,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
     def VisitInEquality(self, o, **kwargs):
         return " ((%s) < (%s))" % (
                 self.visit(o.lesser_than, **kwargs),
-                self.visit(o.greater_than, **kwargs),
+                self.visit(o.greater_than, **kwargs)
                 )
 
 
@@ -127,7 +109,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
         node_name_prev = "d.C_%s_lhs_is_gt_rhs_prev[i]" % o.annotations['node-id']
         expr = None
         if o.on_rising and o.on_falling:
-            expr = "(%s != %s)" % (node_name_prev, node_name)
+            expr = '(%s != %s)' % (node_name_prev, node_name)
         elif o.on_rising and not o.on_falling:
             expr = "((%s == false) && (%s==true))" % (node_name_prev, node_name)
         elif not o.on_rising and o.on_falling:
@@ -135,44 +117,42 @@ class CBasedFixedWriterStd(ASTVisitorBase):
         else:
             assert False
 
-
-        return "(is_condition_activation_guard && %s)" % expr
-
+        return '(is_condition_activation_guard && %s)' % expr
 
     def VisitBoolAnd(self, o, **kwargs):
-        res = "((%s) && (%s))"% (self.visit(o.lhs, **kwargs), self.visit(o.rhs, **kwargs))
+        res = '((%s) && (%s))' % (self.visit(o.lhs, **kwargs),
+                                  self.visit(o.rhs, **kwargs))
         return res
+
     def VisitBoolOr(self, o, **kwargs):
-        res = "((%s) || (%s))"% (self.visit(o.lhs, **kwargs), self.visit(o.rhs, **kwargs))
+        res = '((%s) || (%s))' % (self.visit(o.lhs, **kwargs),
+                                  self.visit(o.rhs, **kwargs))
         return res
+
     def VisitBoolNot(self, o, **kwargs):
-        res = "(!(%s))"% (self.visit(o.lhs, **kwargs))
+        res = '(!(%s))' % self.visit(o.lhs, **kwargs)
         return res
 
     def VisitFunctionDefUserInstantiation(self,o):
         assert False
 
-    def VisitFunctionDefBuiltInInstantiation(self,o,  **kwargs):
-        assert o.function_def.is_builtin() and o.function_def.funcname == '__exp__'
+    def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
+        assert o.function_def.is_builtin() and o.function_def.funcname \
+            == '__exp__'
 
         param = o.parameters.values()[0]
         param_term = self.visit(param.rhs_ast, **kwargs)
         res = """ScalarOp<%d>::exp(%s)""" %(o.annotations['fixed-point-format'].upscale, param_term)
         return res
 
-
     def VisitFunctionDefInstantiationParameter(self, o):
         assert False
         res = o.symbol
         return self.add_range_check(o, res)
 
-
-
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
-        res =  "(%s)" % self.visit(o.rhs_map, **kwargs)
+        res = '(%s)' % self.visit(o.rhs_map, **kwargs)
         return res
-
-
 
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         delta_upscale = o.lhs.annotations['fixed-point-format'].delta_upscale
@@ -183,13 +163,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
                 )
 
         c2 = ''
-        return c1, c2
-
-
-
-
-
-
+        return (c1, c2)
 
 
 class CBasedFixedWriter(CBasedFixedWriterStd):
@@ -200,21 +174,19 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
 
     def __init__(self, component, population_access_index=None, data_prefix=None):
         super(CBasedFixedWriter, self).__init__()
-        self.population_access_index=population_access_index
-        self.data_prefix=data_prefix
+        self.population_access_index = population_access_index
+        self.data_prefix = data_prefix
 
         self.op_scalar_type = 'ScalarType'
         self.op_scalar_op = 'ScalarOp'
-
 
     def get_var_str(self, name):
         s = name
         if self.data_prefix:
             s = self.data_prefix + s
-        if self.population_access_index!=None:
-            s += '[%s]'%self.population_access_index
+        if self.population_access_index != None:
+            s += '[%s]' % self.population_access_index
         return s
-
 
     def VisitFunctionDefParameter(self, o, **kwargs):
         assert False
@@ -248,30 +220,23 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         return self.add_range_check(o, res)
 
     def VisitConstantZero(self, o, **kwargs):
-        res = "%s<0>(0)" %(self.op_scalar_type)
+        res = '%s<0>(0)' % self.op_scalar_type
         return self.add_range_check(o, res)
-
 
     def VisitSuppliedValue(self, o, **kwargs):
         return self.get_var_str(o.symbol)
 
-
     def VisitTimeVariable(self, o, **kwargs):
         return 't'
 
-
-
-
-
-
     def VisitRandomVariable(self, o, **kwargs):
 
-        assert o.modes['when'] in ('SIM_INIT')
+        assert o.modes['when'] is 'SIM_INIT'
         assert o.modes['share'] in ('PER_NEURON', 'PER_POPULATION')
 
         node_name = 'RV%s' % o.annotations['node-id']
 
-        if o.modes['share'] =='PER_NEURON':
+        if o.modes['share'] == 'PER_NEURON':
             res = self.get_var_str(name=node_name)
         elif o.modes['share'] == 'PER_POPULATION':
             res = 'd.%s' % node_name
@@ -280,10 +245,8 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
 
         return self.add_range_check(o, res)
 
-
     def VisitAutoRegressiveModelUpdate(self, o, **kwargs):
-        #print 'AR upscale: ', o.annotations['fixed-point-format'].upscale
-
+        
         # Upscaling of the coefficients, (by default probably between zero and 1
 
         node_name = 'AR%s' % o.annotations['node-id']
@@ -327,15 +290,11 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         node_name = 'AR%s' % o.annotations['node-id']
         return self.get_var_str(node_name)
 
-
     def VisitOnEventStateAssignment(self, o, **kwargs):
 
-        res =  "%s = (%s)" % (
-                self.get_var_str(o.lhs.symbol),
-                self.visit(o.rhs, **kwargs),
-                )
+        res = '%s = (%s)' % (self.get_var_str(o.lhs.symbol),
+                             self.visit(o.rhs, **kwargs))
         return res
-
 
     def VisitEmitEvent(self, o, **kwargs):
         return 'event_handlers::on_%s(IntType(i), time_info)'% o.port.symbol
@@ -345,19 +304,6 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         return 'evt.%s' % o.symbol
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
 
     def add_range_check(self, o, res):
@@ -365,9 +311,8 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
 
     def __init__(self, component, population_access_index=None, data_prefix='bv_'):
         super(CBasedFixedWriterBlueVecOps, self).__init__()
-        self.population_access_index=population_access_index
-        self.data_prefix=data_prefix
-
+        self.population_access_index = population_access_index
+        self.data_prefix = data_prefix
 
         self.op_scalar_type = 'FixedPointStream'
         self.op_scalar_op = 'FixedPointStreamOp'
@@ -379,8 +324,7 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
         data_prefix_prev = self.data_prefix
         self.data_prefix = data_prefix
 
-        res =  self.visit(obj)
-
+        res = self.visit(obj)
 
         self.population_access_index = population_access_index_prev
         self.data_prefix = data_prefix_prev
@@ -388,15 +332,11 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
         return res
 
     def VisitEqnAssignmentByRegime(self, o):
-        return "(%s)" % (
-                    self.visit(o.rhs_map),
-                   )
+        return '(%s)' % (self.visit(o.rhs_map), )
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
-        assert len (o.rhs_map) == 1
+        assert len(o.rhs_map) == 1
         return self.visit(o.rhs_map.values()[0], **kwargs)
-
-
 
     def DoOpOpComplex(self, o, op, **kwargs):
 
@@ -410,7 +350,6 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
                                                      )
         return self.add_range_check(o, res)
 
-
     def VisitAddOp(self, o, **kwargs):
         return self.DoOpOpComplex(o, 'add', **kwargs)
 
@@ -422,7 +361,6 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
 
     def VisitDivOp(self, o, **kwargs):
         return self.DoOpOpComplex(o, 'div', **kwargs)
-
 
     def VisitSymbolicConstant(self, o, **kwargs):
         res = "%s<%d>(%d)" % (
@@ -446,7 +384,6 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
         res = "%s<0>(0)" %(self.op_scalar_type)
         return self.add_range_check(o, res)
 
-
     def VisitParameter(self, o, **kwargs):
         res = self.get_var_str(o.symbol)
         return self.add_range_check(o, res)
@@ -454,21 +391,21 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
     def VisitSuppliedValue(self, o, **kwargs):
         return self.get_var_str(o.symbol)
 
-
     def VisitTimeVariable(self, o, **kwargs):
         return 'bv_t'
+
     def VisitStateVariable(self, o, **kwargs):
         res = self.get_var_str(o.symbol)
         return self.add_range_check(o, res)
 
     def VisitRandomVariable(self, o, **kwargs):
 
-        assert o.modes['when'] in ('SIM_INIT')
+        assert o.modes['when'] is 'SIM_INIT'
         assert o.modes['share'] in ('PER_NEURON', 'PER_POPULATION')
 
         node_name = 'RV%s' % o.annotations['node-id']
 
-        if o.modes['share'] =='PER_NEURON':
+        if o.modes['share'] == 'PER_NEURON':
             res = self.get_var_str(name=node_name)
         elif o.modes['share'] == 'PER_POPULATION':
             res = 'd.%s' % node_name
@@ -488,16 +425,13 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
                 param_term)
         return res
 
-
     def get_var_str(self, name):
         s = name
         if self.data_prefix:
             s = self.data_prefix + s
-        if self.population_access_index!=None:
-            s += '[%s]'%self.population_access_index
+        if self.population_access_index != None:
+            s += '[%s]' % self.population_access_index
         return s
-
-
 
     def VisitIfThenElse(self, o, **kwargs):
         L = "  %s<%d>::ifthenelse(%s, %s,  %s)" % (
@@ -509,20 +443,16 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
                     )
         return self.add_range_check(o, L)
 
-
     def VisitInEquality(self, o, **kwargs):
-        return " ((%s) < (%s))" % (
-                self.visit(o.lesser_than, **kwargs),
-                self.visit(o.greater_than, **kwargs),
-                )
-
+        return ' ((%s) < (%s))' % (self.visit(o.lesser_than, **kwargs),
+                                   self.visit(o.greater_than, **kwargs))
 
     def VisitOnConditionCrossing(self, o, **kwargs):
         node_name = "d.C_%s_lhs_is_gt_rhs[i]" % o.annotations['node-id']
         node_name_prev = "d.C_%s_lhs_is_gt_rhs_prev[i]" % o.annotations['node-id']
         expr = None
         if o.on_rising and o.on_falling:
-            expr = "(%s != %s)" % (node_name_prev, node_name)
+            expr = '(%s != %s)' % (node_name_prev, node_name)
         elif o.on_rising and not o.on_falling:
             expr = "((%s == false) && (%s==true))" % (node_name_prev, node_name)
         elif not o.on_rising and o.on_falling:
@@ -530,24 +460,24 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
         else:
             assert False
 
-
-        return "(is_condition_activation_guard && %s)" % expr
-
+        return '(is_condition_activation_guard && %s)' % expr
 
     def VisitBoolAnd(self, o, **kwargs):
-        res = " ((%s) && (%s))"% (self.visit(o.lhs, **kwargs), self.visit(o.rhs, **kwargs))
-        return res
-    def VisitBoolOr(self, o, **kwargs):
-        res = " ((%s) || (%s))"% (self.visit(o.lhs, **kwargs), self.visit(o.rhs, **kwargs))
-        return res
-    def VisitBoolNot(self, o, **kwargs):
-        res = " (!(%s))"% (self.visit(o.lhs, **kwargs))
+        res = ' ((%s) && (%s))' % (self.visit(o.lhs, **kwargs),
+                                   self.visit(o.rhs, **kwargs))
         return res
 
+    def VisitBoolOr(self, o, **kwargs):
+        res = ' ((%s) || (%s))' % (self.visit(o.lhs, **kwargs),
+                                   self.visit(o.rhs, **kwargs))
+        return res
+
+    def VisitBoolNot(self, o, **kwargs):
+        res = ' (!(%s))' % self.visit(o.lhs, **kwargs)
+        return res
 
     def VisitAutoRegressiveModel(self, o, **kwargs):
         node_name = 'AR%s' % o.annotations['node-id']
         return self.get_var_str(node_name)
-
 
 

@@ -26,7 +26,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-from .astobjects import ASTExpressionObject
+from astobjects import ASTExpressionObject
 from neurounits.units_misc import LookUpDict
 from neurounits.units_backends.mh import MMUnit
 

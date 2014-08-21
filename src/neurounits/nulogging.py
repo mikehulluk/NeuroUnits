@@ -26,7 +26,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-
 import logging
 log_neurounits = logging.getLogger('neurounits')
 

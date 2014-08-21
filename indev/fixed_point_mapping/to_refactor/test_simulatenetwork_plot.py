@@ -58,30 +58,28 @@ results.raster_plot([
 
 
 filters_traces = [
-   "ALL{V,RB,RHS}",
-   "ALL{V,RB,LHS}",
-   "ALL{V,dla,RHS}",
-   "ALL{V,dla,LHS}",
-   "ALL{V,dlc,RHS}",
-   "ALL{V,dlc,LHS}",
-   "ALL{V,aIN,RHS}",
-   "ALL{V,aIN,LHS}",
-   "ALL{V,cIN,RHS}",
-   "ALL{V,cIN,LHS}",
-   "ALL{V,dIN,RHS}",
-   "ALL{V,dIN,LHS}",
-   "ALL{V,MN,RHS}",
-   "ALL{V,MN,LHS}",
-
-   "ALL{dIN,V_vnoisy,RHS}",
-   "ALL{dIN,V_vnoisy,LHS}",
-   "ALL{dIN,noise,RHS}",
-   "ALL{dIN,noise,LHS}",
-   "ALL{dIN,noise_raw,RHS}",
-   "ALL{dIN,noise_raw,LHS}",
-   "ALL{V,MN,LHS}",
-   ]
-
+    'ALL{V,RB,RHS}',
+    'ALL{V,RB,LHS}',
+    'ALL{V,dla,RHS}',
+    'ALL{V,dla,LHS}',
+    'ALL{V,dlc,RHS}',
+    'ALL{V,dlc,LHS}',
+    'ALL{V,aIN,RHS}',
+    'ALL{V,aIN,LHS}',
+    'ALL{V,cIN,RHS}',
+    'ALL{V,cIN,LHS}',
+    'ALL{V,dIN,RHS}',
+    'ALL{V,dIN,LHS}',
+    'ALL{V,MN,RHS}',
+    'ALL{V,MN,LHS}',
+    'ALL{dIN,V_vnoisy,RHS}',
+    'ALL{dIN,V_vnoisy,LHS}',
+    'ALL{dIN,noise,RHS}',
+    'ALL{dIN,noise,LHS}',
+    'ALL{dIN,noise_raw,RHS}',
+    'ALL{dIN,noise_raw,LHS}',
+    'ALL{V,MN,LHS}',
+    ]
 
 results.plot(trace_filters=filters_traces, legend=False, xlim=xlim)
 

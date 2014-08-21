@@ -26,10 +26,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-
-
-
-
 import os
 import string
 import subprocess
@@ -46,19 +42,12 @@ class CCompilationSettings(object):
         self.libraries = libraries
         self.compile_flags = compile_flags
 
-
-
     @classmethod
     def default(self):
         return CCompilationSettings()
 
 
-
-
-
-
 class CCompiler(object):
-
 
     @classmethod
     def prepare_to_create_file(cls, filename):
@@ -68,35 +57,33 @@ class CCompiler(object):
         if os.path.exists(filename):
             os.unlink(filename)
 
-
     @classmethod
-    def build_executable(self,
-                           src_text=None,
-                           src_files=None,
-                           compilation_settings = None,
-                           run=False,
-                           intermediate_filename=None,
-                           output_filename = None,
-                           compiler=None
-                        ):
+    def build_executable(
+        self,
+        src_text=None,
+        src_files=None,
+        compilation_settings=None,
+        run=False,
+        intermediate_filename=None,
+        output_filename=None,
+        compiler=None,
+        ):
 
         if output_filename == None:
             output_filename = '/tmp/nu/compilation/exec.x'
 
         if intermediate_filename == None:
-            intermediate_filename='/tmp/nu/compilation/compile1.cpp'
+            intermediate_filename = '/tmp/nu/compilation/compile1.cpp'
 
         if compiler is None:
-            compiler='g++'
+            compiler = 'g++'
 
         # Only one form of input:
-        assert  bool(src_text) != bool(src_files)
+        assert bool(src_text) != bool(src_files)
         compile_single_file = bool(src_text)
-
 
         if compilation_settings is None:
             compilation_settings = CCompilationSettings.default()
-
 
         # Write the src_text to a file:
         if compile_single_file:
@@ -108,8 +95,6 @@ class CCompiler(object):
 
         # Ensure we can write to the output-files:
         CCompiler.prepare_to_create_file(output_filename)
-
-
 
         # OK, lets compile!
         compilation_dict = {

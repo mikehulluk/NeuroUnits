@@ -30,6 +30,7 @@ from neurounits.ast_builder.io_types import IOType
 from neurounits.units_misc import read_json
 from neurounits.errors import ParsingError
 
+
 class IOData(object):
 
     def __init__(self, symbol, iotype, metadata={}):
@@ -46,6 +47,7 @@ class IODataDimensionSpec(IOData):
 
 
 class IODataInitialCondition(IOData):
+
     def __init__(self, symbol, value, **kwargs):
         IOData.__init__(self, symbol=symbol, iotype=IOType.InitialCondition, **kwargs)
         self.value = value
@@ -53,7 +55,7 @@ class IODataInitialCondition(IOData):
 
 def parse_io_line(line):
     # Unpack the line:
-    mode, params, metadata = line
+    (mode, params, metadata) = line
 
     metadata = read_json(metadata)
 
@@ -61,14 +63,10 @@ def parse_io_line(line):
     if mode not in ('summed_input', 'input', 'output', 'parameter', 'time'):
         raise ParsingError('Unexpected Mode: %s' % mode)
 
-
     defs = []
     for (param, dimension) in params:
         io_data = IODataDimensionSpec(symbol=param.strip(), iotype=IOType.LUT[mode], dimension=dimension, metadata=metadata)
         defs.append(io_data)
     return defs
-
-
-
 
 

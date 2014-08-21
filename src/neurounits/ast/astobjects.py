@@ -29,6 +29,7 @@
 from base import ASTObject
 from neurounits.errors import InternalError
 
+
 class ASTExpressionObject(ASTObject):
 
     def __init__(self, dimension=None):
@@ -58,7 +59,8 @@ class ASTExpressionObject(ASTObject):
     def set_dimensionality(self, dimension):
 
         import neurounits
-        assert isinstance(dimension, neurounits.units_backends.mh.MMUnit)
+        assert isinstance(dimension,
+                          neurounits.units_backends.mh.MMUnit)
 
         assert not self.is_dimensionality_known()
         dimension = dimension.with_no_powerten()
@@ -272,7 +274,7 @@ class SymbolicConstant(ASTConstNode, ASTSymbolNode):
         super(SymbolicConstant, self).__init__(**kwargs)
 
     def _summarise_node_full(self):
-        return '%s %s' % (ASTConstNode._summarise_node_full(self), 
+        return '%s %s' % (ASTConstNode._summarise_node_full(self),
                           ASTSymbolNode._summarise_node_full(self))
 
 

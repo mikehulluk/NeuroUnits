@@ -17,7 +17,9 @@ import trace
 
 
 class HashManager(object):
+
     _file_hashes = {}
+
     @classmethod
     def get_filename_hash(cls, filename):
         if not os.path.exists(filename):
@@ -29,13 +31,14 @@ class HashManager(object):
             cls._file_hashes[filename] = str(hashobj.hexdigest())
         return cls._file_hashes[filename]
 
+
 class _CachedFileAccessData(object):
+
     def __init__(self, filename, linenumbers):
         self.filename = filename
         self.linenumbers = linenumbers
         self._cachedhashfile = HashManager.get_filename_hash(filename)
         self._cachedhashlines = self.current_line_hash()
-
 
     def current_line_hash(self):
 
@@ -46,7 +49,6 @@ class _CachedFileAccessData(object):
             return hashobj.hexdigest()
         else:
             return None
-
 
     def get_file_lines(self):
         with open(self.filename) as fobj:
@@ -60,16 +62,12 @@ class _CachedFileAccessData(object):
             res.append(lines[linenumber])
         return res
 
-
-
     def is_clean(self):
         if self._cachedhashfile == HashManager.get_filename_hash(self.filename):
             return True
         if self._cachedhashlines is not None and \
            self._cachedhashlines == self.current_line_hash():
             return True
-
-
 
         return False
 
@@ -91,7 +89,7 @@ class _CachedFileAccessData(object):
 class ComponentLibrary(object):
 
     _component_functors = {}
-    _cache_dir = os.path.expanduser("~/.neurounits/component_cache/")
+    _cache_dir = os.path.expanduser('~/.neurounits/component_cache/')
     if not os.path.exists(_cache_dir):
         os.makedirs(_cache_dir)
 
@@ -117,16 +115,14 @@ class ComponentLibrary(object):
 
         if os.path.exists(expected_filename):
             with open(expected_filename) as f:
-                trace_info, component = pickle.load(f)
+                (trace_info, component) = pickle.load(f)
 
             # OK, have any of the lines changed??
-            has_changed=False
+            has_changed = False
             for t in trace_info:
                 has_changed = not t.is_clean()
             if not has_changed:
                 return component
-
-
 
         import sys
         trace_obj = trace.Trace(count=1, trace=0, countfuncs=0,
@@ -144,7 +140,7 @@ class ComponentLibrary(object):
         for (filename, linenumber) in sorted(trace_obj.results().counts):
             if filename .startswith('/usr'):
                 continue
-            if filename.startswith("build/bdist.linux-x86_64/egg/"):
+            if filename.startswith('build/bdist.linux-x86_64/egg/'):
                 continue
             if '.local/lib/python2.7/site-packages/' in filename:
                 continue
@@ -157,7 +153,7 @@ class ComponentLibrary(object):
             print filename, linenumbers
 
         cache_data = []
-        for filename, linenumbers in _accessed_functions.iteritems():
+        for (filename, linenumbers) in _accessed_functions.iteritems():
             if filename == '<string>':
                 print 'Unexpected filename=<string> found. Lines: (%s)' % ','.join(str(l) for l in linenumbers)
                 continue

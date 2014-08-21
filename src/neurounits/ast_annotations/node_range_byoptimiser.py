@@ -45,7 +45,6 @@ from neurounits.visitors.common.ast_symbol_dependancies_new import VisitorSymbol
 from neurounits.ast_annotations.common import _NodeRangeFloat
 
 
-
 class CriticalPointFinder(ASTActionerDefault):
 
     def __init__(self, component):
@@ -65,36 +64,11 @@ class CriticalPointFinder(ASTActionerDefault):
             return
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class CFloatEval(ASTVisitorBase):
+
     def __init__(self, the_component):
         self.component = the_component
         super(CFloatEval, self).__init__()
-
-
 
     def VisitAssignedVariable(self, o, **kwargs):
         return self.visit(self.component.assignedvariable_to_assignment(o).rhs_map)
@@ -115,14 +89,11 @@ class CFloatEval(ASTVisitorBase):
     def VisitDivOp(self, o, **kwargs):
         return '((%s) / (%s))' % (self.visit(o.lhs), self.visit(o.rhs))
 
-
-
     def VisitOnEventStateAssignment(self, o, **kwargs):
         return self.visit(o.rhs)
 
     def VisitSymbolicConstant(self, o, **kwargs):
         return '%g' % o.value.float_in_si()
-
 
     def VisitIfThenElse(self, o, **kwargs):
         return "((%s) ? (%s) : (%s))" %(
@@ -137,14 +108,13 @@ class CFloatEval(ASTVisitorBase):
                                    )
 
     def VisitBoolAnd(self, o, **kwargs):
-        return "((%s)&&(%s))" % (self.visit(o.lhs), self.visit(o.rhs))
+        return '((%s)&&(%s))' % (self.visit(o.lhs), self.visit(o.rhs))
 
     def VisitBoolOr(self, o, **kwargs):
-        return "((%s)||(%s))" % (self.visit(o.lhs), self.visit(o.rhs))
-
+        return '((%s)||(%s))' % (self.visit(o.lhs), self.visit(o.rhs))
 
     def VisitBoolNot(self, o, **kwargs):
-        return "(!(%s))" % self.visit(o.lhs)
+        return '(!(%s))' % self.visit(o.lhs)
 
     def VisitFunctionDefUser(self, o, **kwargs):
         raise NotImplementedError()
@@ -159,7 +129,7 @@ class CFloatEval(ASTVisitorBase):
         return 'input_data->%s' %  n.annotations['_range-finding-c-var-name']
 
     def VisitConstant(self, o, **kwargs):
-        return "%g" % (o.value.float_in_si())
+        return '%g' % o.value.float_in_si()
 
     def VisitSuppliedValue(self, n, **kwargs):
         return 'input_data->%s' %  n.annotations['_range-finding-c-var-name']
@@ -172,8 +142,6 @@ class CFloatEval(ASTVisitorBase):
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         return self.visit(o.rhs_map)
-
-
 
     def VisitExpOp(self, o, **kwargs):
         raise NotImplementedError()
@@ -199,17 +167,6 @@ class CFloatEval(ASTVisitorBase):
     def VisitInEventPortParameter(self, o):
         assert False
         return 'input_data->%s' %  o.annotations['_range-finding-c-var-name']
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -435,105 +392,100 @@ class NodeRangeCCodeNodeNamer(ASTTreeAnnotator, ASTActionerDefault):
 
 
 class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
+
     def __init__(self, var_annots_ranges):
         self.var_annots_ranges = var_annots_ranges
         super(NodeRangeByOptimiser, self).__init__()
 
-
-
-
     @classmethod
     def find_minmax_for_node(self, node, component, cffi_top, cffi_code_obj, critical_points):
-            print '.',
-            sys.stdout.flush()
-            deps = VisitorSymbolDependance(component)._get_dependancies(
-                                                            node=node,
-                                                            expand_assignments=True,
-                                                            include_random_variables=True,
-                                                            include_supplied_values=True,
-                                                            include_symbolic_constants=False,
-                                                            include_parameters=True,
-                                                            include_analog_input_ports=True,
-                                                            include_inevent_parameters=True,
-                                                            include_time=True
-                                                            )
+        print '.',
+        sys.stdout.flush()
+        deps = VisitorSymbolDependance(component)._get_dependancies(
+                                                        node=node,
+                                                        expand_assignments=True,
+                                                        include_random_variables=True,
+                                                        include_supplied_values=True,
+                                                        include_symbolic_constants=False,
+                                                        include_parameters=True,
+                                                        include_analog_input_ports=True,
+                                                        include_inevent_parameters=True,
+                                                        include_time=True
+                                                        )
 
-            inputdata = cffi_top.new('InputData*')
+        inputdata = cffi_top.new('InputData*')
 
-            depnames = [dep.annotations['_range-finding-c-var-name'] for dep in deps]
-            ass_var_fun_name = node.annotations['_range-finding-c-func-name']
-            func = getattr(cffi_code_obj, ass_var_fun_name)
+        depnames = [dep.annotations['_range-finding-c-var-name'] for dep in deps]
+        ass_var_fun_name = node.annotations['_range-finding-c-func-name']
+        func = getattr(cffi_code_obj, ass_var_fun_name)
 
+        def eval_func_min(p):
+            for (i, depname) in enumerate(depnames):
+                setattr(inputdata, depname, p[i])
+            res = func(inputdata)
+            return res
 
-            def eval_func_min(p):
-                for i, depname in enumerate(depnames):
-                    setattr(inputdata, depname, p[i])
-                res = func(inputdata)
-                return res
-
-            def eval_func_max(p):
-                return -eval_func_min(p)
-
-
-            upper_bounds = np.array([ dep.annotations['node-value-range'].max for dep in deps])
-            lower_bounds = np.array([ dep.annotations['node-value-range'].min for dep in deps])
-            bounds = [ (lower_bounds[i], upper_bounds[i]) for i in range(len(deps)) ]
+        def eval_func_max(p):
+            return -eval_func_min(p)
 
 
-            def get_sample_pts(node):
-                # By default, lets check the extremes and the midpoints:
-                min = dep.annotations['node-value-range'].min
-                max = dep.annotations['node-value-range'].max
-                samples = [min, max]
-
-                if node in critical_points:
-                    samples = sorted(set(critical_points[node]) | set(samples))
-
-                mid_pts = []
-                for i in range(len(samples)-1):
-                    mid_pts.append((samples[i]+samples[i+1]) /2.)
-
-                samples = sorted(samples + mid_pts)
-                return samples
+        upper_bounds = np.array([ dep.annotations['node-value-range'].max for dep in deps])
+        lower_bounds = np.array([ dep.annotations['node-value-range'].min for dep in deps])
+        bounds = [ (lower_bounds[i], upper_bounds[i]) for i in range(len(deps)) ]
 
 
-            samples = [ get_sample_pts(node) for node in deps]
+        def get_sample_pts(node):
+            # By default, lets check the extremes and the midpoints:
+            min = dep.annotations['node-value-range'].min
+            max = dep.annotations['node-value-range'].max
+            samples = [min, max]
 
-            res_min = res_max = None
+            if node in critical_points:
+                samples = sorted(set(critical_points[node]) | set(samples))
 
+            mid_pts = []
+            for i in range(len(samples)-1):
+                mid_pts.append((samples[i]+samples[i+1]) /2.)
 
-            n_trials = 50
-            for i in range(n_trials):
-
-
-
-
-                x0 = [ random.choice(s) for s in samples]
-
-                method = 'TNC'
-                tol = 1e-15
-                local_res_min_param = scipy.optimize.minimize(eval_func_min, x0, method=method, bounds=bounds, tol=tol)
-                local_res_max_param = scipy.optimize.minimize(eval_func_max, x0, method=method, bounds=bounds, tol=tol)
-
-                local_res_min = eval_func_min(local_res_min_param.x)
-                local_res_max = eval_func_min(local_res_max_param.x)
+            samples = sorted(samples + mid_pts)
+            return samples
 
 
-                if (res_min is None or local_res_min < res_min) and not math.isnan(local_res_min):
-                    res_min = local_res_min
-                if (res_max is None or local_res_max > res_max) and not math.isnan(local_res_max):
-                    res_max = local_res_max
+        samples = [ get_sample_pts(node) for node in deps]
+
+        res_min = res_max = None
+
+
+        n_trials = 50
+        for i in range(n_trials):
 
 
 
 
+            x0 = [ random.choice(s) for s in samples]
 
-            int(res_min)
-            int(res_max)
+            method = 'TNC'
+            tol = 1e-15
+            local_res_min_param = scipy.optimize.minimize(eval_func_min, x0, method=method, bounds=bounds, tol=tol)
+            local_res_max_param = scipy.optimize.minimize(eval_func_max, x0, method=method, bounds=bounds, tol=tol)
 
-            return res_min, res_max
+            local_res_min = eval_func_min(local_res_min_param.x)
+            local_res_max = eval_func_min(local_res_max_param.x)
 
 
+            if (res_min is None or local_res_min < res_min) and not math.isnan(local_res_min):
+                res_min = local_res_min
+            if (res_max is None or local_res_max > res_max) and not math.isnan(local_res_max):
+                res_max = local_res_max
+
+
+
+
+
+        int(res_min)
+        int(res_max)
+
+        return (res_min, res_max)
 
     def annotate_ast(self, component, **kwargs):
 
@@ -546,7 +498,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
         # 0b. And transitions trigger by events:
         for tr in component.eventtransitions:
             for p in tr.parameters:
-                lookup_name = "%s::%s" % (tr.port.symbol, p.symbol)
+                lookup_name = '%s::%s' % (tr.port.symbol, p.symbol)
                 ann_in = self.var_annots_ranges[lookup_name]
                 p.annotations['node-value-range'] = _NodeRangeFloat(min_=ann_in.min.float_in_si(), max_=ann_in.max.float_in_si())
 
@@ -602,15 +554,11 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
         # for calling the evaluation function:
         component.annotate_ast(NodeRangeCCodeNodeNamer())
 
-
-
-
         # 1. Build the Python/C Library:
         # =================================
 
         # A. Build a structure for the data:
-        input_ds = input_ds_tmpl.render(component = component)
-
+        input_ds = input_ds_tmpl.render(component=component)
 
         # B. Build evalutation functions for each node:
         node_evaluator_c_code = NodeEvaluatorCCode(component)
@@ -619,8 +567,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
         for node, (node_name, node_code) in node_evaluator_c_code.node_code.items():
             func_sig = "double %s(InputData* input_data)" % (node_name)
             func_prototypes.append(func_sig + ';')
-            func_defs.append(func_sig + '{ return %s; }' % (node_code) )
-
+            func_defs.append(func_sig + '{ return %s; }' % node_code)
 
         # C. Prototype and compile...
 
@@ -631,7 +578,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
         for func_proto in func_prototypes:
             ffi.cdef(func_proto)
 
-        code =  '\n'.join([input_ds] + func_defs)
+        code = '\n'.join([input_ds] + func_defs)
 
         print 'Compiling C-Code to find intermediate nodes:'
         with open('cffi_debug.c.log', 'w') as f:
@@ -642,12 +589,8 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
 
         # 2. Evaluate for each node:
 
-
-
-
         # Find the critical points of the equations:
         critical_points = CriticalPointFinder(component).critical_points
-
 
         print 'Evaluating all nodes in AST tree to find limits:'
 

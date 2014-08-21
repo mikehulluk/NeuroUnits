@@ -95,9 +95,7 @@ class ChannelML_GateEqn(object):
 
     def getEqn(self):
 
-
         if self.expr_form == 'generic':
-
 
             # A hack, so we don't need to deal with the tertiary operator:
             if '?' in self.expr:
@@ -177,22 +175,19 @@ class ChannelML_Gate(object):
         self.instances = int(node.attrib['instances'])
 
         tag_handlers = {
-                        'closed_state': self.load_closed_state,
-                        'open_state':   self.load_open_state,
-                        'time_course':  self.load_time_course,
-                        'steady_state': self.load_steady_state,
-
-                        'transition':  self.load_transition,
-                        'initialisation': self.load_initialisation,
-                      }
+            'closed_state': self.load_closed_state,
+            'open_state': self.load_open_state,
+            'time_course': self.load_time_course,
+            'steady_state': self.load_steady_state,
+            'transition': self.load_transition,
+            'initialisation': self.load_initialisation,
+            }
 
         # Load the Subnodes:
         dispatch_subnodes(node, tag_handlers)
 
         assert self.openstates
         assert self.closedstates
-
-
 
 
 class ChannelMLInfo(object):

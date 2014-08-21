@@ -41,7 +41,6 @@ class DuplicateKeyError(RuntimeError):
         return 'Duplicate Key Found: %s' % str(self.key)
 
 
-
 class InternalError(RuntimeError):
 
     pass
@@ -80,6 +79,7 @@ class NeuroUnitParsingError(ValueError):
 
     pass
 
+
 class NeuroUnitParsingErrorEOF(NeuroUnitParsingError):
 
     def __repr__(self):
@@ -87,6 +87,7 @@ class NeuroUnitParsingErrorEOF(NeuroUnitParsingError):
 
 
 class NeuroUnitParsingErrorUnexpectedToken(NeuroUnitParsingError):
+
     def __init__(self, bad_token):
         self.bad_token = bad_token
 
@@ -99,11 +100,11 @@ class NeuroUnitParsingErrorUnexpectedToken(NeuroUnitParsingError):
         d2 = '\n\nOriginal text:\n==================\n%s\n=====================\n'  % self.original_text
         d3 = 'Preprocessed text:\n==================\n%s\n=====================\n'  % self.parsed_text
 
-        d4 = 'Unexpected Token Found:  %s' % (self.bad_token)
+        d4 = 'Unexpected Token Found: %s' % self.bad_token
 
         lines_context = 3
         lines = self.parsed_text.split('\n')
-        bad_line_no = self.bad_token.lineno -1
+        bad_line_no = self.bad_token.lineno - 1
 
 
         pre_parsed_lines = lines[ max(bad_line_no-lines_context,0): bad_line_no ]
@@ -113,30 +114,27 @@ class NeuroUnitParsingErrorUnexpectedToken(NeuroUnitParsingError):
 
         D6 = '\nError here'
         D7 = '\n================='
-        D9 =  ''.join(['\n    |%s' %l for l in pre_parsed_lines])
+        D9 = ''.join(['\n    |%s' % l for l in pre_parsed_lines])
         D10 = '\n -> |' + parsed_line
-        D12 =  ''.join(['\n    |%s' %l for l in post_parsed_lines])
+        D12 = ''.join(['\n    |%s' % l for l in post_parsed_lines])
         D13 = '\n================='
-
-
 
         col_pos = self.bad_token.lexpos
         char_str = self.parsed_text
         def clip_to_str(k):
-            return min(max(k,0), len(char_str)-1)
+            return min(max(k, 0), len(char_str) - 1)
+
         line_char_context = 30
-        col_pos_pre_start = clip_to_str(col_pos-line_char_context)
-        col_pos_post_end = clip_to_str(col_pos+line_char_context)
+        col_pos_pre_start = clip_to_str(col_pos - line_char_context)
+        col_pos_post_end = clip_to_str(col_pos + line_char_context)
 
         pre_str = '...' + char_str[col_pos_pre_start:col_pos]
-        post_str = char_str[col_pos+1:col_pos_post_end] + '...'
+        post_str = char_str[col_pos + 1:col_pos_post_end] + '...'
 
         E1 = 'Specifically:'
         E2 = 'Chars: %d' % col_pos
         E3 = pre_str + char_str[col_pos] + post_str
         E4 = ' ' * len(pre_str) + '^' + ' ' * len(post_str)
-
-
 
         print self.bad_token.__dict__
 

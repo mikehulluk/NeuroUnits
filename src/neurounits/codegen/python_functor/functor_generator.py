@@ -26,9 +26,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
 
-
-
-
 from neurounits.visitors import ASTVisitorBase
 import numpy as np
 from neurounits import ast
@@ -39,11 +36,6 @@ from neurounits.misc import SeqUtils
 from neurounits.units_backends.mh import MMQuantity, MMUnit
 
 
-
-
-
-
-
 def with_number_check(func, src_obj):
     return func
 
@@ -52,8 +44,8 @@ def with_number_check(func, src_obj):
         res = func(*args, **kwargs)
         print 'Value of node:', repr(src_obj), res
         return res
-    return my_func
 
+    return my_func
 
 
 class FunctorGenerator(ASTVisitorBase):
@@ -71,7 +63,6 @@ class FunctorGenerator(ASTVisitorBase):
         if component is not None:
             assert isinstance(component, ast.NineMLComponent)
             self.visit(component)
-
 
     def VisitNineMLComponent(self, o, **kwargs):
         self.ast = o
@@ -95,9 +86,6 @@ class FunctorGenerator(ASTVisitorBase):
         for tr in o.transitions:
             self.visit(tr)
 
-
-
-
     def VisitOnEventStateAssignment(self, o, **kwargs):
 
         rhs = self.visit(o.rhs)
@@ -106,9 +94,8 @@ class FunctorGenerator(ASTVisitorBase):
             sv_name = o.lhs.symbol
             new_value = rhs(state_data=state_data, **kw)
             state_data.states_out[sv_name] = new_value
+
         return f1
-
-
 
     def _visit_trans(self, o, **kwargs):
         callable_actions = [self.visit(a) for a in o.actions]
@@ -117,6 +104,7 @@ class FunctorGenerator(ASTVisitorBase):
             # Do the effects:
             for c in callable_actions:
                 c(state_data=state_data, **kw)
+
         return f2
 
     def VisitOnConditionTriggerTransition(self, o, **kwargs):
@@ -133,7 +121,7 @@ class FunctorGenerator(ASTVisitorBase):
     def VisitOnEventDefParameter(self, o):
         def f(evt, **kw):
             # Single parameter:
-            if len(evt.parameter_values)==1:
+            if len(evt.parameter_values) == 1:
                 return list(evt.parameter_values.values())[0]
             # Resolve from among many parameters:
             else:
@@ -141,13 +129,8 @@ class FunctorGenerator(ASTVisitorBase):
 
         return f
 
-
     def VisitEventPortConnection(self, o):
         self.transition_event_forwarding[o.src_port].append(o.dst_port)
-
-
-
-
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
         self.assignment_evaluators[o.lhs.symbol] = self.visit(o.rhs_map)
@@ -155,9 +138,7 @@ class FunctorGenerator(ASTVisitorBase):
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         self.timederivative_evaluators[o.lhs.symbol] = self.visit(o.rhs_map)
 
-
-
-    def VisitRegimeDispatchMap(self,o,**kwargs):
+    def VisitRegimeDispatchMap(self, o, **kwargs):
 
         rt_graph = o.get_rt_graph()
 
@@ -169,7 +150,6 @@ class FunctorGenerator(ASTVisitorBase):
             rhs_functors[None] = rhs_functors[default]
         except ValueError:
             pass
-
 
         def f3(state_data, **kw):
             regime_states = state_data.rt_regimes
@@ -184,8 +164,6 @@ class FunctorGenerator(ASTVisitorBase):
 
         return f3
 
-
-
     def VisitIfThenElse(self, o, **kwargs):
         fpred = self.visit(o.predicate)
         ftrue = self.visit(o.if_true_ast)
@@ -196,16 +174,18 @@ class FunctorGenerator(ASTVisitorBase):
                 return ftrue(**kw)
             else:
                 return ffalse(**kw)
+
         return f4
 
-
-    def VisitInEquality(self, o , **kwargs):
+    def VisitInEquality(self, o, **kwargs):
         lt = self.visit(o.lesser_than)
         gt = self.visit(o.greater_than)
+
         def f5(**kw):
             lhs = lt(**kw)
             rhs = gt(**kw)
             return lhs < rhs
+
         return f5
 
     def VisitBoolAnd(self, o, **kwargs):
@@ -223,6 +203,7 @@ class FunctorGenerator(ASTVisitorBase):
 
         def f(**kw):
             return s1(**kw) or s2(**kw)
+
         return f
 
     def VisitBoolNot(self, o, **kwargs):
@@ -230,15 +211,15 @@ class FunctorGenerator(ASTVisitorBase):
 
         def f(**kw):
             return not s1(**kw)
+
         return f
 
     def VisitFunctionDefBuiltIn(self, o, **kwargs):
         return o.accept_func_visitor(self, **kwargs)
 
-
-
     def VisitBIFSingleArg(self, o, functor):
         if not self.as_float_in_si:
+
             def eFunc(state_data, func_params, **kw):
                 assert len(func_params) == 1
                 ParsingBackend = MHUnitBackend
@@ -251,46 +232,57 @@ class FunctorGenerator(ASTVisitorBase):
 
     # ============
     def VisitBIFsin(self, o):
-        return self.VisitBIFSingleArg(o=o,functor=np.sin)
+        return self.VisitBIFSingleArg(o=o, functor=np.sin)
+
     def VisitBIFcos(self, o):
-        return self.VisitBIFSingleArg(o=o,functor=np.cos)
+        return self.VisitBIFSingleArg(o=o, functor=np.cos)
+
     def VisitBIFtan(self, o):
-        return self.VisitBIFSingleArg(o=o,functor=np.tan)
+        return self.VisitBIFSingleArg(o=o, functor=np.tan)
 
     def VisitBIFsinh(self, o):
-        return self.VisitBIFSingleArg(o=o,functor=np.sinh)
+        return self.VisitBIFSingleArg(o=o, functor=np.sinh)
+
     def VisitBIFcosh(self, o):
-        return self.VisitBIFSingleArg(o=o,functor=np.cosh)
+        return self.VisitBIFSingleArg(o=o, functor=np.cosh)
+
     def VisitBIFtanh(self, o):
-        return self.VisitBIFSingleArg(o=o,functor=np.tanh)
+        return self.VisitBIFSingleArg(o=o, functor=np.tanh)
 
     def VisitBIFasin(self, o):
-        return self.VisitBIFSingleArg(o=o,functor=np.arcsin)
+        return self.VisitBIFSingleArg(o=o, functor=np.arcsin)
+
     def VisitBIFacos(self, o):
-        return self.VisitBIFSingleArg(o=o,functor=np.arccos)
+        return self.VisitBIFSingleArg(o=o, functor=np.arccos)
+
     def VisitBIFatan(self, o):
-        return self.VisitBIFSingleArg(o=o,functor=np.arctan)
+        return self.VisitBIFSingleArg(o=o, functor=np.arctan)
 
     def VisitBIFexp(self, o):
-        return self.VisitBIFSingleArg(o=o,functor=np.exp)
+        return self.VisitBIFSingleArg(o=o, functor=np.exp)
 
     def VisitBIFceil(self, o):
-        return self.VisitBIFSingleArg(o=o,functor=np.ceil)
+        return self.VisitBIFSingleArg(o=o, functor=np.ceil)
+
     def VisitBIFfloor(self, o):
-        return self.VisitBIFSingleArg(o=o,functor=np.ceil)
+        return self.VisitBIFSingleArg(o=o, functor=np.ceil)
+
     def VisitBIFsqrt(self, o):
-        return self.VisitBIFSingleArg(o=o,functor=np.sqrt)
+        return self.VisitBIFSingleArg(o=o, functor=np.sqrt)
+
     def VisitBIFfabs(self, o):
-        return self.VisitBIFSingleArg(o=o,functor=np.fabs)
+        return self.VisitBIFSingleArg(o=o, functor=np.fabs)
 
     def VisitBIFln(self, o):
-        return self.VisitBIFSingleArg(o=o,functor=np.log)
+        return self.VisitBIFSingleArg(o=o, functor=np.log)
+
     def VisitBIFlog2(self, o):
-        return self.VisitBIFSingleArg(o=o,functor=np.log2)
+        return self.VisitBIFSingleArg(o=o, functor=np.log2)
+
     def VisitBIFlog10(self, o):
         return self.VisitBIFSingleArg(o=o, functor=np.log10)
-    # ==================
 
+    # ==================
 
     def _VisitBIF2arg(self, o, functor, arg_names):
         if not self.as_float_in_si:
@@ -350,7 +342,6 @@ class FunctorGenerator(ASTVisitorBase):
                 v = state_data.states_in[o.symbol]
                 return v
 
-
         return with_number_check(eFunc2, o)
 
     def VisitParameter(self, o, **kwargs):
@@ -376,7 +367,7 @@ class FunctorGenerator(ASTVisitorBase):
     def VisitConstantZero(self, o, **kwargs):
         if not self.as_float_in_si:
             def eFunc(**kw):
-                return MMQuantity(0 , o.get_dimension())
+                return MMQuantity(0, o.get_dimension())
             return eFunc
         else:
             def eFunc(**kw):
@@ -420,7 +411,8 @@ class FunctorGenerator(ASTVisitorBase):
         def eFunc(**kw):
             res = f_lhs(**kw) + f_rhs(**kw)
             return res
-        return with_number_check(eFunc,o)
+
+        return with_number_check(eFunc, o)
 
     def VisitSubOp(self, o, **kwargs):
         f_lhs = self.visit(o.lhs)
@@ -428,7 +420,8 @@ class FunctorGenerator(ASTVisitorBase):
         def eFunc(**kw):
             v_l = f_lhs(**kw)
             v_r = f_rhs(**kw)
-            return v_l-v_r
+            return v_l - v_r
+
         return with_number_check(eFunc, o)
 
     def VisitMulOp(self, o, **kwargs):

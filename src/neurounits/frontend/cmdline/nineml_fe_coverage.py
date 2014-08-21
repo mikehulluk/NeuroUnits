@@ -1,8 +1,10 @@
-
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 import coverage
 import os
 import shutil
+
 
 def do_coverage(args):
     from neurounitscontrib.test import do_test
@@ -12,10 +14,8 @@ def do_coverage(args):
     cov = coverage.coverage(include='*neurounits*')
     cov.start()
 
-
     do_test(None)
     do_demo(None)
-
 
     cov.stop()
     cov.save()
@@ -29,3 +29,5 @@ def do_coverage(args):
     cov.html_report(directory=cov_dir)
 
     print 'Coverage run finished, output in: ', cov_dir
+
+

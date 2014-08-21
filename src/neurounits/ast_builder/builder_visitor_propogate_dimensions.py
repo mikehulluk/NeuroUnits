@@ -27,12 +27,12 @@
 # -------------------------------------------------------------------------------
 import pylab
 
-
 from neurounits.visitors import ASTVisitorBase, ASTActionerDefault
 from neurounits.visitors.bases.base_actioner import SingleVisitPredicate, ASTActionerDepthFirst
 from neurounits import ast
 from neurounits.errors import UnitMismatchError
 from neurounits.units_backends.mh import MMUnit
+
 
 class ASTVisitorCollectorAll(ASTActionerDefault):
 
@@ -59,14 +59,11 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
         except UnitMismatchError, e:
             print e
 
-
             def get_str(node):
                 if isinstance(node, ast.ASTExpressionObject):
                     return '%s\n%s' % (repr(node), node.get_dimension())
                 else:
                     return '%s' % repr(node)
-
-
 
             all_nodes = list(obj.all_ast_nodes())
             colors = dict([(node, 'white') for node in all_nodes])
@@ -77,19 +74,11 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
             if e.objB:
                 colors[e.objB] = 'red'
 
-
-
-
-
             from neurounits.visitors.common.plot_networkx import ActionerPlotNetworkX
             ActionerPlotNetworkX(o=obj, labels=labels, colors=colors)
             pylab.show()
 
-
-
             assert False
-
-
 
     def verify_equal_units(self, objs):
         from neurounits.ast import ASTExpressionObject
@@ -166,7 +155,6 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
     def ActionTimeVariable(self, o, **kwargs):
         pass
 
-
     def ActionAnalogReducePort(self, o, **kwargs):
         self.verify_equal_units([o] + list(o.rhses))
 
@@ -218,7 +206,6 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
     def ActionOnConditionTriggerTransition(self, o, **kwarg):
         pass
 
-
     def ActionOnTransitionEvent(self, o, **kwargs):
         pass
 
@@ -267,16 +254,11 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
         else:
             return
 
-
-
-
     def VisitMultiportInterfaceDefWireContinuous(self, o):
         pass
 
     def VisitMultiportInterfaceDefWireEvent(self, o):
         pass
-
-
 
     def VisitCompoundPortConnectorWireMapping(self, o):
         pass
@@ -287,7 +269,6 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
     def VisitCompoundPortConnector(self, o):
         pass
 
-
     def VisitRandomVariable(self, o):
         pass
 
@@ -296,11 +277,6 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
 
     def VisitAutoRegressiveModel(self, o):
         pass
-
-
-
-
-
 
 
 class DimensionResolver(ASTVisitorBase):
@@ -543,7 +519,6 @@ class DimensionResolver(ASTVisitorBase):
         self.EnsureEqualDimensions([o, o.function_def])
         return
 
-
     def VisitFunctionDefUserInstantiation(self, o, **kwargs):
 
         # Check the parameters tie up:
@@ -553,14 +528,6 @@ class DimensionResolver(ASTVisitorBase):
             self.EnsureEqualDimensions([p.rhs_ast, p._function_def_parameter])
 
         self.EnsureEqualDimensions([o, o.function_def])
-
-
-
-
-
-
-
-
 
     def VisitFunctionDefInstantiationParameter(self, o, **kwargs):
         self.EnsureEqualDimensions([o, o.get_function_def_parameter(),
@@ -572,13 +539,10 @@ class DimensionResolver(ASTVisitorBase):
         assert o.get_dimension() is not None
         assert o.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False)
 
-
     def VisitOnConditionTriggerTransition(self, o, **kwargs):
         for a in o.actions:
             self.visit(a)
         self.visit(o.trigger)
-
-
 
     def VisitOnTransitionEvent(self, o, **kwargs):
         for p in o.parameters:
@@ -594,7 +558,6 @@ class DimensionResolver(ASTVisitorBase):
     def VisitOnEventDefParameter(self, o, **kwargs):
         pass
 
-
     def VisitOutEventPortParameter(self, o):
         pass
 
@@ -603,6 +566,7 @@ class DimensionResolver(ASTVisitorBase):
 
     def VisitInEventPort(self, o):
         pass
+
     def VisitInEventPortParameter(self, o):
         pass
 
@@ -615,15 +579,14 @@ class DimensionResolver(ASTVisitorBase):
     def VisitMultiportInterfaceDefWireContinuous(self, o):
         pass
 
-
-
     def VisitCompoundPortConnectorWireMapping(self, o):
         pass
+
     def VisitMultiportInterfaceDef(self, o):
         pass
+
     def VisitCompoundPortConnector(self, o):
         pass
-
 
     def VisitRandomVariable(self, o):
         for p in o.parameters:
@@ -635,7 +598,6 @@ class DimensionResolver(ASTVisitorBase):
 
     def VisitAutoRegressiveModel(self, o):
         pass
-
 
 
 class PropogateDimensions(object):

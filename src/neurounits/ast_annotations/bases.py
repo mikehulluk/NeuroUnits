@@ -30,6 +30,7 @@ from neurounits.errors import ASTMissingAnnotationError
 
 
 class ASTTreeAnnotationManager(object):
+
     def __init__(self):
         self._annotators = {}
 
@@ -39,6 +40,7 @@ class ASTTreeAnnotationManager(object):
 
 
 class ASTNodeAnnotationData:
+
     def __init__(self, node):
         self._node = node
         self._mgr = None
