@@ -13,7 +13,10 @@ from neurounits.codegen.cpp.fixed_point import CBasedEqnWriterFixedNetwork, Numb
 from neurounits.codegen.population_infrastructure import *
 
 import cPickle as pickle
+from hdfjive import RasterGroup, RasterSubgroup
+from matplotlib.ticker import MaxNLocator
 
+import mreorg
 
 
 
@@ -221,11 +224,7 @@ def test_simulateNetwork():
 
 
 
-    from hdfjive import HDF5SimulationResultFile, RasterGroup, RasterSubgroup
 
-
-    import mreorg
-    #mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG] # , mreorg.FigFormat.SVG]
 
     def build_raster_plot_obj(name, side):
             alpha=0.3
@@ -291,7 +290,7 @@ def test_simulateNetwork():
             )
     fig.subplots_adjust(left=0.1,top=0.95)
 
-    from matplotlib.ticker import MaxNLocator
+    
 
     for ax in fig.get_axes():
         ax.yaxis.set_major_locator(MaxNLocator(3))

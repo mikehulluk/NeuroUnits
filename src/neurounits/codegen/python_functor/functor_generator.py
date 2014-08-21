@@ -34,7 +34,7 @@ import numpy as np
 from neurounits import ast
 from neurounits.units_backends.mh import MHUnitBackend
 from collections import defaultdict
-
+from neurounits.misc import SeqUtils
 
 from neurounits.units_backends.mh import MMQuantity, MMUnit
 
@@ -162,7 +162,7 @@ class FunctorGenerator(ASTVisitorBase):
         rt_graph = o.get_rt_graph()
 
         rhs_functors = dict([(regime, self.visit(rhs)) for (regime,rhs) in o.rhs_map.items()])
-        from neurounits.misc import SeqUtils
+        
         try:
             default = SeqUtils.filter_expect_single(rhs_functors.keys(), lambda r:r.name == None)
             assert not None in rhs_functors

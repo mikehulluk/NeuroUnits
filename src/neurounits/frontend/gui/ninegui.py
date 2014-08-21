@@ -1,12 +1,10 @@
 import  wx
 
 import glob
-import datetime
 
 import numpy
 
 import wx
-import wx.gizmos as gizmos
 
 
 

@@ -1,13 +1,11 @@
 import numpy as np
 import matplotlib
-from matplotlib.patches import Circle, Wedge, Polygon
+from matplotlib.patches import Circle
 from matplotlib.collections import PatchCollection
-import matplotlib.pyplot as plt
 
 
 import pylab
-import numpy as np
-from hdfjive import HDF5SimulationResultFile, RasterGroup, RasterSubgroup
+from hdfjive import HDF5SimulationResultFile
 results = HDF5SimulationResultFile("/tmp/neuronits.results-Seq-float.hdf")
 
 import pickle

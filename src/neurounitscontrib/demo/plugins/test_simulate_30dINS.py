@@ -27,7 +27,7 @@
 # -------------------------------------------------------------------------------
 
 import mreorg
-mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG] #,mreorg.FigFormat.SVG]
+mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG]
 
 import os
 import neurounits

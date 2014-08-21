@@ -6,7 +6,6 @@ import mreorg
 
 import pylab
 import numpy as np
-from matplotlib.patches import Rectangle
 
 import pyneurounits
 
@@ -21,19 +20,19 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
 
     def _from_float(x,scale):
             return pyneurounits.n32_from_float24(float(x), int(scale))
-            
+
     def _to_float(x,scale):
             return pyneurounits.n32_to_float24(int(x), int(scale))
-            
+
     getexp = np.vectorize( _getexp )
     to_float = np.vectorize( _to_float )
     from_float = np.vectorize( _from_float )
 
 
-    
-    
+
+
     exp_in_scale = exp_in_scale if exp_in_scale is not None else lut_input_range_upscale
-    
+
     x = np.linspace(input_range[0],input_range[1],num=1000)
     exp_x_int = getexp( from_float(x, exp_in_scale), exp_in_scale, exp_out_scale)
     exp_x = to_float( exp_x_int, exp_out_scale )
@@ -44,11 +43,11 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
     err_diff_float = err_diff_int / 2**(24-1)
 
 
-    
+
     x1 = (2**(lut_input_range_upscale))
     x0 = -x1
     x_points = np.linspace(x0,x1, num=(2**lut_address_size))
-    
+
 
 
     f = pylab.figure(figsize=(180./25.4, 3.))
@@ -61,12 +60,6 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
     ax2 = f.add_subplot(gs[2])
     ax3 = f.add_subplot(gs[1])
 
-    
-    #f.suptitle('Results from lookup table:' )
-    #ax1 = f.add_subplot(311)
-    #ax2 = f.add_subplot(313)
-    #ax3 = f.add_subplot(312)
-   
 
     ax1.plot(x,exp_x,'x', label='LUT', ms=1)
     ax1.plot(x,np.exp(x), lw=5, alpha=0.4, label='Builtin exp()')
@@ -76,12 +69,12 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
     ax3.plot(x,err_diff_float,'x', label='Absolute error (float)')
 
 
-    
 
-    
 
-    
-    
+
+
+
+
     ax1.legend(loc=9)
 
 
@@ -115,7 +108,7 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
     ax3.set_ylabel("Absolute\nerror from\n using LUT ")
 
 
-    
+
     ax1.set_xticklabels("")
     ax3.set_xticklabels("")
 
@@ -132,7 +125,7 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
 #test_lut(lut_address_size=6, lut_input_range_upscale=4, input_range=(-8,8), exp_out_scale=9)
 test_lut(lut_address_size=5, lut_input_range_upscale=3, input_range=(-6,6), exp_out_scale=10)
 
-pylab.savefig("/home/mh735/hw/Cambridge2013/paper/generated/build/fig_newLUT.svg") 
+pylab.savefig("/home/mh735/hw/Cambridge2013/paper/generated/build/fig_newLUT.svg")
 pylab.show()
 
 

@@ -35,6 +35,8 @@ import numpy as np
 import scipy
 import scipy.optimize
 
+from cffi import FFI
+
 from neurounits.ast_annotations.bases import ASTTreeAnnotator
 from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 from neurounits import ast
@@ -621,7 +623,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
 
 
         # C. Prototype and compile...
-        from cffi import FFI
+        
         ffi = FFI()
 
         ffi.cdef(input_ds)

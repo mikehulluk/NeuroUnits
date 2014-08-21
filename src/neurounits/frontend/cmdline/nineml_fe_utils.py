@@ -1,4 +1,5 @@
 
+assert False
 
 import os
 import glob

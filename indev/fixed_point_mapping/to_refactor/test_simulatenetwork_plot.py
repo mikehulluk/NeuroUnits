@@ -7,7 +7,7 @@ import mreorg
 mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG] # , mreorg.FigFormat.SVG]
 
 def build_raster_plot_obj(name, side):
-        alpha=0.3
+        #alpha=0.3
         size = 0.5
         return RasterGroup('%s\n%s' % (name, side), [
             RasterSubgroup("OUT:Spike", "ALL{spike,%s,%s}"%(name,side), {'color':'black', 'marker':'x', 's':2}),

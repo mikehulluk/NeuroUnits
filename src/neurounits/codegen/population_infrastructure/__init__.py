@@ -29,6 +29,8 @@
 from neurounits import NeuroUnitParser
 import numpy as np
 
+from neurounits.ast_annotations import NodeFixedPointFormatAnnotator
+from neurounits import ast   
 
 
 
@@ -165,7 +167,6 @@ class EventPortConnector(object):
         self.delay_upscale = -8
         assert self.delay * np.power(2,self.delay_upscale) < 1
 
-        from neurounits.ast_annotations.node_fixedpointannotator import NodeFixedPointFormatAnnotator
         self.delay_int = NodeFixedPointFormatAnnotator.encode_value_cls(self.delay, self.delay_upscale, nbits=24)
 
         self.parameter_map = parameter_map
@@ -362,7 +363,7 @@ class Network(object):
 
 
     def _record_trace_for_population(self, subpop, _terminal_node_name):
-        from neurounits import ast
+
         terminal_node_names = None
         if _terminal_node_name == '*':
             terminal_node_names = [ t.symbol for t in subpop.component.terminal_symbols if not isinstance(t, (ast.SymbolicConstant, ast.TimeVariable)) ]
@@ -439,7 +440,7 @@ class Network(object):
                 assert isinstance(src, FixedValue)
                 # Lets encode it:
                 anntr = p.dst_population.component.annotation_mgr._annotators['fixed-point-format-ann']
-                from neurounits.ast_annotations import NodeFixedPointFormatAnnotator
+                
                 assert isinstance(anntr, NodeFixedPointFormatAnnotator )
 
 
@@ -448,7 +449,7 @@ class Network(object):
 
         # Sanity check on the analog connectors:
         for apc in self.analog_port_connectors:
-            from neurounits import ast
+            #from neurounits import ast
             for src,dst in apc.port_map:
                 # Lets check that src_ports are always state-variables when then are from the populations, rather than 
                 # assigned variables. Otherwise, these will require more work to implement.

@@ -27,7 +27,7 @@
 # -------------------------------------------------------------------------------
 
 from base import ASTObject
-
+from neurounits.errors import InternalError
 
 class ASTExpressionObject(ASTObject):
 
@@ -295,7 +295,7 @@ class FunctionDefBuiltIn(ASTExpressionObject):
         return True
 
     def accept_func_visitor(self, v, **kwargs):
-        from neurounits.errors import InternalError
+        
         raise InternalError("Missing 'accept_func_visitor' for type: %s (%s)" % (type(self), self.funcname) )
 
 

@@ -3,16 +3,8 @@
 
 
 
-#import os
-
-
-
-
-#from neurounits.neurounitparser import NeuroUnitParser#, MQ1
-#from neurounits.nuts_io import NutsIO
 
 import argparse
-#from neurounits import NeuroUnitParser, NutsIO
 from itertools import chain
 import StringIO
 

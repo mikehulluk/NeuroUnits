@@ -11,6 +11,10 @@ from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNode
 from neurounits.visitors.bases.base_actioner  import ASTActionerDepthFirst
 import operator
 
+from neurounits.units_backends.mh import MMQuantity, MMUnit
+
+
+
 class OptimiseEquations(ASTVisitorBase):
 
     def __init__(self, component):
@@ -249,7 +253,7 @@ class ReplaceWithOptimisedNodes(ASTVisitorBase):
         return False
 
     def do_replace_div_by_mul(self, o):
-        from neurounits.units_backends.mh import MMQuantity, MMUnit
+        
         val = self.constants[o.rhs]
         new_node = ast.MulOp(
                 lhs = o.lhs,

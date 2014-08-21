@@ -30,9 +30,11 @@
 
 
 import neurounits
-from neurounits.ast_annotations.common import NodeRange, NodeToIntAnnotator
-from neurounits.ast_annotations.node_range_byoptimiser import NodeRangeByOptimiser
-from neurounits.ast_annotations.node_rangeexpander import RangeExpander
+from neurounits.ast_annotations import NodeRange, NodeToIntAnnotator
+from neurounits.ast_annotations import NodeRangeByOptimiser
+from neurounits.ast_annotations import RangeExpander
+from neurounits.visitors.common.equation_optimisations import OptimiseEquations
+
 
 
 def get_rb_input():
@@ -41,7 +43,7 @@ def get_rb_input():
 
         t_next' = 0
 
-    
+
 
         on ( t>50ms  and t > t_next) {
                 emit spike()
@@ -75,7 +77,6 @@ def get_rb_input():
 
 
     # Optimise the equations, to turn constant-divisions into multiplications:
-    from neurounits.visitors.common.equation_optimisations import OptimiseEquations
     OptimiseEquations(comp)
 
 

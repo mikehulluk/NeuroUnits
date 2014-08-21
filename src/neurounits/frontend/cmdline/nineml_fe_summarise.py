@@ -11,7 +11,7 @@ def cmdline_summarise(args):
     print 'Summarise'
 
     
-    from neurounits import NeuroUnitParser, MQ1
+    from neurounits import NeuroUnitParser
     from neurounits.nineml_fe.nineml_fe_utils import get_src_9ml_files
     
     src_files = get_src_9ml_files(args)

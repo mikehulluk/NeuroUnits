@@ -25,13 +25,14 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 # -------------------------------------------------------------------------------
+import pylab
+
 
 from neurounits.visitors import ASTVisitorBase,ASTActionerDefault
 from neurounits.visitors.bases.base_actioner import SingleVisitPredicate, ASTActionerDepthFirst
 from neurounits import ast
 from neurounits.errors import UnitMismatchError
-import pylab
-
+from neurounits.units_backends.mh import MMUnit
 
 class ASTVisitorCollectorAll(ASTActionerDefault):
 
@@ -170,7 +171,7 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
         self.verify_equal_units([o] + list(o.rhses))
 
     def ActionTimeDerivativeByRegime(self, o, **kwargs):
-        from neurounits.units_backends.mh import MMUnit
+        
         (o.lhs.get_dimension()).check_compatible(o.rhs_map.get_dimension() * MMUnit(second=1))
 
     def ActionEqnAssignmentByRegime(self, o, **kwargs):

@@ -32,6 +32,8 @@ from neurounits.visitors.bases.base_visitor import ASTVisitorBase
 from neurounits.visitors.common.terminal_node_collector import EqnsetVisitorNodeCollector
 import numpy
 
+from neurounits.units_backends.mh import MMQuantity, MMUnit
+
 
 class ReduceConstants(ASTVisitorBase):
 
@@ -201,16 +203,15 @@ class ReduceConstants(ASTVisitorBase):
                 return None
             params[p] = pres
 
-
+		#TODO - generalise this:
         if o.function_def.funcname== 'ln':
-            from neurounits.units_backends.mh import MMQuantity, MMUnit
+           
             assert len(params) == 1
             p = params.values()[0].float_in_si()
             return MMQuantity( numpy.log(p), MMUnit() )
 
 
         if o.function_def.funcname== 'exp':
-            from neurounits.units_backends.mh import MMQuantity, MMUnit
             assert len(params) == 1
             p = params.values()[0].float_in_si()
             return MMQuantity( numpy.exp(p), MMUnit() )

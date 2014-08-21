@@ -5,14 +5,9 @@ import mreorg
 mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG]
 
 import os
-import neurounits
-
-import numpy as np
 import random
-import pylab
 
 from neurounits.codegen.cpp.fixed_point import CBasedEqnWriterFixedNetwork, NIOSOptions
-from hdfjive import HDF5SimulationResultFile
 from neurounits.visualisation.mredoc import MRedocWriterVisitor
 from neurounits.codegen.population_infrastructure import *
 
@@ -21,7 +16,6 @@ import mn_model
 import rb_input_model
 import cPickle as pickle
 
-from mreorg import PM
 import hashlib
 
 src_string = open('dIN_model.py').read() + open('mn_model.py').read()

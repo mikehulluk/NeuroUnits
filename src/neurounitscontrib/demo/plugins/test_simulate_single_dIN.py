@@ -57,18 +57,6 @@ def test_simulate_single_din():
 
     import neurounitscontrib.components.tadpole
     dIN_comp = neurounits.ComponentLibrary.instantiate_component('dIN')
-    MN_comp =  neurounits.ComponentLibrary.instantiate_component('MN')
-    RB_input = neurounits.ComponentLibrary.instantiate_component('RBInput')
-
-    nbits=24
-
-
-
-
-
-
-
-
 
 
     network = Network()

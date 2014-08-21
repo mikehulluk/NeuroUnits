@@ -5,21 +5,16 @@ mreorg.PlotManager.autosave_image_formats = [mreorg.FigFormat.PNG]
 
 import os
 import pylab
-import cPickle as pickle
-import hashlib
-import shutil
 
 import neurounits
 from neurounits.codegen.cpp.fixed_point import CBasedEqnWriterFixedNetwork
-from neurounits.visualisation.mredoc import MRedocWriterVisitor
 from neurounits.codegen.population_infrastructure import *
 
 import dIN_model
 import mn_model
 import rb_input_model
 
-import neurounits
-from neurounits.ast_annotations.common import NodeFixedPointFormatAnnotator, \
+from neurounits.ast_annotations import NodeFixedPointFormatAnnotator, \
     NodeRange, NodeToIntAnnotator
 from neurounits.ast_annotations.node_range_byoptimiser import NodeRangeByOptimiser
 from neurounits.ast_annotations.node_rangeexpander import RangeExpander
@@ -65,7 +60,7 @@ RangeExpander().visit(comp)
 comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
 comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 
-from neurounits.ast_annotations.common import NodeTagger
+from neurounits.ast_annotations import NodeTagger
 NodeTagger(var_annots_tags).visit(comp)
 
 

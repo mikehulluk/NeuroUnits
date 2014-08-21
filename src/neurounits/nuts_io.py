@@ -32,6 +32,7 @@ import copy
 import math
 
 
+from neurounits.errors import NutsIOValidationError
 
 
 

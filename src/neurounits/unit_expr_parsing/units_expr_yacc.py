@@ -38,7 +38,7 @@ from neurounits.librarymanager import LibraryManager
 import neurounits.ast as ast
 from neurounits.errors import NeuroUnitParsingErrorEOF
 from neurounits.errors import NeuroUnitParsingErrorUnexpectedToken
-
+from neurounits.nulogging import log_neurounits
 
 
 from neurounits.units_misc import LookUpDict
@@ -1310,7 +1310,7 @@ class ParserMgr(object):
         debug=True
         #debug=False
 
-        from neurounits.nulogging import log_neurounits
+        
         log_neurounits.info('Building Parser for: %s' % start_symbol)
 
 

@@ -1,7 +1,7 @@
 
-import os
-import sys
-import glob
+#import os
+#import sys
+#import glob
 
 
 
@@ -24,6 +24,8 @@ def cmdline_simulate(args):
         print arg, arg_value
 
     from neurounits import NeuroUnitParser, MQ1
+    import neurounits
+    import pkg_resources
 
     src_files =  [pkg_resources.resource_stream('neurounits',f) for f in neurounits.Locations.get_default_9ml_locations()]
     library_manager = neurounits.NeuroUnitParser.Parse9MLFiles( src_files)

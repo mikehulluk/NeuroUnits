@@ -28,14 +28,12 @@
 
 
 
-import os 
-import itertools
-import glob
+import os
 import pkg_resources
 
 class Locations(object):
-    
-    @classmethod    
+
+    @classmethod
     def get_default_9ml_locations(cls):
         src_loc = 'data/test_data/l4-9ml/std/'
         fnames = sorted( pkg_resources.resource_listdir('neurounits', src_loc) )
@@ -44,9 +42,9 @@ class Locations(object):
         if not fnames:
             raise RuntimeError("Can't find any 9ml test files, perhaps the something in wring in packaging")
         return fnames
-        
 
-        
+
+
     class Test(object):
         @classmethod
         def get_nuts_fileobjs(cls):

@@ -32,6 +32,8 @@ from mako.template import Template
 import numpy as np
 import os
 
+from neurounits.codegen.utils.c_compilation import CCompiler, CCompilationSettings
+from neurounits.ast_annotations import NodeFixedPointFormatAnnotator
 
 
 
@@ -3123,7 +3125,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
         # There is an opportunity here. Sometimes, the parameters are going to be constants - so
         # we can re-run the optimiser to remove constants:
-        from neurounits.ast_annotations.common import NodeFixedPointFormatAnnotator
+        
         for pop in network.populations:
             fp_ann = NodeFixedPointFormatAnnotator(nbits=nbits)
 
@@ -3326,8 +3328,7 @@ class CBasedEqnWriterFixedNetwork(object):
 
     def compile_and_run(self, cfile, output_c_filename, run, CPPFLAGS,  output_exec_filename):
 
-        from neurounits.codegen.utils.c_compilation import CCompiler, CCompilationSettings
-
+        
 
 
         # The executable:

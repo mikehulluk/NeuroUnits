@@ -40,6 +40,7 @@ from itertools import chain
 from neurounits.units_misc import LookUpDict
 import neurounits.ast as ast
 
+from neurounits.errors import NoSuchObjectError
 
 
 class ComponentNamespace(object):

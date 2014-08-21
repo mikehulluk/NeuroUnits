@@ -32,10 +32,12 @@ from neurounits.ast.astobjects import SuppliedValue
 from neurounits.ast.astobjects import Parameter, StateVariable, TimeVariable
 from neurounits.ast import AnalogReducePort
 
-import quantities as pq
 import numpy as np
 
 from neurounits.ast import FunctionDefBuiltIn
+from neurounits import NeuroUnitParser
+from neurounits.units_backends.mh import MMQuantity
+from neurounits.neurounitparser import NeuroUnitParser
 
 try:
     from mredoc import VerticalColTable, Figure, SectionNewPage, Section, EquationBlock, VerbatimBlock, Equation, Image, HierachyScope
@@ -47,7 +49,7 @@ except ImportError:
 
 
 def get_prefered_dimensions():
-    from neurounits import NeuroUnitParser
+
     prefered_dimension_dims = [
         (NeuroUnitParser.Unit('S'), 'S'),
         (NeuroUnitParser.Unit('V'), 'V'),
@@ -169,7 +171,7 @@ class LatexEqnWriterN(ASTVisitorBase):
         return self.FormatInlineConstant(o.value)
 
     def VisitConstantZero(self, o, **kwargs):
-        from neurounits.units_backends.mh import MMQuantity
+        
         return self.FormatInlineConstant( MMQuantity(0, o.get_dimension()) )
 
     def VisitAssignedVariable(self, o, **kwargs):
@@ -301,7 +303,7 @@ def build_figures(component):
                 oUnit = None
                 fOut = []
                 for v in vVals:
-                    from neurounits.neurounitparser import NeuroUnitParser
+                    
                     vUnit = NeuroUnitParser.QuantitySimple('%f mV' % v)
                     vRes = f(V=vUnit, v=vUnit)
                     if oUnit is None:

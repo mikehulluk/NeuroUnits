@@ -29,7 +29,7 @@
 #from neurounits.ast_builder.builder_visitor_propogate_dimensions import PropogateDimensions
 from neurounits.ast_builder.builder_visitor_propogate_dimensions import VerifyUnitsInTree
 import neurounits.ast as ast
-
+from neurounits.simulation_io.results import SimulationResultsData 
 
 
 
@@ -324,7 +324,7 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
 
 
     # Hook it all up:
-    from neurounits.simulation_io.results import SimulationResultsData 
+    
     res = SimulationResultsData(times=times,
                                 state_variables=state_data_dict,
                                 rt_regimes=rt_graph_data,

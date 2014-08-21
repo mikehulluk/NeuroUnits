@@ -29,11 +29,10 @@
 
 
 import neurounits
-#from neurounits.ast_annotations.common import NodeFixedPointFormatAnnotator
-from neurounits.ast_annotations.common import NodeRange, NodeToIntAnnotator
-from neurounits.ast_annotations.node_range_byoptimiser import NodeRangeByOptimiser
-from neurounits.ast_annotations.node_rangeexpander import RangeExpander
-
+from neurounits.ast_annotations import NodeRange, NodeToIntAnnotator
+from neurounits.ast_annotations import NodeRangeByOptimiser
+from neurounits.ast_annotations import RangeExpander, NodeTagger
+from neurounits.visitors.common.equation_optimisations import OptimiseEquations
 
 def get_MN():
     src_text = """
@@ -282,7 +281,7 @@ def get_MN():
 
 
     # Optimise the equations, to turn constant-divisions into multiplications:
-    from neurounits.visitors.common.equation_optimisations import OptimiseEquations
+    
     OptimiseEquations(comp)
 
     comp.annotate_ast( NodeRangeByOptimiser(var_annots_ranges))
@@ -291,7 +290,7 @@ def get_MN():
     #comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
     comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
 
-    from neurounits.ast_annotations.common import NodeTagger
+    
     NodeTagger(var_annots_tags).visit(comp)
 
     return comp
