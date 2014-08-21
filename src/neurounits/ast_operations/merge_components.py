@@ -40,25 +40,25 @@ from neurounits.visitors.common.ast_replace_node import ReplaceNode
 
 
 def _is_node_output(n):
-    if isinstance( n, (ast.AssignedVariable, ast.StateVariable, ast.OutEventPort, ast.SymbolicConstant)):
+    if isinstance(n, (ast.AssignedVariable, ast.StateVariable, ast.OutEventPort, ast.SymbolicConstant)):
         return True
-    if isinstance( n, (ast.AnalogReducePort, ast.SuppliedValue, ast.InEventPort)):
+    if isinstance(n, (ast.AnalogReducePort, ast.SuppliedValue, ast.InEventPort)):
         return False
     assert False, "I don't know the direction of: %s" % n
 
 def _is_node_analog(n):
-    if isinstance( n, (ast.AssignedVariable, ast.StateVariable, ast.AnalogReducePort, ast.SuppliedValue, ast.SymbolicConstant)):
+    if isinstance(n, (ast.AssignedVariable, ast.StateVariable, ast.AnalogReducePort, ast.SuppliedValue, ast.SymbolicConstant)):
         return True
-    if isinstance( n, (ast.OutEventPort, ast.InEventPort)):
+    if isinstance(n, (ast.OutEventPort, ast.InEventPort)):
         return False
     assert False, "I don't know the direction of: %s %s" % (n, type(n))
 
 
 def build_compound_component(component_name, instantiate,  analog_connections=None, event_connections=None,  renames=None, connections=None, prefix='/', auto_remap_time=True, merge_nodes=None, interfaces_in=None, multiconnections=None, set_parameters=None):
 
-    lib_mgrs = list(set( [comp.library_manager for comp in instantiate.values()]) )
+    lib_mgrs = list(set([comp.library_manager for comp in instantiate.values()]) )
 
-    assert len( lib_mgrs ) == 1 and lib_mgrs[0] is not None
+    assert len(lib_mgrs)== 1 and lib_mgrs[0] is not None
     lib_mgr = lib_mgrs[0]
 
 
@@ -91,10 +91,10 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
             rt_graph.name = ns_prefix + (rt_graph.name if rt_graph.name else '')
 
         #Event Ports:
-        for port in itertools.chain( component.output_event_port_lut,  component.input_event_port_lut):
+        for port in itertools.chain(component.output_event_port_lut,  component.input_event_port_lut):
             port.symbol = ns_prefix + port.symbol
 
-        for connector in itertools.chain( component._interface_connectors):
+        for connector in itertools.chain(component._interface_connectors):
             connector.symbol = ns_prefix + connector.symbol
 
 
@@ -114,7 +114,7 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
 
     for c in instantiate.values():
         for td in c.timederivatives:
-            builddata.timederivatives.append( td )
+            builddata.timederivatives.append(td )
 
         for ass in c.assignments:
             builddata.assignments.append(ass)
@@ -169,9 +169,9 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
 
             # sort out the direction:
             if  (conn1.get_direction()=='in' and conn2.get_direction()=='out'):
-                conn1,conn2 = conn2, conn1
+                conn1, conn2 = conn2, conn1
             assert (conn1.get_direction()=='out' and conn2.get_direction()=='in')
-            interfaces = list(set([conn1.interface_def, conn2.interface_def] ) )
+            interfaces = list(set([conn1.interface_def, conn2.interface_def]))
 
             assert len(interfaces) == 1
             interface = interfaces[0]
@@ -187,7 +187,7 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
                 if wire.direction  =='DirRight':
                     pass
                 elif wire.direction == 'DirLeft':
-                    pre,post = post,pre
+                    pre, post = post, pre
                 else:
                     assert False
 
@@ -197,14 +197,14 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
                 assert _is_node_analog(pre.component_port) == _is_node_analog(post.component_port)
 
                 if _is_node_analog(pre.component_port):
-                    analog_connections.append( (pre.component_port, post.component_port))
+                    analog_connections.append((pre.component_port, post.component_port))
                 else:
-                    event_connections.append( (pre.component_port, post.component_port))
+                    event_connections.append((pre.component_port, post.component_port))
 
 
     # Ok, and single connections ('helper parameter')
     if connections is not None:
-        for c1,c2 in connections:
+        for c1, c2 in connections:
             t1 = comp.get_terminal_obj_or_port(c1)
             t2 = comp.get_terminal_obj_or_port(c2)
 
@@ -213,20 +213,20 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
                 assert _is_node_analog(t2) == True
                 if _is_node_output(t1):
                     assert not _is_node_output(t2)
-                    analog_connections.append( (c1,c2))
+                    analog_connections.append((c1,c2))
                 else:
                     assert _is_node_output(t2)
-                    analog_connections.append( (c2,c1))
+                    analog_connections.append((c2, c1))
 
             # Event Ports:
             else:
                 assert _is_node_analog(t2) == False
                 if _is_node_output(t1):
                     assert not _is_node_output(t2)
-                    event_connections.append( (c1,c2))
+                    event_connections.append((c1,c2))
                 else:
                     assert _is_node_output(t2)
-                    event_connections.append( (c2,c1))
+                    event_connections.append((c2, c1))
 
 
 
@@ -239,7 +239,7 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
 
             # Sanity check:
             src_objs = [comp.get_terminal_obj_or_port(s) for s in srcs]
-            node_types = list( set( [ type(s) for s in src_objs ] ) )
+            node_types = list(set([ type(s) for s in src_objs ]))
             assert len(node_types) == 1, 'Different types of nodes found in merge'
             assert node_types[0] in mergeable_node_types
 
@@ -285,7 +285,7 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
     for (src, dst) in event_connections:
         src_port = comp.output_event_port_lut.get_single_obj_by(symbol=src)
         dst_port = comp.input_event_port_lut.get_single_obj_by(symbol=dst)
-        conn = ast.EventPortConnection( src_port = src_port, dst_port = dst_port)
+        conn = ast.EventPortConnection(src_port = src_port, dst_port = dst_port)
         comp.add_event_port_connection(conn)
 
 
@@ -315,7 +315,7 @@ def build_compound_component(component_name, instantiate,  analog_connections=No
             assert isinstance(rhs, ast.ASTExpressionObject)
 
             new_node = rhs
-            ReplaceNode.replace_and_check( srcObj=old_node, dstObj=new_node, root=comp)
+            ReplaceNode.replace_and_check(srcObj=old_node, dstObj=new_node, root=comp)
 
 
 

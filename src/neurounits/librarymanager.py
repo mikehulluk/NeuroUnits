@@ -62,10 +62,10 @@ class ComponentNamespace(object):
         self.interfaces = LookUpDict(accepted_obj_types=ast.MultiportInterfaceDef)
 
     def get_blocks(self,):
-        return list( self.libraries) + list(self.components) + list(self.interfaces)
+        return list(self.libraries) + list(self.components) + list(self.interfaces)
 
     @property
-    def full_name(self,):
+    def full_name(self):
         if self.is_root():
             return ''
         elif self.parent.is_root():
@@ -147,7 +147,7 @@ class ComponentNamespace(object):
             objs.extend(self.interfaces)
 
         for ns in self.subnamespaces:
-            objs.extend( ns.get_all(components=components, libraries=libraries, interfaces=interfaces) )
+            objs.extend(ns.get_all(components=components, libraries=libraries, interfaces=interfaces) )
         return objs
 
 
@@ -176,7 +176,7 @@ class LibraryManager(ast.ASTObject):
         else:
             return self.block_stack[-1]
 
-    def __init__(self,backend, working_dir=None, options=None, name=None, src_text=None, is_stdlib_cache=False):
+    def __init__(self, backend, working_dir=None, options=None, name=None, src_text=None, is_stdlib_cache=False):
 
         super(LibraryManager, self).__init__()
         from neurounits.neurounitparser import NeuroUnitParserOptions
@@ -213,7 +213,7 @@ class LibraryManager(ast.ASTObject):
             if not fnames:
                 raise RuntimeError('Unable to load standard-libraries')
             for f in fnames:
-                file_contents = pkg_resources.resource_string('neurounits',f)
+                file_contents = pkg_resources.resource_string('neurounits', f)
                 parse_expr(file_contents, parse_type=ParseTypes.N6_9MLFile, library_manager=self)
 
             LibraryManager._stdlib_cache_loading = False
@@ -283,7 +283,7 @@ class LibraryManager(ast.ASTObject):
 
         if len(ls) != 1:
             possibles = [ l.name for l in srcs if l.name.endswith(name) ]
-            raise NoSuchObjectError('Cant find: %s in [%s]\nDid you mean: %s' % (name, ','.join([l.name for l in srcs] ), str(possibles) ) )
+            raise NoSuchObjectError('Cant find: %s in [%s]\nDid you mean: %s' % (name, ','.join([l.name for l in srcs] ), str(possibles)))
 
 
         # Testing: make sure all nodes accounted for:

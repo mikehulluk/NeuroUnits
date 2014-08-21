@@ -241,7 +241,7 @@ test_text = """
 
 
 def test1():
-    library_manager =  neurounits.NeuroUnitParser.Parse9MLFile( test_text )
+    library_manager =  neurounits.NeuroUnitParser.Parse9MLFile(test_text )
     chlstd_leak = library_manager.get('chlstd_leak')
     std_neuron = library_manager.get('std_neuron')
     step_current = library_manager.get('step_current')
@@ -350,13 +350,13 @@ def test1():
     ax2 = f.add_subplot(3,1,2)
     ax3 = f.add_subplot(3,1,3)
     ax1.set_ylim((-70e-3,50e-3))
-    ax1.plot( res.get_time(), res.state_variables['nrn1/nrn/V'] )
-    ax1.plot( res.get_time(), res.state_variables['nrn2/nrn/V'] )
+    ax1.plot(res.get_time(), res.state_variables['nrn1/nrn/V'] )
+    ax1.plot(res.get_time(), res.state_variables['nrn2/nrn/V'] )
     ax1.set_ylabel('nrn1/nrn/V %s' %('??'))
-    ax2.plot( res.get_time(), res.state_variables['nrn1/i_square/t_last'] )
-    ax3.plot( res.get_time(), res.rt_regimes['nrn1/nrn/']+0.0 , label='nrn1/nrn')
-    ax3.plot( res.get_time(), res.rt_regimes['nrn1/i_inj/']+0.1, label='nrn1/i_inj')
-    ax3.plot( res.get_time(), res.rt_regimes['nrn1/i_square/']+0.2,label='nrn1/i_square' )
+    ax2.plot(res.get_time(), res.state_variables['nrn1/i_square/t_last'] )
+    ax3.plot(res.get_time(), res.rt_regimes['nrn1/nrn/']+0.0 , label='nrn1/nrn')
+    ax3.plot(res.get_time(), res.rt_regimes['nrn1/i_inj/']+0.1, label='nrn1/i_inj')
+    ax3.plot(res.get_time(), res.rt_regimes['nrn1/i_square/']+0.2, label='nrn1/i_square' )
     ax3.legend()
 
 

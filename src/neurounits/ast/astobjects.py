@@ -71,7 +71,7 @@ class IfThenElse(ASTExpressionObject):
     def accept_visitor(self, v, **kwargs):
         return v.VisitIfThenElse(self, **kwargs)
 
-    def __init__(self, predicate, if_true_ast, if_false_ast,**kwargs):
+    def __init__(self, predicate, if_true_ast, if_false_ast, **kwargs):
         ASTExpressionObject.__init__(self, **kwargs)
         self.predicate = predicate
         self.if_true_ast = if_true_ast
@@ -272,7 +272,7 @@ class SymbolicConstant(ASTConstNode, ASTSymbolNode):
         super(SymbolicConstant, self).__init__(**kwargs)
 
     def _summarise_node_full(self):
-        return '%s %s' % (ASTConstNode._summarise_node_full(self),
+        return '%s %s' % (ASTConstNode._summarise_node_full(self), 
                           ASTSymbolNode._summarise_node_full(self))
 
 
@@ -360,7 +360,7 @@ class FunctionDefBuiltInInstantiation(ASTExpressionObject):
         assert function_def.is_builtin()
 
     def _summarise_node_full(self):
-        return '{%s( <id:%s>)}' % (self.function_def.funcname, ','.join(['%s:%s' % (k, id(v)) for (k,v) in self.parameters.items()]))
+        return '{%s(<id:%s>)}' % (self.function_def.funcname, ','.join(['%s:%s' % (k, id(v)) for (k, v) in self.parameters.items()]))
 
 
 class FunctionDefParameterInstantiation(ASTExpressionObject):

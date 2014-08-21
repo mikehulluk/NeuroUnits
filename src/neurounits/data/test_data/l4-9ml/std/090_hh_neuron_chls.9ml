@@ -31,11 +31,11 @@ define_component gating_particle_hh_na {
 
     SF = (1/{1 ms})
 
-    s_alpha_m = ( ({25mV} - vrel)/(10 * ( exp( ({25mV}-vrel)/{10mV}) -{1.} )  ) ) *               (1/{1mV}) * SF
-    s_beta_m =  4 * exp( -vrel/{18mV} ) * SF
+    s_alpha_m = ( ({25mV} - vrel)/(10 * ( exp( ({25mV}-vrel)/{10mV}) -{1.}))) *               (1/{1mV}) * SF
+    s_beta_m =  4 * exp( -vrel/{18mV})* SF
 
     s_alpha_h = 0.07 * exp(vrel/{-20mV}) * SF
-    s_beta_h = (1/ (exp(({30mV}-vrel)/{10mV}) + 1) ) *SF
+    s_beta_h = (1/ (exp(({30mV}-vrel)/{10mV}) + 1))*SF
 
 
     s_inf_m = s_alpha_m / (s_alpha_m + s_beta_m)

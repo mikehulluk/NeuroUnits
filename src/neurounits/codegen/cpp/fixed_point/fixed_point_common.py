@@ -65,7 +65,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
         expr_lhs = self.visit(o.lhs, **kwargs)
         expr_rhs = self.visit(o.rhs, **kwargs)
-        res = "%s<%d>::%s( %s, %s )" % (    self.op_scalar_op,
+        res = "%s<%d>::%s(%s, %s )" % (   self.op_scalar_op,
                                             o.annotations['fixed-point-format'].upscale,
                                             op,
                                             expr_lhs,
@@ -92,7 +92,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 
     def VisitIfThenElse(self, o, **kwargs):
-        L = " ( (%s) ? (%s).rescale_to<%d>() : (%s).rescale_to<%d>() )" % (
+        L = " ((%s) ? (%s).rescale_to<%d>() : (%s).rescale_to<%d>() )" % (
                     self.visit(o.predicate,  **kwargs),
                     self.visit(o.if_true_ast,  **kwargs),
                     o.annotations['fixed-point-format'].upscale,
@@ -106,7 +106,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 
     def _VisitOnConditionCrossing(self, o, **kwargs):
-        return " ( (%s) < (%s) )" % (
+        return " ((%s) < (%s) )" % (
                 self.visit(o.crosses_lhs, **kwargs),
                 self.visit(o.crosses_rhs, **kwargs),
                 )
@@ -115,7 +115,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
 
     def VisitInEquality(self, o, **kwargs):
-        return " ( (%s) < (%s) )" % (
+        return " ((%s) < (%s) )" % (
                 self.visit(o.lesser_than, **kwargs),
                 self.visit(o.greater_than, **kwargs),
                 )
@@ -157,7 +157,7 @@ class CBasedFixedWriterStd(ASTVisitorBase):
 
         param = o.parameters.values()[0]
         param_term = self.visit(param.rhs_ast, **kwargs)
-        res = """ScalarOp<%d>::exp( %s )""" %(o.annotations['fixed-point-format'].upscale, param_term)
+        res = """ScalarOp<%d>::exp(%s )""" %(o.annotations['fixed-point-format'].upscale, param_term)
         return res
 
 
@@ -272,7 +272,7 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         node_name = 'RV%s' % o.annotations['node-id']
 
         if o.modes['share'] =='PER_NEURON':
-            res = self.get_var_str( name=node_name)
+            res = self.get_var_str(name=node_name)
         elif o.modes['share'] == 'PER_POPULATION':
             res = 'd.%s' % node_name
         else:
@@ -294,7 +294,7 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         for i,coeff_as_int in enumerate(o.annotations['fixed-point-format'].coeffs_as_consts):
             i_prev_value_name = "d._%s_t%d[i]" % (node_name, i)
 
-            rhs_term = "%s<%d>::mul( %s, ScalarType<%d>(%d) )" %(
+            rhs_term = "%s<%d>::mul(%s, ScalarType<%d>(%d) )" %(
                         self.op_scalar_op,
                         node_upscale,
                         i_prev_value_name,
@@ -312,7 +312,7 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
         # USE uniform random numbers (hack!) should be gaussian:
 
         res = """%s<%d>::add(
-                    %s<0>( ((int) rnd::rand_kiss() ) - (1<<23) ),
+                    %s<0>(((int) rnd::rand_kiss() ) - (1<<23) ),
                     %s )  """ % (
                     self.op_scalar_op,
                     node_upscale,
@@ -325,7 +325,7 @@ class CBasedFixedWriter(CBasedFixedWriterStd):
 
     def VisitAutoRegressiveModel(self, o, **kwargs):
         node_name = 'AR%s' % o.annotations['node-id']
-        return self.get_var_str( node_name )
+        return self.get_var_str(node_name )
 
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
@@ -402,7 +402,7 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
 
         expr_lhs = self.visit(o.lhs, **kwargs)
         expr_rhs = self.visit(o.rhs, **kwargs)
-        res = "%s<%d>::%s( %s, %s )" % (    self.op_scalar_op,
+        res = "%s<%d>::%s(%s, %s )" % (   self.op_scalar_op,
                                             o.annotations['fixed-point-format'].upscale,
                                             op,
                                             expr_lhs,
@@ -469,7 +469,7 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
         node_name = 'RV%s' % o.annotations['node-id']
 
         if o.modes['share'] =='PER_NEURON':
-            res = self.get_var_str( name=node_name)
+            res = self.get_var_str(name=node_name)
         elif o.modes['share'] == 'PER_POPULATION':
             res = 'd.%s' % node_name
         else:
@@ -482,7 +482,7 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
 
         param = o.parameters.values()[0]
         param_term = self.visit(param.rhs_ast, **kwargs)
-        res = """ %s<%d>::exp( %s )""" %(
+        res = """ %s<%d>::exp(%s )""" %(
                 self.op_scalar_op,
                 o.annotations['fixed-point-format'].upscale,
                 param_term)
@@ -511,7 +511,7 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
 
 
     def VisitInEquality(self, o, **kwargs):
-        return " ( (%s) < (%s) )" % (
+        return " ((%s) < (%s) )" % (
                 self.visit(o.lesser_than, **kwargs),
                 self.visit(o.greater_than, **kwargs),
                 )
@@ -547,7 +547,7 @@ class CBasedFixedWriterBlueVecOps(ASTVisitorBase):
 
     def VisitAutoRegressiveModel(self, o, **kwargs):
         node_name = 'AR%s' % o.annotations['node-id']
-        return self.get_var_str( node_name )
+        return self.get_var_str(node_name )
 
 
 

@@ -91,7 +91,7 @@ class FunctionExpander(ASTActionerDefaultIgnoreMissing):
 
     def __init__(self, component):
         self.component = component
-        super(FunctionExpander,self).__init__()
+        super(FunctionExpander, self).__init__()
 
         self.visit(component)
 
@@ -109,7 +109,7 @@ class FunctionExpander(ASTActionerDefaultIgnoreMissing):
     def ActionFunctionDefBuiltInInstantiation(self,n):
         return
 
-    def ActionFunctionDefUserInstantiation(self,n):
+    def ActionFunctionDefUserInstantiation(self, n):
 
         new_node = _FunctionCloner(n).new_node
 

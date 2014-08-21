@@ -10,7 +10,7 @@ class NodeToIntLabeller(ASTActionerDefault):
     def __init__(self, component):
         self.node_to_int = {}
         self.int_to_node = {}
-        super(ASTActionerDefault,self).__init__()
+        super(ASTActionerDefault, self).__init__()
         self.visit(component)
 
     def ActionNode(self, n, **kwargs):

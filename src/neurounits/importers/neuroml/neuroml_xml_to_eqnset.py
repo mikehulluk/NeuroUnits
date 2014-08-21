@@ -33,7 +33,7 @@ from string import Template
 from .neuroml_xml_data import NeuroUnitsImportNeuroMLNotImplementedException
 from .neuroml_xml_data import ChannelMLInfo
 from neurounits.misc import SeqUtils
-from neurounits import NeuroUnitParser,NeuroUnitParserOptions
+from neurounits import NeuroUnitParser, NeuroUnitParserOptions
 
 
 class NeuroMLUnitsMode:
@@ -105,12 +105,12 @@ def _build_gate_inftau(g, q10tempadjustmentName, neuroml_dt):
 
             tc = SeqUtils.expect_single(g.time_courses)
             ss = SeqUtils.expect_single(g.steady_states)
-            tc_eqn = '%s =  ( %s) * (%s)' % ( term_name_tau, remap_gate_eqnI(tc.getEqn()), neuroml_dt )
-            ss_eqn = '%s =  %s' % ( term_name_inf, remap_gate_eqnI( ss.getEqn())  )
-            state_eqn = "%s' = (%s-%s)/(%s) " % ( state_name, term_name_inf,state_name,term_name_tau)
+            tc_eqn = '%s =  (%s) * (%s)' % (term_name_tau, remap_gate_eqnI(tc.getEqn()), neuroml_dt )
+            ss_eqn = '%s =  %s' % (term_name_inf, remap_gate_eqnI(ss.getEqn())  )
+            state_eqn = "%s' = (%s-%s)/(%s) " % (state_name, term_name_inf,state_name,term_name_tau)
 
             # Add the equations
-            eqns.extend([tc_eqn, ss_eqn,state_eqn, ])
+            eqns.extend([tc_eqn, ss_eqn,state_eqn])
 
             # Add the steddy-state
             initial_conditions.append( (state_name,term_name_inf) )

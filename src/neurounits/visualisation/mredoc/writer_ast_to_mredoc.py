@@ -126,7 +126,7 @@ class LatexEqnWriterN(ASTVisitorBase):
             return self.visit(o.rhs_map.values()[0])
         else:
             case_lines = [ '%s & if %s'%(reg, self.visit(rhs)) for (reg,rhs) in o.rhs_map.items() ]
-            return r""" \begin{cases} %s \end{cases}""" % ( r'\\'.join(case_lines))
+            return r""" \begin{cases} %s \end{cases}""" % (r'\\'.join(case_lines))
 
 
 
@@ -172,7 +172,7 @@ class LatexEqnWriterN(ASTVisitorBase):
 
     def VisitConstantZero(self, o, **kwargs):
 
-        return self.FormatInlineConstant( MMQuantity(0, o.get_dimension()) )
+        return self.FormatInlineConstant(MMQuantity(0, o.get_dimension()) )
 
     def VisitAssignedVariable(self, o, **kwargs):
         return self.FormatTerminalSymbol(o.symbol)
@@ -432,7 +432,7 @@ class MRedocWriterVisitor(ASTVisitorBase):
 
         terminal_symbols = Section('TODO')
 
-        plts = build_figures( component)
+        plts = build_figures(component)
         return HierachyScope(
             "Summary of '%s'" % component.name,
             Section('Assignments',
@@ -456,14 +456,14 @@ class MRedocWriterVisitor(ASTVisitorBase):
 
     def VisitLibrary(self, library):
 
-        format_dim = lambda o: "$%s$"%FormatDimensionality( o.get_dimension() ) if not o.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False) else  "-"
+        format_dim = lambda o: "$%s$"%FormatDimensionality(o.get_dimension()) if not o.get_dimension().is_dimensionless(allow_non_zero_power_of_ten=False) else  "-"
 
         # symbol_format = lambda s:s
 
-        # dep_string_indir = lambda s: ",".join( [symbol_format(o.symbol) for o in sorted( set(component.getSymbolDependancicesIndirect(s, include_ass_in_output=False)), key=lambda s:s.symbol ) ] )
+        # dep_string_indir = lambda s: ",".join([symbol_format(o.symbol) for o in sorted(set(component.getSymbolDependancicesIndirect(s, include_ass_in_output=False)), key=lambda s:s.symbol)] )
 
         # meta_format = lambda s: component.getSymbolMetadata(s) or "-"
-        # plts = build_figures( component)
+        # plts = build_figures(component)
 
         return SectionNewPage('Library Summary: %s' % library.name,
                               Section('Imports'),

@@ -52,7 +52,7 @@ def panic():
 
 
 class UnitMismatchError(ValueError):
-    def __init__(self, unitA, unitB, objA=None, objB=None,):
+    def __init__(self, unitA, unitB, objA=None, objB=None):
         self.unitA = unitA
         self.unitB = unitB
         self.objA = objA
@@ -123,10 +123,10 @@ class NeuroUnitParsingErrorUnexpectedToken(NeuroUnitParsingError):
         col_pos = self.bad_token.lexpos
         char_str = self.parsed_text
         def clip_to_str(k):
-            return min( max(k,0), len(char_str)-1)
+            return min(max(k,0), len(char_str)-1)
         line_char_context = 30
-        col_pos_pre_start = clip_to_str( col_pos-line_char_context )
-        col_pos_post_end = clip_to_str( col_pos+line_char_context )
+        col_pos_pre_start = clip_to_str(col_pos-line_char_context )
+        col_pos_post_end = clip_to_str(col_pos+line_char_context )
 
         pre_str = '...' + char_str[col_pos_pre_start:col_pos]
         post_str = char_str[col_pos+1:col_pos_post_end] + '...'

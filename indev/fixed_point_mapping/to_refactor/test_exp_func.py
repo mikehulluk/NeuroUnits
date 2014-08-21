@@ -34,7 +34,7 @@ define_component simple_hh {
 
     <=> time t:(ms)
 
-    x = exp( t/{1s} / 10. )
+    x = exp(t/{1s} / 10. )
     }
 """
 
@@ -43,7 +43,7 @@ var_annots_ranges = {
         }
 
 
-library_manager = neurounits.NeuroUnitParser.Parse9MLFile( src_text)
+library_manager = neurounits.NeuroUnitParser.Parse9MLFile(src_text)
 comp = library_manager['simple_hh']
 comp.expand_all_function_calls()
 
@@ -57,8 +57,8 @@ RangeExpander().visit(comp)
 
 
 
-comp.annotate_ast( NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
-comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
+comp.annotate_ast(NodeFixedPointFormatAnnotator(nbits=nbits), ast_label='fixed-point-format-ann' )
+comp.annotate_ast(NodeToIntAnnotator(), ast_label='node-ids' )
 
 from neurounits.ast_annotations import NodeTagger
 NodeTagger(var_annots_tags).visit(comp)
@@ -78,14 +78,14 @@ dINs = network.create_population(name='dINs', component=comp, size=1)
 
 network.record_traces(dINs, 'x')
 
-results1 = CBasedEqnWriterFixedNetwork(network,
-                                      output_filename='text_exp-Seq.hdf',
-                                      CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ',
+results1 = CBasedEqnWriterFixedNetwork(network, 
+                                      output_filename='text_exp-Seq.hdf', 
+                                      CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=false ', 
                                       step_size=0.05e-3, run_until=15.).results
 
-results2 = CBasedEqnWriterFixedNetwork(network,
-                                      output_filename='text_exp-BV.hdf',
-                                      CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=true ',
+results2 = CBasedEqnWriterFixedNetwork(network, 
+                                      output_filename='text_exp-BV.hdf', 
+                                      CPPFLAGS='-DON_NIOS=false -DPC_DEBUG=false -DUSE_BLUEVEC=true ', 
                                       step_size=0.05e-3, run_until=15.).results
 
 

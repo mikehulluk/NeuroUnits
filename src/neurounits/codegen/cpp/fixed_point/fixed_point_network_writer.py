@@ -539,7 +539,7 @@ namespace DoubleFixedPoint {
             return v_float;
         }
         inline IntType to_int() const {
-            return (FixedType::Conversion::from_float(v_float,UPSCALE) );
+            return (FixedType::Conversion::from_float(v_float, UPSCALE) );
         }
 
         // No implicit scaling-conversion:
@@ -644,7 +644,7 @@ namespace GMPFixedPoint {
         inline IntType to_int() const {
 
             double v = double(v_float);
-            return (FixedType::Conversion::from_float(v,UPSCALE) );
+            return (FixedType::Conversion::from_float(v, UPSCALE) );
         }
 
         // No implicit scaling-conversion:
@@ -1063,7 +1063,7 @@ struct FixedPointStreamOp
     static inline FixedPointStream<UOUT> ifthenelse( const BoolStream& p, const FixedPointStream<U1>& a, const FixedPointStream<U2>& b)
     {
         setCond(p.s);
-        return FixedPointStream<UOUT>( cond(a.template rescale_to<UOUT>().s,b .template rescale_to<UOUT>().s) );
+        return FixedPointStream<UOUT>( cond(a.template rescale_to<UOUT>().s, b .template rescale_to<UOUT>().s) );
     }
 
 
@@ -1555,7 +1555,7 @@ namespace event_handlers
 
         // 2. Lets see which populations the event is routed to:
         %if (population,out_event_port) in evt_src_to_evtportconns:
-        %for conn in evt_src_to_evtportconns[(population,out_event_port)]:
+        %for conn in evt_src_to_evtportconns[(population, out_event_port)]:
         // Via ${conn.name} -> ${conn.dst_population.name}
         LOG_COMPONENT_EVENTHANDLER(std::cout << "\n -- Dispatching via connection: ${conn.name} to ${conn.dst_population.name}::${conn.dst_port.symbol} "; )
         NS_eventcoupling_${conn.name}::dispatch_event(index, time_info);

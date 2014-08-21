@@ -35,10 +35,10 @@ def validate_nuts(filename):
     print 'Validating:', filename
 
 
-def extract(filenames, level,output_file):
+def extract(filenames, level, output_file):
     from neurounits import  NutsIO
 
-    lines = list( chain(* [NutsIO.load(fname) for fname in filenames]))
+    lines = list(chain(*[NutsIO.load(fname) for fname in filenames]))
 
     # Extract the relevant lines:
     if level:
@@ -48,7 +48,7 @@ def extract(filenames, level,output_file):
     # Open the output file:
     if output_file:
         output_file = output_file[0]
-        f = open(output_file,'w')
+        f = open(output_file, 'w')
     else:
         f = StringIO.StringIO()
 

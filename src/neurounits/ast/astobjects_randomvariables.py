@@ -49,7 +49,7 @@ class RandomVariable(ASTExpressionObject):
         p_found = set([p.name for p in parameters])
         p_expected = set(self.Meta.expected_parameters)
         if p_found != p_expected:
-            msg = '[Expected: %s, Found:%s]' %( p_expected, p_found)
+            msg = '[Expected: %s, Found:%s]' %(p_expected, p_found)
             raise InvalidParametersError('For RandomVariable: %s %s'%(self.functionname, msg)  )
 
     def accept_visitor(self, v, XX_mhchecked=False, **kwargs):

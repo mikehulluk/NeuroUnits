@@ -52,10 +52,10 @@ class ASTActionerDepthFirst(ASTVisitorBase):
     def VisitLibraryManager(self, o, **kwargs):
         for c in itertools.chain(o.components, o.libraries):
             self.visit(c)
-        return self._ActionLibraryManager( o, **kwargs)
+        return self._ActionLibraryManager(o, **kwargs)
 
     def VisitMultiportInterfaceDef(self, o, **kwargs):
-        return self._ActionMultiportInterfaceDef( o, **kwargs)
+        return self._ActionMultiportInterfaceDef(o, **kwargs)
 
     def VisitCompoundPortConnector(self, o, **kwargs):
         self.visit(o.interface_def)
@@ -547,7 +547,7 @@ class ASTActionerDepthFirst(ASTVisitorBase):
         raise NotImplementedError()
 
 
-    def ActionLibrary(self,o, **kwargs):
+    def ActionLibrary(self, o, **kwargs):
         raise NotImplementedError()
     def ActionNineMLComponent(self, o, **kwargs):
         raise NotImplementedError()

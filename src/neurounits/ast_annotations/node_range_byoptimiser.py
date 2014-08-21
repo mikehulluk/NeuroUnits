@@ -125,13 +125,13 @@ class CFloatEval(ASTVisitorBase):
 
 
     def VisitIfThenElse(self, o, **kwargs):
-        return "( (%s) ? (%s) : (%s) )" %(
+        return "((%s) ? (%s) : (%s) )" %(
                             self.visit(o.predicate),
                             self.visit(o.if_true_ast),
                             self.visit(o.if_false_ast))
 
     def VisitInEquality(self, o, **kwargs):
-        return "( (%s) < (%s) )" % (
+        return "((%s) < (%s) )" % (
                             self.visit(o.lesser_than),
                             self.visit(o.greater_than)
                                     )
@@ -466,7 +466,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
 
 
             def eval_func_min(p):
-                for i,depname in enumerate(depnames):
+                for i, depname in enumerate(depnames):
                     setattr(inputdata, depname, p[i])
                 res = func(inputdata)
                 return res
@@ -475,9 +475,9 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
                 return -eval_func_min(p)
 
 
-            upper_bounds = np.array( [ dep.annotations['node-value-range'].max for dep in deps] )
-            lower_bounds = np.array( [ dep.annotations['node-value-range'].min for dep in deps] )
-            bounds = [ (lower_bounds[i],upper_bounds[i]) for i in range(len(deps)) ]
+            upper_bounds = np.array([ dep.annotations['node-value-range'].max for dep in deps] )
+            lower_bounds = np.array([ dep.annotations['node-value-range'].min for dep in deps] )
+            bounds = [ (lower_bounds[i], upper_bounds[i]) for i in range(len(deps)) ]
 
 
             def get_sample_pts(node):
@@ -487,11 +487,11 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
                 samples = [min, max]
 
                 if node in critical_points:
-                    samples = sorted( set(critical_points[node]) | set(samples) )
+                    samples = sorted(set(critical_points[node]) | set(samples) )
 
                 mid_pts = []
                 for i in range(len(samples)-1):
-                    mid_pts.append( (samples[i]+samples[i+1]) /2. )
+                    mid_pts.append((samples[i]+samples[i+1]) /2. )
 
                 samples = sorted(samples + mid_pts)
                 return samples
@@ -515,8 +515,8 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
                 local_res_min_param = scipy.optimize.minimize(eval_func_min, x0, method=method, bounds=bounds, tol=tol)
                 local_res_max_param = scipy.optimize.minimize(eval_func_max, x0, method=method, bounds=bounds, tol=tol)
 
-                local_res_min = eval_func_min( local_res_min_param.x)
-                local_res_max = eval_func_min( local_res_max_param.x)
+                local_res_min = eval_func_min(local_res_min_param.x)
+                local_res_max = eval_func_min(local_res_max_param.x)
 
 
                 if (res_min is None or local_res_min < res_min) and not math.isnan(local_res_min):
@@ -600,7 +600,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
 
         # 0b. Ensure that each node has a name for accessing the data-structure and
         # for calling the evaluation function:
-        component.annotate_ast( NodeRangeCCodeNodeNamer() )
+        component.annotate_ast(NodeRangeCCodeNodeNamer() )
 
 
 
@@ -618,8 +618,8 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
         func_defs = []
         for node, (node_name, node_code) in node_evaluator_c_code.node_code.items():
             func_sig = "double %s(InputData* input_data)" % (node_name)
-            func_prototypes.append( func_sig + ';' )
-            func_defs.append( func_sig + '{ return %s; }' % (node_code)  )
+            func_prototypes.append(func_sig + ';' )
+            func_defs.append(func_sig + '{ return %s; }' % (node_code)  )
 
 
         # C. Prototype and compile...
@@ -631,10 +631,10 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
         for func_proto in func_prototypes:
             ffi.cdef(func_proto)
 
-        code =  '\n'.join( [input_ds] + func_defs)
+        code =  '\n'.join([input_ds] + func_defs)
 
         print 'Compiling C-Code to find intermediate nodes:'
-        with open('cffi_debug.c.log','w') as f:
+        with open('cffi_debug.c.log', 'w') as f:
             f.write(code)
 
         C = ffi.verify(code)
@@ -653,7 +653,7 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
 
         print 'Assignmnemts:',
         for ass_var in component.assignedvalues:
-            func_min,func_max = NodeRangeByOptimiser.find_minmax_for_node(node=ass_var, component=component, cffi_top=ffi, cffi_code_obj=C,critical_points=critical_points)
+            func_min, func_max = NodeRangeByOptimiser.find_minmax_for_node(node=ass_var, component=component, cffi_top=ffi, cffi_code_obj=C, critical_points=critical_points)
             ass_var.annotations['node-value-range'] = _NodeRangeFloat(min_=func_min, max_=func_max)
 
 
@@ -668,6 +668,6 @@ class NodeRangeByOptimiser(ASTVisitorBase, ASTTreeAnnotator):
         ranges_nodes = [n for n in component.all_ast_nodes() if isinstance(n, required_nodes_types) ]
         for node in ranges_nodes:
 
-            func_min,func_max = NodeRangeByOptimiser.find_minmax_for_node(node=node, component=component, cffi_top=ffi, cffi_code_obj=C,critical_points=critical_points)
+            func_min, func_max = NodeRangeByOptimiser.find_minmax_for_node(node=node, component=component, cffi_top=ffi, cffi_code_obj=C, critical_points=critical_points)
             node.annotations['node-value-range'] = _NodeRangeFloat(min_=func_min, max_=func_max)
 

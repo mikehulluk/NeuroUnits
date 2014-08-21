@@ -41,7 +41,7 @@ class TestNutsFiles(TestingPluginBase):
     def get_name(self, ):
         return 'Test NUTS'
 
-    def print_results(self,):
+    def print_results(self):
         good_res, bad_res, error_res = self.results
         print 'Good:'
         for res in good_res:

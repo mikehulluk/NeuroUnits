@@ -101,7 +101,7 @@ class CCompiler(object):
         # Write the src_text to a file:
         if compile_single_file:
             CCompiler.prepare_to_create_file(intermediate_filename)
-            with open( intermediate_filename,'w') as f:
+            with open(intermediate_filename, 'w') as f:
                 f.write(src_text)
             src_files = [intermediate_filename]
             src_text = None
@@ -137,7 +137,7 @@ class CCompiler(object):
         print 'Compilation sucessful'
 
         LD_LIB_PATH = 'export LD_LIBRARY_PATH="%s:$LD_LIBRARY_PATH"' % ':'.join(compilation_settings.additional_library_paths)
-        exec_cmd = LD_LIB_PATH + "; " + os.path.abspath( output_filename )
+        exec_cmd = LD_LIB_PATH + "; " + os.path.abspath(output_filename )
         if run:
             print 'Running:', exec_cmd
             subprocess.check_call(exec_cmd, shell=True)

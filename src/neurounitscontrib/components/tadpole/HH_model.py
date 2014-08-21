@@ -55,7 +55,7 @@ def get_HH():
 
         Cap = 10 pF
 
-        V' = (1/Cap) * ( itot)
+        V' = (1/Cap) * (itot)
         itot = iLk + iInj_local + iKs + iKf +iNa +  i_injected
 
         noise_min = 0.5
@@ -71,7 +71,7 @@ def get_HH():
 
 
 
-        AlphaBetaFunc(v, A,B,C,D,E) = (A+B*v) / (C + exp( (D+v)/E))
+        AlphaBetaFunc(v, A,B,C,D,E) = (A+B*v) / (C + exp((D+v)/E))
 
         eK = -80mV
         eNa = 50mV

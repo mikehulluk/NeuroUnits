@@ -97,7 +97,7 @@ def test4():
     import neurounits
 
     src_files =  [pkg_resources.resource_stream('neurounits',f) for f in neurounits.Locations.get_default_9ml_locations()]
-    library_manager = neurounits.NeuroUnitParser.Parse9MLFiles( src_files)
+    library_manager = neurounits.NeuroUnitParser.Parse9MLFiles(src_files)
 
     print
     print 'Available MultiportInterfaceDefs:'

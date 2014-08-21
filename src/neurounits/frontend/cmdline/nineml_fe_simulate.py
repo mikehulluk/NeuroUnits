@@ -27,8 +27,8 @@ def cmdline_simulate(args):
     import neurounits
     import pkg_resources
 
-    src_files =  [pkg_resources.resource_stream('neurounits',f) for f in neurounits.Locations.get_default_9ml_locations()]
-    library_manager = neurounits.NeuroUnitParser.Parse9MLFiles( src_files)
+    src_files =  [pkg_resources.resource_stream('neurounits', f) for f in neurounits.Locations.get_default_9ml_locations()]
+    library_manager = neurounits.NeuroUnitParser.Parse9MLFiles(src_files)
 
     # Get the component:
     component = library_manager.get(args.component)
@@ -38,14 +38,14 @@ def cmdline_simulate(args):
 
     # Get the start and end times:
     t_end = NeuroUnitParser.QuantitySimple(args.endt)
-    assert t_end.is_compatible( MQ1('1s').units)
+    assert t_end.is_compatible(MQ1('1s').units)
     t_end = t_end.float_in_si()
     dt = NeuroUnitParser.QuantitySimple(args.dt)
-    assert dt.is_compatible( MQ1('1s').units)
+    assert dt.is_compatible(MQ1('1s').units)
     dt = dt.float_in_si()
 
     # OK lets simulate!
-    res = component.simulate(  times = np.arange(0, t_end,dt),)
+    res = component.simulate(times = np.arange(0, t_end,dt))
 
     print 'Simulating'
     for arg, arg_value in vars(args).items():

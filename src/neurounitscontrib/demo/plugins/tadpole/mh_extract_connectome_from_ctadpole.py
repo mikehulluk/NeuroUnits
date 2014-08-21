@@ -7,16 +7,16 @@ cells = ctadpole.load_cells('CellList-EvenFull.txt', 'Connectome-EvenFull.txt')
 n_cells = len(cells)
 
 
-cell_pops = defaultdict( list )
+cell_pops = defaultdict(list )
 for index, cell in enumerate(cells):
     is_lhs = index < n_cells/2
     key =  (is_lhs, cell_types[cell.type_id+1])
-    cell_pops[ key ].append( cell )
+    cell_pops[ key ].append(cell )
 
 
 # Quick-check the ID's tie up:
 for (is_lhs,cell_type), cell_list in cell_pops.items():
-    for index,cell in enumerate(cell_list):
+    for index, cell in enumerate(cell_list):
         if is_lhs:
             assert cell.relative_id == index
         else:
@@ -50,7 +50,7 @@ for (is_lhs,cell_type), cell_list in cell_pops.items():
             src_index = src_cell.relative_id
             tgt_index = tgt_cell.relative_id
 
-            projections[(src_pop,tgt_pop)].add( (src_index, tgt_index) )
+            projections[(src_pop, tgt_pop)].add( (src_index, tgt_index) )
 
 
 # Extract the position of each cell:
@@ -62,7 +62,7 @@ for cell, popkey in cell_to_popkey.items():
 # Make into a dictionary = popkey -> [x0,x1,x2,x3..]
 population_positions = {}
 for pop,values in cell_positions.items():
-    ind_pos = [ (cell_index, pos) for (cell_index,pos) in sorted(values.items()) ]
+    ind_pos = [ (cell_index, pos) for (cell_index, pos) in sorted(values.items()) ]
     inds = [ x[0] for x in ind_pos]
     positions =  [ x[1] for x in ind_pos]
     assert inds == list(range(len(inds)))
@@ -85,7 +85,7 @@ def print_pop_info(pops, pop_sizes, projections):
     # Synapses:
     tbl = prettytable.PrettyTable( [''] + [str(p) for p in pops])
     for src_pop in pops:
-        tbl.add_row( [str(src_pop)] + [ len(projections[(src_pop,tgt_pop)]) for tgt_pop in pops] )
+        tbl.add_row( [str(src_pop)] + [ len(projections[(src_pop, tgt_pop)]) for tgt_pop in pops] )
     print 'Synaptic Projections:'
     print '---------------------'
     print 'Top->Bottom => src-populations'
@@ -120,11 +120,11 @@ def merge_populations(pop_sizes, projections, pop_merge_details, projection_merg
     projection_types = defaultdict( list )
     for projection_detail in projection_merge_details:
         src,tgt = projection_detail['between'].split("->")
-        projection_types[ (src,tgt) ].append( (projection_detail['syn_type'], projection_detail['g'] ) )
+        projection_types[ (src, tgt) ].append( (projection_detail['syn_type'], projection_detail['g']))
 
     new_projections = defaultdict( list )
     # OK, now remap each of the existing projections:
-    for (src_pop,tgt_pop), indices in projections.items():
+    for (src_pop, tgt_pop), indices in projections.items():
         if not indices:
             continue
         src_pop_new, src_index_offset, src_pop_size = old_population_locations[src_pop]
@@ -138,7 +138,7 @@ def merge_populations(pop_sizes, projections, pop_merge_details, projection_merg
         for proj in pop_to_pop_projections:
             new_key = (src_pop_new, tgt_pop_new, proj)
             for (i,j) in indices:
-                new_projections[new_key].append( (i+src_index_offset,j+tgt_index_offset) )
+                new_projections[new_key].append( (i+src_index_offset, j+tgt_index_offset) )
 
     # And remap the positions:
     new_population_positions = dict()
@@ -227,7 +227,7 @@ new_popsizes, new_projections, old_population_locations, new_population_position
 print 'Reduced Populations:'
 tbl = prettytable.PrettyTable( ['Old Population', 'New location'] )
 for old_pop, (new_pop, offset,size) in sorted(old_population_locations.items()):
-    tbl.add_row( [old_pop,  str( (new_pop, offset,size)  ) ] )
+    tbl.add_row( [old_pop,  str( (new_pop, offset,size) )] )
 print tbl
 
 
@@ -254,6 +254,6 @@ print new_population_positions
 import cPickle as pickle
 op_filename = 'mh_reduced_connectome.pickle'
 print 'Writing to pickle file:', op_filename
-with open(op_filename,'w') as f:
+with open(op_filename, 'w') as f:
     pickle.dump([new_popsizes, new_projections, old_population_locations, new_population_positions], f)
 

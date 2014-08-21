@@ -102,7 +102,7 @@ def test_simulateNetwork():
 
 
 
-    #network.provide_events( pops_by_name['pop1'], event_port='recv_ampa_spike', evt_details = [50,60,70] )
+    #network.provide_events(pops_by_name['pop1'], event_port='recv_ampa_spike', evt_details = [50,60,70] )
     non_dINs = pops_by_name['NondINs']
     pop_LHS_MN  = non_dINs.get_subpopulation(start_index=0,   end_index=169, subname='LHS_MN',  autotag=['LHS','MN'])
     pop_LHS_RB  = non_dINs.get_subpopulation(start_index=169, end_index=232, subname='LHS_RB',  autotag=['LHS','RB'])
@@ -160,7 +160,7 @@ def test_simulateNetwork():
                     continue
                 if random.uniform(0,1) > 0.2:
                     continue
-                gap_junction_indices.append( (i,j) )
+                gap_junction_indices.append((i,j) )
 
                 #ax.plot([i],[j], 'x')
                 #ax.plot([j],[i], 'x')
@@ -198,8 +198,8 @@ def test_simulateNetwork():
 
 
 
-    network.record_output_events( [rb_drivers] , 'spike' )
-    network.record_output_events( lhs_subpops+rhs_subpops , 'spike' )
+    network.record_output_events([rb_drivers] , 'spike' )
+    network.record_output_events(lhs_subpops+rhs_subpops , 'spike' )
     network.record_traces(lhs_subpops+rhs_subpops , 'V' )
     network.record_traces([pop_LHS_dIN,pop_RHS_dIN], 'nmda_vdep')
 
@@ -241,7 +241,7 @@ def test_simulateNetwork():
 
     #xlim=(95e-3,750e-3)
     #xlim=(95e-3,300e-3)
-    xlim=(45e-3,300e-3)
+    xlim=(45e-3, 300e-3)
     #xlim=(30e-3,1000e-3)
 
 
@@ -362,8 +362,8 @@ def test_simulateNetwork():
             return fig
 
 
-    f1 = plot_graph( "ALL{V,dIN,LHS} AND ANY{POPINDEX:0000,POPINDEX:0001,POPINDEX:0002}", ylabel='Voltage (V)' )
-    f2 = plot_graph( "ALL{nmda_vdep,dIN,LHS} AND ANY{POPINDEX:0000,POPINDEX:0001,POPINDEX:0002}",ylabel='NMDA-vdep' )
+    f1 = plot_graph("ALL{V,dIN,LHS} AND ANY{POPINDEX:0000,POPINDEX:0001,POPINDEX:0002}", ylabel='Voltage (V)' )
+    f2 = plot_graph("ALL{nmda_vdep,dIN,LHS} AND ANY{POPINDEX:0000,POPINDEX:0001,POPINDEX:0002}",ylabel='NMDA-vdep' )
 
 
     f1.get_axes()[0].set_yticks([-60e-3, -30e-3, 0e-3, 30e-3])

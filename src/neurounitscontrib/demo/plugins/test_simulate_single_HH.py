@@ -124,7 +124,7 @@ def test_simulate_single_hh():
 
 
     left=0.25
-    text_kwargs = dict( weight='bold', fontweight='bold' )
+    text_kwargs = dict(weight='bold', fontweight='bold' )
 
     f1,f2 = results.plot(trace_filters=filters_traces,
                  spike_filters=filters_spikes,
@@ -142,7 +142,7 @@ def test_simulate_single_hh():
 
     f1[0].subplots_adjust(top=0.9, left=left)
 
-    f1[0].get_axes()[0].axvspan( 0.4, 0.45, color='grey', alpha=0.2)
+    f1[0].get_axes()[0].axvspan(0.4, 0.45, color='grey', alpha=0.2)
 
     if not os.path.exists('_build'):
         os.mkdir('_build')
@@ -184,7 +184,7 @@ def test_simulate_single_hh():
 
 
     f1[0].subplots_adjust(top=0.90, bottom=0.05, left=left)
-    f2[0].subplots_adjust(top=0.85,left=left)
+    f2[0].subplots_adjust(top=0.85, left=left)
 
 
 

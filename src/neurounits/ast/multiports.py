@@ -53,22 +53,22 @@ class MultiportInterfaceDefWire(base.ASTObject):
 
 class MultiportInterfaceDefWireContinuous(MultiportInterfaceDefWire):
     def __init__(self, symbol, direction, unit, optional=False):
-        super(MultiportInterfaceDefWireContinuous, self).__init__( symbol=symbol, direction=direction, optional=optional)
+        super(MultiportInterfaceDefWireContinuous, self).__init__(symbol=symbol, direction=direction, optional=optional)
         self.unit = unit
 
     def _summarise(self):
-        print '  ', self.DirCute[self.direction],self.symbol.ljust(5),  'Analog', self.unit, 'Optional:', self.optional
+        print '  ', self.DirCute[self.direction], self.symbol.ljust(5),  'Analog', self.unit, 'Optional:', self.optional
 
     def accept_visitor(self, visitor, **kwargs):
         return visitor.VisitMultiportInterfaceDefWireContinuous(self, **kwargs)
 
 class MultiportInterfaceDefWireEvent(MultiportInterfaceDefWire):
     def __init__(self, symbol, direction, parameters, optional=False):
-        super(MultiportInterfaceDefWireEvent, self).__init__( symbol=symbol, direction=direction, optional=optional)
+        super(MultiportInterfaceDefWireEvent, self).__init__(symbol=symbol, direction=direction, optional=optional)
         self.parameters = parameters
 
     def _summarise(self):
-        print '  ', self.DirCute[self.direction],self.symbol.ljust(5),  'Event', ['%s:%s'%p for p in self.parameters ], 'Optional:', self.optional
+        print '  ', self.DirCute[self.direction], self.symbol.ljust(5),  'Event', ['%s:%s'%p for p in self.parameters ], 'Optional:', self.optional
 
     def accept_visitor(self, visitor, **kwargs):
         return visitor.VisitMultiportInterfaceDefWireEvent(self, **kwargs)
@@ -87,7 +87,7 @@ class MultiportInterfaceDef(base.ASTObject):
         super(MultiportInterfaceDef, self).__init__()
 
         self.symbol = symbol
-        self.connections = LookUpDict(connections, accepted_obj_types=(MultiportInterfaceDefWire,))
+        self.connections = LookUpDict(connections, accepted_obj_types=(MultiportInterfaceDefWire, ))
 
     @property
     def name(self):
@@ -148,11 +148,11 @@ class CompoundPortConnector(base.ASTObject):
 
         self.symbol = symbol
         self.interface_def =  interface_def
-        self.wire_mappings = LookUpDict(wire_mappings, accepted_obj_types=(CompoundPortConnectorWireMapping,) )
+        self.wire_mappings = LookUpDict(wire_mappings, accepted_obj_types=(CompoundPortConnectorWireMapping,))
         self.direction = direction
 
     def __repr__(self):
-        return '<CompoundPortConnctor: %s (%s) [%s] (%s)>' % ( self.symbol,self.direction, '??', id(self))
+        return '<CompoundPortConnctor: %s (%s) [%s] (%s)>' % (self.symbol, self.direction, '??', id(self))
 
     def get_direction(self):
         return self.direction

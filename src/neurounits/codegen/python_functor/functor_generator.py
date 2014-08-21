@@ -127,14 +127,14 @@ class FunctorGenerator(ASTVisitorBase):
         self.transitions_actions[o] = self._visit_trans(o, **kwargs)
 
     def VisitOnTransitionEvent(self, o, **kwargs):
-        self.transition_port_handlers[o.port].append( o )
+        self.transition_port_handlers[o.port].append(o )
         self.transitions_actions[o] = self._visit_trans(o, **kwargs)
 
     def VisitOnEventDefParameter(self, o):
-        def f(evt,**kw):
+        def f(evt, **kw):
             # Single parameter:
             if len(evt.parameter_values)==1:
-                return list( evt.parameter_values.values() )[0]
+                return list(evt.parameter_values.values() )[0]
             # Resolve from among many parameters:
             else:
                 return evt.parameter_values[o.port_parameter_obj.symbol]
@@ -199,9 +199,9 @@ class FunctorGenerator(ASTVisitorBase):
         return f4
 
 
-    def VisitInEquality(self, o ,**kwargs):
-        lt = self.visit( o.lesser_than )
-        gt = self.visit( o.greater_than )
+    def VisitInEquality(self, o , **kwargs):
+        lt = self.visit(o.lesser_than )
+        gt = self.visit(o.greater_than )
         def f5(**kw):
             lhs = lt(**kw)
             rhs = gt(**kw)
@@ -242,7 +242,7 @@ class FunctorGenerator(ASTVisitorBase):
             def eFunc(state_data, func_params, **kw):
                 assert len(func_params) == 1
                 ParsingBackend = MHUnitBackend
-                return ParsingBackend.Quantity( float( functor( ( func_params.values()[0] ).dimensionless() ) ), ParsingBackend.Unit() )
+                return ParsingBackend.Quantity(float(functor((func_params.values()[0] ).dimensionless())), ParsingBackend.Unit() )
         else:
             def eFunc(state_data, func_params, **kw):
                 assert len(kw) == 1
@@ -288,7 +288,7 @@ class FunctorGenerator(ASTVisitorBase):
     def VisitBIFlog2(self, o):
         return self.VisitBIFSingleArg(o=o,functor=np.log2)
     def VisitBIFlog10(self, o):
-        return self.VisitBIFSingleArg(o=o,functor=np.log10)
+        return self.VisitBIFSingleArg(o=o, functor=np.log10)
     # ==================
 
 
@@ -297,9 +297,9 @@ class FunctorGenerator(ASTVisitorBase):
             def eFunc(state_data, func_params, **kw):
                 assert len(func_params) == 2
                 ParsingBackend = MHUnitBackend
-                return ParsingBackend.Quantity( float( functor(
-                        ( func_params[arg_names[0]] ).dimensionless() ,
-                        ( func_params[arg_names[1]] ).dimensionless() )  ), ParsingBackend.Unit() )
+                return ParsingBackend.Quantity(float(functor(
+                        (func_params[arg_names[0]] ).dimensionless() ,
+                        (func_params[arg_names[1]] ).dimensionless()) ), ParsingBackend.Unit() )
         else:
             def eFunc(state_data, func_params, **kw):
                 assert len(kw) == 2
@@ -314,7 +314,7 @@ class FunctorGenerator(ASTVisitorBase):
     def VisitBIFmax(self, o, ):
         return self._VisitBIF2arg(o=o, arg_names=('x','y'), functor=np.max )
     def VisitBIFatan2(self, o, ):
-        return self._VisitBIF2arg(o=o, arg_names=('y','x'), functor=np.arctan2 )
+        return self._VisitBIF2arg(o=o, arg_names=('y', 'x'), functor=np.arctan2 )
 
 
 
@@ -351,10 +351,10 @@ class FunctorGenerator(ASTVisitorBase):
                 return v
 
 
-        return with_number_check( eFunc2, o )
+        return with_number_check(eFunc2, o )
 
     def VisitParameter(self, o, **kwargs):
-        def eFunc(state_data,**kw):
+        def eFunc(state_data, **kw):
 
             v= state_data.parameters[o.symbol]
             assert o.get_dimension().is_compatible(v.get_units()), 'Param Units Err: %s [Expected:%s Found:%s]'%(o.symbol, o.get_dimension(), v.get_units())
@@ -376,7 +376,7 @@ class FunctorGenerator(ASTVisitorBase):
     def VisitConstantZero(self, o, **kwargs):
         if not self.as_float_in_si:
             def eFunc(**kw):
-                return MMQuantity( 0 , o.get_dimension() )
+                return MMQuantity(0 , o.get_dimension() )
             return eFunc
         else:
             def eFunc(**kw):
@@ -429,7 +429,7 @@ class FunctorGenerator(ASTVisitorBase):
             v_l = f_lhs(**kw)
             v_r = f_rhs(**kw)
             return v_l-v_r
-        return with_number_check( eFunc, o)
+        return with_number_check(eFunc, o)
 
     def VisitMulOp(self, o, **kwargs):
         f_lhs = self.visit(o.lhs)
@@ -446,7 +446,7 @@ class FunctorGenerator(ASTVisitorBase):
             v_r = f_rhs(**kw)
             res = v_l / v_r
             return res
-        return with_number_check(eFunc,o)
+        return with_number_check(eFunc, o)
 
     def VisitExpOp(self, o, **kwargs):
         f_lhs = self.visit(o.lhs)
@@ -462,7 +462,7 @@ class FunctorGenerator(ASTVisitorBase):
             param_functors[p] = self.visit(o.parameters[p])
         func_call_functor = self.visit(o.function_def)
         def eFunc(**kw):
-            func_params_new = dict([(p, func( **kw)) for (p, func) in param_functors.iteritems()])
+            func_params_new = dict([(p, func(**kw)) for (p, func) in param_functors.iteritems()])
             if 'func_params' in kw:
                 del kw['func_params']
             res = func_call_functor(func_params=func_params_new,**kw)
@@ -491,7 +491,7 @@ class FunctorGenerator(ASTVisitorBase):
         return eFunc
 
     def VisitFunctionDefParameter(self, o, **kwargs):
-        def eFunc(func_params,**kw):
+        def eFunc(func_params, **kw):
             if not o.symbol in func_params:
                 print "Couldn't find %s in %s" % (o.symbol, func_params.keys())
                 assert False
@@ -504,13 +504,13 @@ class FunctorGenerator(ASTVisitorBase):
         return self._VisitRV(o, functor=np.random.uniform, arg_names=['min','max'] )
 
     def VisitRVNormal(self, o, **kwargs):
-        return self._VisitRV(o, functor=np.random.normal, arg_names=['loc','scale'] )
+        return self._VisitRV(o, functor=np.random.normal, arg_names=['loc', 'scale'] )
 
     def _VisitRV(self, o, functor, arg_names, **kwargs):
         if not self.as_float_in_si:
             def func(**kwargs):
                 args = [kwargs[a].float_in_si() for a in arg_names]
-                return MMQuantity( functor(*args), MMUnit())
+                return MMQuantity(functor(*args), MMUnit())
         else:
             def func(**kwargs):
                 args = [kwargs[a] for a in arg_names]
@@ -526,7 +526,7 @@ class FunctorGenerator(ASTVisitorBase):
             param_functors[p] = self.visit(p.rhs_ast)
         func_call_functor = o.accept_RVvisitor(self)
         def eFunc(**kw):
-            func_params_new = dict([(p.name, func( **kw)) for (p, func) in param_functors.iteritems()])
+            func_params_new = dict([(p.name, func(**kw)) for (p, func) in param_functors.iteritems()])
             if 'func_params' in kw:
                 del kw['func_params']
             res = func_call_functor(**func_params_new)
@@ -542,13 +542,13 @@ class FunctorGenerator(ASTVisitorBase):
         for param in o.parameters:
             param_evals[param] = self.visit(param.rhs)
 
-        def f(state_data,**kw):
+        def f(state_data, **kw):
             parameter_values = {}
             for p in o.parameters:
                 val = param_evals[p](state_data=state_data, **kw)
                 parameter_values[p.port_parameter_obj.symbol] = val
             # Emit the event!:
-            state_data.event_manager.emit_event(  port=o.port, parameter_values=parameter_values )
+            state_data.event_manager.emit_event(port=o.port, parameter_values=parameter_values )
         return f
 
 

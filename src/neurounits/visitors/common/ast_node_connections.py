@@ -33,7 +33,7 @@ def nodes_on_obj(obj, recurse_builtins=True):
 
 
 class ASTAllConnectionsCheck(ASTActionerDefault):
-    def ActionNode(self,n):
+    def ActionNode(self, n):
         self.check_node(n)
 
     def check_node(self, obj, **kwargs):
@@ -202,7 +202,7 @@ class ASTAllConnections(ASTActionerDepthFirst):
         return o.rhses
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
-        return list(o.rhs_map.keys()) + list( o.rhs_map.values() )
+        return list(o.rhs_map.keys()) + list(o.rhs_map.values() )
 
     def VisitTimeDerivativeByRegime(self, o, **kwargs):
         return [o.lhs, o.rhs_map]
@@ -226,7 +226,7 @@ class ASTAllConnections(ASTActionerDepthFirst):
 
 
     def VisitExpOp(self, o, **kwargs):
-        assert isinstance( o.rhs, (float,int) )
+        assert isinstance(o.rhs, (float, int) )
         return [o.lhs]
 
 

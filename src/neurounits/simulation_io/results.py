@@ -8,7 +8,7 @@ def _auto_plot(res):
 
 
     si_base_units = defaultdict(list)
-    plot_objs = sorted( list( itertools.chain( res.state_variables.keys(), res.assignments.keys(),) ) )
+    plot_objs = sorted(list(itertools.chain(res.state_variables.keys(), res.assignments.keys(),)))
     for plt_obj in plot_objs:
         print plt_obj
         terminal_obj = res.component.get_terminal_obj(plt_obj)
@@ -16,7 +16,7 @@ def _auto_plot(res):
 
         found = False
         for k,v in si_base_units.items():
-            if k.is_compatible( dimension):
+            if k.is_compatible(dimension):
                 si_base_units[k].append(plt_obj)
                 found = True
                 break
@@ -33,11 +33,11 @@ def _auto_plot(res):
     axes = [f.add_subplot(n_axes, 1, i+1) for i in range(n_axes)]
 
 
-    for ((unit,objs),ax) in zip(sorted(si_base_units.items()), axes):
+    for ((unit,objs), ax) in zip(sorted(si_base_units.items()), axes):
         ax.set_ylabel(str(unit))
         ax.margins(0.1)
         for o in sorted(objs):
-            ax.plot( res.get_time(), res.get_data(o), label=o)
+            ax.plot(res.get_time(), res.get_data(o), label=o)
         ax.legend()
 
 

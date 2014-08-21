@@ -89,15 +89,15 @@ class ModFileContents(object):
     def to_text(self):
 
         std_sects = [
-        ( self.section_NEURON,   'NEURON' ),
-        ( self.section_UNITS_units + self.section_UNITS_convs+self.section_UNITS_constants,    'UNITS' ),
-        ( self.section_PARAMETER,'PARAMETER' ),
-        ( self.section_ASSIGNED, 'ASSIGNED' ),
-        ( self.section_STATE_locals +[''] + self.section_STATE_init  +[''] + self.section_STATE ,    'STATE' ),
+        (self.section_NEURON,   'NEURON' ),
+        (self.section_UNITS_units + self.section_UNITS_convs+self.section_UNITS_constants,    'UNITS' ),
+        (self.section_PARAMETER,'PARAMETER' ),
+        (self.section_ASSIGNED, 'ASSIGNED' ),
+        (self.section_STATE_locals +[''] + self.section_STATE_init  +[''] + self.section_STATE ,    'STATE' ),
 
-        ( self.section_INITIAL,  'INITIAL' ),
-        ( self.section_BREAKPOINT_pre_solve + ["SOLVE states METHOD cnexp" if self.section_STATE != [] else ""]+ [""]+ self.section_BREAKPOINT_post_solve+[""],  'BREAKPOINT' ),
-        ( self.section_DERIVATIVE,  'DERIVATIVE states' ),
+        (self.section_INITIAL,  'INITIAL' ),
+        (self.section_BREAKPOINT_pre_solve + ["SOLVE states METHOD cnexp" if self.section_STATE != [] else ""]+ [""]+ self.section_BREAKPOINT_post_solve+[""],  'BREAKPOINT' ),
+        (self.section_DERIVATIVE,  'DERIVATIVE states' ),
         ]
 
 
@@ -116,7 +116,7 @@ class ModFileContents(object):
         def newlineandtabjoinlines(lines): return "\n".join(["    %s"% split_if_long(sl) for sl in lines] )
         def buildersection(s,t): return "%s\n{\n%s\n}\n"%(t, newlineandtabjoinlines(lines=s) ) if len(s) != 0 else ""
 
-        t1 = "\n".join( [buildersection(s,t) for (s,t) in std_sects]  )
+        t1 = "\n".join([buildersection(s,t) for (s, t) in std_sects]  )
 
         t2 = "\n\n".join(self.section_FUNCTIONS)
         t3  = "\n\n".join(self.section_NETRECEIVES)
@@ -177,7 +177,7 @@ class MODLBuildParameters(object):
             role = metadata['mf']['role']
 
             if role == "TRANSMEMBRANECURRENT":
-                currents[obj] = NeuronMembraneCurrent( obj=obj,  symbol=obj.symbol)
+                currents[obj] = NeuronMembraneCurrent(obj=obj,  symbol=obj.symbol)
             else:
                 assert False, 'Unknown role: %s' % role
 
@@ -237,7 +237,7 @@ class MODLBuildParameters(object):
                     continue
                 if isinstance(s,(RTBlock)):
                     continue
-                if isinstance(s,(InEquality,)):
+                if isinstance(s,(InEquality)):
                     continue
 
                 symbol_units[s] = s.get_dimension()
@@ -285,7 +285,7 @@ def WriteToNMODL(component, buildparameters=None, initial_values=None, neuron_su
     FunctionWriter().visit(component,modfilecontents=m, build_parameters=buildparameters, )
     ConstantWriter().visit(component,modfilecontents=m, build_parameters=buildparameters, )
 
-    OnEventWriter().visit(component,modfilecontents=m, build_parameters=buildparameters)
+    OnEventWriter().visit(component, modfilecontents=m, build_parameters=buildparameters)
 
     txt = m.to_text()
 

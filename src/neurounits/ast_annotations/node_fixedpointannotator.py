@@ -87,7 +87,7 @@ class NodeFixedPointFormatAnnotator(ASTTreeAnnotator, ASTActionerDefault):
         vmax_scaled = vmax * upscaling_val
 
         #ann.fixed_scaling_power = upscaling_pow
-        o.annotations['fixed-point-format'] = FixedPointData( upscale = upscaling_pow,  datatype=self.datatype)
+        o.annotations['fixed-point-format'] = FixedPointData(upscale = upscaling_pow,  datatype=self.datatype)
 
         assert 0.1 < max([np.fabs(vmin_scaled), np.fabs(vmax_scaled)]) <= 1.0 \
                or  vmin_scaled == vmax_scaled == 0.0

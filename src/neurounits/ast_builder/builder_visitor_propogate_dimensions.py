@@ -28,7 +28,7 @@
 import pylab
 
 
-from neurounits.visitors import ASTVisitorBase,ASTActionerDefault
+from neurounits.visitors import ASTVisitorBase, ASTActionerDefault
 from neurounits.visitors.bases.base_actioner import SingleVisitPredicate, ASTActionerDepthFirst
 from neurounits import ast
 from neurounits.errors import UnitMismatchError
@@ -104,7 +104,7 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
             if not o.get_dimension().is_compatible(o0.get_dimension()):
                 print 'Units mismatch'
                 print o, o0
-                assert False,' %s, %s (%s %s)' %(o,o0, o.get_dimension(), o0.get_dimension())
+                assert False, ' %s, %s (%s %s)' %(o, o0, o.get_dimension(), o0.get_dimension())
 
 
 
@@ -253,17 +253,17 @@ class VerifyUnitsInTree(ASTActionerDepthFirst):
         assert len(o.src_port.parameters) == len(o.dst_port.parameters)
 
         # Multiple params: check by name:
-        if len( o.src_port.parameters) > 1:
+        if len(o.src_port.parameters) > 1:
             assert set(o.src_port.parameters.get_objects_attibutes(attr='symbol')) == set(o.dst_port.parameters.get_objects_attibutes(attr='symbol'))
             for sp in o.src_port.parameters:
                 dp = o.dst_port.parameters.get_single_obj_by(symbol=sp.symbol)
-                self.verify_equal_units([sp,dp])
+                self.verify_equal_units([sp, dp])
 
         # Single param: don't worry about name:
         elif len(o.src_port.parameters) == 1:
             sp = o.src_port.parameters.get_single_obj_by()
             dp = o.dst_port.parameters.get_single_obj_by()
-            self.verify_equal_units([sp,dp])
+            self.verify_equal_units([sp, dp])
         else:
             return
 
@@ -344,7 +344,7 @@ class DimensionResolver(ASTVisitorBase):
 
             obj_dimensionality = (obj.get_dimensionality() if obj.is_dimensionality_known() else '<Dimension Unknown>')
             obj_unit = None
-            self.history.append(' %s -> Dim: %s Unit: %s' % (name,
+            self.history.append(' %s -> Dim: %s Unit: %s' % (name, 
                                 obj_dimensionality, obj_unit))
 
     def DumpUnitStateToHistorySymbols(self):
@@ -355,7 +355,7 @@ class DimensionResolver(ASTVisitorBase):
             try:
                 obj_dim = obj.get_dimension() if obj.is_dimension_known() else "<Dimension Unknown>"
                 obj_unit = None
-                self.history.append(' %s - %s - %s %s' % (name,obj.symbol, obj_dim, obj_unit) )
+                self.history.append(' %s - %s - %s %s' % (name, obj.symbol, obj_dim, obj_unit) )
             except:
                 pass
 
@@ -476,7 +476,7 @@ class DimensionResolver(ASTVisitorBase):
                 continue
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
-        return self.EnsureEqualDimensions([o.lhs, o.rhs_map],reason='EqnAssignmentPerRegime')
+        return self.EnsureEqualDimensions([o.lhs, o.rhs_map], reason='EqnAssignmentPerRegime')
 
 
 
@@ -583,7 +583,7 @@ class DimensionResolver(ASTVisitorBase):
     def VisitOnTransitionEvent(self, o, **kwargs):
         for p in o.parameters:
             port_param = o.port.parameters.get_single_obj_by(symbol=p.symbol)
-            self.EnsureEqualDimensions([p,port_param])
+            self.EnsureEqualDimensions([p, port_param])
         for p in o.parameters:
             self.visit(p)
 
@@ -599,7 +599,7 @@ class DimensionResolver(ASTVisitorBase):
         pass
 
     def VisitEmitEventParameter(self, o):
-        self.EnsureEqualDimensions([o, o.port_parameter_obj, o.rhs],)
+        self.EnsureEqualDimensions([o, o.port_parameter_obj, o.rhs])
 
     def VisitInEventPort(self, o):
         pass

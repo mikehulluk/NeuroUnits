@@ -110,7 +110,7 @@ class RunDialog(wx.Dialog):
 
     def DoRun(self, evt):
         print 'RUNNNIGN!', self.component
-        res = component.simulate( times=numpy.arange(0,1.1,0.0001) )
+        res = component.simulate(times=numpy.arange(0,1.1,0.0001) )
         neurounits.nineml.auto_plot(res)
         import pylab
         pylab.show()
@@ -135,7 +135,7 @@ class TabPanel1(wx.Panel):
         """"""
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
-        self.tree = wx.TreeCtrl(self, 1, wx.DefaultPosition, (-1,-1), wx.TR_HIDE_ROOT|wx.TR_HAS_BUTTONS|wx.EXPAND)
+        self.tree = wx.TreeCtrl(self, 1, wx.DefaultPosition, (-1, -1), wx.TR_HIDE_ROOT|wx.TR_HAS_BUTTONS|wx.EXPAND)
 
         # Setup the image lists:
         self.il = wx.ImageList(24,24)
@@ -169,7 +169,7 @@ class TabPanel1(wx.Panel):
         self.tree.AppendItem(os, 'Linux')
 
 
-    def showPopupMenu(self,evt):
+    def showPopupMenu(self, evt):
         position = self.ScreenToClient(wx.GetMousePosition())
 
 
@@ -183,13 +183,13 @@ class TabPanel1(wx.Panel):
             run_id = wx.NewId()
             other_id = wx.NewId()
             menu.Append(run_id, 'Run:' + obj.name)
-            menu.Append(other_id,'Item 2')
+            menu.Append(other_id, 'Item 2')
 
             # The handler:
             def my_run(evt):
                 # Run the component?:
                 if evt.GetId() == run_id:
-                    chgdep = RunDialog(None, component=obj,) # title='Change Color Depth')
+                    chgdep = RunDialog(None, component=obj) # title='Change Color Depth')
                     chgdep.ShowModal()
                     chgdep.Destroy()
 
@@ -379,14 +379,14 @@ class RHSPanelComponent(wx.Panel):
         self.objlabel.SetLabel('Details for component:' + component.name)
 
 
-        for index, obj in enumerate( component.all_terminal_objs() ):
+        for index, obj in enumerate(component.all_terminal_objs() ):
 
             self.list_ctrl_terminals.InsertStringItem(index, obj.symbol)
             self.list_ctrl_terminals.SetStringItem(index, 1, type(obj).__name__.split('.')[-1] )
             self.list_ctrl_terminals.SetStringItem(index, 2, str(obj.get_dimension()) )
 
 
-        for index, obj in enumerate( component._interface_connectors ):
+        for index, obj in enumerate(component._interface_connectors ):
             self.list_ctrl_interfaces.InsertStringItem(index, obj.symbol)
             self.list_ctrl_interfaces.SetStringItem(index, 1, type(obj).__name__.split('.')[-1] )
             self.list_ctrl_interfaces.SetStringItem(index, 2, '' )
@@ -495,14 +495,14 @@ def run_gui():
 
 
 
-    srcs = sorted( glob.glob("/home/michael/hw/NeuroUnits/src/test_data/l4-9ml/std/*.9ml"))
-    srcs = srcs[:3] + list(sorted( glob.glob("/home/michael/hw/NeuroUnits/src/test_data/l4-9ml/examples/*.9ml")))
+    srcs = sorted(glob.glob("/home/michael/hw/NeuroUnits/src/test_data/l4-9ml/std/*.9ml"))
+    srcs = srcs[:3] + list(sorted(glob.glob("/home/michael/hw/NeuroUnits/src/test_data/l4-9ml/examples/*.9ml")))
     lib_mgr = neurounits.NeuroUnitParser.Parse9MLFiles(srcs)
 
 
 
     app = wx.PySimpleApp()
-    frame = MyFrame(None,  size=(1000,480))
+    frame = MyFrame(None,  size=(1000, 480))
     frame.Show()
     app.MainLoop()
 

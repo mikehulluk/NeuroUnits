@@ -85,7 +85,7 @@ class EventManager(object):
     def emit_event(self, port, parameter_values):
 
         submit_time = self.current_time +  self.dummy_delay
-        self.outstanding_event_list.append( Event( port=port, parameter_values=parameter_values, time=submit_time) )
+        self.outstanding_event_list.append(Event(port=port, parameter_values=parameter_values, time=submit_time) )
 
     def set_time(self, t):
         self.previous_time = self.current_time
@@ -103,7 +103,7 @@ class EventManager(object):
         self.processed_event_list.append(event)
 
 
-def simulate_component(component, times, parameters=None,initial_state_values=None, initial_regimes=None, close_reduce_ports=True):
+def simulate_component(component, times, parameters=None, initial_state_values=None, initial_regimes=None, close_reduce_ports=True):
 
     parameters = parameters if parameters is not None else {}
     initial_regimes = initial_regimes if initial_regimes is not None else {}
@@ -122,8 +122,8 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
     # Sort out the parameters and initial_state_variables:
     # =====================================================
     neurounits.Q1 = neurounits.NeuroUnitParser.QuantitySimple
-    parameters = dict( (k, neurounits.Q1(v)) for (k,v) in parameters.items() )
-    initial_state_values = dict( (k, neurounits.Q1(v)) for (k,v) in initial_state_values.items() )
+    parameters = dict((k, neurounits.Q1(v)) for (k,v) in parameters.items() )
+    initial_state_values = dict((k, neurounits.Q1(v)) for (k, v) in initial_state_values.items() )
 
     # Sanity check, are the parameters and initial state_variable values in the right units:
     for (k, v) in parameters.items() + initial_state_values.items():
@@ -201,8 +201,8 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
 
         # Update the states:
         for (d, dS) in deltas.items():
-            assert d in state_values, "Found unexpected delta: %s " %( d )
-            state_values[d] += dS * (times[i+1] - times[i] ) * one_second
+            assert d in state_values, "Found unexpected delta: %s " %(d )
+            state_values[d] += dS * (times[i+1] - times[i])* one_second
 
 
         # Get all the events, and forward them to the approprate input ports:
@@ -224,13 +224,13 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
             for transition in component.transitions_from_regime(current_regime):
 
                 if isinstance(transition, ast.OnConditionTriggerTransition):
-                    res = f.transition_triggers_evals[transition]( state_data=state_data)
+                    res = f.transition_triggers_evals[transition](state_data=state_data)
                     if res:
                         triggered_transitions.append((transition,None, rt_graph))
                 elif isinstance(transition, ast.OnEventTransition):
                     for (port,evt) in ports_with_events.items():
                         if transition in f.transition_port_handlers[port]:
-                            triggered_transitions.append((transition,evt, rt_graph))
+                            triggered_transitions.append((transition, evt, rt_graph))
                 else:
                     assert False
 
@@ -242,14 +242,14 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
 
         if triggered_transitions:
             # Check that all transitions resolve back to this state:
-            rt_graphs = set([ rt_graph for ( tr, evt, rt_graph) in triggered_transitions ])
+            rt_graphs = set([ rt_graph for (tr, evt, rt_graph) in triggered_transitions ])
             for rt_graph in rt_graphs:
-                rt_trig_trans = ( [ tr for ( tr, evt, rt_graph_) in triggered_transitions if rt_graph_ == rt_graph ])
-                target_regimes = set( [tr.target_regime for tr in rt_trig_trans] )
+                rt_trig_trans = ([ tr for (tr, evt, rt_graph_) in triggered_transitions if rt_graph_ == rt_graph ])
+                target_regimes = set([tr.target_regime for tr in rt_trig_trans] )
                 assert len(target_regimes) == 1
 
             updated_states = set()
-            for (tr,evt,rt_graph) in triggered_transitions:
+            for (tr,evt, rt_graph) in triggered_transitions:
                 state_data.clear_states_out()
                 (state_changes, new_regime) = do_transition_change(tr=tr, evt=evt, state_data=state_data, functor_gen = f)
                 current_regimes[rt_graph] = new_regime
@@ -275,7 +275,7 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
 
 
     # A. Times:
-    times = np.array( [time_pt_data.suppliedvalues['t'].float_in_si() for time_pt_data in reses_new] )
+    times = np.array([time_pt_data.suppliedvalues['t'].float_in_si() for time_pt_data in reses_new] )
 
     # B. State variables:
     state_names = [s.symbol for s in component.state_variables]
@@ -286,7 +286,7 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
         states_data = np.array(states_data)
         state_data_dict[state_name] = states_data
         print 'State:', state_name
-        print '  (Min:', np.min( states_data), ', Max:', np.max( states_data), ')'
+        print '  (Min:', np.min(states_data), ', Max:', np.max(states_data), ')'
 
     # C. Assigned Values:
 
@@ -301,14 +301,14 @@ def simulate_component(component, times, parameters=None,initial_state_values=No
             ass_res.append(res.float_in_si())
         assignments[ass.symbol] = np.array(ass_res)
         print
-        print '  (Min:', np.min( assignments[ass.symbol]), ', Max:', np.max( assignments[ass.symbol]), ')'
+        print '  (Min:', np.min(assignments[ass.symbol]), ', Max:', np.max(assignments[ass.symbol]), ')'
 
 
     # D. RT-gragh Regimes:
     # Build a dictionary mapping regimes -> Regimes, to make plotting easier:
     regimes_to_ints_map = {}
     for rt_graph in component.rt_graphs:
-        regimes_to_ints_map[rt_graph] = dict( zip(  iter(rt_graph.regimes),range(len(rt_graph.regimes)),) )
+        regimes_to_ints_map[rt_graph] = dict(zip( iter(rt_graph.regimes),range(len(rt_graph.regimes)),) )
 
     rt_graph_data = {}
     for rt_graph in component.rt_graphs:

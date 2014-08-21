@@ -84,13 +84,13 @@ class Library(Block):
     def accept_visitor(self, v, **kwargs):
         return v.VisitLibrary(self, **kwargs)
 
-    def __init__(self,  library_manager, builder, builddata,name):
-        super(Library,self).__init__(library_manager=library_manager, builder=builder, name=name)
+    def __init__(self,  library_manager, builder, builddata, name):
+        super(Library, self).__init__(library_manager=library_manager, builder=builder, name=name)
         import neurounits.ast as ast
 
-        self._function_defs = LookUpDict( builddata.funcdefs, accepted_obj_types=(ast.FunctionDefUser, ast.FunctionDefBuiltIn) )
-        self._symbolicconstants = LookUpDict( builddata.symbolicconstants, accepted_obj_types=(ast.SymbolicConstant, ) )
-        self._eqn_assignment = LookUpDict( builddata.assignments, accepted_obj_types=(ast.EqnAssignmentByRegime,) )
+        self._function_defs = LookUpDict(builddata.funcdefs, accepted_obj_types=(ast.FunctionDefUser, ast.FunctionDefBuiltIn) )
+        self._symbolicconstants = LookUpDict(builddata.symbolicconstants, accepted_obj_types=(ast.SymbolicConstant,))
+        self._eqn_assignment = LookUpDict(builddata.assignments, accepted_obj_types=(ast.EqnAssignmentByRegime,))
 
     def get_terminal_obj(self, symbol):
 
@@ -122,7 +122,7 @@ class Library(Block):
 
 
     @property
-    def ordered_assignments_by_dependancies(self,):
+    def ordered_assignments_by_dependancies(self):
         from neurounits.visitors.common.ast_symbol_dependancies_new import VisitorSymbolDependance
         ordered_assigned_values =  VisitorSymbolDependance(self).get_assignment_dependancy_ordering()
         ordered_assignments =  [LookUpDict(self.assignments).get_single_obj_by(lhs=av) for av in ordered_assigned_values]
@@ -270,7 +270,7 @@ class NineMLComponent(Block):
     @property
     def all_input_terminals(self):
         #TODO - whty is state_variables in this list?
-        return list( itertools.chain(
+        return list(itertools.chain(
                         self._parameters_lut,
                         self._supplied_lut,
                         self._analog_reduce_ports_lut,
@@ -305,7 +305,7 @@ class NineMLComponent(Block):
 
         if not len(possible_objs) == 1:
             all_syms = [ p.symbol for p in self.all_terminal_objs() ] + self.input_event_port_lut.get_objects_attibutes(attr='symbol')
-            raise KeyError("Can't find terminal/EventPort: '%s' \n (Terminals/EntPorts found: %s)" % (symbol, ','.join(all_syms) ) )
+            raise KeyError("Can't find terminal/EventPort: '%s' \n (Terminals/EntPorts found: %s)" % (symbol, ','.join(all_syms)))
 
         return possible_objs[0]
 
@@ -321,7 +321,7 @@ class NineMLComponent(Block):
 
         if not len(possible_objs) == 1:
             all_syms = [ p.symbol for p in self.all_terminal_objs()]
-            raise KeyError("Can't find terminal: '%s' \n (Terminals found: %s)" % (symbol, ','.join(sorted(all_syms)) ) )
+            raise KeyError("Can't find terminal: '%s' \n (Terminals found: %s)" % (symbol, ','.join(sorted(all_syms))))
 
         return possible_objs[0]
 
@@ -387,9 +387,9 @@ class NineMLComponent(Block):
     # These should be tidied up:
     def getSymbolDependancicesDirect(self, sym, include_constants=False, include_parameters=True):
         from neurounits.visitors.common.ast_symbol_dependancies_new import VisitorSymbolDependance
-        return VisitorSymbolDependance(self).get_terminal_dependancies(sym, expand_assignments=False,include_parameters=include_parameters)
+        return VisitorSymbolDependance(self).get_terminal_dependancies(sym, expand_assignments=False, include_parameters=include_parameters)
 
-    def getSymbolDependancicesIndirect(self, sym,include_constants=False, include_ass_in_output=False):
+    def getSymbolDependancicesIndirect(self, sym, include_constants=False, include_ass_in_output=False):
         from neurounits.visitors.common.ast_symbol_dependancies_new import VisitorSymbolDependance
         return VisitorSymbolDependance(self).get_terminal_dependancies(sym, expand_assignments=True)
 
@@ -415,22 +415,22 @@ class NineMLComponent(Block):
 
 
     def __init__(self,  library_manager, builder, builddata, name=None):
-        super(NineMLComponent,self).__init__(library_manager=library_manager, builder=builder,  name=name)
+        super(NineMLComponent, self).__init__(library_manager=library_manager, builder=builder,  name=name)
 
 
         import neurounits.ast as ast
 
         # Top-level objects:
-        self._function_defs = LookUpDict( builddata.funcdefs, accepted_obj_types=(ast.FunctionDefUser) )
-        self._symbolicconstants = LookUpDict( builddata.symbolicconstants, accepted_obj_types=(ast.SymbolicConstant, ) )
+        self._function_defs = LookUpDict(builddata.funcdefs, accepted_obj_types=(ast.FunctionDefUser) )
+        self._symbolicconstants = LookUpDict(builddata.symbolicconstants, accepted_obj_types=(ast.SymbolicConstant,))
 
-        self._eqn_assignment = LookUpDict( builddata.assignments, accepted_obj_types=(ast.EqnAssignmentByRegime,) )
-        self._eqn_time_derivatives = LookUpDict( builddata.timederivatives, accepted_obj_types=(ast.EqnTimeDerivativeByRegime,) )
+        self._eqn_assignment = LookUpDict(builddata.assignments, accepted_obj_types=(ast.EqnAssignmentByRegime,))
+        self._eqn_time_derivatives = LookUpDict(builddata.timederivatives, accepted_obj_types=(ast.EqnTimeDerivativeByRegime,))
 
 
-        self._transitions_conditiontriggers = LookUpDict( builddata.transitions_conditiontriggers )
-        self._transitions_events = LookUpDict( builddata.transitions_events )
-        self._rt_graphs = LookUpDict( builddata.rt_graphs)
+        self._transitions_conditiontriggers = LookUpDict(builddata.transitions_conditiontriggers )
+        self._transitions_events = LookUpDict(builddata.transitions_events )
+        self._rt_graphs = LookUpDict(builddata.rt_graphs)
 
         self._time_node = builddata.time_node
 
@@ -439,7 +439,7 @@ class NineMLComponent(Block):
 
         from neurounits.ast import CompoundPortConnector
         # This is a list of the available connectors from this component
-        self._interface_connectors = LookUpDict( accepted_obj_types=(CompoundPortConnector,), unique_attrs=('symbol',))
+        self._interface_connectors = LookUpDict(accepted_obj_types=(CompoundPortConnector, ), unique_attrs=('symbol', ))
 
 
 
@@ -458,7 +458,7 @@ class NineMLComponent(Block):
         assert isinstance(local_name, basestring)
         assert isinstance(porttype, basestring)
         assert isinstance(direction, basestring)
-        for src,dst in wire_mapping_txts:
+        for src, dst in wire_mapping_txts:
             assert isinstance(src, basestring)
             assert isinstance(dst, basestring)
 
@@ -602,7 +602,7 @@ class NineMLComponent(Block):
                 assert isinstance(sv.initial_value, ast.ConstValue)
                 state_values[sv.symbol] = sv.initial_value.value
 
-        for (k,v) in initial_state_values.items():
+        for (k, v) in initial_state_values.items():
             assert not k in state_values, 'Double set intial values: %s' % k
             assert k in [td.lhs.symbol for td in self.timederivatives]
             state_values[k]= v

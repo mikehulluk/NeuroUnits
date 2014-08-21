@@ -66,7 +66,7 @@ def get_gj():
 
 
 
-    library_manager = neurounits.NeuroUnitParser.Parse9MLFile( src_text)
+    library_manager = neurounits.NeuroUnitParser.Parse9MLFile(src_text)
     comp = library_manager['simple_gj']
     comp.expand_all_function_calls()
 
@@ -75,10 +75,10 @@ def get_gj():
 
     OptimiseEquations(comp)
 
-    comp.annotate_ast( NodeRangeByOptimiser(var_annots_ranges))
+    comp.annotate_ast(NodeRangeByOptimiser(var_annots_ranges))
     RangeExpander().visit(comp)
 
-    comp.annotate_ast( NodeToIntAnnotator(), ast_label='node-ids' )
+    comp.annotate_ast(NodeToIntAnnotator(), ast_label='node-ids' )
 
     #from neurounits.ast_annotations.common import
     NodeTagger(var_annots_tags).visit(comp)

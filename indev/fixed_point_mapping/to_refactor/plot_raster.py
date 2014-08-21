@@ -29,7 +29,7 @@ plotting_info = {}
 f = pylab.figure()
 ax = f.add_subplot(111)
 
-for (is_lhs,cell_type), (saved_pop_name, start_index, ncells) in pop_breakdowns.items():
+for (is_lhs, cell_type), (saved_pop_name, start_index, ncells) in pop_breakdowns.items():
     print 'Plotting: ', cell_type
     pop_color, pop_y_index = pop_info[cell_type]
 
@@ -39,7 +39,7 @@ for (is_lhs,cell_type), (saved_pop_name, start_index, ncells) in pop_breakdowns.
 
     patches = []
     for x1 in pop_x_poses:
-        circle = Circle((x1,pop_y_pos), r)
+        circle = Circle((x1, pop_y_pos), r)
         patches.append(circle)
 
 

@@ -47,7 +47,7 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
     def ActionRandomVariableParameter(self, o, **kwargs):
         self.const_value[o] = self.const_value[o.rhs_ast]
 
-    def ActionAutoRegressiveModel(self,o,**kwargs):
+    def ActionAutoRegressiveModel(self,o, **kwargs):
         self.const_value[o] = None
 
     def ActionFunctionDefUser(self, o, **kwargs):
@@ -106,7 +106,7 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
         if self.const_value[o.lhs] is None or self.const_value[o.rhs] is None:
             self.const_value[o] = None
         else:
-            self.const_value[o] = op( self.const_value[o.lhs] , self.const_value[o.rhs] )
+            self.const_value[o] = op(self.const_value[o.lhs] , self.const_value[o.rhs] )
 
     def ActionAddOp(self, o, **kwargs):
         self._ActionBinOp(o, operator.add)
@@ -124,7 +124,8 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
         assert False
 
     def ActionFunctionDefBuiltInInstantiation(self, o, **kwargs):
-        assert o.function_def.funcname in ['__exp__','__ln__']
+		#TODO -generalise here        
+		assert o.function_def.funcname in ['__exp__', '__ln__']
 
         # Are all of the parameters constants:
         for p in o.parameters.values():
@@ -208,13 +209,13 @@ class ASTIsNodeConstant(ASTActionerDepthFirst):
     def ActionMultiportInterfaceDefWireEvent(self, o, **kwargs):
         pass # TODO: Optimisation here?
 
-    def ActionCompoundPortConnector(self, o,**kwargs):
+    def ActionCompoundPortConnector(self, o, **kwargs):
         pass # TODO: Optimisation here?
 
-    def ActionCompoundPortConnectorWireMapping(self, o,**kwargs):
+    def ActionCompoundPortConnectorWireMapping(self, o, **kwargs):
         pass # TODO: Optimisation here?
 
-    def ActionLibraryManager(self, o,**kwargs):
+    def ActionLibraryManager(self, o, **kwargs):
         pass # TODO: Optimisation here?
 
     def ActionLibrary(self, o, **kwargs):
@@ -257,9 +258,9 @@ class ReplaceWithOptimisedNodes(ASTVisitorBase):
         val = self.constants[o.rhs]
         new_node = ast.MulOp(
                 lhs = o.lhs,
-                rhs = ast.ConstValue( value = MMQuantity(1, MMUnit())/val )
+                rhs = ast.ConstValue(value = MMQuantity(1, MMUnit())/val )
                 )
-        new_node.set_dimension( o.get_dimension() )
+        new_node.set_dimension(o.get_dimension() )
         return new_node
 
 
@@ -303,7 +304,7 @@ class ReplaceWithOptimisedNodes(ASTVisitorBase):
 
 
     def __init__(self, component, constants):
-        super(ReplaceWithOptimisedNodes,self).__init__()
+        super(ReplaceWithOptimisedNodes, self).__init__()
         self.component = component
         self.constants = constants
         self.visit(component)
@@ -311,9 +312,9 @@ class ReplaceWithOptimisedNodes(ASTVisitorBase):
 
     def replace_or_visit(self, node):
         if self.should_replace_div_by_mul(node):
-            return self.replace_or_visit( self.do_replace_div_by_mul(node) )
+            return self.replace_or_visit(self.do_replace_div_by_mul(node) )
         if self.should_replace_addsub_zero(node):
-            return self.replace_or_visit( self.do_replace_addsub_zero(node) )
+            return self.replace_or_visit(self.do_replace_addsub_zero(node) )
 
         # No change?
         self.visit(node)
@@ -351,7 +352,7 @@ class ReplaceWithOptimisedNodes(ASTVisitorBase):
         pass
     def VisitStateVariable(self,o ):
         pass
-    def VisitConstant(self,o):
+    def VisitConstant(self, o):
         pass
     def VisitConstantZero(self, o):
         pass

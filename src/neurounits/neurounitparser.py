@@ -33,7 +33,7 @@ import pkg_resources
 import neurounits.nulogging as logging
 
 class NeuroUnitParserOptions(object):
-    def __init__(  self,
+    def __init__( self,
                     allow_unused_parameter_declarations=False,
                     allow_unused_suppliedvalue_declarations = False):
         self.allow_unused_parameter_declarations = allow_unused_parameter_declarations
@@ -106,7 +106,7 @@ class NeuroUnitParser(object):
                 text = input_
 
         else:
-            assert False, 'Unexpected input: %s %s' % ( type(input_), input_)
+            assert False, 'Unexpected input: %s %s' % (type(input_), input_)
 
 
 
@@ -138,11 +138,11 @@ class NeuroUnitParser(object):
             s = units_expr_yacc.parse_expr(s, parse_type=units_expr_yacc.ParseTypes.L6_ExprNode, working_dir=working_dir, backend=backend, options=options,)
             return s
         if isinstance(s, (float,int)):
-            from neurounits.units_backends.mh import MMUnit,MMQuantity
-            s = neurounits.ast.ConstValue( value=MMQuantity(s, MMUnit() ) )
+            from neurounits.units_backends.mh import MMUnit, MMQuantity
+            s = neurounits.ast.ConstValue(value=MMQuantity(s, MMUnit()))
 
         #print s, type(s)
-        assert isinstance( s, neurounits.ast.ASTExpressionObject)
+        assert isinstance(s, neurounits.ast.ASTExpressionObject)
         return s
 
 

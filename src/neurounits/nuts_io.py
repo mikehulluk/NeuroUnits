@@ -113,19 +113,19 @@ class NutsOptions():
 
 
 
-def compare_l1A(u1,u2, eps=None):
+def compare_l1A(u1, u2, eps=None):
     return u1==u2
     #eps = eps if eps is not None else default_eps
-    #return math.fabs( float(u1-u2) ) < eps
+    #return math.fabs(float(u1-u2))< eps
     #return u1==u2
 
 def compare_l1B(u1,u2, eps=None):
     eps = eps if eps is not None else default_eps
-    return math.fabs( (u1-u2).float_in_si() ) < eps
+    return math.fabs((u1-u2).float_in_si())< eps
 
 def compare_l2(u1,u2, eps=None):
     eps = eps if eps is not None else default_eps
-    return math.fabs( (u1-u2).float_in_si() ) < eps
+    return math.fabs((u1-u2).float_in_si())< eps
 
 parse_func_lut = {
         'L1A':neurounits.NeuroUnitParser.Unit,

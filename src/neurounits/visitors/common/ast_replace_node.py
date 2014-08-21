@@ -76,7 +76,7 @@ class ReplaceNode(ASTVisitorBase):
         if o == self.srcObj:
             return self.dstObj
         else:
-            if 'symbol' in o.__dict__ and hasattr(self.srcObj,'symbol'):
+            if 'symbol' in o.__dict__ and hasattr(self.srcObj, 'symbol'):
                 assert not o.symbol == self.srcObj.symbol, 'Symbol: %s' % o.symbol
 
             return self.visit(o)
@@ -105,7 +105,7 @@ class ReplaceNode(ASTVisitorBase):
         new_lut.unique_attrs =  lut.unique_attrs
         new_lut.accepted_obj_types =  lut.accepted_obj_types
         for o in lut:
-            new_lut._add_item( self.replace_or_visit(o)  )
+            new_lut._add_item(self.replace_or_visit(o)  )
         return new_lut
 
 
@@ -291,7 +291,7 @@ class ReplaceNode(ASTVisitorBase):
         return o
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
-        o.rhs_map = dict([(self.replace_or_visit(reg), self.replace_or_visit(rhs)) for (reg,rhs) in o.rhs_map.items()])
+        o.rhs_map = dict([(self.replace_or_visit(reg), self.replace_or_visit(rhs)) for (reg, rhs) in o.rhs_map.items()])
         return o
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):

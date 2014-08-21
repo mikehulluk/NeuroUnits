@@ -73,7 +73,7 @@ class _CachedFileAccessData(object):
 
         return False
 
-    def __str__(self,):
+    def __str__(self):
         return '<CachedFileObject: (is_clean:%s) %s [%s->%s]>' % (self.is_clean(), self.filename, self._cachedhashfile, HashManager.get_filename_hash(self.filename))
 
 
@@ -129,7 +129,7 @@ class ComponentLibrary(object):
 
 
         import sys
-        trace_obj = trace.Trace( count=1, trace=0, countfuncs=0,
+        trace_obj = trace.Trace(count=1, trace=0, countfuncs=0,
             ignoredirs=[sys.prefix, sys.exec_prefix])
 
         # Build the component:
@@ -166,7 +166,7 @@ class ComponentLibrary(object):
             cache_data.append(cd)
 
         # And lets save the results:
-        with open(expected_filename,'w') as f:
+        with open(expected_filename, 'w') as f:
             pickle.dump((cache_data, component), f)
 
         # And return the result:

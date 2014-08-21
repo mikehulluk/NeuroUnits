@@ -132,7 +132,7 @@ class MMUnit(object):
         basisCounts = dict([(b, getattr(self, b)) for b in MMUnit.Bases])
 
         counts_per_base = [  (basis_short_LUT[b], basisCounts[b]) for b in MMUnit.Bases if basisCounts[b]]
-        terms = ['%s %s' % (base, str(count) if count > 1 else "" ) for (base,count) in counts_per_base]
+        terms = ['%s %s' % (base, str(count) if count > 1 else "")for (base,count) in counts_per_base]
         s2 = ' '.join(terms)
         return '%s %s' % (s1, s2)
 
@@ -148,7 +148,7 @@ class MMUnit(object):
 
     def is_dimensionless(self, allow_non_zero_power_of_ten):
 
-        dimensionless = ( self.meter==0 and self.kilogram==0 and self.second==0 and self.ampere==0 and self.kelvin==0 and self.mole == 0 and self.candela==0)
+        dimensionless = (self.meter==0 and self.kilogram==0 and self.second==0 and self.ampere==0 and self.kelvin==0 and self.mole == 0 and self.candela==0)
         if allow_non_zero_power_of_ten:
             return dimensionless
         else:
@@ -281,7 +281,7 @@ class MMQuantity(object):
 
 
 
-    def is_compatible(self,u):
+    def is_compatible(self, u):
         return self.unit.meter == u.meter and self.unit.kilogram == u.kilogram and self.unit.second == u.second and self.unit.ampere == u.ampere and self.unit.kelvin == u.kelvin and self.unit.mole == u.mole and self.unit.candela == u.candela
 
     def check_compatible(self, u):

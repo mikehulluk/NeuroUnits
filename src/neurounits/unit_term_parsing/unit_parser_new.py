@@ -18,7 +18,7 @@ class UnitTermParser(object):
 
 
 
-    def _add_default_basic_units(self,):
+    def _add_default_basic_units(self):
         self._shortforms['m'] = lambda backend: backend.Unit(meter=1)
         self._shortforms['g'] = lambda backend: backend.Unit(kilogram=1, powerTen=-3)
         self._shortforms['s'] = lambda backend: backend.Unit(second=1)
@@ -82,7 +82,7 @@ class UnitTermParser(object):
         potential_suffixes = []
         for u,uv in units_dict.items():
             if unitterm.endswith(u):
-                potential_suffixes.append( (unitterm[:len(unitterm)-len(u)], u,uv) )
+                potential_suffixes.append((unitterm[:len(unitterm)-len(u)], u,uv) )
         if not potential_suffixes:
             return
 
@@ -109,7 +109,7 @@ class UnitTermParser(object):
         e = equivalent_dim
         pot = 0
         if equivalent_dim.float_in_si() != 1.0:
-            pot = int( np.log10(equivalent_dim.float_in_si()))
+            pot = int(np.log10(equivalent_dim.float_in_si()))
             assert equivalent_dim.float_in_si() / 10**pot == 1.0
 
         func = lambda backend: backend.Unit(

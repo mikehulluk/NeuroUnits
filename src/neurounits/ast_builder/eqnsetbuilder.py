@@ -108,7 +108,7 @@ class Scope(object):
         self.symbol_dict[symbol] = value
 
     def get_proxy_targetname(self, symproxy):
-        posses = [ (k,v) for (k,v) in self.symbol_dict.items() if v==symproxy]
+        posses = [ (k, v) for (k, v) in self.symbol_dict.items() if v==symproxy]
         assert len(posses) == 1
         return posses[0][0]
 
@@ -162,8 +162,8 @@ class AbstractBlockBuilder(object):
         self._interface_data = []
 
         # Event ports:
-        self._output_event_ports = LookUpDict( accepted_obj_types=(ast.OutEventPort) )
-        self._input_event_ports = LookUpDict( accepted_obj_types=(ast.InEventPort) )
+        self._output_event_ports = LookUpDict(accepted_obj_types=(ast.OutEventPort) )
+        self._input_event_ports = LookUpDict(accepted_obj_types=(ast.InEventPort) )
 
 
 
@@ -184,7 +184,7 @@ class AbstractBlockBuilder(object):
 
 
     def set_initial_regime(self, regime_name):
-        assert len( self._all_rt_graphs)  == 1, 'Only one rt grpah supported at the mo (because of default handling)'
+        assert len(self._all_rt_graphs)  == 1, 'Only one rt grpah supported at the mo (because of default handling)'
         assert self._current_rt_graph.has_regime(name=regime_name), 'Default regime not found! %s' % regime_name
         self._current_rt_graph.default_regime = self._current_rt_graph.get_regime(regime_name)
 
@@ -195,7 +195,7 @@ class AbstractBlockBuilder(object):
             # Create the parameter objects:
             param_dict = LookUpDict(accepted_obj_types=(ast.InEventPortParameter), unique_attrs=['symbol'])
             for param_name in expected_parameter_names:
-                param_dict._add_item( ast.InEventPortParameter(symbol=param_name) )
+                param_dict._add_item(ast.InEventPortParameter(symbol=param_name) )
 
             # Create the port object:
             port = ast.InEventPort(symbol=port_name, parameters=param_dict)
@@ -220,7 +220,7 @@ class AbstractBlockBuilder(object):
             # Create the parameter objects:
             param_dict = LookUpDict(accepted_obj_types=(ast.OutEventPortParameter), unique_attrs=['symbol'])
             for param_name in expected_parameter_names:
-                param_dict._add_item( ast.OutEventPortParameter(symbol=param_name) )
+                param_dict._add_item(ast.OutEventPortParameter(symbol=param_name) )
 
             # Create the port object:
             port = ast.OutEventPort(symbol=port_name, parameters=param_dict)
@@ -244,7 +244,7 @@ class AbstractBlockBuilder(object):
 
         # Connect up the parameters:
         for p in parameters:
-            p.set_port_parameter_obj( port.parameters.get_single_obj_by(symbol=p._symbol) )
+            p.set_port_parameter_obj(port.parameters.get_single_obj_by(symbol=p._symbol) )
 
         emit_event = ast.EmitEvent(port=port, parameters=parameters )
 
@@ -283,7 +283,7 @@ class AbstractBlockBuilder(object):
         else:
             return self.global_scope.getSymbolOrProxy(s)
 
-    def _resolve_global_symbol(self,symbol,target, expect_is_unresolved=False):
+    def _resolve_global_symbol(self, symbol, target, expect_is_unresolved=False):
         if expect_is_unresolved and not self.global_scope.hasSymbol(symbol):
                 raise KeyError("I was expecting to resolve a symbol in globalnamespace that is not there %s" % symbol)
 
@@ -301,24 +301,24 @@ class AbstractBlockBuilder(object):
         for (token, alias) in tokens:
 
             sym = lib.get_terminal_obj(token)
-            exc = {ast.FunctionDefUser: self.do_import_function_def,
-                   ast.FunctionDefBuiltIn: self.do_import_function_builtin,
+            exc = {ast.FunctionDefUser: self.do_import_function_def, 
+                   ast.FunctionDefBuiltIn: self.do_import_function_builtin, 
                    ast.SymbolicConstant: self.do_import_constant}
             exc[type(sym)](sym, alias=alias)
 
 
-    def do_import_constant(self,srcObjConstant, alias=None):
+    def do_import_constant(self, srcObjConstant, alias=None):
         new_obj = CloneObject.SymbolicConstant(srcObj=srcObjConstant, dst_symbol=alias)
         self._resolve_global_symbol(new_obj.symbol, new_obj)
         self.builddata.symbolicconstants[new_obj.symbol] = new_obj
 
         assert isinstance(new_obj, SymbolicConstant)
 
-    def do_import_function_builtin(self,srcObjFuncDef, alias=None):
+    def do_import_function_builtin(self, srcObjFuncDef, alias=None):
         new_obj = CloneObject.BuiltinFunction(srcObj=srcObjFuncDef, dst_symbol=alias)
         self.builddata.funcdefs[new_obj.funcname] = new_obj
 
-    def do_import_function_def(self,srcObjFuncDef, alias=None):
+    def do_import_function_def(self, srcObjFuncDef, alias=None):
         new_obj = CloneObject.FunctionDefUser(srcObj=srcObjFuncDef, dst_symbol=alias)
         self.builddata.funcdefs[new_obj.funcname] = new_obj
 
@@ -375,7 +375,7 @@ class AbstractBlockBuilder(object):
         for (sym, obj) in scope.iteritems():
             # Resolve Symbol from the Event Parameters:
             if sym in event_params.get_objects_attibutes(attr='symbol'):
-                obj.set_target( event_params.get_single_obj_by(symbol=sym) ) #event_params[sym])
+                obj.set_target(event_params.get_single_obj_by(symbol=sym))#event_params[sym])
             else:
                 # Resolve at global scope:
                 obj.set_target(self.global_scope.getSymbolOrProxy(sym))
@@ -406,7 +406,7 @@ class AbstractBlockBuilder(object):
             target_regime = self._current_rt_graph.get_or_create_regime(target_regime)
 
         assert self.active_scope is None
-        self.builddata.transitions_conditiontriggers.append(ast.OnConditionTriggerTransition(trigger=trigger,
+        self.builddata.transitions_conditiontriggers.append(ast.OnConditionTriggerTransition(trigger=trigger, 
                 actions=actions, target_regime=target_regime, src_regime=src_regime))
 
 
@@ -487,7 +487,7 @@ class AbstractBlockBuilder(object):
 
 
 
-            mapping = dict([(reg, rhs) for (reg,rhs) in tds.items()])
+            mapping = dict([(reg, rhs) for (reg, rhs) in tds.items()])
             rhs = ast.EqnTimeDerivativeByRegime(
                     lhs=statevar_obj,
                     rhs_map=ast.EqnRegimeDispatchMap(mapping)
@@ -512,7 +512,7 @@ class AbstractBlockBuilder(object):
             assvar_obj = ast.AssignedVariable(symbol=ass_var)
             self._resolve_global_symbol(ass_var, assvar_obj)
 
-            mapping = dict([ (reg, rhs) for (reg,rhs) in tds.items()] )
+            mapping = dict([ (reg, rhs) for (reg, rhs) in tds.items()] )
             rhs = ast.EqnAssignmentByRegime(
                     lhs=assvar_obj,
                     rhs_map=ast.EqnRegimeDispatchMap(mapping)
@@ -558,9 +558,9 @@ class AbstractBlockBuilder(object):
         # lets create them:
         for tr in self.builddata.transitions_conditiontriggers +  self.builddata.transitions_events:
             for action in tr.actions:
-                if isinstance( action, ast.OnEventStateAssignment ):
+                if isinstance(action, ast.OnEventStateAssignment ):
 
-                    if isinstance( action.lhs, SymbolProxy):
+                    if isinstance(action.lhs, SymbolProxy):
 
                         # Follow the proxy:
                         n = action.lhs
@@ -576,7 +576,7 @@ class AbstractBlockBuilder(object):
 
 
                     else:
-                        assert isinstance( action.lhs, ast.StateVariable)
+                        assert isinstance(action.lhs, ast.StateVariable)
 
 
         # OK, make sure that we are not setting anything other than state_varaibles:
@@ -598,19 +598,19 @@ class AbstractBlockBuilder(object):
         io_data = list(itertools.chain(*[parse_io_line(l) for l in self.builddata.io_data_lines]))
 
         # Update 'Parameter' and 'SuppliedValue' symbols from IO Data:
-        param_symbols = [ast.Parameter(symbol=p.symbol,dimension=p.dimension) for p in io_data if p.iotype == IOType.Parameter ]
+        param_symbols = [ast.Parameter(symbol=p.symbol, dimension=p.dimension) for p in io_data if p.iotype == IOType.Parameter ]
         for p in param_symbols:
             if self.library_manager.options.allow_unused_parameter_declarations:
                 self._resolve_global_symbol(p.symbol, p, expect_is_unresolved=False)
             else:
                 self._resolve_global_symbol(p.symbol, p, expect_is_unresolved=True)
 
-        reduce_ports = [ast.AnalogReducePort(symbol=p.symbol,dimension=p.dimension) for p in io_data if p.iotype is IOType.AnalogReducePort ]
+        reduce_ports = [ast.AnalogReducePort(symbol=p.symbol, dimension=p.dimension) for p in io_data if p.iotype is IOType.AnalogReducePort ]
         for s in reduce_ports:
             self._resolve_global_symbol(s.symbol, s, expect_is_unresolved=True)
 
 
-        supplied_symbols = [ast.SuppliedValue(symbol=p.symbol,dimension=p.dimension) for p in io_data if p.iotype is IOType.Input]
+        supplied_symbols = [ast.SuppliedValue(symbol=p.symbol, dimension=p.dimension) for p in io_data if p.iotype is IOType.Input]
         for s in supplied_symbols:
             if self.library_manager.options.allow_unused_suppliedvalue_declarations:
                 self._resolve_global_symbol(s.symbol, s, expect_is_unresolved=False)
@@ -650,7 +650,7 @@ class AbstractBlockBuilder(object):
         # OK, everything in our namespace should be resoved.  If not, then
         # something has gone wrong.  Look for remaining unresolved symbols:
         # ########################################
-        unresolved_symbols = [(k,v) for (k,v) in self.global_scope.iteritems() if not v.is_resolved()]
+        unresolved_symbols = [(k, v) for (k, v) in self.global_scope.iteritems() if not v.is_resolved()]
         # We shouldn't get here!
         if len(unresolved_symbols) != 0:
             raise KeyError('Unresolved Symbols:%s' % ([s[0] for s in unresolved_symbols]))
@@ -702,8 +702,8 @@ class AbstractBlockBuilder(object):
         # 2. Setup the meta-data in each node from IO lines
         for io_data in io_data:
 
-            allow_missing = ( io_data.iotype==IOType.Input and options.allow_unused_suppliedvalue_declarations ) or \
-                            ( io_data.iotype==IOType.Parameter and options.allow_unused_parameter_declarations )
+            allow_missing = (io_data.iotype==IOType.Input and options.allow_unused_suppliedvalue_declarations)or \
+                            (io_data.iotype==IOType.Parameter and options.allow_unused_parameter_declarations )
 
             if allow_missing and not ast_object.has_terminal_obj(io_data.symbol):
                 continue
@@ -729,8 +729,8 @@ class AbstractBlockBuilder(object):
 
 class LibraryBuilder(AbstractBlockBuilder):
 
-    def __init__(self, library_manager,name):
-        AbstractBlockBuilder.__init__(self,block_type=ast.Library, library_manager=library_manager,name=name)
+    def __init__(self, library_manager, name):
+        AbstractBlockBuilder.__init__(self, block_type=ast.Library, library_manager=library_manager, name=name)
 
 
 
@@ -740,7 +740,7 @@ class LibraryBuilder(AbstractBlockBuilder):
 class NineMLComponentBuilder(AbstractBlockBuilder):
 
     def __init__(self, library_manager, name):
-        super(NineMLComponentBuilder,self).__init__(block_type=ast.NineMLComponent, library_manager=library_manager,name=name)
+        super(NineMLComponentBuilder, self).__init__(block_type=ast.NineMLComponent, library_manager=library_manager, name=name)
     def add_io_data(self, l):
         self.builddata.io_data_lines.append(l)
 

@@ -103,7 +103,7 @@ class _CloneFuncDef(ASTVisitorBase):
     def VisitInEquality(self, o, **kwargs):
         return ast.InEquality(
              lesser_than=self.visit(o.lesser_than,**kwargs),
-             greater_than=self.visit(o.greater_than, **kwargs),
+             greater_than=self.visit(o.greater_than, **kwargs), 
                 )
     def VisitBoolAnd(self, o, **kwargs):
         raise NotImplementedError()
@@ -147,7 +147,7 @@ class _CloneFuncDef(ASTVisitorBase):
         newDef = self.visit(o.function_def)
 
         params = {}
-        for (pName,pObj) in o.parameters.iteritems():
+        for (pName, pObj) in o.parameters.iteritems():
             p = ast.FunctionDefParameterInstantiation(rhs_ast=self.visit(pObj.rhs_ast), symbol=pObj.symbol )
             p.set_function_def_parameter(newDef.parameters[pName]  )
             params[pName] = p
@@ -161,7 +161,7 @@ class _CloneFuncDef(ASTVisitorBase):
         newDef = self.visit(o.function_def)
 
         params = {}
-        for (pName,pObj) in o.parameters.iteritems():
+        for (pName, pObj) in o.parameters.iteritems():
             p = ast.FunctionDefParameterInstantiation(rhs_ast=self.visit(pObj.rhs_ast), symbol=pObj.symbol )
             p.set_function_def_parameter(newDef.parameters[pName]  )
             params[pName] = p

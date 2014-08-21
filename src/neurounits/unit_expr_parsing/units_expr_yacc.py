@@ -149,7 +149,7 @@ def p_unitsdefinition8(p):
 
 def p_multiport_1(p):
     """ multiport_def : DEFINE_MULTIPORT_TYPE alphanumtoken LCURLYBRACKET multiport_def_contents RCURLYBRACKET SEMICOLON"""
-    multiport = ast.MultiportInterfaceDef( symbol=p[2], connections = p[4] )
+    multiport = ast.MultiportInterfaceDef(symbol=p[2], connections = p[4] )
     p.parser.library_manager.add_multiportdef(multiport)
 
 def p_multiport_2(p):
@@ -182,13 +182,13 @@ def p_multiport_3d(p):
 def p_multiport_7(p):
     """multiport_def_line : multiport_def_direction_arrow alphanumtoken COLON LBRACKET unit_expr RBRACKET """
     direction, optional = p[1]
-    p[0] = ast.MultiportInterfaceDefWireContinuous( symbol=p[2], direction=direction, unit=5, optional=optional)
+    p[0] = ast.MultiportInterfaceDefWireContinuous(symbol=p[2], direction=direction, unit=5, optional=optional)
 
 # Events:
 def p_multiport_8(p):
     """multiport_def_line : multiport_def_direction_arrow alphanumtoken LBRACKET multiport_event_param_list RBRACKET"""
     direction, optional = p[1]
-    p[0] = ast.MultiportInterfaceDefWireEvent( symbol=p[2], direction=direction, parameters=p[4], optional=optional)
+    p[0] = ast.MultiportInterfaceDefWireEvent(symbol=p[2], direction=direction, parameters=p[4], optional=optional)
 
 
 def p_multiport_event_param_list_1(p):
@@ -203,7 +203,7 @@ def p_multiport_event_param_list_3(p):
 
 def p_multiport_event_param_2(p):
     """multiport_event_param : alphanumtoken COLON unit_expr  """
-    p[0] = ( p[1], p[3] )
+    p[0] = (p[1], p[3] )
 
 
 # Compound component:
@@ -247,7 +247,7 @@ def p_compound_component(p):
 
     component = NineMLComponent.build_compound_component(
             component_name=name,
-            instantiate = dict( instantiations ),
+            instantiate = dict(instantiations ),
             connections = connections,
             renames = renames,
             merge_nodes = merge_nodes,
@@ -291,7 +291,7 @@ def p_compound_component5(p):
 
 def p_compound_component6(p):
     """compound_line : MERGE LSQUAREBRACKET ns_name_list  RSQUAREBRACKET AS ns_name"""
-    p[0] = {'action': 'MERGE', 'what':(p[3],p[6])}
+    p[0] = {'action': 'MERGE', 'what':(p[3], p[6])}
 
 def p_compound_component7(p):
     """ns_name_list :  ns_name"""
@@ -324,7 +324,7 @@ def p_multiport_inst_1(p):
     name  = p[8]
     direction = p[5]
     contents = p[10]
-    p[0] = (name, type_,direction, contents)
+    p[0] = (name, type_, direction, contents)
 
 
 def p_multiport_inst_1a(p):
@@ -410,7 +410,7 @@ def p_parse_intial_block2(p):
 #IO Lines
 def p_parse_ioline0(p):
     """io_line : IO_MARKER io_type io_list io_metadata_info"""
-    p[0] = ( p[2], p[3], p[4] )
+    p[0] = (p[2], p[3], p[4] )
 def p_parse_ioline1(p):
     """io_type : TIME
                | INPUT
@@ -437,7 +437,7 @@ def p_parse_ioline7(p):
     p[0] = (p[1],None)
 def p_parse_ioline8(p):
     """io_param : alphanumtoken COLON unit_expr"""
-    p[0] = (p[1],p[3])
+    p[0] = (p[1], p[3])
 
 
 
@@ -505,7 +505,7 @@ def p_parse_on_transition_trigger(p):
 def p_parse_on_transition_event(p):
     """on_transition : ON ALPHATOKEN  open_transition_scope LBRACKET on_event_def_params RBRACKET   LCURLYBRACKET transition_actions transition_to RCURLYBRACKET """
     event_name = p[2]
-    event_params = LookUpDict( p[5], accepted_obj_types=(ast.OnEventDefParameter) )
+    event_params = LookUpDict(p[5], accepted_obj_types=(ast.OnEventDefParameter) )
     actions = p[8]
     target_regime = p[9]
     p.parser.library_manager.get_current_block_builder().close_scope_and_create_transition_event(event_name=event_name, event_params=event_params, actions=actions, target_regime=target_regime)
@@ -544,7 +544,7 @@ def p_on_transition_actions2(p):
 def p_on_transition_actions4(p):
     """transition_action : alphanumtoken EQUALS rhs_term SEMICOLON"""
     lhs = p.parser.library_manager.get_current_block_builder().get_symbol_or_proxy(p[1])
-    p[0] = ast.OnEventStateAssignment(lhs=lhs,rhs=p[3])
+    p[0] = ast.OnEventStateAssignment(lhs=lhs, rhs=p[3])
 
 
 def p_on_transition_actions5(p):
@@ -800,7 +800,7 @@ def p_function_def_params1(p):
 
 def p_function_def_params2(p):
     """function_def_params : function_def_params COMMA  function_def_param """
-    p[0] = safe_dict_merge( p[1], p[3] )
+    p[0] = safe_dict_merge(p[1], p[3] )
 
 
 
@@ -838,7 +838,7 @@ def p_quantity_func_params_l3c(p):
 
 def p_quantity_func_params_term_l3(p):
     """func_call_param_l3 : alphanumtoken EQUALS rhs_term"""
-    p[0] = ast.FunctionDefParameterInstantiation( symbol = p[1], rhs_ast=p[3] )
+    p[0] = ast.FunctionDefParameterInstantiation(symbol = p[1], rhs_ast=p[3] )
 
 
 
@@ -847,7 +847,7 @@ def p_quantity_func_params_term_l3(p):
 def p_rhs_term4(p):
     """ rhs_term : MINUS rhs_term """
     backend = p.parser.library_manager.backend
-    neg_one = ast.ConstValue( value=backend.Quantity(-1.0, backend.Unit()))
+    neg_one = ast.ConstValue(value=backend.Quantity(-1.0, backend.Unit()))
     p[0] = ast.MulOp(neg_one, p[2])
 
 
@@ -872,7 +872,7 @@ def p_rv_expr1(p):
     rndfuncdict = dict([(cls.Meta._name, cls) for cls in RandomVariable.__subclasses__()])
     rndfunc = rndfuncdict[function_name]
 
-    p[0] = rndfunc( parameters = parameters, modes=modes)
+    p[0] = rndfunc(parameters = parameters, modes=modes)
 
 
 
@@ -912,7 +912,7 @@ def p_rv_expr_modes2(p):
 
 def p_rv_expr_modes3(p):
     'rv_mode : ALPHATOKEN EQUALS ALPHATOKEN'
-    p[0] = (p[1],p[3])
+    p[0] = (p[1], p[3])
 
 
 
@@ -927,15 +927,15 @@ def p_ar_model(p):
 
 def p_ar_model_0(p):
     """ar_model : TILDE AR_MODEL LBRACKET RBRACKET"""
-    p[0] = ast.AutoRegressiveModel( coefficients=tuple() )
+    p[0] = ast.AutoRegressiveModel(coefficients=tuple() )
 
 def p_ar_model_1(p):
     """ar_model : TILDE AR_MODEL LBRACKET magnitude RBRACKET"""
-    p[0] = ast.AutoRegressiveModel( coefficients=tuple([ p[4] ]) )
+    p[0] = ast.AutoRegressiveModel(coefficients=tuple([ p[4] ]) )
 
 def p_ar_model_2(p):
     """ar_model : TILDE AR_MODEL LBRACKET alphanumtoken EQUALS magnitude COMMA alphanumtoken EQUALS magnitude RBRACKET"""
-    p[0] = ast.AutoRegressiveModel( coefficients=tuple() )
+    p[0] = ast.AutoRegressiveModel(coefficients=tuple() )
 
 
 
@@ -1316,7 +1316,7 @@ class ParserMgr(object):
 
         username = 'tmp_%d' % os.getuid()
         tables_loc = EnsureExisits('/tmp/%s/nu/yacc/parse_eqn_block' % username)
-        parser = yacc.yacc(debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc,optimize=1) #, errorlog=log_neurounits,  )
+        parser = yacc.yacc(debug=debug, start=start_symbol,  tabmodule="neurounits_parsing_parse_eqn_block", outputdir=tables_loc, optimize=1) #, errorlog=log_neurounits,  )
 
         return parser
 
@@ -1339,7 +1339,7 @@ class ParserMgr(object):
 import neurounits.nulogging as logging
 from neurounits.nulogging import MLine
 
-def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None,library_manager=None, name=None):
+def parse_expr(orig_text, parse_type, start_symbol=None, debug=False, backend=None, working_dir=None, options=None, library_manager=None, name=None):
 
 
     logging.log_neurounits.info('In parse_expr()')

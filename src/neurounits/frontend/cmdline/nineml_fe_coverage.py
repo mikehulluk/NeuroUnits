@@ -9,7 +9,7 @@ def do_coverage(args):
     from neurounitscontrib.demo import do_demo
     print 'Doing Coverage'
 
-    cov = coverage.coverage( include='*neurounits*')
+    cov = coverage.coverage(include='*neurounits*')
     cov.start()
 
 

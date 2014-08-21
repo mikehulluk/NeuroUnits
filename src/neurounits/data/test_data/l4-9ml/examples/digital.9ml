@@ -15,7 +15,7 @@ from std.math import sin
     <=> output vout:mV
     <=> time t:s
 
-    vout = sin( t * 2 * std.math.pi / {1s} ) * {2V}
+    vout = sin( t * 2 * std.math.pi / {1s})* {2V}
 }
 
 define_component clk_gen {

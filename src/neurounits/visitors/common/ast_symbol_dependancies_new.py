@@ -59,18 +59,18 @@ class VisitorSymbolDependance(object):
                     graph.add_edge(assignment.lhs, dep)
 
 
-        assigned_ordering = list( reversed( list(nx.topological_sort(graph)) ) )
+        assigned_ordering = list(reversed(list(nx.topological_sort(graph))))
 
         assert len(assigned_ordering) == len(self.component.assignments)
         return assigned_ordering
 
 
-    def get_terminal_dependancies(self, terminal, expand_assignments, include_random_variables=False, include_supplied_values=True,include_symbolic_constants=True, include_parameters=True, include_analog_input_ports=True, include_autoregressive_models=False):
+    def get_terminal_dependancies(self, terminal, expand_assignments, include_random_variables=False, include_supplied_values=True, include_symbolic_constants=True, include_parameters=True, include_analog_input_ports=True, include_autoregressive_models=False):
         """ Does not expand through states"""
 
-        if isinstance( terminal, ast.EqnAssignmentByRegime):
+        if isinstance(terminal, ast.EqnAssignmentByRegime):
             terminal = terminal.lhs
-        if isinstance( terminal, ast.EqnTimeDerivativeByRegime):
+        if isinstance(terminal, ast.EqnTimeDerivativeByRegime):
             terminal = terminal.lhs
 
         if isinstance(terminal, ast.SymbolicConstant):
@@ -79,11 +79,11 @@ class VisitorSymbolDependance(object):
         assert isinstance(terminal, (ast.StateVariable, ast.AssignedVariable, ast.OnEventStateAssignment, ast.OnConditionTriggerTransition) )
 
         # Switch lhs to the assignment/time deriatives
-        if isinstance( terminal, ast.StateVariable):
+        if isinstance(terminal, ast.StateVariable):
             terminal = self.component._eqn_time_derivatives.get_single_obj_by(lhs=terminal)
-        if isinstance( terminal, ast.AssignedVariable):
+        if isinstance(terminal, ast.AssignedVariable):
             terminal = self.component._eqn_assignment.get_single_obj_by(lhs=terminal)
-        if isinstance( terminal, ast.OnConditionTriggerTransition):
+        if isinstance(terminal, ast.OnConditionTriggerTransition):
             terminal = terminal.trigger
 
 
@@ -107,7 +107,7 @@ class VisitorSymbolDependance(object):
             assert node in self.direct_dependancy_graph.nodes()
             dependancies = []
 
-        dependancies = [d for d in dependancies if not isinstance( d, ast.RTBlock)]
+        dependancies = [d for d in dependancies if not isinstance(d, ast.RTBlock)]
 
 
 
@@ -129,9 +129,9 @@ class VisitorSymbolDependance(object):
                 ass_deps = nx.bfs_successors(self.direct_dependancy_graph, assignment_node )[assignment_node]
 
                 for ass_dep in ass_deps:
-                    if isinstance( ass_dep, (ast.StateVariable, ast.RandomVariable, ast.SuppliedValue, ast.TimeVariable, ast.AutoRegressiveModel, ast.Parameter)):
+                    if isinstance(ass_dep, (ast.StateVariable, ast.RandomVariable, ast.SuppliedValue, ast.TimeVariable, ast.AutoRegressiveModel, ast.Parameter)):
                         dependancies_statevars.add(ass_dep)
-                    elif isinstance( ass_dep, ast.AssignedVariable):
+                    elif isinstance(ass_dep, ast.AssignedVariable):
                         if ass_dep in expanded_assignment_dependancies:
                             continue
                         elif ass_dep in unexpanded_assignment_dependancies:
@@ -184,13 +184,13 @@ class VisitorSymbolDependance(object):
         dep_find.visit(component)
 
         g = nx.DiGraph()
-        all_objs = set( list(chain(*dep_find.dependancies.values()))  + dep_find.dependancies.keys() )
+        all_objs = set(list(chain(*dep_find.dependancies.values()))  + dep_find.dependancies.keys() )
         for o in all_objs:
             g.add_node(o)
 
         for k,v in dep_find.dependancies.items():
             for c in v:
-                g.add_edge(k,c)
+                g.add_edge(k, c)
 
 
 
@@ -342,7 +342,7 @@ class _DependancyFinder(ASTVisitorBase):
     def visit_trans(self,o):
         action_deps = []
         for a in o.actions:
-            action_deps.extend( self.visit(a, rt_graph=o.rt_graph))
+            action_deps.extend(self.visit(a, rt_graph=o.rt_graph))
 
         return list(set(action_deps))
 
@@ -357,7 +357,7 @@ class _DependancyFinder(ASTVisitorBase):
         return self.visit(o.rhs)
 
     def VisitEmitEvent(self, o,):
-        return list( chain(*[self.visit(p) for p in o.parameters]) )
+        return list(chain(*[self.visit(p) for p in o.parameters]) )
 
     def VisitEmitEventParameter(self, o):
         return self.visit(o.rhs)
@@ -401,13 +401,13 @@ class _DependancyFinder(ASTVisitorBase):
         return self.visit(o.rhs_ast)
 
     def VisitAnalogReducePort(self, o, **kwargs):
-        return [o] + list(itertools.chain( *[self.visit(a) for a in o.rhses]))
+        return [o] + list(itertools.chain(*[self.visit(a) for a in o.rhses]))
 
 
     def VisitRandomVariable(self, o):
-        return list(itertools.chain( *[self.visit(p) for p in o.parameters])) + [o]
+        return list(itertools.chain(*[self.visit(p) for p in o.parameters])) + [o]
 
-    def VisitRandomVariableParameter(self,o):
+    def VisitRandomVariableParameter(self, o):
         return self.visit(o.rhs_ast)
 
 

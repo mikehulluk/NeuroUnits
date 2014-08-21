@@ -29,7 +29,7 @@ def cmdline_summarise(args):
     summaries = []
     for o in objs:
         print 'Summarising:', repr(o)
-        summaries.append( o.to_redoc() )
+        summaries.append(o.to_redoc() )
 
 
     summary_obj = mredoc.Section(
@@ -38,7 +38,7 @@ def cmdline_summarise(args):
 
             )
 
-    fname = os.path.expanduser( '~/Desktop/testout1.pdf')
+    fname = os.path.expanduser('~/Desktop/testout1.pdf')
     summary_obj.to_pdf(fname)
     os.system('xdg-open %s' % fname)
 

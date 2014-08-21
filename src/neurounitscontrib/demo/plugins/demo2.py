@@ -65,7 +65,7 @@ ball_arena_text = """
         # Define a function, to include units into dimensionless 'abs'
         abs_ms(x) = abs(x/{1m/s}) * {1m/s}
         mag(x,y) = pow(base=x*x+y*y, exp=0.5)
-        L(x,y) = mag(x=x/{1m},y=y/{1m}) * {1m}
+        L(x,y) = mag(x=x/{1m}, y=y/{1m}) * {1m}
 
 
         # The 4 state variables for Ball 1: Velocity and Position in X,Y
@@ -95,7 +95,7 @@ ball_arena_text = """
 
         # Work out the unit vector joining the two spheres (C12)
         C12_x = B2X-B1X; C12_y = B2Y-B1Y
-        c12_mag = L(x=C12_x,y=C12_y)
+        c12_mag = L(x=C12_x, y=C12_y)
         C12_x_hat = C12_x/c12_mag; C12_y_hat = C12_y/c12_mag
 
         # Take the dot product of C and velocity, to resolve
@@ -256,7 +256,7 @@ def test2():
                 },
             initial_regimes = {
 
-                },
+                }, 
             )
 
     print res

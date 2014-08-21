@@ -47,7 +47,7 @@ if not os.path.exists(cache_file):
     del RB_input
 
 with open(cache_file) as f:
-    dIN_comp,MN_comp,RB_input = pickle.load(f)
+    dIN_comp, MN_comp, RB_input = pickle.load(f)
 
 network = Network()
 pop_components = {
@@ -104,7 +104,7 @@ for syn_index, ((pop1_name, pop2_name, (syn_type, strength) ), conns) in enumera
 
 
 
-#network.provide_events( pops_by_name['pop1'], event_port='recv_ampa_spike', evt_details = [50,60,70] )
+#network.provide_events(pops_by_name['pop1'], event_port='recv_ampa_spike', evt_details = [50,60,70] )
 non_dINs = pops_by_name['NondINs']
 pop_LHS_MN  = non_dINs.get_subpopulation(start_index=0,   end_index=169, subname='LHS_MN',  autotag=['LHS','MN'])
 pop_LHS_RB  = non_dINs.get_subpopulation(start_index=169, end_index=232, subname='LHS_RB',  autotag=['LHS','RB'])
@@ -160,12 +160,12 @@ for dIN_pop in [(pop_LHS_dIN), (pop_RHS_dIN)]:
             j_x = cell_positions['dINs'][j]
             if abs(i_x -j_x) > 200:
                 continue
-            if random.uniform(0,1) > 0.2:
+            if random.uniform(0, 1) > 0.2:
                 continue
-            gap_junction_indices.append( (i,j) )
+            gap_junction_indices.append((i, j) )
 
-            #ax.plot([i],[j], 'x')
-            #ax.plot([j],[i], 'x')
+            #ax.plot([i], [j], 'x')
+            #ax.plot([j], [i], 'x')
 
 
 network.add(
@@ -182,12 +182,12 @@ network.add(
 
 
 
-network.record_output_events( [rb_drivers] , 'spike' )
-network.record_output_events( lhs_subpops+rhs_subpops , 'spike' )
+network.record_output_events([rb_drivers] , 'spike' )
+network.record_output_events(lhs_subpops+rhs_subpops , 'spike' )
 
 
-trs = network.record_traces( pop_RHS_dIN, 'V' )
-trs = network.record_traces( pop_LHS_dIN, 'V' )
+trs = network.record_traces(pop_RHS_dIN, 'V' )
+trs = network.record_traces(pop_LHS_dIN, 'V' )
 
 
 
@@ -215,8 +215,8 @@ class NIOSPlotTrace(object):
         self.node = population.population.component.get_terminal_obj(what)
         self.node_upscale = self.node.annotations['fixed-point-format'].upscale
 
-        self.ylimits_int = int( 2**23 * ( float(yrange[0]) / 2**self.node_upscale )), \
-                           int( 2**23 * ( float(yrange[1]) / 2**self.node_upscale ))
+        self.ylimits_int = int(2**23 * (float(yrange[0]) / 2**self.node_upscale )), \
+                           int(2**23 * (float(yrange[1]) / 2**self.node_upscale ))
 
         self.yrange =  self.ylimits_int[1] - self.ylimits_int[0]
 
@@ -247,9 +247,9 @@ results = CBasedEqnWriterFixedNetwork(
                     #output_c_filename='/local/scratch/mh735/TadpoleDemoNov/BlueVecPlusFrameBuffer/Quartus/SingleCoreLCD/software/mtllcd/tadpole.cpp',
                     compile=False,
 
-                    nios_options=NIOSOptions( plots=[
-                        NIOSPlotTrace( pop_LHS_dIN, 'V', yrange=(30.e-3, -60.e-3), colors=['brown'], _global_rec_indices=[0,1,2,3,4,5]),
-                        NIOSPlotTrace( pop_LHS_MN, 'V',  yrange=(30.e-3, -60e-3), _global_rec_indices=[118,119,120,121,122,123] ),
+                    nios_options=NIOSOptions(plots=[
+                        NIOSPlotTrace(pop_LHS_dIN, 'V', yrange=(30.e-3, -60.e-3), colors=['brown'], _global_rec_indices=[0,1,2,3,4,5]),
+                        NIOSPlotTrace(pop_LHS_MN, 'V',  yrange=(30.e-3, -60e-3), _global_rec_indices=[118,119,120,121,122,123] ),
 
 
                         ])

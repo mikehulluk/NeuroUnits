@@ -54,7 +54,7 @@ class ParameterWriter(ASTActionerDefaultIgnoreMissing):
         ASTActionerDefaultIgnoreMissing.__init__(self, action_predicates=[ SingleVisitPredicate() ] )
 
     def ActionParameter(self, n, modfilecontents,  build_parameters, **kwargs):
-        modfilecontents.section_PARAMETER.append( ModFileString.DeclareSymbol(n,build_parameters) )
+        modfilecontents.section_PARAMETER.append(ModFileString.DeclareSymbol(n,build_parameters) )
 
 
 class StateWriter(ASTActionerDefaultIgnoreMissing):
@@ -63,11 +63,11 @@ class StateWriter(ASTActionerDefaultIgnoreMissing):
         ASTActionerDefaultIgnoreMissing.__init__(self, action_predicates=[ SingleVisitPredicate() ])
 
     def ActionStateVariable(self, n, modfilecontents,  build_parameters, **kwargs):
-        modfilecontents.section_STATE.append( ModFileString.DeclareSymbol(n,build_parameters) )
+        modfilecontents.section_STATE.append(ModFileString.DeclareSymbol(n,build_parameters) )
 
     def ActionTimeDerivativeByRegime (self, n, modfilecontents, build_parameters, **kwargs):
         s = CStringWriter.Build(n, build_parameters=build_parameters, expand_assignments=False)
-        modfilecontents.section_DERIVATIVE.append( s )
+        modfilecontents.section_DERIVATIVE.append(s )
 
 
 
@@ -88,7 +88,7 @@ class SuppliedValuesWriter(ASTActionerDefaultIgnoreMissing):
 
 
     def __init__(self, ):
-        ASTActionerDefaultIgnoreMissing.__init__(self,action_predicates=[ SingleVisitPredicate() ])
+        ASTActionerDefaultIgnoreMissing.__init__(self, action_predicates=[ SingleVisitPredicate() ])
 
     def ActionSuppliedValue(self, n, modfilecontents, build_parameters,  **kwargs):
 
@@ -125,7 +125,7 @@ class AssignmentWriter(ASTActionerDefaultIgnoreMissing):
 
     def VisitNineMLComponent(self, component, modfilecontents,  build_parameters, **kwargs):
         self.assigment_statements = {}
-        ASTActionerDefaultIgnoreMissing.VisitNineMLComponent(self,component,modfilecontents=modfilecontents, build_parameters=build_parameters, **kwargs)
+        ASTActionerDefaultIgnoreMissing.VisitNineMLComponent(self,component, modfilecontents=modfilecontents, build_parameters=build_parameters, **kwargs)
 
 
         # The order of writing out assignments is important. There are 3 phases,
@@ -144,13 +144,13 @@ class AssignmentWriter(ASTActionerDefaultIgnoreMissing):
 
         args = list(component.suppliedvalues) + list(component.state_variables)
         arg_symbols = [ symbol_map.get(a.symbol,a.symbol) for a in args]
-        func_arg_string = ','.join( arg_symbols )
+        func_arg_string = ','.join(arg_symbols )
 
 
         assignment_strs = []
 
         # For some sanity checking, make sure that we have met all the dependancies of every line:
-        resolved_deps = set( args )
+        resolved_deps = set(args )
         for ass in component.ordered_assignments_by_dependancies:
             print 'Writing assignment for: ', ass
             # Check dependancies:
@@ -165,8 +165,8 @@ class AssignmentWriter(ASTActionerDefaultIgnoreMissing):
             assignment_strs.append(s)
 
 
-        modfilecontents.section_FUNCTIONS.append( Template(r"""
-PROCEDURE rates( ${func_arg_string} ) {
+        modfilecontents.section_FUNCTIONS.append(Template(r"""
+PROCEDURE rates(${func_arg_string} ) {
 %for ass in assignment_strs:
     ${ass}
 %endfor
@@ -179,12 +179,12 @@ PROCEDURE rates( ${func_arg_string} ) {
 
 
         # And we need to call this function in two places, in the INITIAL block and in the DERIVATIVE BLOCK
-        func_call_string = 'rates(%s)' % ','.join( arg_symbols)
-        modfilecontents.section_INITIAL.insert( 0, func_call_string)
+        func_call_string = 'rates(%s)' % ','.join(arg_symbols)
+        modfilecontents.section_INITIAL.insert(0, func_call_string)
 
         if component.state_variables:
-            modfilecontents.section_DERIVATIVE.insert( 0, func_call_string)
-        modfilecontents.section_BREAKPOINT_pre_solve.insert( 0, func_call_string)
+            modfilecontents.section_DERIVATIVE.insert(0, func_call_string)
+        modfilecontents.section_BREAKPOINT_pre_solve.insert(0, func_call_string)
 
 
 
@@ -223,8 +223,8 @@ class FunctionWriter(ASTActionerDefaultIgnoreMissing):
                 $func_name = $result_string
             }"""
 
-        func_def = string.Template(func_def_tmpl).substitute( {'func_name':  o.funcname.replace(".","__"),
-                                                               'func_params': ",".join( [ p.symbol for p in o.parameters.values()] ),
+        func_def = string.Template(func_def_tmpl).substitute({'func_name':  o.funcname.replace(".","__"),
+                                                               'func_params': ",".join([ p.symbol for p in o.parameters.values()] ),
                                                                'result_string': CStringWriter.Build(o.rhs, build_parameters=build_parameters, expand_assignments=False  ),
                                                                'func_unit': "",
                                                                 }  )
@@ -232,7 +232,7 @@ class FunctionWriter(ASTActionerDefaultIgnoreMissing):
 
 
 class OnEventWriter(ASTActionerDefaultIgnoreMissing):
-    def __init__(self,):
+    def __init__(self):
         ASTActionerDefaultIgnoreMissing.__init__(self, action_predicates=[ SingleVisitPredicate() ] )
 
     def ActionInEventPort(self, o, modfilecontents, build_parameters,  **kwargs):
@@ -240,8 +240,8 @@ class OnEventWriter(ASTActionerDefaultIgnoreMissing):
             return
 
         # No Arguments:
-        assert len( o.parameters ) == 0
-        tmpl = """NET_RECEIVE( weight ) \n { $contents \n}"""
+        assert len(o.parameters ) == 0
+        tmpl = """NET_RECEIVE(weight ) \n { $contents \n}"""
 
         # And lets hope there is only one transition triggered off that
         # port ;)
@@ -253,8 +253,8 @@ class OnEventWriter(ASTActionerDefaultIgnoreMissing):
 
 
 
-        contents = "\n".join( [ "" + self.ActionOnEventAssignment(a, modfilecontents=modfilecontents, build_parameters=build_parameters, **kwargs ) for a in evt_trans.actions ] )
-        txt = string.Template( tmpl).substitute( contents=contents)
+        contents = "\n".join([ "" + self.ActionOnEventAssignment(a, modfilecontents=modfilecontents, build_parameters=build_parameters, **kwargs ) for a in evt_trans.actions ] )
+        txt = string.Template(tmpl).substitute(contents=contents)
         modfilecontents.section_NETRECEIVES.append(txt)
 
     def ActionOnEventAssignment(self, o, modfilecontents, build_parameters, **kwargs):
@@ -326,15 +326,15 @@ class CStringWriter(ASTVisitorBase):
         return c.visit(lhs)
 
     def VisitIfThenElse(self, o, **kwargs):
-        assert isinstance( o.predicate, InEquality), "Only simple if supported"
-        return """ifthenelse( %s, %s, %s, %s)"""%(
+        assert isinstance(o.predicate, InEquality), "Only simple if supported"
+        return """ifthenelse(%s, %s, %s, %s)"""%(
                 self.visit(o.predicate.lesser_than),
                 self.visit(o.predicate.greater_than),
                 self.visit(o.if_true_ast),
                 self.visit(o.if_false_ast) )
 
-    def VisitInEquality(self, o,**kwargs):
-        return "%s < %s"%( self.visit(o.lesser_than), self.visit(o.greater_than))
+    def VisitInEquality(self, o, **kwargs):
+        return "%s < %s"%(self.visit(o.lesser_than), self.visit(o.greater_than))
 
     def VisitBoolAnd(self, o, **kwargs):
         raise NotImplementedError()
@@ -383,7 +383,7 @@ class CStringWriter(ASTVisitorBase):
             return self.GetTerminal(o)
         else:
             # TODO: Change this to look up the value
-            return self.visit( o.assignment_rhs )
+            return self.visit(o.assignment_rhs )
 
     def VisitSuppliedValue(self, o, **kwargs):
         return self.GetTerminal(o)
@@ -392,7 +392,7 @@ class CStringWriter(ASTVisitorBase):
     def VisitConstant(self, o, **kwargs):
         return "%e"% o.value.float_in_si()
 
-    def VisitSymbolicConstant(self,o , **kwargs):
+    def VisitSymbolicConstant(self, o , **kwargs):
         return "%e" %o.value.float_in_si()
 
 
@@ -408,11 +408,11 @@ class CStringWriter(ASTVisitorBase):
             multiplier = "(%e)*"% 10**(-1*self.build_parameters.symbol_units[o.lhs].powerTen)
 
         # NEURON has a dt in 'ms', so we need to scale from SI.
-        return "%s' = (0.001)* %s %s" %( lhs, multiplier, rhs_si )
+        return "%s' = (0.001)* %s %s" %(lhs, multiplier, rhs_si )
 
     def VisitRegimeDispatchMap(self, o, **kwargs):
         assert len(o.rhs_map) == 1
-        return self.visit( o.rhs_map.values()[0] )
+        return self.visit(o.rhs_map.values()[0] )
 
 
     def VisitEqnAssignmentByRegime(self, o, **kwargs):
@@ -424,7 +424,7 @@ class CStringWriter(ASTVisitorBase):
         if o.lhs.get_dimensionality() != self.build_parameters.symbol_units[o.lhs]:
             multiplier = "(%e)*"% 10**(-1*self.build_parameters.symbol_units[o.lhs].powerTen)
 
-        return "%s = %s %s" %( lhs, multiplier, rhs_si )
+        return "%s = %s %s" %(lhs, multiplier, rhs_si )
 
 
     def VisitOnEventStateAssignment(self, o, **kwargs):
@@ -436,24 +436,24 @@ class CStringWriter(ASTVisitorBase):
         if o.lhs.get_dimensionality() != self.build_parameters.symbol_units[o.lhs]:
             multiplier = "(%e)*"% 10**(-1*self.build_parameters.symbol_units[o.lhs].powerTen)
 
-        return "%s = %s %s" %( lhs, multiplier, rhs_si )
+        return "%s = %s %s" %(lhs, multiplier, rhs_si )
 
 
 
     def VisitAddOp(self, o, **kwargs):
-        return "( %s + %s )"%( self.visit(o.lhs,**kwargs), self.visit(o.rhs, **kwargs) )
+        return "(%s + %s )"%(self.visit(o.lhs,**kwargs), self.visit(o.rhs, **kwargs) )
 
     def VisitSubOp(self, o,  **kwargs):
-        return "( %s - %s )"%( self.visit(o.lhs,**kwargs), self.visit(o.rhs, **kwargs) )
+        return "(%s - %s )"%(self.visit(o.lhs,**kwargs), self.visit(o.rhs, **kwargs) )
 
     def VisitMulOp(self, o, **kwargs):
-        return "( %s * %s )"%( self.visit(o.lhs,**kwargs), self.visit(o.rhs, **kwargs) )
+        return "(%s * %s )"%(self.visit(o.lhs,**kwargs), self.visit(o.rhs, **kwargs) )
 
     def VisitDivOp(self, o, **kwargs):
-        return "( %s / %s )"%( self.visit(o.lhs,**kwargs), self.visit(o.rhs, **kwargs) )
+        return "(%s / %s )"%(self.visit(o.lhs,**kwargs), self.visit(o.rhs, **kwargs) )
 
     def VisitExpOp(self, o, **kwargs):
-        return "((%s)^%s )"%( self.visit(o.lhs,**kwargs), o.rhs )
+        return "((%s)^%s )"%(self.visit(o.lhs, **kwargs), o.rhs )
 
 
     # TODO: HANDLE PROPERLY:
@@ -465,21 +465,21 @@ class CStringWriter(ASTVisitorBase):
             if o.function_def.funcname == "__pow__":
                 p0_rhs = self.visit(o.parameters['base'].rhs_ast)
                 p1_rhs = self.visit(o.parameters['exp'].rhs_ast)
-                r = "pow(%s,%s)"%( o.function_def.funcname, p0_rhs, p1_rhs  )
+                r = "pow(%s,%s)"%(o.function_def.funcname, p0_rhs, p1_rhs  )
                 return r
 
 
             else:
                 assert len(o.parameters) == 1
                 p0_rhs = self.visit(o.parameters.values()[0].rhs_ast)
-                r = "%s(%s)"%( o.function_def.funcname.replace("__",""), p0_rhs )
+                r = "%s(%s)"%(o.function_def.funcname.replace("__",""), p0_rhs )
                 return r
 
 
         elif type(o.function_def) == neurounits.ast.astobjects.FunctionDefUser:
             print 'T',  [ type(p.rhs_ast) for p in o.parameters.values()]
-            params = ",".join( self.visit(p.rhs_ast) for p in o.parameters.values()  )
-            func_call = "%s(%s)"%( o.function_def.funcname.replace(".","__"), params)
+            params = ",".join(self.visit(p.rhs_ast) for p in o.parameters.values()  )
+            func_call = "%s(%s)"%(o.function_def.funcname.replace(".","__"), params)
             return func_call
         else:
             panic()
@@ -487,7 +487,7 @@ class CStringWriter(ASTVisitorBase):
     def VisitFunctionDefBuiltInInstantiation(self, o, **kwargs):
         return self._VisitFunctionDefInstantiation(o,**kwargs)
     def VisitFunctionDefUserInstantiation(self, o, **kwargs):
-        return self._VisitFunctionDefInstantiation(o,**kwargs)
+        return self._VisitFunctionDefInstantiation(o, **kwargs)
 
 
 

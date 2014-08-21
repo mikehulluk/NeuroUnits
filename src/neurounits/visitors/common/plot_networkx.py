@@ -79,7 +79,7 @@ class DefaultNodeColors(ASTActionerDefault):
     def ActionNode(self, o, **kwargs):
 
 
-        class_colors= TypeBasedLookupDict( {
+        class_colors= TypeBasedLookupDict({
             ast.IfThenElse: 'blue',
             ast.ASTBooleanExpression: 'blue',
             ast.InEquality: 'blue',
@@ -176,20 +176,20 @@ class ActionerPlotNetworkX(object):
             for c in connections:
                 if type(node) in include_types and \
                    type(c) in include_types and \
-                   set([type(node),type(c)]) not in exclude_connections:
+                   set([type(node), type(c)]) not in exclude_connections:
                     graph.add_edge(node, c, color='blue')
 
 
         # Colors:
         if isinstance(colors, dict):
             color_lut =  colors
-            colors = [ color_lut.get(node,'white') for node in graph]
+            colors = [ color_lut.get(node, 'white') for node in graph]
 
         if colors == None:
             nc = DefaultNodeColors()
             colors = [nc.visit(v) for v in graph]
 
-        elif isinstance( colors, ASTVisitorBase):
+        elif isinstance(colors, ASTVisitorBase):
             colors = [colors.visit(v) for v in graph]
 
 
@@ -284,7 +284,7 @@ class ActionerGetConnections(ASTActionerDefault):
         self.connections[o].extend([o.rhs, o.port_parameter_obj])
 
     def ActionOutEventPort(self, o, **kwargs):
-        self.connections[o].extend( list(o.parameters))
+        self.connections[o].extend(list(o.parameters))
 
 
 
@@ -429,7 +429,7 @@ class ActionerGetConnections(ASTActionerDefault):
         self.connections[o].extend([o.interface_def] + list(o.wire_mappings))
 
     def ActionRandomVariable(self, o, **kwargs):
-        self.connections[o].extend( o.parameters)
+        self.connections[o].extend(o.parameters)
 
     def ActionRandomVariableParameter(self, o, **kwargs):
-        self.connections[o].append( o.rhs_ast)
+        self.connections[o].append(o.rhs_ast)

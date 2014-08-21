@@ -72,11 +72,11 @@ def test7():
                 }
 
                 on(t > t_next2) {
-                    t_next2 = t +  max( x=~normal(loc=10,scale=3)[], y=0) * {1ms}
+                    t_next2 = t +  max(x=~normal(loc=10,scale=3)[], y=0) * {1ms}
                     emit myspike()
                 }
                 #on(t > t_next3) {
-                #    t_next3 = t +  max( x=~poisson(lod=10,scale=3)[], y=0) * {1ms}
+                #    t_next3 = t +  max(x=~poisson(lod=10,scale=3)[], y=0) * {1ms}
                 #    emit myspike()
                 #}
 

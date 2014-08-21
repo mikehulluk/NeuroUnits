@@ -62,8 +62,8 @@ library std.math {
     fabs(x) = __fabs__(x)
     floor(x) = __floor__(x)
 
-    min(x,y) = __min__(x=x,y=y)
-    max(x,y) = __max__(x=x,y=y)
+    min(x,y) = __min__(x=x, y=y)
+    max(x,y) = __max__(x=x, y=y)
 
     # Aliases:
     abs(x) = fabs(x=x)

@@ -78,7 +78,7 @@ class LookUpDict(object):
             for obj in objs:
                 self._add_item(obj)
 
-    def __repr__(self,):
+    def __repr__(self):
         return '<LUD: %s>'% repr(self._objs)
 
     def get_attr_value(self, obj, attr):
@@ -101,7 +101,7 @@ class LookUpDict(object):
         self._objs.add(obj)
 
     def get_objs_by(self, **kwargs):
-        possible_objs = list( self._objs )
+        possible_objs = list(self._objs )
         for attr, value in kwargs.items():
             possible_objs = [ p for p in possible_objs if self.get_attr_value(p, attr) == value]
         return possible_objs
@@ -111,7 +111,7 @@ class LookUpDict(object):
     def get_single_obj_by(self, **kwargs):
         possible_objs = self.get_objs_by(**kwargs)
         if len(possible_objs) != 1:
-            print "Can't find object: %s [Found:%s]" % ( kwargs, possible_objs)
+            print "Can't find object: %s [Found:%s]" % (kwargs, possible_objs)
             print 'Options:', self._objs
             assert False
         return possible_objs[0]
@@ -135,7 +135,7 @@ class LookUpDict(object):
 
     def has_obj(self, **kwargs):
         r = self.get_objs_by(**kwargs)
-        assert len(r) in (0,1)
+        assert len(r) in (0, 1)
         if len(r) == 0:
             return False
         else:
@@ -147,7 +147,7 @@ class LookUpDict(object):
 
 
     def copy(self):
-        return LookUpDict( objs = self._objs, unique_attrs=self.unique_attrs, accepted_obj_types=self.accepted_obj_types)
+        return LookUpDict(objs = self._objs, unique_attrs=self.unique_attrs, accepted_obj_types=self.accepted_obj_types)
 
 
 

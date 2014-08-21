@@ -17,12 +17,12 @@ def build_raster_plot_obj(name, side):
             ] )
 
 
-xlim=(30e-3,1000e-3)
+xlim=(30e-3, 1000e-3)
 
 
 results.raster_plot([
         RasterGroup('RB', [
-            RasterSubgroup('Spike', "ALL{spike,RBINPUT}", {'color':'red'})
+            RasterSubgroup('Spike', "ALL{spike, RBINPUT}", {'color':'red'})
             ] ),
         build_raster_plot_obj('RB', 'RHS'),
         build_raster_plot_obj('RB', 'LHS'),

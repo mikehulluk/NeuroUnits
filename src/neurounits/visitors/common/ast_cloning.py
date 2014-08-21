@@ -216,7 +216,7 @@ class ASTClone(object):
         return copy_std(o, new, )
 
     def VisitBoolNot(self, o, **kwargs):
-        new = ast.BoolOr( lhs = o.lhs)
+        new = ast.BoolOr(lhs = o.lhs)
         return copy_std(o, new, )
 
     def VisitParameter(self, o, **kwargs):

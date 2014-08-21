@@ -53,7 +53,7 @@ class Population(object):
 
         # Remap all the parameters to nodes, and copy accross range/fixed-point information from the component:
         self.parameters = { k: NeuroUnitParser._string_to_expr_node(v) for (k,v) in parameters.items() }
-        for k,v in self.parameters.items():
+        for k, v in self.parameters.items():
             # Create a new node-id for the node:
             id_annotator = self.component.annotation_mgr._annotators['node-ids']
             id_annotator.visit(v)
@@ -219,7 +219,7 @@ class _NodeTypes:
 
 
 class AnalogPortConnector(object):
-    def __init__(self, src_population, dst_population, port_map, connector, connection_object, connection_properties,name):
+    def __init__(self, src_population, dst_population, port_map, connector, connection_object, connection_properties, name):
         self.name = name
         self.src_population = src_population
         self.dst_population = dst_population
@@ -233,13 +233,13 @@ class AnalogPortConnector(object):
 
             # Resolve 'conn.i' to objects:
             print s1
-            c1,S1 = _resolve_string(s1)
+            c1, S1 = _resolve_string(s1)
             C1 = obj_lut[c1]
             p1 = C1.get_terminal_obj(S1)
 
             # Resolve 'conn.i' to objects:
             print s2
-            c2,S2 = _resolve_string(s2)
+            c2, S2 = _resolve_string(s2)
             C2 = obj_lut[c2]
             p2 = C2.get_terminal_obj(S2)
 
@@ -251,16 +251,16 @@ class AnalogPortConnector(object):
 
             # And save ((output), (input))
             if t1 == _NodeTypes.Input:
-                self.port_map.append( ( (C2,p2,c2), (C1,p1,c1) ) )
+                self.port_map.append(((C2,p2,c2), (C1,p1,c1)))
             else:
-                self.port_map.append( ( (C1,p1,c1), (C2,p2,c2) ) )
+                self.port_map.append(((C1,p1,c1), (C2,p2, c2)))
 
 
         # Store the remaining variables:
         self.connector = connector
 
         self.connection_properties = { k: NeuroUnitParser._string_to_expr_node(v) for (k,v) in connection_properties.items() }
-        for k,v in self.connection_properties.items():
+        for k, v in self.connection_properties.items():
             # Create a new node-id for the node:
             id_annotator = self.connection_object.annotation_mgr._annotators['node-ids']
             id_annotator.visit(v)
@@ -303,9 +303,9 @@ class Network(object):
 
 
 
-        self._record_traces = defaultdict( list )
-        self._record_output_events = defaultdict( list )
-        self._record_input_events = defaultdict( list )
+        self._record_traces = defaultdict(list )
+        self._record_output_events = defaultdict(list )
+        self._record_input_events = defaultdict(list )
 
         # Setup properly by finalise:
         self.all_trace_recordings = None
@@ -355,7 +355,7 @@ class Network(object):
 
     def record_input_events(self, subpopulations, port_name):
         assert not self.is_frozen
-        if isinstance(subpopulations, (Population,SubPopulation)):
+        if isinstance(subpopulations, (Population, SubPopulation)):
             subpopulations = [subpopulations]
         for subpop in subpopulations:
             self._record_input_events_for_population(subpop, port_name)
@@ -374,17 +374,17 @@ class Network(object):
 
         for terminal_node_name in terminal_node_names:
             terminal_node = population.component.get_terminal_obj(terminal_node_name)
-            self._record_traces[(population, terminal_node)].append( (subpop.indices, subpop.autotag) )
+            self._record_traces[(population, terminal_node)].append((subpop.indices, subpop.autotag) )
 
     def _record_output_events_for_population(self, subpop, terminal_node_name):
         population = subpop.population
         terminal_node = population.component.output_event_port_lut.get_single_obj_by(symbol=terminal_node_name)
-        self._record_output_events[(population, terminal_node)].append( (subpop.indices, subpop.autotag) )
+        self._record_output_events[(population, terminal_node)].append((subpop.indices, subpop.autotag) )
 
     def _record_input_events_for_population(self, subpop, terminal_node_name):
         population = subpop.population
         terminal_node = population.component.input_event_port_lut.get_single_obj_by(symbol=terminal_node_name)
-        self._record_input_events[(population, terminal_node)].append( (subpop.indices, subpop.autotag) )
+        self._record_input_events[(population, terminal_node)].append((subpop.indices, subpop.autotag) )
 
 
 
@@ -394,7 +394,7 @@ class Network(object):
         self.is_frozen=True
         # Work out which traces to record:
         def curr_rec_offset(lst):
-            return 0 if lst == [] else ( lst[-1].global_offset + lst[-1].size )
+            return 0 if lst == [] else (lst[-1].global_offset + lst[-1].size )
 
         # Traces:
         assert self.all_trace_recordings is None
@@ -403,7 +403,7 @@ class Network(object):
             for indices, autotag in sorted(values):
                 global_offset = curr_rec_offset(self.all_trace_recordings)
                 size = indices[1] - indices[0]
-                self.all_trace_recordings.append( PopRec( global_offset=global_offset, size=size, src_population=population, src_pop_start_index=indices[0], node=terminal_node, tags=autotag ) )
+                self.all_trace_recordings.append(PopRec(global_offset=global_offset, size=size, src_population=population, src_pop_start_index=indices[0], node=terminal_node, tags=autotag))
         self.n_trace_recording_buffers =  curr_rec_offset(self.all_trace_recordings)
 
 
@@ -416,7 +416,7 @@ class Network(object):
             for indices, autotag in sorted(values):
                 global_offset = curr_rec_offset(self.all_output_event_recordings)
                 size = indices[1] - indices[0]
-                self.all_output_event_recordings.append( PopRec( global_offset=global_offset, size=size, src_population=population, src_pop_start_index=indices[0], node=terminal_node, tags=autotag ) )
+                self.all_output_event_recordings.append(PopRec(global_offset=global_offset, size=size, src_population=population, src_pop_start_index=indices[0], node=terminal_node, tags=autotag))
         self.n_output_event_recording_buffers =  curr_rec_offset(self.all_output_event_recordings)
 
 
@@ -427,7 +427,7 @@ class Network(object):
             for indices, autotag in sorted(values):
                 global_offset = curr_rec_offset(self.all_input_event_recordings)
                 size = indices[1] - indices[0]
-                self.all_input_event_recordings.append( PopRec( global_offset=global_offset, size=size, src_population=population, src_pop_start_index=indices[0], node=terminal_node, tags=autotag ) )
+                self.all_input_event_recordings.append(PopRec(global_offset=global_offset, size=size, src_population=population, src_pop_start_index=indices[0], node=terminal_node, tags=autotag))
         self.n_input_event_recording_buffers =  curr_rec_offset(self.all_input_event_recordings)
 
 
@@ -450,7 +450,7 @@ class Network(object):
         # Sanity check on the analog connectors:
         for apc in self.analog_port_connectors:
             #from neurounits import ast
-            for src,dst in apc.port_map:
+            for src, dst in apc.port_map:
                 # Lets check that src_ports are always state-variables when then are from the populations, rather than
                 # assigned variables. Otherwise, these will require more work to implement.
                 src_comp, src_port, src_pop_str = src
@@ -465,10 +465,10 @@ class Network(object):
 
 
     def add(self, obj):
-        if isinstance( obj, Population):
+        if isinstance(obj, Population):
             self.populations.append(obj)
 
-        elif isinstance( obj, EventPortConnector):
+        elif isinstance(obj, EventPortConnector):
             self.event_port_connectors.append(obj)
 
         elif isinstance(obj, AnalogPortConnector):
@@ -534,7 +534,7 @@ class ExplicitIndicesSet(PopulationConnector):
 
     def build_c(self, src_pop_size_expr, dst_pop_size_expr, add_connection_functor, add_connection_set_functor):
 
-        src_tgt_map = defaultdict( set)
+        src_tgt_map = defaultdict(set)
         for i,j in self.indices:
             src_tgt_map[i].add(j);
 
@@ -544,7 +544,7 @@ class ExplicitIndicesSet(PopulationConnector):
         tmpl = Template('''
 
         %for src, tgts in src_tgt_map.items():
-            <%tgt_str = ','.join( ['IntType(%s)'%t for t in tgts ] ) %>
+            <%tgt_str = ','.join(['IntType(%s)'%t for t in tgts ] ) %>
             IntType tgts_from_${src}[] = { ${tgt_str} };
             IntType tgts_from_${src}_len = IntType(${len(tgts)} ) ;
 
@@ -566,7 +566,7 @@ class ExplicitIndicesLoop(PopulationConnector):
 
     def build_c(self, src_pop_size_expr, dst_pop_size_expr, add_connection_functor, add_connection_set_functor):
 
-        src_tgt_map = defaultdict( set)
+        src_tgt_map = defaultdict(set)
         for i,j in self.indices:
             src_tgt_map[i].add(j);
 

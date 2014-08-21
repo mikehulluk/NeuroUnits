@@ -197,5 +197,5 @@ class ASTActionerDefault(ASTActionerDepthFirst):
     def ActionAutoRegressiveModel(self,o,**kwargs):
         return self.ActionNode(o, **kwargs)
 
-    def ActionOnConditionCrossing(self,o,**kwargs):
+    def ActionOnConditionCrossing(self,o, **kwargs):
         return self.ActionNode(o, **kwargs)

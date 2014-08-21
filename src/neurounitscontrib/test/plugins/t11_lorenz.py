@@ -39,7 +39,7 @@ class TestRunLorenz(TestingPluginBase):
     def get_name(self, ):
         return 'Test Lorenz'
 
-    def print_results(self,):
+    def print_results(self):
         print 'Results:'
 
 
