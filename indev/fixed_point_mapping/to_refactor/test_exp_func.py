@@ -102,7 +102,7 @@ filters_traces = [
 
 
 
-results.plot(trace_filters=filters_traces, spike_filters=None, legend=True) #, xlim = (0.0,0.07)  )
+results.plot(trace_filters=filters_traces, spike_filters=None, legend=True) #, xlim = (0.0,0.07))
 
 
 

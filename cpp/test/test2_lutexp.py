@@ -32,7 +32,7 @@ def test_lut(lut_address_size, lut_input_range_upscale, input_range, exp_out_sca
 
     
     
-    exp_in_scale = exp_in_scale if  exp_in_scale is not None else lut_input_range_upscale
+    exp_in_scale = exp_in_scale if exp_in_scale is not None else lut_input_range_upscale
     
     x = np.linspace(input_range[0],input_range[1],num=1000)
     exp_x_int = getexp( from_float(x, exp_in_scale), exp_in_scale, exp_out_scale)
