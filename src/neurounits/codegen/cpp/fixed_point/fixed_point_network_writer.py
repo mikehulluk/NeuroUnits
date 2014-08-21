@@ -3116,9 +3116,9 @@ class CBasedEqnWriterFixedNetwork(object):
 
         nbits = NumberFormat.get_nbits(number_format)
 
-        # Temp hack:
-        if nbits is None:
-            nbits = 28
+        ## Temp hack:
+        #if nbits is None:
+        #    nbits = 28
 
 
         # There is an opportunity here. Sometimes, the parameters are going to be constants - so
@@ -3336,7 +3336,7 @@ class CBasedEqnWriterFixedNetwork(object):
                                         additional_include_paths=["~/dev/hdf-jive/include",'~/dev/NeuroUnits/cpp/include/', ],
                                         additional_library_paths=["~/dev/hdf-jive/lib/","~/hw/BlueVec/lib/"],
                                         libraries = ['mpfr','hdfjive','hdf5','hdf5_hl'],
-                                        compile_flags=['-Wall  -Wfatal-errors -std=gnu++0x  -O2  -g ' + (CPPFLAGS if CPPFLAGS else '') ]
+                                        compile_flags=['-Wall  -Wfatal-errors -Wno-unused-local-typedefs -std=gnu++0x  -O2  -g ' + (CPPFLAGS if CPPFLAGS else '') ]
                                         
                                         ),
                                     run=run,
